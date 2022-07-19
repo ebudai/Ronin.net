@@ -30,6 +30,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Code\declarations.ronin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Code\included.ronin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

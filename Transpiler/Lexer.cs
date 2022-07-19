@@ -27,9 +27,12 @@ internal static class Lexer
             {
                 foreach (var (regex, tokenType) in TokenMatchers_)
                 {
-                    var match = regex.Match(words[column..]);
+                    var chunk = words[column..];
+                    var match = regex.Match(chunk);
                     if (!match.Success) continue;
-                    if (match.Value.Length != words.Length) continue;
+                    var index = chunk.IndexOf(' ');
+                    if (index is -1) index = chunk.Length;
+                    if (match.Value.Trim().Length != chunk[..index].Length) continue;
 
                     properties.Clear();
                     
@@ -115,7 +118,9 @@ internal static class Lexer
         (new(@"^{\s*"                                   , Options), typeof(OpenBraceSymbol)),
         (new(@"^\(\s*"                                  , Options), typeof(OpenBracketSymbol)),
         (new(@"^\[\s*"                                  , Options), typeof(OpenSquareBracketSymbol)),
-        (new(@"^include\s+"                             , Options), typeof(IncludeKeyword)),
-        (new(@"^type\s+"                                , Options), typeof(TypeKeyword)),
+        (new(@"^;\s*"                                   , Options), typeof(TerminalSymbol)),
+        (new(@"^include\s*"                             , Options), typeof(IncludeKeyword)),
+        (new(@"^type\s*"                                , Options), typeof(TypeKeyword)),
+        (new(@"^(?<Value>[A-Za-z][A-Za-z0-9_]*)\s*"     , Options), typeof(Name)),
     };
 }
