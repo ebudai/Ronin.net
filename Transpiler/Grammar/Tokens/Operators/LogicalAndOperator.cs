@@ -1,6 +1,10 @@
-﻿namespace Ronin.Transpiler.Grammar.Tokens.Operators;
+﻿using System.Text.RegularExpressions;
 
-internal class LogicalAndOperator : Token
+namespace Ronin.Transpiler.Grammar.Tokens.Operators;
+
+internal class LogicalAndOperator : Operator
 {
-    public override string ToString() => "&&";
+    public override Regex[] Regexes { get; } = { new(@"^&&", options) };
+
+    protected internal override Precedence Precedence => Precedence.LogicalAnd;
 }

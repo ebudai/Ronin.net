@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace Ronin.Transpiler.Grammar.Statements;
 
-internal class ImportStatement : Statement
+internal class IncludeStatement : Statement
 {
 }

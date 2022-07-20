@@ -1,6 +1,8 @@
-﻿namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+﻿using System.Text.RegularExpressions;
 
-internal class CloseBraceSymbol : Token
+namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+
+internal class CloseBraceSymbol : Symbol
 {
-    public override string ToString() => "}";
+    public override Regex[] Regexes { get; } = { new(@"^}", options) };
 }

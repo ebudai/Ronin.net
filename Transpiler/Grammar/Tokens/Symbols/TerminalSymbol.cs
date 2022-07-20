@@ -1,6 +1,8 @@
-﻿namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+﻿using System.Text.RegularExpressions;
 
-internal class TerminalSymbol : Token
+namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+
+internal class TerminalSymbol : Symbol
 {
-    public override string ToString() => ";";
+    public override Regex[] Regexes { get; } = { new("^;", options) };
 }

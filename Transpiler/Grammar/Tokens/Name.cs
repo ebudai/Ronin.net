@@ -1,8 +1,10 @@
-﻿namespace Ronin.Transpiler.Grammar.Tokens;
+﻿using System.Text.RegularExpressions;
 
-internal class Name : Token
+namespace Ronin.Transpiler.Grammar.Tokens;
+
+internal class Identifier : Token
 {
-    public string Value { get; set; }
+    public string Value = string.Empty;
 
-    public override string ToString() => Value;
+    public override Regex[] Regexes { get; } = { new(@"^(?<Value>[A-Za-z][A-Za-z0-9_]*)", options) };
 }

@@ -1,6 +1,8 @@
-﻿namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+﻿using System.Text.RegularExpressions;
 
-internal class OpenSquareBracketSymbol : Token
+namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+
+internal class OpenSquareBracketSymbol : Symbol
 {
-    public override string ToString() => "[";
+    public override Regex[] Regexes { get; } = { new(@"^\[", options) };
 }

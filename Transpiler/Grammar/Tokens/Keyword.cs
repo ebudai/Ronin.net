@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Ronin.Transpiler.Grammar.Tokens;
 
-namespace Ronin.Transpiler.Grammar.Tokens;
-
-internal abstract class Keyword : Token { }
+internal abstract class Keyword : Token
+{
+    public static Keyword[] GetKeywords() => typeof(Token).Assembly.DefinedTypes
+        .Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(Keyword)))
+        .Select(type => Activator.CreateInstance(type) as Keyword)
+        .ToArray();
+}

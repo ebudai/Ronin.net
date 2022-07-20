@@ -1,6 +1,8 @@
-﻿namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+﻿using System.Text.RegularExpressions;
 
-internal class OpenBraceSymbol : Token
+namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+
+internal class OpenBraceSymbol : Symbol
 {
-    public override string ToString() => "{";
+    public override Regex[] Regexes { get; } = { new(@"^{", options) };
 }

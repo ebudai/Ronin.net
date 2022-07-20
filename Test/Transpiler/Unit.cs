@@ -8,7 +8,7 @@ public class Unit
     public void ParseIncludeStatement()
     {
         FileInfo file = new(@"Code\statements.ronin");
-        var tokens = Lexer.GetTokens(File.ReadAllLines(file.FullName));
+        var tokens = Lexer.Lex(File.ReadAllLines(file.FullName));
         Assert.Equal(2, tokens.Length);
     }
 
@@ -17,7 +17,7 @@ public class Unit
     {
         FileInfo file = new(@"Code\literals.ronin");
         var lines = File.ReadAllLines(file.FullName);
-        var tokens = Lexer.GetTokens(lines);
+        var tokens = Lexer.Lex(lines);
         Assert.Equal(lines.Length, tokens.Length);
     }
 
@@ -25,7 +25,7 @@ public class Unit
     public void ParseTypeDeclareStatement()
     {
         FileInfo file = new(@"Code\declarations.ronin");
-        var tokens = Lexer.GetTokens(File.ReadAllLines(file.FullName));
+        var tokens = Lexer.Lex(File.ReadAllLines(file.FullName));
         Assert.Equal(4, tokens.Length);
     }
 }

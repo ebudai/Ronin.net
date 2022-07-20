@@ -1,6 +1,10 @@
-﻿namespace Ronin.Transpiler.Grammar.Tokens.Operators;
+﻿using System.Text.RegularExpressions;
 
-internal class RightShiftOperator : Token
+namespace Ronin.Transpiler.Grammar.Tokens.Operators;
+
+internal class RightShiftOperator : Operator
 {
-    public override string ToString() => ">>";
+    public override Regex[] Regexes { get; } = { new(@"^>>", options) };
+
+    protected internal override Precedence Precedence => Precedence.Shift;
 }

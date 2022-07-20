@@ -2,11 +2,9 @@
 
 namespace Ronin.Transpiler.Grammar.Tokens;
 
-internal sealed class Whitespace : Token
+internal class Whitespace : Token
 {
-    public Whitespace() : base() { }
+    internal string Spaces = string.Empty;
 
-    public string Spaces { get; private set; } = string.Empty;
-
-    public override string ToString() => Spaces;   
+    public override Regex[] Regexes { get; } = { new(@"^(?<Spaces>\s+)", options) };
 }
