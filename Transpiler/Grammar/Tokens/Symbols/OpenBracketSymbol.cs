@@ -1,8 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
 
-namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
-
-internal class OpenBracketSymbol : Symbol
+internal abstract class OpenBracketSymbol<T> : Symbol where T : CloseBracketSymbol
 {
-    public override Regex[] Regexes { get; } = { new(@"^\(", options) };
+    
 }

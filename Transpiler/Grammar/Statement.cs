@@ -1,5 +1,6 @@
 ﻿namespace Ronin.Transpiler.Grammar;
 
-internal class IncludeStatement : Statement
+internal abstract class Statement
 {
+    
 }

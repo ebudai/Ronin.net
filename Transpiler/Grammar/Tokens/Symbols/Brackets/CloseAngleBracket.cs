@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Ronin.Transpiler.Grammar.Tokens.Symbols;
+namespace Ronin.Transpiler.Grammar.Tokens.Symbols.Brackets;
 
-internal class CloseAngleBracketSymbol : Symbol
+internal class CloseAngleBracket : CloseBracketSymbol
 {
     public override Regex[] Regexes { get; } = { new(@"^>", options) };
 }

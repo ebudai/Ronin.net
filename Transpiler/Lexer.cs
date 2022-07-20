@@ -1,6 +1,7 @@
 ﻿using Ronin.Transpiler.Grammar;
 using Ronin.Transpiler.Grammar.Tokens;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Ronin.Transpiler;
 
@@ -37,9 +38,21 @@ internal static class Lexer
             
             while (column < words.Length)
             {
-                foreach (var token in Tokens)
+                var whatsLeft = words[column..];
+
+                for (int index = 0, max = Tokens.Count; index != max; ++index)
                 {
-                    var whatsLeft = words[column..];
+                    var token = Tokens[index];
+
+                    // if the keyword does not apply here, it is instead an Identifier
+                    if (token is Keyword keyword && !keyword.Applies.HasFlag(LexicalScope.Global))
+                    {
+                        // lame
+                        var patternField = typeof(Regex).GetField("pattern", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var pattern = patternField.GetValue(keyword) as string;
+                        token = new Identifier() { Value = pattern };
+                    }
+                    
                     var matches = token.Regexes.Select(regex => regex.Match(whatsLeft)).Where(match =>
                     {
                         if (!match.Success) return false;
@@ -65,9 +78,9 @@ internal static class Lexer
 
                     token.Line = line;
                     token.Column = column;
-                    foreach (var property in fields)
+                    foreach (var field in fields)
                     {
-                        property.SetValue(token, match.Groups[property.Name].Value);
+                        field.SetValue(token, match.Groups[field.Name].Value);
                     }
                     if (token is Whitespace whitespace)
                     {
@@ -86,25 +99,4 @@ internal static class Lexer
 
         return tokens.ToArray();
     }
-
-    /*private static readonly Dictionary<Type[], Type> StatementMatchers = new()
-    {
-        { new[] { typeof(IncludeKeyword) }, typeof(IncludeStatement) }
-    };
-
-    private class TypeArrayComparer : IComparer<Type[]>
-    {
-        public int Compare(Type[] x, Type[] y)
-        {
-            var compare = x.Length.CompareTo(y.Length);
-            if (compare is not 0) return compare;
-            if (Enumerable.SequenceEqual(x, y)) return 0;
-            for (int i = 0, max = x.Length; i != max; ++i) // x and y are same length
-            {
-                compare = x[i].FullName.CompareTo(y[i].FullName);
-                if (compare is not 0) return compare;
-            }
-            return 0;
-        }
-    }*/
 }
