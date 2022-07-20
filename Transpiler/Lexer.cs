@@ -25,7 +25,7 @@ internal static class Lexer
 
     internal static Token[] Lex(string[] lines)
     {
-        const BindingFlags binding = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+        const BindingFlags binding = BindingFlags.Public | BindingFlags.Instance;
 
         List<Token> tokens = new(256);
         List<FieldInfo> fields = new(16);
@@ -61,7 +61,7 @@ internal static class Lexer
                         fields.Add(field);
                     }
 
-                    if (fields.Count != token.GetType().GetProperties(binding).Length) continue;
+                    if (fields.Count != token.GetType().GetFields(binding).Length) continue;
 
                     token.Line = line;
                     token.Column = column;
