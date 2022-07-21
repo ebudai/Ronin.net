@@ -4,7 +4,7 @@ namespace Ronin.Transpiler.Grammar.Tokens.Operators;
 
 internal class UnaryPlusOperator : Operator
 {
-    public override Regex[] Regexes { get; } = { new(@"^+", options) };
+    public override Regex[] Regexes { get; } = { new(@"^[+]", options) };
 
     protected internal override Precedence Precedence => Precedence.Unary;
 }

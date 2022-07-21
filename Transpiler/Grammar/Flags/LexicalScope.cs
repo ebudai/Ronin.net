@@ -1,4 +1,4 @@
-﻿namespace Ronin.Transpiler.Grammar.Tokens;
+﻿namespace Ronin.Transpiler.Grammar.Flags;
 
 [Flags]
 internal enum LexicalScope : uint

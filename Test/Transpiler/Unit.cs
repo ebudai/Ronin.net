@@ -5,14 +5,6 @@ namespace Ronin.Test.Transpiler;
 public class Unit
 {
     [Fact]
-    public void ParseIncludeStatement()
-    {
-        FileInfo file = new(@"Code\statements.ronin");
-        var tokens = Lexer.Lex(File.ReadAllLines(file.FullName));
-        Assert.Equal(2, tokens.Length);
-    }
-
-    [Fact]
     public void LexLiterals()
     {
         FileInfo file = new(@"Code\literals.ronin");
@@ -22,7 +14,7 @@ public class Unit
     }
 
     [Fact]
-    public void ParseTypeDeclareStatement()
+    public void LexDeclarations()
     {
         FileInfo file = new(@"Code\declarations.ronin");
         var tokens = Lexer.Lex(File.ReadAllLines(file.FullName));

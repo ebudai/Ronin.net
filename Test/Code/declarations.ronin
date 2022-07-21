@@ -2,3 +2,20 @@
 {
 	
 }
+
+bool a;
+byte b;
+char c;
+double d;
+dynamic e;
+float f;
+half g;
+int h;
+long i;
+object j;
+sbyte k;
+short l;
+string m;
+uint n;
+ulong o;
+ushort p;

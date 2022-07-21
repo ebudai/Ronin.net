@@ -1,11 +1,12 @@
 ﻿using Ronin.Transpiler.Grammar;
+using Ronin.Transpiler.Grammar.Flags;
 using Ronin.Transpiler.Grammar.Tokens;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace Ronin.Transpiler;
 
-internal static class Lexer
+internal class Lexer
 {
     // order matters - first one to match wins
     private static readonly List<Token> Tokens = new(64);
@@ -24,6 +25,17 @@ internal static class Lexer
         Tokens.Add(new Unparsable());
     }
 
+    internal Token[] Lex(string code)
+    {
+        var tokens = TokenizeLiterals(code);
+
+    }
+
+    internal Token[] TokenizeLiterals(string code)
+    {
+
+    }
+
     internal static Token[] Lex(string[] lines)
     {
         const BindingFlags binding = BindingFlags.Public | BindingFlags.Instance;
@@ -34,8 +46,10 @@ internal static class Lexer
         for (int line = 0, maxLine = lines.Length; line != maxLine; ++line)
         {
             int column = 0;
-            ref string words = ref lines[line];
-            
+            int indentation = 0;
+
+            ref string words = ref lines[line];            
+
             while (column < words.Length)
             {
                 var whatsLeft = words[column..];
@@ -44,11 +58,15 @@ internal static class Lexer
                 {
                     var token = Tokens[index];
 
+                    if (token is Identifier)
+                    {
+                        int i = 3;
+                    }
                     // if the keyword does not apply here, it is instead an Identifier
                     if (token is Keyword keyword && !keyword.Applies.HasFlag(LexicalScope.Global))
                     {
                         // lame
-                        var patternField = typeof(Regex).GetField("pattern", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var patternField = typeof(Regex).GetField("pattern", binding);
                         var pattern = patternField.GetValue(keyword) as string;
                         token = new Identifier() { Value = pattern };
                     }
@@ -57,9 +75,13 @@ internal static class Lexer
                     {
                         if (!match.Success) return false;
                         // make sure we matched the whole thing
+                        // this is for cases where we have things like 'returnable',
+                        // so we don't match on 'return'
                         var index = whatsLeft.IndexOf(' ');
                         if (index is -1) index = whatsLeft.Length;
-                        return match.Value.Trim().Length == whatsLeft[..index].Length;
+                        var value = match.Value;
+                        if (token is not Whitespace) value = value.Trim();
+                        return value.Length == whatsLeft[..index].Length;
                     }).ToArray();
 
                     if (matches.Length is 0) continue;
@@ -78,20 +100,30 @@ internal static class Lexer
 
                     token.Line = line;
                     token.Column = column;
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(token, match.Groups[field.Name].Value);
-                    }
                     if (token is Whitespace whitespace)
                     {
-                        token.Indentation = whitespace.Spaces.Length;
+                        indentation = whitespace.Spaces.Length;
                     }
                     else
                     {
                         tokens.Add(token.Clone());
-                        token.Indentation = 0;
+                        indentation = 0;
                     }
+                    token.Indentation = indentation;
+
+                    foreach (var field in fields)
+                    {
+                        field.SetValue(token, match.Groups[field.Name].Value);
+                    }
+
                     column += match.Length;
+
+                    if (token is Unparsable)
+                    {
+                        int i = 3;
+                    }
+
+
                     break;
                 }
             }
