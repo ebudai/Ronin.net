@@ -26,11 +26,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Transpiler\Transpiler.csproj" />
+    <ProjectReference Include="..\Transpiler\TranspilerOLD.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="lexing.ronin">
+    <None Update="Code\declarations.ronin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Code\included.ronin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Code\literals.ronin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Code\statements.ronin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

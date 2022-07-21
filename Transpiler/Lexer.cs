@@ -1,134 +1,79 @@
-﻿using Ronin.Transpiler.Grammar;
-using Ronin.Transpiler.Grammar.Flags;
-using Ronin.Transpiler.Grammar.Tokens;
-using System.Reflection;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace Ronin.Transpiler;
 
-internal class Lexer
+internal static class Lexer
 {
-    // order matters - first one to match wins
-    private static readonly List<Token> Tokens = new(64);
-    
-    static Lexer() 
-    {
-        Tokens.Add(new Whitespace());
-
-        Tokens.AddRange(Symbol.GetSymbols());
-        Tokens.AddRange(Operator.GetOperators());
-        Tokens.AddRange(Literal.GetLiterals());
-        Tokens.AddRange(Keyword.GetKeywords());
-
-        Tokens.Add(new Identifier());
-
-        Tokens.Add(new Unparsable());
-    }
-
-    internal Token[] Lex(string code)
-    {
-        var tokens = TokenizeLiterals(code);
-
-    }
-
-    internal Token[] TokenizeLiterals(string code)
-    {
-
-    }
-
     internal static Token[] Lex(string[] lines)
     {
-        const BindingFlags binding = BindingFlags.Public | BindingFlags.Instance;
-
-        List<Token> tokens = new(256);
-        List<FieldInfo> fields = new(16);
-
-        for (int line = 0, maxLine = lines.Length; line != maxLine; ++line)
+        List<Token> tokens = new(1 << 16);
+        for (int lineNumber = 0, max = lines.Length; lineNumber != max; ++lineNumber)
         {
+            string line = lines[lineNumber];
             int column = 0;
-            int indentation = 0;
 
-            ref string words = ref lines[line];            
-
-            while (column < words.Length)
+            while (column < line.Length)
             {
-                var whatsLeft = words[column..];
-
-                for (int index = 0, max = Tokens.Count; index != max; ++index)
+                var parsed = false;
+                foreach (var regex in lexicalOrder)
                 {
-                    var token = Tokens[index];
-
-                    if (token is Identifier)
+                    var match = regex.Match(line[column..]);
+                    if (match.Success)
                     {
-                        int i = 3;
+                        if (!string.IsNullOrWhiteSpace(match.Value))
+                        {
+                            tokens.Add(new()
+                            {
+                                Value = match.Value,
+                                Column = column,
+                                Line = lineNumber,
+                            });
+                        }
+                        column += match.Length;
+                        parsed = true;
+                        break;
                     }
-                    // if the keyword does not apply here, it is instead an Identifier
-                    if (token is Keyword keyword && !keyword.Applies.HasFlag(LexicalScope.Global))
-                    {
-                        // lame
-                        var patternField = typeof(Regex).GetField("pattern", binding);
-                        var pattern = patternField.GetValue(keyword) as string;
-                        token = new Identifier() { Value = pattern };
-                    }
-                    
-                    var matches = token.Regexes.Select(regex => regex.Match(whatsLeft)).Where(match =>
-                    {
-                        if (!match.Success) return false;
-                        // make sure we matched the whole thing
-                        // this is for cases where we have things like 'returnable',
-                        // so we don't match on 'return'
-                        var index = whatsLeft.IndexOf(' ');
-                        if (index is -1) index = whatsLeft.Length;
-                        var value = match.Value;
-                        if (token is not Whitespace) value = value.Trim();
-                        return value.Length == whatsLeft[..index].Length;
-                    }).ToArray();
-
-                    if (matches.Length is 0) continue;
-                    var match = matches[0];
-                    
-                    fields.Clear();
-                    
-                    for (int group = 1, maxGroup = match.Groups.Count; group <= maxGroup; ++group)
-                    {
-                        var field = token.GetType().GetField(match.Groups[group].Name, binding);
-                        if (field is null) break;
-                        fields.Add(field);
-                    }
-
-                    if (fields.Count != token.GetType().GetFields(binding).Length) continue;
-
-                    token.Line = line;
-                    token.Column = column;
-                    if (token is Whitespace whitespace)
-                    {
-                        indentation = whitespace.Spaces.Length;
-                    }
-                    else
-                    {
-                        tokens.Add(token.Clone());
-                        indentation = 0;
-                    }
-                    token.Indentation = indentation;
-
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(token, match.Groups[field.Name].Value);
-                    }
-
-                    column += match.Length;
-
-                    if (token is Unparsable)
-                    {
-                        int i = 3;
-                    }
-
-
-                    break;
                 }
+
+                if (!parsed) throw new Exception("unparsable token " + line[column..]);
             }
         }
-
         return tokens.ToArray();
     }
+
+    private const RegexOptions options = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline | RegexOptions.ExplicitCapture;
+    
+    private static readonly Regex whitespace =          new(@"^\s+"                             , options);
+    private static readonly Regex stringLiterals =      new(@"^""[^""\\]*(\\.[^""\\]*)*"""      , options);
+    private static readonly Regex characterLiterals =   new(@"^'\\?.'"                          , options);
+    private static readonly Regex unicodeLiterals =     new(@"^'\\u[a-fA-F0-9]{4}'"             , options);
+    private static readonly Regex hexLiterals =         new(@"^0[xX][\d_a-fA-F]+"               , options);
+    private static readonly Regex binaryLiterals =      new(@"^0[bB][01_]+"                     , options);
+    private static readonly Regex integerLiterals =     new(@"^\d[\d_]*[uU]?[lL]?"              , options);
+    private static readonly Regex floatLiterals =       new(@"^\d[\d_]*[.]?[\d_]*[fF]"          , options);
+    private static readonly Regex doubleLiterals =      new(@"^\d[\d_]*([.][\d_]*[dD]?)|[dD]"   , options);
+    private static readonly Regex decimalLiterals =     new(@"^\d[\d_]*([.][\d_])?[\d_]*[mM]"   , options);
+    private static readonly Regex symbols =             new(@"^[-\\~!@#%^&*=+,.;'/?:<>|""]"     , options);
+    private static readonly Regex brackets =            new(@"^\(\[{<>}\]\)"                    , options);
+    private static readonly Regex keywords =            new(@"var|type"                         , options);
+    private static readonly Regex identifiers =         new(@"^[A-Za-z_][A-Za-z0-9_]*"          , options);
+    
+    private static readonly Regex[] lexicalOrder =
+    {
+        whitespace,
+        stringLiterals,
+        characterLiterals,
+        unicodeLiterals,
+        hexLiterals,
+        binaryLiterals,        
+        floatLiterals,
+        doubleLiterals, 
+        decimalLiterals,
+        integerLiterals, //TODO support 128 bit?
+        symbols,
+        brackets,
+        keywords,
+        identifiers,
+    };
 }
+
