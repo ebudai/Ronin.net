@@ -47,6 +47,10 @@ public class Unit
             "54.5652f",
             "56456F",
             "3773.f",
+            "123.0",
+            "53434.2323",
+            "243232d",
+            "240876.87D",
         };
         var lines = File.ReadAllLines("lexing.ronin");
         var tokens = Lexer.Lex(lines);
