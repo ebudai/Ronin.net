@@ -52,11 +52,11 @@ internal static class Lexer
     private static readonly Regex floats =          new(@"^\d[\d_]*(([.][\d_]+(r(32)?)?)|r(32)?)"   , options);
     private static readonly Regex reals =           new(@"^\d[\d_]*([.][\d_])?[\d_]*r(16|64)"       , options);
     private static readonly Regex decimals =        new(@"^\$\d[\d_]*([.][\d_])?[\d_]*"             , options);
-    private static readonly Regex integers =        new(@"^\d[\d_]*(i(8|16|32|64))?"                , options);
+    private static readonly Regex integers =        new(@"^\d[\d_]*(i(8|16|32|64)?)?"               , options);
     private static readonly Regex symbols =         new(@"^[-\\~!@#%^&*=+,.;'/?:<>|""]"             , options);
     private static readonly Regex brackets =        new(@"^\(\[{<>}\]\)"                            , options);
     private static readonly Regex identifiers =     new(@"^[a-z_][a-z0-9_]*"                        , options);
-    private static readonly Regex keywords =        new(@"var|type"                                 , options & ~RegexOptions.IgnoreCase);
+    //private static readonly Regex keywords =        new(@"var|type"                                 , options & ~RegexOptions.IgnoreCase);
 
     private static readonly Regex[] lexicalOrder =
     {
@@ -72,7 +72,7 @@ internal static class Lexer
         integers, //TODO support 128 bit?
         symbols,
         brackets,
-        keywords,
+        //keywords,
         identifiers,
     };
 }

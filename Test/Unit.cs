@@ -36,6 +36,18 @@ public class Unit
             "343r16",
             "3443.222R16",
             "234059.23r64",
+            "$125.33",
+            "$8",
+            "$405.2342323",
+            "2345",
+            "1",
+            "0",
+            "15i8",
+            "16i",
+            "666i16",
+            "12888I",
+            "4I32",
+            "8000I64",
         };
         var lines = File.ReadAllLines("lexing.ronin");
         var tokens = Lexer.Lex(lines);
