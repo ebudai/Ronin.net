@@ -41,23 +41,23 @@ internal static class Lexer
         return tokens.ToArray();
     }
 
-    private const RegexOptions options = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline | RegexOptions.ExplicitCapture;
+    private const RegexOptions options = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase;
     
-    private static readonly Regex whitespace =      new(@"^\s+"                             , options);
-    private static readonly Regex strings =         new(@"^""[^""\\]*(\\.[^""\\]*)*"""      , options);
-    private static readonly Regex characters =      new(@"^'\\?.'"                          , options);
-    private static readonly Regex unicodes =        new(@"^'\\u[a-fA-F0-9]{4}'"             , options);
-    private static readonly Regex hexadecimals =    new(@"^0[xX][\d_a-fA-F]+"               , options);
-    private static readonly Regex binaries =        new(@"^0[bB][01_]+"                     , options);    
-    private static readonly Regex floats =          new(@"^\d[\d_]*[.]?[\d_]*[fF]"          , options);
-    private static readonly Regex doubles =         new(@"^\d[\d_]*(([.][\d_]*[dD]?)|[dD])" , options);
-    private static readonly Regex decimals =        new(@"^\d[\d_]*([.][\d_])?[\d_]*[mM]"   , options);
-    private static readonly Regex integers =        new(@"^\d[\d_]*[uU]?[lL]?"              , options);
-    private static readonly Regex symbols =         new(@"^[-\\~!@#%^&*=+,.;'/?:<>|""]"     , options);
-    private static readonly Regex brackets =        new(@"^\(\[{<>}\]\)"                    , options);
-    private static readonly Regex keywords =        new(@"var|type"                         , options);
-    private static readonly Regex identifiers =     new(@"^[A-Za-z_][A-Za-z0-9_]*"          , options);
-    
+    private static readonly Regex whitespace =      new(@"^\s+"                                     , options);
+    private static readonly Regex strings =         new(@"^""[^""\\]*(\\.[^""\\]*)*"""              , options);
+    private static readonly Regex characters =      new(@"^'\\?.'"                                  , options);
+    private static readonly Regex unicodes =        new(@"^'\\u[a-f0-9]{4}'"                        , options);
+    private static readonly Regex hexadecimals =    new(@"^0x[\d_a-f]+"                             , options);
+    private static readonly Regex binaries =        new(@"^0b[01_]+"                                , options);
+    private static readonly Regex floats =          new(@"^\d[\d_]*(([.][\d_]+(r(32)?)?)|r(32)?)"   , options);
+    private static readonly Regex reals =           new(@"^\d[\d_]*([.][\d_])?[\d_]*r(16|64)"       , options);
+    private static readonly Regex decimals =        new(@"^\$\d[\d_]*([.][\d_])?[\d_]*"             , options);
+    private static readonly Regex integers =        new(@"^\d[\d_]*(i(8|16|32|64))?"                , options);
+    private static readonly Regex symbols =         new(@"^[-\\~!@#%^&*=+,.;'/?:<>|""]"             , options);
+    private static readonly Regex brackets =        new(@"^\(\[{<>}\]\)"                            , options);
+    private static readonly Regex identifiers =     new(@"^[a-z_][a-z0-9_]*"                        , options);
+    private static readonly Regex keywords =        new(@"var|type"                                 , options & ~RegexOptions.IgnoreCase);
+
     private static readonly Regex[] lexicalOrder =
     {
         whitespace,
@@ -65,9 +65,9 @@ internal static class Lexer
         characters,
         unicodes,
         hexadecimals,
-        binaries,        
-        floats,
-        doubles, 
+        binaries,
+        reals,
+        floats,         
         decimals,
         integers, //TODO support 128 bit?
         symbols,
