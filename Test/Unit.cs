@@ -1,3 +1,5 @@
+using Ronin.Transpiler.Statements;
+
 namespace Ronin.Transpiler.Test;
 
 public class Unit
@@ -73,6 +75,55 @@ public class Unit
         var tokens = Lexer.Lex(lines);
         Parser parser = new();
         var statements = parser.Parse(tokens);
-        Assert.Equal(5, statements.Length);
+        Assert.Equal(7, statements.Length);
+
+        // implicit tests
+        {
+            Assert.IsType<DeclareVariableImplicit>(statements[0]);
+            var @implicit = statements[0] as DeclareVariableImplicit;
+            Assert.Equal("x", @implicit.Name);
+            Assert.Equal("3", @implicit.Statement.ToString());
+            Assert.IsType<Literal>(@implicit.Statement);
+
+            Assert.IsType<DeclareVariableImplicit>(statements[1]);
+            @implicit = statements[1] as DeclareVariableImplicit;
+            Assert.Equal("this is my var", @implicit.Name);
+            Assert.Equal("\"12\"", @implicit.Statement.ToString());
+            Assert.IsType<Literal>(@implicit.Statement);
+
+            Assert.IsType<DeclareVariableImplicit>(statements[2]);
+            @implicit = statements[2] as DeclareVariableImplicit;
+            Assert.Equal("identifier test", @implicit.Name);
+            Assert.Equal("some identifier", @implicit.Statement.ToString());
+            Assert.IsType<Identifier>(@implicit.Statement);
+
+            Assert.IsType<DeclareVariableImplicit>(statements[5]);
+            @implicit = statements[5] as DeclareVariableImplicit;
+            Assert.Equal("dot test", @implicit.Name);
+            Assert.Equal("12.3", @implicit.Statement.ToString());
+            Assert.IsType<Literal>(@implicit.Statement);
+        }
+
+        // explicit tests
+        {
+            Assert.IsType<DeclareVariableExplicit>(statements[3]);
+            var @explicit = statements[3] as DeclareVariableExplicit;
+            Assert.Equal("new", @explicit.Name);
+            Assert.Equal("int", @explicit.Type);
+            Assert.Null(@explicit.Statement);
+
+            Assert.IsType<DeclareVariableExplicit>(statements[4]);
+            @explicit = statements[4] as DeclareVariableExplicit;
+            Assert.Equal("new2", @explicit.Name);
+            Assert.Equal("text", @explicit.Type);
+            Assert.Null(@explicit.Statement);
+
+            Assert.IsType<DeclareVariableExplicit>(statements[6]);
+            @explicit = statements[6] as DeclareVariableExplicit;
+            Assert.Equal("thingy", @explicit.Name);
+            Assert.Equal("int", @explicit.Type);
+            Assert.Equal("6", @explicit.Statement.ToString());
+            Assert.IsType<Literal>(@explicit.Statement);
+        }
     }
 }

@@ -1,5 +1,7 @@
 ﻿var x = 3.
 var this is my var = "12".
+var identifier test = some identifier.
 var new(int).
 var new2 (text).
 var dot test = 12.3.
+var thingy (int) = 6.

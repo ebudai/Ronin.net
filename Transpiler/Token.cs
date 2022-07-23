@@ -23,4 +23,12 @@ internal static class TokenExtensions
         }
         return -1;
     }
+
+    public static bool IsBefore(this ReadOnlySpan<Token> tokens, string before, string after)
+    {
+        var beforeindex = tokens.IndexOf(before);
+        if (beforeindex is -1) return false;
+        var afterindex = tokens.IndexOf(after);
+        return afterindex is -1 || beforeindex < afterindex;
+    }
 }

@@ -84,6 +84,7 @@ internal static class Lexer
         { characters, Token.Type.Literal },
         { unicodes, Token.Type.Literal },
         { hexadecimals, Token.Type.Literal },
+        { binaries, Token.Type.Literal },
         { reals, Token.Type.Literal },
         { floats, Token.Type.Literal },
         { decimals, Token.Type.Literal },
