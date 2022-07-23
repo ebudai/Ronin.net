@@ -73,6 +73,6 @@ public class Unit
         var tokens = Lexer.Lex(lines);
         Parser parser = new();
         var statements = parser.Parse(tokens);
-        Assert.True(true);
+        Assert.Equal(2, statements.Length);
     }
 }

@@ -21,7 +21,7 @@ internal class DeclareImplicitVariable : Statement
         tokens = tokens[terminal..][1..];
     }
 
-    public override string ToString() => $"{new string(' ', start.Column)}var {name} = {value};";
+    public override string ToString() => $"{new string(' ', start.Column)}var {string.Join<Token>('_', name)} = {value};";
 
     private readonly Token[] name;
     private readonly Statement value;
