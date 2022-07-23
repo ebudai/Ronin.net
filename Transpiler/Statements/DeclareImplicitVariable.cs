@@ -25,7 +25,7 @@ internal class DeclareVariable : Statement
         var terminal = tokens.IndexOf(Syntax.Terminal);
         if (terminal is -1) throw new Parser.Exception("unexpected end of file");
 
-        if (assign is not -1)
+        if (assign is not -1 && assign < terminal)
         {
             var subtokens = tokens[assign..terminal][1..];
             var initializer = parser.Parse(subtokens);
