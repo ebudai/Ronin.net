@@ -67,12 +67,12 @@ public class Unit
     }
 
     [Fact]
-    public void Declarations()
+    public void DeclareVariables()
     {
-        var lines = File.ReadAllLines("declare.ronin");
+        var lines = File.ReadAllLines("declare vars.ronin");
         var tokens = Lexer.Lex(lines);
         Parser parser = new();
         var statements = parser.Parse(tokens);
-        Assert.Equal(2, statements.Length);
+        Assert.Equal(4, statements.Length);
     }
 }
