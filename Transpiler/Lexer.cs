@@ -38,14 +38,14 @@ internal static class Lexer
 
                 if (!parsed)
                 {
-                    throw new Exception("unparsable token " + line[column..]);
+                    throw new Parser.Exception("unparsable token " + line[column..]);
                 }
             }
         }
         return tokens.ToArray();
     }
 
-    private const RegexOptions options = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase;
+    private const RegexOptions options = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase;
     
     private static readonly Regex whitespace =      new(@"^\s+"                                     , options);
     private static readonly Regex strings =         new(@"^""[^""\\]*(\\.[^""\\]*)*"""              , options);
@@ -57,9 +57,9 @@ internal static class Lexer
     private static readonly Regex reals =           new(@"^\d[\d_]*([.][\d_])?[\d_]*r(16|64)"       , options);
     private static readonly Regex decimals =        new(@"^\$\d[\d_]*([.][\d_])?[\d_]*"             , options);
     private static readonly Regex integers =        new(@"^\d[\d_]*(i(8|16|32|64)?)?"               , options);
-    private static readonly Regex symbols =         new(@"^[-\\~!@#%^&*=+,.;'/?:<>|""]"             , options);
+    private static readonly Regex terminal =        new(@"^[.]"                                     , options);
     private static readonly Regex brackets =        new(@"^[\(\[{<>}\]\)]"                          , options);
-    private static readonly Regex identifiers =     new(@"^[a-z_][a-z0-9_]*"                        , options);
+    private static readonly Regex identifiers =     new(@"^[^\d\s\(\[{<>}\]\).][^\s\(\[{<>}\]\).]*" , options);
 
     private static readonly Regex[] lexicalOrder =
     {
@@ -73,7 +73,7 @@ internal static class Lexer
         floats,         
         decimals,
         integers, //TODO support 128 bit?
-        symbols,
+        terminal,
         brackets,
         identifiers,
     };
@@ -89,7 +89,7 @@ internal static class Lexer
         { floats, Token.Type.Literal },
         { decimals, Token.Type.Literal },
         { integers, Token.Type.Literal },
-        { symbols, Token.Type.Symbol },
+        { terminal, Token.Type.Symbol },
         { brackets, Token.Type.Symbol },
         { identifiers, Token.Type.Identifier },
     };

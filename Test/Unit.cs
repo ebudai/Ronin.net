@@ -5,7 +5,7 @@ namespace Ronin.Transpiler.Test;
 public class Unit
 {
     [Fact]
-    public void Lexing()
+    public void LexLiterals()
     {
         string[] matches =
         {
