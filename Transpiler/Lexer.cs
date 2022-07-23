@@ -27,6 +27,7 @@ internal static class Lexer
                                 Value = match.Value,
                                 Column = column,
                                 Line = lineNumber,
+                                Kind = tokenTypes[regex],
                             });
                         }
                         column += match.Length;
@@ -56,7 +57,6 @@ internal static class Lexer
     private static readonly Regex symbols =         new(@"^[-\\~!@#%^&*=+,.;'/?:<>|""]"             , options);
     private static readonly Regex brackets =        new(@"^\(\[{<>}\]\)"                            , options);
     private static readonly Regex identifiers =     new(@"^[a-z_][a-z0-9_]*"                        , options);
-    //private static readonly Regex keywords =        new(@"var|type"                                 , options & ~RegexOptions.IgnoreCase);
 
     private static readonly Regex[] lexicalOrder =
     {
@@ -72,8 +72,22 @@ internal static class Lexer
         integers, //TODO support 128 bit?
         symbols,
         brackets,
-        //keywords,
         identifiers,
+    };
+
+    private static readonly Dictionary<Regex, Token.Type> tokenTypes = new(ReferenceEqualityComparer.Instance)
+    {
+        { strings, Token.Type.Literal },
+        { characters, Token.Type.Literal },
+        { unicodes, Token.Type.Literal },
+        { hexadecimals, Token.Type.Literal },
+        { reals, Token.Type.Literal },
+        { floats, Token.Type.Literal },
+        { decimals, Token.Type.Literal },
+        { integers, Token.Type.Literal },
+        { symbols, Token.Type.Symbol },
+        { brackets, Token.Type.Symbol },
+        { identifiers, Token.Type.Identifier },
     };
 }
 

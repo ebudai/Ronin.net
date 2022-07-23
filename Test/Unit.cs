@@ -65,4 +65,14 @@ public class Unit
             if (i is not 0) Assert.Equal(0, tokens[i].Column);
         }
     }
+
+    [Fact]
+    public void Declarations()
+    {
+        var lines = File.ReadAllLines("declare.ronin");
+        var tokens = Lexer.Lex(lines);
+        Parser parser = new();
+        var statements = parser.Parse(tokens);
+        Assert.True(true);
+    }
 }
