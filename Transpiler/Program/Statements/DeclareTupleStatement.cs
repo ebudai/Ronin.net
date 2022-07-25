@@ -1,6 +1,6 @@
 ﻿namespace Ronin.Transpiler.Program.Statements;
 
-internal class DeclareTupleStatement : Statement
+/*internal class DeclareTupleStatement : Statement
 {
     public override int Construct(ReadOnlySpan<Token> tokens, Block block, Parser parser)
     {
@@ -57,4 +57,4 @@ internal class DeclareTupleStatement : Statement
 
         return index;
     }
-}
+}*/

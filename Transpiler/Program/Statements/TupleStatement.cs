@@ -1,6 +1,6 @@
 ﻿namespace Ronin.Transpiler.Program.Statements;
 
-internal class TupleStatement : Statement
+/*internal class TupleStatement : Statement
 {
     public override int Construct(ReadOnlySpan<Token> tokens, Block block, Parser parser)
     {
@@ -18,3 +18,4 @@ internal class TupleStatement : Statement
         return length + 2;
     }
 }
+*/

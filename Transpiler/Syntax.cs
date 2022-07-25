@@ -1,4 +1,5 @@
-﻿using Ronin.Transpiler.Program.Statements;
+﻿using Ronin.Transpiler.Program;
+using Ronin.Transpiler.Program.Statements;
 using System.Text.RegularExpressions;
 
 namespace Ronin.Transpiler;
@@ -43,7 +44,8 @@ internal static class Syntax
     private static readonly Regex declareVariableImplicit = new(@"^<var>I+=(L|I+)[.]", options);
     private static readonly Regex declareVariableDeconstructed = new(@"^<var>\(I+(,I+)*\)=(I+|\((L|I+)(,(L|I+))+\))[.]", options);
     private static readonly Regex declareVariableExplicitTuple = new(@"^<var>I+:\(I+(,I+)+\)(=(I+|\((L|I+)(,(L|I+))+\)))?[.]", options);
-    private static readonly Regex declareVariableImplicitTuple = new(@"^<var>I+=(I+|\((L|I+)(,(L|I+))+\))[.]", options);    
+    private static readonly Regex declareVariableImplicitTuple = new(@"^<var>I+=(I+|\((L|I+)(,(L|I+))+\))[.]", options);
+    private static readonly Regex declareFunction = new(@"^<function>I+(\(I+(,I+)*\))*I*", options);
 
     private static readonly Regex literal = new(@"^L[.,]", options);
     private static readonly Regex identifier = new(@"^I+[.,]", options);
@@ -57,22 +59,26 @@ internal static class Syntax
         declareVariableDeconstructed,
         declareVariableImplicitTuple,
         declareVariableExplicitTuple,
+        declareFunction,
         literal,
         identifier,
         tuple,
     };
 
-    public static readonly Dictionary<Regex, Type> StatementTypes = new()
+    public delegate Statement Generator(ReadOnlySpan<Token> tokens, Block block, Parser parser);
+
+    public static readonly Dictionary<Regex, Generator> Generators = new()
     {
-        { package, typeof(PackageStatement) },
-        { declareVariableExplicit, typeof(DeclareVariableStatement) },
-        { declareVariableImplicit, typeof(DeclareVariableStatement) },
-        { declareVariableDeconstructed, typeof(DeclareTupleStatement) },
-        { declareVariableImplicitTuple, typeof(DeclareTupleStatement) },
-        { declareVariableExplicitTuple, typeof(DeclareTupleStatement) },
-        { literal, typeof(LiteralStatement) },
-        { identifier, typeof(IdentifierStatement) },
-        { tuple, typeof(TupleStatement) },
+        { package, Statement.Package },
+        { declareVariableExplicit, Statement.Declare.Variable },
+        { declareVariableImplicit, Statement.Declare.Variable },
+        { declareVariableDeconstructed, Statement.Declare.Tuple },
+        { declareVariableImplicitTuple, Statement.Declare.Tuple },
+        { declareVariableExplicitTuple, Statement.Declare.Tuple },
+        //{ declareFunction, typeof(DeclareFunction) },
+        { literal, Statement.Literal },
+        { identifier, Statement.Identifier },
+        { tuple, Statement.Tuple },
     };
 
     public static readonly Regex[] LexicalOrder =

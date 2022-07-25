@@ -22,8 +22,8 @@ internal class Parser
                 var match = regex.Match(signature);
                 if (match.Success)
                 {
-                    var statement = Activator.CreateInstance(Syntax.StatementTypes[regex]) as Statement;
-                    index = statement.Construct(tokens, parent, this);
+                    var statement = Syntax.Generators[regex](tokens, parent, this);
+                    index = statement.Length;
                     return statement;
                 }
             }

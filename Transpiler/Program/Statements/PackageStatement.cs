@@ -1,6 +1,6 @@
 ﻿namespace Ronin.Transpiler.Program.Statements;
 
-internal class PackageStatement : Statement
+/*internal class PackageStatement : Statement
 {
     public override int Construct(ReadOnlySpan<Token> tokens, Block block, Parser parser)
     {
@@ -10,4 +10,4 @@ internal class PackageStatement : Statement
         if (tokens[index].Value is not Syntax.Terminal) throw new Parser.Exception($"expecting {Syntax.Terminal}");
         return index + 2;
     }
-}
+}*/

@@ -1,10 +1,10 @@
 ﻿namespace Ronin.Transpiler.Program.Statements;
 
-internal class IdentifierStatement : Statement
+/*internal class IdentifierStatement : Statement
 {
     public override int Construct(ReadOnlySpan<Token> tokens, Block block, Parser parser)
     {
         if (tokens.Length is < 2) throw new Parser.Exception("unexpected end of statement");
         return GetIdentifierLength(tokens) + 1;
     }
-}
+}*/
