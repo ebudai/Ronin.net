@@ -3,7 +3,7 @@
 internal class Block
 {
     public Block Parent { get; init; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public Block ReturnType { get; init; }
 
     public Dictionary<string, Datum> Data { get; init; } = new();
@@ -14,4 +14,6 @@ internal class Block
     public List<Modifier> Modifiers { get; init; } = new();
 
     public List<Statement> Statements { get; init; } = new();
+
+    public static readonly Block Global = new();
 }

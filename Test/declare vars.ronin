@@ -1,5 +1,5 @@
 ﻿var x = 3.
-var this is my data = "12".
+var this is my var = "12".
 var identifier test = some identifier.
 var new:int.
 var new2: text.

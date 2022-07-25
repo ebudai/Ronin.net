@@ -1,4 +1,5 @@
 ﻿using Ronin.Transpiler.Program;
+using System.Text.RegularExpressions;
 
 namespace Ronin.Transpiler;
 
@@ -10,12 +11,14 @@ internal class Parser
     {
         index = 0;
         string signature = string.Empty;
+        Regex replace = new(@"I<.+>", RegexOptions.Compiled);
         while (!tokens.IsEmpty)
         {
             if (index == tokens.Length) throw new Exception("unexpected end of statement");
             signature += tokens[index];
+            signature = replace.Replace(signature, "II");
             foreach (var regex in Syntax.ParseOrder)
-            {   
+            {
                 var match = regex.Match(signature);
                 if (match.Success)
                 {

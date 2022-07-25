@@ -10,17 +10,11 @@ internal class Token
     public int Column { get; set; }
     public Type Kind { get; set; }
 
-    public static class Codes
-    {
-        public const string Literal = "L";
-        public const string Indentifier = "I";
-    }
-
     public override string ToString() => Kind switch
     {
-        Type.Literal => Codes.Literal,
+        Type.Literal => "L",
         Type.Symbol => Value,
-        Type.Identifier => Codes.Indentifier,
+        Type.Identifier => "I",
         Type.Keyword => $"<{Value}>",
         _ => throw new ArgumentOutOfRangeException("kind is not in range: " + (int)Kind)
     };    

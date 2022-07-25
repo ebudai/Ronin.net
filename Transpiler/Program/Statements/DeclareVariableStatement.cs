@@ -1,5 +1,6 @@
 ﻿namespace Ronin.Transpiler.Program.Statements;
 
+//TODO finish tests for this and tuple declaration stuff
 internal class DeclareVariableStatement : Statement
 {
     public override int Construct(ReadOnlySpan<Token> tokens, Block block, Parser parser)

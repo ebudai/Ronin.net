@@ -10,8 +10,16 @@ internal abstract class Statement
     {
         index = 0;
         string name = string.Empty;
-        while (index < tokens.Length && tokens[index].Kind is Token.Type.Identifier) name += tokens[index++].Value + " ";
+        if (tokens.IsEmpty) return name;
+        while (index < tokens.Length && tokens[index].Kind is Token.Type.Identifier or Token.Type.Keyword) name += tokens[index++].Value + " ";
         return name.Trim();
+    }
+
+    protected static int GetIdentifierLength(ReadOnlySpan<Token> tokens)
+    {
+        int length = 0;
+        while (length < tokens.Length && tokens[length].Kind is Token.Type.Identifier) ++length;
+        return length;
     }
 
     protected static string[] GetTupleIdentifiers(ReadOnlySpan<Token> tokens, out int index)
