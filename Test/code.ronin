@@ -1,0 +1,16 @@
+﻿datatype Animal
+{
+	var id as integer = random.
+	var weight as number = random from 0.0001 to 1_000.
+	var has fur as maybe = random decimal from 0 to 1 < 0.98.
+
+	function fight(others as Animal[text])
+	{
+		resolve to 9.
+	}
+}
+
+function spawn (n as integer) animals
+{
+	resolve to Animal[n].
+}
