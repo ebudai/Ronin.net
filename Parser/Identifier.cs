@@ -6,9 +6,9 @@ namespace Ronin.Parser;
 [DebuggerDisplay("{ToString()}")]
 internal class Identifier : Syntax
 {
-    internal Identifier(string name) => names.Add(formatter.Replace(name,  " "));
+    internal Identifier() { }
 
-    internal Identifier(Expression value) => Add(value);
+    internal Identifier(string name) => names.Add(formatter.Replace(name,  " "));
 
     public override string ToString()
     {
@@ -18,22 +18,28 @@ internal class Identifier : Syntax
 
         for (int i = 0; i <= max; ++i)
         {
-            if (parameters.ContainsKey(i)) name += "() ";
+            if (parameters.ContainsKey(i)) name += $"({string.Join("", parameters[i])}) ";
             if (i < names.Count) name += names[i] + " ";
         }
         return name.TrimEnd();
     }
 
-    internal void Add(Identifier name) => names.AddRange(name.names);
-    internal void Add(Expression value) => parameters.Add(names.Count, value);
-    internal void Add(Syntax syntax)
+//    internal void Add(Identifier name) => names.AddRange(name.names);
+//    internal void Add(Expression value) => parameters.Add(names.Count, value);
+    internal bool Add(Syntax syntax, ref int cursor)
     {
-        if (!parameters.TryGetValue(names.Count, out var expression))
+        if (syntax is Identifier identifier) names.AddRange(identifier.names);
+        else if (syntax is Expression expression) parameters.Add(names.Count, expression);
+        else
         {
-            expression = new();
-            parameters.Add(names.Count, expression);
+            if (!parameters.TryGetValue(names.Count, out expression))
+            {
+                expression = new();
+                parameters.Add(names.Count, expression);
+            }
+            return expression.Add(syntax, ref cursor);
         }
-        expression.Syntax.Add(syntax);
+        return true;
     }
 
     private readonly List<string> names = new();

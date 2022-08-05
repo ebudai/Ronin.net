@@ -1,8 +1,8 @@
 ﻿datatype Animal
 {
 	var id as integer = random.
-	var weight as number = random from 0.0001 to 1_000.
-	var has fur as maybe = random decimal from 0 to 1 < 0.98.
+	var weight as number = random decimal from 1 to 1_000.
+	var has fur as maybe = random < 0.98.
 
 	function fight(others as Animal[text])
 	{
@@ -12,5 +12,7 @@
 
 function spawn (n as integer) animals
 {
-	resolve to Animal[n].
+	resolve to new Animal[n].
 }
+
+var animals = spawn 753 animals.

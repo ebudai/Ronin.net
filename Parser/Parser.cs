@@ -4,74 +4,44 @@ using System.Text.RegularExpressions;
 
 namespace Ronin.Parser;
 
-internal static class Parser
+internal class Parser
 {
-    internal static Scope Parse(FileInfo file)
-    {
-        int line = 1;
-        int cursor = 0;
-        return ParseScope("{" + File.ReadAllText(file.FullName) + "}", ref cursor, ref line);
-    }
+    private readonly string sourcecode;
+    private int line = 0;
+    private int cursor = 0;
 
-    public class Exception : System.Exception
-    {
-        public Exception(string message) : base(message) { }
-        public Exception(string message, System.Exception inner) : base(message, inner) { }
-    }
+    internal Parser(FileInfo file) => sourcecode = Syntax.scopeopen + File.ReadAllText(file.FullName) + Syntax.scopeclose;
 
-    private static Scope ParseScope(string sourcecode, ref int cursor, ref int line)
+    internal Scope ParseScope()
     {
-        if (!sourcecode.AsSpan(cursor).StartsWith("{")) return null;
-        cursor += 1;
-        Scope scope = new();
-
-        var expression = ParseExpression(sourcecode, ref cursor, ref line);
-        while (expression.Syntax.Count > 0)
+        var symbol = ParseSymbol();
+        if (symbol is not OpeningBrace)
         {
-            scope.Expressions.Add(expression);
-            expression = ParseExpression(sourcecode, ref cursor, ref line);
-            if (sourcecode.AsSpan(cursor).StartsWith("}"))
-            {
-                if (expression.Syntax.Count > 0) scope.Expressions.Add(expression);
-                cursor += 1;
-                return scope;
-            }
+            cursor -= symbol?.Value.Length ?? 0;
+            return null;
         }
 
-        throw new Exception("expected }");
+        Scope scope = new();
+
+        var expression = ParseExpression();
+        
+        while (scope.Add(expression)) expression = ParseExpression();
+
+        return scope;
     }
 
-    private static Expression ParseExpression(string sourcecode, ref int cursor, ref int line)
+    private Expression ParseExpression()
     {
         Expression expression = new();
 
-        var syntax = ParseSyntax(sourcecode, ref cursor, ref line);
-        while (syntax is not Symbol)
-        {
-            if (expression.Syntax.LastOrDefault() is Identifier identifier)
-            {
-                if (syntax is Literal literal) identifier.Add(literal);
-                else if (syntax is Identifier moreidentifier) identifier.Add(moreidentifier);
-                else expression.Syntax.Add(syntax);
-            }
-            else if (syntax is Keyword keyword && expression.Syntax.LastOrDefault() is Scope)
-            {
-                cursor -= keyword.ToString().Length;
-                return expression;
-            }
-            else
-            {
-                expression.Syntax.Add(syntax);
-            }
-            syntax = ParseSyntax(sourcecode, ref cursor, ref line);
-        }
+        var syntax = ParseSyntax();
 
-        if (syntax is ClosingBrace brace) cursor -= brace.Value.Length;
+        while (expression.Add(syntax, ref cursor)) syntax = ParseSyntax();
 
-        return expression;
+        return expression.IsEmpty ? null : expression;
     }
 
-    private static Syntax ParseSyntax(string sourcecode, ref int cursor, ref int line)
+    private Syntax ParseSyntax()
     {
         var match = Syntax.whitespace.Match(sourcecode, cursor);
         if (match.Success && match.Index == cursor)
@@ -82,56 +52,73 @@ internal static class Parser
 
         if (cursor == sourcecode.Length) return null;
 
-        return ParseLiteral(sourcecode, ref cursor, ref line, Syntax.textliteral, Primitive.text)
-            ?? ParseLiteral(sourcecode, ref cursor, Syntax.charliteral, Primitive.character)
-            ?? ParseLiteral(sourcecode, ref cursor, Syntax.unicodeliteral, Primitive.character)
-            ?? ParseIntegerLiteral(sourcecode, ref cursor, Syntax.hexliteral, NumberStyles.AllowHexSpecifier, "0x")
-            ?? ParseBinaryLiteral(sourcecode, ref cursor)
-            ?? ParseLiteral(sourcecode, ref cursor, Syntax.halfliteral, Primitive.dec16)
-            ?? ParseLiteral(sourcecode, ref cursor, Syntax.doubleliteral, Primitive.dec64)
-            ?? ParseLiteral(sourcecode, ref cursor, Syntax.decimalliteral, Primitive.@decimal)
-            ?? ParseLiteral(sourcecode, ref cursor, Syntax.moneyliteral, Primitive.money)
-            ?? ParseIntegerLiteral(sourcecode, ref cursor, Syntax.integerliteral, NumberStyles.None)
-            ?? ParseSymbol(sourcecode, ref cursor)
-            ?? ParseParameters(sourcecode, ref cursor, ref line)
-            ?? ParseAggregate<ObjectLiteral>(sourcecode, ref cursor, ref line, "(", ")")
-            ?? ParseAggregate<ListLiteral>(sourcecode, ref cursor, ref line, "[", "]")
-            ?? ParseAggregate<SetLiteral>(sourcecode, ref cursor, ref line, "{", "}")
-            ?? ParseScope(sourcecode, ref cursor, ref line)
-            ?? ParseKeyword(sourcecode, ref cursor, ref line)
-            ?? ParseIdentifier(sourcecode, ref cursor) as Syntax
+        return ParseLiteral(Syntax.textliteral, Primitive.text)
+            ?? ParseLiteral(Syntax.charliteral, Primitive.character)
+            ?? ParseLiteral(Syntax.unicodeliteral, Primitive.character)
+            ?? ParseHexLiteral()
+            ?? ParseBinaryLiteral()
+            ?? ParseLiteral(Syntax.halfliteral, Primitive.dec16)
+            ?? ParseLiteral(Syntax.doubleliteral, Primitive.dec64)
+            ?? ParseLiteral(Syntax.decimalliteral, Primitive.@decimal)
+            ?? ParseLiteral(Syntax.moneyliteral, Primitive.money)
+            ?? ParseIntegerLiteral()
+            ?? ParseParameters()
+            ?? ParseAggregate<ObjectLiteral>(Syntax.groupingopen, Syntax.groupingclose)
+            ?? ParseAggregate<ListLiteral>(Syntax.listopen, Syntax.listclose)
+            ?? ParseAggregate<SetLiteral>(Syntax.scopeopen, Syntax.scopeclose)
+            ?? ParseScope()
+            ?? ParseSymbol()
+            ?? ParseKeyword()
+            ?? ParseIdentifier() as Syntax
             ?? throw new Exception($"bad syntax at line {line}: {sourcecode[cursor..]}");
     }
 
-    private static Literal ParseLiteral(string sourcecode, ref int cursor, Regex regex, string primitive)
+    private Literal ParseLiteral(Regex regex, string primitive)
     {
-        var match = regex.Match(sourcecode, cursor);
-        if (!match.Success || match.Index != cursor) return null;
-        cursor += match.Length;
-        return new Literal { Value = match.Value, Datatype = primitive };
+        var lexed = Lex(regex);
+        return lexed is null ? null : new Literal { Value = lexed, Datatype = primitive };
     }
 
-    private static Literal ParseLiteral(string sourcecode, ref int cursor, ref int line, Regex regex, string primitive)
+    private Literal ParseHexLiteral()
     {
-        var match = regex.Match(sourcecode, cursor);
-        if (!match.Success || match.Index != cursor) return null;
-        cursor += match.Length;
-        line += match.Value.Count(c => c == '\n');
-        return new Literal { Value = match.Value, Datatype = primitive };
+        NumberStyles numberstyle = NumberStyles.AllowHexSpecifier | NumberStyles.AllowLeadingSign;
+
+        var lexed = Lex(Syntax.hexliteral);
+        if (lexed is null) return null;
+        
+        var parsed = lexed[0] is '-' 
+            ? '-' + Clean(lexed[1..]) 
+            : Clean(lexed);
+        
+        if (!BigInteger.TryParse(parsed, numberstyle, CultureInfo.CurrentCulture, out var value)) return null; // this should never happen
+
+        cursor += lexed.Length;
+
+        return new Literal
+        {
+            Value = lexed,
+            Datatype = value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
+                : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
+                : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
+                : value >= long.MinValue && value <= long.MaxValue ? Primitive.int64
+                : Primitive.bigint
+        };
+
+        static string Clean(string literal) => literal.Replace(Syntax.hexprefix, "").Replace("_", "");
     }
 
-    private static Literal ParseIntegerLiteral(string sourcecode, ref int cursor, Regex regex, NumberStyles numberstyle, string prefix = "")
+    private Literal ParseIntegerLiteral()
     {
-        var match = regex.Match(sourcecode, cursor);
-        if (!match.Success || match.Index != cursor) return null;
-        numberstyle |= NumberStyles.AllowThousands | NumberStyles.AllowLeadingSign;
-        string text = match.Value[prefix.Length..];
-        if (match.Value[0] == '-') text = '-' + text[1..];
-        if (!BigInteger.TryParse(text.Replace("_", ""), numberstyle, CultureInfo.CurrentCulture, out var value)) return null; // this should never happen
-        cursor += match.Length;
+        NumberStyles numberstyle = NumberStyles.AllowLeadingSign; //TODO investigate using , for digit separator (in 3's) instead of _ whereever       NumberStyles.AllowThousands
+
+        var lexed = Lex(Syntax.integerliteral)?.Replace("_", "");
+        if (lexed is null) return null;
+
+        if (!BigInteger.TryParse(lexed, numberstyle, CultureInfo.CurrentCulture, out var value)) throw new Exception($"{lexed} matched integer literal but BigInteger.TryParse() failed"); // this should never happen
+        
         return new Literal 
         { 
-            Value = match.Value, 
+            Value = lexed, 
             Datatype = value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
                 : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
                 : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
@@ -140,15 +127,13 @@ internal static class Parser
         };
     }
 
-    private static Literal ParseBinaryLiteral(string sourcecode, ref int cursor)
+    private Literal ParseBinaryLiteral()
     {
-        var match = Syntax.binaryliteral.Match(sourcecode, cursor);
-        if (!match.Success || match.Index != cursor) return null;
-        cursor += match.Length;
-        return new Literal
+        var lexed = Lex(Syntax.binaryliteral);
+        return lexed is null ? null : new Literal
         {
-            Value = match.Value,
-            Datatype = (match.Length - 2) switch
+            Value = lexed,
+            Datatype = (lexed.Length - 2) switch
             {
                 <= 8 => Primitive.@byte,
                 <= 16 => Primitive.bits16,
@@ -159,74 +144,55 @@ internal static class Parser
         };
     }
 
-    private static Symbol ParseSymbol(string sourcecode, ref int cursor)
+    private Symbol ParseSymbol()
     {
-        var match = Syntax.symbol.Match(sourcecode, cursor);
-        if (!match.Success || match.Index != cursor) return null;
-        cursor += match.Length;
-        return Symbol.Get(match.Value);
+        var lexed = Lex(Syntax.symbol);
+        return lexed is null ? null : Symbol.Get(lexed, this);
     }
 
-    private static Parameters ParseParameters(string sourcecode, ref int cursor, ref int line)
+    private Parameters ParseParameters()
     {
-        if (!sourcecode.AsSpan(cursor).StartsWith("(")) return null;
         var originalcursor = cursor;
-        cursor += 1;
-        Parameters parameters = new();
-        Identifier variable = null;        
-        while (cursor < sourcecode.Length)
+
+        var symbol = ParseSymbol();
+        if (symbol is not OpeningParenthesis)
         {
-            var syntax = ParseSyntax(sourcecode, ref cursor, ref line);
-            if (syntax is null || syntax is Terminal)
+            cursor = originalcursor;
+            return null;
+        }
+        
+        Parameters parameters = new();
+        var syntax = ParseSyntax();
+        while (syntax is not ClosingParenthesis)
+        {            
+            if (syntax is Terminal)
             {
                 cursor = originalcursor;
                 return null;
             }
 
-            if (syntax is Identifier name)
-            {
-                variable?.Add(name);
-                variable ??= name;
-            }
-            else if (syntax is Separator)
-            {
-                parameters.Variables.Add(variable);
-                variable = null;
-            }
-            else if (syntax is ClosingParenthesis)
-            {
-                parameters.Variables.Add(variable);
-                break;
-            }
-            else if (syntax is ListLiteral listliteral)
-            {
-                // if the form is [datatype name], tnen we have a map literal instead
-                if (listliteral.Expressions.FirstOrDefault()?.Syntax.FirstOrDefault() is Identifier identifier)
-                {
-                    var datatypename = identifier.ToString();
-                    if (datatypename is not "") syntax = new MapLiteral { KeyDatatype = datatypename };
-                }
-                variable.Add(syntax);
-            }
-            else
-            {
-                parameters.Variables.Add(variable);
-            }
+            parameters.Add(syntax, ref cursor);
+            syntax = ParseSyntax();
         }
         return parameters;
     }
 
-    private static T ParseAggregate<T>(string sourcecode, ref int cursor, ref int line, string open, string close) where T : Aggregate
+    private T ParseAggregate<T>(string open, string close) where T : Aggregate
     {
-        if (!sourcecode.AsSpan(cursor).StartsWith(open)) return null;
         var originalcursor = cursor;
-        cursor += open.Length;
-        var aggregate = Activator.CreateInstance<T>();
-        
-        Expression expression = new();
-        while (cursor < sourcecode.Length)
+
+        var openingSymbol = ParseSymbol();
+        if (openingSymbol?.Value != open)
         {
-            var element = ParseSyntax(sourcecode, ref cursor, ref line);
+            cursor = originalcursor;
+            return null;
+        }
+        
+        var aggregate = Activator.CreateInstance<T>();        
+        Expression expression = new();
+        var element = ParseSyntax();
+        while (element is not Symbol symbol || symbol.Value != close)
+        {
             if (element is Terminal)
             {
                 cursor = originalcursor;
@@ -237,34 +203,50 @@ internal static class Parser
                 aggregate.Expressions.Add(expression);
                 expression = new();
             }
-            else if (element is Symbol symbol && symbol.Value == close)
+            else if (!expression.Add(element, ref cursor))
             {
-                aggregate.Expressions.Add(expression);
-                break;
+               break;
             }
-            else
-            {
-                expression.Syntax.Add(element);
-            }
+            element = ParseSyntax();
         }
         return aggregate;
     }
 
-    private static Keyword ParseKeyword(string sourcecode, ref int cursor, ref int line)
+    private Keyword ParseKeyword()
     {
-        var match = Syntax.keyword.Match(sourcecode, cursor);
-        if (!match.Success || match.Index != cursor) return null;
-        cursor += match.Length;
-        line += match.Value.Count(c => c == '\n');
-        return new(replacespaces.Replace(match.Value, " "));
+        var lexed = Lex(Syntax.keyword);
+        return lexed is null ? null : new(replacespaces.Replace(lexed, " "));
     }
     private static readonly Regex replacespaces = new(@"\s+", RegexOptions.Compiled);
 
-    private static Identifier ParseIdentifier(string sourcecode, ref int cursor)
+    private Identifier ParseIdentifier()
     {
-        var match = Syntax.identifier.Match(sourcecode, cursor);
+        var lexed = Lex(Syntax.identifier);
+        return lexed is null ? null : new(lexed);
+    }
+
+    private string Lex(Regex regex)
+    {
+        var match = regex.Match(sourcecode, cursor);
         if (!match.Success || match.Index != cursor) return null;
         cursor += match.Length;
-        return new(match.Value);
+        line += match.Value.Count(c => c == '\n');
+        return match.Value;
+    }
+
+    internal class ParseException : Exception
+    {
+        public ParseException(Parser parser, Exception inner = null)
+                : base(CreateMessage(parser), inner) { }
+
+        public ParseException(string message, Parser parser, Exception inner = null)
+            : base(message + Environment.NewLine + CreateMessage(parser), inner) { }
+
+        private static string CreateMessage(Parser parser, Exception inner = null)
+        {
+            var message = $"line {parser.line}: {parser.sourcecode[parser.cursor..(parser.cursor + 30)]}";
+            if (inner is not null) message += $" caused by {inner.Message}";
+            return message;
+        }
     }
 }
