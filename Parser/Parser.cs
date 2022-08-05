@@ -23,9 +23,7 @@ internal class Parser
 
         Scope scope = new();
 
-        var expression = ParseExpression();
-
-        while (scope.Add(expression)) expression = ParseExpression();
+        while (scope.TryAdd(ParseExpression())) { }
 
         return scope;
     }
@@ -34,9 +32,7 @@ internal class Parser
     {
         Expression expression = new();
 
-        var syntax = ParseSyntax();
-
-        while (expression.Add(syntax, ref cursor)) syntax = ParseSyntax();
+        while (expression.TryAdd(ParseSyntax(), ref cursor)) { }
 
         return expression.IsEmpty ? null : expression;
     }
@@ -86,25 +82,24 @@ internal class Parser
         var lexed = Lex(Syntax.hexliteral);
         if (lexed is null) return null;
         
-        var parsed = lexed[0] is '-' 
-            ? '-' + Clean(lexed[1..]) 
-            : Clean(lexed);
-        
-        if (!BigInteger.TryParse(parsed, numberstyle, CultureInfo.CurrentCulture, out var value)) return null; // this should never happen
+        if (!BigInteger.TryParse(Clean(lexed), numberstyle, CultureInfo.CurrentCulture, out var value)) return null; // this should never happen
 
         cursor += lexed.Length;
 
         return new Literal
         {
             Value = lexed,
-            Datatype = value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
-                : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
-                : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
-                : value >= long.MinValue && value <= long.MaxValue ? Primitive.int64
-                : Primitive.bigint
+            Datatype = GetIntegerPrimitive(value)
         };
 
-        static string Clean(string literal) => literal.Replace(Syntax.hexprefix, "").Replace("_", "");
+        static string Clean(string literal) 
+        {
+            int index = 0;
+            if (literal.Length < Syntax.hexprefix.Length + 1) return literal;
+            if (literal.StartsWith(Syntax.hexprefix)) index = Syntax.hexprefix.Length;
+            else if (literal.StartsWith('-' + Syntax.hexprefix)) index = Syntax.hexprefix.Length + 1;
+            return literal[index..].Replace("_", "");
+        }
     }
 
     private Literal ParseIntegerLiteral()
@@ -119,13 +114,16 @@ internal class Parser
         return new Literal 
         { 
             Value = lexed, 
-            Datatype = value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
-                : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
-                : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
-                : value >= long.MinValue && value <= long.MaxValue ? Primitive.int64
-                : Primitive.bigint
+            Datatype = GetIntegerPrimitive(value)
         };
     }
+
+    private static string GetIntegerPrimitive(BigInteger value) =>
+          value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
+        : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
+        : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
+        : value >= long.MinValue && value <= long.MaxValue ? Primitive.int64
+        : Primitive.bigint;
 
     private Literal ParseBinaryLiteral()
     {
@@ -133,7 +131,7 @@ internal class Parser
         return lexed is null ? null : new Literal
         {
             Value = lexed,
-            Datatype = (lexed.Length - 2) switch
+            Datatype = (lexed.Length - Syntax.binaryprefix.Length) switch
             {
                 <= 8 => Primitive.@byte,
                 <= 16 => Primitive.bits16,
@@ -154,8 +152,7 @@ internal class Parser
     {
         var originalcursor = cursor;
 
-        var symbol = ParseSymbol();
-        if (symbol is not OpeningParenthesis)
+        if (ParseSymbol() is not OpeningParenthesis)
         {
             cursor = originalcursor;
             return null;
@@ -181,8 +178,7 @@ internal class Parser
     {
         var originalcursor = cursor;
 
-        var openingSymbol = ParseSymbol();
-        if (openingSymbol?.Value != open)
+        if (ParseSymbol()?.Value != open)
         {
             cursor = originalcursor;
             return null;
@@ -198,26 +194,28 @@ internal class Parser
                 cursor = originalcursor;
                 return null;
             }
-            else if (element is Separator)
+            
+            if (element is Separator)
             {
                 aggregate.Expressions.Add(expression);
                 expression = new();
             }
-            else if (!expression.Add(element, ref cursor))
+            else if (!expression.TryAdd(element, ref cursor))
             {
                break;
             }
+
             element = ParseSyntax();
         }
         return aggregate;
     }
 
-    private Keyword ParseKeyword()
+    private Declaration ParseKeyword()
     {
-        var lexed = Lex(Syntax.keyword);
-        return lexed is null ? null : new(replacespaces.Replace(lexed, " "));
+        var lexed = Lex(Syntax.declaration);
+        return lexed is null ? null : new(replacewhitespace.Replace(lexed, " "));
     }
-    private static readonly Regex replacespaces = new(@"\s+", RegexOptions.Compiled);
+    private static readonly Regex replacewhitespace = new(@"\s+", RegexOptions.Compiled);
 
     private Identifier ParseIdentifier()
     {

@@ -10,7 +10,7 @@ internal class Expression : Syntax
     internal bool IsEmpty => Syntax.Count is 0;
     internal bool IsScopeClose { get; private set; }
 
-    internal bool Add(Keyword keyword, ref int cursor)
+    internal bool Add(Declaration keyword, ref int cursor)
     { 
         if (Syntax.Count > 0 && Syntax[^1] is Scope)
         {
@@ -30,11 +30,11 @@ internal class Expression : Syntax
         return true;
     }
 
-    internal bool Add(Syntax syntax, ref int cursor)
+    internal bool TryAdd(Syntax syntax, ref int cursor)
     {
         if (syntax is null) return false;
 
-        if (syntax is Keyword keyword) return Add(keyword, ref cursor);
+        if (syntax is Declaration keyword) return Add(keyword, ref cursor);
         if (syntax is Identifier identifier) return Add(identifier, ref cursor);
 
         IsScopeClose = syntax is ClosingBrace;

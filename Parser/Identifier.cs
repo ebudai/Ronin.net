@@ -41,7 +41,7 @@ internal class Identifier : Syntax
                 expression = new();
                 parameters.Add(names.Count, expression);
             }
-            return expression.Add(syntax, ref cursor);
+            return expression.TryAdd(syntax, ref cursor);
         }
         return true;
     }

@@ -1,8 +1,8 @@
 ﻿namespace Ronin.Parser;
 
-internal class Keyword : Identifier
+internal class Declaration : Identifier
 {
-    internal Keyword(string name) : base(name)
+    internal Declaration(string name) : base(name)
     {
     }
 }

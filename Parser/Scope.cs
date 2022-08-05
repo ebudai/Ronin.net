@@ -6,7 +6,7 @@ internal class Scope : Aggregate
 
     public override string ToString() => "{ ... }";
 
-    internal bool Add(Expression expression)
+    internal bool TryAdd(Expression expression)
     {
         if (expression is null) return false;
         if (!expression.IsEmpty) Expressions.Add(expression);
