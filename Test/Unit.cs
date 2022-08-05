@@ -10,7 +10,7 @@ public class Unit
         var scope = parser.ParseScope();
 
         Assert.NotNull(scope);
-        Assert.Equal(2, scope.Expressions.Count);
+        Assert.Equal(3, scope.Expressions.Count);
 
     }
 }

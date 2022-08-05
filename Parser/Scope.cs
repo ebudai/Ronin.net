@@ -6,17 +6,10 @@ internal class Scope : Aggregate
 
     public override string ToString() => "{ ... }";
 
-    internal bool Add(Expression expression, ref int _)
-    {
-        if (expression.IsEmpty) return false;
-        Expressions.Add(expression);
-        return true;
-    }
-
     internal bool Add(Expression expression)
     {
         if (expression is null) return false;
-        Expressions.Add(expression);
-        return true;
+        if (!expression.IsEmpty) Expressions.Add(expression);
+        return !expression.IsScopeClose;
     }
 }

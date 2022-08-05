@@ -24,7 +24,7 @@ internal class Parser
         Scope scope = new();
 
         var expression = ParseExpression();
-        
+
         while (scope.Add(expression)) expression = ParseExpression();
 
         return scope;
@@ -171,7 +171,7 @@ internal class Parser
                 return null;
             }
 
-            parameters.Add(syntax, ref cursor);
+            parameters.Add(syntax, this, ref cursor);
             syntax = ParseSyntax();
         }
         return parameters;

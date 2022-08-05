@@ -24,12 +24,16 @@ internal class Identifier : Syntax
         return name.TrimEnd();
     }
 
-//    internal void Add(Identifier name) => names.AddRange(name.names);
-//    internal void Add(Expression value) => parameters.Add(names.Count, value);
     internal bool Add(Syntax syntax, ref int cursor)
     {
-        if (syntax is Identifier identifier) names.AddRange(identifier.names);
-        else if (syntax is Expression expression) parameters.Add(names.Count, expression);
+        if (syntax is Identifier identifier)
+        {
+            names.AddRange(identifier.names);
+        }
+        else if (syntax is Expression expression)
+        {
+            parameters.Add(names.Count, expression);
+        }
         else
         {
             if (!parameters.TryGetValue(names.Count, out expression))
