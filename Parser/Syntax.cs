@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 
 namespace Ronin.Parser;
-
+//TODO url literal
 internal abstract class Syntax
 {
     internal static readonly Regex whitespace = new(@"\s+", options);

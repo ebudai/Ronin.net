@@ -83,46 +83,53 @@ internal class Parser
     {
         NumberStyles numberstyle = NumberStyles.AllowHexSpecifier | NumberStyles.AllowLeadingSign;
 
-        var lexed = Lex(Syntax.hexliteral);
-        if (lexed is null) return null;
-        
-        if (!BigInteger.TryParse(Clean(lexed), numberstyle, CultureInfo.CurrentCulture, out var value)) return null; // this should never happen
+        var literal = Lex(Syntax.hexliteral);
+        if (literal is null) return null;
 
-        cursor += lexed.Length;
+        // remove underscores and '0x'
+        if (literal.Length >= Syntax.hexprefix.Length + 1)
+        {
+            var negative = literal.StartsWith('-');
+            int index = Syntax.hexprefix.Length;
+            if (negative) ++index;
+            literal = literal[index..].Replace("_", "");
+            if (negative) literal = '-' + literal;
+        }
+
+        if (!BigInteger.TryParse(literal, numberstyle, CultureInfo.CurrentCulture, out var value))
+        {
+            throw new Exception($"{literal} matched hex literal but BigInteger.TryParse() failed"); // this should never happen
+        }
+
+        cursor += literal.Length;
 
         return new Literal
         {
-            Value = lexed,
-            Datatype = GetIntegerPrimitive(value)
+            Value = literal,
+            Datatype = SmallestIntegerPrimitive(value)
         };
-
-        static string Clean(string literal) 
-        {
-            int index = 0;
-            if (literal.Length < Syntax.hexprefix.Length + 1) return literal;
-            if (literal.StartsWith(Syntax.hexprefix)) index = Syntax.hexprefix.Length;
-            else if (literal.StartsWith('-' + Syntax.hexprefix)) index = Syntax.hexprefix.Length + 1;
-            return literal[index..].Replace("_", "");
-        }
     }
 
     private Literal ParseIntegerLiteral()
     {
         NumberStyles numberstyle = NumberStyles.AllowLeadingSign; //TODO investigate using , for digit separator (in 3's) instead of _ whereever       NumberStyles.AllowThousands
 
-        var lexed = Lex(Syntax.integerliteral)?.Replace("_", "");
-        if (lexed is null) return null;
+        var literal = Lex(Syntax.integerliteral)?.Replace("_", "");
+        if (literal is null) return null;
 
-        if (!BigInteger.TryParse(lexed, numberstyle, CultureInfo.CurrentCulture, out var value)) throw new Exception($"{lexed} matched integer literal but BigInteger.TryParse() failed"); // this should never happen
+        if (!BigInteger.TryParse(literal, numberstyle, CultureInfo.CurrentCulture, out var value))
+        {
+            throw new Exception($"{literal} matched integer literal but BigInteger.TryParse() failed"); // this should never happen
+        }
         
         return new Literal 
-        { 
-            Value = lexed, 
-            Datatype = GetIntegerPrimitive(value)
+        {
+            Value = literal, 
+            Datatype = SmallestIntegerPrimitive(value)
         };
     }
 
-    private static string GetIntegerPrimitive(BigInteger value) =>
+    private static string SmallestIntegerPrimitive(BigInteger value) =>
           value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
         : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
         : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
