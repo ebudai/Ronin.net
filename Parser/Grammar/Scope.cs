@@ -1,4 +1,6 @@
-﻿namespace Ronin.Parser;
+﻿using Ronin.Parser.Grammar.Aggregates;
+
+namespace Ronin.Parser.Grammar;
 
 internal class Scope : Aggregate
 {

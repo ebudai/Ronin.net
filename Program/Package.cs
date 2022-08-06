@@ -1,5 +1,5 @@
 ﻿namespace Ronin.Program;
 
-internal class Datum
+internal class Package
 {
 }

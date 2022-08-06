@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace Ronin.Parser;
+namespace Ronin.Parser.Grammar;
 
 [DebuggerDisplay("{ToString()}")]
 internal class Identifier : Syntax
@@ -24,7 +24,7 @@ internal class Identifier : Syntax
         return name.TrimEnd();
     }
 
-    internal bool Add(Syntax syntax, ref int cursor)
+    internal bool TryAdd(Syntax syntax, ref int cursor)
     {
         if (syntax is Identifier identifier)
         {

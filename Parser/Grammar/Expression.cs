@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Ronin.Parser;
+namespace Ronin.Parser.Grammar;
 
 [DebuggerDisplay("{ToString()}")]
 internal class Expression : Syntax
@@ -10,21 +10,21 @@ internal class Expression : Syntax
     internal bool IsEmpty => Syntax.Count is 0;
     internal bool IsScopeClose { get; private set; }
 
-    internal bool Add(Declaration keyword, ref int cursor)
+    internal bool TryAdd(Declaration keyword, ref int cursor)
     { 
         if (Syntax.Count > 0 && Syntax[^1] is Scope)
         {
             cursor -= keyword.ToString().Length;
             return false;
         }
-        return Add(keyword as Identifier, ref cursor);
+        return TryAdd(keyword as Identifier, ref cursor);
     }
 
-    internal bool Add(Identifier identifier, ref int cursor)
+    internal bool TryAdd(Identifier identifier, ref int cursor)
     {
         if (Syntax.Count > 0 && Syntax[^1] is Identifier prioridentifier)
         {
-            return prioridentifier.Add(identifier, ref cursor);
+            return prioridentifier.TryAdd(identifier, ref cursor);
         }
         Syntax.Add(identifier);
         return true;
@@ -34,8 +34,8 @@ internal class Expression : Syntax
     {
         if (syntax is null) return false;
 
-        if (syntax is Declaration keyword) return Add(keyword, ref cursor);
-        if (syntax is Identifier identifier) return Add(identifier, ref cursor);
+        if (syntax is Declaration keyword) return TryAdd(keyword, ref cursor);
+        if (syntax is Identifier identifier) return TryAdd(identifier, ref cursor);
 
         IsScopeClose = syntax is ClosingBrace;
         if (syntax is Symbol) return false;

@@ -1,4 +1,4 @@
-﻿namespace Ronin.Parser;
+﻿namespace Ronin.Parser.Grammar;
 
 internal abstract class Symbol : Syntax
 {

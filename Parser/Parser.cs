@@ -1,6 +1,10 @@
-﻿using System.Globalization;
+﻿using Ronin.Parser.Grammar;
+using Ronin.Parser.Grammar.Aggregates;
+using System.Globalization;
 using System.Numerics;
 using System.Text.RegularExpressions;
+
+using Object = Ronin.Parser.Grammar.Aggregates.Object;
 
 namespace Ronin.Parser;
 
@@ -59,9 +63,9 @@ internal class Parser
             ?? ParseLiteral(Syntax.moneyliteral, Primitive.money)
             ?? ParseIntegerLiteral()
             ?? ParseParameters()
-            ?? ParseAggregate<ObjectLiteral>(Syntax.groupingopen, Syntax.groupingclose)
-            ?? ParseAggregate<ListLiteral>(Syntax.listopen, Syntax.listclose)
-            ?? ParseAggregate<SetLiteral>(Syntax.scopeopen, Syntax.scopeclose)
+            ?? ParseAggregate<Object>(Syntax.groupingopen, Syntax.groupingclose)
+            ?? ParseAggregate<List>(Syntax.listopen, Syntax.listclose)
+            ?? ParseAggregate<Set>(Syntax.scopeopen, Syntax.scopeclose)
             ?? ParseScope()
             ?? ParseSymbol()
             ?? ParseKeyword()
@@ -160,17 +164,14 @@ internal class Parser
         
         Parameters parameters = new();
         var syntax = ParseSyntax();
-        while (syntax is not ClosingParenthesis)
-        {            
-            if (syntax is Terminal)
-            {
-                cursor = originalcursor;
-                return null;
-            }
-
-            parameters.Add(syntax, this, ref cursor);
-            syntax = ParseSyntax();
+        while (parameters.TryAdd(syntax, ref cursor)) syntax = ParseSyntax();
+        
+        if (syntax is Terminal)
+        {
+            cursor = originalcursor;
+            return null;
         }
+        
         return parameters;
     }
 
