@@ -1,9 +1,12 @@
-﻿namespace Ronin.Parser.Grammar;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Ronin.Parser.Grammar;
 
 internal class Parameters : Syntax
 {
     private List<Identifier> Variables { get; } = new();
 
+    [ExcludeFromCodeCoverage]
     public override string ToString() => "(" + string.Join(',', Variables) + ")";
 
     internal bool TryAdd(Syntax syntax, ref int cursor)

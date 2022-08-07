@@ -1,4 +1,5 @@
 ﻿using Ronin.Parser.Grammar.Aggregates;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Parser.Grammar;
 
@@ -6,6 +7,7 @@ internal class Scope : Aggregate
 {
     public Scope() { }
 
+    [ExcludeFromCodeCoverage]
     public override string ToString() => "{ ... }";
 
     internal bool TryAdd(Expression expression)
