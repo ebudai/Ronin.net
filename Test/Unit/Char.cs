@@ -8,7 +8,7 @@ public class CharacterLiteral
 {
     private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
 
-    [Fact(DisplayName = "Parse character literal")]
+    [Fact(DisplayName = "parse character literal")]
     public void Literal()
     {
         Parser parser = new(new FileInfo(@"code\literals\char.ronin"));
@@ -32,7 +32,7 @@ public class CharacterLiteral
         Assert.Equal("'c'", literal.Value);
     }
 
-    [Fact(DisplayName = "Parse unichar literal")]
+    [Fact(DisplayName = "parse unichar literal")]
     public void UnicharLiteral()
     {
         Parser parser = new(new FileInfo(@"code\literals\char.ronin"));

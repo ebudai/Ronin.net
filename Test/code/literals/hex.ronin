@@ -1,0 +1,4 @@
+﻿var normal hex number = 0x75AE2c.
+var negative hex = -0xF.
+var hex number with separators = 0x4_EE__3.
+var hex = -0x04cDEADBEEF_3000.

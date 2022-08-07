@@ -8,7 +8,7 @@ public class TextLiteral
 {
     private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
 
-    [Fact(DisplayName = "Parse text literal")]
+    [Fact(DisplayName = "parse text literal")]
     public void Literal()
     {
         Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
@@ -32,7 +32,7 @@ public class TextLiteral
         Assert.Equal("\"regular text\"", literal.Value);
     }
 
-    [Fact(DisplayName = "Parse multiline text literal")]
+    [Fact(DisplayName = "parse multiline text literal")]
     public void MultilineLiteral()
     {
         Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
@@ -55,7 +55,7 @@ public class TextLiteral
         Assert.Equal("\" this is" + Environment.NewLine + "\tmultiline with whitepsace\"", literal.Value);
     }
 
-    [Fact(DisplayName = "Parse text literal with embedded literals")]
+    [Fact(DisplayName = "parse text literal with embedded literals")]
     public void LiteralWithEmbeddedLiterals()
     {
         Parser parser = new(new FileInfo(@"code\literals\text.ronin"));

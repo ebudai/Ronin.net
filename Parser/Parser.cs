@@ -81,27 +81,25 @@ internal class Parser
 
     private Literal ParseHexLiteral()
     {
-        NumberStyles numberstyle = NumberStyles.AllowHexSpecifier | NumberStyles.AllowLeadingSign;
-
         var literal = Lex(Syntax.hexliteral);
         if (literal is null) return null;
+
+        var negative = literal.StartsWith('-');
 
         // remove underscores and '0x'
         if (literal.Length >= Syntax.hexprefix.Length + 1)
         {
-            var negative = literal.StartsWith('-');
             int index = Syntax.hexprefix.Length;
             if (negative) ++index;
             literal = literal[index..].Replace("_", "");
-            if (negative) literal = '-' + literal;
         }
 
-        if (!BigInteger.TryParse(literal, numberstyle, CultureInfo.CurrentCulture, out var value))
+        if (!BigInteger.TryParse(literal, NumberStyles.AllowHexSpecifier, CultureInfo.CurrentCulture, out var value))
         {
-            throw new Exception($"{literal} matched hex literal but BigInteger.TryParse() failed"); // this should never happen
+            throw new Exception($"{(negative ? "-" : "")}{literal} matched hex literal but BigInteger.TryParse() failed"); // this should never happen
         }
 
-        cursor += literal.Length;
+        if (negative) literal = '-' + literal;
 
         return new Literal
         {
