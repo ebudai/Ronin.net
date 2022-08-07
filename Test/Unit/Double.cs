@@ -4,11 +4,11 @@ using System.Reflection;
 
 namespace Unit;
 
-public class HalfLiteral
+public class DoubleLiteral
 {
-    public HalfLiteral()
+    public DoubleLiteral()
     {
-        Parser parser = new(new FileInfo(@"code\literals\half.ronin"));
+        Parser parser = new(new FileInfo(@"code\literals\double.ronin"));
 
         scope = parser.ParseScope();
 
@@ -19,7 +19,7 @@ public class HalfLiteral
 
     private readonly Scope scope;
 
-    [Fact(DisplayName = "parse half precision decimal literal")]
+    [Fact(DisplayName = "parse double precision decimal literal")]
     public void Literal()
     {
         Assert.NotEmpty(scope.Expressions);
@@ -30,14 +30,14 @@ public class HalfLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var half precision =", declaration.ToString());
+        Assert.Equal("var double precision =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.dec16, literal.Datatype);
-        Assert.Equal("1.0d16", literal.Value);
+        Assert.Equal(Primitive.dec64, literal.Datatype);
+        Assert.Equal("8.22d64", literal.Value);
     }
 
-    [Fact(DisplayName = "parse half precision decimal literal from whole number")]
+    [Fact(DisplayName = "parse double precision decimal literal from whole number")]
     public void FromWhole()
     {
         Assert.True(scope.Expressions.Count > 1);
@@ -48,14 +48,14 @@ public class HalfLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var another half =", declaration.ToString());
+        Assert.Equal("var another double =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.dec16, literal.Datatype);
-        Assert.Equal("2d16", literal.Value);
+        Assert.Equal(Primitive.dec64, literal.Datatype);
+        Assert.Equal("55d64", literal.Value);
     }
 
-    [Fact(DisplayName = "parse half precision decimal literal with space before suffix")]
+    [Fact(DisplayName = "parse double precision decimal literal with space before suffix")]
     public void SpaceBeforeSuffix()
     {
         Assert.True(scope.Expressions.Count > 2);
@@ -66,10 +66,10 @@ public class HalfLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var last half =", declaration.ToString());
+        Assert.Equal("var last double =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.dec16, literal.Datatype);
-        Assert.Equal("10.1288787954984 d16", literal.Value);
+        Assert.Equal(Primitive.dec64, literal.Datatype);
+        Assert.Equal("12320.695134781351680 d64", literal.Value);
     }
 }
