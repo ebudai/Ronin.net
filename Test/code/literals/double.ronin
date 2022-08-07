@@ -1,3 +1,3 @@
 ﻿var double precision = 8.22d64.
 var another double = 55d64.
-var last double = 12320.695134781351680 d64.
+var with separators and space before suffix = 12_320.6951_347813_51680 d64.

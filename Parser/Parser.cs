@@ -52,15 +52,15 @@ internal class Parser
 
         if (cursor == sourcecode.Length) return null;
 
-        return ParseLiteral(Syntax.textliteral, Primitive.text)
-            ?? ParseLiteral(Syntax.charliteral, Primitive.character)
-            ?? ParseLiteral(Syntax.unicodeliteral, Primitive.character)
+        return ParseTextLiteral(Syntax.textliteral, Primitive.text)
+            ?? ParseTextLiteral(Syntax.charliteral, Primitive.character)
+            ?? ParseTextLiteral(Syntax.unicodeliteral, Primitive.character)
             ?? ParseHexLiteral()
             ?? ParseBinaryLiteral()
-            ?? ParseLiteral(Syntax.halfliteral, Primitive.dec16)
-            ?? ParseLiteral(Syntax.doubleliteral, Primitive.dec64)
-            ?? ParseLiteral(Syntax.decimalliteral, Primitive.@decimal)
-            ?? ParseLiteral(Syntax.moneyliteral, Primitive.money)
+            ?? ParseDecimalLiteral(Syntax.halfliteral, Primitive.dec16)
+            ?? ParseDecimalLiteral(Syntax.doubleliteral, Primitive.dec64)
+            ?? ParseDecimalLiteral(Syntax.decimalliteral, Primitive.@decimal)
+            ?? ParseDecimalLiteral(Syntax.moneyliteral, Primitive.money)
             ?? ParseIntegerLiteral()
             ?? ParseParameters()
             ?? ParseAggregate<Object>(Syntax.groupingopen, Syntax.groupingclose)
@@ -73,9 +73,15 @@ internal class Parser
             ?? throw new Exception($"bad syntax at line {line}: {sourcecode[cursor..]}");
     }
 
-    private Literal ParseLiteral(Regex regex, string primitive)
+    private Literal ParseTextLiteral(Regex regex, string primitive)
     {
         var lexed = Lex(regex);
+        return lexed is null ? null : new Literal { Value = lexed, Datatype = primitive };
+    }
+
+    private Literal ParseDecimalLiteral(Regex regex, string primitive)
+    {
+        var lexed = Lex(regex)?.Replace("_", "");
         return lexed is null ? null : new Literal { Value = lexed, Datatype = primitive };
     }
 

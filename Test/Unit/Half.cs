@@ -55,8 +55,8 @@ public class HalfLiteral
         Assert.Equal("2d16", literal.Value);
     }
 
-    [Fact(DisplayName = "parse half precision decimal literal with space before suffix")]
-    public void SpaceBeforeSuffix()
+    [Fact(DisplayName = "parse half precision decimal literal with separators and a space before suffix")]
+    public void SeparatorsAndSpaceBeforeSuffix()
     {
         Assert.True(scope.Expressions.Count > 2);
 
@@ -66,7 +66,7 @@ public class HalfLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var last half =", declaration.ToString());
+        Assert.Equal("var with separators and a space =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
         Assert.Equal(Primitive.dec16, literal.Datatype);

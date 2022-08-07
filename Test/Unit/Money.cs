@@ -4,11 +4,11 @@ using System.Reflection;
 
 namespace Unit;
 
-public class DoubleLiteral
+public class MoneyLiteral
 {
-    public DoubleLiteral()
+    public MoneyLiteral()
     {
-        Parser parser = new(new FileInfo(@"code\literals\double.ronin"));
+        Parser parser = new(new FileInfo(@"code\literals\money.ronin"));
 
         scope = parser.ParseScope();
 
@@ -19,7 +19,7 @@ public class DoubleLiteral
 
     private readonly Scope scope;
 
-    [Fact(DisplayName = "parse double precision decimal literal")]
+    [Fact(DisplayName = "parse money literal")]
     public void Literal()
     {
         Assert.NotEmpty(scope.Expressions);
@@ -30,14 +30,14 @@ public class DoubleLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var double precision =", declaration.ToString());
+        Assert.Equal("var cash money =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.dec64, literal.Datatype);
-        Assert.Equal("8.22d64", literal.Value);
+        Assert.Equal(Primitive.money, literal.Datatype);
+        Assert.Equal("$17.20", literal.Value);
     }
 
-    [Fact(DisplayName = "parse double precision decimal literal from whole number")]
+    [Fact(DisplayName = "parse money literal from whole number")]
     public void FromWhole()
     {
         Assert.True(scope.Expressions.Count > 1);
@@ -48,15 +48,15 @@ public class DoubleLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var another double =", declaration.ToString());
+        Assert.Equal("var new money =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.dec64, literal.Datatype);
-        Assert.Equal("55d64", literal.Value);
+        Assert.Equal(Primitive.money, literal.Datatype);
+        Assert.Equal("$100000000", literal.Value);
     }
 
-    [Fact(DisplayName = "parse double precision decimal literal with separators and space before suffix")]
-    public void SeparatorsAndSpaceBeforeSuffix()
+    [Fact(DisplayName = "parse large money literal")]
+    public void LargeLiteral()
     {
         Assert.True(scope.Expressions.Count > 2);
 
@@ -66,10 +66,10 @@ public class DoubleLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var with separators and space before suffix =", declaration.ToString());
+        Assert.Equal("var old money =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.dec64, literal.Datatype);
-        Assert.Equal("12320.695134781351680 d64", literal.Value);
+        Assert.Equal(Primitive.money, literal.Datatype);
+        Assert.Equal("$89643516846857432.98435403435135", literal.Value);
     }
 }
