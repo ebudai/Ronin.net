@@ -115,19 +115,22 @@ internal class Parser
         var literal = Lex(Syntax.integerliteral)?.Replace("_", "");
         if (literal is null) return null;
 
-        if (!BigInteger.TryParse(literal, numberstyle, CultureInfo.CurrentCulture, out var value))
+        var index = literal.IndexOf('i', StringComparison.OrdinalIgnoreCase);
+        var parsed = index is -1 ? literal : literal[..index];
+        if (!BigInteger.TryParse(parsed.TrimEnd(), numberstyle, CultureInfo.CurrentCulture, out var value))
         {
             throw new Exception($"{literal} matched integer literal but BigInteger.TryParse() failed"); // this should never happen
         }
-        
-        return new Literal 
+
+        return new Literal
         {
-            Value = literal, 
-            Datatype = value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
-                : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
-                : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
-                : value >= long.MinValue && value <= long.MaxValue ? Primitive.int64
-                : Primitive.bigint
+            Value = literal,
+            Datatype = literal.EndsWith("i8", StringComparison.OrdinalIgnoreCase) ? Primitive.int8
+                : literal.EndsWith("i16", StringComparison.OrdinalIgnoreCase) ? Primitive.int16
+                : literal.EndsWith("i64", StringComparison.OrdinalIgnoreCase) ? Primitive.int64
+                : value >= long.MaxValue ? Primitive.bigint
+                : value >= int.MaxValue ? Primitive.int64
+                : Primitive.integer
         };
     }
 

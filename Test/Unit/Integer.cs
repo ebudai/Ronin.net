@@ -4,11 +4,11 @@ using System.Reflection;
 
 namespace Unit;
 
-public class HexadecimalLiteral
+public class IntegerLiteral
 {
-    public HexadecimalLiteral()
+    public IntegerLiteral()
     {
-        Parser parser = new(new FileInfo(@"code\literals\hex.ronin"));
+        Parser parser = new(new FileInfo(@"code\literals\integer.ronin"));
 
         scope = parser.ParseScope();
 
@@ -19,8 +19,8 @@ public class HexadecimalLiteral
 
     private readonly Scope scope;
 
-    [Fact(DisplayName = "parse hex literal")]
-    public void Normal()
+    [Fact(DisplayName = "parse integer literal")]
+    public void Literal()
     {
         Assert.NotEmpty(scope.Expressions);
 
@@ -30,15 +30,15 @@ public class HexadecimalLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var normal hex number =", declaration.ToString());
+        Assert.Equal("var normal int =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bits32, literal.Datatype);
-        Assert.Equal("75AE2c", literal.Value);
+        Assert.Equal(Primitive.integer, literal.Datatype);
+        Assert.Equal("92804", literal.Value);
     }
 
-    [Fact(DisplayName = "parse separated hex literal")]
-    public void Separated()
+    [Fact(DisplayName = "parse tiny integer literal")]
+    public void TinyLiteral()
     {
         Assert.True(scope.Expressions.Count > 1);
 
@@ -48,15 +48,15 @@ public class HexadecimalLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var hex number with separators =", declaration.ToString());
+        Assert.Equal("var tiny integer =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bits16, literal.Datatype);
-        Assert.Equal("4EE3", literal.Value);
+        Assert.Equal(Primitive.int8, literal.Datatype);
+        Assert.Equal("5i8", literal.Value);
     }
 
-    [Fact(DisplayName = "parse small hex literal")]
-    public void SmallHex()
+    [Fact(DisplayName = "parse small integer literal")]
+    public void SmallLiteral()
     {
         Assert.True(scope.Expressions.Count > 2);
 
@@ -66,15 +66,15 @@ public class HexadecimalLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var small hex =", declaration.ToString());
+        Assert.Equal("var smallint =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.@byte, literal.Datatype);
-        Assert.Equal("F", literal.Value);
+        Assert.Equal(Primitive.int16, literal.Datatype);
+        Assert.Equal("1000  i16", literal.Value);
     }
 
-    [Fact(DisplayName = "parse big hex literal")]
-    public void BigHex()
+    [Fact(DisplayName = "parse large integer literal via suffix")]
+    public void LargeSuffixLiteral()
     {
         Assert.True(scope.Expressions.Count > 3);
 
@@ -84,15 +84,15 @@ public class HexadecimalLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var big hex number =", declaration.ToString());
+        Assert.Equal("var large integer =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bits64, literal.Datatype);
-        Assert.Equal("4cDEADBEEF3000", literal.Value);
+        Assert.Equal(Primitive.int64, literal.Datatype);
+        Assert.Equal("65462168135136i64", literal.Value);
     }
 
-    [Fact(DisplayName = "parse arbitrary hex literal")]
-    public void Bitlist()
+    [Fact(DisplayName = "parse large integer literal via value")]
+    public void LargeValueLiteral()
     {
         Assert.True(scope.Expressions.Count > 4);
 
@@ -102,10 +102,28 @@ public class HexadecimalLiteral
         Assert.Equal(2, syntax.Count);
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var arbitrary hex number =", declaration.ToString());
+        Assert.Equal("var another large integer =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bitlist, literal.Datatype);
-        Assert.Equal("1AAAAAAAAEeEEeEBBBBBBBBBdddDD00111666666667", literal.Value);
+        Assert.Equal(Primitive.int64, literal.Datatype);
+        Assert.Equal("69843516843518656", literal.Value);
+    }
+
+    [Fact(DisplayName = "parse arbitrary integer literal")]
+    public void BigintLiteral()
+    {
+        Assert.True(scope.Expressions.Count > 5);
+
+        var syntax = SyntaxProperty.GetValue(scope.Expressions[5]) as List<Syntax>;
+
+        Assert.NotNull(syntax);
+        Assert.Equal(2, syntax.Count);
+        Assert.IsType<Declaration>(syntax[0]);
+        var declaration = syntax[0] as Declaration;
+        Assert.Equal("var arbitrary integer =", declaration.ToString());
+        Assert.IsType<Literal>(syntax[1]);
+        var literal = syntax[1] as Literal;
+        Assert.Equal(Primitive.bigint, literal.Datatype);
+        Assert.Equal("32576516816534385321687165416384384381261681681", literal.Value);
     }
 }
