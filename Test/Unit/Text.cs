@@ -2,16 +2,16 @@
 using Ronin.Parser.Grammar;
 using System.Reflection;
 
-namespace Ronin.Test;
+namespace Unit;
 
-public partial class Unit
+public class TextLiteral
 {
     private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
 
     [Fact(DisplayName = "Parse text literal")]
     public void Literal()
     {
-        Parser.Parser parser = new(new FileInfo("text.ronin"));
+        Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
 
         var scope = parser.ParseScope();
 
@@ -28,13 +28,14 @@ public partial class Unit
         Assert.Equal("var normal text =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
+        Assert.Equal(Primitive.text, literal.Datatype);
         Assert.Equal("\"regular text\"", literal.Value);
     }
 
     [Fact(DisplayName = "Parse multiline text literal")]
     public void MultilineLiteral()
     {
-        Parser.Parser parser = new(new FileInfo("text.ronin"));
+        Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
 
         var scope = parser.ParseScope();
 
@@ -50,13 +51,14 @@ public partial class Unit
         Assert.Equal("var multiline text =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
+        Assert.Equal(Primitive.text, literal.Datatype);
         Assert.Equal("\" this is" + Environment.NewLine + "\tmultiline with whitepsace\"", literal.Value);
     }
 
     [Fact(DisplayName = "Parse text literal with embedded literals")]
     public void LiteralWithEmbeddedLiterals()
     {
-        Parser.Parser parser = new(new FileInfo("text.ronin"));
+        Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
 
         var scope = parser.ParseScope();
 
@@ -72,6 +74,7 @@ public partial class Unit
         Assert.Equal("var text with literals inside it =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
+        Assert.Equal(Primitive.text, literal.Datatype);
         Assert.Equal("\"'c' is a char literal, 0xAAE is hex, 0b1101_0101 is binary\"", literal.Value);
     }
 }
