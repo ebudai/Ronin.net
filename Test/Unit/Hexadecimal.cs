@@ -55,7 +55,7 @@ public class HexadecimalLiteral
         Assert.Equal("4EE3", literal.Value);
     }
 
-    [Fact(DisplayName = "parse small hex value")]
+    [Fact(DisplayName = "parse small hex literal")]
     public void SmallHex()
     {
         Assert.True(scope.Expressions.Count > 2);
@@ -73,7 +73,7 @@ public class HexadecimalLiteral
         Assert.Equal("F", literal.Value);
     }
 
-    [Fact(DisplayName = "parse big hex value")]
+    [Fact(DisplayName = "parse big hex literal")]
     public void BigHex()
     {
         Assert.True(scope.Expressions.Count > 3);

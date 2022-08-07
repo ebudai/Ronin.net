@@ -127,7 +127,7 @@ internal class Parser
 
     private Literal ParseBinaryLiteral()
     {
-        var lexed = Lex(Syntax.binaryliteral)?[Syntax.binaryprefix.Length..];
+        var lexed = Lex(Syntax.binaryliteral)?.Replace("_", "")?[Syntax.binaryprefix.Length..];
         return lexed is null ? null : new Literal
         {
             Value = lexed,
