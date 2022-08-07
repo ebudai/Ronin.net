@@ -1,4 +1,8 @@
-﻿datatype Animal
+﻿package Ronin Showcase.
+
+import Standard Random.
+
+datatype Animal
 {
 	var id as integer = random.
 	var weight as number = random decimal from 1 to 1_000.
