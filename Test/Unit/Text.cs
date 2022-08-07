@@ -6,17 +6,22 @@ namespace Unit;
 
 public class TextLiteral
 {
+    public TextLiteral()
+    {
+        Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
+
+        scope = parser.ParseScope();
+
+        Assert.NotNull(scope);
+    }
+    
     private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
+
+    private readonly Scope scope;
 
     [Fact(DisplayName = "parse text literal")]
     public void Literal()
     {
-        Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
-
-        var scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-
         Assert.NotEmpty(scope.Expressions);
 
         var syntax = SyntaxProperty.GetValue(scope.Expressions[0]) as List<Syntax>;
@@ -35,12 +40,6 @@ public class TextLiteral
     [Fact(DisplayName = "parse multiline text literal")]
     public void MultilineLiteral()
     {
-        Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
-
-        var scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-
         Assert.True(scope.Expressions.Count > 1);
 
         var syntax = SyntaxProperty.GetValue(scope.Expressions[1]) as List<Syntax>;
@@ -58,12 +57,6 @@ public class TextLiteral
     [Fact(DisplayName = "parse text literal with embedded literals")]
     public void LiteralWithEmbeddedLiterals()
     {
-        Parser parser = new(new FileInfo(@"code\literals\text.ronin"));
-
-        var scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-
         Assert.True(scope.Expressions.Count > 2);
 
         var syntax = SyntaxProperty.GetValue(scope.Expressions[2]) as List<Syntax>;

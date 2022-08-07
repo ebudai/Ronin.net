@@ -81,36 +81,30 @@ internal class Parser
 
     private Literal ParseHexLiteral()
     {
-        var literal = Lex(Syntax.hexliteral);
+        var literal = Lex(Syntax.hexliteral)?.Replace("_", "")?[Syntax.binaryprefix.Length..];
         if (literal is null) return null;
 
-        var negative = literal.StartsWith('-');
+        var parsed = literal.Length is 1 ? '0' + literal : literal;
 
-        // remove underscores and '0x'
-        if (literal.Length >= Syntax.hexprefix.Length + 1)
+        if (!BigInteger.TryParse(parsed, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out var value))
         {
-            int index = Syntax.hexprefix.Length;
-            if (negative) ++index;
-            literal = literal[index..].Replace("_", "");
+            throw new Exception($"{literal} matched hex literal but BigInteger.TryParse() failed"); // this should never happen
         }
-
-        if (!BigInteger.TryParse(literal, NumberStyles.AllowHexSpecifier, CultureInfo.CurrentCulture, out var value))
-        {
-            throw new Exception($"{(negative ? "-" : "")}{literal} matched hex literal but BigInteger.TryParse() failed"); // this should never happen
-        }
-
-        if (negative) literal = '-' + literal;
 
         return new Literal
         {
             Value = literal,
-            Datatype = SmallestIntegerPrimitive(value)
+            Datatype = value >= byte.MinValue && value <= byte.MaxValue ? Primitive.@byte
+                : value >= ushort.MinValue && value <= ushort.MaxValue ? Primitive.bits16
+                : value >= uint.MinValue && value <= uint.MaxValue ? Primitive.bits32
+                : value >= ulong.MinValue && value <= ulong.MaxValue ? Primitive.bits64
+                : Primitive.bitlist
         };
     }
 
     private Literal ParseIntegerLiteral()
     {
-        NumberStyles numberstyle = NumberStyles.AllowLeadingSign; //TODO investigate using , for digit separator (in 3's) instead of _ whereever       NumberStyles.AllowThousands
+        NumberStyles numberstyle = NumberStyles.None; //TODO investigate using , for digit separator (in 3's) instead of _ whereever       NumberStyles.AllowThousands
 
         var literal = Lex(Syntax.integerliteral)?.Replace("_", "");
         if (literal is null) return null;
@@ -123,24 +117,21 @@ internal class Parser
         return new Literal 
         {
             Value = literal, 
-            Datatype = SmallestIntegerPrimitive(value)
+            Datatype = value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
+                : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
+                : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
+                : value >= long.MinValue && value <= long.MaxValue ? Primitive.int64
+                : Primitive.bigint
         };
     }
 
-    private static string SmallestIntegerPrimitive(BigInteger value) =>
-          value >= sbyte.MinValue && value <= sbyte.MaxValue ? Primitive.int8
-        : value >= short.MinValue && value <= short.MaxValue ? Primitive.int16
-        : value >= int.MinValue && value <= int.MaxValue ? Primitive.integer
-        : value >= long.MinValue && value <= long.MaxValue ? Primitive.int64
-        : Primitive.bigint;
-
     private Literal ParseBinaryLiteral()
     {
-        var lexed = Lex(Syntax.binaryliteral);
+        var lexed = Lex(Syntax.binaryliteral)?[Syntax.binaryprefix.Length..];
         return lexed is null ? null : new Literal
         {
             Value = lexed,
-            Datatype = (lexed.Length - Syntax.binaryprefix.Length) switch
+            Datatype = lexed.Length switch
             {
                 <= 8 => Primitive.@byte,
                 <= 16 => Primitive.bits16,

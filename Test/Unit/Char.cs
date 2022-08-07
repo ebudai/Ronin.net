@@ -6,17 +6,22 @@ namespace Unit;
 
 public class CharacterLiteral
 {
+    public CharacterLiteral()
+    {
+        Parser parser = new(new FileInfo(@"code\literals\char.ronin"));
+
+        scope = parser.ParseScope();
+
+        Assert.NotNull(scope);
+    }
+
     private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
+
+    private readonly Scope scope;
 
     [Fact(DisplayName = "parse character literal")]
     public void Literal()
     {
-        Parser parser = new(new FileInfo(@"code\literals\char.ronin"));
-
-        var scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-
         Assert.NotEmpty(scope.Expressions);
 
         var syntax = SyntaxProperty.GetValue(scope.Expressions[0]) as List<Syntax>;
@@ -35,12 +40,6 @@ public class CharacterLiteral
     [Fact(DisplayName = "parse unichar literal")]
     public void UnicharLiteral()
     {
-        Parser parser = new(new FileInfo(@"code\literals\char.ronin"));
-
-        var scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-
         Assert.True(scope.Expressions.Count > 1);
 
         var syntax = SyntaxProperty.GetValue(scope.Expressions[1]) as List<Syntax>;
