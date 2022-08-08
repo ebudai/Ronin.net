@@ -169,12 +169,14 @@ internal class Parser
         
         Parameters parameters = new();
         var syntax = ParseSyntax();
-        while (parameters.TryAdd(syntax, ref cursor)) syntax = ParseSyntax();
-        
-        if (syntax is Terminal)
+        while (parameters.TryAdd(syntax, ref cursor))
         {
-            cursor = originalcursor;
-            return null;
+            if (syntax is Terminal or Literal)
+            {
+                cursor = originalcursor;
+                return null;
+            }
+            syntax = ParseSyntax();            
         }
         
         return parameters;
@@ -213,6 +215,7 @@ internal class Parser
 
             element = ParseSyntax();
         }
+        if (!expression.IsEmpty) aggregate.Expressions.Add(expression);
         return aggregate;
     }
 

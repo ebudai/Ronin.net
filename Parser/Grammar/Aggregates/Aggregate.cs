@@ -2,5 +2,5 @@
 
 internal class Aggregate : Syntax
 {
-    internal List<Expression> Expressions { get; } = new();
+    protected internal List<Expression> Expressions { get; } = new();
 }

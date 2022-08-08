@@ -1,0 +1,6 @@
+﻿function run (runners as integer, name as text, cash as money)
+{
+	resolve to (name as integer + runners) * cash.
+}
+
+var bank = run(7, "12", $15).

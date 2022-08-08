@@ -6,9 +6,6 @@ internal class Parameters : Syntax
 {
     private List<Identifier> Variables { get; } = new();
 
-    [ExcludeFromCodeCoverage]
-    public override string ToString() => "(" + string.Join(',', Variables) + ")";
-
     internal bool TryAdd(Syntax syntax, ref int cursor)
     {
         if (syntax is ClosingParenthesis) return false;
@@ -32,4 +29,7 @@ internal class Parameters : Syntax
         }
         return true;
     }
+
+    [ExcludeFromCodeCoverage]
+    public override string ToString() => "(" + string.Join(',', Variables) + ")";
 }
