@@ -1,23 +1,11 @@
 ﻿using Ronin.Parser;
 using Ronin.Parser.Grammar;
-using System.Reflection;
 
 namespace Unit;
 
-public class HalfLiteral
+public class HalfLiteral : UnitTest
 {
-    public HalfLiteral()
-    {
-        Parser parser = new(new FileInfo(@"code\literals\half.ronin"));
-
-        scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-    }
-
-    private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    private readonly Scope scope;
+    public HalfLiteral() : base("half") { }
 
     [Fact(DisplayName = "parse half precision decimal literal")]
     public void Literal()

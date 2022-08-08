@@ -5,7 +5,7 @@ namespace Ronin.Parser.Grammar;
 
 internal class Scope : Aggregate
 {
-    public Scope() { }
+    internal Scope() { }
 
     [ExcludeFromCodeCoverage]
     public override string ToString() => "{ ... }";

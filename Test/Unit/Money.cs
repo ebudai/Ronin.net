@@ -4,20 +4,9 @@ using System.Reflection;
 
 namespace Unit;
 
-public class MoneyLiteral
+public class MoneyLiteral : UnitTest
 {
-    public MoneyLiteral()
-    {
-        Parser parser = new(new FileInfo(@"code\literals\money.ronin"));
-
-        scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-    }
-
-    private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    private readonly Scope scope;
+    public MoneyLiteral() : base("money") { }
 
     [Fact(DisplayName = "parse money literal")]
     public void Literal()

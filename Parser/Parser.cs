@@ -87,7 +87,7 @@ internal class Parser
 
     private Literal ParseHexLiteral()
     {
-        var literal = Lex(Syntax.hexliteral)?.Replace("_", "")?[Syntax.binaryprefix.Length..];
+        var literal = Lex(Syntax.hexliteral)?.Replace("_", "")[Syntax.binaryprefix.Length..];
         if (literal is null) return null;
 
         var parsed = literal.Length is 1 ? '0' + literal : literal;
@@ -128,8 +128,8 @@ internal class Parser
             Datatype = literal.EndsWith("i8", StringComparison.OrdinalIgnoreCase) ? Primitive.int8
                 : literal.EndsWith("i16", StringComparison.OrdinalIgnoreCase) ? Primitive.int16
                 : literal.EndsWith("i64", StringComparison.OrdinalIgnoreCase) ? Primitive.int64
-                : value >= long.MaxValue ? Primitive.bigint
-                : value >= int.MaxValue ? Primitive.int64
+                : value <= long.MinValue || value >= long.MaxValue ? Primitive.bigint
+                : value <= int.MinValue || value >= int.MaxValue ? Primitive.int64
                 : Primitive.integer
         };
     }

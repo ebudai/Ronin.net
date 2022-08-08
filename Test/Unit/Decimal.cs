@@ -1,23 +1,11 @@
 ﻿using Ronin.Parser;
 using Ronin.Parser.Grammar;
-using System.Reflection;
 
 namespace Unit;
 
-public class DecimalLiteral
+public class DecimalLiteral : UnitTest
 {
-    public DecimalLiteral()
-    {
-        Parser parser = new(new FileInfo(@"code\literals\decimal.ronin"));
-
-        scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-    }
-
-    private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    private readonly Scope scope;
+    public DecimalLiteral() : base("decimal") { }
 
     [Fact(DisplayName = "parse default precision decimal literal")]
     public void Literal()

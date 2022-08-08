@@ -4,20 +4,9 @@ using System.Reflection;
 
 namespace Unit;
 
-public class IntegerLiteral
+public class IntegerLiteral : UnitTest
 {
-    public IntegerLiteral()
-    {
-        Parser parser = new(new FileInfo(@"code\literals\integer.ronin"));
-
-        scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-    }
-
-    private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    private readonly Scope scope;
+    public IntegerLiteral() : base("integer") { }
 
     [Fact(DisplayName = "parse integer literal")]
     public void Literal()

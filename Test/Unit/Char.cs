@@ -1,23 +1,11 @@
 ﻿using Ronin.Parser;
 using Ronin.Parser.Grammar;
-using System.Reflection;
 
 namespace Unit;
 
-public class CharacterLiteral
+public class CharacterLiteral : UnitTest
 {
-    public CharacterLiteral()
-    {
-        Parser parser = new(new FileInfo(@"code\literals\char.ronin"));
-
-        scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-    }
-
-    private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    private readonly Scope scope;
+    public CharacterLiteral() : base("char") { }
 
     [Fact(DisplayName = "parse character literal")]
     public void Literal()

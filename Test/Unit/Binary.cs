@@ -1,23 +1,11 @@
 ﻿using Ronin.Parser;
 using Ronin.Parser.Grammar;
-using System.Reflection;
 
 namespace Unit;
 
-public class BinaryLiteral
+public class BinaryLiteral : UnitTest
 {
-    public BinaryLiteral()
-    {
-        Parser parser = new(new FileInfo(@"code\literals\binary.ronin"));
-
-        scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-    }
-
-    private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    private readonly Scope scope;
+    public BinaryLiteral() : base("binary") { }
 
     [Fact(DisplayName = "parse binary literal")]
     public void Normal()

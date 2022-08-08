@@ -1,23 +1,11 @@
 ﻿using Ronin.Parser;
 using Ronin.Parser.Grammar;
-using System.Reflection;
 
 namespace Unit;
 
-public class DoubleLiteral
+public class DoubleLiteral : UnitTest
 {
-    public DoubleLiteral()
-    {
-        Parser parser = new(new FileInfo(@"code\literals\double.ronin"));
-
-        scope = parser.ParseScope();
-
-        Assert.NotNull(scope);
-    }
-
-    private static readonly PropertyInfo SyntaxProperty = typeof(Expression).GetProperty("Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    private readonly Scope scope;
+    public DoubleLiteral() : base("double") { }
 
     [Fact(DisplayName = "parse double precision decimal literal")]
     public void Literal()
