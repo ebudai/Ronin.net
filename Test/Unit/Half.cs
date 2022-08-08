@@ -5,7 +5,7 @@ namespace Unit;
 
 public class HalfLiteral : UnitTest
 {
-    public HalfLiteral() : base("half") { }
+    public HalfLiteral() : base("literals\\half") { }
 
     [Fact(DisplayName = "parse half precision decimal literal")]
     public void Literal()

@@ -6,7 +6,7 @@ namespace Unit;
 
 public class MoneyLiteral : UnitTest
 {
-    public MoneyLiteral() : base("money") { }
+    public MoneyLiteral() : base("literals\\money") { }
 
     [Fact(DisplayName = "parse money literal")]
     public void Literal()

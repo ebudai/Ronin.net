@@ -5,7 +5,7 @@ namespace Unit;
 
 public class CharacterLiteral : UnitTest
 {
-    public CharacterLiteral() : base("char") { }
+    public CharacterLiteral() : base("literals\\char") { }
 
     [Fact(DisplayName = "parse character literal")]
     public void Literal()

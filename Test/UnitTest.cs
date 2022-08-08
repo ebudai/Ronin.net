@@ -8,7 +8,7 @@ public class UnitTest
 {
     protected internal UnitTest(string name)
     {
-        Parser parser = new(new FileInfo(@$"code\literals\{name}.ronin"));
+        Parser parser = new(new FileInfo(@$"code\{name}.ronin"));
 
         scope = parser.ParseScope();
 

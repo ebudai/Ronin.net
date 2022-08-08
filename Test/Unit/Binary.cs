@@ -5,7 +5,7 @@ namespace Unit;
 
 public class BinaryLiteral : UnitTest
 {
-    public BinaryLiteral() : base("binary") { }
+    public BinaryLiteral() : base("literals\\binary") { }
 
     [Fact(DisplayName = "parse binary literal")]
     public void Normal()

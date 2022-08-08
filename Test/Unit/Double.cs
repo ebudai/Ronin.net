@@ -5,7 +5,7 @@ namespace Unit;
 
 public class DoubleLiteral : UnitTest
 {
-    public DoubleLiteral() : base("double") { }
+    public DoubleLiteral() : base("literals\\double") { }
 
     [Fact(DisplayName = "parse double precision decimal literal")]
     public void Literal()

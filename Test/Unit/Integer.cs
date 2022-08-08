@@ -6,7 +6,7 @@ namespace Unit;
 
 public class IntegerLiteral : UnitTest
 {
-    public IntegerLiteral() : base("integer") { }
+    public IntegerLiteral() : base("literals\\integer") { }
 
     [Fact(DisplayName = "parse integer literal")]
     public void Literal()

@@ -5,7 +5,7 @@ namespace Unit;
 
 public class HexLiteral : UnitTest
 {
-    public HexLiteral() : base("hex") { }
+    public HexLiteral() : base("literals\\hex") { }
 
     [Fact(DisplayName = "parse hex literal")]
     public void Normal()
