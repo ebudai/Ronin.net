@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Parser.Grammar;
 
@@ -11,38 +12,46 @@ internal class Expression : Syntax
     internal bool IsScopeClose { get; private set; }
 
     internal bool TryAdd(Declaration declaration, ref int cursor)
-    { 
-        if (Syntax.Count > 0 && Syntax[^1] is Scope)
+    {
+        if (Syntax.Count is 0 || Syntax[^1] is not Scope)
         {
-            cursor -= declaration.ToString().Length;
-            return false;
+            return TryAdd(declaration as Identifier, ref cursor);
         }
-        return TryAdd(declaration as Identifier, ref cursor);
+        cursor -= declaration.ToString().Length;
+        return false;        
     }
 
     internal bool TryAdd(Identifier identifier, ref int cursor)
     {
-        if (Syntax.Count > 0 && Syntax[^1] is Identifier prioridentifier)
+        if (Syntax.Count is 0 || Syntax[^1] is not Identifier prioridentifier)
         {
-            return prioridentifier.TryAdd(identifier, ref cursor);
+            Syntax.Add(identifier);
+            return true;
         }
-        Syntax.Add(identifier);
-        return true;
+
+        return prioridentifier.TryAdd(identifier, ref cursor);        
     }
 
     internal bool TryAdd(Syntax syntax, ref int cursor)
     {
-        if (syntax is null) return false;
-
-        if (syntax is Declaration declaration) return TryAdd(declaration, ref cursor);
-        if (syntax is Identifier identifier) return TryAdd(identifier, ref cursor);
-
         IsScopeClose = syntax is ClosingBrace;
-        if (syntax is Symbol) return false;
+
+        return syntax switch
+        {
+            null => false,
+            Declaration declaration => TryAdd(declaration, ref cursor),
+            Identifier identifier => TryAdd(identifier, ref cursor),
+            Symbol => false,
+            _ => Add(syntax)
+        };
         
-        Syntax.Add(syntax);
-        return true;
+        bool Add(Syntax syntax)
+        {
+            Syntax.Add(syntax);
+            return true;
+        }
     }
 
+    [ExcludeFromCodeCoverage]
     public override string ToString() => string.Join(' ', Syntax);
 }

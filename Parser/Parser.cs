@@ -63,6 +63,7 @@ internal class Parser
             ?? ParseDecimalLiteral(Syntax.moneyliteral, Primitive.money)
             ?? ParseIntegerLiteral()
             ?? ParseParameters()
+            //?? ParseList()
             ?? ParseAggregate<Object>(Syntax.groupingopen, Syntax.groupingclose)
             ?? ParseAggregate<List>(Syntax.listopen, Syntax.listclose)
             ?? ParseAggregate<Set>(Syntax.scopeopen, Syntax.scopeclose)
@@ -181,6 +182,41 @@ internal class Parser
         
         return parameters;
     }
+
+    /*private List ParseList()
+    {
+        var originalcursor = cursor;
+
+        if (ParseSymbol() is not OpeningSquareBracket)
+        {
+            cursor = originalcursor;
+            return null;
+        }
+
+        List list = new();
+
+        // check for []
+        var value = ParseSyntax();
+        if (value is ClosingSquareBracket) return list;
+
+        // check for [int] or [int, int, ... ]
+        while (value is not null)
+        {
+            var symbol = ParseSymbol();
+            if (symbol is ClosingSquareBracket)
+            {
+                return list;
+            }
+            else if (symbol is not Separator)
+            {
+                return null;
+            }
+            value = ParseSyntax();
+            
+        }
+
+        return null;
+    }*/
 
     private T ParseAggregate<T>(string open, string close) where T : Aggregate
     {

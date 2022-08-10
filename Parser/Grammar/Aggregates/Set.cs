@@ -2,5 +2,5 @@
 
 internal class Set : Aggregate
 {
-
+    internal string Datatype { get; set; }
 }
