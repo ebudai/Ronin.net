@@ -20,12 +20,13 @@ internal class Context
         return match.Value;
     }
 
-    internal void Advance(int amount) => cursor += amount;
     internal void Retreat(int amount) => cursor -= amount;
 
-    internal void Bookmark() => bookmarks.Push(cursor);
+    internal void AddBookmark() => bookmarks.Push(cursor);
 
-    internal void UndoLast() => cursor = bookmarks.Pop();
+    internal void RetreatToLastBookmark() => cursor = bookmarks.Pop();
+
+    internal void RemoveBookmarks() => bookmarks.Clear();
 
     internal bool IsAtEnd => cursor == sourcecode.Length;
 

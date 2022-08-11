@@ -8,11 +8,11 @@ internal class Parameters : Syntax
 
     internal new static Parameters Parse(Context context)
     {
-        context.Bookmark();
+        context.AddBookmark();
 
         if (Symbol.Parse(context) is not OpeningParenthesis)
         {
-            context.UndoLast();
+            context.RetreatToLastBookmark();
             return null;
         }
 
@@ -22,11 +22,13 @@ internal class Parameters : Syntax
         {
             if (syntax is Terminal or Literal)
             {
-                context.UndoLast();
+                context.RetreatToLastBookmark();
                 return null;
             }
             syntax = Syntax.Parse(context);
         }
+
+        context.RemoveBookmarks();
 
         return parameters;
     }

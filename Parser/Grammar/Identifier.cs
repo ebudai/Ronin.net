@@ -38,13 +38,13 @@ internal class Identifier : Syntax
         {
             names.AddRange(identifier.names);
         }
-        else if (syntax is Expression expression)
+        /*else if (syntax is Expression expression)
         {
             parameters.Add(names.Count, expression);
-        }
+        }*/
         else
         {
-            if (!parameters.TryGetValue(names.Count, out expression))
+            if (!parameters.TryGetValue(names.Count, out var expression))
             {
                 expression = new();
                 parameters.Add(names.Count, expression);

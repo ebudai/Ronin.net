@@ -6,22 +6,23 @@ internal class Aggregate : Syntax
 
     internal static T Parse<T>(string open, string close, Context context) where T : Aggregate
     {
-        context.Bookmark();
+        context.AddBookmark();
 
         if (Symbol.Parse(context)?.Value != open)
         {
-            context.UndoLast();
+            context.RetreatToLastBookmark();
             return null;
         }
 
         var aggregate = Activator.CreateInstance<T>();
         Expression expression = new();
+        
         var element = Parse(context);
         while (element is not Symbol symbol || symbol.Value != close)
         {
             if (element is Terminal)
             {
-                context.UndoLast();
+                context.RetreatToLastBookmark();
                 return null;
             }
 
@@ -37,7 +38,11 @@ internal class Aggregate : Syntax
 
             element = Parse(context);
         }
+
         if (!expression.IsEmpty) aggregate.Expressions.Add(expression);
+
+        context.RemoveBookmarks();
+
         return aggregate;
     }
 }
