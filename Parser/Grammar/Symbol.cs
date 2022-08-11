@@ -4,7 +4,7 @@ internal abstract class Symbol : Syntax
 {
     internal abstract string Value { get; }
 
-    internal static Symbol Get(string symbol, Parser parser) => symbol switch
+    internal new static Symbol Parse(Context context) => context.Lex(symbol) switch
     {
         terminal => new Terminal(),
         separator => new Separator(),
@@ -14,9 +14,8 @@ internal abstract class Symbol : Syntax
         groupingclose => new ClosingParenthesis(),
         listclose => new ClosingSquareBracket(),
         scopeclose => new ClosingBrace(),
-        _ => throw new Parser.ParseException($"unknown symbol {symbol}", parser)
+        _ => null
     };
-
 }
 
 internal class Terminal : Symbol

@@ -8,9 +8,9 @@ public class UnitTest
 {
     protected internal UnitTest(string name)
     {
-        Parser parser = new(new FileInfo(@$"code\{name}.ronin"));
+        Context context = new(new FileInfo(@$"code\{name}.ronin"));
 
-        scope = parser.ParseScope();
+        scope = Scope.Parse(context);
 
         Assert.NotNull(scope);
     }

@@ -1,4 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using Ronin.Parser.Grammar;
+using Ronin.Parser.Grammar.Aggregates;
+using System.Text.RegularExpressions;
+
+using Object = Ronin.Parser.Grammar.Aggregates.Object;
 
 namespace Ronin.Parser;
 //TODO url literal
@@ -6,6 +10,22 @@ namespace Ronin.Parser;
 //TODO comments
 internal abstract class Syntax
 {
+    internal static Syntax Parse(Context context)
+    {
+        context.Lex(whitespace);
+
+        if (context.IsAtEnd) return null;
+
+        return Literal.Parse(context)
+            ?? Parameters.Parse(context)
+            ?? Aggregate.Parse<Object>(groupingopen, groupingclose, context)
+            ?? Aggregate.Parse<List>(listopen, listclose, context)
+            ?? Scope.Parse(context)
+            ?? Symbol.Parse(context)
+            ?? Declaration.Parse(context)
+            ?? Identifier.Parse(context) as Syntax;
+    }
+
     internal static readonly Regex whitespace = new(@"\s+", options);
     internal static readonly Regex textliteral = new(@"""[^""\\]*(\\.[^""\\]*)*""", options);
     internal static readonly Regex charliteral = new(@"'\\?.'", options);

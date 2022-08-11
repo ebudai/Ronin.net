@@ -6,7 +6,32 @@ internal class Parameters : Syntax
 {
     private List<Identifier> Variables { get; } = new();
 
-    internal bool TryAdd(Syntax syntax, ref int cursor)
+    internal new static Parameters Parse(Context context)
+    {
+        context.Bookmark();
+
+        if (Symbol.Parse(context) is not OpeningParenthesis)
+        {
+            context.UndoLast();
+            return null;
+        }
+
+        Parameters parameters = new();
+        var syntax = Syntax.Parse(context);
+        while (parameters.TryAdd(syntax, context))
+        {
+            if (syntax is Terminal or Literal)
+            {
+                context.UndoLast();
+                return null;
+            }
+            syntax = Syntax.Parse(context);
+        }
+
+        return parameters;
+    }
+
+    internal bool TryAdd(Syntax syntax, Context context)
     {
         if (syntax is ClosingParenthesis) return false;
 
@@ -14,7 +39,7 @@ internal class Parameters : Syntax
         {
             if (Variables.Count is not 0)
             {
-                return Variables[^1].TryAdd(identifier, ref cursor);
+                return Variables[^1].TryAdd(identifier, context);
             }
             Variables.Add(identifier);
         }
@@ -25,7 +50,7 @@ internal class Parameters : Syntax
         else if (syntax is not Symbol)
         {
             if (Variables.Count is 0) Variables.Add(new());
-            Variables[^1].TryAdd(syntax, ref cursor);
+            Variables[^1].TryAdd(syntax, context);
         }
         return true;
     }

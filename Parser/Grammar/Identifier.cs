@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Ronin.Parser.Grammar;
@@ -10,6 +11,7 @@ internal class Identifier : Syntax
 
     internal Identifier(string name) => names.Add(formatter.Replace(name,  " "));
 
+    [ExcludeFromCodeCoverage]
     public override string ToString()
     {
         var name = string.Empty;
@@ -24,7 +26,13 @@ internal class Identifier : Syntax
         return name.TrimEnd();
     }
 
-    internal bool TryAdd(Syntax syntax, ref int cursor)
+    internal new static Identifier Parse(Context context)
+    {
+        var lexed = context.Lex(identifier);
+        return lexed is null ? null : new(lexed);
+    }
+
+    internal bool TryAdd(Syntax syntax, Context context)
     {
         if (syntax is Identifier identifier)
         {
@@ -41,7 +49,7 @@ internal class Identifier : Syntax
                 expression = new();
                 parameters.Add(names.Count, expression);
             }
-            return expression.TryAdd(syntax, ref cursor);
+            return expression.TryAdd(syntax, context);
         }
         return true;
     }

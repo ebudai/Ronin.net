@@ -11,17 +11,26 @@ internal class Expression : Syntax
     internal bool IsEmpty => Syntax.Count is 0;
     internal bool IsScopeClose { get; private set; }
 
-    internal bool TryAdd(Declaration declaration, ref int cursor)
+    internal new static Expression Parse(Context context)
+    {
+        Expression expression = new();
+
+        while (expression.TryAdd(Ronin.Parser.Syntax.Parse(context), context)) { }
+
+        return expression.IsEmpty ? null : expression;
+    }
+
+    internal bool TryAdd(Declaration declaration, Context parser)
     {
         if (Syntax.Count is 0 || Syntax[^1] is not Scope)
         {
-            return TryAdd(declaration as Identifier, ref cursor);
+            return TryAdd(declaration as Identifier, parser);
         }
-        cursor -= declaration.ToString().Length;
+        parser.Retreat(declaration.ToString().Length);
         return false;        
     }
 
-    internal bool TryAdd(Identifier identifier, ref int cursor)
+    internal bool TryAdd(Identifier identifier, Context context)
     {
         if (Syntax.Count is 0 || Syntax[^1] is not Identifier prioridentifier)
         {
@@ -29,18 +38,18 @@ internal class Expression : Syntax
             return true;
         }
 
-        return prioridentifier.TryAdd(identifier, ref cursor);        
+        return prioridentifier.TryAdd(identifier, context);
     }
 
-    internal bool TryAdd(Syntax syntax, ref int cursor)
+    internal bool TryAdd(Syntax syntax, Context context)
     {
         IsScopeClose = syntax is ClosingBrace;
 
         return syntax switch
         {
             null => false,
-            Declaration declaration => TryAdd(declaration, ref cursor),
-            Identifier identifier => TryAdd(identifier, ref cursor),
+            Declaration declaration => TryAdd(declaration, context),
+            Identifier identifier => TryAdd(identifier, context),
             Symbol => false,
             _ => Add(syntax)
         };

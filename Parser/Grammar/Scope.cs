@@ -16,4 +16,20 @@ internal class Scope : Aggregate
         if (!expression.IsEmpty) Expressions.Add(expression);
         return !expression.IsScopeClose;
     }
+
+    internal new static Scope Parse(Context context)
+    {
+        var symbol = Symbol.Parse(context);
+        if (symbol is not OpeningBrace)
+        {
+            context.Retreat(symbol?.Value.Length ?? 0);
+            return null;
+        }
+
+        Scope scope = new();
+
+        while (scope.TryAdd(Expression.Parse(context))) { }
+
+        return scope;
+    }
 }
