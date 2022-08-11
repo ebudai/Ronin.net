@@ -1,8 +1,6 @@
 ﻿using Ronin.Parser;
 using Ronin.Parser.Grammar;
 
-using Object = Ronin.Parser.Grammar.Aggregates.Object;
-
 namespace Unit;
 
 public class ObjectTests : UnitTest
@@ -24,13 +22,13 @@ public class ObjectTests : UnitTest
         Assert.NotNull(declaration);
         Assert.Equal("var bank = run", declaration.ToString());
 
-        Assert.IsType<Object>(syntax[1]);
-        var @object = syntax[1] as Object;
-        Assert.NotNull(@object);
-        Assert.NotNull(@object.Expressions);
-        Assert.Equal(3, @object.Expressions.Count);
+        Assert.IsType<Aggregate>(syntax[1]);
+        var aggregate = syntax[1] as Aggregate;
+        Assert.NotNull(aggregate);
+        Assert.NotNull(aggregate.Expressions);
+        Assert.Equal(3, aggregate.Expressions.Count);
 
-        syntax = SyntaxProperty.GetValue(@object.Expressions[0]) as List<Syntax>;
+        syntax = SyntaxProperty.GetValue(aggregate.Expressions[0]) as List<Syntax>;
         Assert.NotNull(syntax);
 
         Assert.NotEmpty(syntax);
@@ -39,7 +37,7 @@ public class ObjectTests : UnitTest
         Assert.Equal(Primitive.integer, literal.Datatype);
         Assert.Equal("7", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(@object.Expressions[1]) as List<Syntax>;
+        syntax = SyntaxProperty.GetValue(aggregate.Expressions[1]) as List<Syntax>;
         Assert.NotNull(syntax);
 
         Assert.NotEmpty(syntax);
@@ -48,7 +46,7 @@ public class ObjectTests : UnitTest
         Assert.Equal(Primitive.text, literal.Datatype);
         Assert.Equal("\"12\"", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(@object.Expressions[2]) as List<Syntax>;
+        syntax = SyntaxProperty.GetValue(aggregate.Expressions[2]) as List<Syntax>;
         Assert.NotNull(syntax);
 
         Assert.NotEmpty(syntax);

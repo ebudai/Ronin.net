@@ -56,6 +56,9 @@
     <None Update="code\literals\money.ronin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="code\lookups.ronin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="code\objects.ronin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -1,8 +1,6 @@
 ﻿using Ronin.Parser.Grammar;
-using Ronin.Parser.Grammar.Aggregates;
 using System.Text.RegularExpressions;
 
-using Object = Ronin.Parser.Grammar.Aggregates.Object;
 
 namespace Ronin.Parser;
 //TODO url literal
@@ -18,8 +16,7 @@ internal abstract class Syntax
 
         return Literal.Parse(context)
             ?? Parameters.Parse(context)
-            ?? Aggregate.Parse<Object>(groupingopen, groupingclose, context)
-            ?? Aggregate.Parse<List>(listopen, listclose, context)
+            ?? Aggregate.Parse(context)
             ?? Scope.Parse(context)
             ?? Symbol.Parse(context)
             ?? Declaration.Parse(context)

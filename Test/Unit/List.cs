@@ -1,8 +1,6 @@
 ﻿using Ronin.Parser;
 using Ronin.Parser.Grammar;
 
-using List = Ronin.Parser.Grammar.Aggregates.List;
-
 namespace Unit;
 
 public class ListTests : UnitTest
@@ -24,8 +22,8 @@ public class ListTests : UnitTest
         Assert.NotNull(declaration);
         Assert.Equal("var list as integer", declaration.ToString());
 
-        Assert.IsType<List>(syntax[1]);
-        var list = syntax[1] as List;
+        Assert.IsType<Aggregate>(syntax[1]);
+        var list = syntax[1] as Aggregate;
         Assert.NotNull(list);
         Assert.Empty(list.Expressions);
     }
@@ -45,8 +43,8 @@ public class ListTests : UnitTest
         Assert.NotNull(declaration);
         Assert.Equal("var other list =", declaration.ToString());
 
-        Assert.IsType<List>(syntax[1]);
-        var list = syntax[1] as List;
+        Assert.IsType<Aggregate>(syntax[1]);
+        var list = syntax[1] as Aggregate;
         Assert.NotNull(list);
         Assert.Equal(3, list.Expressions.Count);
 
@@ -90,8 +88,8 @@ public class ListTests : UnitTest
         Assert.NotNull(declaration);
         Assert.Equal("var bank balances =", declaration.ToString());
 
-        Assert.IsType<List>(syntax[1]);
-        var list = syntax[1] as List;
+        Assert.IsType<Aggregate>(syntax[1]);
+        var list = syntax[1] as Aggregate;
         Assert.NotNull(list);
         Assert.Equal(4, list.Expressions.Count);
 
@@ -143,8 +141,8 @@ public class ListTests : UnitTest
         Assert.NotNull(declaration);
         Assert.Equal("var fixed list as decimal", declaration.ToString());
 
-        Assert.IsType<List>(syntax[1]);
-        var list = syntax[1] as List;
+        Assert.IsType<Aggregate>(syntax[1]);
+        var list = syntax[1] as Aggregate;
         Assert.NotNull(list);
         Assert.NotEmpty(list.Expressions);
 
@@ -172,13 +170,13 @@ public class ListTests : UnitTest
         Assert.NotNull(declaration);
         Assert.Equal("var list of lists as maybe", declaration.ToString());
 
-        Assert.IsType<List>(syntax[1]);
-        var list = syntax[1] as List;
+        Assert.IsType<Aggregate>(syntax[1]);
+        var list = syntax[1] as Aggregate;
         Assert.NotNull(list);
         Assert.Empty(list.Expressions);
 
-        Assert.IsType<List>(syntax[2]);
-        list = syntax[2] as List;
+        Assert.IsType<Aggregate>(syntax[2]);
+        list = syntax[2] as Aggregate;
         Assert.NotNull(list);
         Assert.Empty(list.Expressions);
     }
@@ -198,8 +196,8 @@ public class ListTests : UnitTest
         Assert.NotNull(declaration);
         Assert.Equal("var multidimensional fixed list as date", declaration.ToString());
 
-        Assert.IsType<List>(syntax[1]);
-        var list = syntax[1] as List;
+        Assert.IsType<Aggregate>(syntax[1]);
+        var list = syntax[1] as Aggregate;
         Assert.NotNull(list);
         Assert.Equal(3, list.Expressions.Count);
 

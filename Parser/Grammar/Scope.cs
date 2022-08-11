@@ -1,5 +1,4 @@
-﻿using Ronin.Parser.Grammar.Aggregates;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Parser.Grammar;
 

@@ -28,7 +28,7 @@ internal class Parameters : Syntax
             syntax = Syntax.Parse(context);
         }
 
-        context.RemoveBookmarks();
+        context.RemoveBookmark();
 
         return parameters;
     }

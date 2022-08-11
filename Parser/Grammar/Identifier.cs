@@ -38,13 +38,14 @@ internal class Identifier : Syntax
         {
             names.AddRange(identifier.names);
         }
-        /*else if (syntax is Expression expression)
+        else if (syntax is Expression expression)
         {
+            //TODO is this really needed?  code coverage says it is never used
             parameters.Add(names.Count, expression);
-        }*/
+        }
         else
         {
-            if (!parameters.TryGetValue(names.Count, out var expression))
+            if (!parameters.TryGetValue(names.Count, out expression))
             {
                 expression = new();
                 parameters.Add(names.Count, expression);
