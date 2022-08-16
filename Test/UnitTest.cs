@@ -1,5 +1,5 @@
-﻿using Ronin.Parser;
-using Ronin.Parser.Grammar;
+﻿using Ronin.Grammar;
+using Ronin.Parser;
 using System.Reflection;
 
 namespace Unit;
@@ -10,7 +10,7 @@ public class UnitTest
     {
         Context context = new(new FileInfo(@$"code\{name}.ronin"));
 
-        scope = Scope.Parse(context);
+        scope = ScopeParser.Parse(context);
 
         Assert.NotNull(scope);
     }

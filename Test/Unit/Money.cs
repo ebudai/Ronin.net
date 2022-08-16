@@ -1,5 +1,5 @@
-﻿using Ronin.Parser;
-using Ronin.Parser.Grammar;
+﻿using Ronin.Grammar;
+using Ronin.Parser;
 using System.Reflection;
 
 namespace Unit;
@@ -13,7 +13,7 @@ public class MoneyLiteral : UnitTest
     {
         Assert.NotEmpty(scope.Expressions);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[0]) as List<Syntax>;
+        var syntax = scope.Expressions[0].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -22,7 +22,7 @@ public class MoneyLiteral : UnitTest
         Assert.Equal("var cash money =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.money, literal.Datatype);
+        Assert.Equal(Scalar.money, literal.Datatype);
         Assert.Equal("$17.20", literal.Value);
     }
 
@@ -31,7 +31,7 @@ public class MoneyLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 1);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[1]) as List<Syntax>;
+        var syntax = scope.Expressions[1].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -40,7 +40,7 @@ public class MoneyLiteral : UnitTest
         Assert.Equal("var new money =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.money, literal.Datatype);
+        Assert.Equal(Scalar.money, literal.Datatype);
         Assert.Equal("$100000000", literal.Value);
     }
 
@@ -49,7 +49,7 @@ public class MoneyLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 2);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[2]) as List<Syntax>;
+        var syntax = scope.Expressions[2].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -58,7 +58,7 @@ public class MoneyLiteral : UnitTest
         Assert.Equal("var old money =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.money, literal.Datatype);
+        Assert.Equal(Scalar.money, literal.Datatype);
         Assert.Equal("$89643516846857432.98435403435135", literal.Value);
     }
 }

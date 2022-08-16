@@ -1,5 +1,5 @@
-﻿using Ronin.Parser;
-using Ronin.Parser.Grammar;
+﻿using Ronin.Grammar;
+using Ronin.Parser;
 
 namespace Unit;
 
@@ -12,7 +12,7 @@ public class ListTests : UnitTest
     {
         Assert.NotEmpty(scope.Expressions);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[0]) as List<Syntax>;
+        var syntax = scope.Expressions[0].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -33,7 +33,7 @@ public class ListTests : UnitTest
     {
         Assert.True(scope.Expressions.Count > 1);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[1]) as List<Syntax>;
+        var syntax = scope.Expressions[1].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -48,7 +48,7 @@ public class ListTests : UnitTest
         Assert.NotNull(list);
         Assert.Equal(3, list.Expressions.Count);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[0]) as List<Syntax>;
+        syntax = list.Expressions[0].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -56,7 +56,7 @@ public class ListTests : UnitTest
         Assert.NotNull(literal);
         Assert.Equal("1", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[1]) as List<Syntax>;
+        syntax = list.Expressions[1].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -64,7 +64,7 @@ public class ListTests : UnitTest
         Assert.NotNull(literal);
         Assert.Equal("2", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[2]) as List<Syntax>;
+        syntax = list.Expressions[2].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -78,7 +78,7 @@ public class ListTests : UnitTest
     {
         Assert.True(scope.Expressions.Count > 2);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[2]) as List<Syntax>;
+        var syntax = scope.Expressions[2].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -93,7 +93,7 @@ public class ListTests : UnitTest
         Assert.NotNull(list);
         Assert.Equal(4, list.Expressions.Count);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[0]) as List<Syntax>;
+        syntax = list.Expressions[0].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -101,7 +101,7 @@ public class ListTests : UnitTest
         Assert.NotNull(literal);
         Assert.Equal("$15", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[1]) as List<Syntax>;
+        syntax = list.Expressions[1].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -109,7 +109,7 @@ public class ListTests : UnitTest
         Assert.NotNull(literal);
         Assert.Equal("$666", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[2]) as List<Syntax>;
+        syntax = list.Expressions[2].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -117,7 +117,7 @@ public class ListTests : UnitTest
         Assert.NotNull(literal);
         Assert.Equal("$27", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[3]) as List<Syntax>;
+        syntax = list.Expressions[3].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -131,7 +131,7 @@ public class ListTests : UnitTest
     {
         Assert.True(scope.Expressions.Count > 3);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[3]) as List<Syntax>;
+        var syntax = scope.Expressions[3].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -146,7 +146,7 @@ public class ListTests : UnitTest
         Assert.NotNull(list);
         Assert.NotEmpty(list.Expressions);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[0]) as List<Syntax>;
+        syntax = list.Expressions[0].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -160,7 +160,7 @@ public class ListTests : UnitTest
     {
         Assert.True(scope.Expressions.Count > 4);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[4]) as List<Syntax>;
+        var syntax = scope.Expressions[4].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(3, syntax.Count);
@@ -186,7 +186,7 @@ public class ListTests : UnitTest
     {
         Assert.True(scope.Expressions.Count > 5);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[5]) as List<Syntax>;
+        var syntax = scope.Expressions[5].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -201,7 +201,7 @@ public class ListTests : UnitTest
         Assert.NotNull(list);
         Assert.Equal(3, list.Expressions.Count);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[0]) as List<Syntax>;
+        syntax = list.Expressions[0].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -209,7 +209,7 @@ public class ListTests : UnitTest
         Assert.NotNull(literal);
         Assert.Equal("5", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[1]) as List<Syntax>;
+        syntax = list.Expressions[1].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);
@@ -217,7 +217,7 @@ public class ListTests : UnitTest
         Assert.NotNull(literal);
         Assert.Equal("1", literal.Value);
 
-        syntax = SyntaxProperty.GetValue(list.Expressions[2]) as List<Syntax>;
+        syntax = list.Expressions[2].Syntax;
         Assert.NotNull(syntax);
         Assert.NotEmpty(syntax);
         Assert.IsType<Literal>(syntax[0]);

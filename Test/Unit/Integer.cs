@@ -1,5 +1,5 @@
-﻿using Ronin.Parser;
-using Ronin.Parser.Grammar;
+﻿using Ronin.Grammar;
+using Ronin.Parser;
 using System.Reflection;
 
 namespace Unit;
@@ -13,7 +13,7 @@ public class IntegerLiteral : UnitTest
     {
         Assert.NotEmpty(scope.Expressions);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[0]) as List<Syntax>;
+        var syntax = scope.Expressions[0].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -22,7 +22,7 @@ public class IntegerLiteral : UnitTest
         Assert.Equal("var normal int =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.integer, literal.Datatype);
+        Assert.Equal(Scalar.integer, literal.Datatype);
         Assert.Equal("92804", literal.Value);
     }
 
@@ -31,7 +31,7 @@ public class IntegerLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 1);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[1]) as List<Syntax>;
+        var syntax = scope.Expressions[1].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -40,7 +40,7 @@ public class IntegerLiteral : UnitTest
         Assert.Equal("var tiny integer =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.int8, literal.Datatype);
+        Assert.Equal(Scalar.int8, literal.Datatype);
         Assert.Equal("5i8", literal.Value);
     }
 
@@ -49,7 +49,7 @@ public class IntegerLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 2);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[2]) as List<Syntax>;
+        var syntax = scope.Expressions[2].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -58,7 +58,7 @@ public class IntegerLiteral : UnitTest
         Assert.Equal("var smallint =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.int16, literal.Datatype);
+        Assert.Equal(Scalar.int16, literal.Datatype);
         Assert.Equal("1000  i16", literal.Value);
     }
 
@@ -67,7 +67,7 @@ public class IntegerLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 3);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[3]) as List<Syntax>;
+        var syntax = scope.Expressions[3].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -76,7 +76,7 @@ public class IntegerLiteral : UnitTest
         Assert.Equal("var large integer =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.int64, literal.Datatype);
+        Assert.Equal(Scalar.int64, literal.Datatype);
         Assert.Equal("65462168135136i64", literal.Value);
     }
 
@@ -85,7 +85,7 @@ public class IntegerLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 4);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[4]) as List<Syntax>;
+        var syntax = scope.Expressions[4].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -94,7 +94,7 @@ public class IntegerLiteral : UnitTest
         Assert.Equal("var another large integer =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.int64, literal.Datatype);
+        Assert.Equal(Scalar.int64, literal.Datatype);
         Assert.Equal("69843516843518656", literal.Value);
     }
 
@@ -103,7 +103,7 @@ public class IntegerLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 5);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[5]) as List<Syntax>;
+        var syntax = scope.Expressions[5].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -112,7 +112,7 @@ public class IntegerLiteral : UnitTest
         Assert.Equal("var arbitrary integer =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bigint, literal.Datatype);
+        Assert.Equal(Scalar.bigint, literal.Datatype);
         Assert.Equal("32576516816534385321687165416384384381261681681", literal.Value);
     }
 }

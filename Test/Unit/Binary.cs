@@ -1,5 +1,5 @@
-﻿using Ronin.Parser;
-using Ronin.Parser.Grammar;
+﻿using Ronin.Grammar;
+using Ronin.Parser;
 
 namespace Unit;
 
@@ -12,7 +12,7 @@ public class BinaryLiteral : UnitTest
     {
         Assert.NotEmpty(scope.Expressions);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[0]) as List<Syntax>;
+        var syntax = scope.Expressions[0].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -21,7 +21,7 @@ public class BinaryLiteral : UnitTest
         Assert.Equal("var normal binary number =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.@byte, literal.Datatype);
+        Assert.Equal(Scalar.@byte, literal.Datatype);
         Assert.Equal("101", literal.Value);
     }
 
@@ -30,7 +30,7 @@ public class BinaryLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 1);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[1]) as List<Syntax>;
+        var syntax = scope.Expressions[1].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -39,7 +39,7 @@ public class BinaryLiteral : UnitTest
         Assert.Equal("var binary number with separators =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bits16, literal.Datatype);
+        Assert.Equal(Scalar.bits16, literal.Datatype);
         Assert.Equal("100010100100", literal.Value);
     }
 
@@ -48,7 +48,7 @@ public class BinaryLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 2);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[2]) as List<Syntax>;
+        var syntax = scope.Expressions[2].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -57,7 +57,7 @@ public class BinaryLiteral : UnitTest
         Assert.Equal("var binary double word =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bits32, literal.Datatype);
+        Assert.Equal(Scalar.bits32, literal.Datatype);
         Assert.Equal("110000000000000011110101", literal.Value);
     }
 
@@ -66,7 +66,7 @@ public class BinaryLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 3);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[3]) as List<Syntax>;
+        var syntax = scope.Expressions[3].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -75,7 +75,7 @@ public class BinaryLiteral : UnitTest
         Assert.Equal("var binary quad word =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bits64, literal.Datatype);
+        Assert.Equal(Scalar.bits64, literal.Datatype);
         Assert.Equal("1010101010010111001010010010000101111101010101000101", literal.Value);
     }
 
@@ -84,7 +84,7 @@ public class BinaryLiteral : UnitTest
     {
         Assert.True(scope.Expressions.Count > 4);
 
-        var syntax = SyntaxProperty.GetValue(scope.Expressions[4]) as List<Syntax>;
+        var syntax = scope.Expressions[4].Syntax;
 
         Assert.NotNull(syntax);
         Assert.Equal(2, syntax.Count);
@@ -93,7 +93,7 @@ public class BinaryLiteral : UnitTest
         Assert.Equal("var arbitrarily large binary value =", declaration.ToString());
         Assert.IsType<Literal>(syntax[1]);
         var literal = syntax[1] as Literal;
-        Assert.Equal(Primitive.bitlist, literal.Datatype);
+        Assert.Equal(Scalar.bitlist, literal.Datatype);
         Assert.Equal("10101010100101110010100100100001011111010101010001001010101010010111001010010010000101111101010101000101010001010100010101000101", literal.Value);
     }
 }

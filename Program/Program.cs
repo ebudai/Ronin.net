@@ -1,4 +1,7 @@
-﻿using Ronin.Parser.Grammar;
+﻿using Ronin.Grammar;
+using Ronin.Parser;
+
+using static Ronin.Parser.Parser;
 
 namespace Ronin.Program;
 
@@ -6,8 +9,11 @@ public class Program
 {
     public Program(DirectoryInfo folder)
     {
-        //modules = folder.EnumerateDirectories().ToDictionary(subfolder => subfolder.Name, )
+        var files = folder.EnumerateFiles("*.ronin", SearchOption.AllDirectories);
+        foreach (var file in files)
+        {
+            Context context = new(file);
+            var scope = Parse(context) as Scope;
+        }
     }
-
-    private readonly Dictionary<Identifier, Module> modules;
 }

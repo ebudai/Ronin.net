@@ -1,15 +1,15 @@
 ﻿using System.Text.RegularExpressions;
 
 namespace Ronin.Parser;
-
-internal class Context
+//TODO add Error and Warning classes
+public class Context
 {
     private readonly string sourcecode;
     private int cursor = 0;
     private int line = 0;
     private readonly Stack<int> bookmarks = new();
 
-    internal Context(FileInfo file) => sourcecode = Syntax.scopeopen + File.ReadAllText(file.FullName) + Syntax.scopeclose;
+    public Context(FileInfo file) => sourcecode = Form.scopeopen + File.ReadAllText(file.FullName) + Form.scopeclose;
 
     internal string Lex(Regex regex)
     {
@@ -29,20 +29,4 @@ internal class Context
     internal void RemoveBookmark() => bookmarks.Pop();
 
     internal bool IsAtEnd => cursor == sourcecode.Length;
-
-    /*internal class ParseException : Exception
-    {
-        public ParseException(Context context, Exception inner = null)
-                : base(CreateMessage(parser), inner) { }
-
-        public ParseException(string message, Context context, Exception inner = null)
-            : base(message + Environment.NewLine + CreateMessage(parser), inner) { }
-
-        private static string CreateMessage(Context context, Exception inner = null)
-        {
-            var message = $"line {parser.line}: {parser.sourcecode[parser.cursor..][..30]}";
-            if (inner is not null) message += $" caused by {inner.Message}";
-            return message;
-        }
-    }*/
 }
