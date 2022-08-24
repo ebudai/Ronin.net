@@ -14,6 +14,11 @@ public class Program
         {
             Context context = new(file);
             var scope = Parse(context) as Scope;
+
+            if (scope.Name.Names.Count is 0)
+            {
+                //Scope.Global.Add(scope);
+            }
         }
     }
 }

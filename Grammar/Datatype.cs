@@ -1,10 +1,8 @@
-﻿using Ronin.Grammar.Modifier;
+﻿namespace Ronin.Grammar;
 
-namespace Ronin.Grammar;
-
-public abstract class Datatype : Modifiable
+public abstract class Datatype : Scope, IIdentifiable
 {
-    public Identifier Name { get; set; }
+    public bool IsOptional { get; set; }
 
     public abstract int ConversionDistance(Datatype datatype);
 }

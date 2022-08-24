@@ -14,21 +14,25 @@ internal static class IdentifierParser
     {
         if (syntax is Identifier identifier)
         {
-            @this.Names.AddRange(identifier.Names);
+            for (var i = 0; i != identifier.ComponentCount; ++i)
+            {
+                if (identifier.Names.TryGetValue(i, out var name)) @this.Add(name);
+                else if (identifier.Parameters.TryGetValue(i, out var paramter)) @this.Add(paramter);
+            }
         }
-        else if (syntax is Expression expression)
+        else if (syntax is Parameters parameters)
         {
             //TODO is this really needed?  code coverage says it is never used
-            @this.Parameters.Add(@this.Names.Count, expression);
+            @this.Parameters.Add(@this.Names.Count, parameters);
         }
         else
         {
-            if (!@this.Parameters.TryGetValue(@this.Names.Count, out expression))
+            if (!@this.Parameters.TryGetValue(@this.Names.Count, out parameters))
             {
-                expression = new();
-                @this.Parameters.Add(@this.Names.Count, expression);
+                parameters = new();
+                @this.Parameters.Add(@this.Names.Count, parameters);
             }
-            return expression.TryAdd(syntax, context);
+            return parameters.TryAdd(syntax, context);
         }
         return true;
     }

@@ -15,10 +15,18 @@ internal static class ExpressionParser
 
     private static bool TryAdd(this Expression @this, Declaration declaration, Context parser)
     {
-        if (@this.Syntax.Count is 0 || @this.Syntax[^1] is not Scope)
+        if (@this.Syntax.Count is 0 || @this.Syntax[^1] is not Scope and not Declaration)
         {
-            return TryAdd(@this, declaration as Identifier, parser);
+            @this.Syntax.Add(declaration);
+            return true;
         }
+
+        if (@this.Syntax[^1] is Declaration priordeclaration)
+        {
+            priordeclaration.Names.AddRange(declaration.Names);
+            return true;
+        }
+
         parser.Retreat(declaration.ToString().Length);
         return false;
     }

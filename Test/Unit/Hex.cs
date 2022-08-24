@@ -1,99 +1,23 @@
-﻿using Ronin.Grammar;
-using Ronin.Parser;
+﻿using Ronin.Parser;
 
 namespace Unit;
 
-public class HexLiteral : UnitTest
+public class HexLiteral : LiteralUnitTest
 {
     public HexLiteral() : base("literals\\hex") { }
 
     [Fact(DisplayName = "parse hex literal")]
-    public void Normal()
-    {
-        Assert.NotEmpty(scope.Expressions);
-
-        var syntax = scope.Expressions[0].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var normal hex number =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.bits32, literal.Datatype);
-        Assert.Equal("75AE2c", literal.Value);
-    }
+    public void Normal() => Test(0, "normal hex number =", "75AE2c", Scalar.bits32);
 
     [Fact(DisplayName = "parse separated hex literal")]
-    public void Separated()
-    {
-        Assert.True(scope.Expressions.Count > 1);
-
-        var syntax = scope.Expressions[1].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var hex number with separators =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.bits16, literal.Datatype);
-        Assert.Equal("4EE3", literal.Value);
-    }
+    public void Separated() => Test(1, "hex number with separators =", "4EE3", Scalar.bits16);
 
     [Fact(DisplayName = "parse small hex literal")]
-    public void SmallHex()
-    {
-        Assert.True(scope.Expressions.Count > 2);
-
-        var syntax = scope.Expressions[2].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var small hex =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.@byte, literal.Datatype);
-        Assert.Equal("F", literal.Value);
-    }
+    public void SmallHex() => Test(2, "small hex =", "F", Scalar.@byte);
 
     [Fact(DisplayName = "parse big hex literal")]
-    public void BigHex()
-    {
-        Assert.True(scope.Expressions.Count > 3);
-
-        var syntax = scope.Expressions[3].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var big hex number =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.bits64, literal.Datatype);
-        Assert.Equal("4cDEADBEEF3000", literal.Value);
-    }
+    public void BigHex() => Test(3, "big hex number =", "4cDEADBEEF3000",  Scalar.bits64);
 
     [Fact(DisplayName = "parse arbitrary hex literal")]
-    public void Bitlist()
-    {
-        Assert.True(scope.Expressions.Count > 4);
-
-        var syntax = scope.Expressions[4].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var arbitrary hex number =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.bitlist, literal.Datatype);
-        Assert.Equal("1AAAAAAAAEeEEeEBBBBBBBBBdddDD00111666666667", literal.Value);
-    }
+    public void Bitlist() => Test(4, "arbitrary hex number =", "1AAAAAAAAEeEEeEBBBBBBBBBdddDD00111666666667", Scalar.bitlist);
 }

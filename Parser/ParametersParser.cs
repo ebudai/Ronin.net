@@ -37,20 +37,20 @@ internal static class ParametersParser
 
         if (syntax is Identifier identifier)
         {
-            if (@this.Variables.Count is not 0)
+            if (@this.Data.Count is not 0)
             {
-                return @this.Variables[^1].TryAdd(identifier, context);
+                return @this.Data[^1].TryAdd(identifier, context);
             }
-            @this.Variables.Add(identifier);
+            @this.Data.Add(identifier);
         }
         else if (syntax is Separator)
         {
-            @this.Variables.Add(new());
+            @this.Data.Add(new());
         }
         else if (syntax is not Symbol)
         {
-            if (@this.Variables.Count is 0) @this.Variables.Add(new());
-            @this.Variables[^1].TryAdd(syntax, context);
+            if (@this.Data.Count is 0) @this.Data.Add(new());
+            @this.Data[^1].TryAdd(syntax, context);
         }
         return true;
     }

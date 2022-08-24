@@ -1,45 +1,14 @@
-﻿using Ronin.Grammar;
-using Ronin.Parser;
+﻿using Ronin.Parser;
 
 namespace Unit;
 
-public class CharacterLiteral : UnitTest
+public class CharacterLiteral : LiteralUnitTest
 {
     public CharacterLiteral() : base("literals\\char") { }
 
     [Fact(DisplayName = "parse character literal")]
-    public void Literal()
-    {
-        Assert.NotEmpty(scope.Expressions);
-
-        var syntax = scope.Expressions[0].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var regular char =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.character, literal.Datatype);
-        Assert.Equal("'c'", literal.Value);
-    }
+    public void Literal() => Test(0, "regular char =", "'c'", Scalar.character);
 
     [Fact(DisplayName = "parse unichar literal")]
-    public void UnicharLiteral()
-    {
-        Assert.True(scope.Expressions.Count > 1);
-
-        var syntax = scope.Expressions[1].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var unichar =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.character, literal.Datatype);
-        Assert.Equal(@"'\u05E4'", literal.Value);
-    }
+    public void UnicharLiteral() => Test(1, "unichar =", @"'\u05E4'", Scalar.character);
 }

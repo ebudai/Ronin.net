@@ -6,7 +6,7 @@ datatype Animal
 {
 	var id as integer = random.
 	var weight as number = random decimal from 1 to 1_000.
-	var has fur as maybe = random < 0.98.
+	var has fur = random number < 0.98.
 
 	function fight(others as Animal[text])
 	{

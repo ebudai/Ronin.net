@@ -1,118 +1,26 @@
-﻿using Ronin.Grammar;
-using Ronin.Parser;
-using System.Reflection;
+﻿using Ronin.Parser;
 
 namespace Unit;
 
-public class IntegerLiteral : UnitTest
+public class IntegerLiteral : LiteralUnitTest
 {
     public IntegerLiteral() : base("literals\\integer") { }
 
     [Fact(DisplayName = "parse integer literal")]
-    public void Literal()
-    {
-        Assert.NotEmpty(scope.Expressions);
-
-        var syntax = scope.Expressions[0].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var normal int =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.integer, literal.Datatype);
-        Assert.Equal("92804", literal.Value);
-    }
+    public void Literal() => Test(0, "normal int =", "92804", Scalar.integer);
 
     [Fact(DisplayName = "parse tiny integer literal")]
-    public void TinyLiteral()
-    {
-        Assert.True(scope.Expressions.Count > 1);
-
-        var syntax = scope.Expressions[1].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var tiny integer =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.int8, literal.Datatype);
-        Assert.Equal("5i8", literal.Value);
-    }
+    public void TinyLiteral() => Test(1, "tiny integer =", "5i8", Scalar.int8);
 
     [Fact(DisplayName = "parse small integer literal")]
-    public void SmallLiteral()
-    {
-        Assert.True(scope.Expressions.Count > 2);
-
-        var syntax = scope.Expressions[2].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var smallint =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.int16, literal.Datatype);
-        Assert.Equal("1000  i16", literal.Value);
-    }
+    public void SmallLiteral() => Test(2, "smallint =", "1000  i16", Scalar.int16);
 
     [Fact(DisplayName = "parse large integer literal via suffix")]
-    public void LargeSuffixLiteral()
-    {
-        Assert.True(scope.Expressions.Count > 3);
-
-        var syntax = scope.Expressions[3].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var large integer =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.int64, literal.Datatype);
-        Assert.Equal("65462168135136i64", literal.Value);
-    }
+    public void LargeSuffixLiteral() => Test(3, "large integer =", "65462168135136i64", Scalar.int64);
 
     [Fact(DisplayName = "parse large integer literal via value")]
-    public void LargeValueLiteral()
-    {
-        Assert.True(scope.Expressions.Count > 4);
-
-        var syntax = scope.Expressions[4].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var another large integer =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.int64, literal.Datatype);
-        Assert.Equal("69843516843518656", literal.Value);
-    }
+    public void LargeValueLiteral() => Test(4, "another large integer =", "69843516843518656", Scalar.int64);
 
     [Fact(DisplayName = "parse arbitrary integer literal")]
-    public void BigintLiteral()
-    {
-        Assert.True(scope.Expressions.Count > 5);
-
-        var syntax = scope.Expressions[5].Syntax;
-
-        Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
-        Assert.IsType<Declaration>(syntax[0]);
-        var declaration = syntax[0] as Declaration;
-        Assert.Equal("var arbitrary integer =", declaration.ToString());
-        Assert.IsType<Literal>(syntax[1]);
-        var literal = syntax[1] as Literal;
-        Assert.Equal(Scalar.bigint, literal.Datatype);
-        Assert.Equal("32576516816534385321687165416384384381261681681", literal.Value);
-    }
+    public void BigintLiteral() => Test(5, "arbitrary integer =", "32576516816534385321687165416384384381261681681", Scalar.bigint);
 }

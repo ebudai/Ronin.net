@@ -23,7 +23,7 @@ public class ParameterTests : UnitTest
         Assert.IsType<Parameters>(syntax[1]);
         var parameters = syntax[1] as Parameters;
 
-        var variables = parameters.Variables;
+        var variables = parameters.Data;
         Assert.NotNull(variables);
         Assert.True(variables.Count is 3);
 

@@ -15,15 +15,20 @@ public class ObjectTests : UnitTest
         var syntax = scope.Expressions[1].Syntax;
 
         Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
+        Assert.Equal(3, syntax.Count);
 
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
         Assert.NotNull(declaration);
-        Assert.Equal("var bank = run", declaration.ToString());
+        Assert.Equal("var", declaration.Name);
 
-        Assert.IsType<Aggregate>(syntax[1]);
-        var aggregate = syntax[1] as Aggregate;
+        Assert.IsType<Identifier>(syntax[1]);
+        var identifier = syntax[1] as Identifier;
+        Assert.NotNull(identifier);
+        Assert.Equal("bank = run", string.Join(' ', identifier.Names.Values));
+
+        Assert.IsType<Aggregate>(syntax[2]);
+        var aggregate = syntax[2] as Aggregate;
         Assert.NotNull(aggregate);
         Assert.NotNull(aggregate.Expressions);
         Assert.Equal(3, aggregate.Expressions.Count);
@@ -54,6 +59,5 @@ public class ObjectTests : UnitTest
         literal = syntax[0] as Literal;
         Assert.Equal(Scalar.money, literal.Datatype);
         Assert.Equal("$15", literal.Value);
-
     }
 }

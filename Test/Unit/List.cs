@@ -1,5 +1,4 @@
 ﻿using Ronin.Grammar;
-using Ronin.Parser;
 
 namespace Unit;
 
@@ -15,15 +14,20 @@ public class ListTests : UnitTest
         var syntax = scope.Expressions[0].Syntax;
 
         Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
+        Assert.Equal(3, syntax.Count);
 
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
         Assert.NotNull(declaration);
-        Assert.Equal("var list as integer", declaration.ToString());
+        Assert.Equal("var", declaration.Name);
 
-        Assert.IsType<Aggregate>(syntax[1]);
-        var list = syntax[1] as Aggregate;
+        Assert.IsType<Identifier>(syntax[1]);
+        var identifier = syntax[1] as Identifier;
+        Assert.NotNull(identifier);
+        Assert.Equal("list as integer", string.Join(' ', identifier.Names.Values));
+
+        Assert.IsType<Aggregate>(syntax[2]);
+        var list = syntax[2] as Aggregate;
         Assert.NotNull(list);
         Assert.Empty(list.Expressions);
     }
@@ -36,15 +40,20 @@ public class ListTests : UnitTest
         var syntax = scope.Expressions[1].Syntax;
 
         Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
+        Assert.Equal(3, syntax.Count);
 
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
         Assert.NotNull(declaration);
-        Assert.Equal("var other list =", declaration.ToString());
+        Assert.Equal("var", declaration.Name);
 
-        Assert.IsType<Aggregate>(syntax[1]);
-        var list = syntax[1] as Aggregate;
+        Assert.IsType<Identifier>(syntax[1]);
+        var identifier = syntax[1] as Identifier;
+        Assert.NotNull(identifier);
+        Assert.Equal("other list =", string.Join(' ', identifier.Names.Values));
+
+        Assert.IsType<Aggregate>(syntax[2]);
+        var list = syntax[2] as Aggregate;
         Assert.NotNull(list);
         Assert.Equal(3, list.Expressions.Count);
 
@@ -81,15 +90,20 @@ public class ListTests : UnitTest
         var syntax = scope.Expressions[2].Syntax;
 
         Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
+        Assert.Equal(3, syntax.Count);
 
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
         Assert.NotNull(declaration);
-        Assert.Equal("var bank balances =", declaration.ToString());
+        Assert.Equal("var", declaration.Name);
 
-        Assert.IsType<Aggregate>(syntax[1]);
-        var list = syntax[1] as Aggregate;
+        Assert.IsType<Identifier>(syntax[1]);
+        var identifier = syntax[1] as Identifier;
+        Assert.NotNull(identifier);
+        Assert.Equal("bank balances =", string.Join(' ', identifier.Names.Values));
+
+        Assert.IsType<Aggregate>(syntax[2]);
+        var list = syntax[2] as Aggregate;
         Assert.NotNull(list);
         Assert.Equal(4, list.Expressions.Count);
 
@@ -134,15 +148,20 @@ public class ListTests : UnitTest
         var syntax = scope.Expressions[3].Syntax;
 
         Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
+        Assert.Equal(3, syntax.Count);
 
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
         Assert.NotNull(declaration);
-        Assert.Equal("var fixed list as decimal", declaration.ToString());
+        Assert.Equal("var", declaration.Name);
 
-        Assert.IsType<Aggregate>(syntax[1]);
-        var list = syntax[1] as Aggregate;
+        Assert.IsType<Identifier>(syntax[1]);
+        var identifier = syntax[1] as Identifier;
+        Assert.NotNull(identifier);
+        Assert.Equal("fixed list as decimal", string.Join(' ', identifier.Names.Values));
+
+        Assert.IsType<Aggregate>(syntax[2]);
+        var list = syntax[2] as Aggregate;
         Assert.NotNull(list);
         Assert.NotEmpty(list.Expressions);
 
@@ -163,20 +182,25 @@ public class ListTests : UnitTest
         var syntax = scope.Expressions[4].Syntax;
 
         Assert.NotNull(syntax);
-        Assert.Equal(3, syntax.Count);
+        Assert.Equal(4, syntax.Count);
 
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
         Assert.NotNull(declaration);
-        Assert.Equal("var list of lists as maybe", declaration.ToString());
+        Assert.Equal("var", declaration.Name);
 
-        Assert.IsType<Aggregate>(syntax[1]);
-        var list = syntax[1] as Aggregate;
+        Assert.IsType<Identifier>(syntax[1]);
+        var identifier = syntax[1] as Identifier;
+        Assert.NotNull(identifier);
+        Assert.Equal("list of lists as maybe", string.Join(' ', identifier.Names.Values));
+
+        Assert.IsType<Aggregate>(syntax[2]);
+        var list = syntax[2] as Aggregate;
         Assert.NotNull(list);
         Assert.Empty(list.Expressions);
 
-        Assert.IsType<Aggregate>(syntax[2]);
-        list = syntax[2] as Aggregate;
+        Assert.IsType<Aggregate>(syntax[3]);
+        list = syntax[3] as Aggregate;
         Assert.NotNull(list);
         Assert.Empty(list.Expressions);
     }
@@ -189,15 +213,20 @@ public class ListTests : UnitTest
         var syntax = scope.Expressions[5].Syntax;
 
         Assert.NotNull(syntax);
-        Assert.Equal(2, syntax.Count);
+        Assert.Equal(3, syntax.Count);
 
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
         Assert.NotNull(declaration);
-        Assert.Equal("var multidimensional fixed list as date", declaration.ToString());
+        Assert.Equal("var", declaration.Name);
 
-        Assert.IsType<Aggregate>(syntax[1]);
-        var list = syntax[1] as Aggregate;
+        Assert.IsType<Identifier>(syntax[1]);
+        var identifier = syntax[1] as Identifier;
+        Assert.NotNull(identifier);
+        Assert.Equal("multidimensional fixed list as date", string.Join(' ', identifier.Names.Values));
+
+        Assert.IsType<Aggregate>(syntax[2]);
+        var list = syntax[2] as Aggregate;
         Assert.NotNull(list);
         Assert.Equal(3, list.Expressions.Count);
 

@@ -1,8 +1,6 @@
-﻿using Ronin.Grammar.Modifier;
+﻿namespace Ronin.Grammar;
 
-namespace Ronin.Grammar;
-
-public class Function : Modifiable
+public class Function : Scope, IIdentifiable
 {
-    public Identifier Name { get; set; }
+
 }

@@ -1,6 +1,10 @@
 ﻿namespace Ronin.Grammar;
 
-public class Declaration : Identifier
+public class Declaration : Syntax
 {
-    public Declaration(string name) : base(name) { }
+    public Declaration(string name) => Names.Add(name);
+
+    public List<string> Names { get; } = new();
+
+    public string Name => string.Join(' ', Names);
 }
