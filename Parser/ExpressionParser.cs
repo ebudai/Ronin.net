@@ -13,7 +13,7 @@ internal static class ExpressionParser
         return expression.IsEmpty ? null : expression;
     }
 
-    private static bool TryAdd(this Expression @this, Declaration declaration, Context parser)
+    private static bool TryAdd(this Expression @this, Declaration declaration, Context context)
     {
         if (@this.Syntax.Count is 0 || @this.Syntax[^1] is not Scope and not Declaration)
         {
@@ -27,7 +27,8 @@ internal static class ExpressionParser
             return true;
         }
 
-        parser.Retreat(declaration.ToString().Length);
+        context.Retreat(declaration.Length);
+
         return false;
     }
 

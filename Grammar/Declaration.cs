@@ -6,5 +6,7 @@ public class Declaration : Syntax
 
     public List<string> Names { get; } = new();
 
-    public string Name => string.Join(' ', Names);
+    public string Name => string.Join(' ', Names.Select(name => name.Trim()));
+
+    public int Length => Names.Sum(name => name.Length);
 }

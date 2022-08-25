@@ -26,7 +26,7 @@ public class Context
 
     internal void RetreatToLastBookmark() => cursor = bookmarks.Pop();
 
-    internal void RemoveBookmark() => bookmarks.Pop();
+    internal void RemoveBookmark() => bookmarks.TryPop(out var _);
 
     internal bool IsAtEnd => cursor == sourcecode.Length;
 }

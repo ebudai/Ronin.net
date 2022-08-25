@@ -47,7 +47,7 @@ internal static class ParametersParser
         {
             @this.Data.Add(new());
         }
-        else if (syntax is not Symbol)
+        else if (syntax is not Symbol and not Literal)
         {
             if (@this.Data.Count is 0) @this.Data.Add(new());
             @this.Data[^1].TryAdd(syntax, context);
