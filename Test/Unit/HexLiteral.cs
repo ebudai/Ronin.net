@@ -1,160 +1,159 @@
 ﻿using Ronin.Compiler;
-using Ronin.Tokens;
 
 namespace Unit;
 
-public class HexLiteralUnitTests
+public class HexLiteral
 {
-    [Fact(DisplayName = "parse basic hex literal")]
+    [Fact(DisplayName = "basic")]
     public void Basic()
     {
         const string literal = "0x1234_5678_90AB_CDEF_abcdef";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with terminator")]
+    [Fact(DisplayName = "with terminator")]
     public void WithTerminator()
     {
         const string literal = "0X1212.";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with separator")]
+    [Fact(DisplayName = "with separator")]
     public void WithSeparator()
     {
         const string literal = "0x1212,";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with opening parenthesis")]
+    [Fact(DisplayName = "with opening parenthesis")]
     public void WithOpeningParenthesis()
     {
         const string literal = "0X1212(";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with closing parenthesis")]
+    [Fact(DisplayName = "with closing parenthesis")]
     public void WithClosingParenthesis()
     {
         const string literal = "0x1212)";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with bracket")]
+    [Fact(DisplayName = "with opening bracket")]
     public void WithOpeningBracket()
     {
         const string literal = "0x1212[";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with closing bracket")]
+    [Fact(DisplayName = "with closing bracket")]
     public void WithClosingBracket()
     {
         const string literal = "0X1212]";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with brace")]
+    [Fact(DisplayName = "with opening brace")]
     public void WithOpeningBrace()
     {
         const string literal = "0X1212{";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with closing brace")]
+    [Fact(DisplayName = "with closing brace")]
     public void WithClosingBrace()
     {
         const string literal = "0x1212}";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with single quote")]
+    [Fact(DisplayName = "with single quote")]
     public void WithSingleQuote()
     {
         const string literal = "0X1212'";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with double quote")]
+    [Fact(DisplayName = "with double quote")]
     public void WithDoubleQuote()
     {
         const string literal = "0x1212\"";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
         Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
-    [Fact(DisplayName = "lex hex literal with space")]
+    [Fact(DisplayName = "with space")]
     public void WithSpace()
     {
         const string literal = "0x1212 ";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = HexLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.HexLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
