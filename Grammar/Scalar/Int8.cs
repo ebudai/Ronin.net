@@ -9,7 +9,7 @@ public class Int8 : Datatype
         Anything => int.MaxValue,
         Something => int.MaxValue - 1,
         Bigint => 6,
-        Precise => 5,
+        Number64 => 5,
         Number => 4,
         Int64 => 3,
         Integer => 2,

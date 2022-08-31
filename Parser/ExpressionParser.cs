@@ -10,6 +10,8 @@ internal static class ExpressionParser
 
         while (expression.TryAdd(Parser.Parse(context), context)) { }
 
+        if (expression.IsEmpty) return null;
+
         return expression.IsEmpty ? null : expression;
     }
 
@@ -23,7 +25,7 @@ internal static class ExpressionParser
 
         if (@this.Syntax[^1] is Declaration priordeclaration)
         {
-            priordeclaration.Names.AddRange(declaration.Names);
+            priordeclaration.Modifiers.AddRange(declaration.Modifiers);
             return true;
         }
 

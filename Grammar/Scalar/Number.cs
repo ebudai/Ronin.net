@@ -8,7 +8,7 @@ public class Number : Datatype
     {
         Anything => int.MaxValue,
         Something => int.MaxValue - 1,
-        Precise => 1,
+        Number64 => 1,
         Number => 0,
         _ => -1
     };

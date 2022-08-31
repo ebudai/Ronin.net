@@ -10,7 +10,7 @@ public class Bits16 : Datatype
         Something => int.MaxValue - 1,
         Bigint => 8,
         Bitlist => 7,
-        Precise => 6,
+        Number64 => 6,
         Number => 5,
         Bits64 => 4,
         Int64 => 3,

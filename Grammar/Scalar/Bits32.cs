@@ -10,7 +10,7 @@ internal class Bits32 : Datatype
         Something => int.MaxValue - 1,
         Bigint => 6,
         Bitlist => 5,
-        Precise => 4,
+        Number64 => 4,
         Number => 3,
         Bits64 => 2,
         Int64 => 1,

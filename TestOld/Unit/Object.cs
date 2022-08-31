@@ -20,7 +20,7 @@ public class ObjectTests : UnitTest
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
         Assert.NotNull(declaration);
-        Assert.Equal("var", declaration.Name);
+        Assert.Equal("var", string.Join(' ', declaration.Modifiers.Select(name => name.Trim())));
 
         Assert.IsType<Identifier>(syntax[1]);
         var identifier = syntax[1] as Identifier;

@@ -1,0 +1,6 @@
+﻿function spawn (count as integer) monsters
+{
+	resolve to new number[count].
+}
+
+var cannon fodder = spawn 63 monsters.

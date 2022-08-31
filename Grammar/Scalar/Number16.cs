@@ -1,14 +1,16 @@
 ﻿namespace Ronin.Grammar.Scalar;
 
-public class Precise : Datatype
+public class Number16 : Datatype
 {
-    public Precise() => Name = new Identifier("precise");
+    public Number16() => Name = new Identifier("precise");
 
     public override int ConversionDistance(Datatype datatype) => datatype switch
     {
         Anything => int.MaxValue,
         Something => int.MaxValue - 1,
-        Precise => 0,
+        Number64 => 2,
+        Number => 1,
+        Number16 => 0,
         _ => -1
     };
 }

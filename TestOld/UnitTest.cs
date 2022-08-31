@@ -35,7 +35,7 @@ public class LiteralUnitTest : UnitTest
 
         Assert.IsType<Declaration>(syntax[0]);
         var declaration = syntax[0] as Declaration;
-        Assert.Equal("var", declaration.Name);
+        Assert.Equal("var", string.Join(' ', declaration.Modifiers.Select(name => name.Trim())));
 
         Assert.IsType<Identifier>(syntax[1]);
         var name = syntax[1] as Identifier;

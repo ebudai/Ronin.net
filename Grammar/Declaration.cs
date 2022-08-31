@@ -2,11 +2,9 @@
 
 public class Declaration : Syntax
 {
-    public Declaration(string name) => Names.Add(name);
+    public Declaration(string name) => Modifiers.Add(name);
 
-    public List<string> Names { get; } = new();
+    public List<string> Modifiers { get; } = new();
 
-    public string Name => string.Join(' ', Names.Select(name => name.Trim()));
-
-    public int Length => Names.Sum(name => name.Length);
+    public int Length => Modifiers.Sum(name => name.Length);
 }

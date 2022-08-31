@@ -10,7 +10,7 @@ public class Byte : Datatype
         Something => int.MaxValue - 1,
         Bigint => 10,
         Bitlist => 9,
-        Precise => 8,
+        Number64 => 8,
         Number => 7,
         Bits64 => 6,
         Int64 => 5,

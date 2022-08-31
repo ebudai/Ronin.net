@@ -9,7 +9,7 @@ public class Int16 : Datatype
         Anything => int.MaxValue,
         Something => int.MaxValue - 1,
         Bigint => 5,
-        Precise => 4,
+        Number64 => 4,
         Number => 3,
         Int64 => 2,
         Integer => 1,
