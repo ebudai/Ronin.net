@@ -9,6 +9,7 @@ internal class BinaryLiteral : Token, ILexable<BinaryLiteral>
     public static BinaryLiteral Lex(Lexer lexer)
     {
         var span = lexer.Sourcecode.Span;
+        if (span.IsEmpty) return null;
         if (span[0] is '0' && span[1] is 'b' or 'B')
         {
             if (span.Length is <= 2)

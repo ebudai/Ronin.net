@@ -2,30 +2,26 @@
 
 namespace Ronin.Tokens;
 
-internal class NumberLiteral : Token, ILexable<NumberLiteral>
+internal class MoneyLiteral : Token, ILexable<MoneyLiteral>
 {
-    public NumberLiteral(Lexer lexer, int length) : base(lexer, length) { }
+    public MoneyLiteral(Lexer lexer, int length) : base(lexer, length) { }
 
-    public static NumberLiteral Lex(Lexer lexer)
+    public static MoneyLiteral Lex(Lexer lexer)
     {
         var span = lexer.Sourcecode.Span;
-        
-        if (span.IsEmpty) return null;
-        
-        if (!char.IsNumber(span[0]))
+        if (span.IsEmpty || span[0] is not '$') return null;
+
+        if (span.Length is < 4)
         {
+            lexer.Error = "unterminated money literal";
             return null;
         }
 
-        if (span.Length is <= 3)
-        {
-            lexer.Error = "unterminated number literal";
-            return null;
-        }
+        if (!char.IsNumber(span[1])) return null;
 
-        int length = 0;
+        int length = 2;
         bool hasPeriod = false;
-        for (int i = 0, max = span.Length; i != max; ++i)
+        for (int i = 2, max = span.Length; i != max; ++i)
         {
             if (char.IsWhiteSpace(span[i]) || span[i] is '(' or ')' or '[' or ']' or '{' or '}' or ',' or '\'' or '"')
             {
@@ -35,7 +31,7 @@ internal class NumberLiteral : Token, ILexable<NumberLiteral>
 
             if (!char.IsNumber(span[i]) && span[i] is not '_' and not '.')
             {
-                lexer.Error = "number literal with non-numeric character";
+                lexer.Error = "money literal with non-numeric character";
                 return null;
             }
 
@@ -52,6 +48,6 @@ internal class NumberLiteral : Token, ILexable<NumberLiteral>
             ++length;
         }
 
-        return hasPeriod ? new NumberLiteral(lexer, length) : null;
+        return hasPeriod ? new MoneyLiteral(lexer, length) : null;
     }
 }

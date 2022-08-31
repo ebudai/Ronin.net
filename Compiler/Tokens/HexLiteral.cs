@@ -9,6 +9,7 @@ internal class HexLiteral : Token, ILexable<HexLiteral>
     public static HexLiteral Lex(Lexer lexer)
     {
         var span = lexer.Sourcecode.Span;
+        if (span.IsEmpty) return null;
         if (span[0] is '0' && span[1] is 'x' or 'X')
         {
             if (span.Length is <= 2)

@@ -9,7 +9,7 @@ internal class CharLiteral : Token, ILexable<CharLiteral>
     public static CharLiteral Lex(Lexer lexer)
     {
         var span = lexer.Sourcecode.Span;
-        if (span[0] is not '\'') return null;
+        if (span.IsEmpty || span[0] is not '\'') return null;
 
         var length = span[1..].IndexOf('\'');
         if (length is < 0)
