@@ -2,26 +2,26 @@
 
 namespace Failure;
 
-public class NumberLiteral
+public class MoneyLiteral
 {
-    [Fact(DisplayName = "doesn't start with a number")]
-    public void DoesntStartWithANumber()
+    [Fact(DisplayName = "doesn't start with a dollar sign")]
+    public void DoesntStartWithADollarSign()
     {
-        const string literal = "g987.23";
+        const string literal = "987.23";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }
 
-    [Fact(DisplayName = "doesn't have a .")]
-    public void DoesntHaveADot()
+    [Fact(DisplayName = "doesn't continue with a number")]
+    public void DoesntContinueWithANumber()
     {
-        const string literal = "98723";
+        const string literal = "$f987.23";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -29,10 +29,10 @@ public class NumberLiteral
     [Fact(DisplayName = "unterminated")]
     public void Unterminated()
     {
-        const string literal = "9.";
+        const string literal = "$9.";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -40,10 +40,10 @@ public class NumberLiteral
     [Fact(DisplayName = "contains invalid chars")]
     public void Invalid()
     {
-        const string literal = "9.2v5";
+        const string literal = "$9.2v5";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -52,7 +52,7 @@ public class NumberLiteral
     public void NoData()
     {
         Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }

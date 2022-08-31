@@ -48,6 +48,6 @@ internal class MoneyLiteral : Token, ILexable<MoneyLiteral>
             ++length;
         }
 
-        return hasPeriod ? new MoneyLiteral(lexer, length) : null;
+        return new MoneyLiteral(lexer, length);
     }
 }

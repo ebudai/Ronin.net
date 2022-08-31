@@ -40,4 +40,13 @@ public class BinaryLiteral
         Assert.NotNull(lexer.Error);
         Assert.NotEmpty(lexer.Error);
     }
+
+    [Fact(DisplayName = "no data")]
+    public void NoData()
+    {
+        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        var lexed = Ronin.Tokens.BinaryLiteral.Lex(lexer);
+
+        Assert.Null(lexed);
+    }
 }
