@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Tokens.Literals;
 
 namespace Unit;
 
@@ -10,7 +11,7 @@ public class NumberLiteral
         const string literal = "123_456.78_90";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
@@ -23,7 +24,7 @@ public class NumberLiteral
         const string literal = "1234.4567.";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -36,7 +37,7 @@ public class NumberLiteral
         const string literal = "1234.4567,";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -49,7 +50,7 @@ public class NumberLiteral
         const string literal = "1234.4567(";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -62,7 +63,7 @@ public class NumberLiteral
         const string literal = "1234.4567)";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -75,7 +76,7 @@ public class NumberLiteral
         const string literal = "1234.4567[";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -88,7 +89,7 @@ public class NumberLiteral
         const string literal = "1234.4567]";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -101,7 +102,7 @@ public class NumberLiteral
         const string literal = "1234.4567{";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -114,7 +115,7 @@ public class NumberLiteral
         const string literal = "1234.4567}";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -127,7 +128,7 @@ public class NumberLiteral
         const string literal = "1234.4567'";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -140,7 +141,7 @@ public class NumberLiteral
         const string literal = "1234.4567\"";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -153,7 +154,7 @@ public class NumberLiteral
         const string literal = "1234.4567 ";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Number.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());

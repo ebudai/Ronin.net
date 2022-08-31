@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Tokens.Literals;
 
 namespace Failure;
 
@@ -10,7 +11,7 @@ public class MoneyLiteral
         const string literal = "987.23";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Money.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +22,7 @@ public class MoneyLiteral
         const string literal = "$f987.23";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Money.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -32,7 +33,7 @@ public class MoneyLiteral
         const string literal = "$9.";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Money.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -43,7 +44,7 @@ public class MoneyLiteral
         const string literal = "$9.2v5";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Money.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -52,7 +53,7 @@ public class MoneyLiteral
     public void NoData()
     {
         Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
-        var lexed = Ronin.Tokens.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Money.Lex(lexer);
 
         Assert.Null(lexed);
     }

@@ -1,4 +1,5 @@
 using Ronin.Compiler;
+using Ronin.Tokens.Literals;
 
 namespace Unit;
 
@@ -10,7 +11,7 @@ public class TextLiteral
         const string literal = "\"testtest\"";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.TextLiteral.Lex(lexer);
+        var lexed = Literal.Text.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
@@ -23,7 +24,7 @@ public class TextLiteral
         const string literal = @"""tes\""tte\""st""";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.TextLiteral.Lex(lexer);
+        var lexed = Literal.Text.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());

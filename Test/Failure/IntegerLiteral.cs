@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Tokens.Literals;
 
 namespace Failure;
 
@@ -10,7 +11,7 @@ public class IntegerLiteral
         const string literal = "g98723";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.IntegerLiteral.Lex(lexer);
+        var lexed = Literal.Integer.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +22,7 @@ public class IntegerLiteral
         const string literal = "92v5";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.IntegerLiteral.Lex(lexer);
+        var lexed = Literal.Integer.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -30,7 +31,7 @@ public class IntegerLiteral
     public void NoData()
     {
         Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
-        var lexed = Ronin.Tokens.IntegerLiteral.Lex(lexer);
+        var lexed = Literal.Integer.Lex(lexer);
 
         Assert.Null(lexed);
     }

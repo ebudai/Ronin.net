@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Tokens.Literals;
 
 namespace Failure;
 
@@ -10,7 +11,7 @@ public class BinaryLiteral
         const string literal = "not a binary literal";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Binary.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +22,7 @@ public class BinaryLiteral
         const string literal = "0b";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Binary.Lex(lexer);
 
         Assert.Null(lexed);
         Assert.NotNull(lexer.Error);
@@ -34,7 +35,7 @@ public class BinaryLiteral
         const string literal = "0b101023";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Ronin.Tokens.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Binary.Lex(lexer);
 
         Assert.Null(lexed);
         Assert.NotNull(lexer.Error);
@@ -45,7 +46,7 @@ public class BinaryLiteral
     public void NoData()
     {
         Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
-        var lexed = Ronin.Tokens.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Binary.Lex(lexer);
 
         Assert.Null(lexed);
     }
