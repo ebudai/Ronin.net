@@ -1,6 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Tokens.Literals;
-
 namespace Unit;
 
 public class BinaryLiteral
@@ -11,11 +9,10 @@ public class BinaryLiteral
         const string literal = "0b101101_00101";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with terminator")]
@@ -24,11 +21,10 @@ public class BinaryLiteral
         const string literal = "0B10010.";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with separator")]
@@ -37,11 +33,10 @@ public class BinaryLiteral
         const string literal = "0B10010,";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with opening parenthesis")]
@@ -50,11 +45,10 @@ public class BinaryLiteral
         const string literal = "0B10010(";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with closing parenthesis")]
@@ -63,11 +57,10 @@ public class BinaryLiteral
         const string literal = "0B10010)";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with opening bracket")]
@@ -76,11 +69,10 @@ public class BinaryLiteral
         const string literal = "0B10010[";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with closing bracket")]
@@ -89,11 +81,10 @@ public class BinaryLiteral
         const string literal = "0B10010]";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with opening brace")]
@@ -102,11 +93,10 @@ public class BinaryLiteral
         const string literal = "0B10010{";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with closing brace")]
@@ -115,11 +105,10 @@ public class BinaryLiteral
         const string literal = "0B10010}";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with single quote")]
@@ -128,11 +117,10 @@ public class BinaryLiteral
         const string literal = "0B10010'";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with double quote")]
@@ -141,11 +129,10 @@ public class BinaryLiteral
         const string literal = "0B10010\"";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 
     [Fact(DisplayName = "with space")]
@@ -154,10 +141,9 @@ public class BinaryLiteral
         const string literal = "0B10010 ";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Binary.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-        Assert.Equal(literal.Length - 1, lexed.SourceIndex);
     }
 }

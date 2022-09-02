@@ -15,7 +15,6 @@ public class Comment
 
         Assert.NotNull(comment);
         Assert.Equal(literal.Trim().ToArray(), comment.Sourcecode.ToArray());
-        Assert.Equal(literal.Trim().Length, comment.SourceIndex);
     }
 
     [Fact(DisplayName = "single-line at end of file")]
@@ -28,7 +27,6 @@ public class Comment
 
         Assert.NotNull(comment);
         Assert.Equal(literal.Trim().ToArray(), comment.Sourcecode.ToArray());
-        Assert.Equal(literal.Trim().Length, comment.SourceIndex);
     }
 
     [Fact(DisplayName = "multiline")]
@@ -41,7 +39,6 @@ public class Comment
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
-        Assert.Equal(literal.Length, comment.SourceIndex);
     }
 
     [Fact(DisplayName = "multiline nested")]
@@ -54,6 +51,5 @@ public class Comment
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
-        Assert.Equal(literal.Length, comment.SourceIndex);
     }
 }

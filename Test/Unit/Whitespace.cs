@@ -14,6 +14,5 @@ public class Whitespace
 
         Assert.NotNull(whitespace);
         Assert.Equal(source.ToArray(), whitespace.Sourcecode.ToArray());
-        Assert.Equal(source.Length, whitespace.SourceIndex);
     }
 }

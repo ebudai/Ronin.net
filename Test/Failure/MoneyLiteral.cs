@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Tokens.Literals;
 
 namespace Failure;
 
@@ -11,7 +10,7 @@ public class MoneyLiteral
         const string literal = "987.23";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Money.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -22,7 +21,7 @@ public class MoneyLiteral
         const string literal = "$f987.23";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Money.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -33,7 +32,7 @@ public class MoneyLiteral
         const string literal = "$9.";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Money.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -44,7 +43,7 @@ public class MoneyLiteral
         const string literal = "$9.2v5";
 
         Lexer lexer = new() { Sourcecode = literal.ToArray() };
-        var lexed = Literal.Money.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -53,8 +52,34 @@ public class MoneyLiteral
     public void NoData()
     {
         Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
-        var lexed = Literal.Money.Lex(lexer);
+        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
 
         Assert.Null(lexed);
+    }
+
+    [Fact(DisplayName = "multiple dots")]
+    public void MultipleDots()
+    {
+        const string literal = "$9.25.4";
+
+        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+
+        Assert.Null(lexed);
+        Assert.NotNull(lexer.Error);
+        Assert.NotEmpty(lexer.Error);
+    }
+
+    [Fact(DisplayName = "just a dollar sign")]
+    public void JustADollarSign()
+    {
+        const string literal = "$";
+
+        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+
+        Assert.Null(lexed);
+        Assert.NotNull(lexer.Error);
+        Assert.NotEmpty(lexer.Error);
     }
 }
