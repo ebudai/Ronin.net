@@ -8,7 +8,7 @@ internal class NumberLiteral : Token, ILexable<NumberLiteral>
 
     public static NumberLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
 
         if (span.IsEmpty) return null;
 

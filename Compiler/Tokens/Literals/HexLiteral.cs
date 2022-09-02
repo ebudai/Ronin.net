@@ -8,7 +8,7 @@ internal class HexLiteral : Token, ILexable<HexLiteral>
 
     public static HexLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
         if (span.IsEmpty) return null;
         if (span[0] is not '0' || span[1] is not 'x' and not 'X') return null;
 

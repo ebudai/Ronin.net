@@ -8,7 +8,7 @@ internal class TextLiteral : Token, ILexable<TextLiteral>
 
     public static TextLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
         if (span.IsEmpty || span[0] is not '"') return null;
 
         var index = 1;

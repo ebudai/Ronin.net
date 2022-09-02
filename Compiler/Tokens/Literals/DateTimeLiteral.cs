@@ -8,32 +8,27 @@ internal class DateTimeLiteral : Token, ILexable<DateTimeLiteral>
 
     public static DateTimeLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
         if (span.IsEmpty) return null;
 
-        if (span.Length is < 20) return null;
+        if (span.Length is < 19) return null;
 
-        if (!char.IsNumber(span[0])) return null;
-        if (!char.IsNumber(span[1])) return null;
-        if (!char.IsNumber(span[2])) return null;
-        if (!char.IsNumber(span[3])) return null;
-        if (span[4] is not '-') return null;
-        if (!char.IsNumber(span[5])) return null;
-        if (!char.IsNumber(span[6])) return null;
-        if (span[7] is not '-') return null;
-        if (!char.IsNumber(span[8])) return null;
-        if (!char.IsNumber(span[9])) return null;
-        if (!char.IsWhiteSpace(span[10])) return null;
-        if (!char.IsNumber(span[11])) return null;
-        if (!char.IsNumber(span[12])) return null;
-        if (span[13] is not ':') return null;
-        if (!char.IsNumber(span[14])) return null;
-        if (!char.IsNumber(span[15])) return null;
-        if (span[16] is not ':') return null;
-        if (!char.IsNumber(span[17])) return null;
-        if (!char.IsNumber(span[18])) return null;
-        if (span[19] is not 'a' and not 'A' and not 'p' and not 'P') return null;
+        if (!char.IsNumber(span[0])
+            || !char.IsNumber(span[1])
+            || !char.IsNumber(span[2])
+            || !char.IsNumber(span[3])
+            || span[4] is not '-'
+            || !char.IsNumber(span[5])
+            || !char.IsNumber(span[6])
+            || span[7] is not '-'
+            || !char.IsNumber(span[8])
+            || !char.IsNumber(span[9])
+            || !char.IsWhiteSpace(span[10])) return null;
 
-        return new DateTimeLiteral(lexer, 20);
+        lexer.Cursor += 11;
+        var time = TimeLiteral.Lex(lexer);
+        lexer.Cursor -= 11 + (time?.Sourcecode.Length ?? 0);
+
+        return time is null ? null : new DateTimeLiteral(lexer, 11 + time.Sourcecode.Length);
     }
 }

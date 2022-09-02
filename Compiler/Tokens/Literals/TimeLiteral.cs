@@ -15,7 +15,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
 
     private static TimeLiteral LexTwoDigitWithSpacedSuffix(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
 
         return span.IsEmpty
             || span.Length is < 10
@@ -35,7 +35,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
 
     private static TimeLiteral LexTwoDigitWithUnspacedSuffix(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
 
         return span.IsEmpty
             || span.Length is < 9
@@ -54,7 +54,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
 
     private static TimeLiteral LexTwoDigitWithoutSuffix(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
 
         return span.IsEmpty
             || span.Length is < 8
@@ -72,7 +72,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
 
     private static TimeLiteral LexOneDigitWithSpacedSuffix(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
 
         return span.IsEmpty
             || span.Length is < 9
@@ -91,7 +91,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
 
     private static TimeLiteral LexOneDigitWithUnspacedSuffix(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
 
         return span.IsEmpty
             || span.Length is < 8

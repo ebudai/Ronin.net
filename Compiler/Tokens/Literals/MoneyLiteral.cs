@@ -8,7 +8,7 @@ internal class MoneyLiteral : Token, ILexable<MoneyLiteral>
 
     public static MoneyLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
         if (span.IsEmpty || span[0] is not '$') return null;
 
         if (span.Length is < 2)

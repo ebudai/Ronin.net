@@ -8,7 +8,7 @@ internal class IntegerLiteral : Token, ILexable<IntegerLiteral>
 
     public static IntegerLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
         if (span.IsEmpty || !char.IsNumber(span[0])) return null;
 
         int length = 0;

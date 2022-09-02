@@ -8,7 +8,7 @@ internal class DateLiteral : Token, ILexable<DateLiteral>
 
     public static DateLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span;
+        var span = lexer.Sourcecode.Span[lexer.Cursor..];
         if (span.IsEmpty) return null;
 
         if (span.Length is < 10) return null;
