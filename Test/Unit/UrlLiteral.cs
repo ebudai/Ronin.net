@@ -27,6 +27,6 @@ public class UrlLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
     }
 }
