@@ -8,6 +8,10 @@ internal class Constant : Token, ILexable<Constant>
 
     public static Constant Lex(Lexer lexer)
     {
-        throw new NotImplementedException();
+        const string keyword = "constant ";
+
+        if (lexer.Sourcecode.Length < keyword.Length) return null;
+
+        return lexer.Sourcecode.Span.StartsWith(keyword) ? new Constant(lexer, 1) : null;
     }
 }

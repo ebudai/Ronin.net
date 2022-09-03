@@ -1,0 +1,17 @@
+﻿using Ronin.Compiler;
+
+namespace Unit;
+
+public class Constant
+{
+    [Fact(DisplayName = "basic")]
+    public void Basic()
+    {
+        const string modifier = "constant ";
+
+        Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        var lexed = Ronin.Tokens.Modifiers.Constant.Lex(lexer);
+
+        Assert.NotNull(lexed);
+    }
+}
