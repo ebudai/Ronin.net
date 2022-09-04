@@ -9,35 +9,23 @@ internal class Lexer
 {
     internal Lexer(string sourcecode)
     {
-        Sourcecode = sourcecode;
-        _span = Sourcecode.AsMemory();
+        Sourcecode = sourcecode.AsMemory();
     }
 
-    internal string Sourcecode { get; }
+    internal ReadOnlyMemory<char> Sourcecode { get; }
 
-    internal int Cursor 
-    { 
-        get => _cursor; 
-        set
-        {
-            _cursor = value;
-            _span = Sourcecode.AsMemory()[value..];            
-        }
-    }
-
+    internal int Cursor { get; set; }
     internal int Line { get; set; }
     internal string Error { get; set; }
-    internal bool IsEmpty => _span.IsEmpty;
-    internal int Length => _span.Length;
+    internal bool IsEmpty => Sourcecode.IsEmpty;
+    internal int Length => Sourcecode.Length;
 
-    internal char this[int index] => _span.Span[Cursor..][index];
-    internal ReadOnlyMemory<char> this[Range range] => _span[range];
+    internal ReadOnlySpan<char> Span => Sourcecode[Cursor..].Span;
+    internal char this[int index] => Span[index];
+    internal ReadOnlyMemory<char> this[Range range] => Sourcecode[Cursor..][range];
     
-    private int _cursor = 0;
-    private ReadOnlyMemory<char> _span;
-
-    internal bool StartsWith(string text) => _span.Span.StartsWith(text);
-    internal int IndexOf(char character) => _span.Span.IndexOf(character);
+    internal bool StartsWith(string text) => Span.StartsWith(text);
+    internal int IndexOf(char character) => Span.IndexOf(character);
 
     internal List<Token> Lex()
     {
