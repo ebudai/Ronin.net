@@ -17,8 +17,8 @@ internal class Lexer
     internal int Cursor { get; set; }
     internal int Line { get; set; }
     internal string Error { get; set; }
-    internal bool IsEmpty => Sourcecode.IsEmpty;
-    internal int Length => Sourcecode.Length;
+    internal bool IsEmpty => Span.IsEmpty;
+    internal int Length => Span.Length;
 
     internal ReadOnlySpan<char> Span => Sourcecode[Cursor..].Span;
     internal char this[int index] => Span[index];

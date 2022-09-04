@@ -14,8 +14,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
         ?? LexOneDigitWithUnspacedSuffix(lexer);
 
     private static TimeLiteral LexTwoDigitWithSpacedSuffix(Lexer lexer)
-        => lexer.IsEmpty
-        || lexer.Length is < 10
+        => lexer.Length is < 10
         || !char.IsNumber(lexer[0])
         || !char.IsNumber(lexer[1])
         || lexer[2] is not ':'
@@ -30,8 +29,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
         : new TimeLiteral(lexer, 10);
 
     private static TimeLiteral LexTwoDigitWithUnspacedSuffix(Lexer lexer) 
-        => lexer.IsEmpty
-        || lexer.Length is < 9
+        => lexer.Length is < 9
         || !char.IsNumber(lexer[0])
         || !char.IsNumber(lexer[1])
         || lexer[2] is not ':'
@@ -45,8 +43,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
         : new TimeLiteral(lexer, 9);    
 
     private static TimeLiteral LexTwoDigitWithoutSuffix(Lexer lexer) 
-        => lexer.IsEmpty
-        || lexer.Length is < 8
+        => lexer.Length is < 8
         || !char.IsNumber(lexer[0])
         || !char.IsNumber(lexer[1])
         || lexer[2] is not ':'
@@ -59,8 +56,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
         : new TimeLiteral(lexer, 8);
 
     private static TimeLiteral LexOneDigitWithSpacedSuffix(Lexer lexer) 
-        => lexer.IsEmpty
-        || lexer.Length is < 9
+        => lexer.Length is < 9
         || !char.IsNumber(lexer[0])
         || lexer[1] is not ':'
         || !char.IsNumber(lexer[2])
@@ -74,8 +70,7 @@ internal class TimeLiteral : Token, ILexable<TimeLiteral>
         : new TimeLiteral(lexer, 9);    
 
     private static TimeLiteral LexOneDigitWithUnspacedSuffix(Lexer lexer) 
-        => lexer.IsEmpty
-        || lexer.Length is < 8
+        => lexer.Length is < 8
         || !char.IsNumber(lexer[0])
         || lexer[1] is not ':'
         || !char.IsNumber(lexer[2])
