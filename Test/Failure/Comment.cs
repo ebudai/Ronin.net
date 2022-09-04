@@ -10,7 +10,7 @@ public class Comment
     {
         const string notcomment = "not a comment";
 
-        Lexer lexer = new() { Sourcecode = notcomment.AsMemory() };
+        Lexer lexer = new(notcomment);
         var comment = Ronin.Tokens.Comment.Lex(lexer);
 
         Assert.Null(comment);
@@ -21,7 +21,7 @@ public class Comment
     {
         const string notcomment = "not a comment";
 
-        Lexer lexer = new() { Sourcecode = notcomment.AsMemory() };
+        Lexer lexer = new(notcomment);
         var comment = Ronin.Tokens.Comment.Lex(lexer);
 
         Assert.Null(comment);
@@ -32,7 +32,7 @@ public class Comment
     {
         const string badcomment = "/*not /*a comment*/";
 
-        Lexer lexer = new() { Sourcecode = badcomment.AsMemory() };
+        Lexer lexer = new(badcomment);
         var comment = Ronin.Tokens.Comment.Lex(lexer);
 
         Assert.Null(comment);

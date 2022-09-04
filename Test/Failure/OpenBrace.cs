@@ -9,7 +9,7 @@ public class OpenBrace
     {
         const string literal = "not an open brace";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Symbols.OpenBrace.Lex(lexer);
 
         Assert.Null(lexed);
@@ -18,7 +18,7 @@ public class OpenBrace
     [Fact(DisplayName = "no data")]
     public void Empty()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Symbols.OpenBrace.Lex(lexer);
 
         Assert.Null(lexed);

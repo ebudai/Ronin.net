@@ -1,6 +1,4 @@
-﻿using Ronin.Compiler;
-
-namespace Unit;
+﻿namespace Unit;
 
 public class Compiled
 {
@@ -9,7 +7,7 @@ public class Compiled
     {
         const string modifier = "compiled ";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(modifier);
         var lexed = Ronin.Tokens.Modifiers.Compiled.Lex(lexer);
 
         Assert.NotNull(lexed);

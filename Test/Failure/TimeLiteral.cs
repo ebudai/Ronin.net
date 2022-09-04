@@ -9,7 +9,7 @@ public class TimeLiteral
     {
         const string literal = "not a time literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -20,7 +20,7 @@ public class TimeLiteral
     {
         const string literal = "1not a time literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -31,7 +31,7 @@ public class TimeLiteral
     {
         const string literal = "12not a time literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -42,7 +42,7 @@ public class TimeLiteral
     {
         const string literal = "12:0not a time literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -53,7 +53,7 @@ public class TimeLiteral
     {
         const string literal = "12:04not a time literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -64,7 +64,7 @@ public class TimeLiteral
     {
         const string literal = "12:04:not a time literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -75,7 +75,7 @@ public class TimeLiteral
     {
         const string literal = "12:04:3not a time literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -86,7 +86,7 @@ public class TimeLiteral
     {
         const string literal = "12:g4:32 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -97,7 +97,7 @@ public class TimeLiteral
     {
         const string literal = "12:44:32dp";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -109,7 +109,7 @@ public class TimeLiteral
     {
         const string literal = "12:44:32 m";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -121,7 +121,7 @@ public class TimeLiteral
     {
         const string literal = "2:g4:32 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -132,7 +132,7 @@ public class TimeLiteral
     {
         const string literal = "2:3g:32 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -143,7 +143,7 @@ public class TimeLiteral
     {
         const string literal = "2:34?32 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -154,7 +154,7 @@ public class TimeLiteral
     {
         const string literal = "2:34:g2 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -165,7 +165,7 @@ public class TimeLiteral
     {
         const string literal = "2:34:1e p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -176,7 +176,7 @@ public class TimeLiteral
     {
         const string literal = "2:34:12vp";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -187,7 +187,7 @@ public class TimeLiteral
     {
         const string literal = "2:34:12 m";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -196,7 +196,7 @@ public class TimeLiteral
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Literals.TimeLiteral.Lex(lexer);
 
         Assert.Null(lexed);

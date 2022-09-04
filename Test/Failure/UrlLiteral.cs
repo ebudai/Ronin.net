@@ -11,7 +11,7 @@ public class UrlLiteral
     {
         const string literal = "a://";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -22,7 +22,7 @@ public class UrlLiteral
     {
         const string literal = "123things://stuff.com";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -33,7 +33,7 @@ public class UrlLiteral
     {
         const string literal = "notAUrlLiteral";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);

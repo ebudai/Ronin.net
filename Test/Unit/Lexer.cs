@@ -29,7 +29,7 @@ public class Lexer
         }
         """;
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = sourcecode.AsMemory() };
+        Ronin.Compiler.Lexer lexer = new(sourcecode);
 
         List<Token> compiled = new()
         {

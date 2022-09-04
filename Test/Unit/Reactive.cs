@@ -7,7 +7,7 @@ public class Reactive
     {
         const string modifier = "reactive ";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(modifier);
         var lexed = Ronin.Tokens.Modifiers.Reactive.Lex(lexer);
 
         Assert.NotNull(lexed);

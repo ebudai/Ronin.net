@@ -9,7 +9,7 @@ public class Terminal
     {
         const string literal = "not a terminal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Symbols.Terminal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -18,7 +18,7 @@ public class Terminal
     [Fact(DisplayName = "no data")]
     public void Empty()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Symbols.Terminal.Lex(lexer);
 
         Assert.Null(lexed);

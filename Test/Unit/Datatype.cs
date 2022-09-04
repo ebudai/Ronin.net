@@ -7,7 +7,7 @@ public class Datatype
     {
         const string modifier = "datatype ";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(modifier);
         var lexed = Ronin.Tokens.Modifiers.Datatype.Lex(lexer);
 
         Assert.NotNull(lexed);

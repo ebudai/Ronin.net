@@ -9,7 +9,7 @@ public class CloseParenthesis
     {
         const string sourcecode = ")";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = sourcecode.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(sourcecode);
         var lexed = Ronin.Tokens.Symbols.CloseParenthesis.Lex(lexer);
 
         Assert.NotNull(lexed);

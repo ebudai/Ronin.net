@@ -9,7 +9,7 @@ public class CharLiteral
     {
         const string literal = "testtest";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.CharLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -20,7 +20,7 @@ public class CharLiteral
     {
         const string literal = "'c";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.CharLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -33,7 +33,7 @@ public class CharLiteral
     {
         const string literal = "''";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.CharLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -46,7 +46,7 @@ public class CharLiteral
     {
         const string literal = "'test'";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.CharLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -57,7 +57,7 @@ public class CharLiteral
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Literals.CharLiteral.Lex(lexer);
 
         Assert.Null(lexed);

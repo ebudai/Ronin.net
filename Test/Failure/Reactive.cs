@@ -9,7 +9,7 @@ public class Reactive
     {
         const string literal = "not reactive";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Modifiers.Reactive.Lex(lexer);
 
         Assert.Null(lexed);
@@ -18,7 +18,7 @@ public class Reactive
     [Fact(DisplayName = "no data")]
     public void Empty()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Modifiers.Reactive.Lex(lexer);
 
         Assert.Null(lexed);

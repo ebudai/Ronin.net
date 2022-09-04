@@ -9,7 +9,7 @@ public class HexLiteral
     {
         const string literal = "not a hex literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -20,7 +20,7 @@ public class HexLiteral
     {
         const string literal = "0x";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -33,7 +33,7 @@ public class HexLiteral
     {
         const string literal = "0x1234g";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -44,7 +44,7 @@ public class HexLiteral
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
 
         Assert.Null(lexed);

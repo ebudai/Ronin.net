@@ -9,7 +9,7 @@ public class TextLiteral
     {
         const string literal = "testtest";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -20,7 +20,7 @@ public class TextLiteral
     {
         const string literal = "\"testtest";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -33,7 +33,7 @@ public class TextLiteral
     {
         const string literal = "\"";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -44,7 +44,7 @@ public class TextLiteral
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
 
         Assert.Null(lexed);

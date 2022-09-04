@@ -9,7 +9,7 @@ public class NumberLiteral
     {
         const string literal = "g987.23";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -20,7 +20,7 @@ public class NumberLiteral
     {
         const string literal = "98723";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -31,7 +31,7 @@ public class NumberLiteral
     {
         const string literal = "9.";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -42,7 +42,7 @@ public class NumberLiteral
     {
         const string literal = "9.2v5";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -53,7 +53,7 @@ public class NumberLiteral
     {
         const string literal = "9.2.5";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -64,7 +64,7 @@ public class NumberLiteral
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
 
         Assert.Null(lexed);

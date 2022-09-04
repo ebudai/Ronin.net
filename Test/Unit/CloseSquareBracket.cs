@@ -9,7 +9,7 @@ public class CloseSquareBracket
     {
         const string sourcecode = "]";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = sourcecode.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(sourcecode);
         var lexed = Ronin.Tokens.Symbols.CloseSquareBracket.Lex(lexer);
 
         Assert.NotNull(lexed);

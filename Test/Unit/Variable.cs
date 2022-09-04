@@ -9,7 +9,7 @@ public class Variable
     {
         const string modifier = "var ";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(modifier);
         var lexed = Ronin.Tokens.Modifiers.Variable.Lex(lexer);
 
         Assert.NotNull(lexed);

@@ -9,7 +9,7 @@ public class DateLiteral
     {
         const string literal = "not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -20,7 +20,7 @@ public class DateLiteral
     {
         const string literal = "1not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -31,7 +31,7 @@ public class DateLiteral
     {
         const string literal = "19not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -42,7 +42,7 @@ public class DateLiteral
     {
         const string literal = "198not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -53,7 +53,7 @@ public class DateLiteral
     {
         const string literal = "1984not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -64,7 +64,7 @@ public class DateLiteral
     {
         const string literal = "1984-not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -75,7 +75,7 @@ public class DateLiteral
     {
         const string literal = "1984-0not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -86,7 +86,7 @@ public class DateLiteral
     {
         const string literal = "1984-04not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -97,7 +97,7 @@ public class DateLiteral
     {
         const string literal = "1984-04-not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -108,7 +108,7 @@ public class DateLiteral
     {
         const string literal = "1984-04-1not a date literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -119,7 +119,7 @@ public class DateLiteral
     {
         const string literal = "1984-01-4";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -128,7 +128,7 @@ public class DateLiteral
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.Null(lexed);

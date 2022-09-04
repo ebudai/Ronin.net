@@ -7,7 +7,7 @@ public class Terminal
     {
         const string sourcecode = ";";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = sourcecode.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(sourcecode);
         var lexed = Ronin.Tokens.Symbols.Terminal.Lex(lexer);
 
         Assert.NotNull(lexed);

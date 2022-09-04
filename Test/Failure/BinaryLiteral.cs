@@ -9,7 +9,7 @@ public class BinaryLiteral
     {
         const string literal = "not a binary literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -20,7 +20,7 @@ public class BinaryLiteral
     {
         const string literal = "0b";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -33,7 +33,7 @@ public class BinaryLiteral
     {
         const string literal = "0b101023";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.Null(lexed);
@@ -44,7 +44,7 @@ public class BinaryLiteral
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Lexer lexer = new(string.Empty);
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.Null(lexed);

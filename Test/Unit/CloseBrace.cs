@@ -9,7 +9,7 @@ public class CloseBrace
     {
         const string sourcecode = "}";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = sourcecode.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(sourcecode);
         var lexed = Ronin.Tokens.Symbols.CloseBrace.Lex(lexer);
 
         Assert.NotNull(lexed);

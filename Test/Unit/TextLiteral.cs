@@ -9,7 +9,7 @@ public class TextLiteral
     {
         const string literal = "\"testtest\"";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -21,7 +21,7 @@ public class TextLiteral
     {
         const string literal = @"""tes\""tte\""st""";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);

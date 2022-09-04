@@ -9,7 +9,7 @@ public class OpenSquareBracket
     {
         const string sourcecode = "[";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = sourcecode.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(sourcecode);
         var lexed = Ronin.Tokens.Symbols.OpenSquareBracket.Lex(lexer);
 
         Assert.NotNull(lexed);

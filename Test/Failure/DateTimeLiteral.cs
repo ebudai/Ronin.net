@@ -11,7 +11,7 @@ public class DateTimeLiteral
     {
         const string literal = "not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -22,7 +22,7 @@ public class DateTimeLiteral
     {
         const string literal = "1not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -33,7 +33,7 @@ public class DateTimeLiteral
     {
         const string literal = "12not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -44,7 +44,7 @@ public class DateTimeLiteral
     {
         const string literal = "123not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -55,7 +55,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -66,7 +66,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -77,7 +77,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-0not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -88,7 +88,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-04not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -99,7 +99,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-04-not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -110,7 +110,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-1not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -121,7 +121,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -132,7 +132,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -143,7 +143,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 0not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -154,7 +154,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 09not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -165,7 +165,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 09:not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -176,7 +176,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 09:1not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -187,7 +187,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 09:12not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -198,7 +198,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 09:12:not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -209,7 +209,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 09:12:4not a datetime literal";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -220,7 +220,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-12-07 12:g4:32 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -231,7 +231,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-12-07 12:44:32dp";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -243,7 +243,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-12-07 12:44:32 m";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -255,7 +255,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-12-07 4:44:32 m";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -266,7 +266,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-12-07 2:g4:32 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -277,7 +277,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-12-07 2:3g:32 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -288,7 +288,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-12-07 1231-02-12 2:34?32 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -299,7 +299,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-12-07 1231-02-12 2:34:g2 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -310,7 +310,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 2:34:1e p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -321,7 +321,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 12:34:12vp";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -333,7 +333,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 12:34:12 m";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -345,7 +345,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 2:34:12vp";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -356,7 +356,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12 2:34:12 m";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -367,7 +367,7 @@ public class DateTimeLiteral
     {
         const string literal = "1231-02-12";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
@@ -376,7 +376,7 @@ public class DateTimeLiteral
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
-        Lexer lexer = new() { Sourcecode = string.Empty.ToArray() };
+        Ronin.Compiler.Lexer lexer = new(string.Empty);
         var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);

@@ -7,7 +7,7 @@ public class Comment
     {
         const string literal = "// this is a comment\n\n";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.AsMemory() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var comment = Ronin.Tokens.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
@@ -19,7 +19,7 @@ public class Comment
     {
         const string literal = "// this is a comment";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.AsMemory() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var comment = Ronin.Tokens.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
@@ -31,7 +31,7 @@ public class Comment
     {
         const string literal = "/*\n\n this is a comment\n\n*/";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.AsMemory() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var comment = Ronin.Tokens.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
@@ -43,7 +43,7 @@ public class Comment
     {
         const string literal = "/*\n\n this/* is a c*/omment\n\n*/";
 
-        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.AsMemory() };
+        Ronin.Compiler.Lexer lexer = new(literal);
         var comment = Ronin.Tokens.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
