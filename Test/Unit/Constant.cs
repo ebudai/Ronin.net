@@ -9,7 +9,7 @@ public class Constant
     {
         const string modifier = "constant ";
 
-        Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = modifier.ToArray() };
         var lexed = Ronin.Tokens.Modifiers.Constant.Lex(lexer);
 
         Assert.NotNull(lexed);

@@ -4,16 +4,7 @@ namespace Ronin.Tokens.Symbols;
 
 internal class Separator : Token, ILexable<Separator>
 {
-    public Separator(Lexer lexer, int length) : base(lexer, length) { }
+    public Separator(Lexer lexer) : base(lexer, 1) { }
 
-    public static Separator Lex(Lexer lexer)
-    {
-        var span = lexer.Sourcecode.Span;
-
-        if (span.IsEmpty) return null;
-
-        if (span[0] is not ',') return null;
-
-        return new Separator(lexer, 1);
-    }
+    public static Separator Lex(Lexer lexer) => lexer.IsEmpty || lexer[0] is not ',' ? null : new Separator(lexer);
 }

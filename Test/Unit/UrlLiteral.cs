@@ -11,7 +11,7 @@ public class UrlLiteral
     {
         const string literal = "http://test.com";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -23,7 +23,7 @@ public class UrlLiteral
     {
         const string literal = "http://test.com;";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);

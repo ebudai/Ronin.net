@@ -8,7 +8,7 @@ public class BinaryLiteral
     {
         const string literal = "0b101101_00101";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -20,7 +20,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010.";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -32,7 +32,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010,";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -44,7 +44,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010(";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -56,7 +56,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010)";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -68,7 +68,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010[";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -80,7 +80,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010]";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -92,7 +92,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010{";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -104,7 +104,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010}";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -116,7 +116,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010'";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -128,7 +128,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010\"";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -140,7 +140,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010 ";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);

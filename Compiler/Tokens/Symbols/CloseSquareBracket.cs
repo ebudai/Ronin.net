@@ -4,16 +4,7 @@ namespace Ronin.Tokens.Symbols;
 
 internal class CloseSquareBracket : Token, ILexable<CloseSquareBracket>
 {
-    public CloseSquareBracket(Lexer lexer, int length) : base(lexer, length) { }
+    public CloseSquareBracket(Lexer lexer) : base(lexer, 1) { }
 
-    public static CloseSquareBracket Lex(Lexer lexer)
-    {
-        var span = lexer.Sourcecode.Span;
-
-        if (span.IsEmpty) return null;
-
-        if (span[0] is not ']') return null;
-
-        return new CloseSquareBracket(lexer, 1);
-    }
+    public static CloseSquareBracket Lex(Lexer lexer) => lexer.IsEmpty || lexer[0] is not ']' ? null : new CloseSquareBracket(lexer);
 }

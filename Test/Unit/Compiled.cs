@@ -9,7 +9,7 @@ public class Compiled
     {
         const string modifier = "compiled ";
 
-        Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = modifier.ToArray() };
         var lexed = Ronin.Tokens.Modifiers.Compiled.Lex(lexer);
 
         Assert.NotNull(lexed);

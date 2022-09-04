@@ -9,7 +9,7 @@ public class CharLiteral
     {
         const string literal = "'c'";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.CharLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -21,7 +21,7 @@ public class CharLiteral
     {
         const string literal = "'\u44A2'";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.CharLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);

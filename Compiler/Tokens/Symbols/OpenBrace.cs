@@ -4,16 +4,7 @@ namespace Ronin.Tokens.Symbols;
 
 internal class OpenBrace : Token, ILexable<OpenBrace>
 {
-    public OpenBrace(Lexer lexer, int length) : base(lexer, length) { }
+    public OpenBrace(Lexer lexer) : base(lexer, 1) { }
 
-    public static OpenBrace Lex(Lexer lexer)
-    {
-        var span = lexer.Sourcecode.Span;
-
-        if (span.IsEmpty) return null;
-
-        if (span[0] is not '{') return null;
-
-        return new OpenBrace(lexer, 1);
-    }
+    public static OpenBrace Lex(Lexer lexer) => lexer.IsEmpty || lexer[0] is not '{' ? null : new OpenBrace(lexer);
 }

@@ -4,14 +4,9 @@ namespace Ronin.Tokens.Modifiers;
 
 internal class Reactive : Token, ILexable<Reactive>
 {
-    public Reactive(Lexer lexer, int length) : base(lexer, length) { }
-
-    public static Reactive Lex(Lexer lexer)
-    {
-        const string keyword = "reactive ";
-
-        if (lexer.Sourcecode.Length < keyword.Length) return null;
-
-        return lexer.Sourcecode.Span.StartsWith(keyword) ? new Reactive(lexer, 1) : null;
-    }
+    private const string keyword = "reactive"; 
+    
+    public Reactive(Lexer lexer) : base(lexer, keyword.Length) { }
+    
+    public static Reactive Lex(Lexer lexer) => lexer.IsModifier(keyword) ? new Reactive(lexer) : null;
 }

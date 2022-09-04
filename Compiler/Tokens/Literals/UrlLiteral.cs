@@ -8,22 +8,20 @@ internal class UrlLiteral : Token, ILexable<UrlLiteral>
 
     public static UrlLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span[lexer.Cursor..];
-
-        if (span.Length is < 5) return null;
+        if (lexer.Length is < 5) return null;
 
         int length = 0;
-        while (length < span.Length && char.IsLetter(span[length])) ++length;
-        if (length == span.Length) 
+        while (length < lexer.Length && char.IsLetter(lexer[length])) ++length;
+        if (length == lexer.Length) 
         {
             lexer.Error = "unterminated url literal";
             return null;
         }
 
-        if (length + 4 >= span.Length || span[length] is not ':' || span[length + 1] is not '/' || span[length + 2] is not '/') return null;
+        if (length + 4 >= lexer.Length || lexer[length] is not ':' || lexer[length + 1] is not '/' || lexer[length + 2] is not '/') return null;
         
         length += 3;
-        while (length < span.Length && IsValidChar(span[length])) ++length;
+        while (length < lexer.Length && IsValidChar(lexer[length])) ++length;
         
         return new UrlLiteral(lexer, length);        
     }

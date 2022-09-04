@@ -8,16 +8,14 @@ internal class NumberLiteral : Token, ILexable<NumberLiteral>
 
     public static NumberLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span[lexer.Cursor..];
+        if (lexer.IsEmpty) return null;
 
-        if (span.IsEmpty) return null;
-
-        if (!char.IsNumber(span[0]))
+        if (!char.IsNumber(lexer[0]))
         {
             return null;
         }
 
-        if (span.Length is < 3)
+        if (lexer.Length is < 3)
         {
             lexer.Error = "unterminated number literal";
             return null;
@@ -25,15 +23,15 @@ internal class NumberLiteral : Token, ILexable<NumberLiteral>
 
         int length = 0;
         bool hasPeriod = false;
-        for (int i = 0, max = span.Length; i != max; ++i)
+        for (int i = 0, max = lexer.Length; i != max; ++i)
         {
-            if (char.IsWhiteSpace(span[i]) || span[i] is '(' or ')' or '[' or ']' or '{' or '}' or ',' or '\'' or '"' or ';')
+            if (char.IsWhiteSpace(lexer[i]) || lexer[i] is '(' or ')' or '[' or ']' or '{' or '}' or ',' or '\'' or '"' or ';')
             {
                 length = i;
                 break;
             }
 
-            if (span[i] is '.')
+            if (lexer[i] is '.')
             {
                 if (hasPeriod)
                 {
@@ -42,7 +40,7 @@ internal class NumberLiteral : Token, ILexable<NumberLiteral>
                 }
                 hasPeriod = true;
             }
-            else if (!char.IsNumber(span[i]) && span[i] is not '_' and not ';')
+            else if (!char.IsNumber(lexer[i]) && lexer[i] is not '_' and not ';')
             {
                 lexer.Error = "number literal with non-numeric character";
                 return null;

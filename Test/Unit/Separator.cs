@@ -1,6 +1,4 @@
-﻿using Ronin.Compiler;
-
-namespace Unit;
+﻿namespace Unit;
 
 public class Separator
 {
@@ -9,9 +7,10 @@ public class Separator
     {
         const string sourcecode = ",";
 
-        Lexer lexer = new() { Sourcecode = sourcecode.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = sourcecode.ToArray() };
         var lexed = Ronin.Tokens.Symbols.Separator.Lex(lexer);
 
         Assert.NotNull(lexed);
+        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
     }
 }

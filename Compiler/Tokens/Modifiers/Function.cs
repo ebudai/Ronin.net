@@ -4,14 +4,9 @@ namespace Ronin.Tokens.Modifiers;
 
 internal class Function : Token, ILexable<Function>
 {
-    public Function(Lexer lexer, int length) : base(lexer, length) { }
+    private const string keyword = "function";
 
-    public static Function Lex(Lexer lexer)
-    {
-        const string keyword = "function ";
+    public Function(Lexer lexer) : base(lexer, keyword.Length) { }
 
-        if (lexer.Sourcecode.Length < keyword.Length) return null;
-
-        return lexer.Sourcecode.Span.StartsWith(keyword) ? new Function(lexer, 1) : null;
-    }
+    public static Function Lex(Lexer lexer) => lexer.IsModifier(keyword) ? new Function(lexer) : null;
 }

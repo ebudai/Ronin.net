@@ -8,30 +8,29 @@ internal class Comment : Token, ILexable<Comment>
 
     public static Comment Lex(Lexer lexer)
     {
-        if (lexer.Sourcecode.Span.StartsWith("//"))
+        if (lexer.StartsWith("//"))
         {
-            var length = lexer.Sourcecode.Span.IndexOf('\n');
-            if (length is < 0) length = lexer.Sourcecode.Length;
-            return new Comment(lexer, length);
+            var linelength = lexer.IndexOf('\n');
+            if (linelength is < 0) linelength = lexer.Length;
+            return new Comment(lexer, linelength);
         }
-        else if (lexer.Sourcecode.Span.StartsWith("/*"))
+
+        if (!lexer.StartsWith("/*")) return null;
+
+        int depth = 0;
+        var length = 3;
+        for (; length < lexer.Length; ++length)
         {
-            int depth = 0;
-            var length = 3;
-            for (; length < lexer.Sourcecode.Length; ++length)
-            {
-                var span = lexer.Sourcecode[length..].Span;
-                if (span.StartsWith("/*")) ++depth;
-                else if (span.StartsWith("*/")) --depth;
-                if (depth is -1) break;
-            }
-            if (depth is not -1)
-            {
-                lexer.Error = "unterminated multiline comment";
-                return null;
-            }
-            return new Comment(lexer, length + 2);
+            var innerspan = lexer[length..].Span;
+            if (innerspan.StartsWith("/*")) ++depth;
+            else if (innerspan.StartsWith("*/")) --depth;
+            if (depth is -1) break;
         }
-        return null;        
+        if (depth is not -1)
+        {
+            lexer.Error = "unterminated multiline comment";
+            return null;
+        }
+        return new Comment(lexer, length + 2);
     }
 }

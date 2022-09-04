@@ -8,10 +8,9 @@ internal class CharLiteral : Token, ILexable<CharLiteral>
 
     public static CharLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span[lexer.Cursor..];
-        if (span.IsEmpty || span[0] is not '\'') return null;
+        if (lexer.IsEmpty || lexer[0] is not '\'') return null;
 
-        var length = span[1..].IndexOf('\'');
+        var length = lexer[1..].Span.IndexOf('\'');
         if (length is < 0)
         {
             lexer.Error = "unterminated character literal";

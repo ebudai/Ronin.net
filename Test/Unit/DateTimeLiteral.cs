@@ -9,7 +9,7 @@ public class DateTimeLiteral
     {
         const string literal = "1984-04-22 11:45:12 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.DateTimeLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -21,7 +21,7 @@ public class DateTimeLiteral
     {
         const string literal = "2022-01-44 10:15:02p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.DateTimeLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -33,7 +33,7 @@ public class DateTimeLiteral
     {
         const string literal = "1477-04-08 12:30:59";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.DateTimeLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -45,7 +45,7 @@ public class DateTimeLiteral
     {
         const string literal = "0744-44-20 9:08:45 p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.DateTimeLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -57,7 +57,7 @@ public class DateTimeLiteral
     {
         const string literal = "1212-18-77 2:22:18p";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.DateTimeLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -69,7 +69,7 @@ public class DateTimeLiteral
     {
         const string literal = "3517-08-88 17:22:18 ";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.DateTimeLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);

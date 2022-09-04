@@ -1,6 +1,4 @@
-﻿using Ronin.Compiler;
-
-namespace Unit;
+﻿namespace Unit;
 
 public class Datatype
 {
@@ -9,7 +7,7 @@ public class Datatype
     {
         const string modifier = "datatype ";
 
-        Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = modifier.ToArray() };
         var lexed = Ronin.Tokens.Modifiers.Datatype.Lex(lexer);
 
         Assert.NotNull(lexed);

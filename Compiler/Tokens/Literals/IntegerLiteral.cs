@@ -8,21 +8,20 @@ internal class IntegerLiteral : Token, ILexable<IntegerLiteral>
 
     public static IntegerLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span[lexer.Cursor..];
-        if (span.IsEmpty || !char.IsNumber(span[0])) return null;
+        if (lexer.IsEmpty || !char.IsNumber(lexer[0])) return null;
 
         int length = 0;
-        for (int i = 0, max = span.Length; i != max; ++i)
+        for (int i = 0, max = lexer.Length; i != max; ++i)
         {
-            if (span[i] is '.') return null;
+            if (lexer[i] is '.') return null;
 
-            if (char.IsWhiteSpace(span[i]) || span[i] is '(' or ')' or '[' or ']' or '{' or '}' or ',' or '\'' or '"' or ';')
+            if (char.IsWhiteSpace(lexer[i]) || lexer[i] is '(' or ')' or '[' or ']' or '{' or '}' or ',' or '\'' or '"' or ';')
             {
                 length = i;
                 break;
             }
 
-            if (!char.IsNumber(span[i]) && span[i] is not '_')
+            if (!char.IsNumber(lexer[i]) && lexer[i] is not '_')
             {
                 lexer.Error = "integer literal with non-numeric character";
                 return null;

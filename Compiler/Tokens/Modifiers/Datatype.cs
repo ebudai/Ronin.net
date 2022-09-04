@@ -4,14 +4,9 @@ namespace Ronin.Tokens.Modifiers;
 
 internal class Datatype : Token, ILexable<Datatype>
 {
-    public Datatype(Lexer lexer, int length) : base(lexer, length) { }
+    private const string keyword = "datatype";
 
-    public static Datatype Lex(Lexer lexer)
-    {
-        const string keyword = "datatype ";
+    public Datatype(Lexer lexer) : base(lexer, keyword.Length) { }
 
-        if (lexer.Sourcecode.Length < keyword.Length) return null;
-
-        return lexer.Sourcecode.Span.StartsWith(keyword) ? new Datatype(lexer, 1) : null;
-    }
+    public static Datatype Lex(Lexer lexer) => lexer.IsModifier(keyword) ? new Datatype(lexer) : null;
 }

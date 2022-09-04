@@ -4,24 +4,29 @@ namespace Ronin.Tokens.Literals;
 
 internal class TextLiteral : Token, ILexable<TextLiteral>
 {
-    internal TextLiteral(Lexer lexer, int length) : base(lexer, length) { }
+    internal TextLiteral(Lexer lexer, int length) : base(lexer, length)
+    {
+        for (var i = 0; i != length; ++i)
+        {
+            if (Sourcecode.Span[i] is '\n') ++lexer.Line;
+        }
+    }
 
     public static TextLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span[lexer.Cursor..];
-        if (span.IsEmpty || span[0] is not '"') return null;
+        if (lexer.IsEmpty || lexer[0] is not '"') return null;
 
         var index = 1;
-        var length = span[index..].IndexOf('"');
+        var length = lexer[index..].Span.IndexOf('"');
         if (length is < 0)
         {
             lexer.Error = "unterminated text literal";
             return null;
         }
-        while (span[index + length - 1] is '\\')
+        while (lexer[index + length - 1] is '\\')
         {
             index += length + 1;
-            length = span[index..].IndexOf('"');
+            length = lexer[index..].Span.IndexOf('"');
         }
         return new TextLiteral(lexer, index + length + 1);
     }

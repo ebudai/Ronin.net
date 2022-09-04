@@ -9,7 +9,7 @@ public class Function
     {
         const string modifier = "function ";
 
-        Lexer lexer = new() { Sourcecode = modifier.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = modifier.ToArray() };
         var lexed = Ronin.Tokens.Modifiers.Function.Lex(lexer);
 
         Assert.NotNull(lexed);

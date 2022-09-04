@@ -9,7 +9,11 @@ internal class Whitespace : Token, ILexable<Whitespace>
     public static Whitespace Lex(Lexer lexer)
     {
         var length = 0;
-        while (length < lexer.Sourcecode.Length && char.IsWhiteSpace(lexer.Sourcecode.Span[length])) ++length;
+        while (length < lexer.Length && char.IsWhiteSpace(lexer[length]))
+        {
+            if (lexer[length] is '\n') ++lexer.Line;
+            ++length;
+        }
         if (length is 0) return null;
         return new Whitespace(lexer, length);
     }

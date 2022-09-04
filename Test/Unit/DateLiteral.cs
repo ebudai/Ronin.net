@@ -1,6 +1,4 @@
-﻿using Ronin.Compiler;
-
-namespace Unit;
+﻿namespace Unit;
 
 public class DateLiteral
 {
@@ -9,7 +7,7 @@ public class DateLiteral
     {
         const string literal = "1984-05-04";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.DateLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);

@@ -4,14 +4,9 @@ namespace Ronin.Tokens.Modifiers;
 
 internal class Compiled : Token, ILexable<Compiled>
 {
-    public Compiled(Lexer lexer, int length) : base(lexer, length) { }
+    private const string keyword = "compiled";
 
-    public static Compiled Lex(Lexer lexer)
-    {
-        const string keyword = "compiled ";
+    public Compiled(Lexer lexer) : base(lexer, keyword.Length) { }
 
-        if (lexer.Sourcecode.Length < keyword.Length) return null;
-
-        return lexer.Sourcecode.Span.StartsWith(keyword) ? new Compiled(lexer, 1) : null;
-    }
+    public static Compiled Lex(Lexer lexer) => lexer.IsModifier(keyword) ? new Compiled(lexer) : null;
 }

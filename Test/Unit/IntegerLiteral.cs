@@ -1,6 +1,4 @@
-﻿using Ronin.Compiler;
-
-namespace Unit;
+﻿namespace Unit;
 
 public class IntegerLiteral
 {
@@ -9,7 +7,7 @@ public class IntegerLiteral
     {
         const string literal = "123_45678_90";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -21,7 +19,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567;";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -33,7 +31,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567,";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -45,7 +43,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567(";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -57,7 +55,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567)";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -69,7 +67,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567[";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -81,7 +79,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567]";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -93,7 +91,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567{";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -105,7 +103,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567}";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -117,7 +115,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567'";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -129,7 +127,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567\"";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -141,7 +139,7 @@ public class IntegerLiteral
     {
         const string literal = "12344567 ";
 
-        Lexer lexer = new() { Sourcecode = literal.ToArray() };
+        Ronin.Compiler.Lexer lexer = new() { Sourcecode = literal.ToArray() };
         var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
 
         Assert.NotNull(lexed);

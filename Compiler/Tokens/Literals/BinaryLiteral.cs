@@ -8,31 +8,30 @@ internal class BinaryLiteral : Token, ILexable<BinaryLiteral>
 
     public static BinaryLiteral Lex(Lexer lexer)
     {
-        var span = lexer.Sourcecode.Span[lexer.Cursor..];
-        if (span.IsEmpty) return null;
-        if (span[0] is not '0' || span[1] is not 'b' and not 'B') return null;
+        if (lexer.IsEmpty) return null;
+        if (lexer[0] is not '0' || lexer[1] is not 'b' and not 'B') return null;
         
-        if (span.Length is <= 2)
+        if (lexer.Length is <= 2)
         {
-            lexer.Error = "unterminated hex literal";
+            lexer.Error = "unterminated hex literal"; //TODO make this an error token
             return null;
         }
         int length = 2;
-        for (int i = 2, max = span.Length; i != max; ++i)
+        for (int i = 2, max = lexer.Length; i != max; ++i)
         {
-            if (span[i] is '0' or '1' or '_')
+            if (lexer[i] is '0' or '1' or '_')
             {
                 ++length;
                 continue;
             }
 
-            if (char.IsWhiteSpace(span[i]) || span[i] is '(' or ')' or '[' or ']' or '{' or '}' or ',' or '.' or '\'' or '"')
+            if (char.IsWhiteSpace(lexer[i]) || lexer[i] is '(' or ')' or '[' or ']' or '{' or '}' or ',' or '.' or '\'' or '"' or ';')
             {
                 length = i;
                 break;
             }
 
-            lexer.Error = $"invalid char '{span[i]}' at {i} for binary literal";
+            lexer.Error = $"invalid char '{lexer[i]}' at {i} for binary literal";
             return null;
         }
         return new BinaryLiteral(lexer, length);

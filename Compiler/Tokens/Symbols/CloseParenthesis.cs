@@ -4,16 +4,7 @@ namespace Ronin.Tokens.Symbols;
 
 internal class CloseParenthesis : Token, ILexable<CloseParenthesis>
 {
-    public CloseParenthesis(Lexer lexer, int length) : base(lexer, length) { }
+    public CloseParenthesis(Lexer lexer) : base(lexer, 1) { }
 
-    public static CloseParenthesis Lex(Lexer lexer)
-    {
-        var span = lexer.Sourcecode.Span;
-
-        if (span.IsEmpty) return null;
-
-        if (span[0] is not ')') return null;
-
-        return new CloseParenthesis(lexer, 1);
-    }
+    public static CloseParenthesis Lex(Lexer lexer) => lexer.IsEmpty || lexer[0] is not ')' ? null : new CloseParenthesis(lexer);
 }

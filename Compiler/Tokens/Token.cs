@@ -6,7 +6,7 @@ internal abstract class Token
 {
     protected internal Token(Lexer lexer, int length)
     {
-        Sourcecode = lexer.Sourcecode[lexer.Cursor..][..length];
+        Sourcecode = lexer[..length].ToArray();
         lexer.Cursor += length;
     }
 
