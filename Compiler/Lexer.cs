@@ -25,7 +25,7 @@ internal class Lexer
     internal ReadOnlyMemory<char> this[Range range] => Sourcecode[Cursor..][range];
     
     internal bool StartsWith(string text) => Span.StartsWith(text);
-    internal int IndexOf(char character) => Span.IndexOf(character);
+    internal int IndexOfAny(char[] characters) => Span.IndexOfAny(characters);
 
     internal List<Token> Lex()
     {

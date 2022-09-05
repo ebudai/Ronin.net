@@ -21,7 +21,7 @@ internal class CharLiteral : Token, ILexable<CharLiteral>
             lexer.Error = "empty character literal";
             return null;
         }
-        if (length is not 1)
+        if (length is not 1 and not 6)
         {
             lexer.Error = "bad unicode literal";
             return null;

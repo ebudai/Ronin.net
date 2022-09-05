@@ -10,7 +10,7 @@ internal class Comment : Token, ILexable<Comment>
     {
         if (lexer.StartsWith("//"))
         {
-            var linelength = lexer.IndexOf('\n');
+            var linelength = lexer.IndexOfAny(Environment.NewLine.ToCharArray());
             if (linelength is < 0) linelength = lexer.Length;
             return new Comment(lexer, linelength);
         }
