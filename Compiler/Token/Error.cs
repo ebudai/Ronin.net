@@ -1,12 +1,12 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Tokens;
+namespace Ronin.Token;
 
-internal class Error : Token, ILexable<Error>
+internal class Error : Token
 {
-    public Error(Lexer lexer, int length) : base(lexer, length) { }
+    internal Error(Lexer lexer, int length) : base(lexer, length) { }
 
-    public static Error Lex(Lexer lexer)
+    internal static Token Lex(Lexer lexer)
     {
         var length = 0;
         while (length < lexer.Length

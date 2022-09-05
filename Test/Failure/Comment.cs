@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Tokens;
 
 namespace Failure;
 
@@ -11,7 +10,7 @@ public class Comment
         const string notcomment = "not a comment";
 
         Lexer lexer = new(notcomment);
-        var comment = Ronin.Tokens.Comment.Lex(lexer);
+        var comment = Ronin.Token.Comment.Lex(lexer);
 
         Assert.Null(comment);
     }
@@ -22,7 +21,7 @@ public class Comment
         const string notcomment = "not a comment";
 
         Lexer lexer = new(notcomment);
-        var comment = Ronin.Tokens.Comment.Lex(lexer);
+        var comment = Ronin.Token.Comment.Lex(lexer);
 
         Assert.Null(comment);
     }
@@ -33,7 +32,7 @@ public class Comment
         const string badcomment = "/*not /*a comment*/";
 
         Lexer lexer = new(badcomment);
-        var comment = Ronin.Tokens.Comment.Lex(lexer);
+        var comment = Ronin.Token.Comment.Lex(lexer);
 
         Assert.Null(comment);
         Assert.NotNull(lexer.Error);

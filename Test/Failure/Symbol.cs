@@ -10,7 +10,7 @@ public class Symbol
         const string literal = "not a close brace";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -19,7 +19,7 @@ public class Symbol
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.Null(lexed);
     }

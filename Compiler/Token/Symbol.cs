@@ -1,12 +1,12 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Tokens;
+namespace Ronin.Token;
 
-internal class Symbol : Token, ILexable<Symbol>
+internal class Symbol : Token
 {
-    public Symbol(Lexer lexer, int length) : base(lexer, length) { }
+    internal Symbol(Lexer lexer, int length) : base(lexer, length) { }
 
-    public static Symbol Lex(Lexer lexer)
+    internal static Token Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
         for (int i = 0, max = _symbols.Length; i != max; ++i)
@@ -19,5 +19,5 @@ internal class Symbol : Token, ILexable<Symbol>
 
     internal static bool IsSymbol(Lexer lexer, int i = 0) => _symbols.Any(symbol => lexer[i..].Span.StartsWith(symbol));    
 
-    private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";" };
+    private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";" }; //TODO try to add ' and "
 }

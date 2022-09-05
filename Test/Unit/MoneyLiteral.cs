@@ -1,4 +1,6 @@
-﻿namespace Unit;
+﻿using Ronin.Token;
+
+namespace Unit;
 
 public class MoneyLiteral
 {
@@ -8,7 +10,7 @@ public class MoneyLiteral
         const string literal = "$123_456.78_90";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
@@ -20,7 +22,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567;";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -32,7 +34,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567,";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -44,7 +46,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567(";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -56,7 +58,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567)";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -68,7 +70,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567[";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -80,7 +82,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567]";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -92,7 +94,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567{";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -104,7 +106,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567}";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -116,7 +118,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567'";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -128,7 +130,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567\"";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -140,7 +142,7 @@ public class MoneyLiteral
         const string literal = "$1234.4567 ";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -152,7 +154,7 @@ public class MoneyLiteral
         const string literal = "$1234";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.MoneyLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());

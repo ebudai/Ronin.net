@@ -1,12 +1,12 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Tokens;
+namespace Ronin.Token;
 
-internal class Whitespace : Token, ILexable<Whitespace>
+internal class Whitespace : Token
 {
-    public Whitespace(Lexer lexer, int length) : base(lexer, length) { }
+    internal Whitespace(Lexer lexer, int length) : base(lexer, length) { }
 
-    public static Whitespace Lex(Lexer lexer)
+    internal static Token Lex(Lexer lexer)
     {
         var length = 0;
         while (length < lexer.Length && char.IsWhiteSpace(lexer[length]))

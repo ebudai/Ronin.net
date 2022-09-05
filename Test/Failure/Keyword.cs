@@ -8,7 +8,7 @@ public class Keyword
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Tokens.Keyword.Lex(lexer);
+        var lexed = Ronin.Token.Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -19,7 +19,7 @@ public class Keyword
         const string unterminated = "function";
 
         Lexer lexer = new(unterminated);
-        var lexed = Ronin.Tokens.Keyword.Lex(lexer);
+        var lexed = Ronin.Token.Keyword.Lex(lexer);
 
         Assert.Null(lexed);
         Assert.NotNull(lexer.Error);
@@ -32,7 +32,7 @@ public class Keyword
         const string notkeyword = "not a keyword";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Tokens.Keyword.Lex(lexer);
+        var lexed = Ronin.Token.Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -43,7 +43,7 @@ public class Keyword
         const string notkeyword = "returned ";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Tokens.Keyword.Lex(lexer);
+        var lexed = Ronin.Token.Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }

@@ -8,7 +8,7 @@ public class Error
         const string error = "4werrwe";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error.Length, lexed.Sourcecode.Length);
@@ -20,7 +20,7 @@ public class Error
         const string error = "4werrwe;";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -32,7 +32,7 @@ public class Error
         const string error = "4werrwe,";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -44,7 +44,7 @@ public class Error
         const string error = "4werrwe(";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -56,7 +56,7 @@ public class Error
         const string error = "4werrwe)";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -68,7 +68,7 @@ public class Error
         const string error = "4werrwe[";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -80,7 +80,7 @@ public class Error
         const string error = "4werrwe]";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -92,7 +92,7 @@ public class Error
         const string error = "4werrwe{";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -104,7 +104,7 @@ public class Error
         const string error = "4werrwe}";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -116,7 +116,7 @@ public class Error
         const string error = "4werrwe'";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -128,7 +128,7 @@ public class Error
         const string error = "4werrwe\"";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -140,7 +140,7 @@ public class Error
         const string error = "4werrwe ";
 
         Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Tokens.Error.Lex(lexer);
+        var lexed = Ronin.Token.Error.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());

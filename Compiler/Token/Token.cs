@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Tokens;
+namespace Ronin.Token;
 
 internal abstract class Token
 {
@@ -11,9 +11,4 @@ internal abstract class Token
     }
 
     protected internal ReadOnlyMemory<char> Sourcecode { get; }
-}
-
-internal interface ILexable<T> where T : Token
-{
-    public static abstract T Lex(Lexer lexer);
 }

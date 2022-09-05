@@ -1,6 +1,4 @@
-﻿using Ronin.Compiler;
-
-using Literal = Ronin.Tokens.Literals.UrlLiteral;
+﻿using Ronin.Token;
 
 namespace Unit;
 

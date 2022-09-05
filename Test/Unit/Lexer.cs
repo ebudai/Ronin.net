@@ -1,7 +1,8 @@
-﻿using Ronin.Tokens;
+﻿using Ronin.Token;
 using System.Diagnostics;
 
-using static Ronin.Tokens.Keyword.Word;
+using static Ronin.Token.Keyword.Word;
+using static Ronin.Token.Literal.Kind;
 
 namespace Unit;
 
@@ -53,7 +54,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.BinaryLiteral(lexer, "0b01101010010".Length),
+            new Literal(lexer, "0b01101010010".Length, binary),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -64,7 +65,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.CharLiteral(lexer, "'c'".Length),
+            new Literal(lexer, "'c'".Length, character),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -77,7 +78,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.CharLiteral(lexer, "'\\u26fc'".Length),
+            new Literal(lexer, "'\\u26fc'".Length, character),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -88,7 +89,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.DateLiteral(lexer, "1976-01-23".Length),
+            new Literal(lexer, "1976-01-23".Length, date),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -99,7 +100,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.HexLiteral(lexer, "0x2c".Length),
+            new Literal(lexer, "0x2c".Length, hex),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -112,7 +113,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.IntegerLiteral(lexer, "7".Length),
+            new Literal(lexer, "7".Length, integer),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -123,7 +124,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.MoneyLiteral(lexer, "$14.20".Length),
+            new Literal(lexer, "$14.20".Length, money),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -134,7 +135,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.TimeLiteral(lexer, "17:24:24".Length),
+            new Literal(lexer, "17:24:24".Length, time),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -147,7 +148,7 @@ public class Lexer
             Whitespace(),
             Name("="),
             Whitespace(),
-            new Ronin.Tokens.Literals.UrlLiteral(lexer, "https://google.com".Length),
+            new Literal(lexer, "https://google.com".Length, url),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length),
 
@@ -189,7 +190,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // comment: // this assumes the list of stuff has at least one element
-            new Ronin.Tokens.Comment(lexer, "// this assumes the list of stuff has at least one element".Length),
+            new Ronin.Token.Comment(lexer, "// this assumes the list of stuff has at least one element".Length),
             Whitespace(Environment.NewLine.Length + 4),
 
             // return list of stuff[0] + things * 7;
@@ -201,7 +202,7 @@ public class Lexer
             Whitespace(),
             Name("stuff"),
             Symbol("["),
-            new Ronin.Tokens.Literals.IntegerLiteral(lexer, "0".Length),
+            new Literal(lexer, "0".Length, integer),
             Symbol("]"),
             Whitespace(),
             Name("+"),
@@ -210,7 +211,7 @@ public class Lexer
             Whitespace(),
             Name("*"),
             Whitespace(),
-            new Ronin.Tokens.Literals.IntegerLiteral(lexer, "7".Length),
+            new Literal(lexer, "7".Length, integer),
             Symbol(";"),
             Whitespace(Environment.NewLine.Length),
 
@@ -218,7 +219,7 @@ public class Lexer
             Symbol("}"),
 
             // 7aslk
-            new Ronin.Tokens.Error(lexer, "7aslk".Length),
+            new Ronin.Token.Error(lexer, "7aslk".Length),
         };
 
         lexer = new(sourcecode);
@@ -232,9 +233,9 @@ public class Lexer
             Assert.Equal(expected[i].Sourcecode.ToArray(), tokens[i].Sourcecode.ToArray());
         }
         
-        Ronin.Tokens.Name Name(string name) => new(lexer, name.Length);
-        Ronin.Tokens.Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
-        Ronin.Tokens.Symbol Symbol(string symbol) => new(lexer, symbol.Length);
-        Ronin.Tokens.Keyword Keyword(Ronin.Tokens.Keyword.Word word) => new(lexer, Enum.GetName(word).Length);
+        Ronin.Token.Name Name(string name) => new(lexer, name.Length);
+        Ronin.Token.Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
+        Ronin.Token.Symbol Symbol(string symbol) => new(lexer, symbol.Length);
+        Ronin.Token.Keyword Keyword(Ronin.Token.Keyword.Word word) => new(lexer, Enum.GetName(word).Length);
     }
 }

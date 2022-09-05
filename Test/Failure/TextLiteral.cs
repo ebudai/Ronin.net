@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token;
 
 namespace Failure;
 
@@ -10,7 +11,7 @@ public class TextLiteral
         const string literal = "testtest";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +22,7 @@ public class TextLiteral
         const string literal = "\"testtest";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
         Assert.NotNull(lexer.Error);
@@ -34,7 +35,7 @@ public class TextLiteral
         const string literal = "\"";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
         Assert.NotNull(lexer.Error);
@@ -47,7 +48,7 @@ public class TextLiteral
         const string literal = "\"this is text\\\" unterminated";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
         Assert.NotNull(lexer.Error);
@@ -58,7 +59,7 @@ public class TextLiteral
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }

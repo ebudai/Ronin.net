@@ -1,12 +1,12 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Tokens;
+namespace Ronin.Token;
 
-internal class Comment : Token, ILexable<Comment>
+internal class Comment : Token
 {
     internal Comment(Lexer lexer, int length) : base(lexer, length) { }
 
-    public static Comment Lex(Lexer lexer)
+    internal static Token Lex(Lexer lexer)
     {
         if (lexer.StartsWith("//"))
         {

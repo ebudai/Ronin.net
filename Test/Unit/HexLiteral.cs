@@ -1,4 +1,6 @@
-﻿namespace Unit;
+﻿using Ronin.Token;
+
+namespace Unit;
 
 public class HexLiteral
 {
@@ -8,7 +10,7 @@ public class HexLiteral
         const string literal = "0x1234_5678_90AB_CDEF_abcdef";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
@@ -20,7 +22,7 @@ public class HexLiteral
         const string literal = "0X1212;";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -32,7 +34,7 @@ public class HexLiteral
         const string literal = "0x1212,";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -44,7 +46,7 @@ public class HexLiteral
         const string literal = "0X1212(";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -56,7 +58,7 @@ public class HexLiteral
         const string literal = "0x1212)";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -68,7 +70,7 @@ public class HexLiteral
         const string literal = "0x1212[";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -80,7 +82,7 @@ public class HexLiteral
         const string literal = "0X1212]";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -92,7 +94,7 @@ public class HexLiteral
         const string literal = "0X1212{";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -104,7 +106,7 @@ public class HexLiteral
         const string literal = "0x1212}";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -116,7 +118,7 @@ public class HexLiteral
         const string literal = "0X1212'";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -128,7 +130,7 @@ public class HexLiteral
         const string literal = "0x1212\"";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -140,7 +142,7 @@ public class HexLiteral
         const string literal = "0x1212 ";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.HexLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());

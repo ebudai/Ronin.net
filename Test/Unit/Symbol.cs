@@ -8,7 +8,7 @@ public class Symbol
         const string sourcecode = ";";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
@@ -20,7 +20,7 @@ public class Symbol
         const string sourcecode = ",";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
@@ -32,7 +32,7 @@ public class Symbol
         const string sourcecode = "{";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
@@ -44,7 +44,7 @@ public class Symbol
         const string sourcecode = "(";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
@@ -56,7 +56,7 @@ public class Symbol
         const string sourcecode = "[";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
@@ -68,7 +68,7 @@ public class Symbol
         const string sourcecode = "}";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
@@ -80,7 +80,7 @@ public class Symbol
         const string sourcecode = ")";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
@@ -92,7 +92,7 @@ public class Symbol
         const string sourcecode = "]";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());

@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token;
 
 namespace Failure;
 
@@ -10,7 +11,7 @@ public class NumberLiteral
         const string literal = "g987.23";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -18,12 +19,16 @@ public class NumberLiteral
     [Fact(DisplayName = "doesn't have a .")]
     public void DoesntHaveADot()
     {
-        const string literal = "98723";
+        const string integer = "98723";
 
-        Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
+        Lexer lexer = new(integer);
+        var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsType<Literal>(lexed);
+
+        var literal = lexed as Literal;
+
+        Assert.NotEqual(Literal.Kind.number, literal.LiteralKind);
     }
 
     [Fact(DisplayName = "unterminated")]
@@ -32,7 +37,7 @@ public class NumberLiteral
         const string literal = "9.";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -43,7 +48,7 @@ public class NumberLiteral
         const string literal = "9.2v5";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -54,7 +59,7 @@ public class NumberLiteral
         const string literal = "9.2.5";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
         Assert.NotNull(lexer.Error);
@@ -65,7 +70,7 @@ public class NumberLiteral
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Tokens.Literals.NumberLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }

@@ -1,12 +1,12 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Tokens;
+namespace Ronin.Token;
 
-internal class Keyword : Token, ILexable<Keyword>
+internal class Keyword : Token
 {
-    public Keyword(Lexer lexer, int length) : base(lexer, length) { }
+    internal Keyword(Lexer lexer, int length) : base(lexer, length) { }
 
-    public static Keyword Lex(Lexer lexer)
+    internal static Token Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
         foreach (var word in Enum.GetValues<Word>())

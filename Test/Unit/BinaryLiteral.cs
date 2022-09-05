@@ -1,4 +1,6 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token;
+
 namespace Unit;
 
 public class BinaryLiteral
@@ -9,7 +11,7 @@ public class BinaryLiteral
         const string literal = "0b101101_00101";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
@@ -21,7 +23,7 @@ public class BinaryLiteral
         const string literal = "0B10010.";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -33,7 +35,7 @@ public class BinaryLiteral
         const string literal = "0B10010,";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -45,7 +47,7 @@ public class BinaryLiteral
         const string literal = "0B10010(";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -54,10 +56,10 @@ public class BinaryLiteral
     [Fact(DisplayName = "with closing parenthesis")]
     public void WithClosingParenthesis()
     {
-        const string literal = "0B10010)";
+        const string literal = "0b10010)";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -66,10 +68,10 @@ public class BinaryLiteral
     [Fact(DisplayName = "with opening bracket")]
     public void WithOpeningBracket()
     {
-        const string literal = "0B10010[";
+        const string literal = "0b10010[";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -81,7 +83,7 @@ public class BinaryLiteral
         const string literal = "0B10010]";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -93,7 +95,7 @@ public class BinaryLiteral
         const string literal = "0B10010{";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -102,10 +104,10 @@ public class BinaryLiteral
     [Fact(DisplayName = "with closing brace")]
     public void WithClosingBrace()
     {
-        const string literal = "0B10010}";
+        const string literal = "0b10010}";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -117,7 +119,7 @@ public class BinaryLiteral
         const string literal = "0B10010'";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -129,7 +131,7 @@ public class BinaryLiteral
         const string literal = "0B10010\"";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -138,10 +140,10 @@ public class BinaryLiteral
     [Fact(DisplayName = "with space")]
     public void WithSpace()
     {
-        const string literal = "0B10010 ";
+        const string literal = "0b10010 ";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.BinaryLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());

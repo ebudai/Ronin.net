@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token;
 
 namespace Failure;
 
@@ -10,7 +11,7 @@ public class IntegerLiteral
         const string literal = "g98723";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +22,7 @@ public class IntegerLiteral
         const string literal = "92v5";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -30,7 +31,7 @@ public class IntegerLiteral
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
+        var lexed = Literal.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -38,11 +39,15 @@ public class IntegerLiteral
     [Fact(DisplayName = "contains a dot")]
     public void Dot()
     {
-        const string literal = "98723.2";
+        const string number = "98723.2";
 
-        Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Literals.IntegerLiteral.Lex(lexer);
+        Lexer lexer = new(number);
+        var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsType<Literal>(lexed);
+        
+        var literal = lexed as Literal;
+        
+        Assert.NotEqual(Literal.Kind.integer, literal.LiteralKind);
     }
 }

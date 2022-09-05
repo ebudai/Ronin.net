@@ -1,12 +1,12 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Tokens;
+namespace Ronin.Token;
 
-internal class Name : Token, ILexable<Name>
+internal class Name : Token
 {
-    public Name(Lexer lexer, int length) : base(lexer, length) { }
+    internal Name(Lexer lexer, int length) : base(lexer, length) { }
 
-    public static Name Lex(Lexer lexer)
+    internal static Token Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
 

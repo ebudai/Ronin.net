@@ -1,5 +1,4 @@
-﻿using Ronin.Tokens;
-using Ronin.Tokens.Literals;
+﻿using Ronin.Token;
 
 namespace Ronin.Compiler;
 
@@ -25,33 +24,22 @@ internal class Lexer
     internal bool StartsWith(string text) => Span.StartsWith(text);
     internal int IndexOfAny(char[] characters) => Span.IndexOfAny(characters);
 
-    internal List<Token> Lex()
+    internal List<Token.Token> Lex()
     {
-        List<Token> tokens = new();
+        List<Token.Token> tokens = new();
 
         while (Cursor < Sourcecode.Length)
         {
-            var token = Lex<Whitespace>()
-                ?? Lex<TextLiteral>()
-                ?? Lex<Comment>()
-                ?? Lex<CharLiteral>()
-                ?? Lex<HexLiteral>()
-                ?? Lex<BinaryLiteral>()
-                ?? Lex<DateLiteral>()
-                ?? Lex<TimeLiteral>()
-                ?? Lex<MoneyLiteral>()
-                ?? Lex<NumberLiteral>()
-                ?? Lex<IntegerLiteral>()
-                ?? Lex<UrlLiteral>()
-                ?? Lex<Symbol>()
-                ?? Lex<Keyword>()
-                ?? Lex<Name>()
-                ?? Lex<Error>() as Token;
+            var token = Whitespace.Lex(this)
+                ?? Literal.Lex(this)
+                ?? Comment.Lex(this)
+                ?? Symbol.Lex(this)
+                ?? Keyword.Lex(this)
+                ?? Name.Lex(this)
+                ?? Token.Error.Lex(this);
             tokens.Add(token);
         }
 
         return tokens;
     }
-
-    private T Lex<T>() where T : Token, ILexable<T> => T.Lex(this);
 }
