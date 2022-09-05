@@ -9,7 +9,6 @@ internal abstract class Syntax
 
     internal readonly struct Location
     {
-        internal readonly ref string Sourcecode;
         internal readonly int Line;
         internal readonly int ColumnStart;
         internal readonly int ColumnEnd;

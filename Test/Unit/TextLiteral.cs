@@ -1,5 +1,3 @@
-using Ronin.Tokens.Literals;
-
 namespace Unit;
 
 public class TextLiteral
@@ -26,5 +24,18 @@ public class TextLiteral
 
         Assert.NotNull(lexed);
         Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+    }
+
+    [Fact(DisplayName = "multiline")]
+    public void Multiline()
+    {
+        const string literal = "\"test\n\nanother test\"";
+
+        Ronin.Compiler.Lexer lexer = new(literal);
+        var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
+
+        Assert.NotNull(lexed);
+        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(3, lexer.Line);
     }
 }

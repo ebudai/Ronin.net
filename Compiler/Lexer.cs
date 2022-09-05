@@ -15,7 +15,7 @@ internal class Lexer
     internal ReadOnlyMemory<char> Sourcecode { get; }
 
     internal int Cursor { get; set; }
-    internal int Line { get; set; }
+    internal int Line { get; set; } = 1;
     internal string Error { get; set; }
     internal bool IsEmpty => Span.IsEmpty;
     internal int Length => Span.Length;
@@ -60,13 +60,8 @@ internal class Lexer
                 ?? Lex<Function>()
                 ?? Lex<Reactive>()
                 ?? Lex<Variable>()
-                ?? Lex<Name>() as Token;
-            if (token is null)
-            {
-                Error = "unknown token";
-                return tokens;
-            }
-
+                ?? Lex<Name>()
+                ?? Lex<Error>() as Token;
             tokens.Add(token);
         }
 

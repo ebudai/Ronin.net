@@ -27,7 +27,7 @@ public class Lexer
         {
             // this assumes the list of stuff has at least one element
             return list of stuff[0] + things * 7;
-        }
+        }7aslk
         """;
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
@@ -214,6 +214,9 @@ public class Lexer
 
             // }
             new Ronin.Tokens.Symbols.CloseBrace(lexer),
+
+            // 7aslk
+            new Ronin.Tokens.Error(lexer, "7aslk".Length),
         };
 
         lexer = new(sourcecode);
@@ -227,7 +230,7 @@ public class Lexer
             Assert.Equal(compiled[i].Sourcecode.ToArray(), tokens[i].Sourcecode.ToArray());
         }
         
-        Name Name(string name) => new(lexer, name.Length);
+        Ronin.Tokens.Name Name(string name) => new(lexer, name.Length);
         Ronin.Tokens.Whitespace Whitespace(int spaces = 1) => new Ronin.Tokens.Whitespace(lexer, spaces);
     }
 }
