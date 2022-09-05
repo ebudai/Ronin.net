@@ -2,15 +2,15 @@
 
 namespace Failure;
 
-public class Separator
+public class Symbol
 {
-    [Fact(DisplayName = "isn't ,")]
+    [Fact(DisplayName = "isn't a symbol")]
     public void Failure()
     {
-        const string literal = "not a separator";
+        const string literal = "not a close brace";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Tokens.Symbols.Separator.Lex(lexer);
+        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -19,8 +19,9 @@ public class Separator
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Tokens.Symbols.Separator.Lex(lexer);
+        var lexed = Ronin.Tokens.Symbol.Lex(lexer);
 
         Assert.Null(lexed);
     }
+
 }

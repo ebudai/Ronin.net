@@ -41,6 +41,19 @@ public class TextLiteral
         Assert.NotEmpty(lexer.Error);
     }
 
+    [Fact(DisplayName = "tricky unterminated")]
+    public void TrickyUnterminated()
+    {
+        const string literal = "\"this is text\\\" unterminated";
+
+        Lexer lexer = new(literal);
+        var lexed = Ronin.Tokens.Literals.TextLiteral.Lex(lexer);
+
+        Assert.Null(lexed);
+        Assert.NotNull(lexer.Error);
+        Assert.NotEmpty(lexer.Error);
+    }
+
     [Fact(DisplayName = "no data")]
     public void NoData()
     {

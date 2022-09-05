@@ -1,7 +1,6 @@
 ﻿using Ronin.Tokens;
 using Ronin.Tokens.Literals;
 using Ronin.Tokens.Modifiers;
-using Ronin.Tokens.Symbols;
 
 namespace Ronin.Compiler;
 
@@ -39,21 +38,13 @@ internal class Lexer
                 ?? Lex<CharLiteral>()
                 ?? Lex<HexLiteral>()
                 ?? Lex<BinaryLiteral>()
-                ?? Lex<DateTimeLiteral>()
                 ?? Lex<DateLiteral>()
                 ?? Lex<TimeLiteral>()
                 ?? Lex<MoneyLiteral>()
                 ?? Lex<NumberLiteral>()
                 ?? Lex<IntegerLiteral>()
                 ?? Lex<UrlLiteral>()
-                ?? Lex<OpenParenthesis>()
-                ?? Lex<OpenSquareBracket>()
-                ?? Lex<OpenBrace>()
-                ?? Lex<CloseParenthesis>()
-                ?? Lex<CloseSquareBracket>()
-                ?? Lex<CloseBrace>()
-                ?? Lex<Separator>()
-                ?? Lex<Terminal>()
+                ?? Lex<Symbol>()
                 ?? Lex<Compiled>()
                 ?? Lex<Constant>()
                 ?? Lex<Datatype>()

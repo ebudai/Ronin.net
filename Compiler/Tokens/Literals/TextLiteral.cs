@@ -23,10 +23,16 @@ internal class TextLiteral : Token, ILexable<TextLiteral>
             lexer.Error = "unterminated text literal";
             return null;
         }
-        while (lexer[index + length - 1] is '\\')
+        while (lexer[index + length - 1] is '\\' && length < lexer.Length && length != -1)
         {
             index += length + 1;
             length = lexer[index..].Span.IndexOf('"');
+        }
+
+        if (length is < 0)
+        {
+            lexer.Error = "unterminated text literal";
+            return null;
         }
         return new TextLiteral(lexer, index + length + 1);
     }
