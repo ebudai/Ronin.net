@@ -25,7 +25,7 @@ internal class BinaryLiteral : Token, ILexable<BinaryLiteral>
                 continue;
             }
 
-            if (char.IsWhiteSpace(lexer[i]) || lexer[i] is '(' or ')' or '[' or ']' or '{' or '}' or ',' or '.' or '\'' or '"' or ';')
+            if (char.IsWhiteSpace(lexer[i]) || Symbol.IsSymbol(lexer, i) || lexer[i] is '.' or '\'' or '"')
             {
                 length = i;
                 break;

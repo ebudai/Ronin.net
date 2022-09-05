@@ -1,6 +1,8 @@
 ﻿using Ronin.Tokens;
 using System.Diagnostics;
 
+using static Ronin.Tokens.Keyword.Word;
+
 namespace Unit;
 
 public class Lexer
@@ -14,10 +16,10 @@ public class Lexer
         {
             var data = 0b01101010010;
             constant sigil = 'c';
-            var asian sigil = '\u26fc';
-            var birthday = 1976-01-23;
-            var hex = 0x2c;
-            var dogs count = 7;
+            reactive asian sigil = '\u26fc';
+            persistent birthday = 1976-01-23;
+            shared hex = 0x2c;
+            compiled dogs count = 7;
             var cash = $14.20;
             var when = 17:24:24;
             var googles address = https://google.com;
@@ -32,10 +34,10 @@ public class Lexer
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
 
-        List<Token> compiled = new()
+        List<Token> expected = new()
         {
             // datatype Weather
-            new Ronin.Tokens.Modifiers.Datatype(lexer),
+            Keyword(datatype),
             Whitespace(),
             Name("Weather"),
             Whitespace(Environment.NewLine.Length),
@@ -45,7 +47,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
             
             // var data = 0b01101010010;
-            new Ronin.Tokens.Modifiers.Variable(lexer),
+            Keyword(var),
             Whitespace(),
             Name("data"),
             Whitespace(),
@@ -55,8 +57,8 @@ public class Lexer
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
-            // var sigil = 'c';
-            new Ronin.Tokens.Modifiers.Constant(lexer),
+            // constant sigil = 'c';
+            Keyword(constant),
             Whitespace(),
             Name("sigil"),
             Whitespace(),
@@ -66,8 +68,8 @@ public class Lexer
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
-            // var asian sigil = '\u26fc';
-            new Ronin.Tokens.Modifiers.Variable(lexer),
+            // reactive asian sigil = '\u26fc';
+            Keyword(reactive),
             Whitespace(),
             Name("asian"),
             Whitespace(),
@@ -79,8 +81,8 @@ public class Lexer
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
-            // var birthday = 1976-01-23;
-            new Ronin.Tokens.Modifiers.Variable(lexer),
+            // persistent birthday = 1976-01-23;
+            Keyword(persistent),
             Whitespace(),
             Name("birthday"),
             Whitespace(),
@@ -90,8 +92,8 @@ public class Lexer
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
-            // var hex = 0x2c;
-            new Ronin.Tokens.Modifiers.Variable(lexer),
+            // shared hex = 0x2c;
+            Keyword(shared),
             Whitespace(),
             Name("hex"),
             Whitespace(),
@@ -101,8 +103,8 @@ public class Lexer
             Symbol(";"),
             Whitespace(Environment.NewLine.Length + 4),
 
-            // var dogs count = 7;
-            new Ronin.Tokens.Modifiers.Variable(lexer),
+            // compiled dogs count = 7;
+            Keyword(compiled),
             Whitespace(),
             Name("dogs"),
             Whitespace(),
@@ -115,7 +117,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // var cash = $14.20;
-            new Ronin.Tokens.Modifiers.Variable(lexer),
+            Keyword(var),
             Whitespace(),
             Name("cash"),
             Whitespace(),
@@ -126,7 +128,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // var when = 17:24:24;
-            new Ronin.Tokens.Modifiers.Variable(lexer),
+            Keyword(var),
             Whitespace(),
             Name("when"),
             Whitespace(),
@@ -137,7 +139,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // var googles address = https://google.com;
-            new Ronin.Tokens.Modifiers.Variable(lexer),
+            Keyword(var),
             Whitespace(),
             Name("googles"),
             Whitespace(),
@@ -154,7 +156,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length * 2),
 
             // function run (list of stuff is integer[], things is number) away
-            new Ronin.Tokens.Modifiers.Function(lexer),
+            Keyword(function),
             Whitespace(),
             Name("run"),
             Whitespace(),
@@ -191,7 +193,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // return list of stuff[0] + things * 7;
-            Name("return"),
+            Keyword(@return),
             Whitespace(),
             Name("list"),
             Whitespace(),
@@ -222,16 +224,17 @@ public class Lexer
         lexer = new(sourcecode);
         var tokens = lexer.Lex();
 
-        Assert.Equal(compiled.Count, tokens.Count);
-        for (int i = 0; i != compiled.Count; ++i)
+        Assert.Equal(expected.Count, tokens.Count);
+        for (int i = 0; i != expected.Count; ++i)
         {
             Debug.WriteLine(i);
-            Assert.Equal(compiled[i].GetType(), tokens[i].GetType());
-            Assert.Equal(compiled[i].Sourcecode.ToArray(), tokens[i].Sourcecode.ToArray());
+            Assert.Equal(expected[i].GetType(), tokens[i].GetType());
+            Assert.Equal(expected[i].Sourcecode.ToArray(), tokens[i].Sourcecode.ToArray());
         }
         
         Ronin.Tokens.Name Name(string name) => new(lexer, name.Length);
         Ronin.Tokens.Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
         Ronin.Tokens.Symbol Symbol(string symbol) => new(lexer, symbol.Length);
+        Ronin.Tokens.Keyword Keyword(Ronin.Tokens.Keyword.Word word) => new(lexer, Enum.GetName(word).Length);
     }
 }

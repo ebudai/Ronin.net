@@ -17,5 +17,7 @@ internal class Symbol : Token, ILexable<Symbol>
         return null;
     }
 
+    internal static bool IsSymbol(Lexer lexer, int i = 0) => _symbols.Any(symbol => lexer[i..].Span.StartsWith(symbol));    
+
     private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";" };
 }

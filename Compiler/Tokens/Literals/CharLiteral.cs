@@ -26,6 +26,9 @@ internal class CharLiteral : Token, ILexable<CharLiteral>
             lexer.Error = "bad unicode literal";
             return null;
         }
+
+        //TODO ensure all are 0-9 or abcdef or ABCDEF for unichar
+
         return new CharLiteral(lexer, length + 2);
     }
 }

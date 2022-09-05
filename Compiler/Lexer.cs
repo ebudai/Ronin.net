@@ -1,6 +1,5 @@
 ﻿using Ronin.Tokens;
 using Ronin.Tokens.Literals;
-using Ronin.Tokens.Modifiers;
 
 namespace Ronin.Compiler;
 
@@ -45,12 +44,7 @@ internal class Lexer
                 ?? Lex<IntegerLiteral>()
                 ?? Lex<UrlLiteral>()
                 ?? Lex<Symbol>()
-                ?? Lex<Compiled>()
-                ?? Lex<Constant>()
-                ?? Lex<Datatype>()
-                ?? Lex<Function>()
-                ?? Lex<Reactive>()
-                ?? Lex<Variable>()
+                ?? Lex<Keyword>()
                 ?? Lex<Name>()
                 ?? Lex<Error>() as Token;
             tokens.Add(token);
