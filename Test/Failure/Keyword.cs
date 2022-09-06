@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token;
 
 namespace Failure;
 
@@ -21,9 +22,11 @@ public class Keyword
         Lexer lexer = new(unterminated);
         var lexed = Ronin.Token.Keyword.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(unterminated.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated declaration", error.Message);
     }
 
     [Fact(DisplayName = "not a keyword")]

@@ -5,7 +5,7 @@ namespace Failure;
 
 public class TextLiteral
 {
-    [Fact(DisplayName = "lwithout quotes")]
+    [Fact(DisplayName = "without quotes")]
     public void Fail()
     {
         const string literal = "testtest";
@@ -13,7 +13,7 @@ public class TextLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "unterminated")]
@@ -24,9 +24,11 @@ public class TextLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated text literal", error.Message);
     }
 
     [Fact(DisplayName = "lone double quote")]
@@ -37,9 +39,11 @@ public class TextLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated text literal", error.Message);
     }
 
     [Fact(DisplayName = "tricky unterminated")]
@@ -50,9 +54,11 @@ public class TextLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated text literal", error.Message);
     }
 
     [Fact(DisplayName = "no data")]

@@ -4,7 +4,9 @@ namespace Ronin.Token;
 
 internal class Error : Token
 {
-    internal Error(Lexer lexer, int length) : base(lexer, length) { }
+    internal Error(Lexer lexer, int length, string message = "unparsable token") : base(lexer, length) => Message = message;
+
+    internal string Message { get; }
 
     internal static Token Lex(Lexer lexer)
     {

@@ -31,15 +31,19 @@ public class MoneyLiteral
         Assert.Null(lexed);
     }
 
-    [Fact(DisplayName = "unterminated")]
-    public void Unterminated()
+    [Fact(DisplayName = "can't end with dot")]
+    public void EndsWithDot()
     {
         const string literal = "$9.";
 
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal("$9".ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("money literal cannot end with a dot", error.Message);
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -50,7 +54,11 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal("$9.2".ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("money literal with non-numeric character 'v' at 4", error.Message);
     }
 
     [Fact(DisplayName = "no data")]
@@ -70,9 +78,11 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal("$9.25".ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("money literal with multiple dots", error.Message);
     }
 
     [Fact(DisplayName = "just a dollar sign")]
@@ -83,8 +93,10 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated money literal", error.Message);
     }
 }

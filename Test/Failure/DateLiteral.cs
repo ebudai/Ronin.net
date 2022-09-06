@@ -13,7 +13,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form")]
@@ -24,7 +24,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 2")]
@@ -35,7 +35,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 3")]
@@ -46,7 +46,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 4")]
@@ -57,7 +57,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 5")]
@@ -68,7 +68,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 6")]
@@ -79,7 +79,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 7")]
@@ -90,7 +90,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 8")]
@@ -101,7 +101,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 9")]
@@ -112,7 +112,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "too short")]
@@ -123,7 +123,7 @@ public class DateLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "no data")]
@@ -132,6 +132,6 @@ public class DateLiteral
         Lexer lexer = new(string.Empty);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 }

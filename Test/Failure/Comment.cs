@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Unit;
 
 namespace Failure;
 
@@ -9,7 +10,7 @@ public class Comment
     {
         const string notcomment = "not a comment";
 
-        Lexer lexer = new(notcomment);
+        Ronin.Compiler.Lexer lexer = new(notcomment);
         var comment = Ronin.Token.Comment.Lex(lexer);
 
         Assert.Null(comment);
@@ -20,7 +21,7 @@ public class Comment
     {
         const string notcomment = "not a comment";
 
-        Lexer lexer = new(notcomment);
+        Ronin.Compiler.Lexer lexer = new(notcomment);
         var comment = Ronin.Token.Comment.Lex(lexer);
 
         Assert.Null(comment);
@@ -31,11 +32,13 @@ public class Comment
     {
         const string badcomment = "/*not /*a comment*/";
 
-        Lexer lexer = new(badcomment);
+        Ronin.Compiler.Lexer lexer = new(badcomment);
         var comment = Ronin.Token.Comment.Lex(lexer);
 
-        Assert.Null(comment);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(comment);
+        Assert.IsType<Ronin.Token.Error>(comment);
+        var error = comment as Ronin.Token.Error;
+        Assert.Equal(badcomment.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated multiline comment", error.Message);
     }
 }

@@ -13,7 +13,7 @@ public class CharLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "unterminated")]
@@ -24,9 +24,11 @@ public class CharLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated character literal", error.Message);
     }
 
     [Fact(DisplayName = "empty")]
@@ -37,9 +39,11 @@ public class CharLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("empty character literal", error.Message);
     }
 
     [Fact(DisplayName = "contains multiple chars")]
@@ -50,9 +54,20 @@ public class CharLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("bad unicode literal", error.Message);
+    }
+
+    [Fact(DisplayName = "unichar with bad contents")]
+    public void BadUnichar()
+    {
+        const string literal = "'\\uABH7'";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(lexer);
     }
 
     [Fact(DisplayName = "no data")]

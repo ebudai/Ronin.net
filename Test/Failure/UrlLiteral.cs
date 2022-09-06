@@ -8,6 +8,17 @@ public class UrlLiteral
     [Fact(DisplayName = "unterminated url")]
     public void Unterminated()
     {
+        const string literal = "abc://";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(lexer);
+
+        Assert.Null(lexed);
+    }
+
+    [Fact(DisplayName = "too short")]
+    public void TooShort()
+    {
         const string literal = "a://";
 
         Lexer lexer = new(literal);
@@ -24,7 +35,7 @@ public class UrlLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "no ://")]
@@ -35,8 +46,6 @@ public class UrlLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
-
-
 }

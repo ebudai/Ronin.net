@@ -14,8 +14,8 @@ internal class Name : Token
 
         var length = 0;
         while (length < lexer.Length 
-            && !char.IsWhiteSpace(lexer[length]) 
-            && lexer[length] is not '(' and not '[' and not '{' and not '}' and not ']' and not ')' and not ';' and not ',' and not '"' and not '\'') ++length;
+            && !char.IsWhiteSpace(lexer[length])
+            && !Symbol.IsSymbol(lexer, length)) ++length;
 
         return length is 0 ? null : new Name(lexer, length);
     }

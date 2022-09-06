@@ -219,7 +219,8 @@ public class Lexer
             Symbol("}"),
 
             // 7aslk
-            new Ronin.Token.Error(lexer, "7aslk".Length),
+            new Ronin.Token.Error(lexer, "7".Length),
+            Name("aslk")
         };
 
         lexer = new(sourcecode);

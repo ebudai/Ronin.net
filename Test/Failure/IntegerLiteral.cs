@@ -24,7 +24,11 @@ public class IntegerLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal("92".ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("integer literal with non-numeric character 'v' at 2", error.Message);
     }
 
     [Fact(DisplayName = "no data")]

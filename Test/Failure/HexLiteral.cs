@@ -24,9 +24,11 @@ public class HexLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated hex literal", error.Message);
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -37,9 +39,11 @@ public class HexLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal[..^1].ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("invalid character 'g' at 6 for hex literal", error.Message);
     }
 
     [Fact(DisplayName = "no data")]

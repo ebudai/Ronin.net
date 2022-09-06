@@ -24,9 +24,11 @@ public class BinaryLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("unterminated binary literal", error.Message);
     }
 
     [Fact(DisplayName = "contains invalid char")]
@@ -37,9 +39,11 @@ public class BinaryLiteral
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
-        Assert.NotNull(lexer.Error);
-        Assert.NotEmpty(lexer.Error);
+        Assert.NotNull(lexed);
+        Assert.IsType<Error>(lexed);
+        var error = lexed as Error;
+        Assert.Equal(literal[..^2].ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("invalid char '2' at 6 for binary literal", error.Message);
     }
 
     [Fact(DisplayName = "no data")]

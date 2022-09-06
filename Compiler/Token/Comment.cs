@@ -19,6 +19,7 @@ internal class Comment : Token
 
         int depth = 0;
         var length = 3;
+        
         for (; length < lexer.Length; ++length)
         {
             var innerspan = lexer[length..].Span;
@@ -26,11 +27,9 @@ internal class Comment : Token
             else if (innerspan.StartsWith("*/")) --depth;
             if (depth is -1) break;
         }
-        if (depth is not -1)
-        {
-            lexer.Error = "unterminated multiline comment";
-            return null;
-        }
+        
+        if (depth is not -1) return new Error(lexer, length, "unterminated multiline comment");
+
         return new Comment(lexer, length + 2);
     }
 }

@@ -9,20 +9,18 @@ internal class Keyword : Token
     internal static Token Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
+        
         foreach (var word in Enum.GetValues<Word>())
         {
             var name = Enum.GetName(word).Replace("_", " ");
             if (lexer.StartsWith(name))
             {
-                if (lexer.Length <= name.Length)
-                {
-                    lexer.Error = "unterminated declaration";
-                    return null;
-                }
+                if (lexer.Length <= name.Length) return new Error(lexer, lexer.Length, "unterminated declaration");
 
                 if (char.IsWhiteSpace(lexer[name.Length]) || Symbol.IsSymbol(lexer, name.Length)) return new Keyword(lexer, name.Length);
             }
         }
+
         return null;
     }
 

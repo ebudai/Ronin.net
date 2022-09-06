@@ -13,7 +13,6 @@ internal class Lexer
 
     internal int Cursor { get; set; }
     internal int Line { get; set; } = 1;
-    internal string Error { get; set; }
     internal bool IsEmpty => Span.IsEmpty;
     internal int Length => Span.Length;
 
@@ -36,7 +35,7 @@ internal class Lexer
                 ?? Symbol.Lex(this)
                 ?? Keyword.Lex(this)
                 ?? Name.Lex(this)
-                ?? Token.Error.Lex(this);
+                /*?? Error.Lex(this)*/;
             tokens.Add(token);
         }
 

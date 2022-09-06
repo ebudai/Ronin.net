@@ -10,10 +10,10 @@ public class TimeLiteral
     {
         const string literal = "not a time literal";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form")]
@@ -21,10 +21,10 @@ public class TimeLiteral
     {
         const string literal = "1not a time literal";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 2")]
@@ -32,10 +32,10 @@ public class TimeLiteral
     {
         const string literal = "12not a time literal";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 3")]
@@ -43,10 +43,10 @@ public class TimeLiteral
     {
         const string literal = "12:0not a time literal";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 4")]
@@ -54,10 +54,10 @@ public class TimeLiteral
     {
         const string literal = "12:04not a time literal";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 5")]
@@ -65,10 +65,10 @@ public class TimeLiteral
     {
         const string literal = "12:04:not a time literal";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 6")]
@@ -76,10 +76,10 @@ public class TimeLiteral
     {
         const string literal = "12:04:3not a time literal";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 7")]
@@ -87,10 +87,10 @@ public class TimeLiteral
     {
         const string literal = "12:g4:32 p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 8")]
@@ -98,7 +98,7 @@ public class TimeLiteral
     {
         const string literal = "12:44:32dp";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -110,7 +110,7 @@ public class TimeLiteral
     {
         const string literal = "12:44:32 m";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -122,10 +122,10 @@ public class TimeLiteral
     {
         const string literal = "2:g4:32 p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 11")]
@@ -133,10 +133,10 @@ public class TimeLiteral
     {
         const string literal = "2:3g:32 p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 12")]
@@ -144,10 +144,10 @@ public class TimeLiteral
     {
         const string literal = "2:34?32 p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 13")]
@@ -155,10 +155,10 @@ public class TimeLiteral
     {
         const string literal = "2:34:g2 p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 14")]
@@ -166,10 +166,10 @@ public class TimeLiteral
     {
         const string literal = "2:34:1e p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 15")]
@@ -177,10 +177,10 @@ public class TimeLiteral
     {
         const string literal = "2:34:12vp";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "bad form 16")]
@@ -188,10 +188,10 @@ public class TimeLiteral
     {
         const string literal = "2:34:12 m";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 
     [Fact(DisplayName = "no data")]
@@ -200,6 +200,6 @@ public class TimeLiteral
         Lexer lexer = new(string.Empty);
         var lexed = Literal.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Literal>(lexed);
     }
 }
