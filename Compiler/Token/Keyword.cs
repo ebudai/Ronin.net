@@ -6,6 +6,8 @@ internal class Keyword : Token
 {
     internal Keyword(Lexer lexer, int length) : base(lexer, length) { }
 
+    internal Word Type { get; set; }
+
     internal static Token Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
@@ -17,7 +19,10 @@ internal class Keyword : Token
             {
                 if (lexer.Length <= name.Length) return new Error(lexer, lexer.Length, "unterminated declaration");
 
-                if (char.IsWhiteSpace(lexer[name.Length]) || Symbol.IsSymbol(lexer, name.Length)) return new Keyword(lexer, name.Length);
+                if (char.IsWhiteSpace(lexer[name.Length]) || Symbol.IsSymbol(lexer, name.Length))
+                {
+                    return new Keyword(lexer, name.Length) { Type = word };
+                }
             }
         }
 
@@ -26,9 +31,9 @@ internal class Keyword : Token
 
     internal enum Word
     {
+        var,
         datatype,
         function,
-        var,
         constant,
         reactive,
         compiled,

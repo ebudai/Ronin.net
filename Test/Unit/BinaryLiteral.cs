@@ -20,7 +20,7 @@ public class BinaryLiteral
     [Fact(DisplayName = "with terminator")]
     public void WithTerminator()
     {
-        const string literal = "0B10010.";
+        const string literal = "0B10010;";
 
         Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
@@ -147,5 +147,29 @@ public class BinaryLiteral
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
+    }
+
+    [Fact(DisplayName = "with dot")]
+    public void WithDot()
+    {
+        const string literal = "0b10010.";
+
+        Ronin.Compiler.Lexer lexer = new(literal);
+        var lexed = Literal.Lex(lexer);
+
+        Assert.NotNull(lexed);
+        Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
+    }
+
+    [Fact(DisplayName = "with returns")]
+    public void WithReturns()
+    {
+        const string literal = "0b10010=>";
+
+        Ronin.Compiler.Lexer lexer = new(literal);
+        var lexed = Literal.Lex(lexer);
+
+        Assert.NotNull(lexed);
+        Assert.Equal(literal[..^2].ToArray(), lexed.Sourcecode.ToArray());
     }
 }
