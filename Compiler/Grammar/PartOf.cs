@@ -8,42 +8,63 @@ internal class PartOf : Syntax
 
     private bool _hasKeyword = false;
 
-    internal override Result Add(Keyword keyword)
+    protected override Result Add(Keyword keyword)
     {
-        if (!_hasKeyword)
+        if (_hasKeyword)
         {
-            if (keyword.Type is Keyword.Word.part_of)
-            {
-                _hasKeyword = true;
-                return Result.Applied;
-            }
-
-            return Result.NotApplied;
+            AppendToName(keyword);
+            Incorporate(keyword);
+            return Result.Applied;
         }
 
-        return Incorporate(keyword);
+        if (keyword.Type is Keyword.Word.part_of)
+        {
+            _hasKeyword = true;
+            Incorporate(keyword);
+            return Result.Applied;
+        }
+
+        return Result.NotApplied;
     }
 
-    internal override Result Add(Name name) => _hasKeyword ? Incorporate(name) : Result.NotApplied;
-
-    internal override Result Add(Symbol symbol) => symbol.IsTerminal ? Incorporate(symbol, Result.Completed) : Result.Error;
-
-    protected internal override Result Incorporate(Token.Token token, Result result = Result.Applied)
+    protected override Result Add(Name name)
     {
-        if (token is Name || token is Keyword)
+        if (_hasKeyword)
         {
-            var names = GetNames(token);
-            if (Name.Count is 0)
-            {
-                Name.AddRange(names);
-            }
-            else
-            {
-                this.Name[^1] += " " + names[0];
-                if (names.Length is > 1) Name.Add(names[1]);
-            }
+            AppendToName(name);
+            Incorporate(name);
+            return Result.Applied;
         }
-        return base.Incorporate(token, result);
+
+        return Result.NotApplied;
+    }
+
+    protected override Result Add(Symbol symbol)
+    {
+        if (_hasKeyword && symbol.IsTerminal)
+        {
+            Incorporate(symbol);
+            return Result.Completed;
+        }
+
+        return Result.NotApplied;
+    }
+
+    private void AppendToName(Keyword keyword) => AppendToName(GetNames(keyword));
+    
+    private void AppendToName(Name name) => AppendToName(GetNames(name));
+    
+    private void AppendToName(string[] names)
+    {
+        if (Name.Count is 0)
+        {
+            Name.AddRange(names);
+        }
+        else
+        {
+            Name[^1] += " " + names[0];
+            if (names.Length is > 1) Name.AddRange(names[1..]);
+        }
     }
 
     //TODO I think .NET7 adds Split() to ReadOnlySpan<T>

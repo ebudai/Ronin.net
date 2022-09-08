@@ -9,15 +9,6 @@ internal abstract class Syntax
     protected internal readonly List<Location> Locations = new();
     protected internal readonly List<Token.Token> tokens = new();
 
-    internal Result Add(Whitespace whitespace) => Incorporate(whitespace);
-    internal Result Add(Comment comment) => Incorporate(comment);
-    internal Result Add(Error error) => Incorporate(error, Result.Error);
-
-    internal virtual Result Add(Keyword keyword) => Result.NotApplied;
-    internal virtual Result Add(Literal literal) => Result.NotApplied;
-    internal virtual Result Add(Name name) => Result.NotApplied;
-    internal virtual Result Add(Symbol symbol) => Result.NotApplied;
-
     internal Result Add(Token.Token token) => token switch
     {
         Comment comment => Add(comment),
@@ -30,7 +21,30 @@ internal abstract class Syntax
         _ => throw new NotImplementedException()
     };
 
-    protected internal virtual Result Incorporate(Token.Token token, Result result = Result.Applied)
+    private Result Add(Whitespace whitespace)
+    {
+        Incorporate(whitespace);
+        return Result.Applied;
+    }
+
+    private Result Add(Comment comment)
+    {
+        Incorporate(comment);
+        return Result.Applied;
+    }
+
+    private Result Add(Error error)
+    {
+        Incorporate(error);
+        return Result.Error;
+    }
+
+    protected virtual Result Add(Keyword keyword) => Result.NotApplied;
+    protected virtual Result Add(Literal literal) => Result.NotApplied;
+    protected virtual Result Add(Name name) => Result.NotApplied;
+    protected virtual Result Add(Symbol symbol) => Result.NotApplied;
+
+    protected internal void Incorporate(Token.Token token)
     {
         Locations.Add(new()
         {
@@ -39,7 +53,6 @@ internal abstract class Syntax
             ColumnEnd = token.Column + token.Length,
         });
         tokens.Add(token);
-        return result;
     }
 
     internal enum Result { Applied, NotApplied, Completed, Descended, Error }
