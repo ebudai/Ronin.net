@@ -120,7 +120,7 @@ internal class Literal : Token
         int length = 2;
         for (int i = 2, max = lexer.Length; i != max; ++i)
         {
-            if (char.IsWhiteSpace(lexer[i]) || Symbol.IsSymbol(lexer, i) || lexer[i] is '\'' or '"')
+            if (char.IsWhiteSpace(lexer[i]) || Symbol.IsSymbol(lexer, i))
             {
                 length = i;
                 break;
