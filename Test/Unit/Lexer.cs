@@ -224,9 +224,9 @@ public class Lexer
         };
 
         lexer = new(sourcecode);
-        var tokens = lexer.Lex();
+        var tokens = lexer.Lex().ToArray();
 
-        Assert.Equal(expected.Count, tokens.Count);
+        Assert.Equal(expected.Count, tokens.Length);
         for (int i = 0; i != expected.Count; ++i)
         {
             Debug.WriteLine(i);

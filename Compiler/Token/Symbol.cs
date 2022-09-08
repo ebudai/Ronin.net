@@ -16,7 +16,7 @@ internal class Symbol : Token
     internal bool IsTerminal => Sourcecode.Span[0] is ';';
     internal bool IsCharacterDelimiter => Sourcecode.Span[0] is '\'';
     internal bool IsTextDelimiter => Sourcecode.Span[0] is '"';
-    internal bool IsReturns //=> Sourcecode.Span[0] is '=' && Sourcecode.Span[1] is '>';
+    internal bool IsReturns
     {
         get
         {
@@ -41,5 +41,5 @@ internal class Symbol : Token
 
     internal static bool IsSymbol(Lexer lexer, int i = 0) => _symbols.Any(symbol => lexer[i..].Span.StartsWith(symbol));    
 
-    private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";", "'", "\"", "=>" }; //TODO try to add ' and "
+    private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";", "'", "\"", "=>" };
 }

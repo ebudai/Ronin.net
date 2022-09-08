@@ -23,9 +23,9 @@ internal class Lexer
     internal bool StartsWith(string text) => Span.StartsWith(text);
     internal int IndexOfAny(char[] characters) => Span.IndexOfAny(characters);
 
-    internal List<Token.Token> Lex()
+    internal Queue<Token.Token> Lex()
     {
-        List<Token.Token> tokens = new();
+        Queue<Token.Token> tokens = new();
 
         while (Cursor < Sourcecode.Length)
         {
@@ -34,9 +34,8 @@ internal class Lexer
                 ?? Comment.Lex(this)
                 ?? Symbol.Lex(this)
                 ?? Keyword.Lex(this)
-                ?? Name.Lex(this)
-                /*?? Error.Lex(this)*/;
-            tokens.Add(token);
+                ?? Name.Lex(this);
+            tokens.Enqueue(token);
         }
 
         return tokens;

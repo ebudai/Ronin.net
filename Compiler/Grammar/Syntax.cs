@@ -9,21 +9,28 @@ internal abstract class Syntax
     protected internal readonly List<Location> Locations = new();
     protected internal readonly List<Token.Token> tokens = new();
 
-    protected internal Result TryAdd(Whitespace whitespace) => AddToken(whitespace);
+    internal Result Add(Whitespace whitespace) => Incorporate(whitespace);
+    internal Result Add(Comment comment) => Incorporate(comment);
+    internal Result Add(Error error) => Incorporate(error, Result.Error);
 
-    protected internal Result TryAdd(Error error)
+    internal virtual Result Add(Keyword keyword) => Result.NotApplied;
+    internal virtual Result Add(Literal literal) => Result.NotApplied;
+    internal virtual Result Add(Name name) => Result.NotApplied;
+    internal virtual Result Add(Symbol symbol) => Result.NotApplied;
+
+    internal Result Add(Token.Token token) => token switch
     {
-        tokens.Add(error);
-        return Result.Error;
-    }
+        Comment comment => Add(comment),
+        Error error => Add(error),
+        Keyword keyword => Add(keyword),
+        Literal literal => Add(literal),
+        Name name => Add(name),
+        Symbol symbol => Add(symbol),
+        Whitespace whitespace => Add(whitespace),
+        _ => throw new NotImplementedException()
+    };
 
-    protected internal virtual Result TryAdd(Comment comment) => Result.NotApplied;
-    protected internal virtual Result TryAdd(Keyword keyword) => Result.NotApplied;
-    protected internal virtual Result TryAdd(Literal literal) => Result.NotApplied;
-    protected internal virtual Result TryAdd(Name name) => Result.NotApplied;
-    protected internal virtual Result TryAdd(Symbol symbol) => Result.NotApplied;
-
-    protected internal Result AddToken(Token.Token token)
+    protected internal virtual Result Incorporate(Token.Token token, Result result = Result.Applied)
     {
         Locations.Add(new()
         {
@@ -32,17 +39,22 @@ internal abstract class Syntax
             ColumnEnd = token.Column + token.Length,
         });
         tokens.Add(token);
-        return Result.Applied;
+        return result;
     }
 
-    internal enum Result { Applied, NotApplied, Completed, Descent, Error }
+    internal enum Result { Applied, NotApplied, Completed, Descended, Error }
 
-    internal record struct Location(int Line, int ColumnStart, int ColumnEnd);
+    protected internal record struct Location(int Line, int ColumnStart, int ColumnEnd);
 }
 
+// <THING> is function call | literal | datatype name | compiled datum
 // part of thing.stuff with.other things;
 // import literal;
 // var hit count => integer;
-// var name words => data type name(function call|literal|datatype name|compiled datum, ...);
-// var name words = literal;
-// var name words is data type name
+// constant name words = <THING>;
+// reactive name words => data type name = <THING>;
+// function name words { ... }
+// function (first => money, second => time) name words { ... }
+// function name words (first => money, second => time) { ... }
+// function name words (first => money, second => time) name words { ... }
+// datatype name words { ... }
