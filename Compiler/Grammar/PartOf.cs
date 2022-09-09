@@ -67,8 +67,5 @@ internal class PartOf : Syntax
         }
     }
 
-    //TODO I think .NET7 adds Split() to ReadOnlySpan<T>
     private static string[] GetNames(Token.Token token) => token.Sourcecode.ToString().Split('/').Select(word => word.Trim()).ToArray();
-
-
 }
