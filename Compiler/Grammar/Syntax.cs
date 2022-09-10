@@ -1,4 +1,6 @@
-﻿using Ronin.Token;
+﻿using Ronin.Compiler;
+using Ronin.Token;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -33,16 +35,34 @@ internal abstract class Syntax
         return Result.Applied;
     }
 
+    [DoesNotReturn]
     private Result Add(Error error)
     {
         Incorporate(error);
-        return Result.Error;
+        throw new Parser.Exception(error.Sourcecode.ToString());
     }
 
-    protected virtual Result Add(Keyword keyword) => Result.NotApplied;
-    protected virtual Result Add(Literal literal) => Result.NotApplied;
-    protected virtual Result Add(Name name) => Result.NotApplied;
-    protected virtual Result Add(Symbol symbol) => Result.NotApplied;
+    protected virtual Result Add(Symbol symbol)
+    {
+        var result = symbol switch
+        {
+            { IsOpenBrace: true } => Result.Descended,
+            { IsOpenParenthesis: true } => Result.Descended,
+            { IsOpenSquareBracket: true } => Result.Descended,
+            { IsTerminal: true } => tokens.Count is > 0 ? Result.Completed : Result.DoesNotApply,
+            { IsSeparator: true } => tokens.Count is > 0 ? Result.Completed : Result.DoesNotApply,
+            { IsCloseBrace: true } => tokens.Any(token => token is Symbol symbol && symbol.IsOpenBrace) ? Result.Completed : Result.DoesNotApply,
+            { IsCloseParenthesis: true } => tokens.Any(token => token is Symbol symbol && symbol.IsOpenParenthesis) ? Result.Completed : Result.DoesNotApply,
+            { IsCloseSquareBracket: true } => tokens.Any(token => token is Symbol symbol && symbol.IsOpenSquareBracket) ? Result.Completed : Result.DoesNotApply,
+            _ => Result.DoesNotApply
+        };
+        if (result is not Result.DoesNotApply) Incorporate(symbol);
+        return result;
+    }
+
+    protected virtual Result Add(Keyword keyword) => Result.DoesNotApply;
+    protected virtual Result Add(Literal literal) => Result.DoesNotApply;
+    protected virtual Result Add(Name name) => Result.DoesNotApply;    
 
     protected internal void Incorporate(Token.Token token)
     {
@@ -55,7 +75,7 @@ internal abstract class Syntax
         tokens.Add(token);
     }
 
-    internal enum Result { Applied, NotApplied, Completed, Descended, Error }
+    internal enum Result { Applied, DoesNotApply, Completed, Descended }
 
     protected internal record struct Location(int Line, int ColumnStart, int ColumnEnd);
 }

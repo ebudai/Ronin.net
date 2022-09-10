@@ -4,12 +4,12 @@ using System.Diagnostics;
 using static Ronin.Token.Keyword.Word;
 using static Ronin.Token.Literal.Kind;
 
-namespace Unit;
+namespace Feature;
 
 public class Lexer
 {
-    [Fact(DisplayName = "basic")]
-    public void Basic()
+    [Fact(DisplayName = "lexing")]
+    public void Lexing()
     {
         const string sourcecode =
         """
@@ -190,7 +190,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // comment: // this assumes the list of stuff has at least one element
-            new Ronin.Token.Comment(lexer, "// this assumes the list of stuff has at least one element".Length),
+            new Comment(lexer, "// this assumes the list of stuff has at least one element".Length),
             Whitespace(Environment.NewLine.Length + 4),
 
             // return list of stuff[0] + things * 7;
@@ -219,7 +219,7 @@ public class Lexer
             Symbol("}"),
 
             // 7aslk
-            new Ronin.Token.Error(lexer, "7".Length),
+            new Error(lexer, "7".Length),
             Name("aslk")
         };
 
@@ -234,9 +234,9 @@ public class Lexer
             Assert.Equal(expected[i].Sourcecode.ToArray(), tokens[i].Sourcecode.ToArray());
         }
         
-        Ronin.Token.Name Name(string name) => new(lexer, name.Length);
-        Ronin.Token.Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
-        Ronin.Token.Symbol Symbol(string symbol) => new(lexer, symbol.Length);
-        Ronin.Token.Keyword Keyword(Ronin.Token.Keyword.Word word) => new(lexer, Enum.GetName(word).Length);
+        Name Name(string name) => new(lexer, name.Length);
+        Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
+        Symbol Symbol(string symbol) => new(lexer, symbol.Length);
+        Keyword Keyword(Keyword.Word word) => new(lexer, Enum.GetName(word).Length);
     }
 }

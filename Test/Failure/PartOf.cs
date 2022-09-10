@@ -15,7 +15,7 @@ public class PartOf
         Assert.NotNull(tokens);
         Assert.NotEmpty(tokens);
         Ronin.Grammar.PartOf partof = new();
-        Assert.Equal(NotApplied, partof.Add(tokens.Peek()));        
+        Assert.Equal(DoesNotApply, partof.Add(tokens.Peek()));        
     }
 
     [Fact(DisplayName = "keyword not part of")]
@@ -29,7 +29,7 @@ public class PartOf
         Assert.NotNull(tokens);
         Assert.NotEmpty(tokens);
         Ronin.Grammar.PartOf partof = new();
-        Assert.Equal(NotApplied, partof.Add(tokens.Peek()));
+        Assert.Equal(DoesNotApply, partof.Add(tokens.Peek()));
     }
 
     [Fact(DisplayName = "no non-terminal symbols allowed")]
@@ -52,8 +52,14 @@ public class PartOf
             var expected = token switch
             {
                 Ronin.Token.Name or Ronin.Token.Whitespace => Applied,
-                Ronin.Token.Symbol symbol => symbol.IsTerminal ? Applied : NotApplied,
-                _ => Error,
+                Ronin.Token.Symbol symbol => symbol switch
+                {
+                    { IsTerminal: true } => Applied,
+                    { IsOpenParenthesis: true } => Descended,
+                    { IsCloseParenthesis: true } => Completed,
+                    _ => DoesNotApply,
+                },
+                _ => throw new NotImplementedException(),
             };
             Assert.Equal(expected, result);
         }
@@ -74,6 +80,6 @@ public class PartOf
 
         var result = partof.Add(tokens.Dequeue());
 
-        Assert.Equal(NotApplied, result);
+        Assert.Equal(DoesNotApply, result);
     }
 }

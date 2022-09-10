@@ -1,71 +1,54 @@
-﻿using Ronin.Token;
+﻿using Ronin.Compiler;
+using Ronin.Token;
 
 namespace Ronin.Grammar;
 
 internal class Import : Syntax
 {
-    internal List<string> Name { get; } = new();
+    internal Identifier Name { get; set; } = new();
+    internal Literal Url { get; set; }
 
-    private bool _hasKeyword = false;
+    private bool initialized = false;
 
     protected override Result Add(Keyword keyword)
     {
-        if (_hasKeyword)
+        if (initialized)
         {
-            AppendToName(keyword);
+            Name += keyword;
             Incorporate(keyword);
             return Result.Applied;
         }
 
         if (keyword.Type is Keyword.Word.import)
         {
-            _hasKeyword = true;
+            initialized = true;
             Incorporate(keyword);
             return Result.Applied;
         }
 
-        return Result.NotApplied;
+        return Result.DoesNotApply;
     }
 
     protected override Result Add(Name name)
     {
-        if (_hasKeyword)
+        if (initialized)
         {
-            AppendToName(name);
+            Name += name;
             Incorporate(name);
             return Result.Applied;
         }
 
-        return Result.NotApplied;
+        return Result.DoesNotApply;
     }
 
-    protected override Result Add(Symbol symbol)
+    protected override Result Add(Literal literal)
     {
-        if (_hasKeyword && symbol.IsTerminal)
-        {
-            Incorporate(symbol);
-            return Result.Completed;
-        }
+        if (!initialized) return Result.DoesNotApply;
 
-        return Result.NotApplied;
+        if (Url is not null) throw new Parser.Exception("already specified import url");
+
+        Incorporate(literal);
+        Url = literal;
+        return Result.Applied;
     }
-
-    private void AppendToName(Keyword keyword) => AppendToName(GetNames(keyword));
-
-    private void AppendToName(Name name) => AppendToName(GetNames(name));
-
-    private void AppendToName(string[] names)
-    {
-        if (Name.Count is 0)
-        {
-            Name.AddRange(names);
-        }
-        else
-        {
-            Name[^1] += " " + names[0];
-            if (names.Length is > 1) Name.AddRange(names[1..]);
-        }
-    }
-
-    private static string[] GetNames(Token.Token token) => token.Sourcecode.ToString().Split('/').Select(word => word.Trim()).ToArray();
 }

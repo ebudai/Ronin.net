@@ -1,4 +1,5 @@
-﻿using static Ronin.Grammar.Syntax.Result;
+﻿using Ronin.Compiler;
+using static Ronin.Grammar.Syntax.Result;
 
 namespace Failure;
 
@@ -15,7 +16,7 @@ public class Import
         Assert.NotNull(tokens);
         Assert.NotEmpty(tokens);
         Ronin.Grammar.Import import = new();
-        Assert.Equal(NotApplied, import.Add(tokens.Peek()));        
+        Assert.Equal(DoesNotApply, import.Add(tokens.Peek()));        
     }
 
     [Fact(DisplayName = "keyword not part of")]
@@ -29,7 +30,7 @@ public class Import
         Assert.NotNull(tokens);
         Assert.NotEmpty(tokens);
         Ronin.Grammar.Import import = new();
-        Assert.Equal(NotApplied, import.Add(tokens.Peek()));
+        Assert.Equal(DoesNotApply, import.Add(tokens.Peek()));
     }
 
     [Fact(DisplayName = "no non-terminal symbols allowed")]
@@ -52,8 +53,14 @@ public class Import
             var expected = token switch
             {
                 Ronin.Token.Name or Ronin.Token.Whitespace => Applied,
-                Ronin.Token.Symbol symbol => symbol.IsTerminal ? Applied : NotApplied,
-                _ => Error,
+                Ronin.Token.Symbol symbol => symbol switch
+                {
+                    { IsTerminal: true } => Applied,
+                    { IsOpenParenthesis: true } => Descended,
+                    { IsCloseParenthesis: true } => Completed,
+                    _ => DoesNotApply,
+                },
+                _ => throw new NotImplementedException(),
             };
             Assert.Equal(expected, result);
         }
@@ -74,6 +81,57 @@ public class Import
 
         var result = import.Add(tokens.Dequeue());
 
-        Assert.Equal(NotApplied, result);
+        Assert.Equal(DoesNotApply, result);
+    }
+
+    [Fact(DisplayName = "can't start with a literal")]
+    public void NoStartWithLiteral()
+    {
+        const string symbols = "0b10010";
+
+        Ronin.Compiler.Lexer lexer = new(symbols);
+        var tokens = lexer.Lex();
+
+        Assert.NotNull(tokens);
+        Assert.NotEmpty(tokens);
+
+        Ronin.Grammar.Import import = new();
+
+        var result = import.Add(tokens.Dequeue());
+
+        Assert.Equal(DoesNotApply, result);
+    }
+
+    [Fact(DisplayName = "can't have multiple urls")]
+    public void NoMultipleURLs()
+    {
+        const string symbols = "import git://github.com/ebudai/ronin.git git://gitlab.com/ebudai/ronin.git";
+
+        Ronin.Compiler.Lexer lexer = new(symbols);
+        var tokens = lexer.Lex();
+
+        Assert.NotNull(tokens);
+        Assert.NotEmpty(tokens);
+
+        Ronin.Grammar.Import import = new();
+
+        // import
+        var result = import.Add(tokens.Dequeue());
+        Assert.Equal(Applied, result);
+
+        // whitespace
+        result = import.Add(tokens.Dequeue());
+        Assert.Equal(Applied, result);
+
+        // first url literal
+        result = import.Add(tokens.Dequeue());
+        Assert.Equal(Applied, result);
+
+        // whitespace
+        result = import.Add(tokens.Dequeue());
+        Assert.Equal(Applied, result);
+
+        // second url literal
+        Assert.Throws<Parser.Exception>(() => import.Add(tokens.Dequeue()));
     }
 }

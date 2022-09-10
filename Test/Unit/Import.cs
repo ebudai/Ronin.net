@@ -21,10 +21,11 @@ public class Import
         }
 
         Assert.Empty(tokens);
-        Assert.Equal(3, import.Name.Count);
-        Assert.Equal("standard", import.Name[0]);
-        Assert.Equal("fun stuff", import.Name[1]);
-        Assert.Equal("web sockets", import.Name[2]);
+        var hierarchy = import.Name.Hierarchy;
+        Assert.Equal(3, hierarchy.Count);
+        Assert.Equal("standard", hierarchy[0]);
+        Assert.Equal("fun stuff", hierarchy[1]);
+        Assert.Equal("web sockets", hierarchy[2]);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -44,9 +45,30 @@ public class Import
         }
 
         Assert.Empty(tokens);
-        Assert.Equal(3, import.Name.Count);
-        Assert.Equal("return to whatever", import.Name[0]);
-        Assert.Equal("secret", import.Name[1]);
-        Assert.Equal("stuff", import.Name[2]);
+        var hierarchy = import.Name.Hierarchy;
+        Assert.Equal(3, hierarchy.Count);
+        Assert.Equal("return to whatever", hierarchy[0]);
+        Assert.Equal("secret", hierarchy[1]);
+        Assert.Equal("stuff", hierarchy[2]);
+    }
+
+    [Fact(DisplayName = "uses url")]
+    public void Url()
+    {
+        const string line = "import git://github.com/ebudai/ronin.git;";
+
+        Ronin.Compiler.Lexer lexer = new(line);
+        var tokens = lexer.Lex();
+        Ronin.Grammar.Import import = new();
+        while (tokens.TryDequeue(out var token))
+        {
+            var result = import.Add(token);
+
+            if (result is Syntax.Result.Completed) break;
+            if (result is not Syntax.Result.Applied) throw new Exception(Enum.GetName(result));
+        }
+
+        Assert.Empty(tokens);
+        Assert.Equal("git://github.com/ebudai/ronin.git", import.Url.Sourcecode.ToString());
     }
 }

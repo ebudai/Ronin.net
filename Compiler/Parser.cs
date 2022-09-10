@@ -10,4 +10,8 @@ internal interface IParsable<T> where T : Syntax
 
 internal class Parser
 {
+    internal class Exception : System.Exception
+    {
+        internal Exception(string message) : base(message) { }
+    }
 }

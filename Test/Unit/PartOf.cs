@@ -21,10 +21,11 @@ public class PartOf
         }
 
         Assert.Empty(tokens);
-        Assert.Equal(3, partof.Name.Count);
-        Assert.Equal("standard", partof.Name[0]);
-        Assert.Equal("fun stuff", partof.Name[1]);
-        Assert.Equal("web sockets", partof.Name[2]);
+        var hierarchy = partof.Name.Hierarchy;
+        Assert.Equal(3, hierarchy.Count);
+        Assert.Equal("standard", hierarchy[0]);
+        Assert.Equal("fun stuff", hierarchy[1]);
+        Assert.Equal("web sockets", hierarchy[2]);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -44,9 +45,10 @@ public class PartOf
         }
 
         Assert.Empty(tokens);
-        Assert.Equal(3, partof.Name.Count);
-        Assert.Equal("return to whatever", partof.Name[0]);
-        Assert.Equal("secret", partof.Name[1]);
-        Assert.Equal("stuff", partof.Name[2]);
+        var hierarchy = partof.Name.Hierarchy;
+        Assert.Equal(3, hierarchy.Count);
+        Assert.Equal("return to whatever", hierarchy[0]);
+        Assert.Equal("secret", hierarchy[1]);
+        Assert.Equal("stuff", hierarchy[2]);
     }
 }
