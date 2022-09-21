@@ -16,17 +16,11 @@ internal class Symbol : Token
     internal bool IsTerminal => Sourcecode.Span[0] is ';';
     internal bool IsCharacterDelimiter => Sourcecode.Span[0] is '\'';
     internal bool IsTextDelimiter => Sourcecode.Span[0] is '"';
-    internal bool IsReturns
-    {
-        get
-        {
-            if (Sourcecode.Span[0] is '=')
-            {
-                return Sourcecode.Span[1] is '>';
-            }
-            return false;
-        }
-    }
+    internal bool IsReturns => Sourcecode.Span[0] is '=' && Sourcecode.Span[1] is '>';
+    internal bool IsAssign => Sourcecode.Span[0] is '=' && Sourcecode.Span[1] is not '>';
+
+    internal bool IsOpen => IsOpenBrace || IsOpenParenthesis || IsOpenSquareBracket;
+    internal bool IsClose => IsCloseBrace || IsCloseParenthesis || IsCloseSquareBracket;
 
     internal static Token Lex(Lexer lexer)
     {
@@ -41,5 +35,5 @@ internal class Symbol : Token
 
     internal static bool IsSymbol(Lexer lexer, int i = 0) => _symbols.Any(symbol => lexer[i..].Span.StartsWith(symbol));    
 
-    private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";", "'", "\"", "=>" };
+    private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";", "'", "\"", "=>", "=" };
 }

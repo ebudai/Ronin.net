@@ -4,18 +4,13 @@ namespace Ronin.Grammar;
 
 internal class PartOf : Syntax
 {
-    internal Identifier Name { get; set; } = new();
+    internal Identifier Name { get; } = new();
 
     private bool initialized = false;
 
     protected override Result Add(Keyword keyword)
     {
-        if (initialized)
-        {
-            Name += keyword;
-            Incorporate(keyword);
-            return Result.Applied;
-        }
+        if (initialized) return Name.Add(keyword);
 
         if (keyword.Type is Keyword.Word.part_of)
         {
@@ -27,15 +22,5 @@ internal class PartOf : Syntax
         return Result.DoesNotApply;
     }
 
-    protected override Result Add(Name name)
-    {
-        if (initialized)
-        {
-            Name += name;
-            Incorporate(name);
-            return Result.Applied;
-        }
-
-        return Result.DoesNotApply;
-    }
+    protected override Result Add(Name name) => initialized ? Name.Add(name) : Result.DoesNotApply;
 }

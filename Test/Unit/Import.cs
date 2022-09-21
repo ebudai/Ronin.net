@@ -22,7 +22,7 @@ public class Import
 
         Assert.Empty(tokens);
         var hierarchy = import.Name.Hierarchy;
-        Assert.Equal(3, hierarchy.Count);
+        Assert.Equal(3, hierarchy.Length);
         Assert.Equal("standard", hierarchy[0]);
         Assert.Equal("fun stuff", hierarchy[1]);
         Assert.Equal("web sockets", hierarchy[2]);
@@ -46,7 +46,7 @@ public class Import
 
         Assert.Empty(tokens);
         var hierarchy = import.Name.Hierarchy;
-        Assert.Equal(3, hierarchy.Count);
+        Assert.Equal(3, hierarchy.Length);
         Assert.Equal("return to whatever", hierarchy[0]);
         Assert.Equal("secret", hierarchy[1]);
         Assert.Equal("stuff", hierarchy[2]);

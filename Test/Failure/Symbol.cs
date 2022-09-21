@@ -16,18 +16,6 @@ public class Symbol
         Assert.Null(lexed);
     }
 
-    [Fact(DisplayName = "wrong way")]
-    public void NotReturns()
-    {
-        const string literal = "=<";
-
-        Lexer lexer = new(literal);
-        Assert.False(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.Null(lexed);
-    }
-
     [Fact(DisplayName = "wrong arrow")]
     public void NotReturns2()
     {

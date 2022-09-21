@@ -12,12 +12,7 @@ internal class Import : Syntax
 
     protected override Result Add(Keyword keyword)
     {
-        if (initialized)
-        {
-            Name += keyword;
-            Incorporate(keyword);
-            return Result.Applied;
-        }
+        if (initialized) return Name.Add(keyword);
 
         if (keyword.Type is Keyword.Word.import)
         {
@@ -29,17 +24,7 @@ internal class Import : Syntax
         return Result.DoesNotApply;
     }
 
-    protected override Result Add(Name name)
-    {
-        if (initialized)
-        {
-            Name += name;
-            Incorporate(name);
-            return Result.Applied;
-        }
-
-        return Result.DoesNotApply;
-    }
+    protected override Result Add(Name name) => initialized ? Name.Add(name) : Result.DoesNotApply;
 
     protected override Result Add(Literal literal)
     {
