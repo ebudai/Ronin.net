@@ -2,5 +2,5 @@
 
 internal class Function : Syntax
 {
-    internal Identifier Name { get; set; }
+    internal Identifier Name { get; } = new();
 }

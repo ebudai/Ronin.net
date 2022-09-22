@@ -56,7 +56,7 @@ internal class Datum : Syntax
                 Name = Enum.GetName(keyword.Type);
             }
         }
-        else if (Datatype is null)
+        else if (Datatype is null && Initializer is null)
         {
             if (Name.Length is not 0) Name += ' ';
             Name += keyword.Sourcecode.ToString();
@@ -78,9 +78,10 @@ internal class Datum : Syntax
         {
             Name = name.Sourcecode.ToString();            
         }
-        else if (Datatype is null)
+        else if (Datatype is null && Initializer is null)
         {
-            Name += ' ' + name.Sourcecode.ToString();
+            if (Name.Length is not 0) Name += ' ';
+            Name += name.Sourcecode.ToString();
         }
         else if (Initializer is null)
         {
@@ -111,15 +112,19 @@ internal class Datum : Syntax
             {
                 Datatype = new();
                 Incorporate(symbol);
-                return Result.Descended;
+                return Result.Applied;
             }
+            
+            return Initializer?.Name.Add(symbol) ?? Datatype.Add(symbol);            
+        }
 
-            if (Initializer is null)
-            {
-                return Datatype.Add(symbol);
-            }
+        if (symbol.IsAssign)
+        {
+            if (Name is null) return Result.DoesNotApply;
 
-            return Initializer.Name.Add(symbol);
+            Initializer = new();
+            Incorporate(symbol);
+            return Result.Applied;
         }
 
         if (symbol.IsOpen)

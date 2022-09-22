@@ -308,4 +308,10 @@ public class Symbol
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
     }
+
+    [Fact(DisplayName = "open")]
+    public void Open()
+    {
+
+    }
 }

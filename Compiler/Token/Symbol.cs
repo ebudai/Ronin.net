@@ -16,8 +16,8 @@ internal class Symbol : Token
     internal bool IsTerminal => Sourcecode.Span[0] is ';';
     internal bool IsCharacterDelimiter => Sourcecode.Span[0] is '\'';
     internal bool IsTextDelimiter => Sourcecode.Span[0] is '"';
-    internal bool IsReturns => Sourcecode.Span[0] is '=' && Sourcecode.Span[1] is '>';
-    internal bool IsAssign => Sourcecode.Span[0] is '=' && Sourcecode.Span[1] is not '>';
+    internal bool IsReturns => Sourcecode.Span[0] is '=' && Sourcecode.Span.Length is >= 2 && Sourcecode.Span[1] is '>';
+    internal bool IsAssign => Sourcecode.Span[0] is '=' && (Sourcecode.Span.Length is not >= 2 || Sourcecode.Span[1] is not '>');
 
     internal bool IsOpen => IsOpenBrace || IsOpenParenthesis || IsOpenSquareBracket;
     internal bool IsClose => IsCloseBrace || IsCloseParenthesis || IsCloseSquareBracket;
