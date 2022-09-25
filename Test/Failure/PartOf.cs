@@ -35,7 +35,7 @@ public class PartOf
     [Fact(DisplayName = "no non-terminal symbols allowed")]
     public void NoSymbols()
     {
-        const string somethingelse = "part of illegal (things);";
+        const string somethingelse = "part of illegal ,things';";
 
         Ronin.Compiler.Lexer lexer = new(somethingelse);
         var tokens = lexer.Lex();
@@ -55,11 +55,9 @@ public class PartOf
                 Ronin.Token.Symbol symbol => symbol switch
                 {
                     { IsTerminal: true } => Applied,
-                    { IsOpenParenthesis: true } => Descended,
-                    { IsCloseParenthesis: true } => Completed,
                     _ => DoesNotApply,
                 },
-                _ => throw new NotImplementedException(),
+                _ => DoesNotApply,
             };
             Assert.Equal(expected, result);
         }
@@ -68,7 +66,7 @@ public class PartOf
     [Fact(DisplayName = "can't start with a symbol")]
     public void NoStartWithSymbol()
     {
-        const string symbols = ";";
+        const string symbols = ",";
 
         Ronin.Compiler.Lexer lexer = new(symbols);
         var tokens = lexer.Lex();

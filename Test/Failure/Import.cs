@@ -10,7 +10,7 @@ public class Import
     {
         const string somethingelse = "not an import;";
 
-        Ronin.Compiler.Lexer lexer = new(somethingelse);
+        Lexer lexer = new(somethingelse);
         var tokens = lexer.Lex();
 
         Assert.NotNull(tokens);
@@ -24,7 +24,7 @@ public class Import
     {
         const string somethingelse = "return not an import;";
 
-        Ronin.Compiler.Lexer lexer = new(somethingelse);
+        Lexer lexer = new(somethingelse);
         var tokens = lexer.Lex();
 
         Assert.NotNull(tokens);
@@ -36,15 +36,15 @@ public class Import
     [Fact(DisplayName = "no non-terminal symbols allowed")]
     public void NoSymbols()
     {
-        const string somethingelse = "import illegal (things);";
+        const string somethingelse = "import illegal ,things;";
 
-        Ronin.Compiler.Lexer lexer = new(somethingelse);
+        Lexer lexer = new(somethingelse);
         var tokens = lexer.Lex();
 
         Assert.NotNull(tokens);
         Assert.NotEmpty(tokens);
         Ronin.Grammar.Import import = new();
-        Ronin.Grammar.Syntax.Result result = import.Add(tokens.Dequeue());
+        var result = import.Add(tokens.Dequeue());
         Assert.Equal(Applied, result);
         while (tokens.Count is > 1)
         {
@@ -56,11 +56,9 @@ public class Import
                 Ronin.Token.Symbol symbol => symbol switch
                 {
                     { IsTerminal: true } => Applied,
-                    { IsOpenParenthesis: true } => Descended,
-                    { IsCloseParenthesis: true } => Completed,
                     _ => DoesNotApply,
                 },
-                _ => throw new NotImplementedException(),
+                _ => DoesNotApply,
             };
             Assert.Equal(expected, result);
         }
@@ -69,9 +67,9 @@ public class Import
     [Fact(DisplayName = "can't start with a symbol")]
     public void NoStartWithSymbol()
     {
-        const string symbols = ";";
+        const string symbols = ",";
 
-        Ronin.Compiler.Lexer lexer = new(symbols);
+        Lexer lexer = new(symbols);
         var tokens = lexer.Lex();
 
         Assert.NotNull(tokens);
@@ -89,7 +87,7 @@ public class Import
     {
         const string symbols = "0b10010";
 
-        Ronin.Compiler.Lexer lexer = new(symbols);
+        Lexer lexer = new(symbols);
         var tokens = lexer.Lex();
 
         Assert.NotNull(tokens);
@@ -107,7 +105,7 @@ public class Import
     {
         const string symbols = "import git://github.com/ebudai/ronin.git git://gitlab.com/ebudai/ronin.git";
 
-        Ronin.Compiler.Lexer lexer = new(symbols);
+        Lexer lexer = new(symbols);
         var tokens = lexer.Lex();
 
         Assert.NotNull(tokens);

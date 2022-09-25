@@ -5,12 +5,12 @@ namespace Ronin.Grammar;
 
 internal class Import : Syntax
 {
-    internal Identifier Name { get; set; } = new();
+    internal Identifier Name { get; } = new();
     internal Literal Url { get; set; }
 
     private bool initialized = false;
 
-    protected override Result Add(Keyword keyword)
+    internal override Result Add(Keyword keyword)
     {
         if (initialized) return Name.Add(keyword);
 
@@ -24,9 +24,9 @@ internal class Import : Syntax
         return Result.DoesNotApply;
     }
 
-    protected override Result Add(Name name) => initialized ? Name.Add(name) : Result.DoesNotApply;
+    internal override Result Add(Name name) => initialized ? Name.Add(name) : Result.DoesNotApply;
 
-    protected override Result Add(Literal literal)
+    internal override Result Add(Literal literal)
     {
         if (!initialized) return Result.DoesNotApply;
 
@@ -36,4 +36,6 @@ internal class Import : Syntax
         Url = literal;
         return Result.Applied;
     }
+
+    internal override Result Add(Symbol symbol) => symbol.IsTerminal ? Result.Completed : Result.DoesNotApply;
 }

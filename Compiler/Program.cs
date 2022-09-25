@@ -1,5 +1,8 @@
-﻿namespace Ronin.Compiler;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace Ronin.Compiler;
+
+[ExcludeFromCodeCoverage] //remove later
 internal class Program
 {
     static void Main()

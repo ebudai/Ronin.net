@@ -1,4 +1,6 @@
-﻿namespace Ronin.Grammar;
+﻿using Ronin.Token;
+
+namespace Ronin.Grammar;
 
 internal class Datatype : Syntax
 {

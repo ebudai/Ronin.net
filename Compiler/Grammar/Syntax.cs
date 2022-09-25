@@ -9,7 +9,7 @@ internal abstract class Syntax
     internal Syntax Parent { get; set; }
     
     protected internal readonly List<Location> Locations = new();
-    protected internal readonly List<Token.Token> tokens = new();
+    protected internal readonly List<Token.Token> Tokens = new();
 
     internal Result Add(Token.Token token) => token switch
     {
@@ -23,46 +23,46 @@ internal abstract class Syntax
         _ => throw new NotImplementedException()
     };
 
-    private Result Add(Whitespace whitespace)
+    internal Result Add(Whitespace whitespace)
     {
         Incorporate(whitespace);
         return Result.Applied;
     }
 
-    private Result Add(Comment comment)
+    internal Result Add(Comment comment)
     {
         Incorporate(comment);
         return Result.Applied;
     }
 
     [DoesNotReturn]
-    private Result Add(Error error)
+    internal Result Add(Error error)
     {
         Incorporate(error);
         throw new Parser.Exception(error.Sourcecode.ToString());
     }
 
-    protected virtual Result Add(Symbol symbol)
+    internal virtual Result Add(Symbol symbol)
     {
         var result = symbol switch
         {
             { IsOpenBrace: true } => Result.Descended,
             { IsOpenParenthesis: true } => Result.Descended,
             { IsOpenSquareBracket: true } => Result.Descended,
-            { IsTerminal: true } => tokens.Count is > 0 ? Result.Completed : Result.DoesNotApply,
-            { IsSeparator: true } => tokens.Count is > 0 ? Result.Completed : Result.DoesNotApply,
-            { IsCloseBrace: true } => tokens.Any(token => token is Symbol symbol && symbol.IsOpenBrace) ? Result.Completed : Result.DoesNotApply,
-            { IsCloseParenthesis: true } => tokens.Any(token => token is Symbol symbol && symbol.IsOpenParenthesis) ? Result.Completed : Result.DoesNotApply,
-            { IsCloseSquareBracket: true } => tokens.Any(token => token is Symbol symbol && symbol.IsOpenSquareBracket) ? Result.Completed : Result.DoesNotApply,
+            { IsTerminal: true } => Tokens.Count is > 0 ? Result.Completed : Result.DoesNotApply,
+            { IsSeparator: true } => Tokens.Count is > 0 ? Result.Completed : Result.DoesNotApply,
+            { IsCloseBrace: true } => Tokens.Any(token => token is Symbol symbol && symbol.IsOpenBrace) ? Result.Completed : Result.DoesNotApply,
+            { IsCloseParenthesis: true } => Tokens.Any(token => token is Symbol symbol && symbol.IsOpenParenthesis) ? Result.Completed : Result.DoesNotApply,
+            { IsCloseSquareBracket: true } => Tokens.Any(token => token is Symbol symbol && symbol.IsOpenSquareBracket) ? Result.Completed : Result.DoesNotApply,
             _ => Result.DoesNotApply
         };
-        if (result is not Result.DoesNotApply) Incorporate(symbol);
+        if (result is not Result.DoesNotApply and not Result.Descended) Incorporate(symbol);
         return result;
     }
 
-    protected virtual Result Add(Keyword keyword) => Result.DoesNotApply;
-    protected virtual Result Add(Literal literal) => Result.DoesNotApply;
-    protected virtual Result Add(Name name) => Result.DoesNotApply;    
+    internal virtual Result Add(Keyword keyword) => Result.DoesNotApply;
+    internal virtual Result Add(Literal literal) => Result.DoesNotApply;
+    internal virtual Result Add(Name name) => Result.DoesNotApply;    
 
     protected internal void Incorporate(Token.Token token)
     {
@@ -72,7 +72,7 @@ internal abstract class Syntax
             ColumnStart = token.Column,
             ColumnEnd = token.Column + token.Length,
         });
-        tokens.Add(token);
+        Tokens.Add(token);
     }
 
     internal enum Result { Applied, DoesNotApply, Completed, Descended }

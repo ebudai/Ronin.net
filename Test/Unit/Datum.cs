@@ -1,5 +1,4 @@
 ﻿using Ronin.Grammar;
-using Ronin.Token;
 
 namespace Unit;
 
@@ -25,11 +24,7 @@ public class Datum
     public void Reactive()
     {
         const string declaration = "reactive x => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.True(datum.IsReactive);
         Assert.False(datum.IsCompiled);
         Assert.False(datum.IsPersistent);
@@ -41,11 +36,7 @@ public class Datum
     public void Compiled()
     {
         const string declaration = "compiled x => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.False(datum.IsReactive);
         Assert.True(datum.IsCompiled);
         Assert.False(datum.IsPersistent);
@@ -57,11 +48,7 @@ public class Datum
     public void Persistent()
     {
         const string declaration = "persistent x => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.False(datum.IsReactive);
         Assert.False(datum.IsCompiled);
         Assert.True(datum.IsPersistent);
@@ -73,11 +60,7 @@ public class Datum
     public void Shared()
     {
         const string declaration = "shared x => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.False(datum.IsReactive);
         Assert.False(datum.IsCompiled);
         Assert.False(datum.IsPersistent);
@@ -89,11 +72,7 @@ public class Datum
     public void Optional()
     {
         const string declaration = "optional x => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.False(datum.IsReactive);
         Assert.False(datum.IsCompiled);
         Assert.False(datum.IsPersistent);
@@ -105,11 +84,7 @@ public class Datum
     public void ReactiveTwiceIsOk()
     {
         const string declaration = "reactive reactive thing => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.True(datum.IsReactive);
         Assert.Equal("reactive thing", datum.Name);
     }
@@ -118,11 +93,7 @@ public class Datum
     public void ConstantTwiceIsOk()
     {
         const string declaration = "constant constant thing => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.True(datum.IsReadonly);
         Assert.Equal("constant thing", datum.Name);
     }
@@ -131,11 +102,7 @@ public class Datum
     public void VarTwiceIsOk()
     {
         const string declaration = "var var thing => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.False(datum.IsReadonly);
         Assert.Equal("var thing", datum.Name);
     }
@@ -144,11 +111,7 @@ public class Datum
     public void CompiledTwiceIsOk()
     {
         const string declaration = "compiled compiled thing => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.True(datum.IsCompiled);
         Assert.Equal("compiled thing", datum.Name);
     }
@@ -157,11 +120,7 @@ public class Datum
     public void PersistentTwiceIsOk()
     {
         const string declaration = "persistent persistent thing => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.True(datum.IsPersistent);
         Assert.Equal("persistent thing", datum.Name);
     }
@@ -170,11 +129,7 @@ public class Datum
     public void OptionalTwiceIsOk()
     {
         const string declaration = "optional optional thing => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.True(datum.IsOptional);
         Assert.Equal("optional thing", datum.Name);
     }
@@ -183,11 +138,7 @@ public class Datum
     public void SharedTwiceIsOk()
     {
         const string declaration = "shared shared thing => integer;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.True(datum.IsShared);
         Assert.Equal("shared thing", datum.Name);
     }
@@ -208,11 +159,7 @@ public class Datum
     public void NameHasKeywords()
     {
         const string declaration = "var shared reactive => money;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.Equal("shared reactive", datum.Name);
     }
 
@@ -220,23 +167,23 @@ public class Datum
     public void DatatypeHasKeywords()
     {
         const string declaration = "var x => import shared things;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.Equal("import shared things", string.Join(' ', datum.Datatype.Name.Name.Values));
+    }
+
+    [Fact(DisplayName = "initialized")]
+    public void Initialized()
+    {
+        const string declaration = "var x = things;";
+        var datum = Compile(declaration);
+        Assert.Equal("things", string.Join(' ', datum.Initializer.Name.Name.Values));
     }
 
     [Fact(DisplayName = "explicit initializer is keywords")]
     public void ExplicitInitializerIsKeyword()
     {
         const string declaration = "var x => integer = import;";
-
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
+        var datum = Compile(declaration);
         Assert.Equal("import", string.Join(' ', datum.Initializer.Name.Name.Values));
     }
 
@@ -244,11 +191,16 @@ public class Datum
     public void ImplicitInitializerIsKeyword()
     {
         const string declaration = "var x = import;";
+        var datum = Compile(declaration);
+        Assert.Equal("import", string.Join(' ', datum.Initializer.Name.Name.Values));
+    }
 
+    private static Ronin.Grammar.Datum Compile(string declaration)
+    {
         Ronin.Compiler.Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Ronin.Grammar.Datum datum = new();
         while (tokens.TryDequeue(out var token)) datum.Add(token);
-        Assert.Equal("import", string.Join(' ', datum.Initializer.Name.Name.Values));
+        return datum;
     }
 }

@@ -8,7 +8,7 @@ internal class PartOf : Syntax
 
     private bool initialized = false;
 
-    protected override Result Add(Keyword keyword)
+    internal override Result Add(Keyword keyword)
     {
         if (initialized) return Name.Add(keyword);
 
@@ -22,5 +22,7 @@ internal class PartOf : Syntax
         return Result.DoesNotApply;
     }
 
-    protected override Result Add(Name name) => initialized ? Name.Add(name) : Result.DoesNotApply;
+    internal override Result Add(Name name) => initialized ? Name.Add(name) : Result.DoesNotApply;
+
+    internal override Result Add(Symbol symbol) => symbol.IsTerminal ? Result.Completed : Result.DoesNotApply;
 }

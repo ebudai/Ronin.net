@@ -17,7 +17,9 @@ internal class Datum : Syntax
     internal Datatype Datatype { get; set; }
     internal Function Initializer { get; set; }
 
-    protected override Result Add(Keyword keyword)
+    private bool NotNamed => Datatype is null && Initializer is null;
+
+    internal override Result Add(Keyword keyword)
     {
         if (Name is null)
         {
@@ -56,7 +58,7 @@ internal class Datum : Syntax
                 Name = Enum.GetName(keyword.Type);
             }
         }
-        else if (Datatype is null && Initializer is null)
+        else if (NotNamed)
         {
             if (Name.Length is not 0) Name += ' ';
             Name += keyword.Sourcecode.ToString();
@@ -69,16 +71,17 @@ internal class Datum : Syntax
         {
             return Initializer.Name.Add(keyword);
         }
+        Incorporate(keyword);
         return Result.Applied;
     }
 
-    protected override Result Add(Name name)
+    internal override Result Add(Name name)
     {
         if (Name is null)
         {
-            Name = name.Sourcecode.ToString();            
+            Name = name.Sourcecode.ToString();
         }
-        else if (Datatype is null && Initializer is null)
+        else if (NotNamed)
         {
             if (Name.Length is not 0) Name += ' ';
             Name += name.Sourcecode.ToString();
@@ -91,14 +94,16 @@ internal class Datum : Syntax
         {
             return Initializer.Name.Add(name);
         }
+        Incorporate(name);
         return Result.Applied;
     }
 
-    protected override Result Add(Symbol symbol)
+    internal override Result Add(Symbol symbol)
     {
+        if (Name is null) return Result.DoesNotApply;
+
         if (symbol.IsTerminal || symbol.IsSeparator || symbol.IsClose)
-        {
-            if (Name is null) return Result.DoesNotApply;
+        {            
             if (Datatype is null && Initializer is null) return Result.DoesNotApply;
             Incorporate(symbol);
             return Result.Completed;
@@ -106,8 +111,6 @@ internal class Datum : Syntax
         
         if (symbol.IsReturns)
         {
-            if (Name is null) return Result.DoesNotApply;
-            
             if (Datatype is null)
             {
                 Datatype = new();
@@ -120,16 +123,14 @@ internal class Datum : Syntax
 
         if (symbol.IsAssign)
         {
-            if (Name is null) return Result.DoesNotApply;
-
-            Initializer = new();
+            Initializer?.Name.Add(symbol); // if we have already begun initializing, then this symbol is part of an identifier
+            Initializer ??= new(); // else begin initializing
             Incorporate(symbol);
             return Result.Applied;
         }
 
         if (symbol.IsOpen)
         {
-            if (Name is null) return Result.DoesNotApply;
             if (Datatype is null && Initializer is null) return Result.DoesNotApply;
             return Result.Descended;
         }

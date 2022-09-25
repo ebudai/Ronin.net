@@ -25,9 +25,12 @@ public class Symbol
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "separator")]
@@ -53,9 +56,12 @@ public class Symbol
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "open brace")]
@@ -80,10 +86,13 @@ public class Symbol
         Assert.False(symbol.IsCloseSquareBracket);        
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.True(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "open parenthesis")]
@@ -108,10 +117,13 @@ public class Symbol
         Assert.False(symbol.IsCloseSquareBracket);
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.True(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "open square bracket")]
@@ -136,10 +148,13 @@ public class Symbol
         Assert.False(symbol.IsCloseSquareBracket);
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
+        Assert.True(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "close brace")]
@@ -164,10 +179,13 @@ public class Symbol
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.True(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "close parenthesis")]
@@ -192,10 +210,13 @@ public class Symbol
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.True(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "close square bracket")]
@@ -220,10 +241,13 @@ public class Symbol
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.True(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "single quote")]
@@ -247,10 +271,13 @@ public class Symbol
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "double quote")]
@@ -276,9 +303,12 @@ public class Symbol
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
         Assert.False(symbol.IsReturns);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
+        Assert.False(symbol.IsAssign);
     }
 
     [Fact(DisplayName = "returns")]
@@ -304,14 +334,42 @@ public class Symbol
         Assert.False(symbol.IsOpenBrace);
         Assert.False(symbol.IsOpenParenthesis);
         Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
         Assert.False(symbol.IsSeparator);
         Assert.False(symbol.IsTerminal);
         Assert.False(symbol.IsTextDelimiter);
+        Assert.False(symbol.IsAssign);
     }
 
-    [Fact(DisplayName = "open")]
-    public void Open()
+    [Fact(DisplayName = "assign")]
+    public void Assign()
     {
+        const string sourcecode = "=";
 
+        Ronin.Compiler.Lexer lexer = new(sourcecode);
+        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
+        var lexed = Ronin.Token.Symbol.Lex(lexer);
+
+        Assert.NotNull(lexed);
+        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
+
+        Assert.IsType<Ronin.Token.Symbol>(lexed);
+        var symbol = lexed as Ronin.Token.Symbol;
+
+        Assert.False(symbol.IsReturns);
+        Assert.False(symbol.IsCharacterDelimiter);
+        Assert.False(symbol.IsCloseBrace);
+        Assert.False(symbol.IsCloseParenthesis);
+        Assert.False(symbol.IsCloseSquareBracket);
+        Assert.False(symbol.IsOpenBrace);
+        Assert.False(symbol.IsOpenParenthesis);
+        Assert.False(symbol.IsOpenSquareBracket);
+        Assert.False(symbol.IsOpen);
+        Assert.False(symbol.IsClose);
+        Assert.False(symbol.IsSeparator);
+        Assert.False(symbol.IsTerminal);
+        Assert.False(symbol.IsTextDelimiter);
+        Assert.True(symbol.IsAssign);
     }
 }
