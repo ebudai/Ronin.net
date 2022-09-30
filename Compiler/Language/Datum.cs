@@ -1,10 +1,11 @@
-﻿using Ronin.Token;
+﻿using Ronin.Grammar;
+using Ronin.Token;
 
 using static Ronin.Token.Keyword.Word;
 
-namespace Ronin.Grammar;
+namespace Ronin.Language;
 
-internal class Datum : Syntax
+/*internal class Datum : Syntax
 {
     internal bool IsReadonly { get; set; }
     internal bool IsReactive { get; set; }
@@ -17,59 +18,56 @@ internal class Datum : Syntax
     internal Datatype Datatype { get; set; }
     internal Function Initializer { get; set; }
 
-    private bool NotNamed => Datatype is null && Initializer is null;
+    private bool NotTyped => Datatype is null && Initializer is null;
 
     internal override Result Add(Keyword keyword)
     {
         if (Name is null)
         {
-            if (keyword.Type is var or constant)
+            switch (keyword.Type)
             {
-                Name = string.Empty;
-                IsReadonly = keyword.Type is constant;
-            }
-            else if (keyword.Type is shared)
-            {
-                if (IsShared) Name = nameof(shared);
-                else IsShared = true;
-            }
-            else if (keyword.Type is reactive)
-            {
-                if (IsReactive) Name = nameof(reactive);
-                else IsReactive = true;
-            }
-            else if (keyword.Type is compiled)
-            {
-                if (IsCompiled) Name = nameof(compiled);
-                else IsCompiled = true;
-            }
-            else if (keyword.Type is persistent)
-            {
-                if (IsPersistent) Name = nameof(persistent);
-                else IsPersistent = true;
-            }
-            else if (keyword.Type is optional)
-            {
-                if (IsOptional) Name = nameof(optional);
-                else IsOptional = true;
-            }
-            else
-            {
-                Name = Enum.GetName(keyword.Type);
+                case var:
+                case constant:
+                    Name = string.Empty;
+                    IsReadonly = keyword.Type is constant;
+                    break;
+                case shared:
+                    if (IsShared) Name = nameof(shared);
+                    else IsShared = true;
+                    break;
+                case reactive:
+                    if (IsReactive) Name = nameof(reactive);
+                    else IsReactive = true;
+                    break;
+                case compiled:
+                    if (IsCompiled) Name = nameof(compiled);
+                    else IsCompiled = true;
+                    break;
+                case persistent:
+                    if (IsPersistent) Name = nameof(persistent);
+                    else IsPersistent = true;
+                    break;
+                case optional:
+                    if (IsOptional) Name = nameof(optional);
+                    else IsOptional = true;
+                    break;
+                default:
+                    Name = Enum.GetName(keyword.Type);
+                    break;
             }
         }
-        else if (NotNamed)
+        else if (NotTyped)
         {
             if (Name.Length is not 0) Name += ' ';
             Name += keyword.Sourcecode.ToString();
         }
         else if (Initializer is null)
         {
-            return Datatype.Name.Add(keyword);
+            return Datatype.Add(keyword);
         }
         else
         {
-            return Initializer.Name.Add(keyword);
+            return Initializer.Add(keyword);
         }
         Incorporate(keyword);
         return Result.Applied;
@@ -81,18 +79,18 @@ internal class Datum : Syntax
         {
             Name = name.Sourcecode.ToString();
         }
-        else if (NotNamed)
+        else if (NotTyped)
         {
             if (Name.Length is not 0) Name += ' ';
             Name += name.Sourcecode.ToString();
         }
         else if (Initializer is null)
         {
-            return Datatype.Name.Add(name);
+            return Datatype.Add(name);
         }
         else
         {
-            return Initializer.Name.Add(name);
+            return Initializer.Add(name);
         }
         Incorporate(name);
         return Result.Applied;
@@ -118,7 +116,7 @@ internal class Datum : Syntax
                 return Result.Applied;
             }
             
-            return Initializer?.Name.Add(symbol) ?? Datatype.Add(symbol);            
+            return Datatype.Add(symbol);
         }
 
         if (symbol.IsAssign)
@@ -132,12 +130,12 @@ internal class Datum : Syntax
         if (symbol.IsOpen)
         {
             if (Datatype is null && Initializer is null) return Result.DoesNotApply;
-            return Result.Descended;
+            return Result.Completed;
         }
 
         return Result.DoesNotApply;
     }
-}
+}*/
 
 /*
 

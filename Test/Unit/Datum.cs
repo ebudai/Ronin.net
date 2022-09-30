@@ -2,7 +2,7 @@
 
 namespace Unit;
 
-public class Datum
+/*public class Datum
 {
     [Fact(DisplayName = "typed")]
     public void Typed()
@@ -11,7 +11,7 @@ public class Datum
 
         Ronin.Compiler.Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
+        Ronin.Language.Datum datum = new();
         
         while (tokens.TryDequeue(out var token))
         {
@@ -150,7 +150,7 @@ public class Datum
 
         Ronin.Compiler.Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
+        Ronin.Language.Datum datum = new();
         while (tokens.TryDequeue(out var token)) datum.Add(token);
         Assert.Equal("import", datum.Name);
     }
@@ -168,7 +168,7 @@ public class Datum
     {
         const string declaration = "var x => import shared things;";
         var datum = Compile(declaration);
-        Assert.Equal("import shared things", string.Join(' ', datum.Datatype.Name.Name.Values));
+        Assert.Equal("import shared things", datum.Datatype.Name);
     }
 
     [Fact(DisplayName = "initialized")]
@@ -176,7 +176,7 @@ public class Datum
     {
         const string declaration = "var x = things;";
         var datum = Compile(declaration);
-        Assert.Equal("things", string.Join(' ', datum.Initializer.Name.Name.Values));
+        Assert.Equal("things", datum.Initializer.Name);
     }
 
     [Fact(DisplayName = "explicit initializer is keywords")]
@@ -184,7 +184,7 @@ public class Datum
     {
         const string declaration = "var x => integer = import;";
         var datum = Compile(declaration);
-        Assert.Equal("import", string.Join(' ', datum.Initializer.Name.Name.Values));
+        Assert.Equal("import", datum.Initializer.Name);
     }
 
     [Fact(DisplayName = "implicit initializer is keywords")]
@@ -192,15 +192,31 @@ public class Datum
     {
         const string declaration = "var x = import;";
         var datum = Compile(declaration);
-        Assert.Equal("import", string.Join(' ', datum.Initializer.Name.Name.Values));
+        Assert.Equal("import", datum.Initializer.Name);
     }
 
-    private static Ronin.Grammar.Datum Compile(string declaration)
+    [Fact(DisplayName = "typed and initialized")]
+    public void TypedAndInitialized()
+    {
+        const string declaration = "var thing => integer = 2;";
+        var datum = Compile(declaration);
+        Assert.Equal("thing", datum.Name);
+        Assert.Equal("integer", datum.Datatype.Name);
+        //TODO: Assert.Equal("2", datum.Initializer.Value);
+    }
+
+    [Fact(DisplayName = "lambda")]
+    public void Lambda()
+    {
+
+    }
+
+    private static Ronin.Language.Datum Compile(string declaration)
     {
         Ronin.Compiler.Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Ronin.Grammar.Datum datum = new();
+        Ronin.Language.Datum datum = new();
         while (tokens.TryDequeue(out var token)) datum.Add(token);
         return datum;
     }
-}
+}*/

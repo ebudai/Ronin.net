@@ -2,20 +2,22 @@
 
 namespace Ronin.Token;
 
-internal abstract class Token
+internal abstract class Lexeme
 {
     internal int Line { get; set; }
     internal int Column { get; set; }
     internal int Length { get; set; }
 
+    public override string ToString() => Sourcecode.ToString();
+
     protected internal ReadOnlyMemory<char> Sourcecode { get; }
 
-    protected internal Token(Lexer lexer, int length)
+    protected internal Lexeme(Lexer lexer, int length)
     {
         Line = lexer.Line;
         Column = GetColumn(lexer);
         Length = length;
-        Sourcecode = lexer[..length].ToArray();        
+        Sourcecode = lexer[..length].ToArray();
         lexer.Cursor += length;
     }
 

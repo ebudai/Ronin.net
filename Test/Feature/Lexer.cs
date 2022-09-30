@@ -35,7 +35,7 @@ public class Lexer
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
 
-        List<Token> expected = new()
+        List<Lexeme> expected = new()
         {
             // datatype Weather
             Keyword(datatype),

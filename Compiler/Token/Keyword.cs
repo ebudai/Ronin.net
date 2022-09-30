@@ -2,13 +2,13 @@
 
 namespace Ronin.Token;
 
-internal class Keyword : Token
+internal class Keyword : Lexeme
 {
     internal Keyword(Lexer lexer, int length) : base(lexer, length) { }
 
     internal Word Type { get; set; }
 
-    internal static Token Lex(Lexer lexer)
+    internal static Lexeme Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
         

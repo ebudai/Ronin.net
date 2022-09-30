@@ -2,11 +2,11 @@
 
 namespace Ronin.Token;
 
-internal class Name : Token
+internal class Name : Lexeme
 {
     internal Name(Lexer lexer, int length) : base(lexer, length) { }
 
-    internal static Token Lex(Lexer lexer)
+    internal static Name Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
 

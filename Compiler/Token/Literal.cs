@@ -1,16 +1,15 @@
 ﻿using Ronin.Compiler;
-
 using static Ronin.Token.Literal.Kind;
 
 namespace Ronin.Token;
 
-internal class Literal : Token
+internal class Literal : Lexeme
 {
     internal Literal(Lexer lexer, int length, Kind kind) : base(lexer, length) => LiteralKind = kind;
 
     internal Kind LiteralKind { get; }
 
-    public static Token Lex(Lexer lexer)
+    internal static Lexeme Lex(Lexer lexer)
         => LexBinaryLiteral(lexer)
         ?? LexCharacterLiteral(lexer)
         ?? LexDateLiteral(lexer)
@@ -36,7 +35,7 @@ internal class Literal : Token
         url
     }
 
-    private static Token LexBinaryLiteral(Lexer lexer)
+    private static Lexeme LexBinaryLiteral(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
         if (lexer[0] is not '0' || lexer[1] is not 'b' and not 'B') return null;
@@ -52,7 +51,7 @@ internal class Literal : Token
                 continue;
             }
 
-            if (char.IsWhiteSpace(lexer[i]) || Symbol.IsSymbol(lexer, i) || lexer[i] is '.')
+            if (char.IsWhiteSpace(lexer[i]) || Symbol.IsSymbol(lexer, i) || lexer[i] is Symbol.terminal)
             {
                 length = i;
                 break;
@@ -64,7 +63,7 @@ internal class Literal : Token
         return new Literal(lexer, length, binary);
     }
 
-    private static Token LexCharacterLiteral(Lexer lexer)
+    private static Lexeme LexCharacterLiteral(Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not '\'') return null;
 
@@ -110,7 +109,7 @@ internal class Literal : Token
         return new Literal(lexer, 10, date);
     }
 
-    private static Token LexHexLiteral(Lexer lexer)
+    private static Lexeme LexHexLiteral(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
         if (lexer[0] is not '0' || lexer[1] is not 'x' and not 'X') return null;
@@ -136,7 +135,7 @@ internal class Literal : Token
         return new Literal(lexer, length, hex);
     }
 
-    private static Token LexIntegerLiteral(Lexer lexer)
+    private static Lexeme LexIntegerLiteral(Lexer lexer)
     {
         if (lexer.IsEmpty || !char.IsNumber(lexer[0])) return null;
 
@@ -159,7 +158,7 @@ internal class Literal : Token
         return new Literal(lexer, length, integer);
     }
 
-    private static Token LexMoneyLiteral(Lexer lexer)
+    private static Lexeme LexMoneyLiteral(Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not '$') return null;
 
@@ -193,7 +192,7 @@ internal class Literal : Token
         return new Literal(lexer, length, money);
     }
 
-    private static Token LexNumberLiteral(Lexer lexer)
+    private static Lexeme LexNumberLiteral(Lexer lexer)
     {
         if (lexer.IsEmpty || !char.IsNumber(lexer[0])) return null;
 
@@ -226,7 +225,7 @@ internal class Literal : Token
         return new Literal(lexer, length, number);
     }
 
-    private static Token LexTextLiteral(Lexer lexer)
+    private static Lexeme LexTextLiteral(Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not '"') return null;
 
@@ -327,7 +326,7 @@ internal class Literal : Token
         ? null
         : new Literal(lexer, 8, time);
 
-    private static Token LexUrlLiteral(Lexer lexer)
+    private static Literal LexUrlLiteral(Lexer lexer)
     {
         if (lexer.Length is < 5) return null;
 

@@ -2,15 +2,15 @@
 
 namespace Ronin.Token;
 
-internal class Comment : Token
+internal class Comment : Lexeme
 {
     internal Comment(Lexer lexer, int length) : base(lexer, length) { }
 
-    internal static Token Lex(Lexer lexer)
+    internal static Lexeme Lex(Lexer lexer)
     {
         if (lexer.StartsWith("//"))
         {
-            var linelength = lexer.IndexOfAny(Environment.NewLine.ToCharArray());
+            var linelength = lexer.Span.IndexOfAny(Environment.NewLine.ToCharArray());
             if (linelength is < 0) linelength = lexer.Length;
             return new Comment(lexer, linelength);
         }

@@ -2,8 +2,12 @@
 
 namespace Ronin.Token;
 
-internal class Symbol : Token
+internal class Symbol : Lexeme
 {
+    internal const char separator = ',';
+    internal const char terminal = ';';
+    internal const char hierarchy = '/';
+
     internal Symbol(Lexer lexer, int length) : base(lexer, length) { }
 
     internal bool IsOpenBrace => Sourcecode.Span[0] is '{';
@@ -13,7 +17,7 @@ internal class Symbol : Token
     internal bool IsOpenParenthesis => Sourcecode.Span[0] is '(';
     internal bool IsCloseParenthesis => Sourcecode.Span[0] is ')';
     internal bool IsSeparator => Sourcecode.Span[0] is ',';
-    internal bool IsTerminal => Sourcecode.Span[0] is ';';
+    internal bool IsTerminal => Sourcecode.Span[0] is terminal;
     internal bool IsCharacterDelimiter => Sourcecode.Span[0] is '\'';
     internal bool IsTextDelimiter => Sourcecode.Span[0] is '"';
     internal bool IsReturns => Sourcecode.Span[0] is '=' && Sourcecode.Span.Length is >= 2 && Sourcecode.Span[1] is '>';
@@ -22,7 +26,7 @@ internal class Symbol : Token
     internal bool IsOpen => IsOpenBrace || IsOpenParenthesis || IsOpenSquareBracket;
     internal bool IsClose => IsCloseBrace || IsCloseParenthesis || IsCloseSquareBracket;
 
-    internal static Token Lex(Lexer lexer)
+    internal static Symbol Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
         for (int i = 0, max = _symbols.Length; i != max; ++i)

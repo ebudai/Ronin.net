@@ -1,4 +1,4 @@
-﻿using Ronin.Grammar;
+﻿using Ronin.Compiler;
 
 namespace Unit;
 
@@ -7,25 +7,41 @@ public class Import
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
+        const string line = "import standard/funstuff/websockets;";
+
+        Lexer lexer = new(line);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
+        var partof = syntax[0] as Ronin.Grammar.Import;
+        Assert.NotEmpty(partof.Name);
+        Assert.Equal(3, partof.Name.Length);
+        Assert.Equal("standard", partof.Name[0]);
+        Assert.Equal("funstuff", partof.Name[1]);
+        Assert.Equal("websockets", partof.Name[2]);
+    }
+
+    [Fact(DisplayName = "with spaces")]
+    public void WithSpaces()
+    {
         const string line = "import standard/fun stuff/web sockets;";
 
-        Ronin.Compiler.Lexer lexer = new(line);
+        Lexer lexer = new(line);
         var tokens = lexer.Lex();
-        Ronin.Grammar.Import import = new();
-        while (tokens.TryDequeue(out var token))
-        {
-            var result = import.Add(token);
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
 
-            if (result is Syntax.Result.Completed) break;
-            if (result is not Syntax.Result.Applied) throw new Exception(Enum.GetName(result));
-        }
-
-        Assert.Empty(tokens);
-        var hierarchy = import.Name.Hierarchy;
-        Assert.Equal(3, hierarchy.Length);
-        Assert.Equal("standard", hierarchy[0]);
-        Assert.Equal("fun stuff", hierarchy[1]);
-        Assert.Equal("web sockets", hierarchy[2]);
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
+        var partof = syntax[0] as Ronin.Grammar.Import;
+        Assert.NotEmpty(partof.Name);
+        Assert.Equal(3, partof.Name.Length);
+        Assert.Equal("standard", partof.Name[0]);
+        Assert.Equal("fun stuff", partof.Name[1]);
+        Assert.Equal("web sockets", partof.Name[2]);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -33,42 +49,41 @@ public class Import
     {
         const string line = "import return to whatever/secret/stuff;";
 
-        Ronin.Compiler.Lexer lexer = new(line);
+        Lexer lexer = new(line);
         var tokens = lexer.Lex();
-        Ronin.Grammar.Import import = new();
-        while (tokens.TryDequeue(out var token))
-        {
-            var result = import.Add(token);
 
-            if (result is Syntax.Result.Completed) break;
-            if (result is not Syntax.Result.Applied) throw new Exception(Enum.GetName(result));
-        }
+        // ensure hierarchy starts with a keyword
+        Assert.True(tokens.Length is > 2);
+        Assert.IsType<Ronin.Token.Keyword>(tokens[2]);
 
-        Assert.Empty(tokens);
-        var hierarchy = import.Name.Hierarchy;
-        Assert.Equal(3, hierarchy.Length);
-        Assert.Equal("return to whatever", hierarchy[0]);
-        Assert.Equal("secret", hierarchy[1]);
-        Assert.Equal("stuff", hierarchy[2]);
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
+        var partof = syntax[0] as Ronin.Grammar.Import;
+        Assert.NotEmpty(partof.Name);
+        Assert.Equal(3, partof.Name.Length);
+        Assert.Equal("return to whatever", partof.Name[0]);
+        Assert.Equal("secret", partof.Name[1]);
+        Assert.Equal("stuff", partof.Name[2]);
     }
 
-    [Fact(DisplayName = "uses url")]
-    public void Url()
+    [Fact(DisplayName = "transpile")]
+    public void Transpile()
     {
-        const string line = "import git://github.com/ebudai/ronin.git;";
+        const string line = "import standard/funstuff/websockets;";
 
-        Ronin.Compiler.Lexer lexer = new(line);
+        Lexer lexer = new(line);
         var tokens = lexer.Lex();
-        Ronin.Grammar.Import import = new();
-        while (tokens.TryDequeue(out var token))
-        {
-            var result = import.Add(token);
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
 
-            if (result is Syntax.Result.Completed) break;
-            if (result is not Syntax.Result.Applied) throw new Exception(Enum.GetName(result));
-        }
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
+        var partof = syntax[0] as Ronin.Grammar.Import;
 
-        Assert.Empty(tokens);
-        Assert.Equal("git://github.com/ebudai/ronin.git", import.Url.Sourcecode.ToString());
+        var transpiled = partof.Transpile();
+        Assert.Empty(transpiled);
     }
 }

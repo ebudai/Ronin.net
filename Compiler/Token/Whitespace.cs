@@ -2,11 +2,11 @@
 
 namespace Ronin.Token;
 
-internal class Whitespace : Token
+internal class Whitespace : Lexeme
 {
     internal Whitespace(Lexer lexer, int length) : base(lexer, length) { }
 
-    internal static Token Lex(Lexer lexer)
+    internal static Whitespace Lex(Lexer lexer)
     {
         var length = 0;
         while (length < lexer.Length && char.IsWhiteSpace(lexer[length]))

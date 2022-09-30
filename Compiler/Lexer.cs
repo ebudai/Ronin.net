@@ -21,11 +21,10 @@ internal class Lexer
     internal ReadOnlyMemory<char> this[Range range] => Sourcecode[Cursor..][range];
     
     internal bool StartsWith(string text) => Span.StartsWith(text);
-    internal int IndexOfAny(char[] characters) => Span.IndexOfAny(characters);
 
-    internal Queue<Token.Token> Lex()
+    internal Lexeme[] Lex()
     {
-        Queue<Token.Token> tokens = new();
+        List<Lexeme> tokens = new();
 
         while (Cursor < Sourcecode.Length)
         {
@@ -35,9 +34,9 @@ internal class Lexer
                 ?? Symbol.Lex(this)
                 ?? Keyword.Lex(this)
                 ?? Name.Lex(this);
-            tokens.Enqueue(token);
+            tokens.Add(token);
         }
 
-        return tokens;
+        return tokens.ToArray();
     }
 }

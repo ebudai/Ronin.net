@@ -2,18 +2,18 @@
 
 namespace Ronin.Token;
 
-internal class Error : Token
+internal class Error : Lexeme
 {
     internal Error(Lexer lexer, int length, string message = "unparsable token") : base(lexer, length) => Message = message;
 
     internal string Message { get; }
 
-    internal static Token Lex(Lexer lexer)
+    internal static Error Lex(Lexer lexer)
     {
         var length = 0;
         while (length < lexer.Length
             && !char.IsWhiteSpace(lexer[length])
-            && lexer[length] is not '(' and not '[' and not '{' and not '}' and not ']' and not ')' and not ';' and not ',' and not '"' and not '\'') ++length;
+            && lexer[length] is not '(' and not '[' and not '{' and not '}' and not ']' and not ')' and not Symbol.terminal and not Symbol.separator and not '"' and not '\'') ++length;
 
         return new Error(lexer, length);
     }
