@@ -7,6 +7,23 @@ public class PartOf
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
+        const string line = "part of standard;";
+
+        Lexer lexer = new(line);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.PartOf>(syntax[0]);
+        var partof = syntax[0] as Ronin.Grammar.PartOf;
+        Assert.NotEmpty(partof.Name);
+        Assert.Equal("standard", partof.Name[0]);
+    }
+
+    [Fact(DisplayName = "with some hierarchy")]
+    public void Hierarchy()
+    {
         const string line = "part of standard/funstuff/websockets;";
 
         Lexer lexer = new(line);

@@ -26,7 +26,8 @@ internal class Parser
         while (Cursor < Tokens.Length)
         {
             Syntax statement = PartOf.Parse(this)
-                ?? Import.Parse(this);
+                ?? Import.Parse(this)
+                ?? throw new Exception($"unknown syntax at {this[0].Line}:{this[0].Column}");
             statements.Add(statement);
         }
 

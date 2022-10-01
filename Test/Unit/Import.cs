@@ -7,6 +7,23 @@ public class Import
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
+        const string line = "import standard;";
+
+        Lexer lexer = new(line);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
+        var import = syntax[0] as Ronin.Grammar.Import;
+        Assert.NotEmpty(import.Name);
+        Assert.Equal("standard", import.Name[0]);
+    }
+
+    [Fact(DisplayName = "with some hierarchy")]
+    public void Hierarchy()
+    {
         const string line = "import standard/funstuff/websockets;";
 
         Lexer lexer = new(line);
