@@ -2,9 +2,9 @@
 
 namespace Ronin.Compiler;
 
-internal class Lexer
+public class Lexer
 {
-    internal Lexer(string sourcecode)
+    public Lexer(string sourcecode)
     {
         Sourcecode = sourcecode.AsMemory();
     }
@@ -22,7 +22,7 @@ internal class Lexer
     
     internal bool StartsWith(string text) => Span.StartsWith(text);
 
-    internal Lexeme[] Lex()
+    public Lexeme[] Lex()
     {
         List<Lexeme> tokens = new();
 

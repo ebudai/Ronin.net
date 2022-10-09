@@ -2,7 +2,7 @@
 
 namespace Ronin.Token;
 
-internal abstract class Lexeme
+public abstract class Lexeme
 {
     internal int Line { get; set; }
     internal int Column { get; set; }

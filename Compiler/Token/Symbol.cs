@@ -7,6 +7,8 @@ internal class Symbol : Lexeme
     internal const char separator = ',';
     internal const char terminal = ';';
     internal const char hierarchy = '/';
+    internal const char assign = '=';
+    internal const string returns = "=>";
 
     internal Symbol(Lexer lexer, int length) : base(lexer, length) { }
 
@@ -16,12 +18,12 @@ internal class Symbol : Lexeme
     internal bool IsCloseSquareBracket => Sourcecode.Span[0] is ']';
     internal bool IsOpenParenthesis => Sourcecode.Span[0] is '(';
     internal bool IsCloseParenthesis => Sourcecode.Span[0] is ')';
-    internal bool IsSeparator => Sourcecode.Span[0] is ',';
+    internal bool IsSeparator => Sourcecode.Span[0] is separator;
     internal bool IsTerminal => Sourcecode.Span[0] is terminal;
     internal bool IsCharacterDelimiter => Sourcecode.Span[0] is '\'';
     internal bool IsTextDelimiter => Sourcecode.Span[0] is '"';
-    internal bool IsReturns => Sourcecode.Span[0] is '=' && Sourcecode.Span.Length is >= 2 && Sourcecode.Span[1] is '>';
-    internal bool IsAssign => Sourcecode.Span[0] is '=' && (Sourcecode.Span.Length is not >= 2 || Sourcecode.Span[1] is not '>');
+    internal bool IsReturns => Sourcecode.Span[0] is assign && Sourcecode.Span.Length is >= 2 && Sourcecode.Span[1] is '>';
+    internal bool IsAssign => Sourcecode.Span[0] is assign && (Sourcecode.Span.Length is not >= 2 || Sourcecode.Span[1] is not '>');
 
     internal bool IsOpen => IsOpenBrace || IsOpenParenthesis || IsOpenSquareBracket;
     internal bool IsClose => IsCloseBrace || IsCloseParenthesis || IsCloseSquareBracket;

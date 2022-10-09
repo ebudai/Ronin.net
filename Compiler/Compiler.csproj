@@ -16,5 +16,10 @@
       <_Parameter1>Ronin.Test</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OneOf" Version="3.0.223" />
+    <PackageReference Include="OneOf.SourceGenerator" Version="3.0.223" />
+  </ItemGroup>
   
 </Project>
