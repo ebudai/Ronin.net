@@ -51,7 +51,7 @@ internal class Literal : Lexeme
                 continue;
             }
 
-            if (char.IsWhiteSpace(lexer[i]) || Symbol.IsSymbol(lexer, i) || lexer[i] is Symbol.terminal)
+            if (char.IsWhiteSpace(lexer[i]) || Symbol.IsSymbol(lexer, i)/* || lexer[i] is Symbol.terminal*/)
             {
                 length = i;
                 break;

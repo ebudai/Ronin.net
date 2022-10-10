@@ -1,16 +1,53 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token.Delimiter;
 
 namespace Ronin.Token;
 
 internal class Symbol : Lexeme
 {
-    internal const char separator = ',';
+    internal const char hierarchy = '/';
+
+    internal Symbol(Lexer lexer, int length) : base(lexer, length) { }
+
+    internal static bool IsSymbol(Lexer lexer, int i = 0)
+    {
+        var text = lexer[i..].Span;
+        if (text.IsEmpty) return false;
+        return text.StartsWith(Returns.character)
+            || text[0] is Assign.character
+            or CharacterDelimiter.character
+            or CloseBrace.character
+            or CloseParenthesis.character
+            or CloseSquareBracket.character
+            or OpenBrace.character
+            or OpenParenthesis.character
+            or OpenSquareBracket.character
+            or Separator.character
+            or Terminal.character
+            or TextDelimiter.character;
+    }
+
+    internal static Symbol Lex(Lexer lexer)
+        => Returns.Lex(lexer)
+        ?? CharacterDelimiter.Lex(lexer)
+        ?? CloseBrace.Lex(lexer)
+        ?? CloseParenthesis.Lex(lexer)
+        ?? CloseSquareBracket.Lex(lexer)
+        ?? OpenBrace.Lex(lexer)
+        ?? OpenParenthesis.Lex(lexer)
+        ?? OpenSquareBracket.Lex(lexer)
+        ?? Assign.Lex(lexer)
+        ?? Separator.Lex(lexer)
+        ?? Terminal.Lex(lexer)
+        ?? TextDelimiter.Lex(lexer) as Symbol;
+
+    /*internal const char separator = ',';
     internal const char terminal = ';';
     internal const char hierarchy = '/';
     internal const char assign = '=';
     internal const string returns = "=>";
 
-    internal Symbol(Lexer lexer, int length) : base(lexer, length) { }
+    
 
     internal bool IsOpenBrace => Sourcecode.Span[0] is '{';
     internal bool IsCloseBrace => Sourcecode.Span[0] is '}';
@@ -37,9 +74,9 @@ internal class Symbol : Lexeme
             if (lexer.StartsWith(symbol)) return new Symbol(lexer, symbol.Length);
         }
         return null;
-    }
+    }*/
 
-    internal static bool IsSymbol(Lexer lexer, int i = 0) => _symbols.Any(symbol => lexer[i..].Span.StartsWith(symbol));    
+    //internal static bool IsSymbol(Lexer lexer, int i = 0) => _symbols.Any(symbol => lexer[i..].Span.StartsWith(symbol));    
 
-    private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";", "'", "\"", "=>", "=" };
+    //private static readonly string[] _symbols = { "(", "[", "{", "}", "]", ")", ",", ";", "'", "\"", "=>", "=" };
 }

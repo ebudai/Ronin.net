@@ -13,7 +13,7 @@ internal class Error : Lexeme
         var length = 0;
         while (length < lexer.Length
             && !char.IsWhiteSpace(lexer[length])
-            && lexer[length] is not '(' and not '[' and not '{' and not '}' and not ']' and not ')' and not Symbol.terminal and not Symbol.separator and not '"' and not '\'') ++length;
+            && Symbol.IsSymbol(lexer, length)) ++length;
 
         return new Error(lexer, length);
     }

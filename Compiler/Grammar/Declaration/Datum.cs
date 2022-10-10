@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
+using Ronin.Token.Delimiter;
 using static Ronin.Token.Keyword.Word;
 
 namespace Ronin.Grammar.Declaration;
@@ -36,7 +37,7 @@ internal class Datum : Syntax, IParsable//<Datum>
         // ingest keywords
         for (; length != max && identifier is null; ++length)
         {
-            if (parser[length] is Whitespace) continue;
+            if (parser[length] is Whitespace or Comment) continue;
             if (parser[length] is not Keyword keyword)
             {
                 identifier ??= string.Empty;
@@ -68,17 +69,17 @@ internal class Datum : Syntax, IParsable//<Datum>
         {
             if (parser[length] is Symbol symbol)
             {
-                if (symbol.IsTerminal) break;
-                if (!symbol.IsReturns && !symbol.IsAssign)
+                if (symbol is Terminal) break;
+                if (symbol is not Returns and not Assign)
                 {
-                    return new Expected<Name, Keyword>(parser, Symbol.terminal.ToString(), Symbol.assign.ToString(), Symbol.returns);
+                    return new Expected<Name, Keyword>(parser, Terminal.character.ToString(), Assign.character.ToString(), Returns.character);
                 }
                 Parser attempt = new(parser, length + 1);
                 var syntax = Reference.Parse(ref attempt);
                 if (syntax is Reference reference)
                 {
-                    if (symbol.IsReturns) datatype = reference;
-                    else if (symbol.IsAssign) initializer = reference;
+                    if (symbol is Returns) datatype = reference;
+                    else if (symbol is Assign) initializer = reference;
                     length = attempt.Cursor - 1;
                 }
                 else
@@ -98,11 +99,11 @@ internal class Datum : Syntax, IParsable//<Datum>
             }
             else if (parser[length] is Literal)
             {
-                return new Expected<Name, Keyword>(parser, Symbol.terminal.ToString(), Symbol.assign.ToString(), Symbol.returns);
+                return new Expected<Name, Keyword>(parser, Terminal.character.ToString(), Assign.character.ToString(), Returns.character);
             }
         }
 
-        return new Datum(parser, length)
+        return datatype is null && initializer is null ? null : new Datum(parser, length)
         {
             Datatype = datatype, 
             Identifier = identifier,

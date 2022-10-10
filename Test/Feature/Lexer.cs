@@ -1,4 +1,5 @@
 ﻿using Ronin.Token;
+using Ronin.Token.Delimiter;
 using System.Diagnostics;
 
 using static Ronin.Token.Keyword.Word;
@@ -44,7 +45,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length),
 
             // {
-            Symbol("{"),
+            new OpenBrace(lexer),
             Whitespace(Environment.NewLine.Length + 4),
             
             // var data = 0b01101010010;
@@ -52,10 +53,10 @@ public class Lexer
             Whitespace(),
             Name("data"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "0b01101010010".Length, binary),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // constant sigil = 'c';
@@ -63,10 +64,10 @@ public class Lexer
             Whitespace(),
             Name("sigil"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "'c'".Length, character),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // reactive asian sigil = '\u26fc';
@@ -76,10 +77,10 @@ public class Lexer
             Whitespace(),
             Name("sigil"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "'\\u26fc'".Length, character),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // persistent birthday = 1976-01-23;
@@ -87,10 +88,10 @@ public class Lexer
             Whitespace(),
             Name("birthday"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "1976-01-23".Length, date),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // shared hex = 0x2c;
@@ -98,10 +99,10 @@ public class Lexer
             Whitespace(),
             Name("hex"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "0x2c".Length, hex),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // compiled dogs count = 7;
@@ -111,10 +112,10 @@ public class Lexer
             Whitespace(),
             Name("count"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "7".Length, integer),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // var cash = $14.20;
@@ -122,10 +123,10 @@ public class Lexer
             Whitespace(),
             Name("cash"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "$14.20".Length, money),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // var when = 17:24:24;
@@ -133,10 +134,10 @@ public class Lexer
             Whitespace(),
             Name("when"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "17:24:24".Length, time),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // var googles address = https://google.com;
@@ -146,14 +147,14 @@ public class Lexer
             Whitespace(),
             Name("address"),
             Whitespace(),
-            Symbol("="),
+            new Assign(lexer),
             Whitespace(),
             new Literal(lexer, "https://google.com".Length, url),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length),
 
             // }
-            Symbol("}"),
+            new CloseBrace(lexer),
             Whitespace(Environment.NewLine.Length * 2),
 
             // function run (list of stuff is integer[], things is number) away
@@ -161,32 +162,32 @@ public class Lexer
             Whitespace(),
             Name("run"),
             Whitespace(),
-            Symbol("("),
+            new OpenParenthesis(lexer),
             Name("list"),
             Whitespace(),
             Name("of"),
             Whitespace(),
             Name("stuff"),
             Whitespace(),
-            Symbol("=>"),
+            new Returns(lexer),
             Whitespace(),
             Name("integer"),
-            Symbol("["),
-            Symbol("]"),
-            Symbol(","),
+            new OpenSquareBracket(lexer),
+            new CloseSquareBracket(lexer),
+            new Separator(lexer),
             Whitespace(),
             Name("things"),
             Whitespace(),
-            Symbol("=>"),
+            new Returns(lexer),
             Whitespace(),
             Name("number"),
-            Symbol(")"),
+            new CloseParenthesis(lexer),
             Whitespace(),
             Name("away"),
             Whitespace(Environment.NewLine.Length),
 
             // {
-            Symbol("{"),
+            new OpenBrace(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
             // comment: // this assumes the list of stuff has at least one element
@@ -201,9 +202,9 @@ public class Lexer
             Name("of"),
             Whitespace(),
             Name("stuff"),
-            Symbol("["),
+            new OpenSquareBracket(lexer),
             new Literal(lexer, "0".Length, integer),
-            Symbol("]"),
+            new CloseSquareBracket(lexer),
             Whitespace(),
             Name("+"),
             Whitespace(),
@@ -212,11 +213,11 @@ public class Lexer
             Name("*"),
             Whitespace(),
             new Literal(lexer, "7".Length, integer),
-            Symbol(";"),
+            new Terminal(lexer),
             Whitespace(Environment.NewLine.Length),
 
             // }
-            Symbol("}"),
+            new CloseBrace(lexer),
 
             // 7aslk
             new Error(lexer, "7".Length),
@@ -236,7 +237,6 @@ public class Lexer
         
         Name Name(string name) => new(lexer, name.Length);
         Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
-        Symbol Symbol(string symbol) => new(lexer, symbol.Length);
         Keyword Keyword(Keyword.Word word) => new(lexer, Enum.GetName(word).Length);
     }
 }

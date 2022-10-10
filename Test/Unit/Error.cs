@@ -1,53 +1,19 @@
 ﻿namespace Unit;
 
-public class Error
+/*public class Error
 {
-    [Fact(DisplayName = "basic")]
-    public void Basic()
-    {
-        const string error = "4werrwe";
-
-        Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Token.Error.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(error.Length, lexed.Sourcecode.Length);
-    }
-
-    [Fact(DisplayName = "with terminator")]
-    public void WithTerminator()
-    {
-        const string error = "4werrwe;";
-
-        Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Token.Error.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
-    }
-
-    [Fact(DisplayName = "with separator")]
-    public void WithSeparator()
-    {
-        const string error = "4werrwe,";
-
-        Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Token.Error.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
-    }
-
     [Fact(DisplayName = "with opening parenthesis")]
     public void WithOpeningParenthesis()
     {
-        const string error = "4werrwe(";
+        const string sourcecode = "4werrwe(";
 
-        Ronin.Compiler.Lexer lexer = new(error);
-        var lexed = Ronin.Token.Error.Lex(lexer);
+        Ronin.Compiler.Lexer lexer = new(sourcecode);
+        var lexed = lexer.Lex();
 
-        Assert.NotNull(lexed);
-        Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(3, lexed.Length);
+        var error = lexed[^1];
+        Assert.IsType<Ronin.Token.Error>(error);
+        Assert.Equal(sourcecode[..^1].ToArray(), error.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with closing parenthesis")]
@@ -146,3 +112,4 @@ public class Error
         Assert.Equal(error[..^1].ToArray(), lexed.Sourcecode.ToArray());
     }
 }
+*/

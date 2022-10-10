@@ -1,375 +1,54 @@
-﻿namespace Unit;
+﻿using Ronin.Token.Delimiter;
+
+namespace Unit;
 
 public class Symbol
 {
-    [Fact(DisplayName = "terminal")]
-    public void Terminal()
+    private static void LexSymbol<T>(string lexed) where T : Ronin.Token.Symbol
     {
-        const string sourcecode = ";";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
+        Ronin.Compiler.Lexer lexer = new(lexed);
         Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
+        var symbol = Ronin.Token.Symbol.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsTerminal);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
+        Assert.NotNull(symbol);
+        Assert.Equal(lexed.ToArray(), symbol.Sourcecode.ToArray());
+
+        Assert.IsType<T>(symbol);
     }
+
+    [Fact(DisplayName = "terminal")]
+    public void LexTerminal() => LexSymbol<Terminal>(Terminal.character.ToString());
 
     [Fact(DisplayName = "separator")]
-    public void Separator()
-    {
-        const string sourcecode = ",";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsSeparator);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexSeparator() => LexSymbol<Separator>(Separator.character.ToString());
 
     [Fact(DisplayName = "open brace")]
-    public void OpenBrace()
-    {
-        const string sourcecode = "{";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsOpenBrace);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);        
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.True(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexOpenBrace() => LexSymbol<OpenBrace>(OpenBrace.character.ToString());
 
     [Fact(DisplayName = "open parenthesis")]
-    public void OpenParenthesis()
-    {
-        const string sourcecode = "(";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.True(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexOpenParenthesis() => LexSymbol<OpenParenthesis>(OpenParenthesis.character.ToString());
 
     [Fact(DisplayName = "open square bracket")]
-    public void OpenSquareBracket()
-    {
-        const string sourcecode = "[";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.True(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexOpenSquareBracket() => LexSymbol<OpenSquareBracket>(OpenSquareBracket.character.ToString());
 
     [Fact(DisplayName = "close brace")]
-    public void CloseBrace()
-    {
-        const string sourcecode = "}";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCharacterDelimiter);        
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.True(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexCloseBrace() => LexSymbol<CloseBrace>(CloseBrace.character.ToString());
 
     [Fact(DisplayName = "close parenthesis")]
-    public void CloseParenthesis()
-    {
-        const string sourcecode = ")";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.True(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexCloseParenthesis() => LexSymbol<CloseParenthesis>(CloseParenthesis.character.ToString());
 
     [Fact(DisplayName = "close square bracket")]
-    public void CloseSquareBracket()
-    {
-        const string sourcecode = "]";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.True(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexCloseSquareBracket() => LexSymbol<CloseSquareBracket>(CloseSquareBracket.character.ToString());
 
     [Fact(DisplayName = "single quote")]
-    public void SingleQuote()
-    {
-        const string sourcecode = "'";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexSingleQuote() => LexSymbol<CharacterDelimiter>(CharacterDelimiter.character.ToString());
 
     [Fact(DisplayName = "double quote")]
-    public void DoubleQuote()
-    {
-        const string sourcecode = "\"";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexDoubleQuote() => LexSymbol<TextDelimiter>(TextDelimiter.character.ToString());
 
     [Fact(DisplayName = "returns")]
-    public void Returns()
-    {
-        const string sourcecode = "=>";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-        
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-        
-        Assert.True(symbol.IsReturns);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.False(symbol.IsAssign);
-    }
+    public void LexReturns() => LexSymbol<Returns>(Returns.character);
 
     [Fact(DisplayName = "assign")]
-    public void Assign()
-    {
-        const string sourcecode = "=";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(sourcecode.ToArray(), lexed.Sourcecode.ToArray());
-
-        Assert.IsType<Ronin.Token.Symbol>(lexed);
-        var symbol = lexed as Ronin.Token.Symbol;
-
-        Assert.False(symbol.IsReturns);
-        Assert.False(symbol.IsCharacterDelimiter);
-        Assert.False(symbol.IsCloseBrace);
-        Assert.False(symbol.IsCloseParenthesis);
-        Assert.False(symbol.IsCloseSquareBracket);
-        Assert.False(symbol.IsOpenBrace);
-        Assert.False(symbol.IsOpenParenthesis);
-        Assert.False(symbol.IsOpenSquareBracket);
-        Assert.False(symbol.IsOpen);
-        Assert.False(symbol.IsClose);
-        Assert.False(symbol.IsSeparator);
-        Assert.False(symbol.IsTerminal);
-        Assert.False(symbol.IsTextDelimiter);
-        Assert.True(symbol.IsAssign);
-    }
+    public void LexAssign() => LexSymbol<Assign>(Assign.character.ToString());
 }

@@ -1,4 +1,5 @@
-﻿using static Ronin.Token.Keyword.Word;
+﻿using Ronin.Compiler;
+using static Ronin.Token.Keyword.Word;
 
 namespace Unit;
 
@@ -9,14 +10,8 @@ public class Datum
     {
         const string declaration = "var my variable => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsReadonly);
         Assert.Equal("my variable", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -32,14 +27,8 @@ public class Datum
     {
         const string declaration = "reactive x => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsCompiled);
         Assert.False(datum.IsOptional);
         Assert.False(datum.IsPersistent);
@@ -60,14 +49,8 @@ public class Datum
     {
         const string declaration = "compiled x => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.True(datum.IsCompiled);
         Assert.False(datum.IsOptional);
         Assert.False(datum.IsPersistent);
@@ -88,14 +71,8 @@ public class Datum
     {
         const string declaration = "persistent x => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsCompiled);
         Assert.False(datum.IsOptional);
         Assert.True(datum.IsPersistent);
@@ -116,14 +93,8 @@ public class Datum
     {
         const string declaration = "shared x => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsCompiled);
         Assert.False(datum.IsOptional);
         Assert.False(datum.IsPersistent);
@@ -144,14 +115,8 @@ public class Datum
     {
         const string declaration = "optional x => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsCompiled);
         Assert.True(datum.IsOptional);
         Assert.False(datum.IsPersistent);
@@ -172,14 +137,8 @@ public class Datum
     {
         const string declaration = "reactive reactive thing => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.True(datum.IsReactive);
         Assert.Equal($"{nameof(reactive)} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -195,14 +154,8 @@ public class Datum
     {
         const string declaration = "constant constant thing => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.True(datum.IsReadonly);
         Assert.Equal($"{nameof(constant)} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -218,14 +171,8 @@ public class Datum
     {
         const string declaration = "var var thing => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsReadonly);
         Assert.Equal($"{nameof(var)} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -241,14 +188,8 @@ public class Datum
     {
         const string declaration = "compiled compiled thing => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.True(datum.IsCompiled);
         Assert.Equal($"{nameof(compiled)} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -264,14 +205,8 @@ public class Datum
     {
         const string declaration = "persistent persistent thing => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.True(datum.IsPersistent);
         Assert.Equal($"{nameof(persistent)} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -287,14 +222,8 @@ public class Datum
     {
         const string declaration = "optional optional thing => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.True(datum.IsOptional);
         Assert.Equal($"{nameof(optional)} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -310,14 +239,8 @@ public class Datum
     {
         const string declaration = "shared shared thing => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.True(datum.IsShared);
         Assert.Equal($"{nameof(shared)} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -333,14 +256,8 @@ public class Datum
     {
         const string declaration = "shared import => integer;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.True(datum.IsShared);
         Assert.Equal("import", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -356,14 +273,8 @@ public class Datum
     {
         const string declaration = "var shared reactive => money;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsReadonly);
         Assert.Equal($"{nameof(shared)} {nameof(reactive)}", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -379,14 +290,8 @@ public class Datum
     {
         const string declaration = "var x => import shared things;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsReadonly);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Datatype);
@@ -404,14 +309,8 @@ public class Datum
     {
         const string declaration = "var x = things;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsReadonly);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Initializer);
@@ -426,14 +325,8 @@ public class Datum
     {
         const string declaration = "var x => integer = import;";
 
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Compiler.Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var datum = Compile(declaration);
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.False(datum.IsReadonly);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Initializer);
@@ -446,36 +339,56 @@ public class Datum
         Assert.Equal("integer", datum.Datatype.Name[0].AsT0);
     }
 
-    /*[Fact(DisplayName = "implicit initializer is keywords")]
+    [Fact(DisplayName = "implicit initializer is keywords")]
     public void ImplicitInitializerIsKeyword()
     {
         const string declaration = "var x = import;";
+
         var datum = Compile(declaration);
-        Assert.Equal("import", datum.Initializer.Name);
+
+        Assert.False(datum.IsReadonly);
+        Assert.Equal("x", datum.Identifier);
+        Assert.NotNull(datum.Initializer);
+        Assert.NotEmpty(datum.Initializer.Name);
+        Assert.True(datum.Initializer.Name[0].IsT0); // name is a string
+        Assert.Equal($"{nameof(import)}", datum.Initializer.Name[0].AsT0);
+        Assert.Null(datum.Datatype);
     }
 
-    [Fact(DisplayName = "typed and initialized")]
+    [Fact(DisplayName = "typed and initialized via literal")]
     public void TypedAndInitialized()
     {
         const string declaration = "var thing => integer = 2;";
+        
         var datum = Compile(declaration);
-        Assert.Equal("thing", datum.Name);
-        Assert.Equal("integer", datum.Datatype.Name);
-        //TODO: Assert.Equal("2", datum.Initializer.Value);
+        
+        Assert.False(datum.IsReadonly);
+        Assert.Equal("thing", datum.Identifier);
+        Assert.NotNull(datum.Initializer);
+        Assert.NotEmpty(datum.Initializer.Name);
+        Assert.True(datum.Initializer.Name[0].IsT1); // name is a literal
+        Assert.Equal("2", datum.Initializer.Name[0].AsT1.ToString());
+        Assert.NotNull(datum.Datatype);
+        Assert.NotEmpty(datum.Datatype.Name);
+        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
+        Assert.Equal("integer", datum.Datatype.Name[0].AsT0);
     }
 
-    [Fact(DisplayName = "lambda")]
+    /*[Fact(DisplayName = "lambda")]
     public void Lambda()
     {
 
-    }
-
-    private static Ronin.Language.Datum Compile(string declaration)
-    {
-        Ronin.Compiler.Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Ronin.Language.Datum datum = new();
-        while (tokens.TryDequeue(out var token)) datum.Add(token);
-        return datum;
     }*/
+
+    private static Ronin.Grammar.Declaration.Datum Compile(string declaration)
+    {
+        Lexer lexer = new(declaration);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
+        return syntax[0] as Ronin.Grammar.Declaration.Datum;
+    }
 }

@@ -1,5 +1,7 @@
 ﻿using Ronin.Grammar;
+using Ronin.Grammar.Declaration;
 using Ronin.Token;
+using Ronin.Token.Delimiter;
 
 namespace Ronin.Compiler;
 
@@ -33,17 +35,29 @@ public class Parser
         while (Cursor < Tokens.Length)
         {
             if (IsEmpty) break;
-            if (Tokens.Span[Cursor] is Symbol symbol && symbol.IsTerminal) break;
+            if (Tokens.Span[Cursor] is Terminal) break;
 
-            Syntax statement = PartOf.Parse(ref parser)
-                ?? Import.Parse(ref parser)
-                ?? Grammar.Declaration.Datum.Parse(ref parser)
-                ?? Reference.Parse(ref parser);
-            if (statement is null) break;
-            statements.Add(statement);
+            /*var syntax = PartOf.Parse(ref parser);
+            if (syntax is not Expected expected)
+            {
+                statements.Add(syntax);
+                continue;
+            }*/
+
+            if (TryParse<PartOf>(parser, statements)) continue;
+            if (TryParse<Import>(parser, statements)) continue;
+            if (TryParse<Datum>(parser, statements)) continue;
+            if (TryParse<Reference>(parser, statements)) continue;
         }
-
+         
         return statements.ToArray();
+        
+        static bool TryParse<T>(Parser parser, List<Syntax> statements) where T : IParsable
+        {
+            var syntax = T.Parse(ref parser);
+            if (syntax is not null) statements.Add(syntax);
+            return syntax is T;
+        }
     }
 
     internal (string[], int) ParseHierarchy()
@@ -53,9 +67,9 @@ public class Parser
         for (int max = Length; tokensConsumed != max; ++tokensConsumed)
         {
             var lexeme = this[tokensConsumed];
-            if (lexeme is Whitespace) continue;
+            if (lexeme is Whitespace or Comment) continue;
 
-            if (lexeme is Symbol symbol && symbol.IsTerminal) break;
+            if (lexeme is Terminal) break;
 
             string text;
             if (lexeme is Name name) text = name.ToString();
@@ -72,8 +86,8 @@ public class Parser
         return (array, tokensConsumed + 1); // one extra for the terminal
     }
 
-    internal class Exception : System.Exception
+    /*internal class Exception : System.Exception
     {
         internal Exception(string message) : base(message) { }
-    }
+    }*/
 }

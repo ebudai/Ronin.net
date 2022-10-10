@@ -1,9 +1,9 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token;
+using Ronin.Token.Delimiter;
 
-namespace Ronin.Grammar;
+namespace Ronin.Grammar.Aggregate;
 
-internal class Object : Syntax, IParsable//<Object>
+internal class Object : Syntax, IParsable
 {
     internal Reference[] Parameters { get; init; }
 
@@ -13,7 +13,7 @@ internal class Object : Syntax, IParsable//<Object>
     {
         if (parser.IsEmpty) return null;
 
-        if (parser[0] is not Symbol symbol || !symbol.IsOpenParenthesis) return null;
+        if (parser[0] is not OpenParenthesis) return null;
 
         Parser attempt = new(parser, 0);
         var references = parser.Parse();

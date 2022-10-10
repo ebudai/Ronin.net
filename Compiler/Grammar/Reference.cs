@@ -1,10 +1,12 @@
 ﻿using OneOf;
 using Ronin.Compiler;
 using Ronin.Token;
+using Ronin.Token.Delimiter;
+using Object = Ronin.Grammar.Aggregate.Object;
 
 namespace Ronin.Grammar;
 
-internal class Reference : Syntax, IParsable//<Reference>
+internal class Reference : Syntax, IParsable
 {
     internal List<Entity> Name { get; init; } = new();
 
@@ -25,13 +27,13 @@ internal class Reference : Syntax, IParsable//<Reference>
             {
                 entities.Add(keyword.ToString());
             }
-            else if (lexeme is Literal)
+            else if (lexeme is Literal literal)
             {
-                entities.Add(new Value(parser, 1));
+                entities.Add(literal);
             }
             else if (lexeme is Symbol symbol)
             {
-                if (symbol.IsOpenParenthesis)
+                if (symbol is OpenParenthesis)
                 {
                     Parser attempt = new(parser, 0);
                     var syntax = Object.Parse(ref attempt);
@@ -42,15 +44,15 @@ internal class Reference : Syntax, IParsable//<Reference>
                     }
                     continue;
                 }
-                else if (symbol.IsOpenBrace)
+                else if (symbol is OpenBrace)
                 {
                     // start of scope
                 }
-                else if (symbol.IsOpenSquareBracket)
+                else if (symbol is OpenSquareBracket)
                 {
                     // list or lookup
                 }
-                else if (symbol.IsTerminal || symbol.IsSeparator || symbol.IsAssign)
+                else if (symbol is Terminal or Separator or Assign)
                 {
                     break;
                 }
@@ -63,15 +65,15 @@ internal class Reference : Syntax, IParsable//<Reference>
     public string Transpile() => string.Join(' ', Name);
 }
 
-internal partial class Entity : OneOfBase<string, Value, Object>
+internal partial class Entity : OneOfBase<string, Literal, Object>
 {
-    protected Entity(OneOf<string, Value, Object> input) : base(input) { }
+    protected Entity(OneOf<string, Literal, Object> input) : base(input) { }
 
     public static explicit operator string(Entity entity) => entity.AsT0;
-    public static explicit operator Value(Entity entity) => entity.AsT1;
+    public static explicit operator Literal(Entity entity) => entity.AsT1;
     public static explicit operator Object(Entity entity) => entity.AsT2;
 
     public static implicit operator Entity(string name) => new(name);
-    public static implicit operator Entity(Value value) => new(value);
+    public static implicit operator Entity(Literal value) => new(value);
     public static implicit operator Entity(Object @object) => new(@object);
 }
