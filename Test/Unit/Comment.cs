@@ -11,7 +11,7 @@ public class Comment
         var comment = Ronin.Token.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
-        Assert.Equal(literal.Trim().ToArray(), comment.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "single-line at end of file")]
@@ -23,7 +23,7 @@ public class Comment
         var comment = Ronin.Token.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
-        Assert.Equal(literal.Trim().ToArray(), comment.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "multiline")]

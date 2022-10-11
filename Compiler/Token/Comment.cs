@@ -1,35 +1,45 @@
 ﻿using Ronin.Compiler;
+using System.Diagnostics;
 
 namespace Ronin.Token;
 
 internal class Comment : Lexeme
 {
+    internal const string singleline = "//";
+    internal const string multilinestart = "/*";
+    internal const string multilineend = "*/";
+
+    internal bool Terminated { get; private init; } = true;
+
     internal Comment(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static Lexeme Lex(Lexer lexer)
     {
-        if (lexer.StartsWith("//"))
+        if (lexer.StartsWith(singleline))
         {
-            var linelength = lexer.Span.IndexOfAny(Environment.NewLine.ToCharArray());
+            var linelength = lexer.Span.IndexOf(Environment.NewLine);
             if (linelength is < 0) linelength = lexer.Length;
             return new Comment(lexer, linelength);
         }
 
-        if (!lexer.StartsWith("/*")) return null;
+        if (!lexer.StartsWith(multilinestart)) return null;
 
-        int depth = 0;
-        var length = 3;
-        
-        for (; length < lexer.Length; ++length)
+        int depth = 1;
+        var length = multilinestart.Length;
+
+        for (; length != lexer.Length; ++length)
         {
             var innerspan = lexer[length..].Span;
-            if (innerspan.StartsWith("/*")) ++depth;
-            else if (innerspan.StartsWith("*/")) --depth;
-            if (depth is -1) break;
+            Debug.WriteLine(lexer[length..]);            
+            if (innerspan.StartsWith(multilinestart)) ++depth;
+            else if (innerspan.StartsWith(multilineend)) --depth;
+            if (depth is 0) break;
         }
-        
-        if (depth is not -1) return new Error(lexer, length, "unterminated multiline comment");
 
-        return new Comment(lexer, length + 2);
+        length += multilineend.Length;
+        var terminated = depth is 0;
+        if (!terminated && length > lexer.Length) length = lexer.Length;
+
+        return new Comment(lexer, length) { Terminated = terminated };
     }
 }

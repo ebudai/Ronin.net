@@ -12,8 +12,8 @@ internal class Symbol : Lexeme
         var text = lexer[i..].Span;
         if (text.IsEmpty) return false;
         return text.StartsWith(Returns.character)
-            || text.StartsWith(CommentStart.singleline)
-            || text.StartsWith(CommentStart.multiline)
+            || text.StartsWith(Comment.singleline)
+            || text.StartsWith(Comment.multilinestart)
             || text[0] is Assign.character
             or CharacterDelimiter.character
             or CloseBrace.character

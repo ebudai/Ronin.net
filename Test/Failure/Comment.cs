@@ -1,44 +1,47 @@
 ﻿using Ronin.Compiler;
-using Unit;
 
 namespace Failure;
 
 public class Comment
 {
-    [Fact(DisplayName = "single-line without //")]
-    public void SingleLineFail()
+    [Fact(DisplayName = "no comment start")]
+    public void Basic()
     {
         const string notcomment = "not a comment";
 
-        Ronin.Compiler.Lexer lexer = new(notcomment);
+        Lexer lexer = new(notcomment);
         var comment = Ronin.Token.Comment.Lex(lexer);
 
         Assert.Null(comment);
     }
 
-    [Fact(DisplayName = "multiline without /*")]
-    public void MultiLineFail()
+    [Fact(DisplayName = "unbalanced nested multiline start")]
+    public void UnbalancedMultiLineStart()
     {
-        const string notcomment = "not a comment";
+        const string badcomment = "/*unbalanced /*comment*/\r\nthis is a function call();";
 
-        Ronin.Compiler.Lexer lexer = new(notcomment);
-        var comment = Ronin.Token.Comment.Lex(lexer);
+        Lexer lexer = new(badcomment);
+        var lexeme = Ronin.Token.Comment.Lex(lexer);
 
-        Assert.Null(comment);
+        Assert.NotNull(lexeme);
+        Assert.IsType<Ronin.Token.Comment>(lexeme);
+        var comment = lexeme as Ronin.Token.Comment;
+        Assert.False(comment.Terminated);
+        Assert.Equal(badcomment, comment.ToString());
     }
 
-    [Fact(DisplayName = "unbalanced nested multiline")]
-    public void NestedMultiLineFail()
+    [Fact(DisplayName = "unbalanced nested multiline end")]
+    public void UnbalancedMultiLineEnd()
     {
-        const string badcomment = "/*not /*a comment*/";
+        const string badcomment = "/*unbalanced */comment*/";
 
-        Ronin.Compiler.Lexer lexer = new(badcomment);
-        var comment = Ronin.Token.Comment.Lex(lexer);
+        Lexer lexer = new(badcomment);
+        var lexeme = Ronin.Token.Comment.Lex(lexer);
 
-        Assert.NotNull(comment);
-        Assert.IsType<Ronin.Token.Error>(comment);
-        var error = comment as Ronin.Token.Error;
-        Assert.Equal(badcomment.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated multiline comment", error.Message);
+        Assert.NotNull(lexeme);
+        Assert.IsType<Ronin.Token.Comment>(lexeme);
+        var comment = lexeme as Ronin.Token.Comment;
+        Assert.True(comment.Terminated);
+        Assert.Equal("/*unbalanced */", comment.ToString());
     }
 }
