@@ -13,20 +13,13 @@ internal class Character : Literal
 
         var length = lexer[1..].Span.IndexOf(CharacterDelimiter.character); // find the closing delimiter one
 
-        if (length is < 0) return new Error(lexer, lexer.Length, "unterminated character literal");
-
-        if (length is 0) return new Error(lexer, 2, "empty character literal");
-
-        if (length is not 1 and not 6) return new Error(lexer, length + 2, "bad unicode literal");
+        if (length is not 1 and not 6) return null;
 
         if (length is 6)
         {
             for (var i = 3; i != length; ++i)
             {
-                if (!IsValid(lexer[i]))
-                {
-                    return new Error(lexer, i, $"invalid character '{lexer[i]}' at {i} for unichar literal");
-                }
+                if (!IsValid(lexer[i])) return null;
             }
         }
 

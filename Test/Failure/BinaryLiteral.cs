@@ -25,10 +25,9 @@ public class BinaryLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated binary literal", error.Message);
+        Assert.IsType<Ronin.Token.Value.Integer>(lexed);
+        var name = lexed as Ronin.Token.Value.Integer;
+        Assert.Equal(literal[..0].ToArray(), name.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "contains invalid char")]
@@ -40,10 +39,9 @@ public class BinaryLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal[..^2].ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("invalid char '2' at 6 for binary literal", error.Message);
+        Assert.IsType<Ronin.Token.Value.Binary>(lexed);
+        var binary = lexed as Ronin.Token.Value.Binary;
+        Assert.Equal(literal[..^2].ToArray(), binary.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "no data")]
