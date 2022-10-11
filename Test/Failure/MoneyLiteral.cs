@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
+using Ronin.Token.Value;
 
 namespace Failure;
 
@@ -13,11 +14,7 @@ public class MoneyLiteral
         Lexer lexer = new(number);
         var lexed = Literal.Lex(lexer);
 
-        Assert.IsType<Literal>(lexed);
-
-        var literal = lexed as Literal;
-
-        Assert.NotEqual(Literal.Kind.money, literal.LiteralKind);
+        Assert.IsNotType<Money>(lexed);
     }
 
     [Fact(DisplayName = "doesn't continue with a number")]

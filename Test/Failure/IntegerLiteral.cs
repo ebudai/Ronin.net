@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
+using Ronin.Token.Value;
 
 namespace Failure;
 
@@ -48,10 +49,6 @@ public class IntegerLiteral
         Lexer lexer = new(number);
         var lexed = Literal.Lex(lexer);
 
-        Assert.IsType<Literal>(lexed);
-        
-        var literal = lexed as Literal;
-        
-        Assert.NotEqual(Literal.Kind.integer, literal.LiteralKind);
+        Assert.IsNotType<Integer>(lexed);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
+using Ronin.Token.Value;
 
 namespace Failure;
 
@@ -24,11 +25,7 @@ public class NumberLiteral
         Lexer lexer = new(integer);
         var lexed = Literal.Lex(lexer);
 
-        Assert.IsType<Literal>(lexed);
-
-        var literal = lexed as Literal;
-
-        Assert.NotEqual(Literal.Kind.number, literal.LiteralKind);
+        Assert.IsNotType<Number>(lexed);
     }
 
     [Fact(DisplayName = "unterminated")]

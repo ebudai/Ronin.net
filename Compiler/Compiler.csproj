@@ -21,9 +21,5 @@
     <PackageReference Include="OneOf" Version="3.0.223" />
     <PackageReference Include="OneOf.SourceGenerator" Version="3.0.223" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Token\Literal\" />
-  </ItemGroup>
   
 </Project>

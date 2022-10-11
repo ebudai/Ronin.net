@@ -76,7 +76,7 @@ public class Parser
             else if (lexeme is Keyword word) text = word.ToString();
             else return (null, tokensConsumed);
 
-            var names = text.Split(Symbol.hierarchy);
+            var names = text.Split(Hierarchy.character);
             if (hierarchy[^1].Length is not 0) hierarchy[^1] += ' ';
             hierarchy[^1] += names[0];
             if (names.Length is > 1) hierarchy.AddRange(names[1..]);

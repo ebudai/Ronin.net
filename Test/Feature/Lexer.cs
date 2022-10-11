@@ -1,9 +1,9 @@
 ﻿using Ronin.Token;
 using Ronin.Token.Delimiter;
+using Ronin.Token.Value;
 using System.Diagnostics;
 
 using static Ronin.Token.Keyword.Word;
-using static Ronin.Token.Literal.Kind;
 
 namespace Feature;
 
@@ -55,7 +55,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "0b01101010010".Length, binary),
+            new Binary(lexer, "0b01101010010".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -66,7 +66,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "'c'".Length, character),
+            new Character(lexer, "'c'".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -79,7 +79,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "'\\u26fc'".Length, character),
+            new Character(lexer, "'\\u26fc'".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -90,7 +90,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "1976-01-23".Length, date),
+            new Date(lexer),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -101,7 +101,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "0x2c".Length, hex),
+            new Hex(lexer, "0x2c".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -114,7 +114,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "7".Length, integer),
+            new Integer(lexer, "7".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -125,7 +125,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "$14.20".Length, money),
+            new Money(lexer, "$14.20".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -136,7 +136,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "17:24:24".Length, time),
+            new Time(lexer, "17:24:24".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -149,7 +149,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Literal(lexer, "https://google.com".Length, url),
+            new Url(lexer, "https://google.com".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length),
 
@@ -203,7 +203,7 @@ public class Lexer
             Whitespace(),
             Name("stuff"),
             new OpenSquareBracket(lexer),
-            new Literal(lexer, "0".Length, integer),
+            new Integer(lexer, "0".Length),
             new CloseSquareBracket(lexer),
             Whitespace(),
             Name("+"),
@@ -212,7 +212,7 @@ public class Lexer
             Whitespace(),
             Name("*"),
             Whitespace(),
-            new Literal(lexer, "7".Length, integer),
+            new Integer(lexer, "7".Length),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length),
 

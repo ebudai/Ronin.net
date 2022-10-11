@@ -28,13 +28,12 @@ public class Lexer
 
         while (Cursor < Sourcecode.Length)
         {
-            var token = Whitespace.Lex(this)
-                ?? Literal.Lex(this)
+            tokens.Add(Whitespace.Lex(this)
+                ?? Literal.Lex(this) 
                 ?? Comment.Lex(this)
                 ?? Symbol.Lex(this)
                 ?? Keyword.Lex(this)
-                ?? Name.Lex(this);
-            tokens.Add(token);
+                ?? Name.Lex(this));
         }
 
         return tokens.ToArray();
