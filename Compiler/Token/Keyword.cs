@@ -4,24 +4,32 @@ namespace Ronin.Token;
 
 internal class Keyword : Lexeme
 {
-    internal Keyword(Lexer lexer, int length) : base(lexer, length) { }
+    internal const string var = nameof(var);
+    internal const string constant = nameof(constant);
+    internal const string datatype = nameof(datatype);
+    internal const string function = nameof(function);    
+    internal const string reactive = nameof(reactive);
+    internal const string compiled = nameof(compiled);
+    internal const string persistent = nameof(persistent);
+    internal const string shared = nameof(shared);
+    internal const string optional = nameof(optional);
+    internal const string part_of = "part of";
+    internal const string import = nameof(import);
+    internal const string @return = nameof(@return);
 
-    internal Word Type { get; set; }
+    internal Keyword(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static Lexeme Lex(Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
         
-        foreach (var word in Enum.GetValues<Word>())
+        foreach (var keyword in keywords)
         {
-            var name = Enum.GetName(word).Replace("_", " ");
-            if (lexer.StartsWith(name))
+            if (lexer.StartsWith(keyword))
             {
-                if (lexer.Length <= name.Length) return new Error(lexer, lexer.Length, "unterminated declaration");
-
-                if (char.IsWhiteSpace(lexer[name.Length]) || Symbol.IsSymbol(lexer, name.Length))
+                if (char.IsWhiteSpace(lexer[keyword.Length]) || Symbol.IsSymbol(lexer, keyword.Length))
                 {
-                    return new Keyword(lexer, name.Length) { Type = word };
+                    return new Keyword(lexer, keyword.Length);
                 }
             }
         }
@@ -29,12 +37,12 @@ internal class Keyword : Lexeme
         return null;
     }
 
-    internal enum Word
+    private static readonly string[] keywords =
     {
         var,
+        constant,
         datatype,
         function,
-        constant,
         reactive,
         compiled,
         persistent,
@@ -42,6 +50,6 @@ internal class Keyword : Lexeme
         optional,
         part_of,
         import,
-        @return,
-    }
+        @return
+    };
 }

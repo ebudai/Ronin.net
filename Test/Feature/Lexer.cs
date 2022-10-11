@@ -3,8 +3,6 @@ using Ronin.Token.Delimiter;
 using Ronin.Token.Value;
 using System.Diagnostics;
 
-using static Ronin.Token.Keyword.Word;
-
 namespace Feature;
 
 public class Lexer
@@ -39,7 +37,7 @@ public class Lexer
         List<Lexeme> expected = new()
         {
             // datatype Weather
-            Keyword(datatype),
+            Keyword(Ronin.Token.Keyword.datatype),
             Whitespace(),
             Name("Weather"),
             Whitespace(Environment.NewLine.Length),
@@ -49,7 +47,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
             
             // var data = 0b01101010010;
-            Keyword(var),
+            Keyword(Ronin.Token.Keyword.var),
             Whitespace(),
             Name("data"),
             Whitespace(),
@@ -60,7 +58,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // constant sigil = 'c';
-            Keyword(constant),
+            Keyword(Ronin.Token.Keyword.constant),
             Whitespace(),
             Name("sigil"),
             Whitespace(),
@@ -71,7 +69,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // reactive asian sigil = '\u26fc';
-            Keyword(reactive),
+            Keyword(Ronin.Token.Keyword.reactive),
             Whitespace(),
             Name("asian"),
             Whitespace(),
@@ -84,7 +82,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // persistent birthday = 1976-01-23;
-            Keyword(persistent),
+            Keyword(Ronin.Token.Keyword.persistent),
             Whitespace(),
             Name("birthday"),
             Whitespace(),
@@ -95,7 +93,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // shared hex = 0x2c;
-            Keyword(shared),
+            Keyword(Ronin.Token.Keyword.shared),
             Whitespace(),
             Name("hex"),
             Whitespace(),
@@ -106,7 +104,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // compiled dogs count = 7;
-            Keyword(compiled),
+            Keyword(Ronin.Token.Keyword.compiled),
             Whitespace(),
             Name("dogs"),
             Whitespace(),
@@ -119,7 +117,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // var cash = $14.20;
-            Keyword(var),
+            Keyword(Ronin.Token.Keyword.var),
             Whitespace(),
             Name("cash"),
             Whitespace(),
@@ -130,7 +128,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // var when = 17:24:24;
-            Keyword(var),
+            Keyword(Ronin.Token.Keyword.var),
             Whitespace(),
             Name("when"),
             Whitespace(),
@@ -141,7 +139,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // var googles address = https://google.com;
-            Keyword(var),
+            Keyword(Ronin.Token.Keyword.var),
             Whitespace(),
             Name("googles"),
             Whitespace(),
@@ -158,7 +156,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length * 2),
 
             // function run (list of stuff is integer[], things is number) away
-            Keyword(function),
+            Keyword(Ronin.Token.Keyword.function),
             Whitespace(),
             Name("run"),
             Whitespace(),
@@ -195,7 +193,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // return list of stuff[0] + things * 7;
-            Keyword(@return),
+            Keyword(Ronin.Token.Keyword.@return),
             Whitespace(),
             Name("list"),
             Whitespace(),
@@ -237,6 +235,6 @@ public class Lexer
         
         Name Name(string name) => new(lexer, name.Length);
         Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
-        Keyword Keyword(Keyword.Word word) => new(lexer, Enum.GetName(word).Length);
+        Keyword Keyword(string word) => new(lexer, word.Length);
     }
 }

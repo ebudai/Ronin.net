@@ -1,7 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
 using Ronin.Token.Delimiter;
-using static Ronin.Token.Keyword.Word;
 
 namespace Ronin.Grammar.Declaration;
 
@@ -44,23 +43,23 @@ internal class Datum : Syntax, IParsable//<Datum>
                 break;
             }
 
-            static string handleModifier(Keyword.Word keyword, ref bool modifier)
+            static string handleModifier(string keyword, ref bool modifier)
             {
-                if (modifier) return Enum.GetName(keyword);
+                if (modifier) return keyword;
                 modifier = true;
                 return null;
             }
 
-            identifier = keyword.Type switch
+            identifier = keyword.ToString() switch
             {
-                reactive => handleModifier(keyword.Type, ref isReactive),
-                compiled => handleModifier(keyword.Type, ref isCompiled),
-                persistent => handleModifier(keyword.Type, ref isPersistent),
-                shared => handleModifier(keyword.Type, ref isShared),
-                optional => handleModifier(keyword.Type, ref isOptional),
-                constant => handleModifier(keyword.Type, ref isReadonly) ?? string.Empty,
-                var => string.Empty,
-                _ => Enum.GetName(keyword.Type)
+                Keyword.reactive => handleModifier(keyword.ToString(), ref isReactive),
+                Keyword.compiled => handleModifier(keyword.ToString(), ref isCompiled),
+                Keyword.persistent => handleModifier(keyword.ToString(), ref isPersistent),
+                Keyword.shared => handleModifier(keyword.ToString(), ref isShared),
+                Keyword.optional => handleModifier(keyword.ToString(), ref isOptional),
+                Keyword.constant => handleModifier(keyword.ToString(), ref isReadonly) ?? string.Empty,
+                Keyword.var => string.Empty,
+                _ => keyword.ToString()
             };
         }
 

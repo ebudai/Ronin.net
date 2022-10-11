@@ -14,21 +14,6 @@ public class Keyword
         Assert.Null(lexed);
     }
 
-    [Fact(DisplayName = "unterminated")]
-    public void Unterminated()
-    {
-        const string unterminated = "function";
-
-        Lexer lexer = new(unterminated);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(unterminated.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated declaration", error.Message);
-    }
-
     [Fact(DisplayName = "not a keyword")]
     public void NotAKeyword()
     {

@@ -3,7 +3,7 @@ using Ronin.Token;
 
 namespace Ronin.Grammar;
 
-internal class Import : Syntax, IParsable//<Import>
+internal class Import : Syntax, IParsable
 {
     internal Import(Parser parser, int length) : base(parser, length) { }
 
@@ -11,7 +11,7 @@ internal class Import : Syntax, IParsable//<Import>
 
     public static Syntax Parse(ref Parser parser)
     {
-        if (parser[0] is not Keyword keyword || keyword.Type is not Keyword.Word.import) return null;
+        if (parser[0] is not Keyword keyword || keyword.ToString() is not Keyword.import) return null;
 
         var (hierarchy, length) = parser.ParseHierarchy();
 
