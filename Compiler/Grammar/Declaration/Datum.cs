@@ -4,7 +4,7 @@ using Ronin.Token.Delimiter;
 
 namespace Ronin.Grammar.Declaration;
 
-internal class Datum : Syntax, IParsable//<Datum>
+internal class Datum : Syntax, IParsable
 {
     internal bool IsReactive { get; set; }
     internal bool IsCompiled { get; set; }
@@ -34,9 +34,13 @@ internal class Datum : Syntax, IParsable//<Datum>
         Reference initializer = null;
 
         // ingest keywords
-        for (; length != max && identifier is null; ++length)
+        while (length != max && identifier is null)
         {
-            if (parser[length] is Whitespace or Comment) continue;
+            if (parser[length] is Whitespace or Comment)
+            {
+                ++length;
+                continue;
+            }
             if (parser[length] is not Keyword keyword)
             {
                 identifier ??= string.Empty;
@@ -61,32 +65,45 @@ internal class Datum : Syntax, IParsable//<Datum>
                 Keyword.var => string.Empty,
                 _ => keyword.ToString()
             };
+
+            ++length;
         }
 
         // form the identifier, type, and/or initializer
-        for (; length != max && initializer is null; ++length)
+        while (length != max && initializer is null)
         {
-            if (parser[length] is Symbol symbol)
+            var syntax = parser[length];
+            if (syntax is Whitespace or Comment)
             {
-                if (symbol is Terminal) break;
-                if (symbol is not Returns and not Assign)
-                {
-                    return new Expected<Name, Keyword>(parser, Terminal.character.ToString(), Assign.character.ToString(), Returns.character);
-                }
+                ++length;
+                continue;
+            }
+            if (syntax is Terminal) break;
+            if (syntax is Returns or Assign)
+            {
+                if (identifier.Length is 0) return new Expected<Name>(parser);
                 Parser attempt = new(parser, length + 1);
-                var syntax = Reference.Parse(ref attempt);
-                if (syntax is Reference reference)
+                var parsed = Reference.Parse(ref attempt);
+                if (parsed is Reference reference)
                 {
-                    if (symbol is Returns) datatype = reference;
-                    else if (symbol is Assign) initializer = reference;
+                    if (syntax is Returns) datatype = reference;
+                    else if (syntax is Assign) initializer = reference;
                     length = attempt.Cursor - 1;
+                }
+                else if (parsed is Expected expected)
+                {
+                    return expected;
                 }
                 else
                 {
-                    return new Expected<Name, Keyword>(attempt);
-                }                
+                    return new Expected<Name, Literal, OpenParenthesis>(attempt);
+                }
             }
-            else if (parser[length] is Name name)
+            else if (syntax is Symbol)
+            {
+                return new Expected<Name, Terminal, Returns, Assign>(parser);
+            }
+            else if (syntax is Name name)
             {
                 if (identifier.Length is not 0) identifier += ' ';
                 identifier += name.ToString();
@@ -98,8 +115,9 @@ internal class Datum : Syntax, IParsable//<Datum>
             }
             else if (parser[length] is Literal)
             {
-                return new Expected<Name, Keyword>(parser, Terminal.character.ToString(), Assign.character.ToString(), Returns.character);
+                return new Expected<Name>(parser);
             }
+            ++length;
         }
 
         return datatype is null && initializer is null ? null : new Datum(parser, length)

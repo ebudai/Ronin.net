@@ -5,17 +5,31 @@ namespace Ronin.Grammar;
 
 internal class Expected : Syntax
 {
-    internal Expected(Parser parser, params string[] specifics) : base(parser, 0) => Specifics = specifics;
-
-    protected internal string[] Specifics;
+    protected internal Expected(Parser parser) : base(parser, 0) { }
 }
 
 internal class Expected<T> : Expected where T : Lexeme
 {
-    internal Expected(Parser parser, params string[] specifics) : base(parser, specifics) { }
+    protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1> : Expected<T0> where T0 : Lexeme where T1 : Lexeme
+internal class Expected<T0, T1> : Expected where T0 : Lexeme where T1 : Lexeme
 {
-    internal Expected(Parser parser, params string[] specifics) : base(parser, specifics) { }
+    protected internal Expected(Parser parser) : base(parser) { }
 }
+
+internal class Expected<T0, T1, T2> : Expected where T0 : Lexeme where T1 : Lexeme where T2 : Lexeme
+{
+    protected internal Expected(Parser parser) : base(parser) { }
+}
+
+internal class Expected<T0, T1, T2, T3> : Expected where T0 : Lexeme where T1 : Lexeme where T2 : Lexeme where T3 : Lexeme
+{
+    protected internal Expected(Parser parser) : base(parser) { }
+}
+
+internal class Expected<T0, T1, T2, T3, T4> : Expected where T0 : Lexeme where T1 : Lexeme where T2 : Lexeme where T3 : Lexeme where T4 : Lexeme
+{
+    protected internal Expected(Parser parser) : base(parser) { }
+}
+

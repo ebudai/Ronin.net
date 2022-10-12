@@ -23,9 +23,9 @@ public class NumberLiteral
         const string integer = "98723";
 
         Lexer lexer = new(integer);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Number.Lex(lexer);
 
-        Assert.IsNotType<Number>(lexed);
+        Assert.Null(lexed);
     }
 
     [Fact(DisplayName = "unterminated")]

@@ -52,7 +52,12 @@ internal class Reference : Syntax, IParsable
                 {
                     // list or lookup
                 }
-                else if (symbol is Terminal or Separator or Assign)
+                else if (symbol is Terminal or Separator)
+                {
+                    ++length;
+                    break;
+                }
+                else if (symbol is Assign)
                 {
                     break;
                 }

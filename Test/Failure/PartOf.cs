@@ -19,6 +19,6 @@ public class PartOf
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Expected<Ronin.Token.Name>>(result[0]);
+        Assert.IsAssignableFrom<Expected>(result[0]);
     }
 }

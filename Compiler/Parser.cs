@@ -35,7 +35,7 @@ public class Parser
         while (Cursor < Tokens.Length)
         {
             if (IsEmpty) break;
-            if (Tokens.Span[Cursor] is Terminal) break;
+            // break;
 
             /*var syntax = PartOf.Parse(ref parser);
             if (syntax is not Expected expected)
@@ -48,8 +48,10 @@ public class Parser
             if (TryParse<Import>(parser, statements)) continue;
             if (TryParse<Datum>(parser, statements)) continue;
             if (TryParse<Reference>(parser, statements)) continue;
+
+            if (Tokens.Span[Cursor] is Terminal) ++Cursor;
         }
-         
+
         return statements.ToArray();
         
         static bool TryParse<T>(Parser parser, List<Syntax> statements) where T : IParsable
@@ -74,6 +76,7 @@ public class Parser
             string text;
             if (lexeme is Name name) text = name.ToString();
             else if (lexeme is Keyword word) text = word.ToString();
+            else if (lexeme is Hierarchy) text = Hierarchy.character.ToString();
             else return (null, tokensConsumed);
 
             var names = text.Split(Hierarchy.character);
@@ -85,9 +88,4 @@ public class Parser
         var array = hierarchy.Count is 1 && hierarchy[0].Length is 0 ? null : hierarchy.ToArray();
         return (array, tokensConsumed + 1); // one extra for the terminal
     }
-
-    /*internal class Exception : System.Exception
-    {
-        internal Exception(string message) : base(message) { }
-    }*/
 }
