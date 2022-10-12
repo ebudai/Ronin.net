@@ -4,7 +4,7 @@ namespace Ronin.Token.Value;
 
 internal class Text : Literal
 {
-    internal Text(Lexer lexer, int length) : base(lexer, length) { }
+    private Text(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static new Lexeme Lex(Lexer lexer)
     {
@@ -12,15 +12,15 @@ internal class Text : Literal
 
         var index = 1;
         var length = lexer[index..].Span.IndexOf('"');
-        if (length is < 0) return new Error(lexer, lexer.Length, "unterminated text literal");
+        if (length is < 0) return null;
 
-        while (lexer[index + length - 1] is '\\' && length < lexer.Length && length != -1)
+        while (lexer[index + length - 1] is '\\' && length < lexer.Length && length is not -1)
         {
             index += length + 1;
             length = lexer[index..].Span.IndexOf('"');
         }
 
-        if (length is < 0) return new Error(lexer, lexer.Length, "unterminated text literal");
+        if (length is < 0) return null;
 
         length += index + 1;
         for (var i = index; i != length; ++i)

@@ -4,7 +4,7 @@ namespace Ronin.Token.Value;
 
 internal class Url : Literal
 {
-    internal Url(Lexer lexer, int length) : base(lexer, length) { }
+    private Url(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static new Url Lex(Lexer lexer)
     {

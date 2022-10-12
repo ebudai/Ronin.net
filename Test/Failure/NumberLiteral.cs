@@ -37,10 +37,9 @@ public class NumberLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated number literal", error.Message);
+        Assert.IsType<Integer>(lexed);
+        var integer = lexed as Integer;
+        Assert.Equal("9".ToArray(), integer.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -52,10 +51,9 @@ public class NumberLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
+        Assert.IsType<Number>(lexed);
+        var error = lexed as Number;
         Assert.Equal("9.2".ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("number literal with non-numeric character 'v' at 3", error.Message);
     }
 
     [Fact(DisplayName = "contains multiple dots")]
@@ -67,10 +65,9 @@ public class NumberLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal("9.2".ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("number literal with multiple dots", error.Message);
+        Assert.IsType<Number>(lexed);
+        var number = lexed as Number;
+        Assert.Equal("9.2".ToArray(), number.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "no data")]

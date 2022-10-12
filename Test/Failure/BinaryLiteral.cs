@@ -27,7 +27,7 @@ public class BinaryLiteral
         Assert.NotNull(lexed);
         Assert.IsType<Ronin.Token.Value.Integer>(lexed);
         var name = lexed as Ronin.Token.Value.Integer;
-        Assert.Equal(literal[..0].ToArray(), name.Sourcecode.ToArray());
+        Assert.Equal(literal[..1].ToArray(), name.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "contains invalid char")]

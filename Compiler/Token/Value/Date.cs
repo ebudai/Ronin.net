@@ -4,12 +4,10 @@ namespace Ronin.Token.Value;
 
 internal class Date : Literal
 {
-    public Date(Lexer lexer) : base(lexer, 10) { }
+    private Date(Lexer lexer) : base(lexer, 10) { }
 
     internal static new Lexeme Lex(Lexer lexer)
     {
-        if (lexer.IsEmpty) return null;
-
         if (lexer.Length is < 10) return null;
 
         if (!char.IsNumber(lexer[0])) return null;

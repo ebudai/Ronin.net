@@ -5,7 +5,7 @@ namespace Ronin.Token.Value;
 
 internal class Character : Literal
 {
-    public Character(Lexer lexer, int length) : base(lexer, length) { }
+    private Character(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static new Lexeme Lex(Lexer lexer)
     {

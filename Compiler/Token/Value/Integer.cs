@@ -4,26 +4,22 @@ namespace Ronin.Token.Value;
 
 internal class Integer : Literal
 {
-    internal Integer(Lexer lexer, int length) : base(lexer, length) { }
+    private Integer(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static new Lexeme Lex(Lexer lexer)
     {
         if (lexer.IsEmpty || !char.IsNumber(lexer[0])) return null;
 
-        int length = 0;
-        for (int i = 0, max = lexer.Length; i != max; ++i)
+        int length = 1;
+        for (int max = lexer.Length; length != max; ++length)
         {
-            if (lexer[i] is '.') return null;
+            char c = lexer[length];
 
-            if (char.IsWhiteSpace(lexer[i]) || Symbol.IsSymbol(lexer, i))
-            {
-                length = i;
-                break;
-            }
+            if (c is '.' && length + 1 != max) return null; // if the . is at the end of the code, Number won't pick it up
 
-            if (!char.IsNumber(lexer[i]) && lexer[i] is not '_') return new Error(lexer, i, $"integer literal with non-numeric character '{lexer[i]}' at {i}");
+            if (char.IsWhiteSpace(c) || Symbol.IsSymbol(lexer, length)) break;
 
-            ++length;
+            if (!char.IsNumber(c) && lexer[length] is not '_') break;
         }
 
         return new Integer(lexer, length);

@@ -37,10 +37,9 @@ public class MoneyLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal("$9".ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("money literal cannot end with a dot", error.Message);
+        Assert.IsType<Money>(lexed);
+        var money = lexed as Money;
+        Assert.Equal("$9".ToArray(), money.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -52,10 +51,9 @@ public class MoneyLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal("$9.2".ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("money literal with non-numeric character 'v' at 4", error.Message);
+        Assert.IsType<Money>(lexed);
+        var money = lexed as Money;
+        Assert.Equal("$9.2".ToArray(), money.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "no data")]
@@ -76,10 +74,9 @@ public class MoneyLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal("$9.25".ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("money literal with multiple dots", error.Message);
+        Assert.IsType<Money>(lexed);
+        var money = lexed as Money;
+        Assert.Equal("$9.25".ToArray(), money.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "just a dollar sign")]
@@ -88,12 +85,11 @@ public class MoneyLiteral
         const string literal = "$";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = lexer.Lex();
 
-        Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated money literal", error.Message);
+        Assert.NotEmpty(lexed);
+        Assert.IsType<Ronin.Token.Name>(lexed[0]);
+        var name = lexed[0] as Ronin.Token.Name;
+        Assert.Equal(literal.ToArray(), name.Sourcecode.ToArray());
     }
 }

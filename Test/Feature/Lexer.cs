@@ -2,6 +2,7 @@
 using Ronin.Token.Delimiter;
 using Ronin.Token.Value;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Feature;
 
@@ -53,7 +54,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Binary(lexer, "0b01101010010".Length),
+            Binary("0b01101010010"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -64,7 +65,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Character(lexer, "'c'".Length),
+            Character("'c'"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -77,7 +78,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Character(lexer, "'\\u26fc'".Length),
+            Character("'\\u26fc'"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -88,7 +89,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Date(lexer),
+            Date(),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -99,7 +100,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Hex(lexer, "0x2c".Length),
+            Hex("0x2c"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -112,7 +113,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Integer(lexer, "7".Length),
+            Integer("7"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -123,7 +124,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Money(lexer, "$14.20".Length),
+            Money("$14.20"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -134,7 +135,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Time(lexer, "17:24:24".Length),
+            Time("17:24:24"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length + 4),
 
@@ -147,7 +148,7 @@ public class Lexer
             Whitespace(),
             new Assign(lexer),
             Whitespace(),
-            new Url(lexer, "https://google.com".Length),
+            Url("https://google.com"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length),
 
@@ -201,7 +202,7 @@ public class Lexer
             Whitespace(),
             Name("stuff"),
             new OpenSquareBracket(lexer),
-            new Integer(lexer, "0".Length),
+            Integer("0"),
             new CloseSquareBracket(lexer),
             Whitespace(),
             Name("+"),
@@ -210,7 +211,7 @@ public class Lexer
             Whitespace(),
             Name("*"),
             Whitespace(),
-            new Integer(lexer, "7".Length),
+            Integer("7"),
             new Terminal(lexer),
             Whitespace(Environment.NewLine.Length),
 
@@ -218,7 +219,7 @@ public class Lexer
             new CloseBrace(lexer),
 
             // 7aslk
-            new Error(lexer, "7".Length),
+            Integer("7"),
             Name("aslk")
         };
 
@@ -236,5 +237,24 @@ public class Lexer
         Name Name(string name) => new(lexer, name.Length);
         Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
         Keyword Keyword(string word) => new(lexer, word.Length);
+        Binary Binary(string value) => BinaryConstructor.Invoke(new object[] { lexer, value.Length }) as Binary;
+        Character Character(string value) => CharacterConstructor.Invoke(new object[] { lexer, value.Length }) as Character;
+        Date Date() => DateConstructor.Invoke(new object[] { lexer }) as Date;
+        Hex Hex(string value) => HexConstructor.Invoke(new object[] { lexer, value.Length }) as Hex;
+        Integer Integer(string value) => IntegerConstructor.Invoke(new object[] { lexer, value.Length }) as Integer;
+        Money Money(string value) => MoneyConstructor.Invoke(new object[] { lexer, value.Length }) as Money;
+        Time Time(string value) => TimeConstructor.Invoke(new object[] { lexer, value.Length }) as Time;
+        Url Url(string value) => UrlConstructor.Invoke(new object[] { lexer, value.Length }) as Url;
+
     }
+
+    private static readonly ConstructorInfo BinaryConstructor = typeof(Binary).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
+    private static readonly ConstructorInfo CharacterConstructor = typeof(Character).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
+    private static readonly ConstructorInfo DateConstructor = typeof(Date).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer) });
+    private static readonly ConstructorInfo HexConstructor = typeof(Hex).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
+    private static readonly ConstructorInfo IntegerConstructor = typeof(Integer).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
+    private static readonly ConstructorInfo MoneyConstructor = typeof(Money).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
+    private static readonly ConstructorInfo TimeConstructor = typeof(Time).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
+    private static readonly ConstructorInfo UrlConstructor = typeof(Url).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
+
 }

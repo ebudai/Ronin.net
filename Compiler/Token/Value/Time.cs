@@ -4,7 +4,7 @@ namespace Ronin.Token.Value;
 
 internal class Time : Literal
 {
-    internal Time(Lexer lexer, int length) : base(lexer, length) { }
+    private Time(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static new Lexeme Lex(Lexer lexer) => LexTwoDigitWithSpacedSuffixTimeLiteral(lexer)
         ?? LexTwoDigitWithUnspacedSuffixTimeLiteral(lexer)

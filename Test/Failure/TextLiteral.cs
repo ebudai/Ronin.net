@@ -1,5 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
+using Ronin.Token.Delimiter;
+using Ronin.Token.Value;
 
 namespace Failure;
 
@@ -22,28 +24,31 @@ public class TextLiteral
         const string literal = "\"testtest";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = lexer.Lex();
 
-        Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated text literal", error.Message);
+        Assert.Equal(2, lexed.Length);
+        
+        Assert.IsType<TextDelimiter>(lexed[0]);
+        var quote = lexed[0] as TextDelimiter;
+        Assert.Equal(new[] { '"' }, quote.Sourcecode.ToArray());
+
+        Assert.IsType<Ronin.Token.Name>(lexed[1]);
+        var name = lexed[1] as Ronin.Token.Name;
+        Assert.Equal("testtest", name.ToString());
     }
 
     [Fact(DisplayName = "lone double quote")]
-    public void SingleQuote()
+    public void DoubleQuote()
     {
         const string literal = "\"";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = lexer.Lex();
 
-        Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated text literal", error.Message);
+        Assert.NotEmpty(lexed);
+        Assert.IsType<TextDelimiter>(lexed[0]);
+        var quote = lexed[0] as TextDelimiter;
+        Assert.Equal(literal.ToArray(), quote.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "tricky unterminated")]
@@ -52,13 +57,10 @@ public class TextLiteral
         const string literal = "\"this is text\\\" unterminated";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = lexer.Lex();
 
-        Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated text literal", error.Message);
+        Assert.NotEmpty(lexed);
+        foreach (var lexeme in lexed) Assert.IsNotType<Text>(lexeme);
     }
 
     [Fact(DisplayName = "no data")]

@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
+using Ronin.Token.Value;
 
 namespace Failure;
 
@@ -25,25 +26,9 @@ public class HexLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal.ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("unterminated hex literal", error.Message);
-    }
-
-    [Fact(DisplayName = "contains invalid chars")]
-    public void Invalid()
-    {
-        const string literal = "0x1234g";
-
-        Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.IsType<Error>(lexed);
-        var error = lexed as Error;
-        Assert.Equal(literal[..^1].ToArray(), error.Sourcecode.ToArray());
-        Assert.Equal("invalid character 'g' at 6 for hex literal", error.Message);
+        Assert.IsType<Integer>(lexed);
+        var integer = lexed as Integer;
+        Assert.Equal(literal[..1].ToArray(), integer.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "no data")]

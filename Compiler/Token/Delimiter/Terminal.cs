@@ -4,7 +4,7 @@ namespace Ronin.Token.Delimiter;
 
 internal class Terminal : Symbol
 {
-    public const char character = ';';
+    internal const char character = ';';
 
     public Terminal(Lexer lexer) : base(lexer, 1) { }
 

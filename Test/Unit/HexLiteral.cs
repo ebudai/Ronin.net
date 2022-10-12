@@ -1,4 +1,5 @@
 ﻿using Ronin.Token;
+using Ronin.Token.Value;
 
 namespace Unit;
 
@@ -146,5 +147,19 @@ public class HexLiteral
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
+    }
+
+    [Fact(DisplayName = "contains invalid chars")]
+    public void Invalid()
+    {
+        const string literal = "0x1234g";
+
+        Ronin.Compiler.Lexer lexer = new(literal);
+        var lexed = Literal.Lex(lexer);
+
+        Assert.NotNull(lexed);
+        Assert.IsType<Hex>(lexed);
+        var hex = lexed as Hex;
+        Assert.Equal(literal[..^1].ToArray(), hex.Sourcecode.ToArray());
     }
 }
