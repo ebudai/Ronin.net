@@ -12,9 +12,4 @@ internal class Lookup : Syntax, IParsable
     {
         throw new NotImplementedException();
     }
-
-    public string Transpile()
-    {
-        throw new NotImplementedException();
-    }
 }

@@ -11,17 +11,25 @@ internal class Object : Syntax, IParsable
 
     public static Syntax Parse(ref Parser parser)
     {
-        if (parser.IsEmpty) return null;
+        if (parser.IsEmpty || parser[0] is not OpenParenthesis) return null;
 
-        if (parser[0] is not OpenParenthesis) return null;
+        Parser attempt = new(parser);
+        List<Reference> references = new();
+        int length = 0;
+        while (parser[length] is not CloseParenthesis)
+        {
+            var parsed = Reference.Parse(ref attempt);
+            if (parsed is Reference reference)
+            {
+                references.Add(reference);
+                length += attempt.Cursor - parser.Cursor;
+            }
+            else if (parsed is Expected expected)
+            {
+                return expected;
+            }
+        }
 
-        Parser attempt = new(parser, 0);
-        var references = parser.Parse();
-
-        return null;
+        return new Object(parser, length) { Parameters = references.ToArray() };
     }
-
-    public string Transpile() => '(' + string.Join(',', Parameters.Select(Transpiled).ToArray()) + ')';
-
-    private static string Transpiled(Reference reference) => reference.Transpile();
 }

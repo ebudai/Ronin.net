@@ -24,7 +24,8 @@ internal class Symbol : Lexeme
             or OpenSquareBracket.character
             or Separator.character
             or Terminal.character
-            or TextDelimiter.character;
+            or TextDelimiter.character
+            /*or Hierarchy.character*/;
     }
 
     internal static bool IsNonTerminalSymbol(Lexer lexer, int i = 0) => IsSymbol(lexer, i) && lexer[i] is not Terminal.character;

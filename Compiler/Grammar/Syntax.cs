@@ -3,9 +3,8 @@ using Ronin.Token;
 
 namespace Ronin.Grammar;
 
-internal interface IParsable//<T> where T : IParsable<T>
+internal interface IParsable
 {
-    public string Transpile();
     public static abstract Syntax Parse(ref Parser parser);
 }
 

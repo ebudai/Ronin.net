@@ -12,7 +12,7 @@ public class Parser
         Tokens = tokens;
     }
 
-    internal Parser(Parser parser, int advance)
+    internal Parser(Parser parser, int advance = 0)
     {
         Tokens = parser.Tokens;
         Cursor = parser.Cursor + advance;
@@ -20,6 +20,7 @@ public class Parser
 
     internal ReadOnlyMemory<Lexeme> Tokens { get; }
     internal int Cursor { get; set; }
+    
     internal bool IsEmpty => Span.IsEmpty;
     internal int Length => Span.Length;
 
@@ -30,24 +31,19 @@ public class Parser
     internal Syntax[] Parse()
     {
         List<Syntax> statements = new();
-
+         
         var parser = this;
         while (Cursor < Tokens.Length)
         {
             if (IsEmpty) break;
-            // break;
-
-            /*var syntax = PartOf.Parse(ref parser);
-            if (syntax is not Expected expected)
-            {
-                statements.Add(syntax);
-                continue;
-            }*/
 
             if (TryParse<PartOf>(parser, statements)) continue;
             if (TryParse<Import>(parser, statements)) continue;
             if (TryParse<Datum>(parser, statements)) continue;
+            if (TryParse<Trivium>(parser, statements)) continue;
             if (TryParse<Reference>(parser, statements)) continue;
+            
+            //todo handle case where everything above generated only Expecteds
 
             if (Tokens.Span[Cursor] is Terminal) ++Cursor;
         }

@@ -10,9 +10,4 @@ internal class Datatype : Syntax, IParsable//<Datatype>
     {
         throw new NotImplementedException();
     }
-
-    public string Transpile()
-    {
-        throw new NotImplementedException();
-    }
 }

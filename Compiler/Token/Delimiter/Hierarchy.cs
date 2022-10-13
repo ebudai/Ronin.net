@@ -1,7 +1,9 @@
 ﻿using Ronin.Compiler;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Token.Delimiter;
 
+[ExcludeFromCodeCoverage]
 internal class Hierarchy : Symbol
 {
     public const char character = '/';

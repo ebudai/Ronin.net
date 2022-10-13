@@ -85,22 +85,4 @@ public class PartOf
         Assert.Equal("secret", partof.Name[1]);
         Assert.Equal("stuff", partof.Name[2]);
     }
-
-    [Fact(DisplayName = "transpile")]
-    public void Transpile()
-    {
-        const string line = "part of standard/funstuff/websockets;";
-
-        Lexer lexer = new(line);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
-
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.PartOf>(syntax[0]);
-        var partof = syntax[0] as Ronin.Grammar.PartOf;
-
-        var transpiled = partof.Transpile();
-        Assert.Empty(transpiled);
-    }
 }

@@ -17,6 +17,4 @@ internal class PartOf : Syntax, IParsable
 
         return hierarchy is null ? new Expected<Name>(parser) : new PartOf(parser, length) { Name = hierarchy };
     }
-
-    public string Transpile() => string.Empty;
 }

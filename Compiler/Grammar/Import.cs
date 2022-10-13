@@ -18,6 +18,4 @@ internal class Import : Syntax, IParsable
 
         return hierarchy is null ? new Expected<Name, Hierarchy>(parser) : new Import(parser, length) { Name = hierarchy };
     }
-
-    public string Transpile() => string.Empty;
 }

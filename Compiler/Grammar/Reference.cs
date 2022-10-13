@@ -31,52 +31,48 @@ internal class Reference : Syntax, IParsable
             {
                 entities.Add(literal);
             }
-            else if (lexeme is Symbol symbol)
+            else if (lexeme is OpenParenthesis)
             {
-                if (symbol is OpenParenthesis)
+                Parser attempt = new(parser);
+                var syntax = Object.Parse(ref attempt);
+                if (syntax is Object @object)
                 {
-                    Parser attempt = new(parser, 0);
-                    var syntax = Object.Parse(ref attempt);
-                    if (syntax is Object @object)
-                    {
-                        length = attempt.Cursor;
-                        entities.Add(@object);
-                    }
-                    continue;
+                    length = attempt.Cursor;
+                    entities.Add(@object);
                 }
-                else if (symbol is OpenBrace)
-                {
-                    // start of scope
-                }
-                else if (symbol is OpenSquareBracket)
-                {
-                    // list or lookup
-                }
-                else if (symbol is Terminal or Separator)
-                {
-                    ++length;
-                    break;
-                }
-                else if (symbol is Assign)
-                {
-                    break;
-                }
+            }
+            else if (lexeme is OpenBrace)
+            {
+                // scope or list declaration
+            }
+            else if (lexeme is OpenSquareBracket)
+            {
+                // index for list or lookup
+            }
+            else if (lexeme is Terminal or Separator)
+            {
+                ++length;
+                break;
+            }
+            else if (lexeme is Assign)
+            {
+                break;
             }
             ++length;
         }
-        return new Reference(parser, length) { Name = entities };
+        return entities.Count is 0 
+            ? new Expected<Name, OpenParenthesis, Literal>(parser)
+            : new Reference(parser, length) { Name = entities };
     }
-
-    public string Transpile() => string.Join(' ', Name);
 }
 
 internal partial class Entity : OneOfBase<string, Literal, Object>
 {
     protected Entity(OneOf<string, Literal, Object> input) : base(input) { }
 
-    public static explicit operator string(Entity entity) => entity.AsT0;
-    public static explicit operator Literal(Entity entity) => entity.AsT1;
-    public static explicit operator Object(Entity entity) => entity.AsT2;
+    public static implicit operator string(Entity entity) => entity.AsT0;
+    public static implicit operator Literal(Entity entity) => entity.AsT1;
+    public static implicit operator Object(Entity entity) => entity.AsT2;
 
     public static implicit operator Entity(string name) => new(name);
     public static implicit operator Entity(Literal value) => new(value);

@@ -133,10 +133,4 @@ internal class Datum : Syntax, IParsable
             IsShared = isShared,
         };
     }
-
-    public string Transpile()
-    {
-        throw new NotImplementedException();
-    }
-
 }
