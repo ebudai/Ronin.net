@@ -13,9 +13,9 @@ internal class Object : Syntax, IParsable
     {
         if (parser.IsEmpty || parser[0] is not OpenParenthesis) return null;
 
-        Parser attempt = new(parser);
-        List<Reference> references = new();
-        int length = 0;
+        int length = OpenParenthesis.character.ToString().Length;
+        Parser attempt = new(parser, length);
+        List<Reference> references = new();        
         while (parser[length] is not CloseParenthesis)
         {
             var parsed = Reference.Parse(ref attempt);

@@ -54,7 +54,7 @@ internal class Reference : Syntax, IParsable
                 ++length;
                 break;
             }
-            else if (lexeme is Assign)
+            else if (lexeme is Assign or Close)
             {
                 break;
             }

@@ -44,7 +44,7 @@ public class PartOf
     [Fact(DisplayName = "with spaces")]
     public void WithSpaces()
     {
-        const string line = "part of standard/fun stuff/web sockets;";
+        const string line = "part of standard /fun stuff/ web sockets;";
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
@@ -56,9 +56,9 @@ public class PartOf
         var partof = syntax[0] as Ronin.Grammar.PartOf;
         Assert.NotEmpty(partof.Name);
         Assert.Equal(3, partof.Name.Length);
-        Assert.Equal("standard", partof.Name[0]);
+        Assert.Equal("standard ", partof.Name[0]);
         Assert.Equal("fun stuff", partof.Name[1]);
-        Assert.Equal("web sockets", partof.Name[2]);
+        Assert.Equal(" web sockets", partof.Name[2]);
     }
 
     [Fact(DisplayName = "keywords are just text")]

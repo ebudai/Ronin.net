@@ -2,6 +2,7 @@
 using Ronin.Grammar.Declaration;
 using Ronin.Token;
 using Ronin.Token.Delimiter;
+using System.Text.RegularExpressions;
 
 namespace Ronin.Compiler;
 
@@ -60,28 +61,31 @@ public class Parser
 
     internal (string[], int) ParseHierarchy()
     {
-        List<string> hierarchy = new() { string.Empty };
-        int tokensConsumed = 1;
+        string hierarchy = string.Empty;
+        int tokensConsumed = 2;
         for (int max = Length; tokensConsumed != max; ++tokensConsumed)
         {
             var lexeme = this[tokensConsumed];
-            if (lexeme is Whitespace or Comment) continue;
+            if (lexeme is Comment) continue;
 
             if (lexeme is Terminal) break;
 
-            string text;
-            if (lexeme is Name name) text = name.ToString();
-            else if (lexeme is Keyword word) text = word.ToString();
-            else if (lexeme is Hierarchy) text = Hierarchy.character.ToString();
-            else return (null, tokensConsumed);
+            string text = lexeme switch
+            {
+                Name name => name.ToString(),
+                Keyword keyword => keyword.ToString(),
+                Hierarchy => Hierarchy.character.ToString(),
+                Whitespace => " ",
+                _ => null
+            };
 
-            var names = text.Split(Hierarchy.character);
-            if (hierarchy[^1].Length is not 0) hierarchy[^1] += ' ';
-            hierarchy[^1] += names[0];
-            if (names.Length is > 1) hierarchy.AddRange(names[1..]);
+            if (text is null) return (null, tokensConsumed);
+
+            hierarchy += text;
         }
 
-        var array = hierarchy.Count is 1 && hierarchy[0].Length is 0 ? null : hierarchy.ToArray();
-        return (array, tokensConsumed + 1); // one extra for the terminal
+        var levels = hierarchy.Split(Hierarchy.character, StringSplitOptions.RemoveEmptyEntries);
+        if (levels.Length is 0) levels = null;
+        return (levels, tokensConsumed + Terminal.character.ToString().Length); // one extra for the terminal
     }
 }

@@ -44,7 +44,7 @@ public class Import
     [Fact(DisplayName = "with spaces")]
     public void WithSpaces()
     {
-        const string line = "import standard/fun stuff/web sockets;";
+        const string line = "import standard/ fun stuff/web sockets ;";
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
@@ -57,8 +57,8 @@ public class Import
         Assert.NotEmpty(partof.Name);
         Assert.Equal(3, partof.Name.Length);
         Assert.Equal("standard", partof.Name[0]);
-        Assert.Equal("fun stuff", partof.Name[1]);
-        Assert.Equal("web sockets", partof.Name[2]);
+        Assert.Equal(" fun stuff", partof.Name[1]);
+        Assert.Equal("web sockets ", partof.Name[2]);
     }
 
     [Fact(DisplayName = "keywords are just text")]

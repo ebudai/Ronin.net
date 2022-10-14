@@ -13,7 +13,8 @@ internal class Trivium : Syntax, IParsable
         int length = -1;
         while (++length < parser.Length)
         {
-            if (parser[length] is Whitespace or Comment or Terminal) continue;
+            if (parser[length] is Whitespace or Comment) continue;
+            if (parser[length] is Terminal) break;
             return null;
         }
         return new Trivium(parser, length);
