@@ -40,6 +40,7 @@ internal class Reference : Syntax, IParsable
                     length = attempt.Cursor;
                     entities.Add(@object);
                 }
+                continue;
             }
             else if (lexeme is OpenBrace)
             {
