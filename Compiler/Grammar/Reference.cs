@@ -59,6 +59,10 @@ internal class Reference : Syntax, IParsable
             {
                 break;
             }
+            else if (lexeme is not Whitespace or Comment)
+            {
+                return new Expected<Name, Literal, OpenParenthesis, OpenBrace, OpenSquareBracket, Terminal, Separator, Assign, Close>(parser);
+            }
             ++length;
         }
         return entities.Count is 0 

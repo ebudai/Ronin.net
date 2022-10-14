@@ -105,14 +105,14 @@ internal class Datum : Syntax, IParsable
                 if (identifier.Length is not 0) identifier += ' ';
                 identifier += name.ToString();
             }
-            else if (parser[length] is Keyword keyword)
+            else if (syntax is Keyword keyword)
             {
                 if (identifier.Length is not 0) identifier += ' ';
                 identifier += keyword.ToString();
             }
-            else if (parser[length] is Literal)
+            else if (syntax is Literal)
             {
-                return new Expected<Name>(parser);
+                return datatype is null ? new Expected<Name>(parser) : new Expected<Name, Literal, OpenParenthesis>(parser);
             }
             ++length;
         }

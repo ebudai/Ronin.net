@@ -57,6 +57,6 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsAssignableFrom<Expected>(syntax[0]);
+        Assert.IsAssignableFrom<Reference>(syntax[0]);
     }
 }

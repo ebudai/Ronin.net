@@ -21,6 +21,7 @@ internal class Object : Syntax, IParsable
             var parsed = Reference.Parse(ref attempt);
             if (parsed is Reference reference)
             {
+                if (parsed.Tokens[^1] is not Separator && !attempt.IsEmpty && attempt[0] is not CloseParenthesis) return new Expected<Separator, CloseParenthesis>(attempt);
                 references.Add(reference);
                 length += parsed.Tokens.Count;
             }
