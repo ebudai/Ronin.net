@@ -14,6 +14,16 @@ public class Object
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Reference>(syntax[0]);
+        var reference = syntax[0] as Ronin.Grammar.Reference;
+        Assert.NotEmpty(reference.Name);
+        Assert.True(reference.Name[0].IsT2);
+        var @object = reference.Name[0].AsT2;
+        Assert.NotEmpty(@object.Parameters);
+        Assert.NotEmpty(@object.Parameters[0].Name);
+        Assert.True(@object.Parameters[0].Name[0].IsT0);
+        string name = @object.Parameters[0].Name[0].AsT0;
+        Assert.Equal("test", name);
     }
 }

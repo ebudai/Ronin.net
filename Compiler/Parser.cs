@@ -45,9 +45,12 @@ public class Parser
             if (TryParse<Import>(parser, parsed)) continue;
             if (TryParse<Datum>(parser, parsed)) continue;
             if (TryParse<Trivium>(parser, parsed)) continue;
-            if (TryParse<Reference>(parser, parsed)) continue;
 
-            if (parsed.All(statement => statement is Expected)) return parsed.ToArray();
+            if (parsed.All(statement => statement is Expected))
+            {
+                if (TryParse<Reference>(parser, statements)) continue;
+                return parsed.ToArray();
+            }
 
             if (Tokens.Span[Cursor] is Terminal) ++Cursor;
         }
