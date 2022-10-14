@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token;
 using Ronin.Token.Delimiter;
 
 namespace Ronin.Grammar.Aggregate;
@@ -25,13 +24,9 @@ internal class Object : Syntax, IParsable
                 references.Add(reference);
                 length += parsed.Tokens.Count;
             }
-            else if (parsed is Expected expected)
-            {
-                return expected;
-            }
             else
             {
-                return new Expected<Name>(parser);
+                return parsed as Expected;
             }
         }
 

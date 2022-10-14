@@ -88,15 +88,12 @@ internal class Datum : Syntax, IParsable
                 {
                     if (syntax is Returns) datatype = reference;
                     else if (syntax is Assign) initializer = reference;
-                    length = attempt.Cursor - 1;
-                }
-                else if (parsed is Expected expected)
-                {
-                    return expected;
+                    length = attempt.Cursor;
+                    continue;
                 }
                 else
                 {
-                    return new Expected<Name, Literal, OpenParenthesis>(attempt);
+                    return parsed as Expected;
                 }
             }
             else if (syntax is Symbol)

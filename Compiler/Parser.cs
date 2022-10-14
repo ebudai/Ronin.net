@@ -2,7 +2,6 @@
 using Ronin.Grammar.Declaration;
 using Ronin.Token;
 using Ronin.Token.Delimiter;
-using System.Text.RegularExpressions;
 
 namespace Ronin.Compiler;
 
@@ -32,22 +31,28 @@ public class Parser
     internal Syntax[] Parse()
     {
         List<Syntax> statements = new();
-         
+        List<Syntax> parsed = new();
+
         var parser = this;
         while (Cursor < Tokens.Length)
         {
             if (IsEmpty) break;
 
-            if (TryParse<PartOf>(parser, statements)) continue;
-            if (TryParse<Import>(parser, statements)) continue;
-            if (TryParse<Datum>(parser, statements)) continue;
-            if (TryParse<Trivium>(parser, statements)) continue;
-            if (TryParse<Reference>(parser, statements)) continue;
-            
-            //todo handle case where everything above generated only Expecteds
+            statements.AddRange(parsed);
+            parsed.Clear();
+
+            if (TryParse<PartOf>(parser, parsed)) continue;
+            if (TryParse<Import>(parser, parsed)) continue;
+            if (TryParse<Datum>(parser, parsed)) continue;
+            if (TryParse<Trivium>(parser, parsed)) continue;
+            if (TryParse<Reference>(parser, parsed)) continue;
+
+            if (parsed.All(statement => statement is Expected)) return parsed.ToArray();
 
             if (Tokens.Span[Cursor] is Terminal) ++Cursor;
         }
+
+        statements.AddRange(parsed);
 
         return statements.ToArray();
         

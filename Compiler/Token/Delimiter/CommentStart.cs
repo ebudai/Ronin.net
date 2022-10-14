@@ -4,7 +4,7 @@ namespace Ronin.Token.Delimiter;
 
 internal class CommentStart : Symbol
 {
-    public CommentStart(Lexer lexer, int length) : base(lexer, length) { }
+    private CommentStart(Lexer lexer, int length) : base(lexer, length) { }
 
     public static new Lexeme Lex(Lexer lexer)
     {
