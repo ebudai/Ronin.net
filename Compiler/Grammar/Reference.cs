@@ -12,7 +12,10 @@ internal class Reference : Syntax, IParsable
 
     internal Reference(Parser parser, int length) : base(parser, length) { }
 
-    public static Syntax Parse(ref Parser parser)
+    internal bool IsTerminated => Tokens.Count is not 0 && Tokens[^1] is Terminal;
+    internal bool IsSeparated => Tokens.Count is not 0 && Tokens[^1] is Separator;
+
+    public static Syntax Parse(Parser parser)
     {
         List<Entity> entities = new();
         int length = 0;
@@ -34,7 +37,7 @@ internal class Reference : Syntax, IParsable
             else if (lexeme is OpenParenthesis)
             {
                 Parser attempt = new(parser);
-                var syntax = Object.Parse(ref attempt);
+                var syntax = Object.Parse(attempt);
                 if (syntax is Object @object)
                 {
                     length = attempt.Cursor;
@@ -52,7 +55,7 @@ internal class Reference : Syntax, IParsable
             }
             else if (lexeme is Terminal or Separator)
             {
-                ++length;
+                //++length;
                 break;
             }
             else if (lexeme is Assign or Close)

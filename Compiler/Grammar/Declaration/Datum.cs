@@ -19,7 +19,7 @@ internal class Datum : Syntax, IParsable
 
     internal Datum(Parser parser, int length) : base(parser, length) { }
 
-    public static Syntax Parse(ref Parser parser)
+    public static Syntax Parse(Parser parser)
     {
         int length = 0;
         int max = parser.Length;
@@ -70,7 +70,7 @@ internal class Datum : Syntax, IParsable
         }
 
         // form the identifier, type, and/or initializer
-        while (length != max && initializer is null)
+        while (length != max/* && initializer is null*/)
         {
             var syntax = parser[length];
             if (syntax is Whitespace or Comment)
@@ -78,12 +78,16 @@ internal class Datum : Syntax, IParsable
                 ++length;
                 continue;
             }
-            if (syntax is Terminal) break;
+            if (syntax is Terminal)
+            {
+                ++length;
+                break;
+            }
             if (syntax is Returns or Assign)
             {
                 if (identifier.Length is 0) return new Expected<Name>(parser);
                 Parser attempt = new(parser, length + 1);
-                var parsed = Reference.Parse(ref attempt);
+                var parsed = Reference.Parse(attempt);
                 if (parsed is Reference reference)
                 {
                     if (syntax is Returns) datatype = reference;

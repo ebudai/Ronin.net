@@ -61,7 +61,7 @@ public class Parser
         
         static bool TryParse<T>(Parser parser, List<Syntax> statements) where T : IParsable
         {
-            var syntax = T.Parse(ref parser);
+            var syntax = T.Parse(parser);
             if (syntax is not null) statements.Add(syntax);
             return syntax is T;
         }

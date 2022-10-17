@@ -8,7 +8,7 @@ internal class Lookup : Syntax, IParsable
     {
     }
 
-    public static Syntax Parse(ref Parser parser)
+    public static Syntax Parse(Parser parser)
     {
         throw new NotImplementedException();
     }

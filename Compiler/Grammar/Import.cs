@@ -10,7 +10,7 @@ internal class Import : Syntax, IParsable
 
     internal string[] Name { get; init; }
 
-    public static Syntax Parse(ref Parser parser)
+    public static Syntax Parse(Parser parser)
     {
         if (parser[0] is not Keyword keyword || keyword.ToString() is not Keyword.import) return null;
 

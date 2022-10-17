@@ -9,28 +9,22 @@ internal class Object : Syntax, IParsable
 
     internal Object(Parser parser, int length) : base(parser, length) { }
 
-    public static Syntax Parse(ref Parser parser)
+    public static Syntax Parse(Parser parser)
     {
-        if (parser.IsEmpty || parser[0] is not OpenParenthesis) return null;
+        if (parser.IsEmpty || parser[0] is not OpenParenthesis) return new Expected<OpenParenthesis>(parser);
 
-        int length = OpenParenthesis.character.ToString().Length;
-        Parser attempt = new(parser, length);
+        int length = OpenParenthesis.character.ToString().Length;        
         List<Reference> references = new();        
-        while (parser[length] is not CloseParenthesis)
+        while (length < parser.Length && parser[length] is not CloseParenthesis)
         {
-            var parsed = Reference.Parse(ref attempt);
-            if (parsed is Reference reference)
-            {
-                if (parsed.Tokens[^1] is not Separator && !attempt.IsEmpty && attempt[0] is not CloseParenthesis) return new Expected<Separator, CloseParenthesis>(attempt);
-                references.Add(reference);
-                length += parsed.Tokens.Count;
-            }
-            else
-            {
-                return parsed as Expected;
-            }
+            Parser attempt = new(parser, length);
+            var parsed = Reference.Parse(attempt);
+            if (parsed is not Reference reference) return parsed as Expected;            
+            if (attempt.IsEmpty || attempt[0] is not CloseParenthesis and not Separator) return new Expected<Separator, CloseParenthesis>(attempt);
+            references.Add(reference);
+            length += parsed.Tokens.Count + (attempt[0] is CloseParenthesis ? 1 : 0);
         }
 
-        return new Object(parser, length + CloseParenthesis.character.ToString().Length) { Parameters = references.ToArray() };
+        return new Object(parser, length) { Parameters = references.ToArray() };
     }
 }

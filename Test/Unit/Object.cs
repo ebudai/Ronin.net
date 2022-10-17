@@ -7,7 +7,7 @@ public class Object
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string declaration = "(test);";
+        const string declaration = "(test)";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
@@ -30,7 +30,7 @@ public class Object
     [Fact(DisplayName = "separated")]
     public void Separated()
     {
-        const string declaration = "(test, stuff);";
+        const string declaration = "(test, stuff)";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
@@ -54,5 +54,25 @@ public class Object
         Assert.True(@object.Parameters[1].Name[0].IsT0);
         string stuff = @object.Parameters[1].Name[0].AsT0;
         Assert.Equal("stuff", stuff);
+    }
+
+    [Fact(DisplayName = "empty parenthesis")]
+    public void Empty()
+    {
+        const string declaration = "();";
+
+        Lexer lexer = new(declaration);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Reference>(syntax[0]);
+        var reference = syntax[0] as Ronin.Grammar.Reference;
+        Assert.NotEmpty(reference.Name);
+        Assert.True(reference.Name[0].IsT2);
+        var @object = reference.Name[0].AsT2;
+        Assert.Empty(@object.Parameters);
+
     }
 }

@@ -5,7 +5,7 @@ namespace Ronin.Grammar;
 
 internal interface IParsable
 {
-    public static abstract Syntax Parse(ref Parser parser);
+    public static abstract Syntax Parse(Parser parser);
 }
 
 internal abstract class Syntax
@@ -17,7 +17,7 @@ internal abstract class Syntax
     }
 
     internal Syntax Parent { get; set; }
-    
+
     protected internal readonly List<Lexeme> Tokens = new();
 
     protected internal record struct Location(int Line, int ColumnStart, int ColumnEnd)
