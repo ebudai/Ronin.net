@@ -1,55 +1,27 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token.Keywords;
 
 namespace Ronin.Token;
 
-internal class Keyword : Lexeme
+internal abstract class Keyword : Word
 {
-    internal const string var = nameof(var);
-    internal const string constant = nameof(constant);
-    internal const string datatype = nameof(datatype);
-    internal const string function = nameof(function);    
-    internal const string reactive = nameof(reactive);
-    internal const string compiled = nameof(compiled);
-    internal const string persistent = nameof(persistent);
-    internal const string shared = nameof(shared);
-    internal const string optional = nameof(optional);
-    internal const string part_of = "part of";
-    internal const string import = nameof(import);
-    internal const string @return = nameof(@return);
+    protected internal Keyword(Lexer lexer, int length) : base(lexer, length) { }
 
-    internal Keyword(Lexer lexer, int length) : base(lexer, length) { }
-
-    internal static Lexeme Lex(Lexer lexer)
-    {
-        if (lexer.IsEmpty) return null;
+    internal static new Keyword Lex(Lexer lexer)
+        => CanLex(lexer, Compiled.keyword) ? new Compiled(lexer)
+        : CanLex(lexer, Constant.keyword) ? new Constant(lexer)
+        : CanLex(lexer, Datatype.keyword) ? new Datatype(lexer)
+        : CanLex(lexer, Function.keyword) ? new Function(lexer)
+        : CanLex(lexer, Import.keyword) ? new Import(lexer)
+        : CanLex(lexer, Optional.keyword) ? new Optional(lexer)
+        : CanLex(lexer, PartOf.keyword) ? new PartOf(lexer)
+        : CanLex(lexer, Persistent.keyword) ? new Persistent(lexer)
+        : CanLex(lexer, Reactive.keyword) ? new Reactive(lexer)
+        : CanLex(lexer, Shared.keyword) ? new Shared(lexer)
+        : CanLex(lexer, Variable.keyword) ? new Variable(lexer) : null;
         
-        foreach (var keyword in keywords)
-        {
-            if (lexer.StartsWith(keyword))
-            {
-                if (char.IsWhiteSpace(lexer[keyword.Length]) || Symbol.IsSymbol(lexer, keyword.Length))
-                {
-                    return new Keyword(lexer, keyword.Length);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static readonly string[] keywords =
-    {
-        var,
-        constant,
-        datatype,
-        function,
-        reactive,
-        compiled,
-        persistent,
-        shared,
-        optional,
-        part_of,
-        import,
-        @return
-    };
+    private static bool CanLex(Lexer lexer, string keyword)
+        => lexer.IsNotEmpty
+        && lexer.StartsWith(keyword)
+        && char.IsWhiteSpace(lexer[keyword.Length]);
 }

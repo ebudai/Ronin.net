@@ -14,6 +14,7 @@ public class Lexer
     internal int Cursor { get; set; }
     internal int Line { get; set; } = 1;
     internal bool IsEmpty => Span.IsEmpty;
+    internal bool IsNotEmpty => !IsEmpty;
     internal int Length => Span.Length;
 
     internal ReadOnlySpan<char> Span => Sourcecode[Cursor..].Span;
@@ -33,7 +34,7 @@ public class Lexer
                 ?? Comment.Lex(this)
                 ?? Symbol.Lex(this)
                 ?? Keyword.Lex(this)
-                ?? Name.Lex(this));
+                ?? Word.Lex(this) as Lexeme);
         }
 
         return tokens.ToArray();

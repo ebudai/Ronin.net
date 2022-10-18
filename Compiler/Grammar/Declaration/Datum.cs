@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
-using Ronin.Token.Delimiter;
+using Ronin.Token.Symbols;
+using Ronin.Token.Keywords;
 
 namespace Ronin.Grammar.Declaration;
 
@@ -56,13 +57,13 @@ internal class Datum : Syntax, IParsable
 
             identifier = keyword.ToString() switch
             {
-                Keyword.reactive => handleModifier(keyword.ToString(), ref isReactive),
-                Keyword.compiled => handleModifier(keyword.ToString(), ref isCompiled),
-                Keyword.persistent => handleModifier(keyword.ToString(), ref isPersistent),
-                Keyword.shared => handleModifier(keyword.ToString(), ref isShared),
-                Keyword.optional => handleModifier(keyword.ToString(), ref isOptional),
-                Keyword.constant => handleModifier(keyword.ToString(), ref isReadonly) ?? string.Empty,
-                Keyword.var => string.Empty,
+                Reactive.keyword => handleModifier(keyword.ToString(), ref isReactive),
+                Compiled.keyword => handleModifier(keyword.ToString(), ref isCompiled),
+                Persistent.keyword => handleModifier(keyword.ToString(), ref isPersistent),
+                Shared.keyword => handleModifier(keyword.ToString(), ref isShared),
+                Optional.keyword => handleModifier(keyword.ToString(), ref isOptional),
+                Constant.keyword => handleModifier(keyword.ToString(), ref isReadonly) ?? string.Empty,
+                Variable.keyword => string.Empty,
                 _ => keyword.ToString()
             };
 
@@ -85,7 +86,7 @@ internal class Datum : Syntax, IParsable
             }
             if (syntax is Returns or Assign)
             {
-                if (identifier.Length is 0) return new Expected<Name>(parser);
+                if (identifier.Length is 0) return new Expected<Word>(parser);
                 Parser attempt = new(parser, length + 1);
                 var parsed = Reference.Parse(attempt);
                 if (parsed is Reference reference)
@@ -102,9 +103,9 @@ internal class Datum : Syntax, IParsable
             }
             else if (syntax is Symbol)
             {
-                return new Expected<Name, Terminal, Returns, Assign>(parser);
+                return new Expected<Word, Terminal, Returns, Assign>(parser);
             }
-            else if (syntax is Name name)
+            else if (syntax is Word name)
             {
                 if (identifier.Length is not 0) identifier += ' ';
                 identifier += name.ToString();
@@ -116,7 +117,7 @@ internal class Datum : Syntax, IParsable
             }
             else if (syntax is Literal)
             {
-                return datatype is null ? new Expected<Name>(parser) : new Expected<Name, Literal, OpenParenthesis>(parser);
+                return datatype is null ? new Expected<Word>(parser) : new Expected<Word, Literal, OpenParenthesis>(parser);
             }
             ++length;
         }

@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token.Value;
+using Ronin.Token.Literals;
 
 namespace Ronin.Token;
 

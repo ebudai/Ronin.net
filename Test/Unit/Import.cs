@@ -57,21 +57,21 @@ public class Import
         Assert.NotEmpty(partof.Name);
         Assert.Equal(3, partof.Name.Length);
         Assert.Equal("standard", partof.Name[0]);
-        Assert.Equal(" fun stuff", partof.Name[1]);
-        Assert.Equal("web sockets ", partof.Name[2]);
+        Assert.Equal("fun stuff", partof.Name[1]);
+        Assert.Equal("web sockets", partof.Name[2]);
     }
 
     [Fact(DisplayName = "keywords are just text")]
     public void WithKeywords()
     {
-        const string line = "import return to whatever/secret/stuff;";
+        const string line = "import compiled to whatever/secret/stuff;";
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
 
         // ensure hierarchy starts with a keyword
         Assert.True(tokens.Length is > 2);
-        Assert.IsType<Ronin.Token.Keyword>(tokens[2]);
+        Assert.IsAssignableFrom<Ronin.Token.Keyword>(tokens[2]);
 
         Parser parser = new(tokens);
         var syntax = parser.Parse();
@@ -81,7 +81,7 @@ public class Import
         var partof = syntax[0] as Ronin.Grammar.Import;
         Assert.NotEmpty(partof.Name);
         Assert.Equal(3, partof.Name.Length);
-        Assert.Equal("return to whatever", partof.Name[0]);
+        Assert.Equal("compiled to whatever", partof.Name[0]);
         Assert.Equal("secret", partof.Name[1]);
         Assert.Equal("stuff", partof.Name[2]);
     }

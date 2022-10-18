@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token.Delimiter;
+using Ronin.Token.Symbols;
 
 namespace Ronin.Token;
 
@@ -25,7 +25,7 @@ internal class Symbol : Lexeme
             or Separator.character
             or Terminal.character
             or TextDelimiter.character
-            /*or Hierarchy.character*/;
+            or Hierarchy.character;
     }
 
     internal static bool IsNonTerminalSymbol(Lexer lexer, int i = 0) => IsSymbol(lexer, i) && lexer[i] is not Terminal.character;
@@ -42,5 +42,6 @@ internal class Symbol : Lexeme
         ?? Assign.Lex(lexer)
         ?? Separator.Lex(lexer)
         ?? Terminal.Lex(lexer)
+        ?? Hierarchy.Lex(lexer)
         ?? TextDelimiter.Lex(lexer) as Symbol;
 }

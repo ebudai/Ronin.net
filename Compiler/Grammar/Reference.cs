@@ -1,7 +1,7 @@
 ﻿using OneOf;
 using Ronin.Compiler;
 using Ronin.Token;
-using Ronin.Token.Delimiter;
+using Ronin.Token.Symbols;
 using Object = Ronin.Grammar.Aggregate.Object;
 
 namespace Ronin.Grammar;
@@ -22,7 +22,7 @@ internal class Reference : Syntax, IParsable
         while (length != parser.Length)
         {
             var lexeme = parser[length];
-            if (lexeme is Name name)
+            if (lexeme is Word name)
             {
                 entities.Add(name.ToString());
             }
@@ -64,12 +64,12 @@ internal class Reference : Syntax, IParsable
             }
             else if (lexeme is not Whitespace or Comment)
             {
-                return new Expected<Name, Literal, OpenParenthesis, OpenBrace, OpenSquareBracket, Terminal, Separator, Assign, Close>(parser);
+                return new Expected<Word, Literal, OpenParenthesis, OpenBrace, OpenSquareBracket, Terminal, Separator, Assign, Close>(parser);
             }
             ++length;
         }
         return entities.Count is 0 
-            ? new Expected<Name, OpenParenthesis, Literal>(parser)
+            ? new Expected<Word, OpenParenthesis, Literal>(parser)
             : new Reference(parser, length) { Name = entities };
     }
 }

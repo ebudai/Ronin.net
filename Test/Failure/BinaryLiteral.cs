@@ -25,8 +25,8 @@ public class BinaryLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Ronin.Token.Value.Integer>(lexed);
-        var name = lexed as Ronin.Token.Value.Integer;
+        Assert.IsType<Ronin.Token.Literals.Integer>(lexed);
+        var name = lexed as Ronin.Token.Literals.Integer;
         Assert.Equal(literal[..1].ToArray(), name.Sourcecode.ToArray());
     }
 
@@ -39,8 +39,8 @@ public class BinaryLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Ronin.Token.Value.Binary>(lexed);
-        var binary = lexed as Ronin.Token.Value.Binary;
+        Assert.IsType<Ronin.Token.Literals.Binary>(lexed);
+        var binary = lexed as Ronin.Token.Literals.Binary;
         Assert.Equal(literal[..^2].ToArray(), binary.Sourcecode.ToArray());
     }
 

@@ -27,7 +27,7 @@ public class Object
         Assert.Equal("test", name);
     }
 
-    [Fact(DisplayName = "separated")]
+    /*[Fact(DisplayName = "separated")]
     public void Separated()
     {
         const string declaration = "(test, stuff)";
@@ -74,5 +74,5 @@ public class Object
         var @object = reference.Name[0].AsT2;
         Assert.Empty(@object.Parameters);
 
-    }
+    }*/
 }

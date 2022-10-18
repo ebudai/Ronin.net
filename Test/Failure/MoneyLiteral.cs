@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
-using Ronin.Token.Value;
+using Ronin.Token.Literals;
 
 namespace Failure;
 
@@ -88,8 +88,8 @@ public class MoneyLiteral
         var lexed = lexer.Lex();
 
         Assert.NotEmpty(lexed);
-        Assert.IsType<Ronin.Token.Name>(lexed[0]);
-        var name = lexed[0] as Ronin.Token.Name;
+        Assert.IsType<Ronin.Token.Word>(lexed[0]);
+        var name = lexed[0] as Ronin.Token.Word;
         Assert.Equal(literal.ToArray(), name.Sourcecode.ToArray());
     }
 }

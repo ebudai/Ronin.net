@@ -122,29 +122,5 @@ public class Keyword
         Assert.Equal("import".ToArray(), lexed.Sourcecode.ToArray());
     }
 
-    [Fact(DisplayName = "return")]
-    public void Return()
-    {
-        const string sourcecode = "return nothing;";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal("return".ToArray(), lexed.Sourcecode.ToArray());
-    }
-
-    [Fact(DisplayName = "return with symbol")]
-    public void ReturnWithSymbol()
-    {
-        const string sourcecode = "return(3);";
-
-        Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal("return".ToArray(), lexed.Sourcecode.ToArray());
-    }
-
 
 }

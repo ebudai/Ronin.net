@@ -10,7 +10,7 @@ public class Name
         const string name = "7stew";
 
         Lexer lexer = new(name);
-        var lexed = Ronin.Token.Name.Lex(lexer);
+        var lexed = Ronin.Token.Word.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +21,7 @@ public class Name
         const string name = "(";
 
         Lexer lexer = new(name);
-        var lexed = Ronin.Token.Name.Lex(lexer);
+        var lexed = Ronin.Token.Word.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -30,7 +30,7 @@ public class Name
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Token.Name.Lex(lexer);
+        var lexed = Ronin.Token.Word.Lex(lexer);
 
         Assert.Null(lexed);
     }

@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
-using Ronin.Token.Delimiter;
+using Ronin.Token.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -12,10 +12,20 @@ internal class Import : Syntax, IParsable
 
     public static Syntax Parse(Parser parser)
     {
-        if (parser[0] is not Keyword keyword || keyword.ToString() is not Keyword.import) return null;
+        if (parser[0] is not Token.Keywords.Import) return null;
 
-        var (hierarchy, length) = parser.ParseHierarchy();
-
-        return hierarchy is null ? new Expected<Name, Hierarchy>(parser) : new Import(parser, length) { Name = hierarchy };
+        int tokensConsumed = 2;
+        List<string> names = new() { string.Empty };
+        for (int max = parser.Length; tokensConsumed != max; ++tokensConsumed)
+        {
+            var lexeme = parser[tokensConsumed];
+            if (lexeme is Comment or Whitespace) continue;
+            else if (lexeme is Terminal) break;
+            else if (lexeme is Word word) names[^1] += (names[^1] is "" ? "" : " ") + word.ToString();
+            else if (lexeme is Hierarchy) names.Add(string.Empty);
+            else return new Expected<Word, Hierarchy>(parser);
+        }
+        if (names[^1].Length is 0) names.RemoveAt(names.Count - 1);
+        return new Import(parser, tokensConsumed) { Name = names.ToArray() };
     }
 }

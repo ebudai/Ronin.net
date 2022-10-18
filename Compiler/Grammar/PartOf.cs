@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
+using Ronin.Token.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -11,10 +12,20 @@ internal class PartOf : Syntax, IParsable
 
     public static Syntax Parse(Parser parser)
     {
-        if (parser[0] is not Keyword keyword || keyword.ToString() is not Keyword.part_of) return null;
+        if (parser[0] is not Token.Keywords.PartOf) return null;
 
-        var (hierarchy, length) = parser.ParseHierarchy();
-
-        return hierarchy is null ? new Expected<Name>(parser) : new PartOf(parser, length) { Name = hierarchy };
+        int tokensConsumed = 2;
+        List<string> names = new() { string.Empty };
+        for (int max = parser.Length; tokensConsumed != max; ++tokensConsumed)
+        {
+            var lexeme = parser[tokensConsumed];
+            if (lexeme is Comment or Whitespace) continue;
+            else if (lexeme is Terminal) break;
+            else if (lexeme is Word word) names[^1] += (names[^1] is "" ? "" : " ") + word.ToString();
+            else if (lexeme is Hierarchy) names.Add(string.Empty);
+            else return new Expected<Word, Hierarchy>(parser);
+        }
+        if (names[^1].Length is 0) names.RemoveAt(names.Count - 1);
+        return new PartOf(parser, tokensConsumed) { Name = names.ToArray() };
     }
 }

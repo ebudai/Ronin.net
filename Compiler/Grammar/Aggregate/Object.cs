@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token.Delimiter;
+using Ronin.Token.Symbols;
 
 namespace Ronin.Grammar.Aggregate;
 

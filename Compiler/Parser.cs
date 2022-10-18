@@ -1,7 +1,7 @@
 ﻿using Ronin.Grammar;
 using Ronin.Grammar.Declaration;
 using Ronin.Token;
-using Ronin.Token.Delimiter;
+using Ronin.Token.Symbols;
 
 namespace Ronin.Compiler;
 
@@ -65,35 +65,5 @@ public class Parser
             if (syntax is not null) statements.Add(syntax);
             return syntax is T;
         }
-    }
-
-    internal (string[], int) ParseHierarchy()
-    {
-        string hierarchy = string.Empty;
-        int tokensConsumed = 2;
-        for (int max = Length; tokensConsumed != max; ++tokensConsumed)
-        {
-            var lexeme = this[tokensConsumed];
-            if (lexeme is Comment) continue;
-
-            if (lexeme is Terminal) break;
-
-            string text = lexeme switch
-            {
-                Name name => name.ToString(),
-                Keyword keyword => keyword.ToString(),
-                Hierarchy => Hierarchy.character.ToString(),
-                Whitespace => " ",
-                _ => null
-            };
-
-            if (text is null) return (null, tokensConsumed);
-
-            hierarchy += text;
-        }
-
-        var levels = hierarchy.Split(Hierarchy.character, StringSplitOptions.RemoveEmptyEntries);
-        if (levels.Length is 0) levels = null;
-        return (levels, tokensConsumed + Terminal.character.ToString().Length); // one extra for the terminal
     }
 }

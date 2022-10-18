@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token;
-using Ronin.Token.Delimiter;
-using Ronin.Token.Value;
+using Ronin.Token.Symbols;
+using Ronin.Token.Literals;
 
 namespace Failure;
 
@@ -32,8 +32,8 @@ public class TextLiteral
         var quote = lexed[0] as TextDelimiter;
         Assert.Equal(new[] { '"' }, quote.Sourcecode.ToArray());
 
-        Assert.IsType<Ronin.Token.Name>(lexed[1]);
-        var name = lexed[1] as Ronin.Token.Name;
+        Assert.IsType<Ronin.Token.Word>(lexed[1]);
+        var name = lexed[1] as Ronin.Token.Word;
         Assert.Equal("testtest", name.ToString());
     }
 
