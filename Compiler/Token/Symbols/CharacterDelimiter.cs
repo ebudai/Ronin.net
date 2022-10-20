@@ -9,4 +9,6 @@ internal class CharacterDelimiter : Symbol
     public CharacterDelimiter(Lexer lexer) : base(lexer, 1) { }
 
     public static new CharacterDelimiter Lex(Lexer lexer) => !lexer.IsEmpty && lexer[0] is character ? new CharacterDelimiter(lexer) : null;
+
+    internal override bool CanBeUsedInNames => true;
 }

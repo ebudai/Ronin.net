@@ -21,11 +21,11 @@ internal class Import : Syntax, IParsable
             var lexeme = parser[tokensConsumed];
             if (lexeme is Comment or Whitespace) continue;
             else if (lexeme is Terminal) break;
-            else if (lexeme is Word word) names[^1] += (names[^1] is "" ? "" : " ") + word.ToString();
+            else if (lexeme is Word word) names[^1] += (names[^1] is "" ? "" : " ") + word;
             else if (lexeme is Hierarchy) names.Add(string.Empty);
             else return new Expected<Word, Hierarchy>(parser);
         }
-        if (names[^1].Length is 0) names.RemoveAt(names.Count - 1);
+        
         return new Import(parser, tokensConsumed) { Name = names.ToArray() };
     }
 }

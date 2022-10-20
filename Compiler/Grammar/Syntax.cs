@@ -16,7 +16,7 @@ internal abstract class Syntax
         parser.Cursor += length;
     }
 
-    internal Syntax Parent { get; set; }
+    //internal Syntax Parent { get; set; }
 
     protected internal readonly List<Lexeme> Tokens = new();
 

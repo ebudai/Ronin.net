@@ -11,4 +11,6 @@ internal class Hierarchy : Symbol
     public Hierarchy(Lexer lexer) : base(lexer, 1) { }
 
     public static new Hierarchy Lex(Lexer lexer) => !lexer.IsEmpty && lexer[0] is character ? new Hierarchy(lexer) : null;
+
+    internal override bool CanBeUsedInNames => true;
 }

@@ -1,4 +1,6 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token;
+using Ronin.Token.Symbols;
 
 namespace Unit;
 
@@ -14,9 +16,9 @@ public class Datum
         Assert.False(datum.IsReadonly);
         Assert.Equal("my variable", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -36,9 +38,9 @@ public class Datum
         Assert.False(datum.IsShared);        
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -58,9 +60,9 @@ public class Datum
         Assert.False(datum.IsShared);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -80,9 +82,9 @@ public class Datum
         Assert.False(datum.IsShared);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -102,9 +104,9 @@ public class Datum
         Assert.True(datum.IsShared);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -124,9 +126,9 @@ public class Datum
         Assert.False(datum.IsShared);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -141,9 +143,9 @@ public class Datum
         Assert.True(datum.IsReactive);
         Assert.Equal($"{Ronin.Token.Keywords.Reactive.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -158,9 +160,9 @@ public class Datum
         Assert.True(datum.IsReadonly);
         Assert.Equal($"{Ronin.Token.Keywords.Constant.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -168,16 +170,17 @@ public class Datum
     [Fact(DisplayName = "var twice")]
     public void VarTwiceIsOk()
     {
-        const string declaration = "var var thing => integer;";
+        const string var = Ronin.Token.Keywords.Variable.keyword;
+        const string declaration = $"{var} {var} thing {Returns.character} integer;";
 
         var datum = Compile(declaration);
 
         Assert.False(datum.IsReadonly);
-        Assert.Equal($"{Ronin.Token.Keywords.Variable.keyword} thing", datum.Identifier);
+        Assert.Equal($"{var} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -192,9 +195,9 @@ public class Datum
         Assert.True(datum.IsCompiled);
         Assert.Equal($"{Ronin.Token.Keywords.Compiled.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -209,9 +212,9 @@ public class Datum
         Assert.True(datum.IsPersistent);
         Assert.Equal($"{Ronin.Token.Keywords.Persistent.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -226,9 +229,9 @@ public class Datum
         Assert.True(datum.IsOptional);
         Assert.Equal($"{Ronin.Token.Keywords.Optional.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -243,9 +246,9 @@ public class Datum
         Assert.True(datum.IsShared);
         Assert.Equal($"{Ronin.Token.Keywords.Shared.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -260,9 +263,9 @@ public class Datum
         Assert.True(datum.IsShared);
         Assert.Equal("import", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -277,9 +280,9 @@ public class Datum
         Assert.False(datum.IsReadonly);
         Assert.Equal($"{Ronin.Token.Keywords.Shared.keyword} {Ronin.Token.Keywords.Reactive.keyword}", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        var datatype = datum.Datatype.Name[0].AsT0;
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        string datatype = datum.Datatype.Names[0].Names[0];
         Assert.Equal("money", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -294,12 +297,12 @@ public class Datum
         Assert.False(datum.IsReadonly);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.Equal(3, datum.Datatype.Name.Count);
-        Assert.True(datum.Datatype.Name[0].IsT0);
-        Assert.True(datum.Datatype.Name[1].IsT0);
-        Assert.True(datum.Datatype.Name[2].IsT0);
-        var datatype = datum.Datatype.Name;
-        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword} {Ronin.Token.Keywords.Shared.keyword} things", datatype[0].AsT0 + ' ' + datatype[1].AsT0 + ' ' + datatype[2].AsT0);
+        Assert.Equal(3, datum.Datatype.Names.Count);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        Assert.NotEmpty(datum.Datatype.Names[1].Names);
+        Assert.NotEmpty(datum.Datatype.Names[2].Names);
+        var datatype = datum.Datatype.Names;
+        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword} {Ronin.Token.Keywords.Shared.keyword} things", datatype[0].Names[0] + ' ' + datatype[1].Names[0] + ' ' + datatype[2].Names[0]);
         Assert.Null(datum.Initializer);
     }
 
@@ -313,9 +316,9 @@ public class Datum
         Assert.False(datum.IsReadonly);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Initializer);
-        Assert.NotEmpty(datum.Initializer.Name);
-        Assert.True(datum.Initializer.Name[0].IsT0); // name is a string
-        Assert.Equal("things", datum.Initializer.Name[0].AsT0);
+        Assert.NotEmpty(datum.Initializer.Names);
+        Assert.NotEmpty(datum.Initializer.Names[0].Names);
+        Assert.Equal("things", datum.Initializer.Names[0].Names[0]);
         Assert.Null(datum.Datatype); 
     }
 
@@ -329,13 +332,13 @@ public class Datum
         Assert.False(datum.IsReadonly);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Initializer);
-        Assert.NotEmpty(datum.Initializer.Name);
-        Assert.True(datum.Initializer.Name[0].IsT0); // name is a string
-        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword}", datum.Initializer.Name[0].AsT0);
+        Assert.NotEmpty(datum.Initializer.Names);
+        Assert.NotEmpty(datum.Initializer.Names[0].Names);
+        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword}", datum.Initializer.Names[0].Names[0]);
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        Assert.Equal("integer", datum.Datatype.Name[0].AsT0);
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names);
+        Assert.Equal("integer", datum.Datatype.Names[0].Names[0]);
     }
 
     [Fact(DisplayName = "implicit initializer is keywords")]
@@ -348,9 +351,9 @@ public class Datum
         Assert.False(datum.IsReadonly);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Initializer);
-        Assert.NotEmpty(datum.Initializer.Name);
-        Assert.True(datum.Initializer.Name[0].IsT0); // name is a string
-        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword}", datum.Initializer.Name[0].AsT0);
+        Assert.NotEmpty(datum.Initializer.Names);
+        Assert.NotEmpty(datum.Initializer.Names[0].Names);
+        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword}", datum.Initializer.Names[0].Names[0]);
         Assert.Null(datum.Datatype);
     }
 
@@ -364,13 +367,15 @@ public class Datum
         Assert.False(datum.IsReadonly);
         Assert.Equal("thing", datum.Identifier);
         Assert.NotNull(datum.Initializer);
-        Assert.NotEmpty(datum.Initializer.Name);
-        Assert.True(datum.Initializer.Name[0].IsT1); // name is a literal
-        Assert.Equal("2", datum.Initializer.Name[0].AsT1.ToString());
+        Assert.NotEmpty(datum.Initializer.Arguments);
+        Assert.NotNull(datum.Initializer.Arguments[0].Scalar);
+        var scalar = datum.Initializer.Arguments[0].Scalar;
+        Assert.NotEmpty(scalar.Literals);
+        Assert.Equal("2", scalar.Literals[0].ToString());
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Name);
-        Assert.True(datum.Datatype.Name[0].IsT0); // name is a string
-        Assert.Equal("integer", datum.Datatype.Name[0].AsT0);
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.NotEmpty(datum.Datatype.Names[0].Names[0]);
+        Assert.Equal("integer", datum.Datatype.Names[0].Names[0]);
     }
 
     /*[Fact(DisplayName = "lambda")]

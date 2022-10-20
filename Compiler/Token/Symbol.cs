@@ -30,6 +30,8 @@ internal class Symbol : Lexeme
 
     internal static bool IsNonTerminalSymbol(Lexer lexer, int i = 0) => IsSymbol(lexer, i) && lexer[i] is not Terminal.character;
 
+    internal virtual bool CanBeUsedInNames => false;
+
     internal static Symbol Lex(Lexer lexer)
         => Returns.Lex(lexer)
         ?? CharacterDelimiter.Lex(lexer)

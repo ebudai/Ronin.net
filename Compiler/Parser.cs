@@ -22,6 +22,7 @@ public class Parser
     internal int Cursor { get; set; }
     
     internal bool IsEmpty => Span.IsEmpty;
+    internal bool IsNotEmpty => !IsEmpty;
     internal int Length => Span.Length;
 
     internal ReadOnlySpan<Lexeme> Span => Tokens[Cursor..].Span;
@@ -41,14 +42,14 @@ public class Parser
             statements.AddRange(parsed);
             parsed.Clear();
 
-            if (TryParse<PartOf>(parser, parsed)) continue;
-            if (TryParse<Import>(parser, parsed)) continue;
-            if (TryParse<Datum>(parser, parsed)) continue;
-            if (TryParse<Trivium>(parser, parsed)) continue;
+            if (parser.TryParse<PartOf>(parsed)) continue;
+            if (parser.TryParse<Import>(parsed)) continue;
+            if (parser.TryParse<Datum>(parsed)) continue;
+            if (parser.TryParse<Trivium>(parsed)) continue;
 
-            if (parsed.All(statement => statement is Expected))
+            if (parsed.Count is 0 || parsed.All(statement => statement is Unexpected))
             {
-                if (TryParse<Reference>(parser, statements)) continue;
+                if (parser.TryParse<Reference>(statements)) continue;
                 return parsed.ToArray();
             }
 
@@ -58,12 +59,12 @@ public class Parser
         statements.AddRange(parsed);
 
         return statements.ToArray();
-        
-        static bool TryParse<T>(Parser parser, List<Syntax> statements) where T : IParsable
-        {
-            var syntax = T.Parse(parser);
-            if (syntax is not null) statements.Add(syntax);
-            return syntax is T;
-        }
+    }
+
+    internal bool TryParse<T>(List<Syntax> statements) where T : IParsable
+    {
+        var syntax = T.Parse(this);
+        if (syntax is not null) statements.Add(syntax);
+        return syntax is T;
     }
 }

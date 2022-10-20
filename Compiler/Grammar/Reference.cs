@@ -1,88 +1,36 @@
-﻿using OneOf;
-using Ronin.Compiler;
-using Ronin.Token;
-using Ronin.Token.Symbols;
-using Object = Ronin.Grammar.Aggregate.Object;
+﻿using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
 internal class Reference : Syntax, IParsable
 {
-    internal List<Entity> Name { get; init; } = new();
+    internal SortedList<int, Name> Names { get; private init; }
+    internal SortedList<int, Value> Arguments { get; private init; }
 
-    internal Reference(Parser parser, int length) : base(parser, length) { }
-
-    internal bool IsTerminated => Tokens.Count is not 0 && Tokens[^1] is Terminal;
-    internal bool IsSeparated => Tokens.Count is not 0 && Tokens[^1] is Separator;
+    private Reference(Parser parser, int length) : base(parser, length) { }
 
     public static Syntax Parse(Parser parser)
     {
-        List<Entity> entities = new();
-        int length = 0;
-        while (length != parser.Length)
+        SortedList<int, Name> names = new();
+        SortedList<int, Value> arguments = new();
+        Parser attempt = new(parser);
+        while (attempt.IsNotEmpty)
         {
-            var lexeme = parser[length];
-            if (lexeme is Word name)
+            var syntax = Name.Parse(attempt);
+            if (syntax is Name name)
             {
-                entities.Add(name.ToString());
+                names.Add(names.Count + arguments.Count, name);
             }
-            else if (lexeme is Keyword keyword)
+            else
             {
-                entities.Add(keyword.ToString());
+                syntax = Value.Parse(attempt);
+                if (syntax is Scalar scalar) arguments.Add(names.Count + arguments.Count, scalar);
+                else if (syntax is Aggregate aggregate) arguments.Add(names.Count + arguments.Count, aggregate);
+                else if (syntax is Unexpected unexpected) return unexpected;
+                else if (syntax is null) break;
             }
-            else if (lexeme is Literal literal)
-            {
-                entities.Add(literal);
-            }
-            else if (lexeme is OpenParenthesis)
-            {
-                Parser attempt = new(parser);
-                var syntax = Object.Parse(attempt);
-                if (syntax is Object @object)
-                {
-                    length = attempt.Cursor;
-                    entities.Add(@object);
-                }
-                continue;
-            }
-            else if (lexeme is OpenBrace)
-            {
-                // scope or list declaration
-            }
-            else if (lexeme is OpenSquareBracket)
-            {
-                // index for list or lookup
-            }
-            else if (lexeme is Terminal or Separator)
-            {
-                //++length;
-                break;
-            }
-            else if (lexeme is Assign or Close)
-            {
-                break;
-            }
-            else if (lexeme is not Whitespace or Comment)
-            {
-                return new Expected<Word, Literal, OpenParenthesis, OpenBrace, OpenSquareBracket, Terminal, Separator, Assign, Close>(parser);
-            }
-            ++length;
         }
-        return entities.Count is 0 
-            ? new Expected<Word, OpenParenthesis, Literal>(parser)
-            : new Reference(parser, length) { Name = entities };
+
+        return names.Count is 0 && arguments.Count is 0 ? null : new Reference(parser, attempt.Cursor) { Names = names, Arguments = arguments };
     }
-}
-
-internal partial class Entity : OneOfBase<string, Literal, Object>
-{
-    protected Entity(OneOf<string, Literal, Object> input) : base(input) { }
-
-    public static implicit operator string(Entity entity) => entity.AsT0;
-    public static implicit operator Literal(Entity entity) => entity.AsT1;
-    public static implicit operator Object(Entity entity) => entity.AsT2;
-
-    public static implicit operator Entity(string name) => new(name);
-    public static implicit operator Entity(Literal value) => new(value);
-    public static implicit operator Entity(Object @object) => new(@object);
 }

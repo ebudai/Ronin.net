@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Grammar.Aggregate;
+namespace Ronin.Grammar;
 
 internal class Scope : Syntax, IParsable
 {

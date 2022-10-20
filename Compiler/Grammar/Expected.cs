@@ -3,30 +3,30 @@ using Ronin.Token;
 
 namespace Ronin.Grammar;
 
-internal class Expected : Syntax
+internal class Unexpected : Syntax
 {
-    protected internal Expected(Parser parser) : base(parser, 0) { }
+    protected internal Unexpected(Parser parser) : base(parser, 0) { }
 }
 
-internal class Expected<T> : Expected where T : Lexeme
+internal class Expected<T> : Unexpected where T : Lexeme
 {
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1> : Expected where T0 : Lexeme 
+internal class Expected<T0, T1> : Unexpected where T0 : Lexeme 
     where T1 : Lexeme
 {
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1, T2> : Expected where T0 : Lexeme 
+internal class Expected<T0, T1, T2> : Unexpected where T0 : Lexeme 
     where T1 : Lexeme 
     where T2 : Lexeme
 {
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1, T2, T3> : Expected where T0 : Lexeme 
+internal class Expected<T0, T1, T2, T3> : Unexpected where T0 : Lexeme 
     where T1 : Lexeme 
     where T2 : Lexeme 
     where T3 : Lexeme
@@ -34,7 +34,7 @@ internal class Expected<T0, T1, T2, T3> : Expected where T0 : Lexeme
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1, T2, T3, T4> : Expected 
+internal class Expected<T0, T1, T2, T3, T4> : Unexpected 
     where T0 : Lexeme 
     where T1 : Lexeme 
     where T2 : Lexeme 
@@ -44,7 +44,7 @@ internal class Expected<T0, T1, T2, T3, T4> : Expected
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1, T2, T3, T4, T5> : Expected 
+internal class Expected<T0, T1, T2, T3, T4, T5> : Unexpected 
     where T0 : Lexeme 
     where T1 : Lexeme 
     where T2 : Lexeme 
@@ -55,7 +55,7 @@ internal class Expected<T0, T1, T2, T3, T4, T5> : Expected
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1, T2, T3, T4, T5, T6> : Expected
+internal class Expected<T0, T1, T2, T3, T4, T5, T6> : Unexpected
     where T0 : Lexeme
     where T1 : Lexeme
     where T2 : Lexeme
@@ -67,7 +67,7 @@ internal class Expected<T0, T1, T2, T3, T4, T5, T6> : Expected
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1, T2, T3, T4, T5, T6, T7> : Expected
+internal class Expected<T0, T1, T2, T3, T4, T5, T6, T7> : Unexpected
     where T0 : Lexeme
     where T1 : Lexeme
     where T2 : Lexeme
@@ -80,7 +80,7 @@ internal class Expected<T0, T1, T2, T3, T4, T5, T6, T7> : Expected
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1, T2, T3, T4, T5, T6, T7, T8> : Expected
+internal class Expected<T0, T1, T2, T3, T4, T5, T6, T7, T8> : Unexpected
     where T0 : Lexeme
     where T1 : Lexeme
     where T2 : Lexeme
@@ -94,7 +94,7 @@ internal class Expected<T0, T1, T2, T3, T4, T5, T6, T7, T8> : Expected
     protected internal Expected(Parser parser) : base(parser) { }
 }
 
-internal class Expected<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> : Expected
+internal class Expected<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> : Unexpected
     where T0 : Lexeme
     where T1 : Lexeme
     where T2 : Lexeme

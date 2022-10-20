@@ -14,9 +14,9 @@ public class Object
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var @object = Ronin.Grammar.Aggregate.Object.Parse(parser);
+        var aggregate = Aggregate.Parse(parser);
 
-        Assert.IsType<Expected<OpenParenthesis>>(@object);
+        Assert.IsType<Expected<OpenParenthesis>>(aggregate);
     }
 
     [Fact(DisplayName = "blank")]
@@ -27,9 +27,9 @@ public class Object
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var @object = Ronin.Grammar.Aggregate.Object.Parse(parser);
+        var aggregate = Aggregate.Parse(parser);
 
-        Assert.IsType<Expected<OpenParenthesis>>(@object);
+        Assert.IsType<Expected<OpenParenthesis>>(aggregate);
     }
 
     /*[Fact(DisplayName = "recursive bad syntax")]
@@ -54,8 +54,8 @@ public class Object
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var @object = Ronin.Grammar.Aggregate.Object.Parse(parser);
+        var aggregate = Aggregate.Parse(parser);
 
-        Assert.IsAssignableFrom<Expected>(@object);
+        Assert.IsAssignableFrom<Unexpected>(aggregate);
     }
 }

@@ -98,7 +98,7 @@ internal class Datum : Syntax, IParsable
                 }
                 else
                 {
-                    return parsed as Expected;
+                    return parsed as Unexpected;
                 }
             }
             else if (syntax is Symbol)
