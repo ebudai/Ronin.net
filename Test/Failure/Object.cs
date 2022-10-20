@@ -4,7 +4,7 @@ using Ronin.Grammar;
 
 namespace Failure;
 
-public class Object
+public class Aggregate
 {
     [Fact(DisplayName = "does not start with (")]
     public void NotAnObject()

@@ -26,6 +26,6 @@ internal class Aggregate : Syntax, IParsable
             length += attempt.Cursor;
         }
 
-        return new Aggregate(parser, length - OpenParenthesis.character.ToString().Length) { Parameters = references.ToArray() };
+        return new Aggregate(parser, length) { Parameters = references.ToArray() };
     }
 }

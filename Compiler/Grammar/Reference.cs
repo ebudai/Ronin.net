@@ -31,6 +31,6 @@ internal class Reference : Syntax, IParsable
             }
         }
 
-        return names.Count is 0 && arguments.Count is 0 ? null : new Reference(parser, attempt.Cursor) { Names = names, Arguments = arguments };
+        return names.Count is 0 && arguments.Count is 0 ? null : new Reference(parser, attempt.Cursor - parser.Cursor) { Names = names, Arguments = arguments };
     }
 }

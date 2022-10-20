@@ -290,19 +290,17 @@ public class Datum
     [Fact(DisplayName = "datatype has keywords")]
     public void DatatypeHasKeywords()
     {
-        const string declaration = "var x => import shared things;";
+        const string declaration = $"var x => {Ronin.Token.Keywords.Import.keyword} {Ronin.Token.Keywords.Shared.keyword} things;";
 
         var datum = Compile(declaration);
 
         Assert.False(datum.IsReadonly);
         Assert.Equal("x", datum.Identifier);
         Assert.NotNull(datum.Datatype);
-        Assert.Equal(3, datum.Datatype.Names.Count);
-        Assert.NotEmpty(datum.Datatype.Names[0].Names);
-        Assert.NotEmpty(datum.Datatype.Names[1].Names);
-        Assert.NotEmpty(datum.Datatype.Names[2].Names);
-        var datatype = datum.Datatype.Names;
-        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword} {Ronin.Token.Keywords.Shared.keyword} things", datatype[0].Names[0] + ' ' + datatype[1].Names[0] + ' ' + datatype[2].Names[0]);
+        Assert.NotEmpty(datum.Datatype.Names);
+        Assert.Equal(3, datum.Datatype.Names[0].Names.Length);
+        var datatype = datum.Datatype.Names[0].Names;
+        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword} {Ronin.Token.Keywords.Shared.keyword} things", string.Join(' ', datatype));
         Assert.Null(datum.Initializer);
     }
 
@@ -368,8 +366,8 @@ public class Datum
         Assert.Equal("thing", datum.Identifier);
         Assert.NotNull(datum.Initializer);
         Assert.NotEmpty(datum.Initializer.Arguments);
-        Assert.NotNull(datum.Initializer.Arguments[0].Scalar);
-        var scalar = datum.Initializer.Arguments[0].Scalar;
+        Assert.NotNull(datum.Initializer.Arguments[1].Scalar);
+        var scalar = datum.Initializer.Arguments[1].Scalar;
         Assert.NotEmpty(scalar.Literals);
         Assert.Equal("2", scalar.Literals[0].ToString());
         Assert.NotNull(datum.Datatype);
