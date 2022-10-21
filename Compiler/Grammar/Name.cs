@@ -30,6 +30,6 @@ internal class Name : Syntax, IParsable
                 break;
             }
         }
-        return tokensConsumed is 0 ? null : new Name(parser, tokensConsumed) { Names = names.ToArray() };
+        return names.Count is 0 ? null : new Name(parser, tokensConsumed) { Names = names.ToArray() };
     }
 }

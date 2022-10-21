@@ -19,9 +19,7 @@ internal class Aggregate : Syntax, IParsable
         {
             Parser attempt = new(parser, length);
             var parsed = Reference.Parse(attempt);
-            if (parsed is null) return null;
             if (parsed is Unexpected unexpected) return unexpected;
-            //if (attempt.IsEmpty || attempt[0] is not CloseParenthesis and not Separator) return new Expected<Separator, CloseParenthesis>(attempt);
             references.Add(parsed as Reference);
             length += attempt.Cursor;
         }

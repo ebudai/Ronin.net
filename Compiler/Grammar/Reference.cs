@@ -1,4 +1,6 @@
 ﻿using Ronin.Compiler;
+using Ronin.Token;
+using Ronin.Token.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -31,6 +33,8 @@ internal class Reference : Syntax, IParsable
             }
         }
 
-        return names.Count is 0 && arguments.Count is 0 ? null : new Reference(parser, attempt.Cursor - parser.Cursor) { Names = names, Arguments = arguments };
+        if (names.Count is 0 && arguments.Count is 0) return new Expected<Word, OpenParenthesis, Literal>(parser);
+
+        return new Reference(parser, attempt.Cursor - parser.Cursor) { Names = names, Arguments = arguments };
     }
 }

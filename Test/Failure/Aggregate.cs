@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Token.Symbols;
 using Ronin.Grammar;
+using Ronin.Token;
 
 namespace Failure;
 
@@ -9,14 +10,14 @@ public class Aggregate
     [Fact(DisplayName = "does not start with (")]
     public void NotAnObject()
     {
-        const string sourcecode = "not an object";
+        const string sourcecode = "not an object;";
 
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Aggregate.Parse(parser);
+        var aggregate = Ronin.Grammar.Aggregate.Parse(parser);
 
-        Assert.IsType<Expected<OpenParenthesis>>(aggregate);
+        Assert.Null(aggregate);
     }
 
     [Fact(DisplayName = "blank")]
@@ -27,9 +28,9 @@ public class Aggregate
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Aggregate.Parse(parser);
+        var syntax = parser.Parse();
 
-        Assert.IsType<Expected<OpenParenthesis>>(aggregate);
+        Assert.Empty(syntax);
     }
 
     /*[Fact(DisplayName = "recursive bad syntax")]
@@ -46,15 +47,15 @@ public class Aggregate
         Assert.IsAssignableFrom<Expected>(syntax[^1]);
     }*/
 
-    [Fact(DisplayName = "unterminated")]
-    public void Unterminated()
+    [Fact(DisplayName = "terminated incorrectly")]
+    public void TerminatedWrong()
     {
         const string sourcecode = "(test;);";
 
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Aggregate.Parse(parser);
+        var aggregate = Ronin.Grammar.Aggregate.Parse(parser);
 
         Assert.IsAssignableFrom<Unexpected>(aggregate);
     }

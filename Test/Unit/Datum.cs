@@ -366,8 +366,8 @@ public class Datum
         Assert.Equal("thing", datum.Identifier);
         Assert.NotNull(datum.Initializer);
         Assert.NotEmpty(datum.Initializer.Arguments);
-        Assert.NotNull(datum.Initializer.Arguments[1].Scalar);
-        var scalar = datum.Initializer.Arguments[1].Scalar;
+        Assert.NotNull(datum.Initializer.Arguments[0].Scalar);
+        var scalar = datum.Initializer.Arguments[0].Scalar;
         Assert.NotEmpty(scalar.Literals);
         Assert.Equal("2", scalar.Literals[0].ToString());
         Assert.NotNull(datum.Datatype);

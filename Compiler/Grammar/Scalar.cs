@@ -21,6 +21,6 @@ internal class Scalar : Syntax, IParsable
             literals.Add(literal);
         }
 
-        return length is 0 ? null : new Scalar(parser, length) { Literals = literals.ToArray() };
+        return literals.Count is 0 ? null : new Scalar(parser, length) { Literals = literals.ToArray() };
     }
 }
