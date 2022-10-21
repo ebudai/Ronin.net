@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Token;
 using Ronin.Token.Symbols;
 
@@ -375,6 +376,35 @@ public class Datum
         Assert.NotEmpty(datum.Datatype.Names[0].Names[0]);
         Assert.Equal("integer", datum.Datatype.Names[0].Names[0]);
     }
+
+    [Fact(DisplayName = "keyword for datatype")]
+    public void LiteralForDatatype()
+    {
+        const string declaration = "var x => reactive;";
+
+        Lexer lexer = new(declaration);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
+    }
+
+    [Fact(DisplayName = "keyword for initializer")]
+    public void LiteralForInitializer()
+    {
+        const string declaration = "var x => integer = constant;";
+
+        Lexer lexer = new(declaration);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
+    }
+
 
     /*[Fact(DisplayName = "lambda")]
     public void Lambda()

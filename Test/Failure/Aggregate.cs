@@ -57,6 +57,6 @@ public class Aggregate
         Parser parser = new(tokens);
         var aggregate = Ronin.Grammar.Aggregate.Parse(parser);
 
-        Assert.IsAssignableFrom<Unexpected>(aggregate);
+        Assert.IsAssignableFrom<Error>(aggregate);
     }
 }

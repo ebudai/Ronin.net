@@ -1,6 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token;
-using Ronin.Token.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -28,12 +26,12 @@ internal class Reference : Syntax, IParsable
                 syntax = Value.Parse(attempt);
                 if (syntax is Scalar scalar) arguments.Add(names.Count + arguments.Count, scalar);
                 else if (syntax is Aggregate aggregate) arguments.Add(names.Count + arguments.Count, aggregate);
-                else if (syntax is Unexpected unexpected) return unexpected;
+                else if (syntax is Error) return syntax;
                 else if (syntax is null) break;
             }
         }
 
-        if (names.Count is 0 && arguments.Count is 0) return new Expected<Word, OpenParenthesis, Literal>(parser);
+        if (names.Count is 0 && arguments.Count is 0) return null;
 
         return new Reference(parser, attempt.Cursor - parser.Cursor) { Names = names, Arguments = arguments };
     }

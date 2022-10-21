@@ -29,7 +29,7 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Expected<Ronin.Token.Word>>(syntax[0]);
+        Assert.IsType<Error>(syntax[0]);
     }
 
     [Fact(DisplayName = "blank datatype")]
@@ -43,7 +43,7 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsAssignableFrom<Unexpected>(syntax[0]);
+        Assert.IsType<Error>(syntax[0]);
     }
 
     [Fact(DisplayName = "literal instead of identifier")]
@@ -59,4 +59,6 @@ public class Datum
         Assert.NotEmpty(syntax);
         Assert.IsAssignableFrom<Reference>(syntax[0]);
     }
+
+    
 }

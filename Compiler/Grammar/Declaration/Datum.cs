@@ -71,7 +71,7 @@ internal class Datum : Syntax, IParsable
         }
 
         // form the identifier, type, and/or initializer
-        while (length != max/* && initializer is null*/)
+        while (length != max)
         {
             var syntax = parser[length];
             if (syntax is Whitespace or Comment)
@@ -86,7 +86,7 @@ internal class Datum : Syntax, IParsable
             }
             if (syntax is Returns or Assign)
             {
-                if (identifier.Length is 0) return new Expected<Word>(parser);
+                if (identifier.Length is 0) return Error.Parse(parser);
                 Parser attempt = new(parser, length + 1);
                 var parsed = Reference.Parse(attempt);
                 if (parsed is Reference reference)
@@ -98,26 +98,34 @@ internal class Datum : Syntax, IParsable
                 }
                 else
                 {
-                    return parsed as Unexpected;
+                    parser.Cursor = attempt.Cursor + length - 1;
+                    return parsed as Error;
                 }
             }
-            else if (syntax is Symbol)
+            else if (syntax is Symbol symbol)
             {
-                return new Expected<Word, Terminal, Returns, Assign>(parser);
-            }
-            else if (syntax is Word name)
-            {
-                if (identifier.Length is not 0) identifier += ' ';
-                identifier += name.ToString();
+                if (symbol.CanBeUsedInNames)
+                {
+                    identifier += symbol.ToString();
+                }
+                else
+                {
+                    return null;
+                }
             }
             else if (syntax is Keyword keyword)
             {
                 if (identifier.Length is not 0) identifier += ' ';
                 identifier += keyword.ToString();
             }
+            else if (syntax is Word name)
+            {
+                if (identifier.Length is not 0) identifier += ' ';
+                identifier += name.ToString();
+            }
             else if (syntax is Literal)
             {
-                return datatype is null ? new Expected<Word>(parser) : new Expected<Word, Literal, OpenParenthesis>(parser);
+                return null;
             }
             ++length;
         }

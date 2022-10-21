@@ -7,7 +7,7 @@ public class Aggregate
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string declaration = "(test)";
+        const string declaration = "(test);";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();

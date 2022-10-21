@@ -32,39 +32,34 @@ public class Parser
     internal Syntax[] Parse()
     {
         List<Syntax> statements = new();
-        List<Syntax> parsed = new();
-
-        var parser = this;
+        
         while (Cursor < Tokens.Length)
         {
             if (IsEmpty) break;
 
-            statements.AddRange(parsed);
-            parsed.Clear();
+            statements.Add(PartOf.Parse(this)
+                ?? Import.Parse(this)
+                ?? Datum.Parse(this)
+                ?? Trivium.Parse(this)
+                ?? Reference.Parse(this)
+                ?? Error.Parse(this));
 
-            if (parser.TryParse<PartOf>(parsed)) continue;
-            if (parser.TryParse<Import>(parsed)) continue;
-            if (parser.TryParse<Datum>(parsed)) continue;
-            if (parser.TryParse<Trivium>(parsed)) continue;
-
-            if (parsed.Count is 0 || parsed.All(statement => statement is Unexpected))
-            {
-                if (parser.TryParse<Reference>(statements)) continue;
-                return parsed.ToArray();
-            }
-
-            if (Tokens.Span[Cursor] is Terminal) ++Cursor;
+            if (Cursor < Tokens.Length && Tokens.Span[Cursor] is Terminal) ++Cursor;
         }
-
-        statements.AddRange(parsed);
 
         return statements.ToArray();
     }
 
-    internal bool TryParse<T>(List<Syntax> statements) where T : IParsable
+    /*internal Syntax[] Parse<TStart, TEnd>()
+    {
+        List<Syntax> statements = new();
+
+    }*/
+
+/*    internal bool TryParse<T>(List<Syntax> statements) where T : IParsable
     {
         var syntax = T.Parse(this);
         if (syntax is not null) statements.Add(syntax);
         return syntax is T;
-    }
+    }*/
 }

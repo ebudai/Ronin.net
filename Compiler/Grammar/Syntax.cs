@@ -20,8 +20,8 @@ internal abstract class Syntax
 
     protected internal readonly List<Lexeme> Tokens = new();
 
-    protected internal record struct Location(int Line, int ColumnStart, int ColumnEnd)
+    /*protected internal record struct Location(int Line, int ColumnStart, int ColumnEnd)
     {
         internal Location(Lexeme token) : this(token.Line, token.Column, token.Column + token.Length) { }
-    }
+    }*/
 }

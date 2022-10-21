@@ -13,14 +13,22 @@ internal class Aggregate : Syntax, IParsable
     {
         if (parser[0] is not OpenParenthesis) return null;
 
-        int length = OpenParenthesis.character.ToString().Length;
+        int length = parser[0].Length;
         List<Reference> references = new();        
         while (length < parser.Length)
         {
             Parser attempt = new(parser, length);
             var parsed = Reference.Parse(attempt);
-            if (parsed is Unexpected unexpected) return unexpected;
-            references.Add(parsed as Reference);
+            if (parsed is Error error) return error;
+            if (parsed is null)
+            {
+                if (references.Count is 0) return null;
+                else break;
+            }
+            else
+            {
+                references.Add(parsed as Reference);
+            }            
             length += attempt.Cursor;
         }
 

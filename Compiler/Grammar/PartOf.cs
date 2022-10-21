@@ -23,10 +23,10 @@ internal class PartOf : Syntax, IParsable
             else if (lexeme is Terminal) break;
             else if (lexeme is Word word) names[^1] += (names[^1] is "" ? "" : " ") + word;
             else if (lexeme is Hierarchy) names.Add(string.Empty);
-            else return new Expected<Word, Hierarchy>(parser);
+            else return null;
         }
         
-        return new PartOf(parser, tokensConsumed + 1) { Name = names.ToArray() };
+        return new PartOf(parser, tokensConsumed) { Name = names.ToArray() };
     }
 }
  
