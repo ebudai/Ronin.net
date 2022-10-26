@@ -71,7 +71,7 @@ public class Import
 
         // ensure hierarchy starts with a keyword
         Assert.True(tokens.Length is > 2);
-        Assert.IsAssignableFrom<Ronin.Token.Keyword>(tokens[2]);
+        Assert.IsAssignableFrom<Ronin.Lexicon.Keyword>(tokens[2]);
 
         Parser parser = new(tokens);
         var syntax = parser.Parse();

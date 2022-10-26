@@ -1,11 +1,14 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
 internal class Name : Syntax, IParsable
 {
     internal string[] Names { get; private init; }
+    internal string[] Hierarchy => string.Join(' ', Names)
+                .Replace(" " + Lexicon.Symbols.Hierarchy.character + ' ', Lexicon.Symbols.Hierarchy.character.ToString())
+                .Split(Lexicon.Symbols.Hierarchy.character);
 
     private Name(Parser parser, int length) : base(parser, length) { }
 

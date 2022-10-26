@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token;
+using Ronin.Lexicon;
 
 namespace Failure;
 
@@ -25,8 +25,8 @@ public class BinaryLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Ronin.Token.Literals.Integer>(lexed);
-        var name = lexed as Ronin.Token.Literals.Integer;
+        Assert.IsType<Ronin.Lexicon.Literals.Integer>(lexed);
+        var name = lexed as Ronin.Lexicon.Literals.Integer;
         Assert.Equal(literal[..1].ToArray(), name.Sourcecode.ToArray());
     }
 
@@ -39,8 +39,8 @@ public class BinaryLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Ronin.Token.Literals.Binary>(lexed);
-        var binary = lexed as Ronin.Token.Literals.Binary;
+        Assert.IsType<Ronin.Lexicon.Literals.Binary>(lexed);
+        var binary = lexed as Ronin.Lexicon.Literals.Binary;
         Assert.Equal(literal[..^2].ToArray(), binary.Sourcecode.ToArray());
     }
 

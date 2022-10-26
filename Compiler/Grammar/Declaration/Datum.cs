@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token;
-using Ronin.Token.Symbols;
-using Ronin.Token.Keywords;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon.Reserved;
 
 namespace Ronin.Grammar.Declaration;
 

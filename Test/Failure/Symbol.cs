@@ -10,8 +10,8 @@ public class Symbol
         const string literal = "not a close brace";
 
         Lexer lexer = new(literal);
-        Assert.False(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
+        Assert.False(Ronin.Lexicon.Symbol.IsSymbol(lexer));
+        var lexed = Ronin.Lexicon.Symbol.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -22,8 +22,8 @@ public class Symbol
         const string literal = "->";
 
         Lexer lexer = new(literal);
-        Assert.False(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
+        Assert.False(Ronin.Lexicon.Symbol.IsSymbol(lexer));
+        var lexed = Ronin.Lexicon.Symbol.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -32,8 +32,8 @@ public class Symbol
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        Assert.False(Ronin.Token.Symbol.IsSymbol(lexer));
-        var lexed = Ronin.Token.Symbol.Lex(lexer);
+        Assert.False(Ronin.Lexicon.Symbol.IsSymbol(lexer));
+        var lexed = Ronin.Lexicon.Symbol.Lex(lexer);
 
         Assert.Null(lexed);
     }

@@ -1,5 +1,5 @@
-﻿using Ronin.Token;
-using Ronin.Token.Literals;
+﻿using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Unit;
 

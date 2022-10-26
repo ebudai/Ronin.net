@@ -1,7 +1,7 @@
-﻿using Ronin.Token;
-using Ronin.Token.Symbols;
-using Ronin.Token.Keywords;
-using Ronin.Token.Literals;
+﻿using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon.Reserved;
+using Ronin.Lexicon.Literals;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -36,7 +36,7 @@ public class Lexer
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
 
-        List<Lexeme> expected = new()
+        List<Token> expected = new()
         {
             // datatype Weather
             Datatype(),

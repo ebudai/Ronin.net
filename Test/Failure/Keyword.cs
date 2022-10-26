@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Token;
+using Ronin.Lexicon;
 
 namespace Failure;
 
@@ -9,7 +9,7 @@ public class Keyword
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -20,7 +20,7 @@ public class Keyword
         const string notkeyword = "not a keyword";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -31,7 +31,7 @@ public class Keyword
         const string notkeyword = "returned ";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }

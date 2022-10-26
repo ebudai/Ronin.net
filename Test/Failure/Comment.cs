@@ -10,7 +10,7 @@ public class Comment
         const string notcomment = "not a comment";
 
         Lexer lexer = new(notcomment);
-        var comment = Ronin.Token.Comment.Lex(lexer);
+        var comment = Ronin.Lexicon.Comment.Lex(lexer);
 
         Assert.Null(comment);
     }
@@ -21,11 +21,11 @@ public class Comment
         const string badcomment = "/*unbalanced /*comment*/\r\nthis is a function call();";
 
         Lexer lexer = new(badcomment);
-        var lexeme = Ronin.Token.Comment.Lex(lexer);
+        var lexeme = Ronin.Lexicon.Comment.Lex(lexer);
 
         Assert.NotNull(lexeme);
-        Assert.IsType<Ronin.Token.Comment>(lexeme);
-        var comment = lexeme as Ronin.Token.Comment;
+        Assert.IsType<Ronin.Lexicon.Comment>(lexeme);
+        var comment = lexeme as Ronin.Lexicon.Comment;
         Assert.False(comment.Terminated);
         Assert.Equal(badcomment, comment.ToString());
     }
@@ -36,11 +36,11 @@ public class Comment
         const string badcomment = "/*unbalanced */comment*/";
 
         Lexer lexer = new(badcomment);
-        var lexeme = Ronin.Token.Comment.Lex(lexer);
+        var lexeme = Ronin.Lexicon.Comment.Lex(lexer);
 
         Assert.NotNull(lexeme);
-        Assert.IsType<Ronin.Token.Comment>(lexeme);
-        var comment = lexeme as Ronin.Token.Comment;
+        Assert.IsType<Ronin.Lexicon.Comment>(lexeme);
+        var comment = lexeme as Ronin.Lexicon.Comment;
         Assert.True(comment.Terminated);
         Assert.Equal("/*unbalanced */", comment.ToString());
     }

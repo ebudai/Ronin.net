@@ -1,14 +1,14 @@
-﻿using Ronin.Token.Symbols;
+﻿using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 public class Symbol
 {
-    private static void LexSymbol<T>(string lexed) where T : Ronin.Token.Symbol
+    private static void LexSymbol<T>(string lexed) where T : Ronin.Lexicon.Symbol
     {
         Ronin.Compiler.Lexer lexer = new(lexed);
-        Assert.True(Ronin.Token.Symbol.IsSymbol(lexer));
-        var symbol = Ronin.Token.Symbol.Lex(lexer);
+        Assert.True(Ronin.Lexicon.Symbol.IsSymbol(lexer));
+        var symbol = Ronin.Lexicon.Symbol.Lex(lexer);
 
         Assert.NotNull(symbol);
         Assert.Equal(lexed.ToArray(), symbol.Sourcecode.ToArray());

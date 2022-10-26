@@ -8,7 +8,7 @@ public class Comment
         const string literal = "// this is a comment\n\n";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var comment = Ronin.Token.Comment.Lex(lexer);
+        var comment = Ronin.Lexicon.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
@@ -20,7 +20,7 @@ public class Comment
         const string literal = "// this is a comment";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var comment = Ronin.Token.Comment.Lex(lexer);
+        var comment = Ronin.Lexicon.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
@@ -32,7 +32,7 @@ public class Comment
         const string literal = "/*\n\n this is a comment\n\n*/";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var comment = Ronin.Token.Comment.Lex(lexer);
+        var comment = Ronin.Lexicon.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
@@ -44,7 +44,7 @@ public class Comment
         const string literal = "/*\n\n this/* is a c*/omment\n\n*/";
 
         Ronin.Compiler.Lexer lexer = new(literal);
-        var comment = Ronin.Token.Comment.Lex(lexer);
+        var comment = Ronin.Lexicon.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());

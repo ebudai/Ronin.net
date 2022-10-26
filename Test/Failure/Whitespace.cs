@@ -8,7 +8,7 @@ public class Whitespace
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Token.Whitespace.Lex(lexer);
+        var lexed = Ronin.Lexicon.Whitespace.Lex(lexer);
 
         Assert.Null(lexed);
     }

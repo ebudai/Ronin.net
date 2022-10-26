@@ -1,13 +1,13 @@
 ﻿using Ronin.Grammar;
 using Ronin.Grammar.Declaration;
-using Ronin.Token;
-using Ronin.Token.Symbols;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Compiler;
 
 public class Parser
 {
-    public Parser(Lexeme[] tokens)
+    public Parser(Lexicon.Token[] tokens)
     {
         Tokens = tokens;
     }
@@ -18,16 +18,16 @@ public class Parser
         Cursor = parser.Cursor + advance;
     }
 
-    internal ReadOnlyMemory<Lexeme> Tokens { get; }
+    internal ReadOnlyMemory<Lexicon.Token> Tokens { get; }
     internal int Cursor { get; set; }
     
     internal bool IsEmpty => Span.IsEmpty;
     internal bool IsNotEmpty => !IsEmpty;
     internal int Length => Span.Length;
 
-    internal ReadOnlySpan<Lexeme> Span => Tokens[Cursor..].Span;
-    internal Lexeme this[int index] => Span[index];
-    internal ReadOnlyMemory<Lexeme> this[Range range] => Tokens[Cursor..][range];
+    internal ReadOnlySpan<Lexicon.Token> Span => Tokens[Cursor..].Span;
+    internal Lexicon.Token this[int index] => Span[index];
+    internal ReadOnlyMemory<Lexicon.Token> this[Range range] => Tokens[Cursor..][range];
 
     internal Syntax[] Parse()
     {

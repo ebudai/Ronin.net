@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Token;
-using Ronin.Token.Symbols;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -142,7 +142,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.IsReactive);
-        Assert.Equal($"{Ronin.Token.Keywords.Reactive.keyword} thing", datum.Identifier);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Reactive.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);
@@ -159,7 +159,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.IsReadonly);
-        Assert.Equal($"{Ronin.Token.Keywords.Constant.keyword} thing", datum.Identifier);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Constant.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);
@@ -171,7 +171,7 @@ public class Datum
     [Fact(DisplayName = "var twice")]
     public void VarTwiceIsOk()
     {
-        const string var = Ronin.Token.Keywords.Variable.keyword;
+        const string var = Ronin.Lexicon.Reserved.Variable.keyword;
         const string declaration = $"{var} {var} thing {Returns.character} integer;";
 
         var datum = Compile(declaration);
@@ -194,7 +194,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.IsCompiled);
-        Assert.Equal($"{Ronin.Token.Keywords.Compiled.keyword} thing", datum.Identifier);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Compiled.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);
@@ -211,7 +211,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.IsPersistent);
-        Assert.Equal($"{Ronin.Token.Keywords.Persistent.keyword} thing", datum.Identifier);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Persistent.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);
@@ -228,7 +228,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.IsOptional);
-        Assert.Equal($"{Ronin.Token.Keywords.Optional.keyword} thing", datum.Identifier);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Optional.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);
@@ -245,7 +245,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.IsShared);
-        Assert.Equal($"{Ronin.Token.Keywords.Shared.keyword} thing", datum.Identifier);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Shared.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);
@@ -279,7 +279,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.False(datum.IsReadonly);
-        Assert.Equal($"{Ronin.Token.Keywords.Shared.keyword} {Ronin.Token.Keywords.Reactive.keyword}", datum.Identifier);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Shared.keyword} {Ronin.Lexicon.Reserved.Reactive.keyword}", datum.Identifier);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);
@@ -291,7 +291,7 @@ public class Datum
     [Fact(DisplayName = "datatype has keywords")]
     public void DatatypeHasKeywords()
     {
-        const string declaration = $"var x => {Ronin.Token.Keywords.Import.keyword} {Ronin.Token.Keywords.Shared.keyword} things;";
+        const string declaration = $"var x => {Ronin.Lexicon.Reserved.Import.keyword} {Ronin.Lexicon.Reserved.Shared.keyword} things;";
 
         var datum = Compile(declaration);
 
@@ -301,7 +301,7 @@ public class Datum
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.Equal(3, datum.Datatype.Names[0].Names.Length);
         var datatype = datum.Datatype.Names[0].Names;
-        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword} {Ronin.Token.Keywords.Shared.keyword} things", string.Join(' ', datatype));
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Import.keyword} {Ronin.Lexicon.Reserved.Shared.keyword} things", string.Join(' ', datatype));
         Assert.Null(datum.Initializer);
     }
 
@@ -333,7 +333,7 @@ public class Datum
         Assert.NotNull(datum.Initializer);
         Assert.NotEmpty(datum.Initializer.Names);
         Assert.NotEmpty(datum.Initializer.Names[0].Names);
-        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword}", datum.Initializer.Names[0].Names[0]);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Import.keyword}", datum.Initializer.Names[0].Names[0]);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);
@@ -352,7 +352,7 @@ public class Datum
         Assert.NotNull(datum.Initializer);
         Assert.NotEmpty(datum.Initializer.Names);
         Assert.NotEmpty(datum.Initializer.Names[0].Names);
-        Assert.Equal($"{Ronin.Token.Keywords.Import.keyword}", datum.Initializer.Names[0].Names[0]);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Import.keyword}", datum.Initializer.Names[0].Names[0]);
         Assert.Null(datum.Datatype);
     }
 

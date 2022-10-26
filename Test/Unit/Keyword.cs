@@ -8,7 +8,7 @@ public class Keyword
         const string sourcecode = "datatype thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("datatype".ToArray(), lexed.Sourcecode.ToArray());
@@ -20,7 +20,7 @@ public class Keyword
         const string sourcecode = "function thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("function".ToArray(), lexed.Sourcecode.ToArray());
@@ -32,7 +32,7 @@ public class Keyword
         const string sourcecode = "var thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("var".ToArray(), lexed.Sourcecode.ToArray());
@@ -44,7 +44,7 @@ public class Keyword
         const string sourcecode = "constant thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("constant".ToArray(), lexed.Sourcecode.ToArray());
@@ -56,7 +56,7 @@ public class Keyword
         const string sourcecode = "reactive thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("reactive".ToArray(), lexed.Sourcecode.ToArray());
@@ -68,7 +68,7 @@ public class Keyword
         const string sourcecode = "compiled constant thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("compiled".ToArray(), lexed.Sourcecode.ToArray());
@@ -80,7 +80,7 @@ public class Keyword
         const string sourcecode = "shared thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("shared".ToArray(), lexed.Sourcecode.ToArray());
@@ -92,7 +92,7 @@ public class Keyword
         const string sourcecode = "optional thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("optional".ToArray(), lexed.Sourcecode.ToArray());
@@ -104,7 +104,7 @@ public class Keyword
         const string sourcecode = "part of standard.stuff";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("part of".ToArray(), lexed.Sourcecode.ToArray());
@@ -116,7 +116,7 @@ public class Keyword
         const string sourcecode = "import git://github.com/ebudai/ronin/libsuperpowers.ronin;";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
-        var lexed = Ronin.Token.Keyword.Lex(lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal("import".ToArray(), lexed.Sourcecode.ToArray());

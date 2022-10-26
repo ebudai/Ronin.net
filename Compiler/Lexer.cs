@@ -1,4 +1,4 @@
-﻿using Ronin.Token;
+﻿using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
 
@@ -23,9 +23,9 @@ public class Lexer
     
     internal bool StartsWith(string text) => Span.StartsWith(text);
 
-    public Lexeme[] Lex()
+    public Lexicon.Token[] Lex()
     {
-        List<Lexeme> tokens = new();
+        List<Lexicon.Token> tokens = new();
 
         while (Cursor < Sourcecode.Length)
         {
@@ -34,7 +34,7 @@ public class Lexer
                 ?? Comment.Lex(this)
                 ?? Symbol.Lex(this)
                 ?? Keyword.Lex(this)
-                ?? Word.Lex(this) as Lexeme);
+                ?? Word.Lex(this) as Token);
         }
 
         return tokens.ToArray();
