@@ -15,7 +15,7 @@ internal class Value : IParsable
         }
     }
 
-    internal Aggregate Aggregate
+    internal Arguments Aggregate
     {
         get => _discriminator is Discriminator.Aggregate ? _object : null;
         set
@@ -60,7 +60,7 @@ internal class Value : IParsable
         var scalar = Scalar.Parse(parser);
         if (scalar is not null) return scalar;
 
-        var aggregate = Aggregate.Parse(parser);
+        var aggregate = Arguments.Parse(parser);
         if (aggregate is not null) return aggregate;
 
         var reference = Reference.Parse(parser);
@@ -73,7 +73,7 @@ internal class Value : IParsable
     }
 
     private Value(Scalar scalar) => Scalar = scalar;
-    private Value(Aggregate aggregate) => Aggregate = aggregate;
+    private Value(Arguments aggregate) => Aggregate = aggregate;
     private Value(Reference reference) => Reference = reference;
     private Value(Function function) => Function = function;
     private Value(Datatype datatype) => Datatype = datatype;
@@ -81,7 +81,7 @@ internal class Value : IParsable
     public static implicit operator Value(Syntax syntax) => syntax switch
     {
         Scalar scalar => new(scalar),
-        Aggregate aggregate => new(aggregate),
+        Arguments aggregate => new(aggregate),
         Reference reference => new(reference),
         Function function => new(function),
         Datatype datatype => new(datatype),
@@ -89,19 +89,19 @@ internal class Value : IParsable
     };
 
     public static implicit operator Value(Scalar scalar) => new(scalar);
-    public static implicit operator Value(Aggregate aggregate) => new(aggregate);
+    public static implicit operator Value(Arguments aggregate) => new(aggregate);
     public static implicit operator Value(Reference reference) => new(reference);
     public static implicit operator Value(Function function) => new(function);
     public static implicit operator Value(Datatype datatype) => new(datatype);
 
     public static implicit operator Scalar(Value value) => value.Scalar;
-    public static implicit operator Aggregate(Value value) => value.Aggregate;
+    public static implicit operator Arguments(Value value) => value.Aggregate;
     public static implicit operator Reference(Value value) => value.Reference;
     public static implicit operator Function(Value value) => value.Function;
     public static implicit operator Datatype(Value value) => value.Datatype;
 
     private Scalar _scalar;
-    private Aggregate _object;
+    private Arguments _object;
     private Reference _reference;
     private Function _function;
     private Datatype _datatype;

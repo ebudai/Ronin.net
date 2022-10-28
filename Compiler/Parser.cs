@@ -7,30 +7,39 @@ namespace Ronin.Compiler;
 
 public class Parser
 {
-    public Parser(Token[] tokens) => Tokens = tokens;
+    public Parser(Token[] tokens) => _tokens = tokens;
 
-    internal Parser(Parser parser, int advance = 0)
+    internal ReadOnlyMemory<Token> Tokens
     {
-        Tokens = parser.Tokens;
-        Cursor = parser.Cursor + advance;
+        get
+        {
+            var tokens = this[..Location];
+            Start += _cursors.Pop();
+            return tokens;
+        }
     }
 
-    internal Token[] Tokens { get; set; }
-    internal int Cursor { get; set; }
+    internal int Start { get; set; }    
+    internal int Cursor
+    {
+        get => _cursors.Peek();
+        set => _cursors.Push(_cursors.Pop() + value);
+    }
+    internal int Location => Start + _cursors.Sum();
     
     internal bool IsEmpty => Span.IsEmpty;
     internal bool IsNotEmpty => !IsEmpty;
     internal int Length => Span.Length;
 
-    internal ReadOnlySpan<Token> Span => Tokens[Cursor..].AsSpan();
-    internal Token this[int index] => Span[index];
-    internal ReadOnlyMemory<Token> this[Range range] => Tokens[Cursor..][range];
+    internal ReadOnlySpan<Token> Span => _tokens[Location..].AsSpan();
+    internal ref Token this[int index] => ref _tokens[Location + index];
+    internal ReadOnlyMemory<Token> this[Range range] => _tokens[Location..][range];
 
     internal Syntax[] Parse()
     {
         List<Syntax> statements = new();
 
-        while (Cursor < Tokens.Length)
+        while (Location < _tokens.Length)
         {
             if (IsEmpty) break;
 
@@ -41,9 +50,14 @@ public class Parser
                 ?? Reference.Parse(this)
                 ?? Error.Parse(this));
 
-            if (Cursor < Tokens.Length && Tokens[Cursor] is Terminal) ++Cursor;
+            if (Location < _tokens.Length && _tokens[Location] is Terminal) ++Start;
         }
 
         return statements.ToArray();
     }
+
+    internal void Reset() => _cursors.Clear();
+
+    private readonly Token[] _tokens;
+    private readonly Stack<int> _cursors = new(256);
 }

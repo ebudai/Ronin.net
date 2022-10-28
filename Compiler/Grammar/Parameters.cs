@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-internal class Parameters : GroupedSyntax<Parameters, OpenParenthesis, Parameter, Separator, CloseParenthesis> 
+internal class Parameters : AggregateSyntax<Parameters, OpenParenthesis, Parameter, Separator, CloseParenthesis> 
 {
     
 }

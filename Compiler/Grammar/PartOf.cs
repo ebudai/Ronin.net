@@ -7,24 +7,19 @@ internal class PartOf : Syntax, IParsable
 {
     internal string[] Name { get; init; }
 
-    public static Syntax Parse(Parser context)
+    public static Syntax Parse(Parser parser)
     {
-        if (context[0] is not Lexicon.Reserved.PartOf) return null;
+        if (parser[0] is not Lexicon.Reserved.PartOf) return null;
 
-        Parser parser = new(context, 1);
+        ++parser.Cursor;
+
         var parsed = Grammar.Name.Parse(parser);
+        if (parsed is Error or null) return parsed;
 
-        if (parsed is Error error) return error;
+        if (parsed is not Name name || parser[0] is not Terminal) return Error.Parse(parser);
+        
+        ++parser.Cursor; // for Terminal
 
-        if (parsed is Name name && parser[0] is Terminal)
-        {
-            ++parser.Cursor; // for Terminal
-            var tokens = context[..parser.Cursor];
-            context.Cursor = context.Cursor;
-            return new PartOf { Name = name.Hierarchy, Tokens = tokens };
-        }
-
-        return Error.Parse(parser);
+        return new PartOf { Name = name.Hierarchy, Tokens = parser.Tokens };
     }
 }
-  

@@ -1,11 +1,8 @@
-﻿using Ronin.Compiler;
+﻿using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal class Scope : Syntax, IParsable
+internal class Scope : AggregateSyntax<Scope, OpenBrace, Value, Terminal, CloseBrace>
 {
-    public static Syntax Parse(Parser parser)
-    {
-        throw new NotImplementedException();
-    }
+
 }

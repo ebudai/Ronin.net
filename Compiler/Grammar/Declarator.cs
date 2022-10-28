@@ -14,16 +14,16 @@ internal class Declarator : Syntax, IParsable
 
     public static Syntax Parse(Parser parser)
     {
-        var length = -1;
         bool variable = false;
         bool constant = false;
         bool function = false;
         bool datatype = false;
         bool reactive = false;
 
-        while (++length < parser.Length)
+        while (parser.IsNotEmpty)
         {
-            var modifier = parser[length];
+            ref var modifier = ref parser[0];
+            ++parser.Cursor;
 
             if (modifier is Whitespace or Comment) continue;
 
@@ -45,7 +45,7 @@ internal class Declarator : Syntax, IParsable
             Function = function,
             Datatype = datatype,
             Reactive = reactive,
-            Tokens = parser[..length],
+            Tokens = parser.Tokens,
         };
     }
 }

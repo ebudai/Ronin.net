@@ -9,16 +9,20 @@ internal class Scalar : Syntax, IParsable
 
     public static Syntax Parse(Parser parser)
     {
-        int length = 0;
-        List<Literal> literals = new();
+        var literals = _literals.Value;
+        literals.Clear();
 
-        for (int max = parser.Length; length != max; ++length)
+        parser.Cursor = -1;
+        while (parser.IsNotEmpty)
         {
-            if (parser[length] is Whitespace or Comment) continue;
-            if (parser[length] is not Literal literal) break;
-            literals.Add(literal);
+            ++parser.Cursor;
+            if (parser[0] is Whitespace or Comment) continue;
+            if (parser[0] is not Literal literal) break;
+            literals.Add(literal);            
         }
 
-        return literals.Count is 0 ? null : new Scalar { Literals = literals.ToArray(), Tokens = parser[..length] };
+        return literals.Count is 0 ? null : new Scalar { Literals = literals.ToArray(), Tokens = parser.Tokens };
     }
+
+    private static readonly ThreadLocal<List<Literal>> _literals = new(() => new());
 }

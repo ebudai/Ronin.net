@@ -15,15 +15,15 @@ internal class Modifiers : Syntax, IParsable
 
     public static Syntax Parse(Parser parser)
     {
-        var length = -1;
         bool persistent = false;
         bool compiled = false;
         bool shared = false;
         bool optional = false;
 
-        while (++length < parser.Length)
+        while (parser.IsNotEmpty)
         {
-            var modifier = parser[length];
+            ref var modifier = ref parser[0];
+            ++parser.Cursor;
 
             if (modifier is Whitespace or Comment) continue;
 
@@ -43,7 +43,7 @@ internal class Modifiers : Syntax, IParsable
             Compiled = compiled,
             Shared = shared,
             Optional = optional,
-            Tokens = parser[..length],
+            Tokens = parser.Tokens,
         };
     }
 }

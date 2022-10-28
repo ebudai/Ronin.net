@@ -18,28 +18,23 @@ internal class ExplicitParameter : Parameter, IParsable
 
     public static new Syntax Parse(Parser parser)
     {
-        Parser attempt = new(parser);
+        if (Grammar.Name.Parse(parser) is not Name name) return null;
 
-        if (Grammar.Name.Parse(attempt) is not Name name) return null;
+        if (parser[0] is not Returns) return null;
 
-        if (attempt[0] is not Returns) return null;
+        ++parser.Cursor;
 
-        ++attempt.Cursor;
+        var modifiers = Modifiers.Parse(parser) as Modifiers;
 
-        var modifiers = Modifiers.Parse(attempt) as Modifiers;
-
-        var datatype = Reference.Parse(attempt);
-
-        if (datatype is Error) return datatype;
+        var datatype = Reference.Parse(parser);
+        if (datatype is Error or null) return datatype;
         
         Syntax initializer = null;
-        if (attempt[0] is Assign)
+        if (parser[0] is Assign)
         {
-            ++attempt.Cursor;
-            initializer = Value.Parse(attempt);
+            ++parser.Cursor;
+            initializer = Value.Parse(parser);
         }
-
-        parser.Cursor = attempt.Cursor;
 
         return new ExplicitParameter
         {
@@ -47,7 +42,7 @@ internal class ExplicitParameter : Parameter, IParsable
             Is = modifiers,
             Datatype = datatype as Reference,
             Initializer = initializer,
-            Tokens = parser[..attempt.Cursor],
+            Tokens = parser.Tokens,
         };
     }
 }
@@ -56,31 +51,27 @@ internal class ImplicitParameter : Parameter, IParsable
 {
     public static new Syntax Parse(Parser parser)
     {
-        Parser attempt = new(parser);
+        if (Grammar.Name.Parse(parser) is not Name name) return null;
 
-        if (Grammar.Name.Parse(attempt) is not Name name) return null;
+        if (parser[0] is not Returns) return null;
 
-        if (attempt[0] is not Returns) return null;
+        ++parser.Cursor;
 
-        ++attempt.Cursor;
-
-        var modifiers = Modifiers.Parse(attempt) as Modifiers;
+        var modifiers = Modifiers.Parse(parser) as Modifiers;
 
         Syntax initializer = null;
-        if (attempt[0] is Assign)
+        if (parser[0] is Assign)
         {
-            ++attempt.Cursor;
-            initializer = Value.Parse(attempt);
+            ++parser.Cursor;
+            initializer = Value.Parse(parser);
         }
-
-        parser.Cursor = attempt.Cursor;
 
         return new ImplicitParameter
         {
             Name = string.Join(' ', name.Names),
             Is = modifiers,
             Initializer = initializer,
-            Tokens = parser[..attempt.Cursor],
+            Tokens = parser.Tokens,
         };
     }
 }

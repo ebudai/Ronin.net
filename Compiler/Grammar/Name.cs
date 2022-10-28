@@ -11,11 +11,10 @@ internal class Name : Syntax, IParsable
     public static Syntax Parse(Parser parser)
     {
         List<string> names = new();
-        int length = 0;
-        for (int max = parser.Length; length != max; ++length)
+        while (parser.IsNotEmpty)
         {
-            var lexeme = parser[length];
-
+            ref var lexeme = ref parser[0];
+            
             if (lexeme is Word word)
             {
                 names.Add(word.ToString());
@@ -28,7 +27,10 @@ internal class Name : Syntax, IParsable
             {
                 break;
             }
+
+            ++parser.Cursor;
         }
-        return names.Count is 0 ? null : new Name { Names = names.ToArray(), Tokens = parser[..length] };
+
+        return names.Count is 0 ? null : new Name { Names = names.ToArray(), Tokens = parser.Tokens };
     }
 }

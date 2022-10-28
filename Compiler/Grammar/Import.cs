@@ -7,23 +7,20 @@ internal class Import : Syntax, IParsable
 {
     internal string[] Name { get; init; }
 
-    public static Syntax Parse(Parser context)
+    public static Syntax Parse(Parser parser)
     {
-        if (context[0] is not Lexicon.Reserved.Import) return null;
+        if (parser[0] is not Lexicon.Reserved.Import) return null;
 
-        Parser parser = new(context, 1);
+        ++parser.Cursor;
+
         var parsed = Grammar.Name.Parse(parser);
 
-        if (parsed is Error error) return error;
+        if (parsed is Error or null) return parsed;
 
-        if (parsed is Name name && parser[0] is Terminal)
-        {
-            ++parser.Cursor; // for Terminal
-            var tokens = context[..parser.Cursor];
-            context.Cursor = parser.Cursor;
-            return new Import { Name = name.Hierarchy, Tokens = tokens };
-        }
+        if (parsed is not Name name || parser[0] is not Terminal) return Error.Parse(parser);
 
-        return Error.Parse(parser);
+        ++parser.Cursor; // for Terminal
+
+        return new Import { Name = name.Hierarchy, Tokens = parser.Tokens };
     }
 }

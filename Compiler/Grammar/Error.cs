@@ -9,13 +9,13 @@ internal class Error : Syntax, IParsable
 
     public static Syntax Parse(Parser parser)
     {
-        int length = 0;
-        while (length < parser.Length)
+        parser.Reset(); 
+        while (parser.IsNotEmpty)
         {
-            var lexeme = parser[length];
+            ref var lexeme = ref parser[0];            
             if (lexeme is Symbol symbol && !symbol.CanBeUsedInNames) break;
-            ++length;
+            ++parser.Cursor;
         }
-        return new Error { Tokens = parser[..length] };
+        return new Error { Tokens = parser.Tokens };
     }
 }

@@ -15,7 +15,7 @@ public class Aggregate
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Ronin.Grammar.Aggregate.Parse(parser);
+        var aggregate = Ronin.Grammar.Arguments.Parse(parser);
 
         Assert.Null(aggregate);
     }
@@ -55,7 +55,7 @@ public class Aggregate
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Ronin.Grammar.Aggregate.Parse(parser);
+        var aggregate = Ronin.Grammar.Arguments.Parse(parser);
 
         Assert.IsAssignableFrom<Error>(aggregate);
     }

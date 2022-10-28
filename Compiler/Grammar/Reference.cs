@@ -23,7 +23,7 @@ internal class Reference : Syntax, IParsable
             {
                 syntax = Value.Parse(parser);
                 if (syntax is Scalar scalar) arguments.Add(names.Count + arguments.Count, scalar);
-                else if (syntax is Aggregate aggregate) arguments.Add(names.Count + arguments.Count, aggregate);
+                else if (syntax is Arguments aggregate) arguments.Add(names.Count + arguments.Count, aggregate);
                 else if (syntax is Error) return syntax;
                 else if (syntax is null) break;
             }
@@ -31,6 +31,6 @@ internal class Reference : Syntax, IParsable
 
         if (names.Count is 0 && arguments.Count is 0) return null;
 
-        return new Reference { Names = names, Arguments = arguments, Tokens = context[..parser.Cursor] };
+        return new Reference { Names = names, Arguments = arguments, Tokens = context[..parser.Location] };
     }
 }

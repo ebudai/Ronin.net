@@ -14,7 +14,6 @@ internal class Datum : Syntax, IParsable
     public static Syntax Parse(Parser parser)
     {
         Parser attempt = new(parser);
-
         //var modifiers = Modifiers.Parse(attempt) as Modifiers;
 
         bool constant = false;
@@ -28,7 +27,7 @@ internal class Datum : Syntax, IParsable
         if (name is null) return name;
         if (name is Error)
         {
-            parser.Cursor = attempt.Cursor;
+            parser.Cursor = attempt.Location;
             return name;
         }
 
@@ -42,7 +41,7 @@ internal class Datum : Syntax, IParsable
             if (datatype is null) return datatype;
             if (datatype is Error)
             {
-                parser.Cursor = attempt.Cursor;
+                parser.Cursor = attempt.Location;
                 return datatype;
             }
         }
