@@ -6,19 +6,15 @@ namespace Ronin.Grammar;
 internal class Name : Syntax, IParsable
 {
     internal string[] Names { get; private init; }
-    internal string[] Hierarchy => string.Join(' ', Names)
-                .Replace(" " + Lexicon.Symbols.Hierarchy.character + ' ', Lexicon.Symbols.Hierarchy.character.ToString())
-                .Split(Lexicon.Symbols.Hierarchy.character);
-
-    private Name(Parser parser, int length) : base(parser, length) { }
+    internal string[] Hierarchy => string.Join(' ', Names).Split(" " + Lexicon.Symbols.Hierarchy.character + ' ');
 
     public static Syntax Parse(Parser parser)
     {
         List<string> names = new();
-        int tokensConsumed = 0;
-        for (int max = parser.Length; tokensConsumed != max; ++tokensConsumed)
+        int length = 0;
+        for (int max = parser.Length; length != max; ++length)
         {
-            var lexeme = parser[tokensConsumed];
+            var lexeme = parser[length];
 
             if (lexeme is Word word)
             {
@@ -33,6 +29,6 @@ internal class Name : Syntax, IParsable
                 break;
             }
         }
-        return names.Count is 0 ? null : new Name(parser, tokensConsumed) { Names = names.ToArray() };
+        return names.Count is 0 ? null : new Name { Names = names.ToArray(), Tokens = parser[..length] };
     }
 }

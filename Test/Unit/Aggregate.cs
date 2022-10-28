@@ -21,7 +21,8 @@ public class Aggregate
         Assert.NotNull(reference.Arguments[0].Aggregate);
         var aggregate = reference.Arguments[0].Aggregate;
         Assert.NotEmpty(aggregate.Parameters);
-        Assert.NotEmpty(aggregate.Parameters[0].Names);
+        Assert.NotNull(aggregate.Parameters[0].Reference);
+        //Assert.NotEmpty(aggregate.Parameters[0].Reference);
         Assert.NotEmpty(aggregate.Parameters[0].Names[0].Names);
         string name = aggregate.Parameters[0].Names[0].Names[0];
         Assert.Equal("test", name);

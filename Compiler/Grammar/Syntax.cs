@@ -10,42 +10,32 @@ internal interface IParsable
 
 internal abstract class Syntax
 {
-    protected internal Syntax(Parser parser, int length)
-    {
-        Tokens.AddRange(parser[..length].ToArray());
-        parser.Cursor += length;
-    }
-
-    //internal Syntax Parent { get; set; }
-
-    protected internal readonly List<Lexicon.Token> Tokens = new();
-
-    /*protected internal record struct Location(int Line, int ColumnStart, int ColumnEnd)
-    {
-        internal Location(Lexeme token) : this(token.Line, token.Column, token.Column + token.Length) { }
-    }*/
+    protected internal ReadOnlyMemory<Token> Tokens { get; init; }
 }
 
 /*
 [+ means and/or]
 
-declare function - 'function' then name + parameters ... then scope
-declare datatype - modifiers then 'datatype' then name + parameters ... then algebra then scope
-declare datum - modifiers, 'var' (optionally) or 'constant', name, => datatype reference (optionally), = initializer (optionally) [must have one or both of datatype and initializer]
-function reference - '(' (optionally) then name + arguments ... then ')' (optionally) [parens must be both or neither]
-datatype reference - name + arguments ...
-datum reference - name
-value - literal ... [ie: for datetimes]
-special - 'import' or 'partof' then name
+declare function - declarator then identifier then scope
+declare datatype - modifiers then declarator then identifier then algebra then scope
+declare datum - declarator then parameter
+identifier - name + parameters ...
+reference - name + value ...
+x import - 'import' then name
+x partof - 'part of' then name
 
-modifiers - datum - compiled or persistent or reactive or shared [only one of each allowed, multiples mean its part of a name]
-          - datatype - optional
-name - word + wordable symbol ... [symbols don't need to be separated]
-parameters - '(' then declare datum, ... then ')'
+x declarator - 'var' or 'constant' or 'let' or 'function' or 'datatype'
+x modifiers - 'optional' or 'compiled' or 'persistent' or 'shared'
+x name - word + wordable symbol ... [symbols don't need to be separated]
+x parameter - explicit - name then => then modifiers then reference [datatype] then = then value (optionally) [initializer]
+          - implicit - name then = then value
+x parameters - '(' then parameter, ... then ')'
 scope - '{' then statement; ... then '}'
-algebra - datatype reference then 'and' or 'or' ...
-initializer - value or datum reference
-arguments - '(' then value or datum reference or function reference, ... then ')'
-statement - declaration or reference then ';'
+algebra - modifiers then reference then 'and' or 'or' ...
+x scalar - literal ...
+x value - scalar or aggregate or reference or declaration [ie: returns a function tearaway or datatype value etc]
+statement - value then ';'
+aggregate - '(' then value, ... then ')'
+index - '[' then value,... then ']'
 
 */

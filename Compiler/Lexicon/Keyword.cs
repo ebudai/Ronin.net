@@ -13,7 +13,7 @@ internal abstract class Keyword : Word
         : CanLex(lexer, Datatype.keyword) ? new Datatype(lexer)
         : CanLex(lexer, Function.keyword) ? new Function(lexer)
         : CanLex(lexer, Import.keyword) ? new Import(lexer)
-        : CanLex(lexer, Optional.keyword) ? new Optional(lexer)
+        : CanLex(lexer, Reactive.keyword) ? new Reactive(lexer)
         : CanLex(lexer, PartOf.keyword) ? new PartOf(lexer)
         : CanLex(lexer, Persistent.keyword) ? new Persistent(lexer)
         : CanLex(lexer, Reactive.keyword) ? new Reactive(lexer)

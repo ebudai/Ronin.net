@@ -7,8 +7,6 @@ internal class Scalar : Syntax, IParsable
 {
     internal Literal[] Literals { get; private init; }
 
-    public Scalar(Parser parser, int length) : base(parser, length) { }
-
     public static Syntax Parse(Parser parser)
     {
         int length = 0;
@@ -21,6 +19,6 @@ internal class Scalar : Syntax, IParsable
             literals.Add(literal);
         }
 
-        return literals.Count is 0 ? null : new Scalar(parser, length) { Literals = literals.ToArray() };
+        return literals.Count is 0 ? null : new Scalar { Literals = literals.ToArray(), Tokens = parser[..length] };
     }
 }

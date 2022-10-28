@@ -1,0 +1,49 @@
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Reserved;
+
+namespace Ronin.Grammar;
+
+internal class Modifiers : Syntax, IParsable
+{
+    internal bool Persistent { get; private init; }
+    internal bool Compiled { get; private init; }
+    internal bool Shared { get; private init; }
+    internal bool Optional { get; private init; }
+    
+    internal static Modifiers Default = new();
+
+    public static Syntax Parse(Parser parser)
+    {
+        var length = -1;
+        bool persistent = false;
+        bool compiled = false;
+        bool shared = false;
+        bool optional = false;
+
+        while (++length < parser.Length)
+        {
+            var modifier = parser[length];
+
+            if (modifier is Whitespace or Comment) continue;
+
+            // the point of these is to break if you encounter a keyword twice
+            // the 2nd time it's part of the name, parsed somewhere else
+            if (modifier is Compiled && !compiled && (compiled = true)) continue;
+            if (modifier is Persistent && !persistent && (persistent = true)) continue;
+            if (modifier is Shared && !shared && (shared = true)) continue;
+            if (modifier is Optional && !optional && (optional = true)) continue;
+
+            break;
+        }
+
+        return new Modifiers
+        {
+            Persistent = persistent,
+            Compiled = compiled,
+            Shared = shared,
+            Optional = optional,
+            Tokens = parser[..length],
+        };
+    }
+}

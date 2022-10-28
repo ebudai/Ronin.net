@@ -5,9 +5,7 @@ namespace Ronin.Grammar;
 
 internal class Aggregate : Syntax, IParsable
 {
-    internal Reference[] Parameters { get; init; }
-
-    internal Aggregate(Parser parser, int length) : base(parser, length) { }
+    internal Value[] Parameters { get; init; }
 
     public static Syntax Parse(Parser parser)
     {
@@ -32,6 +30,6 @@ internal class Aggregate : Syntax, IParsable
             length += attempt.Cursor;
         }
 
-        return new Aggregate(parser, length) { Parameters = references.ToArray() };
+        return new Aggregate { Parameters = references.Cast<Value>().ToArray() };
     }
 }

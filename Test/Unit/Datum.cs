@@ -228,7 +228,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.IsOptional);
-        Assert.Equal($"{Ronin.Lexicon.Reserved.Optional.keyword} thing", datum.Identifier);
+        Assert.Equal($"{Ronin.Lexicon.Reserved.Reactive.keyword} thing", datum.Identifier);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Names);
         Assert.NotEmpty(datum.Datatype.Names[0].Names);

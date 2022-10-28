@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Ronin.Compiler;
 
-namespace Ronin.Grammar.Declaration
+namespace Ronin.Grammar.Declaration;
+
+internal class Function : Syntax, IParsable
 {
-    internal class Function
+    public static Syntax Parse(Parser parser)
     {
+        throw new NotImplementedException();
     }
 }

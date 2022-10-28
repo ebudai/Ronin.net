@@ -7,10 +7,7 @@ namespace Ronin.Compiler;
 
 public class Parser
 {
-    public Parser(Lexicon.Token[] tokens)
-    {
-        Tokens = tokens;
-    }
+    public Parser(Token[] tokens) => Tokens = tokens;
 
     internal Parser(Parser parser, int advance = 0)
     {
@@ -18,21 +15,21 @@ public class Parser
         Cursor = parser.Cursor + advance;
     }
 
-    internal ReadOnlyMemory<Lexicon.Token> Tokens { get; }
+    internal Token[] Tokens { get; set; }
     internal int Cursor { get; set; }
     
     internal bool IsEmpty => Span.IsEmpty;
     internal bool IsNotEmpty => !IsEmpty;
     internal int Length => Span.Length;
 
-    internal ReadOnlySpan<Lexicon.Token> Span => Tokens[Cursor..].Span;
-    internal Lexicon.Token this[int index] => Span[index];
-    internal ReadOnlyMemory<Lexicon.Token> this[Range range] => Tokens[Cursor..][range];
+    internal ReadOnlySpan<Token> Span => Tokens[Cursor..].AsSpan();
+    internal Token this[int index] => Span[index];
+    internal ReadOnlyMemory<Token> this[Range range] => Tokens[Cursor..][range];
 
     internal Syntax[] Parse()
     {
         List<Syntax> statements = new();
-        
+
         while (Cursor < Tokens.Length)
         {
             if (IsEmpty) break;
@@ -44,22 +41,9 @@ public class Parser
                 ?? Reference.Parse(this)
                 ?? Error.Parse(this));
 
-            if (Cursor < Tokens.Length && Tokens.Span[Cursor] is Terminal) ++Cursor;
+            if (Cursor < Tokens.Length && Tokens[Cursor] is Terminal) ++Cursor;
         }
 
         return statements.ToArray();
     }
-
-    /*internal Syntax[] Parse<TStart, TEnd>()
-    {
-        List<Syntax> statements = new();
-
-    }*/
-
-/*    internal bool TryParse<T>(List<Syntax> statements) where T : IParsable
-    {
-        var syntax = T.Parse(this);
-        if (syntax is not null) statements.Add(syntax);
-        return syntax is T;
-    }*/
 }

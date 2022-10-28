@@ -7,23 +7,21 @@ internal class Reference : Syntax, IParsable
     internal SortedList<int, Name> Names { get; private init; }
     internal SortedList<int, Value> Arguments { get; private init; }
 
-    private Reference(Parser parser, int length) : base(parser, length) { }
-
-    public static Syntax Parse(Parser parser)
+    public static Syntax Parse(Parser context)
     {
         SortedList<int, Name> names = new();
         SortedList<int, Value> arguments = new();
-        Parser attempt = new(parser);
-        while (attempt.IsNotEmpty)
+        Parser parser = new(context);
+        while (parser.IsNotEmpty)
         {
-            var syntax = Name.Parse(attempt);
+            var syntax = Name.Parse(parser);
             if (syntax is Name name)
             {
                 names.Add(names.Count + arguments.Count, name);
             }
             else
             {
-                syntax = Value.Parse(attempt);
+                syntax = Value.Parse(parser);
                 if (syntax is Scalar scalar) arguments.Add(names.Count + arguments.Count, scalar);
                 else if (syntax is Aggregate aggregate) arguments.Add(names.Count + arguments.Count, aggregate);
                 else if (syntax is Error) return syntax;
@@ -33,6 +31,6 @@ internal class Reference : Syntax, IParsable
 
         if (names.Count is 0 && arguments.Count is 0) return null;
 
-        return new Reference(parser, attempt.Cursor - parser.Cursor) { Names = names, Arguments = arguments };
+        return new Reference { Names = names, Arguments = arguments, Tokens = context[..parser.Cursor] };
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 using Ronin.Lexicon.Reserved;
 
@@ -7,22 +6,62 @@ namespace Ronin.Grammar.Declaration;
 
 internal class Datum : Syntax, IParsable
 {
-    internal bool IsReactive { get; set; }
-    internal bool IsCompiled { get; set; }
-    internal bool IsPersistent { get; set; }
-    internal bool IsShared { get; set; }
-    internal bool IsOptional { get; set; }
-    internal bool IsReadonly { get; set; }
-
-    internal string Identifier { get; set; }
-    internal Reference Datatype { get; set; }
-    internal Reference Initializer { get; set; }
-
-    internal Datum(Parser parser, int length) : base(parser, length) { }
+    internal Modifiers Is { get; private set; }
+    internal string Identifier { get; private set; }
+    internal Reference Datatype { get; private set; }
+    internal Reference Initializer { get; private set; }
 
     public static Syntax Parse(Parser parser)
     {
-        int length = 0;
+        Parser attempt = new(parser);
+
+        //var modifiers = Modifiers.Parse(attempt) as Modifiers;
+
+        bool constant = false;
+        if (attempt[0] is Variable or Constant)
+        {
+            constant = attempt[0] is Constant;
+            ++attempt.Cursor;
+        }
+
+        var name = Name.Parse(attempt);
+        if (name is null) return name;
+        if (name is Error)
+        {
+            parser.Cursor = attempt.Cursor;
+            return name;
+        }
+
+        Modifiers modifiers = null;
+        Syntax datatype = null;
+        if (attempt[0] is Returns)
+        {
+            ++attempt.Cursor;
+            modifiers = Modifiers.Parse(attempt) as Modifiers;
+            datatype = Declaration.Datatype.Parse(attempt);
+            if (datatype is null) return datatype;
+            if (datatype is Error)
+            {
+                parser.Cursor = attempt.Cursor;
+                return datatype;
+            }
+        }
+
+        Syntax initializer = null;
+        if (attempt[0] is Assign)
+        {
+            ++attempt.Cursor;
+            //initializer = 
+        }
+
+        return datatype is null && initializer is null ? null : new Datum
+        {
+            Is = modifiers,
+            Datatype = datatype as Reference,
+            Identifier = string.Join(' ', name),
+            Initializer = initializer as Reference,
+        };
+        /*int length = 0;
         int max = parser.Length;
         bool isReactive = false;
         bool isCompiled = false;
@@ -141,6 +180,6 @@ internal class Datum : Syntax, IParsable
             IsReactive = isReactive,
             IsReadonly = isReadonly,
             IsShared = isShared,
-        };
+        };*/
     }
 }

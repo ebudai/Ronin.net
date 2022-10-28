@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-internal class List : Syntax, IParsable
+internal class Initializer : Syntax, IParsable
 {
     public static Syntax Parse(Parser parser)
     {
