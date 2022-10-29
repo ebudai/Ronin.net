@@ -25,7 +25,7 @@ internal class Declarator : Syntax, IParsable
             ref var modifier = ref parser[0];
             ++parser.Cursor;
 
-            if (modifier is Whitespace or Comment) continue;
+            if (modifier is Trivium) continue;
 
             // the point of these is to break if you encounter a keyword twice
             // the 2nd time it's part of the name, parsed somewhere else

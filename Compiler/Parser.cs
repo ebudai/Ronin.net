@@ -26,13 +26,14 @@ public class Parser
         set => _cursors.Push(_cursors.Pop() + value);
     }
     internal int Location => Start + _cursors.Sum();
-    
+
+    internal ref Token this[int index] => ref _tokens[Location + index];
+
     internal bool IsEmpty => Span.IsEmpty;
     internal bool IsNotEmpty => !IsEmpty;
     internal int Length => Span.Length;
 
-    internal ReadOnlySpan<Token> Span => _tokens[Location..].AsSpan();
-    internal ref Token this[int index] => ref _tokens[Location + index];
+    internal ReadOnlySpan<Token> Span => _tokens[Location..].AsSpan();    
     internal ReadOnlyMemory<Token> this[Range range] => _tokens[Location..][range];
 
     internal Syntax[] Parse()
@@ -46,7 +47,7 @@ public class Parser
             statements.Add(PartOf.Parse(this)
                 ?? Import.Parse(this)
                 ?? Datum.Parse(this)
-                ?? Trivium.Parse(this)
+                ?? Trivia.Parse(this)
                 ?? Reference.Parse(this)
                 ?? Error.Parse(this));
 
@@ -57,6 +58,11 @@ public class Parser
     }
 
     internal void Reset() => _cursors.Clear();
+
+    internal void AdvancePastTrivia()
+    {
+        while (this[0] is Trivium) ++Cursor;
+    }
 
     private readonly Token[] _tokens;
     private readonly Stack<int> _cursors = new(256);

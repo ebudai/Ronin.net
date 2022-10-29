@@ -4,14 +4,14 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal class Trivium : Syntax, IParsable
+internal class Trivia : Syntax, IParsable
 {
     public static Syntax Parse(Parser parser)
     {
         int length = -1;
         while (++length < parser.Length)
         {
-            if (parser[length] is Whitespace or Comment) continue;
+            if (parser[length] is Trivium) continue;
             if (parser[length] is Terminal)
             {
                 ++length;
@@ -19,6 +19,6 @@ internal class Trivium : Syntax, IParsable
             }
             return null;
         }
-        return new Trivium() { Tokens = parser[..length] };
+        return new Trivia() { Tokens = parser[..length] };
     }
 }

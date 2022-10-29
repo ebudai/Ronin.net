@@ -13,7 +13,7 @@ internal class Error : Syntax, IParsable
         while (parser.IsNotEmpty)
         {
             ref var lexeme = ref parser[0];            
-            if (lexeme is Symbol symbol && !symbol.CanBeUsedInNames) break;
+            if (lexeme is Symbol symbol && symbol.CanBeUsedInNames is false) break;
             ++parser.Cursor;
         }
         return new Error { Tokens = parser.Tokens };

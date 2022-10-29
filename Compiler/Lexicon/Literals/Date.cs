@@ -10,16 +10,16 @@ internal class Date : Literal
     {
         if (lexer.Length is < 10) return null;
 
-        if (!char.IsNumber(lexer[0])) return null;
-        if (!char.IsNumber(lexer[1])) return null;
-        if (!char.IsNumber(lexer[2])) return null;
-        if (!char.IsNumber(lexer[3])) return null;
+        if (char.IsNumber(lexer[0]) is not true) return null;
+        if (char.IsNumber(lexer[1]) is not true) return null;
+        if (char.IsNumber(lexer[2]) is not true) return null;
+        if (char.IsNumber(lexer[3]) is not true) return null;
         if (lexer[4] is not '-') return null;
-        if (!char.IsNumber(lexer[5])) return null;
-        if (!char.IsNumber(lexer[6])) return null;
+        if (char.IsNumber(lexer[5]) is not true) return null;
+        if (char.IsNumber(lexer[6]) is not true) return null;
         if (lexer[7] is not '-') return null;
-        if (!char.IsNumber(lexer[8])) return null;
-        if (!char.IsNumber(lexer[9])) return null;
+        if (char.IsNumber(lexer[8]) is not true) return null;
+        if (char.IsNumber(lexer[9]) is not true) return null;
 
         return new Date(lexer);
     }

@@ -8,7 +8,7 @@ internal class Integer : Literal
 
     internal static new Token Lex(Lexer lexer)
     {
-        if (lexer.IsEmpty || !char.IsNumber(lexer[0])) return null;
+        if (lexer.IsEmpty || char.IsNumber(lexer[0]) is not true) return null;
 
         int length = 1;
         for (int max = lexer.Length; length != max; ++length)
@@ -19,7 +19,7 @@ internal class Integer : Literal
 
             if (char.IsWhiteSpace(c) || Symbol.IsSymbol(lexer, length)) break;
 
-            if (!char.IsNumber(c) && lexer[length] is not '_') break;
+            if (char.IsNumber(c) is not true && lexer[length] is not '_') break;
         }
 
         return new Integer(lexer, length);

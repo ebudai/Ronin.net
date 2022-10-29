@@ -19,20 +19,20 @@ internal class Character : Literal
         {
             for (var i = 3; i != length; ++i)
             {
-                if (!IsValid(lexer[i])) return null;
+                if (IsNotValid(lexer[i])) return null;
             }
         }
 
         return new Character(lexer, length + 2);
     }
 
-    private static bool IsValid(char character) 
-        => char.IsNumber(character) 
-        || character 
-        is 'A' or 'a'
-        or 'B' or 'b'
-        or 'C' or 'c'
-        or 'D' or 'd'
-        or 'E' or 'e'
-        or 'F' or 'f';
+    private static bool IsNotValid(char character) 
+        => char.IsNumber(character) is false
+        && character 
+        is not 'A' and not 'a'
+        and not 'B' and not 'b'
+        and not 'C' and not 'c'
+        and not 'D' and not 'd'
+        and not 'E' and not 'e'
+        and not 'F' and not 'f';
 }

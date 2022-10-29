@@ -15,7 +15,7 @@ public class Datum
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.IsType<Trivium>(syntax[0]);
+        Assert.IsType<Trivia>(syntax[0]);
     }
 
     [Fact(DisplayName = "returns before name")]

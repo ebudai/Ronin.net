@@ -25,14 +25,14 @@ internal class Modifiers : Syntax, IParsable
             ref var modifier = ref parser[0];
             ++parser.Cursor;
 
-            if (modifier is Whitespace or Comment) continue;
+            if (modifier is Trivium) continue;
 
             // the point of these is to break if you encounter a keyword twice
-            // the 2nd time it's part of the name, parsed somewhere else
-            if (modifier is Compiled && !compiled && (compiled = true)) continue;
-            if (modifier is Persistent && !persistent && (persistent = true)) continue;
-            if (modifier is Shared && !shared && (shared = true)) continue;
-            if (modifier is Optional && !optional && (optional = true)) continue;
+            // the 2nd time it's part of the name, whic is parsed somewhere else
+            if (modifier is Compiled && compiled is not true && (compiled = true)) continue;
+            if (modifier is Persistent && persistent is not true && (persistent = true)) continue;
+            if (modifier is Shared && shared is not true && (shared = true)) continue;
+            if (modifier is Optional && optional is not true && (optional = true)) continue;
 
             break;
         }

@@ -23,7 +23,7 @@ internal class Name : Syntax, IParsable
             {
                 names.Add(symbol.ToString());
             }
-            else if (lexeme is not Whitespace and not Comment)
+            else if (lexeme is not Trivium)
             {
                 break;
             }

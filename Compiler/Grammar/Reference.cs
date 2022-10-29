@@ -1,36 +1,65 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Reference : Syntax, IParsable
+internal class Reference : RepeatingSyntax<Reference.Component>, IParsable
 {
-    internal SortedList<int, Name> Names { get; private init; }
-    internal SortedList<int, Value> Arguments { get; private init; }
-
-    public static Syntax Parse(Parser context)
+    public static Syntax Parse(Parser parser)
     {
-        SortedList<int, Name> names = new();
-        SortedList<int, Value> arguments = new();
-        Parser parser = new(context);
+        buffer.Clear();
+
+        parser.Cursor = -1;
         while (parser.IsNotEmpty)
         {
-            var syntax = Name.Parse(parser);
-            if (syntax is Name name)
+            ++parser.Cursor;
+            if (parser[0] is Trivium) continue;
+            var component = Component.Parse(parser);
+            if (component is Error or null) return component;
+            buffer.Add(component as Component);
+        }
+
+        return buffer.Count is 0 ? null : new Reference { Elements = buffer.ToArray(), Tokens = parser.Tokens };
+    }
+
+    internal class Component : Syntax, IParsable
+    {
+        internal Name Name
+        {
+            get => _discriminator is Discriminator.Name ? _name : null;
+            set
             {
-                names.Add(names.Count + arguments.Count, name);
-            }
-            else
-            {
-                syntax = Value.Parse(parser);
-                if (syntax is Scalar scalar) arguments.Add(names.Count + arguments.Count, scalar);
-                else if (syntax is Arguments aggregate) arguments.Add(names.Count + arguments.Count, aggregate);
-                else if (syntax is Error) return syntax;
-                else if (syntax is null) break;
+                _name = value;
+                _discriminator = Discriminator.Name;
             }
         }
 
-        if (names.Count is 0 && arguments.Count is 0) return null;
+        internal Value Value
+        {
+            get => _discriminator is Discriminator.Value ? _value : null;
+            set
+            {
+                _value = value;
+                _discriminator = Discriminator.Value;
+            }
+        }
 
-        return new Reference { Names = names, Arguments = arguments, Tokens = context[..parser.Location] };
+        public static Syntax Parse(Parser parser) => Name.Parse(parser) ?? Value.Parse(parser);
+
+        private Component(Name name) => Name = name;
+        private Component(Value value) => Value = value;
+
+        public static implicit operator Component(Name name) => new(name);
+        public static implicit operator Component(Value value) => new(value);
+
+        public static implicit operator Name(Component component) => component.Name;
+        public static implicit operator Value(Component component) => component.Value;
+
+        private Name _name;
+        private Value _value;
+
+        private Discriminator _discriminator;
+
+        private enum Discriminator { Name, Value };
     }
 }

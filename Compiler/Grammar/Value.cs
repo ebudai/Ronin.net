@@ -3,7 +3,7 @@ using Ronin.Grammar.Declaration;
 
 namespace Ronin.Grammar;
 
-internal class Value : IParsable
+internal class Value : Syntax, IParsable
 {
     internal Scalar Scalar
     {
@@ -56,21 +56,11 @@ internal class Value : IParsable
     }
 
     public static Syntax Parse(Parser parser)
-    {
-        var scalar = Scalar.Parse(parser);
-        if (scalar is not null) return scalar;
-
-        var aggregate = Arguments.Parse(parser);
-        if (aggregate is not null) return aggregate;
-
-        var reference = Reference.Parse(parser);
-        if (reference is not null) return reference;
-
-        var function = Function.Parse(parser);
-        if (function is not null) return function;
-
-        return Datatype.Parse(parser);
-    }
+        => Scalar.Parse(parser)
+        ?? Arguments.Parse(parser)
+        ?? Reference.Parse(parser)
+        ?? Function.Parse(parser)
+        ?? Datatype.Parse(parser);    
 
     private Value(Scalar scalar) => Scalar = scalar;
     private Value(Arguments aggregate) => Aggregate = aggregate;
@@ -78,7 +68,7 @@ internal class Value : IParsable
     private Value(Function function) => Function = function;
     private Value(Datatype datatype) => Datatype = datatype;
 
-    public static implicit operator Value(Syntax syntax) => syntax switch
+    /*public static implicit operator Value(Syntax syntax) => syntax switch
     {
         Scalar scalar => new(scalar),
         Arguments aggregate => new(aggregate),
@@ -86,7 +76,7 @@ internal class Value : IParsable
         Function function => new(function),
         Datatype datatype => new(datatype),
         _ => null
-    };
+    };*/
 
     public static implicit operator Value(Scalar scalar) => new(scalar);
     public static implicit operator Value(Arguments aggregate) => new(aggregate);

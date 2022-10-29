@@ -14,7 +14,7 @@ public class Lexer
     internal int Cursor { get; set; }
     internal int Line { get; set; } = 1;
     internal bool IsEmpty => Span.IsEmpty;
-    internal bool IsNotEmpty => !IsEmpty;
+    internal bool IsNotEmpty => IsEmpty is false;
     internal int Length => Span.Length;
 
     internal ReadOnlySpan<char> Span => Sourcecode[Cursor..].Span;
@@ -22,10 +22,11 @@ public class Lexer
     internal ReadOnlyMemory<char> this[Range range] => Sourcecode[Cursor..][range];
     
     internal bool StartsWith(string text) => Span.StartsWith(text);
+    internal bool DoesNotStartWith(string text) => StartsWith(text) is false;
 
-    public Lexicon.Token[] Lex()
+    public Token[] Lex()
     {
-        List<Lexicon.Token> tokens = new();
+        List<Token> tokens = new();
 
         while (Cursor < Sourcecode.Length)
         {

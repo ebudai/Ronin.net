@@ -14,7 +14,6 @@ internal class Import : Syntax, IParsable
         ++parser.Cursor;
 
         var parsed = Grammar.Name.Parse(parser);
-
         if (parsed is Error or null) return parsed;
 
         if (parsed is not Name name || parser[0] is not Terminal) return Error.Parse(parser);

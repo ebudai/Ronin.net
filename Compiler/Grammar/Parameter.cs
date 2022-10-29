@@ -41,7 +41,7 @@ internal class ExplicitParameter : Parameter, IParsable
             Name = string.Join(' ', name.Names),
             Is = modifiers,
             Datatype = datatype as Reference,
-            Initializer = initializer,
+            Initializer = initializer as Value,
             Tokens = parser.Tokens,
         };
     }
@@ -70,7 +70,7 @@ internal class ImplicitParameter : Parameter, IParsable
         {
             Name = string.Join(' ', name.Names),
             Is = modifiers,
-            Initializer = initializer,
+            Initializer = initializer as Value,
             Tokens = parser.Tokens,
         };
     }

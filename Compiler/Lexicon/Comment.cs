@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Ronin.Lexicon;
 
-internal class Comment : Token
+internal class Comment : Trivium
 {
     internal const string singleline = "//";
     internal const string multilinestart = "/*";
@@ -38,7 +38,7 @@ internal class Comment : Token
 
         length += multilineend.Length;
         var terminated = depth is 0;
-        if (!terminated && length > lexer.Length) length = lexer.Length;
+        if (terminated is false && length > lexer.Length) length = lexer.Length;
 
         return new Comment(lexer, length) { Terminated = terminated };
     }

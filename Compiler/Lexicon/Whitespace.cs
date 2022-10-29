@@ -2,7 +2,7 @@
 
 namespace Ronin.Lexicon;
 
-internal class Whitespace : Token
+internal class Whitespace : Trivium
 {
     internal Whitespace(Lexer lexer, int length) : base(lexer, length) { }
 
