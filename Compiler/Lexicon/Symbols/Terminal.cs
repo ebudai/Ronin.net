@@ -4,9 +4,10 @@ namespace Ronin.Lexicon.Symbols;
 
 internal class Terminal : Symbol
 {
-    internal const char character = ';';
+    public const char character = ';';
+    public const string symbol = ";";
 
-    public Terminal(Lexer lexer) : base(lexer, 1) { }
+    private Terminal(Lexer lexer) : base(lexer, symbol.Length) { }
 
-    public static new Terminal Lex(Lexer lexer) => !lexer.IsEmpty && lexer[0] is character ? new Terminal(lexer) : null;
+    public static new Terminal Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Terminal(lexer) : null;
 }

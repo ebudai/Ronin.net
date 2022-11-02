@@ -45,7 +45,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length),
 
             // {
-            new OpenBrace(lexer),
+            OpenBrace(),
             Whitespace(Environment.NewLine.Length + 4),
             
             // var data = 0b01101010010;
@@ -53,10 +53,10 @@ public class Lexer
             Whitespace(),
             Name("data"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Binary("0b01101010010"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // constant sigil = 'c';
@@ -64,10 +64,10 @@ public class Lexer
             Whitespace(),
             Name("sigil"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Character("'c'"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // reactive asian sigil = '\u26fc';
@@ -77,10 +77,10 @@ public class Lexer
             Whitespace(),
             Name("sigil"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Character("'\\u26fc'"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // persistent birthday = 1976-01-23;
@@ -88,10 +88,10 @@ public class Lexer
             Whitespace(),
             Name("birthday"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Date(),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // shared hex = 0x2c;
@@ -99,10 +99,10 @@ public class Lexer
             Whitespace(),
             Name("hex"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Hex("0x2c"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // compiled dogs count = 7;
@@ -112,10 +112,10 @@ public class Lexer
             Whitespace(),
             Name("count"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Integer("7"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // var cash = $14.20;
@@ -123,10 +123,10 @@ public class Lexer
             Whitespace(),
             Name("cash"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Money("$14.20"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // var when = 17:24:24;
@@ -134,10 +134,10 @@ public class Lexer
             Whitespace(),
             Name("when"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Time("17:24:24"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // var googles address = https://google.com;
@@ -147,14 +147,14 @@ public class Lexer
             Whitespace(),
             Name("address"),
             Whitespace(),
-            new Assign(lexer),
+            Assign(),
             Whitespace(),
             Url("https://google.com"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length),
 
             // }
-            new CloseBrace(lexer),
+            CloseBrace(),
             Whitespace(Environment.NewLine.Length * 2),
 
             // function run (list of stuff is integer[], things is number) away
@@ -162,32 +162,32 @@ public class Lexer
             Whitespace(),
             Name("run"),
             Whitespace(),
-            new OpenParenthesis(lexer),
+            OpenParenthesis(),
             Name("list"),
             Whitespace(),
             Name("of"),
             Whitespace(),
             Name("stuff"),
             Whitespace(),
-            new Returns(lexer),
+            Returns(),
             Whitespace(),
             Name("integer"),
-            new OpenSquareBracket(lexer),
-            new CloseSquareBracket(lexer),
-            new Separator(lexer),
+            OpenSquareBracket(),
+            CloseSquareBracket(),
+            Separator(),
             Whitespace(),
             Name("things"),
             Whitespace(),
-            new Returns(lexer),
+            Returns(),
             Whitespace(),
             Name("number"),
-            new CloseParenthesis(lexer),
+            CloseParenthesis(),
             Whitespace(),
             Name("away"),
             Whitespace(Environment.NewLine.Length),
 
             // {
-            new OpenBrace(lexer),
+            OpenBrace(),
             Whitespace(Environment.NewLine.Length + 4),
 
             // comment: // this assumes the list of stuff has at least one element
@@ -202,9 +202,9 @@ public class Lexer
             Name("of"),
             Whitespace(),
             Name("stuff"),
-            new OpenSquareBracket(lexer),
+            OpenSquareBracket(),
             Integer("0"),
-            new CloseSquareBracket(lexer),
+            CloseSquareBracket(),
             Whitespace(),
             Name("+"),
             Whitespace(),
@@ -213,11 +213,11 @@ public class Lexer
             Name("*"),
             Whitespace(),
             Integer("7"),
-            new Terminal(lexer),
+            Terminal(),
             Whitespace(Environment.NewLine.Length),
 
             // }
-            new CloseBrace(lexer),
+            CloseBrace(),
 
             // 7aslk
             Integer("7"),
@@ -234,7 +234,7 @@ public class Lexer
             Assert.Equal(expected[i].GetType(), tokens[i].GetType());
             Assert.Equal(expected[i].Sourcecode.ToArray(), tokens[i].Sourcecode.ToArray());
         }
-        
+
         Word Name(string name) => new(lexer, name.Length);
         Whitespace Whitespace(int spaces = 1) => new(lexer, spaces);
         Datatype Datatype() => new(lexer);
@@ -254,15 +254,39 @@ public class Lexer
         Time Time(string value) => TimeConstructor.Invoke(new object[] { lexer, value.Length }) as Time;
         Url Url(string value) => UrlConstructor.Invoke(new object[] { lexer, value.Length }) as Url;
 
+        OpenBrace OpenBrace() => OpenBraceConstructor.Invoke(new object[] { lexer }) as OpenBrace;
+        Assign Assign() => AssignConstructor.Invoke(new object[] { lexer }) as Assign;
+        Terminal Terminal() => TerminalConstructor.Invoke(new object[] { lexer }) as Terminal;
+        CloseBrace CloseBrace() => CloseBraceConstructor.Invoke(new object[] { lexer }) as CloseBrace;
+        OpenParenthesis OpenParenthesis() => OpenParenthesisConstructor.Invoke(new object[] { lexer }) as OpenParenthesis;
+        Returns Returns() => ReturnsConstructor.Invoke(new object[] { lexer }) as Returns;
+        OpenSquareBracket OpenSquareBracket() => OpenSquareBracketConstructor.Invoke(new object[] { lexer }) as OpenSquareBracket;
+        CloseSquareBracket CloseSquareBracket() => CloseSquareBracketConstructor.Invoke(new object[] { lexer }) as CloseSquareBracket;
+        Separator Separator() => SeparatorConstructor.Invoke(new object[] { lexer }) as Separator;
+        CloseParenthesis CloseParenthesis() => CloseParenthesisConstructor.Invoke(new object[] { lexer }) as CloseParenthesis;
     }
 
-    private static readonly ConstructorInfo BinaryConstructor = typeof(Binary).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
-    private static readonly ConstructorInfo CharacterConstructor = typeof(Character).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
-    private static readonly ConstructorInfo DateConstructor = typeof(Date).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer) });
-    private static readonly ConstructorInfo HexConstructor = typeof(Hex).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
-    private static readonly ConstructorInfo IntegerConstructor = typeof(Integer).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
-    private static readonly ConstructorInfo MoneyConstructor = typeof(Money).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
-    private static readonly ConstructorInfo TimeConstructor = typeof(Time).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
-    private static readonly ConstructorInfo UrlConstructor = typeof(Url).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(int) });
+    private static ConstructorInfo GetConstructor<T>() => typeof(T).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer) });
+    private static ConstructorInfo GetConstructor<T, TLength>() => typeof(T).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer), typeof(TLength) });
+
+    private static readonly ConstructorInfo BinaryConstructor = GetConstructor<Binary, int>();
+    private static readonly ConstructorInfo CharacterConstructor = GetConstructor<Character, int>();
+    private static readonly ConstructorInfo DateConstructor = GetConstructor<Character>();
+    private static readonly ConstructorInfo HexConstructor = GetConstructor<Hex, int>();
+    private static readonly ConstructorInfo IntegerConstructor = GetConstructor<Integer, int>();
+    private static readonly ConstructorInfo MoneyConstructor = GetConstructor<Money, int>();
+    private static readonly ConstructorInfo TimeConstructor = GetConstructor<Time, int>();
+    private static readonly ConstructorInfo UrlConstructor = GetConstructor<Url, int>();
+
+    private static readonly ConstructorInfo OpenBraceConstructor = GetConstructor<OpenBrace>();
+    private static readonly ConstructorInfo AssignConstructor = GetConstructor<Assign>();
+    private static readonly ConstructorInfo TerminalConstructor = GetConstructor<Terminal>();
+    private static readonly ConstructorInfo CloseBraceConstructor = GetConstructor<CloseBrace>();
+    private static readonly ConstructorInfo OpenParenthesisConstructor = GetConstructor<OpenParenthesis>();
+    private static readonly ConstructorInfo ReturnsConstructor = GetConstructor<Returns>();
+    private static readonly ConstructorInfo OpenSquareBracketConstructor = GetConstructor<OpenSquareBracket>();
+    private static readonly ConstructorInfo CloseSquareBracketConstructor = GetConstructor<CloseSquareBracket>();
+    private static readonly ConstructorInfo SeparatorConstructor = GetConstructor<Separator>();
+    private static readonly ConstructorInfo CloseParenthesisConstructor = GetConstructor<CloseParenthesis>();
 
 }

@@ -6,19 +6,12 @@ namespace Ronin.Grammar;
 
 internal class Trivia : Syntax, IParsable
 {
-    public static Syntax Parse(Parser parser)
+    public static Syntax Parse(ref Parser context)
     {
-        int length = -1;
-        while (++length < parser.Length)
-        {
-            if (parser[length] is Trivium) continue;
-            if (parser[length] is Terminal)
-            {
-                ++length;
-                break;
-            }
-            return null;
-        }
-        return new Trivia() { Tokens = parser[..length] };
+        Parser parser = context;
+        ref var token = ref parser[0];
+        while (parser.IsNotEmpty && token is Trivium) ++parser.Cursor;
+        if (token is Terminal) ++parser.Cursor;
+        return new Trivia() { Tokens = parser.GetTokens(ref context) };
     }
 }

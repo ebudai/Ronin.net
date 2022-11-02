@@ -4,9 +4,9 @@ namespace Ronin.Lexicon.Symbols;
 
 internal class Returns : Symbol
 {
-    public const string character = "=>";
+    public const string symbol = "=>";
 
-    public Returns(Lexer lexer) : base(lexer, character.Length) { }
+    private Returns(Lexer lexer) : base(lexer, symbol.Length) { }
 
-    public static new Returns Lex(Lexer lexer) => !lexer.IsEmpty && lexer.StartsWith(character) ? new Returns(lexer) : null;
+    public static new Returns Lex(Lexer lexer) => lexer.IsNotEmpty && lexer.StartsWith(symbol) ? new Returns(lexer) : null;
 }

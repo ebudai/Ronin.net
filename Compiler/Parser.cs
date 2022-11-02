@@ -5,38 +5,29 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Compiler;
 
-public class Parser
+public struct Parser
 {
     public Parser(Token[] tokens) => _tokens = tokens;
 
-    internal ReadOnlyMemory<Token> Tokens
+    internal ReadOnlyMemory<Token> GetTokens(ref Parser parent)
     {
-        get
-        {
-            var tokens = this[..Location];
-            Start += _cursors.Pop();
-            return tokens;
-        }
+        var tokens = _tokens[_start..Location];
+        _start += Cursor;
+        Cursor = 0;
+        parent = this;
+        return tokens;
     }
-
-    internal int Start { get; set; }    
-    internal int Cursor
-    {
-        get => _cursors.Peek();
-        set => _cursors.Push(_cursors.Pop() + value);
-    }
-    internal int Location => Start + _cursors.Sum();
 
     internal ref Token this[int index] => ref _tokens[Location + index];
-
-    internal bool IsEmpty => Span.IsEmpty;
-    internal bool IsNotEmpty => !IsEmpty;
-    internal int Length => Span.Length;
-
-    internal ReadOnlySpan<Token> Span => _tokens[Location..].AsSpan();    
     internal ReadOnlyMemory<Token> this[Range range] => _tokens[Location..][range];
 
-    internal Syntax[] Parse()
+    internal int Cursor { get; set; }
+
+    internal bool IsNotEmpty => IsEmpty is not true;
+    internal int Length => Span.Length;
+    internal ReadOnlySpan<Token> Span => _tokens[Location..].AsSpan();
+
+    public Syntax[] Parse()
     {
         List<Syntax> statements = new();
 
@@ -44,26 +35,29 @@ public class Parser
         {
             if (IsEmpty) break;
 
-            statements.Add(PartOf.Parse(this)
-                ?? Import.Parse(this)
-                ?? Datum.Parse(this)
-                ?? Trivia.Parse(this)
-                ?? Reference.Parse(this)
-                ?? Error.Parse(this));
+            statements.Add(PartOf.Parse(ref this)
+                ?? Import.Parse(ref this)
+                ?? Datum.Parse(ref this)
+                ?? Function.Parse(ref this)
+                ?? Datatype.Parse(ref this)
+                ?? Trivia.Parse(ref this)
+                ?? Reference.Parse(ref this)
+                ?? Error.Parse(ref this));
 
-            if (Location < _tokens.Length && _tokens[Location] is Terminal) ++Start;
+            if (Location < _tokens.Length && _tokens[Location] is Terminal) ++Cursor;
         }
 
         return statements.ToArray();
     }
 
-    internal void Reset() => _cursors.Clear();
-
     internal void AdvancePastTrivia()
     {
-        while (this[0] is Trivium) ++Cursor;
+        while (this[0] is Trivium) ++_start;
     }
 
+    private bool IsEmpty => Span.IsEmpty;
+    private int Location => _start + Cursor;
+
     private readonly Token[] _tokens;
-    private readonly Stack<int> _cursors = new(256);
+    private int _start = 0;
 }

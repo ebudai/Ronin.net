@@ -12,13 +12,15 @@ internal class Declarator : Syntax, IParsable
     internal bool Datatype { get; private init; }
     internal bool Reactive { get; private init; }
 
-    public static Syntax Parse(Parser parser)
+    public static Syntax Parse(ref Parser context)
     {
         bool variable = false;
         bool constant = false;
         bool function = false;
         bool datatype = false;
         bool reactive = false;
+
+        Parser parser = context;
 
         while (parser.IsNotEmpty)
         {
@@ -45,7 +47,7 @@ internal class Declarator : Syntax, IParsable
             Function = function,
             Datatype = datatype,
             Reactive = reactive,
-            Tokens = parser.Tokens,
+            Tokens = parser.GetTokens(ref context),
         };
     }
 }

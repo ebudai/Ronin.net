@@ -5,25 +5,26 @@ namespace Ronin.Grammar;
 
 internal class Name : Syntax, IParsable
 {
-    internal string[] Names { get; private init; }
-    internal string[] Hierarchy => string.Join(' ', Names).Split(" " + Lexicon.Symbols.Hierarchy.character + ' ');
+    internal string[] Words { get; private init; }
+    internal string[] Hierarchy => string.Join(' ', Words).Split(" " + Lexicon.Symbols.Hierarchy.character + ' ');
 
-    public static Syntax Parse(Parser parser)
+    public static Syntax Parse(ref Parser context)
     {
+        Parser parser = context;
         List<string> names = new();
         while (parser.IsNotEmpty)
         {
-            ref var lexeme = ref parser[0];
+            ref var token = ref parser[0];
             
-            if (lexeme is Word word)
+            if (token is Word word)
             {
                 names.Add(word.ToString());
             }
-            else if (lexeme is Symbol symbol && symbol.CanBeUsedInNames)
+            else if (token is Symbol { CanBeUsedInNames: true } symbol)
             {
                 names.Add(symbol.ToString());
             }
-            else if (lexeme is not Trivium)
+            else if (token is not Trivium)
             {
                 break;
             }
@@ -31,6 +32,6 @@ internal class Name : Syntax, IParsable
             ++parser.Cursor;
         }
 
-        return names.Count is 0 ? null : new Name { Names = names.ToArray(), Tokens = parser.Tokens };
+        return names.Count is 0 ? null : new Name { Words = names.ToArray(), Tokens = parser.GetTokens(ref context) };
     }
 }

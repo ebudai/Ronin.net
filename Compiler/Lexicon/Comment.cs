@@ -1,45 +1,41 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon.Symbols;
 using System.Diagnostics;
 
 namespace Ronin.Lexicon;
 
 internal class Comment : Trivium
 {
-    internal const string singleline = "//";
-    internal const string multilinestart = "/*";
-    internal const string multilineend = "*/";
-
     internal bool Terminated { get; private init; } = true;
 
     internal Comment(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static Token Lex(Lexer lexer)
     {
-        if (lexer.StartsWith(singleline))
+        if (lexer.StartsWith(CommentStart.singleline))
         {
-            var linelength = lexer.Span.IndexOf(Environment.NewLine);
+            var linelength = lexer.Span.IndexOf('\n');
             if (linelength is < 0) linelength = lexer.Length;
             return new Comment(lexer, linelength);
         }
 
-        if (!lexer.StartsWith(multilinestart)) return null;
+        if (!lexer.StartsWith(CommentStart.multiline)) return null;
 
         int depth = 1;
-        var length = multilinestart.Length;
+        var length = CommentStart.multiline.Length;
 
         for (; length != lexer.Length; ++length)
         {
             var innerspan = lexer[length..].Span;
             Debug.WriteLine(lexer[length..]);            
-            if (innerspan.StartsWith(multilinestart)) ++depth;
-            else if (innerspan.StartsWith(multilineend)) --depth;
+            if (innerspan.StartsWith(CommentStart.multiline)) ++depth;
+            else if (innerspan.StartsWith(CommentEnd.multiline)) --depth;
             if (depth is 0) break;
         }
 
-        length += multilineend.Length;
-        var terminated = depth is 0;
-        if (terminated is false && length > lexer.Length) length = lexer.Length;
+        length += CommentEnd.multiline.Length;
+        if (depth is not 0 && length > lexer.Length) length = lexer.Length;
 
-        return new Comment(lexer, length) { Terminated = terminated };
+        return new Comment(lexer, length) { Terminated = depth is 0 };
     }
 }

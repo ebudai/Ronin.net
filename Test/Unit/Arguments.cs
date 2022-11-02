@@ -2,7 +2,7 @@
 
 namespace Unit;
 
-public class Aggregate
+public class Arguments
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -15,17 +15,13 @@ public class Aggregate
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Reference>(syntax[0]);
-        var reference = syntax[0] as Ronin.Grammar.Reference;
-        Assert.NotEmpty(reference.Arguments);
-        Assert.NotNull(reference.Arguments[0].Aggregate);
-        var aggregate = reference.Arguments[0].Aggregate;
-        Assert.NotEmpty(aggregate.Parameters);
-        Assert.NotNull(aggregate.Parameters[0].Reference);
-        //Assert.NotEmpty(aggregate.Parameters[0].Reference);
-        Assert.NotEmpty(aggregate.Parameters[0].Names[0].Names);
-        string name = aggregate.Parameters[0].Names[0].Names[0];
-        Assert.Equal("test", name);
+        Assert.IsType<Ronin.Grammar.Arguments>(syntax[0]);
+        var arguments = syntax[0] as Ronin.Grammar.Arguments;
+        Assert.NotEmpty(arguments.Elements);
+        Assert.NotNull(arguments.Elements[0].Name);
+        var name = arguments.Elements[0].Name;
+        Assert.NotEmpty(name.Words);
+        Assert.Equal("test", name.Words[0]);
     }
 
     /*[Fact(DisplayName = "separated")]

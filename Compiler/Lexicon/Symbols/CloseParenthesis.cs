@@ -5,8 +5,9 @@ namespace Ronin.Lexicon.Symbols;
 internal class CloseParenthesis : Close
 {
     public const char character = ')';
+    public const string symbol = ")";
 
-    public CloseParenthesis(Lexer lexer) : base(lexer, 1) { }
+    private CloseParenthesis(Lexer lexer) : base(lexer, symbol.Length) { }
 
-    public static new CloseParenthesis Lex(Lexer lexer) => !lexer.IsEmpty && lexer[0] is character ? new CloseParenthesis(lexer) : null;
+    public static new CloseParenthesis Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new CloseParenthesis(lexer) : null;
 }

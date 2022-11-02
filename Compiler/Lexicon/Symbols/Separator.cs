@@ -5,8 +5,9 @@ namespace Ronin.Lexicon.Symbols;
 internal class Separator : Symbol
 {
     public const char character = ',';
+    public const string symbol = ",";
 
-    public Separator(Lexer lexer) : base(lexer, 1) { }
+    private Separator(Lexer lexer) : base(lexer, symbol.Length) { }
 
-    public static new Separator Lex(Lexer lexer) => !lexer.IsEmpty && lexer[0] is character ? new Separator(lexer) : null;
+    public static new Separator Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Separator(lexer) : null;
 }

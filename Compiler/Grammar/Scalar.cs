@@ -5,19 +5,21 @@ namespace Ronin.Grammar;
 
 internal class Scalar : RepeatingSyntax<Literal>, IParsable
 {
-    public static Syntax Parse(Parser parser)
+    public static Syntax Parse(ref Parser context)
     {
-        buffer.Clear();
-
-        parser.Cursor = -1;
+        Parser parser = context;
+        t_buffer.Clear();
         while (parser.IsNotEmpty)
         {
+            ref var token = ref parser[0];
+            if (token is not Trivium)
+            {
+                if (token is not Literal literal) break;
+                t_buffer.Add(literal);
+            }
             ++parser.Cursor;
-            if (parser[0] is Trivium) continue;
-            if (parser[0] is not Literal literal) break;
-            buffer.Add(literal);            
         }
 
-        return buffer.Count is 0 ? null : new Scalar { Elements = buffer.ToArray(), Tokens = parser.Tokens };
+        return t_buffer.Count is 0 ? null : new Scalar { Elements = t_buffer.ToArray(), Tokens = parser.GetTokens(ref context) };
     }
 }

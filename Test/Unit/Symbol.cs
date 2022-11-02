@@ -47,7 +47,7 @@ public class Symbol
     public void LexDoubleQuote() => LexSymbol<TextDelimiter>(TextDelimiter.character.ToString());
 
     [Fact(DisplayName = "returns")]
-    public void LexReturns() => LexSymbol<Returns>(Returns.character);
+    public void LexReturns() => LexSymbol<Returns>(Returns.symbol);
 
     [Fact(DisplayName = "assign")]
     public void LexAssign() => LexSymbol<Assign>(Assign.character.ToString());

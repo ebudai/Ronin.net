@@ -6,72 +6,42 @@ namespace Ronin.Grammar;
 internal class Parameter : Syntax, IParsable
 {
     internal Modifiers Is { get; init; }
-    internal string Name { get; init; }    
+    internal string Name { get; init; }
+    internal Reference Datatype { get; init; }
     internal Value Initializer { get; init; }
 
-    public static Syntax Parse(Parser parser) => ExplicitParameter.Parse(parser) ?? ImplicitParameter.Parse(parser);
-}
-
-internal class ExplicitParameter : Parameter, IParsable
-{
-    internal Reference Datatype { get; init; }
-
-    public static new Syntax Parse(Parser parser)
+    public static Syntax Parse(ref Parser context)
     {
-        if (Grammar.Name.Parse(parser) is not Name name) return null;
+        Parser parser = context;
 
-        if (parser[0] is not Returns) return null;
+        if (Grammar.Name.Parse(ref parser) is not Name name) return null;
 
-        ++parser.Cursor;
+        Modifiers modifiers = null;
+        Syntax datatype = null;
+        if (parser[0] is Returns)
+        {
+            ++parser.Cursor;
 
-        var modifiers = Modifiers.Parse(parser) as Modifiers;
+            modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
-        var datatype = Reference.Parse(parser);
-        if (datatype is Error or null) return datatype;
+            datatype = Reference.Parse(ref parser);
+            if (datatype is Error or null) return datatype;
+        }
         
         Syntax initializer = null;
         if (parser[0] is Assign)
         {
             ++parser.Cursor;
-            initializer = Value.Parse(parser);
+            initializer = Value.Parse(ref parser);
         }
 
-        return new ExplicitParameter
+        return new Parameter
         {
-            Name = string.Join(' ', name.Names),
+            Name = string.Join(' ', name.Words),
             Is = modifiers,
             Datatype = datatype as Reference,
             Initializer = initializer as Value,
-            Tokens = parser.Tokens,
-        };
-    }
-}
-
-internal class ImplicitParameter : Parameter, IParsable
-{
-    public static new Syntax Parse(Parser parser)
-    {
-        if (Grammar.Name.Parse(parser) is not Name name) return null;
-
-        if (parser[0] is not Returns) return null;
-
-        ++parser.Cursor;
-
-        var modifiers = Modifiers.Parse(parser) as Modifiers;
-
-        Syntax initializer = null;
-        if (parser[0] is Assign)
-        {
-            ++parser.Cursor;
-            initializer = Value.Parse(parser);
-        }
-
-        return new ImplicitParameter
-        {
-            Name = string.Join(' ', name.Names),
-            Is = modifiers,
-            Initializer = initializer as Value,
-            Tokens = parser.Tokens,
+            Tokens = parser.GetTokens(ref context),
         };
     }
 }

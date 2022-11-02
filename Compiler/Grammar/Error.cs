@@ -7,15 +7,15 @@ internal class Error : Syntax, IParsable
 {
     internal List<Type> Expected { get; init; } = new();
 
-    public static Syntax Parse(Parser parser)
+    public static Syntax Parse(ref Parser context)
     {
-        parser.Reset(); 
+        Parser parser = context;
+        parser.Cursor = 0;
         while (parser.IsNotEmpty)
         {
-            ref var lexeme = ref parser[0];            
-            if (lexeme is Symbol symbol && symbol.CanBeUsedInNames is false) break;
+            if (parser[0] is Symbol symbol && symbol.CanBeUsedInNames is not true) break;
             ++parser.Cursor;
         }
-        return new Error { Tokens = parser.Tokens };
+        return new Error { Tokens = parser.GetTokens(ref context) };
     }
 }

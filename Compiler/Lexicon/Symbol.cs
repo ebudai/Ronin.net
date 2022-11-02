@@ -11,26 +11,26 @@ internal class Symbol : Token
     {
         var text = lexer[i..].Span;
         if (text.IsEmpty) return false;
-        return text.StartsWith(Returns.character)
-            || text.StartsWith(Comment.singleline)
-            || text.StartsWith(Comment.multilinestart)
+        return text.StartsWith(Returns.symbol)
+            || text.StartsWith(CommentStart.singleline)
+            || text.StartsWith(CommentStart.multiline)
             || text[0] is Assign.character
             or CharacterDelimiter.character
             or CloseBrace.character
             or CloseParenthesis.character
             or CloseSquareBracket.character
+            or Hierarchy.character
             or OpenBrace.character
             or OpenParenthesis.character
             or OpenSquareBracket.character
             or Separator.character
             or Terminal.character
-            or TextDelimiter.character
-            or Hierarchy.character;
+            or TextDelimiter.character;
     }
 
     internal static bool IsNonTerminalSymbol(Lexer lexer, int i = 0) => IsSymbol(lexer, i) && lexer[i] is not Terminal.character;
 
-    internal virtual bool CanBeUsedInNames => false;
+    internal virtual bool CanBeUsedInNames => false; //TODO this should be declared in grammar.  not this guy's job
 
     internal static Symbol Lex(Lexer lexer)
         => Returns.Lex(lexer)

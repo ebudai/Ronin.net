@@ -13,12 +13,16 @@ internal class Modifiers : Syntax, IParsable
     
     internal static Modifiers Default = new();
 
-    public static Syntax Parse(Parser parser)
+    public static Syntax Parse(ref Parser context)
     {
         bool persistent = false;
         bool compiled = false;
         bool shared = false;
         bool optional = false;
+
+        Parser parser = context;
+
+        parser.AdvancePastTrivia();
 
         while (parser.IsNotEmpty)
         {
@@ -34,6 +38,7 @@ internal class Modifiers : Syntax, IParsable
             if (modifier is Shared && shared is not true && (shared = true)) continue;
             if (modifier is Optional && optional is not true && (optional = true)) continue;
 
+            --parser.Cursor;
             break;
         }
 
@@ -43,7 +48,7 @@ internal class Modifiers : Syntax, IParsable
             Compiled = compiled,
             Shared = shared,
             Optional = optional,
-            Tokens = parser.Tokens,
+            Tokens = parser.GetTokens(ref context),
         };
     }
 }

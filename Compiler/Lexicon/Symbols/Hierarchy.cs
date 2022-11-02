@@ -1,16 +1,15 @@
 ﻿using Ronin.Compiler;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Lexicon.Symbols;
 
-[ExcludeFromCodeCoverage]
 internal class Hierarchy : Symbol
 {
     public const char character = '/';
+    public const string symbol = "/";
 
-    public Hierarchy(Lexer lexer) : base(lexer, 1) { }
+    private Hierarchy(Lexer lexer) : base(lexer, symbol.Length) { }
 
-    public static new Hierarchy Lex(Lexer lexer) => !lexer.IsEmpty && lexer[0] is character ? new Hierarchy(lexer) : null;
+    public static new Hierarchy Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Hierarchy(lexer) : null;
 
     internal override bool CanBeUsedInNames => true;
 }

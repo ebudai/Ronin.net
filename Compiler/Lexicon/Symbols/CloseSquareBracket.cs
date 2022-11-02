@@ -5,8 +5,9 @@ namespace Ronin.Lexicon.Symbols;
 internal class CloseSquareBracket : Close
 {
     public const char character = ']';
+    public const string symbol = "]";
 
-    public CloseSquareBracket(Lexer lexer) : base(lexer, 1) { }
+    private CloseSquareBracket(Lexer lexer) : base(lexer, symbol.Length) { }
 
-    public static new CloseSquareBracket Lex(Lexer lexer) => !lexer.IsEmpty && lexer[0] is character ? new CloseSquareBracket(lexer) : null;
+    public static new CloseSquareBracket Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new CloseSquareBracket(lexer) : null;
 }

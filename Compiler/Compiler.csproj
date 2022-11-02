@@ -9,6 +9,7 @@
     <RootNamespace>Ronin</RootNamespace>
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <LangVersion>preview</LangVersion>
+
   </PropertyGroup>
 
   <ItemGroup>
