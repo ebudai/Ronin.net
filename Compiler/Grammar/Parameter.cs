@@ -3,12 +3,14 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal class Parameter : Syntax, IParsable
+internal class Parameter : Syntax, IParsable<Parameter>
 {
     internal Modifiers Is { get; init; }
     internal string Name { get; init; }
     internal Reference Datatype { get; init; }
     internal Value Initializer { get; init; }
+
+    public static Parameter FromSyntax(Syntax syntax) => syntax as Parameter;
 
     public static Syntax Parse(ref Parser context)
     {

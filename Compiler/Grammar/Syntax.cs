@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
 using System.Collections;
 
 namespace Ronin.Grammar;
@@ -7,6 +6,11 @@ namespace Ronin.Grammar;
 internal interface IParsable
 {
     public static abstract Syntax Parse(ref Parser context);
+}
+
+internal interface IParsable<T> : IParsable
+{
+    public static abstract T FromSyntax(Syntax syntax);
 }
 
 public abstract class Syntax
@@ -26,7 +30,7 @@ internal abstract class RepeatingSyntax<T> : Syntax, IEnumerable<T>
 }
 
 internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : RepeatingSyntax<TElement>, IParsable
-    where TElement : IParsable
+    where TElement : IParsable<TElement>
     where T : AggregateSyntax<T, TOpen, TElement, TSeparator, TClose>, new()
 {
     public static Syntax Parse(ref Parser context)
@@ -43,8 +47,8 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
         {
             var syntax = TElement.Parse(ref parser);
             if (syntax is Error or null) return syntax;
-            if (syntax is not TElement element) return Error.Parse(ref parser);
-            buffer.Add(element);
+            //if (syntax is not TElement element) return Error.Parse(ref parser);
+            buffer.Add(TElement.FromSyntax(syntax));
             ref readonly var token = ref parser[0];
             if (token is TClose)
             {

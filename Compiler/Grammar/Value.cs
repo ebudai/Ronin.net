@@ -3,7 +3,7 @@ using Ronin.Grammar.Declaration;
 
 namespace Ronin.Grammar;
 
-internal class Value : Syntax, IParsable
+internal class Value : Syntax, IParsable<Value>
 {
     public static Syntax Parse(ref Parser context)
     {

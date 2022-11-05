@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using System.ComponentModel.DataAnnotations;
 
 namespace Unit;
 
@@ -15,8 +16,13 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Arguments>(syntax[0]);
-        var arguments = syntax[0] as Ronin.Grammar.Arguments;
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        Assert.NotNull(statement.Reference);
+        var reference = statement.Reference;
+        Assert.NotEmpty(reference.Values);
+        Assert.NotNull(reference.Values[0].Arguments);
+        var arguments = reference.Values[0].Arguments;
         Assert.NotEmpty(arguments.Values);
         Assert.NotNull(arguments.Values[0].Name);
         var name = arguments.Values[0].Name;
