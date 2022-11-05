@@ -8,14 +8,21 @@ internal class Comment : Trivium
 {
     internal bool Terminated { get; private init; } = true;
 
-    internal Comment(Lexer lexer, int length) : base(lexer, length) { }
+    private Comment(Lexer lexer, int length) : base(lexer, length) { }
 
     internal static Token Lex(Lexer lexer)
     {
         if (lexer.StartsWith(CommentStart.singleline))
         {
             var linelength = lexer.Span.IndexOf('\n');
-            if (linelength is < 0) linelength = lexer.Length;
+            if (linelength is < 0)
+            {
+                linelength = lexer.Length;
+            }
+            else if (lexer[linelength - 1] is '\r')
+            {
+                --linelength;
+            }            
             return new Comment(lexer, linelength);
         }
 

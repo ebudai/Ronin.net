@@ -191,7 +191,7 @@ public class Lexer
             Whitespace(Environment.NewLine.Length + 4),
 
             // comment: // this assumes the list of stuff has at least one element
-            new Comment(lexer, "// this assumes the list of stuff has at least one element".Length),
+            Comment("// this assumes the list of stuff has at least one element"),
             Whitespace(Environment.NewLine.Length + 4),
 
             // return list of stuff[0] + things * 7;
@@ -231,6 +231,10 @@ public class Lexer
         for (int i = 0; i != expected.Count; ++i)
         {
             Debug.WriteLine(i);
+            if (i is 124)
+            {
+                int x = 45;
+            }
             Assert.Equal(expected[i].GetType(), tokens[i].GetType());
             Assert.Equal(expected[i].Sourcecode.ToArray(), tokens[i].Sourcecode.ToArray());
         }
@@ -253,6 +257,7 @@ public class Lexer
         Money Money(string value) => MoneyConstructor.Invoke(new object[] { lexer, value.Length }) as Money;
         Time Time(string value) => TimeConstructor.Invoke(new object[] { lexer, value.Length }) as Time;
         Url Url(string value) => UrlConstructor.Invoke(new object[] { lexer, value.Length }) as Url;
+        Comment Comment(string value) => CommentConstructor.Invoke(new object[] { lexer, value.Length }) as Comment;
 
         OpenBrace OpenBrace() => OpenBraceConstructor.Invoke(new object[] { lexer }) as OpenBrace;
         Assign Assign() => AssignConstructor.Invoke(new object[] { lexer }) as Assign;
@@ -271,12 +276,13 @@ public class Lexer
 
     private static readonly ConstructorInfo BinaryConstructor = GetConstructor<Binary, int>();
     private static readonly ConstructorInfo CharacterConstructor = GetConstructor<Character, int>();
-    private static readonly ConstructorInfo DateConstructor = GetConstructor<Character>();
+    private static readonly ConstructorInfo DateConstructor = GetConstructor<Date>();
     private static readonly ConstructorInfo HexConstructor = GetConstructor<Hex, int>();
     private static readonly ConstructorInfo IntegerConstructor = GetConstructor<Integer, int>();
     private static readonly ConstructorInfo MoneyConstructor = GetConstructor<Money, int>();
     private static readonly ConstructorInfo TimeConstructor = GetConstructor<Time, int>();
     private static readonly ConstructorInfo UrlConstructor = GetConstructor<Url, int>();
+    private static readonly ConstructorInfo CommentConstructor = GetConstructor<Comment, int>();
 
     private static readonly ConstructorInfo OpenBraceConstructor = GetConstructor<OpenBrace>();
     private static readonly ConstructorInfo AssignConstructor = GetConstructor<Assign>();
