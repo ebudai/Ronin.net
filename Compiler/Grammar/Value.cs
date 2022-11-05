@@ -3,43 +3,63 @@ using Ronin.Grammar.Declaration;
 
 namespace Ronin.Grammar;
 
-internal partial class Value : Syntax, IParsable
+internal class Value : Syntax, IParsable
 {
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        return Scalar.Parse(ref parser)
+        var syntax = Scalar.Parse(ref parser)
             ?? Arguments.Parse(ref parser)
             ?? Name.Parse(ref parser)
             ?? Function.Parse(ref parser)
             ?? Datatype.Parse(ref parser);
+        if (syntax is not Error and not null) context = parser;
+        return syntax;
     }
 
-    internal Scalar Scalar
+    public static Value FromSyntax(Syntax syntax) => syntax switch
+    {
+        Scalar scalar => new(scalar),
+        Arguments arguments => new(arguments),
+        Name name => new(name),
+        Function function => new(function),
+        Datatype datatype => new(datatype),
+        _ => null,
+    };
+
+    protected internal sealed override (int index, int length) Tokens 
+        => Scalar?.Tokens 
+        ?? Arguments?.Tokens 
+        ?? Name?.Tokens 
+        ?? Function?.Tokens 
+        ?? Datatype?.Tokens 
+        ?? new();
+
+    public Scalar Scalar
     {
         get => _storage as Scalar;
         set => _storage = value;
     }
 
-    internal Arguments Arguments
+    public Arguments Arguments
     {
         get => _storage as Arguments;
         set => _storage = value;
     }
 
-    internal Name Name
+    public Name Name
     {
         get => _storage as Name; 
         set => _storage = value;
     }
 
-    internal Function Function
+    public Function Function
     {
         get => _storage as Function; 
         set => _storage = value;
     }
 
-    internal Datatype Datatype
+    public Datatype Datatype
     {
         get => _storage as Datatype; 
         set => _storage = value;        

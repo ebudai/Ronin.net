@@ -14,7 +14,7 @@ internal class Name : Syntax, IParsable
         List<string> names = new();
         while (parser.IsNotEmpty)
         {
-            ref var token = ref parser[0];
+            ref readonly var token = ref parser[0];
             
             if (token is Word word)
             {

@@ -11,20 +11,18 @@ internal interface IParsable
 
 public abstract class Syntax
 {
-    protected internal ReadOnlyMemory<Token> Tokens { get; init; }
+    protected internal virtual (int index, int length) Tokens { get; init; }
 }
 
 internal abstract class RepeatingSyntax<T> : Syntax, IEnumerable<T>
 {
-    internal T this[int index] => Elements[index];
+    public T this[int index] => Values[index];
 
-    public IEnumerator<T> GetEnumerator() => Elements.Cast<T>().GetEnumerator();
+    public IEnumerator<T> GetEnumerator() => Values.Cast<T>().GetEnumerator(); // the Cast<T> allows us to call GetEnumerator for the array and remain generic
 
-    IEnumerator IEnumerable.GetEnumerator() => Elements.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
 
-    protected internal T[] Elements;
-
-    [ThreadStatic] protected internal static readonly List<T> t_buffer = new(64);
+    protected internal T[] Values;
 }
 
 internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : RepeatingSyntax<TElement>, IParsable
@@ -33,7 +31,7 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 {
     public static Syntax Parse(ref Parser context)
     {
-        t_buffer.Clear();
+        List<TElement> buffer = new();
 
         if (context[0] is not TOpen) return null;
 
@@ -46,8 +44,8 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
             var syntax = TElement.Parse(ref parser);
             if (syntax is Error or null) return syntax;
             if (syntax is not TElement element) return Error.Parse(ref parser);
-            t_buffer.Add(element);
-            ref var token = ref parser[0];
+            buffer.Add(element);
+            ref readonly var token = ref parser[0];
             if (token is TClose)
             {
                 ++parser.Cursor;
@@ -61,7 +59,7 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
             return Error.Parse(ref parser);
         }
 
-        return new T { Tokens = parser.GetTokens(ref context), Elements = t_buffer.ToArray() };
+        return new T { Tokens = parser.GetTokens(ref context), Values = buffer.ToArray() };
     }
 }
 
@@ -69,7 +67,7 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 [+ means and/or]
 
 x declare function - modifiers then declarator then identifier then scope
-declare datatype - modifiers then declarator then identifier then { '=' then reference } (optional algebra) then scope
+x declare datatype - modifiers then declarator then identifier then { '=' then reference } (optional algebra) then scope
 x declare datum - declarator then parameter
 x identifier - name + parameter or parameters ...
 x reference - name + value ...

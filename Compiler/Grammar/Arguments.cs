@@ -4,5 +4,5 @@ namespace Ronin.Grammar;
 
 internal class Arguments : AggregateSyntax<Arguments, OpenParenthesis, Value, Separator, CloseParenthesis>
 {
-    
+
 }

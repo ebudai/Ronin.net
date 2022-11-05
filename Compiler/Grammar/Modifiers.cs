@@ -26,7 +26,7 @@ internal class Modifiers : Syntax, IParsable
 
         while (parser.IsNotEmpty)
         {
-            ref var modifier = ref parser[0];
+            ref readonly var modifier = ref parser[0];
             ++parser.Cursor;
 
             if (modifier is Trivium) continue;

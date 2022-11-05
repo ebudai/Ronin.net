@@ -17,9 +17,9 @@ public class Arguments
         Assert.NotEmpty(syntax);
         Assert.IsType<Ronin.Grammar.Arguments>(syntax[0]);
         var arguments = syntax[0] as Ronin.Grammar.Arguments;
-        Assert.NotEmpty(arguments.Elements);
-        Assert.NotNull(arguments.Elements[0].Name);
-        var name = arguments.Elements[0].Name;
+        Assert.NotEmpty(arguments.Values);
+        Assert.NotNull(arguments.Values[0].Name);
+        var name = arguments.Values[0].Name;
         Assert.NotEmpty(name.Words);
         Assert.Equal("test", name.Words[0]);
     }

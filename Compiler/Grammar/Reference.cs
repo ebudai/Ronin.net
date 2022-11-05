@@ -9,22 +9,28 @@ internal class Reference : RepeatingSyntax<Value>, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        t_buffer.Clear();
+        List<Value> values = new();
 
         while (parser.IsNotEmpty)
         {
-            if (parser[0] is not Trivium)
-            {
-                var component = Value.Parse(ref parser);
-                if (component is Error or null) return component;
-                t_buffer.Add(component as Value);
-            }
-            
-            ++parser.Cursor;
+            ref readonly var token = ref parser[0];
 
-            if (parser[0] is Terminal or Separator or Close) break;
+            if (token is Terminal or Separator or Close or Assign or Returns)
+            {
+                --parser.Cursor;
+                break;
+            }
+
+            if (token is not Trivium)
+            {
+                var syntax = Value.Parse(ref parser);
+                if (syntax is Error or null) return syntax;
+                values.Add(Value.FromSyntax(syntax));
+            }
+
+            ++parser.Cursor;
         }
 
-        return t_buffer.Count is 0 ? null : new Reference { Elements = t_buffer.ToArray(), Tokens = parser.GetTokens(ref context) };
+        return values.Count is 0 ? null : new Reference { Values = values.ToArray(), Tokens = parser.GetTokens(ref context) };
     }
 }

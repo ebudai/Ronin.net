@@ -9,9 +9,8 @@ internal class Trivia : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        ref var token = ref parser[0];
-        while (parser.IsNotEmpty && token is Trivium) ++parser.Cursor;
-        if (token is Terminal) ++parser.Cursor;
-        return new Trivia() { Tokens = parser.GetTokens(ref context) };
+        while (parser.IsNotEmpty && parser[0] is Trivium) ++parser.Cursor;
+        if (parser[0] is Terminal) ++parser.Cursor;
+        return parser.Cursor == context.Cursor ? null : new Trivia() { Tokens = parser.GetTokens(ref context) };
     }
 }

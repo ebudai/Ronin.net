@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -13,7 +14,7 @@ internal class Error : Syntax, IParsable
         parser.Cursor = 0;
         while (parser.IsNotEmpty)
         {
-            if (parser[0] is Symbol symbol && symbol.CanBeUsedInNames is not true) break;
+            if (parser[0] is Terminal or Separator or Close) break;
             ++parser.Cursor;
         }
         return new Error { Tokens = parser.GetTokens(ref context) };

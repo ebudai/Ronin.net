@@ -15,8 +15,8 @@ internal class Function : Syntax, IParsable
 
         var declarator = Declarator.Parse(ref parser);
         if (declarator is Error or null) return declarator;
-        if (declarator.Tokens.IsEmpty) return null;
-        if (declarator.Tokens.Span[0] is not Lexicon.Reserved.Function) return null;
+        if (declarator.Tokens.length is 0) return null;
+        if (parser[declarator.Tokens.length] is not Lexicon.Reserved.Function) return null;
 
         var identifier = Identifier.Parse(ref parser);
         if (identifier is Error or null) return identifier;

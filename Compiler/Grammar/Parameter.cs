@@ -29,18 +29,20 @@ internal class Parameter : Syntax, IParsable
         }
         
         Syntax initializer = null;
-        if (parser[0] is Assign)
+        if (parser.IsNotEmpty && parser[0] is Assign)
         {
             ++parser.Cursor;
             initializer = Value.Parse(ref parser);
         }
+
+        if (datatype is null && initializer is null) return Error.Parse(ref context);
 
         return new Parameter
         {
             Name = string.Join(' ', name.Words),
             Is = modifiers,
             Datatype = datatype as Reference,
-            Initializer = initializer as Value,
+            Initializer = Value.FromSyntax(initializer),
             Tokens = parser.GetTokens(ref context),
         };
     }

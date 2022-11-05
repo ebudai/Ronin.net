@@ -14,25 +14,25 @@ internal class Datum : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        var declarator = Declarator.Parse(ref parser);
-        if (declarator is Error or null) return declarator;
-        if (declarator.Tokens.IsEmpty) return null;
-        if (declarator.Tokens.Span[0] is not Variable and not Constant and not Reactive) return null;
-
-        var modifiers = Modifiers.Parse(ref parser) as Modifiers;
-
-        var syntax = Parameter.Parse(ref parser);
-        if (syntax is Error or null) return syntax;
-        var parameter = syntax as Parameter;
-
-        return new Datum
+        var parsed = Declarator.Parse(ref parser);
+        if (parsed is Error or null) return parsed;
+        var declarator = parsed as Declarator;
+        if (declarator.Variable || declarator.Constant || declarator.Reactive)
         {
-            Is = declarator as Declarator,
-            Name = parameter.Name,
-            Modifiers = modifiers,
-            Datatype = parameter.Datatype,
-            Initializer = parameter.Initializer,
-            Tokens = parser.GetTokens(ref context)
-        };
+            var syntax = Parameter.Parse(ref parser);
+            if (syntax is Error or null) return syntax;
+            var parameter = syntax as Parameter;
+
+            return new Datum
+            {
+                Is = parsed as Declarator,
+                Name = parameter.Name,
+                Modifiers = parameter.Is,
+                Datatype = parameter.Datatype,
+                Initializer = parameter.Initializer,
+                Tokens = parser.GetTokens(ref context)
+            };
+        }
+        return null;
     }
 }

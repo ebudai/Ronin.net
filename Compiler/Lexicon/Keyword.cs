@@ -16,7 +16,6 @@ internal abstract class Keyword : Word
         : CanLex(lexer, Reactive.keyword) ? new Reactive(lexer)
         : CanLex(lexer, PartOf.keyword) ? new PartOf(lexer)
         : CanLex(lexer, Persistent.keyword) ? new Persistent(lexer)
-        : CanLex(lexer, Reactive.keyword) ? new Reactive(lexer)
         : CanLex(lexer, Shared.keyword) ? new Shared(lexer)
         : CanLex(lexer, Optional.keyword) ? new Optional(lexer)
         : CanLex(lexer, Variable.keyword) ? new Variable(lexer) : null;
@@ -24,5 +23,5 @@ internal abstract class Keyword : Word
     private static bool CanLex(Lexer lexer, string keyword)
         => lexer.IsNotEmpty
         && lexer.StartsWith(keyword)
-        && char.IsWhiteSpace(lexer[keyword.Length]);
+        && (keyword.Length >= lexer.Length || char.IsWhiteSpace(lexer[keyword.Length]));
 }

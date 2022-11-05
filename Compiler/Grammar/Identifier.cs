@@ -8,7 +8,7 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        t_buffer.Clear();
+        List<Component> components = new();
 
         parser.Cursor = -1;
         while (parser.IsNotEmpty)
@@ -17,10 +17,10 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
             if (parser[0] is Trivium) continue;
             var component = Component.Parse(ref parser);
             if (component is Error or null) return component;
-            t_buffer.Add(component as Component);
+            components.Add(component as Component);
         }
 
-        return t_buffer.Count is 0 ? null : new Identifier { Elements = t_buffer.ToArray(), Tokens = parser.GetTokens(ref context) };
+        return components.Count is 0 ? null : new Identifier { Values = components.ToArray(), Tokens = parser.GetTokens(ref context) };
     }
 
     internal class Component : Syntax, IParsable
