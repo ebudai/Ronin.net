@@ -15,20 +15,17 @@ internal class Reference : RepeatingSyntax<Value>, IParsable
         {
             ref readonly var token = ref parser[0];
 
-            if (token is Terminal or Separator or Close or Assign or Returns)
-            {
-                --parser.Cursor;
-                break;
-            }
+            if (token is Terminal or Separator or Close or Assign or Returns) break;
 
-            if (token is not Trivium)
+            if (token is Trivium)
             {
-                var syntax = Value.Parse(ref parser);
-                if (syntax is Error or null) return syntax;
-                values.Add(Value.FromSyntax(syntax));
+                ++parser.Cursor;
+                continue;
             }
-
-            ++parser.Cursor;
+            
+            var syntax = Value.Parse(ref parser);
+            if (syntax is Error or null) return syntax;
+            values.Add(Value.FromSyntax(syntax));            
         }
 
         return values.Count is 0 ? null : new Reference { Values = values.ToArray(), Tokens = parser.GetTokens(ref context) };

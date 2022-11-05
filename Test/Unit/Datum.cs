@@ -266,7 +266,7 @@ public class Datum
         Assert.Equal("integer", datatype.Words[0]);
 
         Assert.NotNull(datum.Initializer);
-        Assert.NotNull(datum.Initializer.Name);
+        Assert.NotNull(datum.Initializer.Scalar);
         var initialvalue = datum.Initializer.Scalar;
         Assert.NotEmpty(initialvalue.Values);
         Assert.Equal("2", initialvalue.Values[0].Sourcecode.ToString());
@@ -310,7 +310,7 @@ public class Datum
         var initializer = statement.Datum.Initializer;
         Assert.NotNull(initializer.Name);
         var name = initializer.Name;
-        Assert.Equal(reactive, string.Join(' ', name.Words));
+        Assert.Equal(constant, string.Join(' ', name.Words));
     }
 
 

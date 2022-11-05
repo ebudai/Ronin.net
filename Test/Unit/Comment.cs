@@ -11,7 +11,7 @@ public class Comment
         var comment = Ronin.Lexicon.Comment.Lex(lexer);
 
         Assert.NotNull(comment);
-        Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray()[..^2], comment.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "single-line at end of file")]
