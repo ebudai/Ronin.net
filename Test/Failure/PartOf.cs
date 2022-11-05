@@ -19,6 +19,8 @@ public class PartOf
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsAssignableFrom<Reference>(result[0]);
+        Assert.IsType<Statement>(result[0]);
+        var statement = result[0] as Statement;
+        Assert.NotNull(statement.Reference);
     }
 }
