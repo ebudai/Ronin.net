@@ -15,8 +15,10 @@ public class PartOf
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.PartOf>(syntax[0]);
-        var partof = syntax[0] as Ronin.Grammar.PartOf;
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        var partof = statement.PartOf;
+        Assert.NotNull(partof);
         Assert.NotEmpty(partof.Name);
         Assert.Equal("standard", partof.Name[0]);
     }
@@ -32,8 +34,10 @@ public class PartOf
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.PartOf>(syntax[0]);
-        var partof = syntax[0] as Ronin.Grammar.PartOf;
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        var partof = statement.PartOf;
+        Assert.NotNull(partof);
         Assert.NotEmpty(partof.Name);
         Assert.Equal(3, partof.Name.Length);
         Assert.Equal("standard", partof.Name[0]);
@@ -52,8 +56,10 @@ public class PartOf
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.PartOf>(syntax[0]);
-        var partof = syntax[0] as Ronin.Grammar.PartOf;
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        var partof = statement.PartOf;
+        Assert.NotNull(partof);
         Assert.NotEmpty(partof.Name);
         Assert.Equal(3, partof.Name.Length);
         Assert.Equal("standard", partof.Name[0]);
@@ -77,8 +83,10 @@ public class PartOf
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.PartOf>(syntax[0]);
-        var partof = syntax[0] as Ronin.Grammar.PartOf;
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        var partof = statement.PartOf;
+        Assert.NotNull(partof);
         Assert.NotEmpty(partof.Name);
         Assert.Equal(3, partof.Name.Length);
         Assert.Equal("compiled to whatever", partof.Name[0]);

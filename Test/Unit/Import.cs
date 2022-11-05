@@ -15,8 +15,10 @@ public class Import
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
-        var import = syntax[0] as Ronin.Grammar.Import;
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        var import = statement.Import;
+        Assert.NotNull(import);
         Assert.NotEmpty(import.Name);
         Assert.Equal("standard", import.Name[0]);
     }
@@ -32,13 +34,15 @@ public class Import
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
-        var partof = syntax[0] as Ronin.Grammar.Import;
-        Assert.NotEmpty(partof.Name);
-        Assert.Equal(3, partof.Name.Length);
-        Assert.Equal("standard", partof.Name[0]);
-        Assert.Equal("funstuff", partof.Name[1]);
-        Assert.Equal("websockets", partof.Name[2]);
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        var import = statement.Import;
+        Assert.NotNull(import);
+        Assert.NotEmpty(import.Name);
+        Assert.Equal(3, import.Name.Length);
+        Assert.Equal("standard", import.Name[0]);
+        Assert.Equal("funstuff", import.Name[1]);
+        Assert.Equal("websockets", import.Name[2]);
     }
 
     [Fact(DisplayName = "with spaces")]
@@ -52,13 +56,15 @@ public class Import
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
-        var partof = syntax[0] as Ronin.Grammar.Import;
-        Assert.NotEmpty(partof.Name);
-        Assert.Equal(3, partof.Name.Length);
-        Assert.Equal("standard", partof.Name[0]);
-        Assert.Equal("fun stuff", partof.Name[1]);
-        Assert.Equal("web sockets", partof.Name[2]);
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        var import = statement.Import;
+        Assert.NotNull(import);
+        Assert.NotEmpty(import.Name);
+        Assert.Equal(3, import.Name.Length);
+        Assert.Equal("standard", import.Name[0]);
+        Assert.Equal("fun stuff", import.Name[1]);
+        Assert.Equal("web sockets", import.Name[2]);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -77,12 +83,14 @@ public class Import
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Import>(syntax[0]);
-        var partof = syntax[0] as Ronin.Grammar.Import;
-        Assert.NotEmpty(partof.Name);
-        Assert.Equal(3, partof.Name.Length);
-        Assert.Equal("compiled to whatever", partof.Name[0]);
-        Assert.Equal("secret", partof.Name[1]);
-        Assert.Equal("stuff", partof.Name[2]);
+        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
+        var statement = syntax[0] as Ronin.Grammar.Statement;
+        var import = statement.Import;
+        Assert.NotNull(import);
+        Assert.NotEmpty(import.Name);
+        Assert.Equal(3, import.Name.Length);
+        Assert.Equal("compiled to whatever", import.Name[0]);
+        Assert.Equal("secret", import.Name[1]);
+        Assert.Equal("stuff", import.Name[2]);
     }
 }
