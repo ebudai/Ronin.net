@@ -231,10 +231,6 @@ public class Lexer
         for (int i = 0; i != expected.Count; ++i)
         {
             Debug.WriteLine(i);
-            if (i is 124)
-            {
-                int x = 45;
-            }
             Assert.Equal(expected[i].GetType(), tokens[i].GetType());
             Assert.Equal(expected[i].Sourcecode.ToArray(), tokens[i].Sourcecode.ToArray());
         }

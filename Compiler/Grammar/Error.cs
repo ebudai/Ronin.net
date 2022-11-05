@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -11,11 +10,11 @@ internal class Error : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        parser.Cursor = 0;
         while (parser.IsNotEmpty)
         {
-            if (parser[0] is Terminal or Separator or Close) break;
+            ref readonly var token = ref parser[0];
             ++parser.Cursor;
+            if (token is Terminal or Separator or Close) break;            
         }
         return new Error { Tokens = parser.GetTokens(ref context) };
     }

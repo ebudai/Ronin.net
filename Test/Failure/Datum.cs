@@ -1,5 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Lexicon.Reserved;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -15,21 +17,24 @@ public class Datum
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.IsType<Trivia>(syntax[0]);
+        Assert.IsType<Statement>(syntax[0]);
+        var statement = syntax[0] as Statement;
+        Assert.NotNull(statement.Trivia);
     }
 
-    [Fact(DisplayName = "returns before name")]
+    [Fact(DisplayName = $"{Reactive.keyword} before name")]
     public void ReturnsBeforeName()
     {
-        const string declaration = "reactive => 44.3;";
+        const string declaration = $"{Reactive.keyword} {Returns.symbol} 44.3;";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<Error>(syntax[0]);
+        Assert.Equal(2, syntax.Length);
+        Assert.IsType<Statement>(syntax[0]);
+        Assert.IsType<Error>(syntax[1]);
     }
 
     [Fact(DisplayName = "blank datatype")]
@@ -57,8 +62,8 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsAssignableFrom<Reference>(syntax[0]);
-    }
-
-    
+        Assert.IsAssignableFrom<Statement>(syntax[0]);
+        var statement = syntax[0] as Statement;
+        Assert.NotNull(statement.Reference);
+    }    
 }

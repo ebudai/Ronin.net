@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Declaration;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -18,7 +17,7 @@ internal class Statement : Syntax, IParsable
                 ?? Trivia.Parse(ref parser)
                 ?? Reference.Parse(ref parser);
 
-        if (syntax is Error or null) return syntax;
+        if (syntax is Error or null) return syntax ?? Error.Parse(ref context);
         
         context = parser;
         return FromSyntax(syntax);

@@ -10,7 +10,7 @@ internal class Trivia : Syntax, IParsable
     {
         Parser parser = context;
         while (parser.IsNotEmpty && parser[0] is Trivium) ++parser.Cursor;
-        if (parser[0] is Terminal) ++parser.Cursor;
+        if (parser.IsNotEmpty && parser[0] is Terminal) ++parser.Cursor;
         return parser.Cursor == context.Cursor ? null : new Trivia() { Tokens = parser.GetTokens(ref context) };
     }
 }

@@ -30,7 +30,16 @@ public ref struct Parser
     {
         List<Syntax> statements = new();
 
-        while (IsNotEmpty) statements.Add(Statement.Parse(ref this));
+        while (IsNotEmpty) //statements.Add(Statement.Parse(ref this));
+        {
+            var statement = Statement.Parse(ref this);
+            if (statement is Error error)
+            {
+                _start = error.Tokens.index;
+                Cursor = error.Tokens.length;
+            }
+            statements.Add(statement);
+        }
         /*{
             statements.Add(PartOf.Parse(ref this)
                 ?? Import.Parse(ref this)
@@ -49,7 +58,7 @@ public ref struct Parser
 
     internal void AdvancePastTrivia()
     {
-        while (this[0] is Trivium) ++_start;
+        while (IsNotEmpty && this[0] is Trivium) ++_start;
     }
 
     private int Location => _start + Cursor;

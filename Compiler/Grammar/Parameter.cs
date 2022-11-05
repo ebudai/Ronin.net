@@ -27,7 +27,7 @@ internal class Parameter : Syntax, IParsable<Parameter>
             modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
             datatype = Reference.Parse(ref parser);
-            if (datatype is Error or null) return datatype;
+            if (datatype is Error) return datatype;
         }
         
         Syntax initializer = null;
