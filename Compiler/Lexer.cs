@@ -18,11 +18,11 @@ public class Lexer
     internal int Length => Span.Length;
 
     internal ReadOnlySpan<char> Span => Sourcecode[Cursor..].Span;
-    internal char this[int index] => Span[index];
+    internal ref readonly char this[int index] => ref Span[index];
     internal ReadOnlyMemory<char> this[Range range] => Sourcecode[Cursor..][range];
     
     internal bool StartsWith(string text) => Span.StartsWith(text);
-    internal bool DoesNotStartWith(string text) => StartsWith(text) is false;
+    internal bool DoesNotStartWith(string text) => StartsWith(text) is not true;
 
     public Token[] Lex()
     {

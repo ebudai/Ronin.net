@@ -47,8 +47,8 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
         {
             var syntax = TElement.Parse(ref parser);
             if (syntax is Error or null) return syntax;
-            //if (syntax is not TElement element) return Error.Parse(ref parser);
-            buffer.Add(TElement.FromSyntax(syntax));
+            if (TElement.FromSyntax(syntax) is not TElement element) return Error.Parse(ref context);
+            buffer.Add(element);
             ref readonly var token = ref parser[0];
             if (token is TClose)
             {

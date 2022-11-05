@@ -31,7 +31,7 @@ internal class Parameter : Syntax, IParsable<Parameter>
         }
         
         Syntax initializer = null;
-        if (parser.IsNotEmpty && parser[0] is Assign)
+        if (parser[0] is Assign)
         {
             ++parser.Cursor;
             initializer = Value.Parse(ref parser);

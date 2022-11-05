@@ -14,9 +14,8 @@ internal class Datum : Syntax, IParsable
     {
         Parser parser = context;
         var parsed = Declarator.Parse(ref parser);
-        if (parsed is Error or null) return parsed;
-        var declarator = parsed as Declarator;
-        if (declarator.Variable || declarator.Constant || declarator.Reactive)
+        if (parsed is not Declarator declarator) return parsed;
+        if (declarator.IsVariable || declarator.IsConstant || declarator.IsReactive)
         {
             var syntax = Parameter.Parse(ref parser);
             if (syntax is Error or null) return syntax;

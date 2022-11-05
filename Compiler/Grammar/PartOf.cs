@@ -15,12 +15,15 @@ internal class PartOf : Syntax, IParsable
         
         ++parser.Cursor;
 
-        var parsed = Grammar.Name.Parse(ref parser);
-        if (parsed is Error or null) return parsed;
+        var name = Grammar.Name.Parse(ref parser) as Name;
+        if (name is null) return name;
 
-        if (parsed is not Name name || parser[0] is not Terminal) return Error.Parse(ref parser);
-        
-        ++parser.Cursor; // for Terminal
+        if (parser.IsNotEmpty)
+        {
+            if (parser[0] is not Terminal) return Error.Parse(ref context);
+
+            ++parser.Cursor; // for Terminal
+        }
 
         return new PartOf { Name = name.Hierarchy, Tokens = parser.GetTokens(ref context) };
     }

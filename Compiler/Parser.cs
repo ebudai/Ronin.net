@@ -16,21 +16,20 @@ public ref struct Parser
         return tokens;
     }
 
-    internal ref readonly Token this[int index] => ref _tokens[Location + index];
-    internal ReadOnlySpan<Token> this[Range range] => _tokens[Location..][range];
+    internal ref readonly Token this[int index] => ref (Location + index >= _tokens.Length) ? ref _finished : ref _tokens[Location + index];
+
+    private static readonly Token _finished = new Finished();
 
     internal int Cursor { get; set; }
 
     internal bool IsEmpty => _tokens.Length <= Location;
     internal bool IsNotEmpty => IsEmpty is not true;
-    internal int Length => Span.Length;
-    internal ReadOnlySpan<Token> Span => _tokens[Location..];
 
     public Syntax[] Parse()
     {
         List<Syntax> statements = new();
 
-        while (IsNotEmpty) //statements.Add(Statement.Parse(ref this));
+        while (IsNotEmpty)
         {
             var statement = Statement.Parse(ref this);
             if (statement is Error error)
@@ -40,25 +39,20 @@ public ref struct Parser
             }
             statements.Add(statement);
         }
-        /*{
-            statements.Add(PartOf.Parse(ref this)
-                ?? Import.Parse(ref this)
-                ?? Datum.Parse(ref this)
-                ?? Function.Parse(ref this)
-                ?? Datatype.Parse(ref this)
-                ?? Trivia.Parse(ref this)
-                ?? Reference.Parse(ref this)
-                ?? Error.Parse(ref this));
-
-            //if (Location < _tokens.Length && _tokens[Location] is Terminal) ++Cursor;
-        }*/
 
         return statements.ToArray();
     }
 
     internal void AdvancePastTrivia()
     {
-        while (IsNotEmpty && this[0] is Trivium) ++_start;
+        while (IsNotEmpty && this[0] is Trivium) ++Cursor;
+    }
+
+    internal class Finished : Token
+    {
+        public Finished() : base(_lexer, 0) { }
+
+        private static readonly Lexer _lexer = new(string.Empty);
     }
 
     private int Location => _start + Cursor;

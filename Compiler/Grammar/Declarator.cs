@@ -6,11 +6,11 @@ namespace Ronin.Grammar;
 
 internal class Declarator : Syntax, IParsable
 {
-    internal bool Variable { get; private init; }
-    internal bool Constant { get; private init; }
-    internal bool Function { get; private init; }
-    internal bool Datatype { get; private init; }
-    internal bool Reactive { get; private init; }
+    internal bool IsVariable { get; private init; }
+    internal bool IsConstant { get; private init; }
+    internal bool IsFunction { get; private init; }
+    internal bool IsDatatype { get; private init; }
+    internal bool IsReactive { get; private init; }
 
     public static Syntax Parse(ref Parser context)
     {
@@ -42,11 +42,11 @@ internal class Declarator : Syntax, IParsable
 
         return new Declarator
         {
-            Variable = variable,
-            Constant = constant,
-            Function = function,
-            Datatype = datatype,
-            Reactive = reactive,
+            IsVariable = variable,
+            IsConstant = constant,
+            IsFunction = function,
+            IsDatatype = datatype,
+            IsReactive = reactive,
             Tokens = parser.GetTokens(ref context),
         };
     }

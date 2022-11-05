@@ -26,8 +26,8 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.Variable);
-        Assert.False(datum.Is.Constant);
+        Assert.True(datum.Is.IsVariable);
+        Assert.False(datum.Is.IsConstant);
         Assert.Equal("my variable", datum.Name);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
@@ -44,7 +44,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.Reactive);
+        Assert.True(datum.Is.IsReactive);
     }
 
     [Fact(DisplayName = $"{compiled}")]
@@ -64,7 +64,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.Constant);
+        Assert.True(datum.Is.IsConstant);
         Assert.True(datum.Modifiers.Persistent);
     }
 
@@ -95,7 +95,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.Reactive);
+        Assert.True(datum.Is.IsReactive);
         Assert.Equal($"{reactive} thing", datum.Name);        
     }
 
@@ -106,7 +106,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.Constant);
+        Assert.True(datum.Is.IsConstant);
         Assert.Equal($"{constant} thing", datum.Name);
     }
 
@@ -117,7 +117,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.False(datum.Is.Constant);
+        Assert.False(datum.Is.IsConstant);
         Assert.Equal($"{var} thing", datum.Name);
     }
 
@@ -188,7 +188,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.False(datum.Is.Constant);
+        Assert.False(datum.Is.IsConstant);
         Assert.Equal($"{shared} {reactive}", datum.Name);
     }
 

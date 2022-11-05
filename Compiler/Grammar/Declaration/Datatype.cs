@@ -16,10 +16,9 @@ internal class Datatype : Syntax, IParsable
 
         var modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
-        var syntax = Declarator.Parse(ref parser);
-        if (syntax is Error or null) return syntax;
-        var declarator = syntax as Declarator;
-        if (declarator.Datatype is not true) return null;
+        var declarator = Declarator.Parse(ref parser) as Declarator;
+        if (declarator is null) return declarator;
+        if (declarator.IsDatatype is not true) return null;
 
         var identifier = Identifier.Parse(ref parser);
         if (identifier is Error or null) return identifier;

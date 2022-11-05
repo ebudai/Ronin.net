@@ -2,10 +2,14 @@
 
 public class Comment
 {
+    public const string singleline = Ronin.Lexicon.Comment.SingleLine.Start;
+    public const string multilinestart = Ronin.Lexicon.Comment.Multiline.Start;
+    public const string multilineend = Ronin.Lexicon.Comment.Multiline.End;
+
     [Fact(DisplayName = "single-line")]
     public void SingleLine()
     {
-        const string literal = "// this is a comment\n\n";
+        const string literal = $"{singleline} this is a comment\n\n";
 
         Ronin.Compiler.Lexer lexer = new(literal);
         var comment = Ronin.Lexicon.Comment.Lex(lexer);
@@ -17,7 +21,7 @@ public class Comment
     [Fact(DisplayName = "single-line at end of file")]
     public void SingleLineEoF()
     {
-        const string literal = "// this is a comment";
+        const string literal = $"{singleline} this is a comment";
 
         Ronin.Compiler.Lexer lexer = new(literal);
         var comment = Ronin.Lexicon.Comment.Lex(lexer);
@@ -29,7 +33,7 @@ public class Comment
     [Fact(DisplayName = "multiline")]
     public void Multiline()
     {
-        const string literal = "/*\n\n this is a comment\n\n*/";
+        const string literal = $"{multilinestart}\n\n this is a comment\n\n{multilineend}";
 
         Ronin.Compiler.Lexer lexer = new(literal);
         var comment = Ronin.Lexicon.Comment.Lex(lexer);
@@ -41,7 +45,7 @@ public class Comment
     [Fact(DisplayName = "multiline nested")]
     public void NestedMultiline()
     {
-        const string literal = "/*\n\n this/* is a c*/omment\n\n*/";
+        const string literal = $"{multilinestart}\n\n this/* is a c*/omment\n\n{multilineend}";
 
         Ronin.Compiler.Lexer lexer = new(literal);
         var comment = Ronin.Lexicon.Comment.Lex(lexer);

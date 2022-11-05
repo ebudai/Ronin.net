@@ -25,7 +25,7 @@ public class Datum
     [Fact(DisplayName = $"{Reactive.keyword} before name")]
     public void ReturnsBeforeName()
     {
-        const string declaration = $"{Reactive.keyword} {Returns.symbol} 44.3;";
+        const string declaration = $"{Reactive.keyword} {Returns.symbol} 44.3{Terminal.symbol}";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
@@ -40,7 +40,7 @@ public class Datum
     [Fact(DisplayName = "blank datatype")]
     public void NoDatatypeOrInitializer()
     {
-        const string declaration = "var x => ;";
+        const string declaration = $"{Variable.keyword} x {Returns.symbol} {Terminal.symbol}";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
@@ -54,7 +54,7 @@ public class Datum
     [Fact(DisplayName = "literal instead of identifier")]
     public void LiteralInsteadOfIdentifier()
     {
-        const string declaration = "var 555;";
+        const string declaration = $"{Variable.keyword} 555{Terminal.symbol}";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();

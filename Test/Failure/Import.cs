@@ -8,7 +8,7 @@ public class Import
     [Fact(DisplayName = "missing name")]
     public void MissingName()
     {
-        const string somethingelse = "import;";
+        const string somethingelse = "import ;";
 
         Lexer lexer = new(somethingelse);
         var tokens = lexer.Lex();
@@ -22,5 +22,21 @@ public class Import
         Assert.IsType<Statement>(result[0]);
         var statement = result[0] as Statement;
         Assert.NotNull(statement.Reference);
+    }
+
+    [Fact(DisplayName = "improperly terminated")]
+    public void Unterminated()
+    {
+        const string unterminated = "import thing/stuff (";
+
+        Lexer lexer = new(unterminated);
+        var tokens = lexer.Lex();
+
+        Assert.NotEmpty(tokens);
+
+        Parser parser = new(tokens);
+        var result = parser.Parse();
+
+        Assert.NotEmpty(result);
     }
 }

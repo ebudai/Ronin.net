@@ -10,8 +10,6 @@ internal class Modifiers : Syntax, IParsable
     internal bool Compiled { get; private init; }
     internal bool Shared { get; private init; }
     internal bool Optional { get; private init; }
-    
-    internal static Modifiers Default = new();
 
     public static Syntax Parse(ref Parser context)
     {
