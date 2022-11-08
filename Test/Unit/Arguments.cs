@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using System.ComponentModel.DataAnnotations;
 
 namespace Unit;
 

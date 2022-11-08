@@ -17,7 +17,7 @@ internal class Statement : Syntax, IParsable
                 ?? Reference.Parse(ref parser);
 
         if (syntax is Error or null) return syntax ?? Error.Parse(ref context);
-        
+        parser.Advance();
         context = parser;
         return FromSyntax(syntax);
     }

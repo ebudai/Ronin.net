@@ -24,17 +24,13 @@ internal class Modifiers : Syntax, IParsable
         {
             var modifier = parser.Current;
 
-            if (modifier is Trivium) continue;
-
             // the point of these is to break if you encounter a keyword twice
             // the 2nd time it's part of the name, which is parsed somewhere else
-            if (modifier is Compiled && compiled is not true && (compiled = true)) continue;
-            if (modifier is Persistent && persistent is not true && (persistent = true)) continue;
-            if (modifier is Shared && shared is not true && (shared = true)) continue;
-            if (modifier is Optional && optional is not true && (optional = true)) continue;
-
-            parser.Advance();
-            break;
+            if (modifier is Compiled && compiled is not true && (compiled = true)) parser.Advance();
+            else if (modifier is Persistent && persistent is not true && (persistent = true)) parser.Advance();
+            else if (modifier is Shared && shared is not true && (shared = true)) parser.Advance();
+            else if (modifier is Optional && optional is not true && (optional = true)) parser.Advance();
+            else break;
         }
 
         return new Modifiers

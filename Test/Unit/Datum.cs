@@ -22,7 +22,7 @@ public class Datum
     [Fact(DisplayName = "typed")]
     public void Typed()
     {
-        const string declaration = $"{var} my variable {returns} integer";
+        const string declaration = $"{var} my variable {returns} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -39,7 +39,7 @@ public class Datum
     [Fact(DisplayName = $"{reactive}")]
     public void ReactiveDatatype()
     {
-        const string declaration = $"{reactive} x {returns} integer";
+        const string declaration = $"{reactive} x {returns} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -49,7 +49,7 @@ public class Datum
     [Fact(DisplayName = $"{compiled}")]
     public void CompiledDatatype()
     {
-        const string declaration = $"{var} x {returns} {compiled} integer";
+        const string declaration = $"{var} x {returns} {compiled} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -59,7 +59,7 @@ public class Datum
     [Fact(DisplayName = $"{persistent}")]
     public void PersistentDatatype()
     {
-        const string declaration = $"{constant} x {returns} {persistent} integer";
+        const string declaration = $"{constant} x {returns} {persistent} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -70,7 +70,7 @@ public class Datum
     [Fact(DisplayName = $"{shared}")]
     public void SharedDatatype()
     {
-        const string declaration = $"{var} x {returns} {shared} integer";
+        const string declaration = $"{var} x {returns} {shared} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -80,7 +80,7 @@ public class Datum
     [Fact(DisplayName = $"{optional}")]
     public void OptionalDatatype()
     {
-        const string declaration = $"{reactive} x {returns} {optional} integer";
+        const string declaration = $"{reactive} x {returns} {optional} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -90,7 +90,7 @@ public class Datum
     [Fact(DisplayName = $"{reactive} twice")]
     public void ReactiveTwiceIsOk()
     {
-        const string declaration = $"{reactive} {reactive} thing {returns} integer";
+        const string declaration = $"{reactive} {reactive} thing {returns} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -101,7 +101,7 @@ public class Datum
     [Fact(DisplayName = $"{constant} twice")]
     public void ConstantTwiceIsOk()
     {
-        const string declaration = $"{constant} {constant} thing {returns} integer";
+        const string declaration = $"{constant} {constant} thing {returns} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -112,7 +112,7 @@ public class Datum
     [Fact(DisplayName = $"{var} twice")]
     public void VarTwiceIsOk()
     {
-        const string declaration = $"{var} {var} thing {returns} integer";
+        const string declaration = $"{var} {var} thing {returns} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -123,7 +123,7 @@ public class Datum
     [Fact(DisplayName = $"{compiled} twice")]
     public void CompiledTwiceIsOk()
     {
-        const string declaration = $"{var} thing {returns} {compiled} {compiled} integer";
+        const string declaration = $"{var} thing {returns} {compiled} {compiled} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -135,7 +135,7 @@ public class Datum
     [Fact(DisplayName = $"{persistent} twice")]
     public void PersistentTwiceIsOk()
     {
-        const string declaration = $"{var} thing {returns} {persistent} {persistent} integer";
+        const string declaration = $"{var} thing {returns} {persistent} {persistent} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -147,7 +147,7 @@ public class Datum
     [Fact(DisplayName = $"{optional} twice")]
     public void OptionalTwiceIsOk()
     {
-        const string declaration = $"{var} thing {returns} {optional} {optional} integer";
+        const string declaration = $"{var} thing {returns} {optional} {optional} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -159,7 +159,7 @@ public class Datum
     [Fact(DisplayName = $"{shared} twice")]
     public void SharedTwiceIsOk()
     {
-        const string declaration = $"{var} thing {returns} {shared} {shared} integer";
+        const string declaration = $"{var} thing {returns} {shared} {shared} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -172,7 +172,7 @@ public class Datum
     public void ImportAsName()
     {
 
-        const string declaration = $"{var} {import} {returns} {shared} integer";
+        const string declaration = $"{var} {import} {returns} {shared} integer{end}";
 
         var datum = Compile(declaration);
 
@@ -183,7 +183,7 @@ public class Datum
     [Fact(DisplayName = "name has keywords")]
     public void NameHasKeywords()
     {
-        const string declaration = $"{var} {shared} {reactive} {returns} money";
+        const string declaration = $"{var} {shared} {reactive} {returns} money{end}";
 
         var datum = Compile(declaration);
 
@@ -194,7 +194,7 @@ public class Datum
     [Fact(DisplayName = "datatype has keywords")]
     public void DatatypeHasKeywords()
     {
-        const string declaration = $"{var} x {returns} {import} {shared} things";
+        const string declaration = $"{var} x {returns} {import} {shared} things{end}";
 
         var datum = Compile(declaration);
 
@@ -211,7 +211,7 @@ public class Datum
     [Fact(DisplayName = "initialized")]
     public void Initialized()
     {
-        const string declaration = $"{var} x {assign} things";
+        const string declaration = $"{var} x {assign} things{end}";
 
         var datum = Compile(declaration);
 
@@ -225,7 +225,7 @@ public class Datum
     [Fact(DisplayName = "explicit initializer is keywords")]
     public void ExplicitInitializerIsKeyword()
     {
-        const string declaration = $"{var} x {returns} integer {assign} {import}";
+        const string declaration = $"{var} x {returns} integer {assign} {import}{end}";
 
         var datum = Compile(declaration);
 
@@ -239,7 +239,7 @@ public class Datum
     [Fact(DisplayName = "implicit initializer is keywords")]
     public void ImplicitInitializerIsKeyword()
     {
-        const string declaration = $"{var} x {assign} {import}";
+        const string declaration = $"{var} x {assign} {import}{end}";
 
         var datum = Compile(declaration);
 
@@ -253,7 +253,7 @@ public class Datum
     [Fact(DisplayName = "typed and initialized via literal")]
     public void TypedAndInitialized()
     {
-        const string declaration = $"{var} thing {returns} integer {assign} 2";
+        const string declaration = $"{var} thing {returns} integer {assign} 2{end}";
         
         var datum = Compile(declaration);
 
@@ -274,7 +274,7 @@ public class Datum
     [Fact(DisplayName = "keyword for datatype")]
     public void KeywordForDatatype()
     {
-        const string declaration = $"{var} x {returns} {reactive}";
+        const string declaration = $"{var} x {returns} {reactive}{end}";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
@@ -295,7 +295,7 @@ public class Datum
     [Fact(DisplayName = "keyword for initializer")]
     public void KeywordForInitializer()
     {
-        const string declaration = $"{var} x {returns} integer {assign} {constant}";
+        const string declaration = $"{var} x {returns} integer {assign} {constant}{end}";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();

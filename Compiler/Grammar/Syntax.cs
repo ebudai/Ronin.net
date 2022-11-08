@@ -35,11 +35,11 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 {
     public static Syntax Parse(ref Parser context)
     {
-        List<TElement> buffer = new();
-
         if (context.Current is not TOpen) return null;
 
         Parser parser = context;
+        List<TElement> buffer = new();
+        parser.Advance();
 
         while (parser.IsNotFinished)
         {
@@ -57,11 +57,10 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
                 parser.Advance();
                 continue;
             }
-            return Error.Parse(ref parser);
+            return Error.Parse(ref context);
         }
 
-        context = parser;
-        return new T { Values = buffer.ToArray() };
+        return new T { Values = buffer.ToArray(), Source = parser.Commit(ref context) };
     }
 }
 

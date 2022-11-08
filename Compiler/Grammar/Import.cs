@@ -18,8 +18,10 @@ internal class Import : Syntax, IParsable
         var name = Grammar.Name.Parse(ref parser) as Name;
         if (name is null) return name;
 
-        if (parser.Current is not Terminal) return Error.Parse(ref context);        
-        parser.Advance();
+        if (parser.IsNotFinished)
+        {
+            if (parser.Current is not Terminal) return Error.Parse(ref context);
+        }
 
         return new Import { Name = name.Hierarchy, Source = parser.Commit(ref context) };
     }
