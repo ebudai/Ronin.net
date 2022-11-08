@@ -25,7 +25,7 @@ internal class Datum : Syntax, IParsable
         Parser parser = context;
         parser.Advance();
         var syntax = Parameter.Parse(ref parser);
-        if (syntax is Error or null) return syntax;
+        if (syntax is Error) return syntax;
         var parameter = syntax as Parameter;
 
         return new Datum

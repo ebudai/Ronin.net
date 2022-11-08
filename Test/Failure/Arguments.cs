@@ -1,11 +1,9 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon.Symbols;
 using Ronin.Grammar;
-using Ronin.Lexicon;
 
 namespace Failure;
 
-public class Aggregate
+public class Arguments
 {
     [Fact(DisplayName = "does not start with (")]
     public void NotAnObject()
@@ -15,7 +13,7 @@ public class Aggregate
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Arguments.Parse(ref parser);
+        var aggregate = Ronin.Grammar.Arguments.Parse(ref parser);
 
         Assert.Null(aggregate);
     }
@@ -55,7 +53,7 @@ public class Aggregate
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Arguments.Parse(ref parser);
+        var aggregate = Ronin.Grammar.Arguments.Parse(ref parser);
 
         Assert.IsAssignableFrom<Error>(aggregate);
     }

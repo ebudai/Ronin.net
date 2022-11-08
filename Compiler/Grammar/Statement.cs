@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Declaration;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -8,7 +9,7 @@ internal class Statement : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        
+
         var syntax = PartOf.Parse(ref parser)
                 ?? Import.Parse(ref parser)
                 ?? Datum.Parse(ref parser)
@@ -16,8 +17,15 @@ internal class Statement : Syntax, IParsable
                 ?? Datatype.Parse(ref parser)
                 ?? Reference.Parse(ref parser);
 
-        if (syntax is Error or null) return syntax ?? Error.Parse(ref context);
-        parser.Advance();
+        if (syntax is Error)
+        {
+            context = parser;
+            return syntax;
+        }
+        if (syntax is null) return Error.Parse(ref context);
+
+        if (parser.Current is not Terminal) return Error.Parse(ref context);        
+        
         context = parser;
         return FromSyntax(syntax);
     }

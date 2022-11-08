@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -22,10 +23,9 @@ public class Symbol
         const string literal = "->";
 
         Lexer lexer = new(literal);
-        Assert.False(Ronin.Lexicon.Symbol.IsSymbol(lexer));
         var lexed = Ronin.Lexicon.Symbol.Lex(lexer);
 
-        Assert.Null(lexed);
+        Assert.IsNotType<Returns>(lexed);
     }
 
     [Fact(DisplayName = "no data")]

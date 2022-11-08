@@ -13,6 +13,8 @@ public ref struct Parser
 
         while (IsNotFinished)
         {
+            var trivia = Trivia.Parse(ref this);
+            if (trivia is not null) continue;
             var statement = Statement.Parse(ref this);
             statements.Add(statement);
         }

@@ -26,7 +26,7 @@ public class TextLiteral
         Lexer lexer = new(literal);
         var lexed = lexer.Lex();
 
-        Assert.Equal(2, lexed.Length);
+        Assert.Equal(3, lexed.Length);
         
         Assert.IsType<TextDelimiter>(lexed[0]);
         var quote = lexed[0] as TextDelimiter;

@@ -17,9 +17,7 @@ public class Datum
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.IsType<Statement>(syntax[0]);
-        var statement = syntax[0] as Statement;
-        //Assert.NotNull(statement.Trivia);
+        Assert.Empty(syntax);
     }
 
     [Fact(DisplayName = $"{Reactive.keyword} before name")]
@@ -32,9 +30,8 @@ public class Datum
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.Equal(2, syntax.Length);
-        Assert.IsType<Statement>(syntax[0]);
-        Assert.IsType<Error>(syntax[1]);
+        Assert.NotEmpty(syntax);
+        Assert.IsType<Error>(syntax[0]);
     }
 
     [Fact(DisplayName = "blank datatype")]
