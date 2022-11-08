@@ -6,6 +6,7 @@ namespace Ronin.Grammar;
 internal class Error : Syntax, IParsable
 {
     internal List<Type> Expected { get; init; } = new();
+    internal int Cursor { get; init; }
 
     public static Syntax Parse(ref Parser context)
     {
@@ -16,6 +17,6 @@ internal class Error : Syntax, IParsable
             parser.Advance();
         }
 
-        return new Error { Source = parser.Commit(ref context) };
+        return new Error { Source = parser.Commit(ref context), Cursor = context.Index };
     }
 }

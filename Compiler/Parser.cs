@@ -22,27 +22,28 @@ public ref struct Parser
         return statements.ToArray();
     }
 
-    internal ref readonly Token Current => ref tokens[index];
+    internal int Index;
 
-    internal ref readonly Token this[int index] => ref tokens[this.index + index];
+    internal ref readonly Token Current => ref tokens[Index];
+
+    internal ref readonly Token this[int index] => ref tokens[this.Index + index];
     internal ReadOnlySpan<Token> this[Range range] => tokens[range];
 
     internal bool IsNotFinished => Current is not Sentinel;
 
     internal void Advance() 
     {
-        do { ++index; } while (Current is Trivium);
+        do { ++Index; } while (Current is Trivium);
     }
 
     internal SourceLocation[] Commit(ref Parser context)
     {
-        var tokens = context[context.index..index];
+        var tokens = context[context.Index..Index];
         List<SourceLocation> sources = new();
         foreach (var token in tokens) sources.Add(token.SourceLocation);
-        context.index = index;
+        context.Index = Index;
         return sources.ToArray();
     }
 
-    private int index;
     private readonly ReadOnlySpan<Token> tokens;
 }

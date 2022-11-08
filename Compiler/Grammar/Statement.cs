@@ -17,10 +17,10 @@ internal class Statement : Syntax, IParsable
                 ?? Datatype.Parse(ref parser)
                 ?? Reference.Parse(ref parser);
 
-        if (syntax is Error)
+        if (syntax is Error error)
         {
-            context = parser;
-            return syntax;
+            context.Index = error.Cursor;
+            return error;
         }
         if (syntax is null) return Error.Parse(ref context);
 
