@@ -10,7 +10,7 @@ public class BinaryLiteral
     {
         const string literal = "0b101101_00101";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -22,7 +22,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010;";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -34,7 +34,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010,";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -46,7 +46,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010(";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -58,7 +58,7 @@ public class BinaryLiteral
     {
         const string literal = "0b10010)";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -70,7 +70,7 @@ public class BinaryLiteral
     {
         const string literal = "0b10010[";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -82,7 +82,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010]";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -94,7 +94,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010{";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -106,7 +106,7 @@ public class BinaryLiteral
     {
         const string literal = "0b10010}";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -118,7 +118,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010'";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -130,7 +130,7 @@ public class BinaryLiteral
     {
         const string literal = "0B10010\"";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -142,7 +142,7 @@ public class BinaryLiteral
     {
         const string literal = "0b10010 ";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -154,7 +154,7 @@ public class BinaryLiteral
     {
         const string literal = "0b10010.";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -166,7 +166,7 @@ public class BinaryLiteral
     {
         const string literal = "0b10010=>";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);

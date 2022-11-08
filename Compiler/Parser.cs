@@ -1,12 +1,11 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
-using System.Runtime.CompilerServices;
 
 namespace Ronin.Compiler;
 
 public ref struct Parser
 {
-    public Parser(ref Token token) => Current = ref token;
+    public Parser(Token[] tokens) => this.tokens = tokens;
 
     public Syntax[] Parse()
     {
@@ -21,27 +20,27 @@ public ref struct Parser
         return statements.ToArray();
     }
 
-    internal ref readonly Token Current;
+    internal ref readonly Token Current => ref tokens[index];
 
-    internal ref readonly Token this[int index] => ref Unsafe.Add(ref Unsafe.AsRef(Current), index);
+    internal ref readonly Token this[int index] => ref tokens[this.index + index];
+    internal ReadOnlySpan<Token> this[Range range] => tokens[range];
 
     internal bool IsNotFinished => Current is not Sentinel;
 
-    internal void Advance(int amount = 1) => Current = ref this[amount];
-
-    internal SourceLocation[] Commit(scoped ref Parser context)
+    internal void Advance() 
     {
-        List<SourceLocation> source = new(64);
-        ref readonly var token = ref context.Current;
-        ref var end = ref Unsafe.AsRef(Current);
-        
-        while (Unsafe.AreSame(ref Unsafe.AsRef(token), ref end) is false)
-        {
-            source.AddRange(context.Current.SourceLocations);
-            token = ref Unsafe.Add(ref Unsafe.AsRef(Current), 1);
-        }
-        
-        context = ref this;
-        return source.ToArray();
+        do { ++index; } while (Current is Trivium);
     }
+
+    internal SourceLocation[] Commit(ref Parser context)
+    {
+        var tokens = context[context.index..index];
+        List<SourceLocation> sources = new();
+        foreach (var token in tokens) sources.Add(token.SourceLocation);
+        context.index = index;
+        return sources.ToArray();
+    }
+
+    private int index;
+    private readonly ReadOnlySpan<Token> tokens;
 }

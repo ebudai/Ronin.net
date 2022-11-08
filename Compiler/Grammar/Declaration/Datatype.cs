@@ -22,10 +22,8 @@ internal class Datatype : Syntax, IParsable
         var identifier = Identifier.Parse(ref parser);
         if (identifier is Error or null) return identifier;
 
-        ref readonly var cursor = ref parser.Current;
-
         Syntax algebra = null;        
-        if (cursor is Assign)
+        if (parser.Current is Assign)
         {
             parser.Advance();
             algebra = Reference.Parse(ref parser);

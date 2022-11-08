@@ -15,7 +15,7 @@ public class Import
 
         Assert.NotEmpty(tokens);
 
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
@@ -34,7 +34,7 @@ public class Import
 
         Assert.NotEmpty(tokens);
 
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var result = parser.Parse();
 
         Assert.NotEmpty(result);

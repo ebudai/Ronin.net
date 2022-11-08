@@ -11,7 +11,7 @@ public class Import
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -30,7 +30,7 @@ public class Import
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -52,7 +52,7 @@ public class Import
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -79,7 +79,7 @@ public class Import
         Assert.True(tokens.Length is > 2);
         Assert.IsAssignableFrom<Ronin.Lexicon.Keyword>(tokens[2]);
 
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);

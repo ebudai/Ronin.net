@@ -12,7 +12,7 @@ public class Arguments
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -37,7 +37,7 @@ public class Arguments
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -66,7 +66,7 @@ public class Arguments
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);

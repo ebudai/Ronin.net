@@ -19,10 +19,11 @@ internal class Modifiers : Syntax, IParsable
         bool optional = false;
 
         Parser parser = context;
-        ref readonly var modifier = ref parser.Current;
-
+        
         while (parser.IsNotFinished)
         {
+            var modifier = parser.Current;
+
             if (modifier is Trivium) continue;
 
             // the point of these is to break if you encounter a keyword twice

@@ -6,14 +6,13 @@ namespace Unit;
 public class PartOf
 {
     [Fact(DisplayName = "basic")]
-    public static void Basic()
+    public void Basic()
     {
         const string line = "part of standard;";
 
         Lexer lexer = new(line);
         Token[] tokens = lexer.Lex();
-        
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         /*var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -32,7 +31,7 @@ public class PartOf
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -54,7 +53,7 @@ public class PartOf
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -81,7 +80,7 @@ public class PartOf
         Assert.True(tokens.Length is > 2);
         Assert.IsAssignableFrom<Ronin.Lexicon.Keyword>(tokens[2]);
 
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);

@@ -21,7 +21,8 @@ public class Lexer
                 ?? Symbol.Lex(this)
                 ?? Keyword.Lex(this)
                 ?? Word.Lex(this) as Token;
-            /*if (token is not Trivium) */tokens.Add(token);
+            tokens.Add(token);
+            Column += token.SourceLocation.Length;
         }
 
         tokens.Add(Sentinel.Instance);
@@ -32,7 +33,16 @@ public class Lexer
     internal ReadOnlyMemory<char> Sourcecode { get; }
 
     internal int Cursor { get; set; }
-    internal int Line { get; set; } = 1;
+    internal int Line
+    {
+        get => line;
+        set
+        {
+            line = value;
+            Column = 0;
+        }
+    }
+    internal int Column { get; set; }
     internal bool IsEmpty => Span.IsEmpty;
     internal bool IsNotEmpty => IsEmpty is false;
     internal int Length => Span.Length;
@@ -43,4 +53,6 @@ public class Lexer
     
     internal bool StartsWith(string text) => Span.StartsWith(text);
     internal bool DoesNotStartWith(string text) => StartsWith(text) is not true;
+
+    private int line = 1;
 }

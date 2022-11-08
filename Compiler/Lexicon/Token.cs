@@ -7,11 +7,12 @@ public abstract class Token
     public override string ToString() => Sourcecode.ToString();
 
     protected internal ReadOnlyMemory<char> Sourcecode { get; }
-    internal SourceLocation[] SourceLocations { get; init; }
+    internal SourceLocation SourceLocation { get; }
 
     protected internal Token(Lexer lexer, int length)
     {
         Sourcecode = lexer[..length].ToArray();
+        SourceLocation = new(lexer.Line, lexer.Column, length);
         lexer.Cursor += length;
     }
 }

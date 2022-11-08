@@ -14,7 +14,7 @@ public class Datum
 
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.IsType<Statement>(syntax[0]);
@@ -29,7 +29,7 @@ public class Datum
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.Equal(2, syntax.Length);
@@ -44,7 +44,7 @@ public class Datum
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -58,7 +58,7 @@ public class Datum
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(ref tokens[0]);
+        Parser parser = new(tokens);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
