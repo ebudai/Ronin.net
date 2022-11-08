@@ -7,33 +7,34 @@ namespace Ronin.Grammar;
 internal class Name : Syntax, IParsable
 {
     internal string[] Words { get; private init; }
-    internal string[] Hierarchy => string.Join(' ', Words).Split(" " + Lexicon.Symbols.Slash.character + ' ');
+    internal string[] Hierarchy => string.Join(' ', Words).Split(' ' + Slash.symbol + ' ');
 
     public static Syntax Parse(ref Parser context)
     {
+        List<string> names = new(64);
         Parser parser = context;
-        List<string> names = new();
-        while (parser.IsNotEmpty)
+
+        while (parser.IsNotFinished)
         {
-            ref readonly var token = ref parser[0];
-            
-            if (token is Word word)
+            if (parser.Current is Word word)
             {
                 names.Add(word.ToString());
             }
-            else if (token is Symbol symbol && CanBeUsedInNames(symbol))
+            else if (parser.Current is Symbol symbol && CanBeUsedInNames(symbol))
             {
                 names.Add(symbol.ToString());
             }
-            else if (token is not Trivium)
+            else if (parser.Current is not Trivium)
             {
                 break;
             }
 
-            ++parser.Cursor;
+            parser.Advance();
         }
 
-        return names.Count is 0 ? null : new Name { Words = names.ToArray(), Tokens = parser.GetTokens(ref context) };
+        if (names.Count is 0) return null;
+
+        return new Name { Words = names.ToArray(), Source = parser.Commit(ref context) };
     }
 
     private static bool CanBeUsedInNames(Symbol symbol) => symbol 

@@ -27,14 +27,6 @@ internal class Value : Syntax, IParsable<Value>
         _ => null,
     };
 
-    protected internal sealed override (int index, int length) Tokens 
-        => Scalar?.Tokens 
-        ?? Arguments?.Tokens 
-        ?? Name?.Tokens 
-        ?? Function?.Tokens 
-        ?? Datatype?.Tokens 
-        ?? new();
-
     public Scalar Scalar
     {
         get => _storage as Scalar;

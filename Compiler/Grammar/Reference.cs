@@ -11,15 +11,13 @@ internal class Reference : RepeatingSyntax<Value>, IParsable
         Parser parser = context;
         List<Value> values = new();
 
-        while (parser.IsNotEmpty)
+        while (parser.IsNotFinished)
         {
-            ref readonly var token = ref parser[0];
+            if (parser.Current is Terminal or Separator or Close or Assign or Returns) break;
 
-            if (token is Terminal or Separator or Close or Assign or Returns) break;
-
-            if (token is Trivium)
+            if (parser.Current is Trivium)
             {
-                ++parser.Cursor;
+                parser.Advance();
                 continue;
             }
             
@@ -28,6 +26,6 @@ internal class Reference : RepeatingSyntax<Value>, IParsable
             values.Add(Value.FromSyntax(syntax));            
         }
 
-        return values.Count is 0 ? null : new Reference { Values = values.ToArray(), Tokens = parser.GetTokens(ref context) };
+        return values.Count is 0 ? null : new Reference { Values = values.ToArray(), Source = parser.Commit(ref context) };
     }
 }

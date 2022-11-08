@@ -206,11 +206,11 @@ public class Lexer
             Integer("0"),
             CloseSquareBracket(),
             Whitespace(),
-            Name("+"),
+            Plus(),
             Whitespace(),
             Name("things"),
             Whitespace(),
-            Name("*"),
+            Asterisk(),
             Whitespace(),
             Integer("7"),
             Terminal(),
@@ -221,7 +221,9 @@ public class Lexer
 
             // 7aslk
             Integer("7"),
-            Name("aslk")
+            Name("aslk"),
+
+            Sentinel.Instance
         };
 
         lexer = new(sourcecode);
@@ -254,7 +256,7 @@ public class Lexer
         Time Time(string value) => TimeConstructor.Invoke(new object[] { lexer, value.Length }) as Time;
         Url Url(string value) => UrlConstructor.Invoke(new object[] { lexer, value.Length }) as Url;
         Comment Comment(string value) => CommentConstructor.Invoke(new object[] { lexer, value.Length }) as Comment;
-
+        
         OpenBrace OpenBrace() => OpenBraceConstructor.Invoke(new object[] { lexer }) as OpenBrace;
         Assign Assign() => AssignConstructor.Invoke(new object[] { lexer }) as Assign;
         Terminal Terminal() => TerminalConstructor.Invoke(new object[] { lexer }) as Terminal;
@@ -265,6 +267,8 @@ public class Lexer
         CloseSquareBracket CloseSquareBracket() => CloseSquareBracketConstructor.Invoke(new object[] { lexer }) as CloseSquareBracket;
         Separator Separator() => SeparatorConstructor.Invoke(new object[] { lexer }) as Separator;
         CloseParenthesis CloseParenthesis() => CloseParenthesisConstructor.Invoke(new object[] { lexer }) as CloseParenthesis;
+        Plus Plus() => PlusConstructor.Invoke(new object[] { lexer }) as Plus;
+        Asterisk Asterisk() => AsteriskConstructor.Invoke(new object[] { lexer }) as Asterisk;
     }
 
     private static ConstructorInfo GetConstructor<T>() => typeof(T).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(Ronin.Compiler.Lexer) });
@@ -290,5 +294,6 @@ public class Lexer
     private static readonly ConstructorInfo CloseSquareBracketConstructor = GetConstructor<CloseSquareBracket>();
     private static readonly ConstructorInfo SeparatorConstructor = GetConstructor<Separator>();
     private static readonly ConstructorInfo CloseParenthesisConstructor = GetConstructor<CloseParenthesis>();
-
+    private static readonly ConstructorInfo PlusConstructor = GetConstructor<Plus>();
+    private static readonly ConstructorInfo AsteriskConstructor = GetConstructor<Asterisk>();
 }

@@ -1,10 +1,11 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon.Reserved;
 
 namespace Ronin.Grammar.Declaration;
 
 internal class Datum : Syntax, IParsable
 {
-    internal Declarator Is { get; private init; }
+    internal Declarator Mutability { get; private init; }
     internal string Name { get; private init; }
     internal Modifiers Modifiers { get; private init; }
     internal Reference Datatype { get; private init; }
@@ -12,25 +13,31 @@ internal class Datum : Syntax, IParsable
 
     public static Syntax Parse(ref Parser context)
     {
-        Parser parser = context;
-        var parsed = Declarator.Parse(ref parser);
-        if (parsed is not Declarator declarator) return parsed;
-        if (declarator.IsVariable || declarator.IsConstant || declarator.IsReactive)
+        Declarator? declarator = context.Current switch
         {
-            var syntax = Parameter.Parse(ref parser);
-            if (syntax is Error or null) return syntax;
-            var parameter = syntax as Parameter;
+            Variable => Declarator.Variable,
+            Constant => Declarator.Constant,
+            Reactive => Declarator.Reactive,
+            _ => null
+        };
+        if (declarator is null) return null;
 
-            return new Datum
-            {
-                Is = parsed as Declarator,
-                Name = parameter.Name,
-                Modifiers = parameter.Is,
-                Datatype = parameter.Datatype,
-                Initializer = parameter.Initializer,
-                Tokens = parser.GetTokens(ref context)
-            };
-        }
-        return null;
+        Parser parser = context;
+
+        var syntax = Parameter.Parse(ref parser);
+        if (syntax is Error or null) return syntax;
+        var parameter = syntax as Parameter;
+
+        return new Datum
+        {
+            Mutability = declarator.Value,
+            Name = parameter.Name,
+            Modifiers = parameter.Is,
+            Datatype = parameter.Datatype,
+            Initializer = parameter.Initializer,
+            Source = parser.Commit(ref context)
+        };
     }
+
+    internal enum Declarator { Variable, Constant, Reactive };
 }

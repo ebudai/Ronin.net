@@ -9,6 +9,26 @@ public class Lexer
         Sourcecode = sourcecode.AsMemory();
     }
 
+    public Token[] Lex()
+    {
+        List<Token> tokens = new(64);
+
+        while (Cursor < Sourcecode.Length)
+        {
+            Token token = Whitespace.Lex(this)
+                ?? Literal.Lex(this)
+                ?? Comment.Lex(this)
+                ?? Symbol.Lex(this)
+                ?? Keyword.Lex(this)
+                ?? Word.Lex(this) as Token;
+            /*if (token is not Trivium) */tokens.Add(token);
+        }
+
+        tokens.Add(Sentinel.Instance);
+
+        return tokens.ToArray();
+    }
+
     internal ReadOnlyMemory<char> Sourcecode { get; }
 
     internal int Cursor { get; set; }
@@ -23,21 +43,4 @@ public class Lexer
     
     internal bool StartsWith(string text) => Span.StartsWith(text);
     internal bool DoesNotStartWith(string text) => StartsWith(text) is not true;
-
-    public Token[] Lex()
-    {
-        List<Token> tokens = new();
-
-        while (Cursor < Sourcecode.Length)
-        {
-            tokens.Add(Whitespace.Lex(this)
-                ?? Literal.Lex(this) 
-                ?? Comment.Lex(this)
-                ?? Symbol.Lex(this)
-                ?? Keyword.Lex(this)
-                ?? Word.Lex(this) as Token);
-        }
-
-        return tokens.ToArray();
-    }
 }

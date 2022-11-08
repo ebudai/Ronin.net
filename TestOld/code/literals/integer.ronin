@@ -1,6 +1,0 @@
-﻿var normal int = 92804.
-var tiny integer = 5i8.
-var smallint = 1_000  i16.
-var large integer = 65_462_168_135_136i64.
-var another large integer = 69843516843518656.
-var arbitrary integer = 32576516816534385321687165416384384381261681681.

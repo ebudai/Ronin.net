@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Lexicon.Literals;
 
@@ -17,7 +18,10 @@ internal class Money : Literal
         for (int max = lexer.Length; length != max; ++length)
         {
             char c = lexer[length];
-            if (char.IsWhiteSpace(c) || Symbol.IsNonTerminalSymbol(lexer, length)) break;
+            if (char.IsWhiteSpace(c))
+            {
+                if (Symbol.IsSymbol(lexer, length) && lexer[length] is not Terminal.character) break;
+            }
 
             if (char.IsNumber(c) is false && lexer[length] is not '_' and not '.') break;
 

@@ -19,24 +19,20 @@ internal class Modifiers : Syntax, IParsable
         bool optional = false;
 
         Parser parser = context;
+        ref readonly var modifier = ref parser.Current;
 
-        parser.AdvancePastTrivia();
-
-        while (parser.IsNotEmpty)
+        while (parser.IsNotFinished)
         {
-            ref readonly var modifier = ref parser[0];
-            ++parser.Cursor;
-
             if (modifier is Trivium) continue;
 
             // the point of these is to break if you encounter a keyword twice
-            // the 2nd time it's part of the name, whic is parsed somewhere else
+            // the 2nd time it's part of the name, which is parsed somewhere else
             if (modifier is Compiled && compiled is not true && (compiled = true)) continue;
             if (modifier is Persistent && persistent is not true && (persistent = true)) continue;
             if (modifier is Shared && shared is not true && (shared = true)) continue;
             if (modifier is Optional && optional is not true && (optional = true)) continue;
 
-            --parser.Cursor;
+            parser.Advance();
             break;
         }
 
@@ -46,7 +42,7 @@ internal class Modifiers : Syntax, IParsable
             Compiled = compiled,
             Shared = shared,
             Optional = optional,
-            Tokens = parser.GetTokens(ref context),
+            Source = parser.Commit(ref context)
         };
     }
 }

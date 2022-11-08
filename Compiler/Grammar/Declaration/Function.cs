@@ -13,11 +13,8 @@ internal class Function : Syntax, IParsable
         Parser parser = context;
         var modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
-        var declarator = Declarator.Parse(ref parser);
-        if (declarator is Error or null) return declarator;
-        if (declarator.Tokens.length is 0) return null;
-        if (parser[declarator.Tokens.length] is not Lexicon.Reserved.Function) return null;
-
+        if (parser.Current is not Lexicon.Reserved.Function) return null;
+        
         var identifier = Identifier.Parse(ref parser);
         if (identifier is Error or null) return identifier;
 
@@ -29,7 +26,7 @@ internal class Function : Syntax, IParsable
             Is = modifiers,
             Identifier = identifier as Identifier,
             Body = body as Scope,
-            Tokens = parser.GetTokens(ref context),
+            Source = parser.Commit(ref context)
         };
     }
 }

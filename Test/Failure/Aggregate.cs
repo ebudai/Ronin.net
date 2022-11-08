@@ -14,7 +14,7 @@ public class Aggregate
 
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
-        Parser parser = new(tokens);
+        Parser parser = new(ref tokens[0]);
         var aggregate = Arguments.Parse(ref parser);
 
         Assert.Null(aggregate);
@@ -27,7 +27,7 @@ public class Aggregate
 
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
-        Parser parser = new(tokens);
+        Parser parser = new(ref tokens[0]);
         var syntax = parser.Parse();
 
         Assert.Empty(syntax);
@@ -54,7 +54,7 @@ public class Aggregate
 
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
-        Parser parser = new(tokens);
+        Parser parser = new(ref tokens[0]);
         var aggregate = Arguments.Parse(ref parser);
 
         Assert.IsAssignableFrom<Error>(aggregate);

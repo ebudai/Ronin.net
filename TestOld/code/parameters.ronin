@@ -1,4 +1,0 @@
-﻿function test parameters (x as integer, y as decimal, cash as money) works
-{
-	resolve.
-}

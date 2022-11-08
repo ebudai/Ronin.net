@@ -9,22 +9,22 @@ internal class PartOf : Syntax, IParsable
 
     public static Syntax Parse(ref Parser context)
     {
-        if (context[0] is not Lexicon.Reserved.PartOf) return null;
+        if (context.Current is not Lexicon.Reserved.PartOf) return null;
 
         Parser parser = context;
         
-        ++parser.Cursor;
+        parser.Advance();
 
         var name = Grammar.Name.Parse(ref parser) as Name;
         if (name is null) return name;
 
-        if (parser.IsNotEmpty)
+        if (parser.IsNotFinished)
         {
-            if (parser[0] is not Terminal) return Error.Parse(ref context);
+            if (parser.Current is not Terminal) return Error.Parse(ref context);
 
-            ++parser.Cursor; // for Terminal
+            parser.Advance(); // for Terminal
         }
 
-        return new PartOf { Name = name.Hierarchy, Tokens = parser.GetTokens(ref context) };
+        return new PartOf { Name = name.Hierarchy, Source = parser.Commit(ref context) };
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Reserved;
 using Ronin.Lexicon.Symbols;
+using static Ronin.Grammar.Declaration.Datum;
 
 namespace Unit;
 
@@ -26,8 +26,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.IsVariable);
-        Assert.False(datum.Is.IsConstant);
+        Assert.True(datum.Mutability is Declarator.Variable);
         Assert.Equal("my variable", datum.Name);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
@@ -44,7 +43,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.IsReactive);
+        Assert.True(datum.Mutability is Declarator.Reactive);
     }
 
     [Fact(DisplayName = $"{compiled}")]
@@ -64,7 +63,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.IsConstant);
+        Assert.True(datum.Mutability is Declarator.Constant);
         Assert.True(datum.Modifiers.Persistent);
     }
 
@@ -95,7 +94,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.IsReactive);
+        Assert.True(datum.Mutability is Declarator.Reactive);
         Assert.Equal($"{reactive} thing", datum.Name);        
     }
 
@@ -106,7 +105,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Is.IsConstant);
+        Assert.True(datum.Mutability is Declarator.Constant);
         Assert.Equal($"{constant} thing", datum.Name);
     }
 
@@ -117,7 +116,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.False(datum.Is.IsConstant);
+        Assert.False(datum.Mutability is Declarator.Constant);
         Assert.Equal($"{var} thing", datum.Name);
     }
 
@@ -188,7 +187,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.False(datum.Is.IsConstant);
+        Assert.False(datum.Mutability is Declarator.Constant);
         Assert.Equal($"{shared} {reactive}", datum.Name);
     }
 
@@ -279,7 +278,7 @@ public class Datum
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(tokens);
+        Parser parser = new(ref tokens[0]);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -300,7 +299,7 @@ public class Datum
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(tokens);
+        Parser parser = new(ref tokens[0]);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
@@ -324,7 +323,7 @@ public class Datum
     {
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
-        Parser parser = new(tokens);
+        Parser parser = new(ref tokens[0]);
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);

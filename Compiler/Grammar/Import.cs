@@ -5,25 +5,22 @@ namespace Ronin.Grammar;
 
 internal class Import : Syntax, IParsable
 {
-    internal string[] Name { get; init; }
+    public string[] Name { get; private init; }
 
     public static Syntax Parse(ref Parser context)
     {
-        if (context[0] is not Lexicon.Reserved.Import) return null;
+        if (context.Current is not Lexicon.Reserved.Import) return null;
 
         Parser parser = context;
-        ++parser.Cursor;
+        
+        parser.Advance();
 
         var name = Grammar.Name.Parse(ref parser) as Name;
         if (name is null) return name;
 
-        if (parser.IsNotEmpty)
-        {
-            if (parser[0] is not Terminal) return Error.Parse(ref context);
+        if (parser.Current is not Terminal) return Error.Parse(ref context);        
+        parser.Advance();
 
-            ++parser.Cursor; // for Terminal
-        }
-
-        return new Import { Name = name.Hierarchy, Tokens = parser.GetTokens(ref context) };
+        return new Import { Name = name.Hierarchy, Source = parser.Commit(ref context) };
     }
 }

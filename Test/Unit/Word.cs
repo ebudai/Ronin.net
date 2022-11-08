@@ -1,6 +1,6 @@
 ﻿namespace Unit;
 
-public class Name
+public class Word
 {
     [Fact(DisplayName = "basic")]
     public void Basic()

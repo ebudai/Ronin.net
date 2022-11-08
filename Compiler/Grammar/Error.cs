@@ -1,5 +1,7 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using System.Runtime.CompilerServices;
 
 namespace Ronin.Grammar;
 
@@ -10,12 +12,12 @@ internal class Error : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        while (parser.IsNotEmpty)
+
+        while (parser.IsNotFinished && parser.Current is not Terminal and not Separator and not Close)
         {
-            ref readonly var token = ref parser[0];
-            ++parser.Cursor;
-            if (token is Terminal or Separator or Close) break;            
+            parser.Advance();
         }
-        return new Error { Tokens = parser.GetTokens(ref context) };
+
+        return new Error { Source = parser.Commit(ref context) };
     }
 }

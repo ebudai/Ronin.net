@@ -20,9 +20,9 @@ internal class Parameter : Syntax, IParsable<Parameter>
 
         Modifiers modifiers = null;
         Syntax datatype = null;
-        if (parser[0] is Returns)
+        if (parser.Current is Returns)
         {
-            ++parser.Cursor;
+            parser.Advance();
 
             modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
@@ -31,9 +31,9 @@ internal class Parameter : Syntax, IParsable<Parameter>
         }
         
         Syntax initializer = null;
-        if (parser[0] is Assign)
+        if (parser.Current is Assign)
         {
-            ++parser.Cursor;
+            parser.Advance();
             initializer = Value.Parse(ref parser);
         }
 
@@ -45,7 +45,7 @@ internal class Parameter : Syntax, IParsable<Parameter>
             Is = modifiers,
             Datatype = datatype as Reference,
             Initializer = Value.FromSyntax(initializer),
-            Tokens = parser.GetTokens(ref context),
+            Source = parser.Commit(ref context)
         };
     }
 }

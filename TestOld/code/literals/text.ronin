@@ -1,4 +1,0 @@
-﻿var normal text = "regular text".
-var multiline text = " this is
-	multiline with whitepsace".
-var text with literals inside it = "'c' is a char literal, 0xAAE is hex, 0b1101_0101 is binary".

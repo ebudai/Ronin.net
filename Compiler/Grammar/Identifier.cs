@@ -9,18 +9,19 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
     {
         Parser parser = context;
         List<Component> components = new();
-
-        parser.Cursor = -1;
-        while (parser.IsNotEmpty)
+        
+        while (parser.IsNotFinished)
         {
-            ++parser.Cursor;
-            if (parser[0] is Trivium) continue;
+            if (parser.Current is Trivium) continue;
             var component = Component.Parse(ref parser);
             if (component is Error or null) return component;
             components.Add(component as Component);
+            parser.Advance();
         }
 
-        return components.Count is 0 ? null : new Identifier { Values = components.ToArray(), Tokens = parser.GetTokens(ref context) };
+        if (components.Count is 0) return null;
+
+        return new Identifier { Values = components.ToArray(), Source = parser.Commit(ref context) };
     }
 
     internal class Component : Syntax, IParsable
@@ -43,11 +44,7 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
             set => _storage = value;
         }
 
-        public static Syntax Parse(ref Parser context)
-        {
-            Parser parser = context;
-            return Name.Parse(ref parser) ?? Parameter.Parse(ref parser) ?? Parameters.Parse(ref parser);
-        }
+        public static Syntax Parse(ref Parser context) => Name.Parse(ref context) ?? Parameter.Parse(ref context) ?? Parameters.Parse(ref context);
 
         private Component(Name name) => Name = name;
         private Component(Parameter parameter) => Parameter = parameter;

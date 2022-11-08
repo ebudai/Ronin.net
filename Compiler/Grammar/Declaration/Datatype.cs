@@ -16,17 +16,18 @@ internal class Datatype : Syntax, IParsable
 
         var modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
-        var declarator = Declarator.Parse(ref parser) as Declarator;
-        if (declarator is null) return declarator;
-        if (declarator.IsDatatype is not true) return null;
+        if (parser.Current is not Lexicon.Reserved.Datatype) return null;
+        parser.Advance();
 
         var identifier = Identifier.Parse(ref parser);
         if (identifier is Error or null) return identifier;
 
-        Syntax algebra = null;
-        if (parser[0] is Assign)
+        ref readonly var cursor = ref parser.Current;
+
+        Syntax algebra = null;        
+        if (cursor is Assign)
         {
-            ++parser.Cursor;
+            parser.Advance();
             algebra = Reference.Parse(ref parser);
             if (algebra is Error or null) return algebra;
         }
@@ -40,7 +41,7 @@ internal class Datatype : Syntax, IParsable
             Identifier = identifier as Identifier,
             Algebra = algebra as Reference,
             Body = body as Scope,
-            Tokens = parser.GetTokens(ref context)
+            Source = parser.Commit(ref context)
         };
     }
 }

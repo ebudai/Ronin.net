@@ -5,7 +5,7 @@ namespace Ronin.Grammar;
 
 internal interface IParsable
 {
-    public static abstract Syntax Parse(ref Parser context);
+    public static abstract Syntax Parse(ref Parser parser);
 }
 
 internal interface IParsable<T> : IParsable
@@ -15,14 +15,14 @@ internal interface IParsable<T> : IParsable
 
 public abstract class Syntax
 {
-    protected internal virtual (int index, int length) Tokens { get; init; }
+    protected internal SourceLocation[] Source { get; init; }
 }
 
 internal abstract class RepeatingSyntax<T> : Syntax, IEnumerable<T>
 {
     public T this[int index] => Values[index];
 
-    public IEnumerator<T> GetEnumerator() => Values.Cast<T>().GetEnumerator(); // the Cast<T> allows us to call GetEnumerator for the array and remain generic
+    public IEnumerator<T> GetEnumerator() => Values.Cast<T>().GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
 
@@ -37,33 +37,31 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
     {
         List<TElement> buffer = new();
 
-        if (context[0] is not TOpen) return null;
+        if (context.Current is not TOpen) return null;
 
         Parser parser = context;
 
-        ++parser.Cursor;
-
-        while (parser.IsNotEmpty)
+        while (parser.IsNotFinished)
         {
             var syntax = TElement.Parse(ref parser);
             if (syntax is Error or null) return syntax;
             if (TElement.FromSyntax(syntax) is not TElement element) return Error.Parse(ref context);
             buffer.Add(element);
-            ref readonly var token = ref parser[0];
-            if (token is TClose)
+            if (parser.Current is TClose)
             {
-                ++parser.Cursor;
+                parser.Advance();
                 break;
             }
-            if (token is TSeparator)
+            if (parser.Current is TSeparator)
             {
-                ++parser.Cursor;
+                parser.Advance();
                 continue;
             }
             return Error.Parse(ref parser);
         }
 
-        return new T { Tokens = parser.GetTokens(ref context), Values = buffer.ToArray() };
+        context = parser;
+        return new T { Values = buffer.ToArray() };
     }
 }
 

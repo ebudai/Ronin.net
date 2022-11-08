@@ -9,17 +9,16 @@ internal class Scalar : RepeatingSyntax<Literal>, IParsable
     {
         Parser parser = context;
         List<Literal> values = new();
-        while (parser.IsNotEmpty)
-        {
-            ref readonly var token = ref parser[0];
-            if (token is not Trivium)
-            {
-                if (token is not Literal literal) break;
-                values.Add(literal);
-            }
-            ++parser.Cursor;
+
+        while (parser.IsNotFinished)
+        {            
+            if (parser.Current is not Literal literal) break;
+            values.Add(literal);
+            parser.Advance();
         }
 
-        return values.Count is 0 ? null : new Scalar { Values = values.ToArray(), Tokens = parser.GetTokens(ref context) };
+        if (values.Count is 0) return null;
+
+        return new Scalar { Values = values.ToArray(), Source = parser.Commit(ref context) };
     }
 }

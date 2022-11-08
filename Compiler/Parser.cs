@@ -1,62 +1,47 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
+using System.Runtime.CompilerServices;
 
 namespace Ronin.Compiler;
 
 public ref struct Parser
 {
-    public Parser(Token[] tokens) => _tokens = tokens.AsSpan();
-
-    internal (int index, int length) GetTokens(ref Parser parent)
-    {
-        var tokens = (_start, Cursor);
-        _start += Cursor;
-        Cursor = 0;
-        parent = this;
-        return tokens;
-    }
-
-    internal ref readonly Token this[int index] => ref (Location + index >= _tokens.Length) ? ref _finished : ref _tokens[Location + index];
-
-    private static readonly Token _finished = new Finished();
-
-    internal int Cursor { get; set; }
-
-    internal bool IsEmpty => _tokens.Length <= Location;
-    internal bool IsNotEmpty => IsEmpty is not true;
+    public Parser(ref Token token) => Current = ref token;
 
     public Syntax[] Parse()
     {
         List<Syntax> statements = new();
 
-        while (IsNotEmpty)
+        while (IsNotFinished)
         {
             var statement = Statement.Parse(ref this);
-            if (statement is Error error)
-            {
-                _start = error.Tokens.index;
-                Cursor = error.Tokens.length;
-            }
             statements.Add(statement);
         }
 
         return statements.ToArray();
     }
 
-    internal void AdvancePastTrivia()
+    internal ref readonly Token Current;
+
+    internal ref readonly Token this[int index] => ref Unsafe.Add(ref Unsafe.AsRef(Current), index);
+
+    internal bool IsNotFinished => Current is not Sentinel;
+
+    internal void Advance(int amount = 1) => Current = ref this[amount];
+
+    internal SourceLocation[] Commit(scoped ref Parser context)
     {
-        while (IsNotEmpty && this[0] is Trivium) ++Cursor;
+        List<SourceLocation> source = new(64);
+        ref readonly var token = ref context.Current;
+        ref var end = ref Unsafe.AsRef(Current);
+        
+        while (Unsafe.AreSame(ref Unsafe.AsRef(token), ref end) is false)
+        {
+            source.AddRange(context.Current.SourceLocations);
+            token = ref Unsafe.Add(ref Unsafe.AsRef(Current), 1);
+        }
+        
+        context = ref this;
+        return source.ToArray();
     }
-
-    internal class Finished : Token
-    {
-        public Finished() : base(_lexer, 0) { }
-
-        private static readonly Lexer _lexer = new(string.Empty);
-    }
-
-    private int Location => _start + Cursor;
-
-    private readonly ReadOnlySpan<Token> _tokens;
-    private int _start = 0;
 }

@@ -1,6 +1,0 @@
-﻿var list as integer[].
-var other list = [1, 2, 5].
-var bank balances = [$15, $666, $27, $0].
-var fixed list as decimal[5].
-var list of lists as maybe[][].
-var multidimensional fixed list as date[5, 1, 1011].
