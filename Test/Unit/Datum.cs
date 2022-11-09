@@ -284,8 +284,8 @@ public class Datum
         Assert.NotEmpty(syntax);
         Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
         var statement = syntax[0] as Ronin.Grammar.Statement;
-        Assert.NotNull(statement.Datum?.Datatype);
-        var datatype = statement.Datum.Datatype;
+        Assert.NotNull(statement.DatumDeclaration?.Datatype);
+        var datatype = statement.DatumDeclaration.Datatype;
         Assert.NotEmpty(datatype.Values);
         Assert.NotNull(datatype.Values[0].Name);
         var name = datatype.Values[0].Name;
@@ -305,8 +305,8 @@ public class Datum
         Assert.NotEmpty(syntax);
         Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
         var statement = syntax[0] as Ronin.Grammar.Statement;
-        Assert.NotNull(statement.Datum?.Initializer);
-        var initializer = statement.Datum.Initializer;
+        Assert.NotNull(statement.DatumDeclaration?.Initializer);
+        var initializer = statement.DatumDeclaration.Initializer;
         Assert.NotNull(initializer.Name);
         var name = initializer.Name;
         Assert.Equal(constant, string.Join(' ', name.Words));
@@ -329,6 +329,6 @@ public class Datum
         Assert.NotEmpty(syntax);
         Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
         var statement = syntax[0] as Ronin.Grammar.Statement;
-        return statement.Datum;
+        return statement.DatumDeclaration;
     }
 }

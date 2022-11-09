@@ -54,19 +54,19 @@ internal class Statement : Syntax, IParsable
         set => _storage = value;
     }
 
-    public Datum Datum
+    public Datum DatumDeclaration
     {
         get => _storage as Datum;
         set => _storage = value;
     }
 
-    public Function Function
+    public Function FunctionDeclaration
     {
         get => _storage as Function;
         set => _storage = value;
     }
 
-    public Datatype Datatype
+    public Datatype DatatypeDeclaration
     {
         get => _storage as Datatype;
         set => _storage = value;
@@ -80,9 +80,9 @@ internal class Statement : Syntax, IParsable
 
     private Statement(PartOf partOf) => PartOf = partOf;
     private Statement(Import import) => Import = import;
-    private Statement(Datum datum) => Datum = datum;
-    private Statement(Function function) => Function = function;
-    private Statement(Datatype datatype) => Datatype = datatype;
+    private Statement(Datum datum) => DatumDeclaration = datum;
+    private Statement(Function function) => FunctionDeclaration = function;
+    private Statement(Datatype datatype) => DatatypeDeclaration = datatype;
     private Statement(Reference reference) => Reference = reference;
 
     public static implicit operator Statement(PartOf partOf) => new(partOf);
@@ -93,8 +93,8 @@ internal class Statement : Syntax, IParsable
 
     public static implicit operator PartOf(Statement statement) => statement.PartOf;
     public static implicit operator Import(Statement statement) => statement.Import;
-    public static implicit operator Datum(Statement statement) => statement.Datum;
-    public static implicit operator Function(Statement statement) => statement.Function;
+    public static implicit operator Datum(Statement statement) => statement.DatumDeclaration;
+    public static implicit operator Function(Statement statement) => statement.FunctionDeclaration;
     public static implicit operator Reference(Statement statement) => statement.Reference;
 
     private object _storage;

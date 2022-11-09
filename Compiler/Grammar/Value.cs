@@ -9,10 +9,11 @@ internal class Value : Syntax, IParsable<Value>
     {
         Parser parser = context;
         var syntax = Scalar.Parse(ref parser)
-            ?? Arguments.Parse(ref parser)
-            ?? Name.Parse(ref parser)
+            ?? Arguments.Parse(ref parser)            
             ?? Function.Parse(ref parser)
-            ?? Datatype.Parse(ref parser);
+            ?? Datatype.Parse(ref parser)
+            ?? Datum.Parse(ref parser)
+            ?? Name.Parse(ref parser);
         if (syntax is not Error and not null) context = parser;
         return syntax;
     }

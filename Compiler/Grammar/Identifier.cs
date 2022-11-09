@@ -23,7 +23,7 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
         return new Identifier { Values = components.ToArray(), Source = parser.Commit(ref context) };
     }
 
-    internal class Component : Syntax, IParsable
+    internal class Component : Syntax, IParsable<Component>
     {
         internal Name Name
         {
