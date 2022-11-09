@@ -55,6 +55,6 @@ public class Arguments
         Parser parser = new(tokens);
         var statements = parser.Parse();
         Assert.NotNull(statements);
-        Assert.IsType<Error>(statements[0]);
+        Assert.IsAssignableFrom<Error>(statements[0]);
     }
 }

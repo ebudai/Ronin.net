@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar.Errors;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -20,7 +21,7 @@ internal class Import : Syntax, IParsable
 
         if (parser.IsNotFinished)
         {
-            if (parser.Current is not Semicolon) return Error.Parse(ref context);
+            if (parser.Current is not Semicolon) return ExpectedSemicolon.Parse(ref context);
         }
 
         return new Import { Name = name.Hierarchy, Source = parser.Commit(ref context) };

@@ -12,7 +12,7 @@ internal class Reference : Syntax, IParsable
 
         while (parser.IsNotFinished)
         {
-            if (parser.Current is Semicolon or Comma or Close or Assign or Returns or OpenBrace) break;
+            if (parser.Current is Semicolon or Comma or Close or Assign or Returns or Open and not OpenParenthesis) break;
             
             var syntax = Value.Parse(ref parser);
             if (syntax is Error or null) return syntax;

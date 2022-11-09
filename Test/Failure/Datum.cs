@@ -31,7 +31,7 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Error>(syntax[0]);
+        Assert.IsAssignableFrom<Error>(syntax[0]);
     }
 
     [Fact(DisplayName = "blank datatype")]
@@ -45,7 +45,7 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Error>(syntax[0]);
+        Assert.IsAssignableFrom<Error>(syntax[0]);
     }
 
     [Fact(DisplayName = "literal instead of identifier")]
@@ -62,5 +62,5 @@ public class Datum
         Assert.IsAssignableFrom<Statement>(syntax[0]);
         var statement = syntax[0] as Statement;
         Assert.NotNull(statement.Reference);
-    }    
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar.Errors;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -27,7 +28,7 @@ internal class Parameter : Syntax, IParsable<Parameter>
             modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
             datatype = Reference.Parse(ref parser);
-            if (datatype is Error or null) return datatype ?? Error.Parse(ref context);
+            if (datatype is Error or null) return datatype ?? ExpectedReference.Parse(ref context);
         }
         
         Syntax initializer = null;
@@ -37,7 +38,7 @@ internal class Parameter : Syntax, IParsable<Parameter>
             initializer = Value.Parse(ref parser);
         }
 
-        if (datatype is null && initializer is null) return Error.Parse(ref context);
+        if (datatype is null && initializer is null) return ExpectedDatatypeOrInitializer.Parse(ref context);
 
         return new Parameter
         {

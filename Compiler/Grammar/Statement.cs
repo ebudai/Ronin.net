@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Declaration;
+using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
@@ -16,16 +17,18 @@ internal class Statement : Syntax, IParsable
                 ?? Datum.Parse(ref parser)
                 ?? Function.Parse(ref parser)
                 ?? Datatype.Parse(ref parser)
-                ?? Reference.Parse(ref parser);
+                ?? Reference.Parse(ref parser)
+                ?? List.Parse(ref parser)
+                ?? Index.Parse(ref parser);
 
         if (syntax is Error error)
         {
             context.Index = error.Cursor;
             return error;
         }
-        if (syntax is null) return Error.Parse(ref context);
+        if (syntax is null) return UnknownSyntax.Parse(ref context);
 
-        if (parser.Current is not Semicolon and not Sentinel) return Error.Parse(ref context);        
+        if (parser.Current is not Semicolon and not Sentinel) return ExpectedSemicolon.Parse(ref context);        
         
         context = parser;
         return FromSyntax(syntax);
