@@ -12,11 +12,10 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
         
         while (parser.IsNotFinished)
         {
-            if (parser.Current is Trivium) continue;
             var component = Component.Parse(ref parser);
-            if (component is Error or null) return component;
-            components.Add(component as Component);
-            parser.Advance();
+            if (component is Error) return component;
+            if (component is null) break;
+            components.Add(Component.FromSyntax(component));
         }
 
         if (components.Count is 0) return null;
@@ -32,30 +31,28 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
             set => _storage = value;
         }
 
-        internal Parameter Parameter
-        {
-            get => _storage as Parameter;
-            set => _storage = value;
-        }
-
         internal Parameters Parameters
         {
             get => _storage as Parameters;
             set => _storage = value;
         }
 
-        public static Syntax Parse(ref Parser context) => Name.Parse(ref context) ?? Parameter.Parse(ref context) ?? Parameters.Parse(ref context);
+        public static Component FromSyntax(Syntax syntax) => syntax switch
+        {
+            Name name => new(name),
+            Parameters parameters => new(parameters),
+            _ => null,
+        };
+
+        public static Syntax Parse(ref Parser context) => Name.Parse(ref context) ?? Parameters.Parse(ref context);
 
         private Component(Name name) => Name = name;
-        private Component(Parameter parameter) => Parameter = parameter;
         private Component(Parameters parameters) => Parameters = parameters;
 
         public static implicit operator Component(Name name) => new(name);
-        public static implicit operator Component(Parameter parameters) => new(parameters);
         public static implicit operator Component(Parameters parameters) => new(parameters);
 
         public static implicit operator Name(Component component) => component.Name;
-        public static implicit operator Parameter(Component component) => component.Parameter;
         public static implicit operator Parameters(Component component) => component.Parameters;
 
         private object _storage;

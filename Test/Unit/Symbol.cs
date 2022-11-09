@@ -109,5 +109,8 @@ public class Symbol
     [Fact(DisplayName = "backtick")]
     public void LexBacktick() => LexSymbol<Backtick>(Backtick.symbol);
 
+    [Fact(DisplayName = "period")]
+    public void LexPeriod() => LexSymbol<Period>(Period.symbol);
+
 
 }

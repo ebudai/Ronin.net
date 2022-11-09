@@ -53,8 +53,8 @@ public class Arguments
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Ronin.Grammar.Arguments.Parse(ref parser);
-
-        Assert.IsAssignableFrom<Error>(aggregate);
+        var statements = parser.Parse();
+        Assert.NotNull(statements);
+        Assert.IsType<Error>(statements[0]);
     }
 }

@@ -44,20 +44,15 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
         while (parser.IsNotFinished)
         {
             var syntax = TElement.Parse(ref parser);
-            if (syntax is Error or null) return syntax;
-            if (TElement.FromSyntax(syntax) is not TElement element) return Error.Parse(ref context);
-            buffer.Add(element);
-            if (parser.Current is TClose)
+            if (syntax is Error) return syntax;
+            if (syntax is null)
             {
+                if (parser.Current is not TClose) return syntax;
                 parser.Advance();
                 break;
             }
-            if (parser.Current is TSeparator)
-            {
-                parser.Advance();
-                continue;
-            }
-            return Error.Parse(ref context);
+            buffer.Add(TElement.FromSyntax(syntax));
+            if (parser.Current is TSeparator) parser.Advance();
         }
 
         return new T { Values = buffer.ToArray(), Source = parser.Commit(ref context) };

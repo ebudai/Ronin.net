@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Declaration;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -24,7 +25,7 @@ internal class Statement : Syntax, IParsable
         }
         if (syntax is null) return Error.Parse(ref context);
 
-        if (parser.Current is not Semicolon) return Error.Parse(ref context);        
+        if (parser.Current is not Semicolon and not Sentinel) return Error.Parse(ref context);        
         
         context = parser;
         return FromSyntax(syntax);

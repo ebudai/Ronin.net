@@ -12,9 +12,10 @@ internal class Error : Syntax, IParsable
     {
         Parser parser = context;
 
-        while (parser.IsNotFinished && parser.Current is not Semicolon and not Comma and not Close)
+        while (parser.IsNotFinished)
         {
             parser.Advance();
+            if (parser.Current is Semicolon or Comma or Close) break;
         }
 
         return new Error { Source = parser.Commit(ref context), Cursor = context.Index };
