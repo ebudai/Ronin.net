@@ -41,8 +41,8 @@ internal class Name : Syntax, IParsable
         is not Open 
         and not Close 
         and not Returns 
-        and not Separator 
-        and not Terminal
+        and not Comma 
+        and not Semicolon
         and not Assign
         and not TextDelimiter;
 }

@@ -24,7 +24,7 @@ internal class Statement : Syntax, IParsable
         }
         if (syntax is null) return Error.Parse(ref context);
 
-        if (parser.Current is not Terminal) return Error.Parse(ref context);        
+        if (parser.Current is not Semicolon) return Error.Parse(ref context);        
         
         context = parser;
         return FromSyntax(syntax);

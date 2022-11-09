@@ -2,10 +2,13 @@
 
 public class Keyword
 {
+    private const string datatype = Ronin.Lexicon.Reserved.Datatype.keyword;
+    private const string function = Ronin.Lexicon.Reserved.Function.keyword;
+
     [Fact(DisplayName = "datatype")]
     public void Datatype()
     {
-        const string sourcecode = "datatype thing";
+        const string sourcecode = $"{datatype} thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
         var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
@@ -17,7 +20,7 @@ public class Keyword
     [Fact(DisplayName = "function")]
     public void Function()
     {
-        const string sourcecode = "function thing";
+        const string sourcecode = $"{function} thing";
 
         Ronin.Compiler.Lexer lexer = new(sourcecode);
         var lexed = Ronin.Lexicon.Keyword.Lex(lexer);

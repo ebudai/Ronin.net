@@ -1,8 +1,9 @@
-﻿using Ronin.Lexicon.Symbols;
+﻿using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal class Arguments : AggregateSyntax<Arguments, OpenParenthesis, Value, Separator, CloseParenthesis>
+internal class Arguments : AggregateSyntax<Arguments, OpenParenthesis, Value, Comma, CloseParenthesis>
 {
 
 }

@@ -12,7 +12,7 @@ internal class Error : Syntax, IParsable
     {
         Parser parser = context;
 
-        while (parser.IsNotFinished && parser.Current is not Terminal and not Separator and not Close)
+        while (parser.IsNotFinished && parser.Current is not Semicolon and not Comma and not Close)
         {
             parser.Advance();
         }

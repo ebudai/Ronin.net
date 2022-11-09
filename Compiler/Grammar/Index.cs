@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-internal class Index : AggregateSyntax<Index, OpenSquareBracket, Value, Separator, CloseSquareBracket>
+internal class Index : AggregateSyntax<Index, OpenSquareBracket, Value, Comma, CloseSquareBracket>
 {
 
 }

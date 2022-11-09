@@ -1,4 +1,7 @@
-﻿using Ronin.Compiler;
+﻿//global using Terminal = Ronin.Lexicon.Symbols.Semicolon;
+//global using Separator = Ronin.Lexicon.Symbols.Comma;
+
+using Ronin.Compiler;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Lexicon;
@@ -24,6 +27,7 @@ internal class Symbol : Token
             or CloseParenthesis.character
             or CloseSquareBracket.character
             or Colon.character
+            or Comma.character
             or Dollar.character
             or Exclamation.character
             or GreaterThan.character
@@ -33,18 +37,16 @@ internal class Symbol : Token
             or OpenParenthesis.character
             or OpenSquareBracket.character
             or Percent.character
+            or Period.character
             or Pipe.character
             or Plus.character
             or Pound.character
             or Question.character
-            or Separator.character
+            or Semicolon.character
             or Slash.character
-            or Terminal.character
             or TextDelimiter.character
             or Tilde.character;
     }
-
-    internal static bool IsNonTerminalSymbol(Lexer lexer, int i = 0) => IsSymbol(lexer, i) && lexer[i] is not Terminal.character;
 
     internal static Symbol Lex(Lexer lexer)
         => Ampersand.Lex(lexer)
@@ -60,6 +62,7 @@ internal class Symbol : Token
         ?? CloseParenthesis.Lex(lexer)
         ?? CloseSquareBracket.Lex(lexer)
         ?? Colon.Lex(lexer)
+        ?? Comma.Lex(lexer)
         ?? Dollar.Lex(lexer)
         ?? Exclamation.Lex(lexer)
         ?? GreaterThan.Lex(lexer)
@@ -69,12 +72,12 @@ internal class Symbol : Token
         ?? OpenParenthesis.Lex(lexer)
         ?? OpenSquareBracket.Lex(lexer)
         ?? Percent.Lex(lexer)
+        ?? Period.Lex(lexer)
         ?? Pipe.Lex(lexer)
         ?? Plus.Lex(lexer)
         ?? Pound.Lex(lexer)
-        ?? Question.Lex(lexer)        
-        ?? Separator.Lex(lexer)
-        ?? Terminal.Lex(lexer)
+        ?? Question.Lex(lexer)
+        ?? Semicolon.Lex(lexer)        
         ?? Slash.Lex(lexer)
         ?? TextDelimiter.Lex(lexer)
         ?? Tilde.Lex(lexer) as Symbol;

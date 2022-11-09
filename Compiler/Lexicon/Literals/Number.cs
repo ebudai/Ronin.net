@@ -16,7 +16,7 @@ internal class Number : Literal
         {
             char c = lexer[length];
 
-            if (char.IsWhiteSpace(c) || Symbol.IsSymbol(lexer, length)) break;
+            if (char.IsWhiteSpace(c)) break;
             if (char.IsNumber(c) is false && c is not '_' and not '.') break;
 
             if (c is '.')

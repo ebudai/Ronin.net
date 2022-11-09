@@ -20,7 +20,7 @@ internal class PartOf : Syntax, IParsable
 
         if (parser.IsNotFinished)
         {
-            if (parser.Current is not Terminal) return Error.Parse(ref context);
+            if (parser.Current is not Semicolon) return Error.Parse(ref context);
         }
 
         return new PartOf { Name = name.Hierarchy, Source = parser.Commit(ref context) };

@@ -20,8 +20,5 @@ internal abstract class Keyword : Word
         : CanLex(lexer, Optional.keyword) ? new Optional(lexer)
         : CanLex(lexer, Variable.keyword) ? new Variable(lexer) : null;
         
-    private static bool CanLex(Lexer lexer, string keyword)
-        => lexer.IsNotEmpty
-        && lexer.StartsWith(keyword)
-        && (keyword.Length >= lexer.Length || char.IsWhiteSpace(lexer[keyword.Length]));
+    private static bool CanLex(Lexer lexer, string keyword) => lexer.StartsWith(keyword) && char.IsWhiteSpace(lexer[keyword.Length]);    
 }

@@ -4,8 +4,8 @@ namespace Ronin.Lexicon.Symbols;
 
 internal class Question : Symbol
 {
-    public const char character = '$';
-    public const string symbol = "$";
+    public const char character = '?';
+    public const string symbol = "?";
 
     private Question(Lexer lexer) : base(lexer, symbol.Length) { }
 

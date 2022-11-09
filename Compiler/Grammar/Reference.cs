@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -13,13 +12,7 @@ internal class Reference : RepeatingSyntax<Value>, IParsable
 
         while (parser.IsNotFinished)
         {
-            if (parser.Current is Terminal or Separator or Close or Assign or Returns) break;
-
-            if (parser.Current is Trivium)
-            {
-                parser.Advance();
-                continue;
-            }
+            if (parser.Current is Semicolon or Comma or Close or Assign or Returns) break;
             
             var syntax = Value.Parse(ref parser);
             if (syntax is Error or null) return syntax;

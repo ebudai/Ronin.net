@@ -259,13 +259,13 @@ public class Lexer
         
         OpenBrace OpenBrace() => OpenBraceConstructor.Invoke(new object[] { lexer }) as OpenBrace;
         Assign Assign() => AssignConstructor.Invoke(new object[] { lexer }) as Assign;
-        Terminal Terminal() => TerminalConstructor.Invoke(new object[] { lexer }) as Terminal;
+        Semicolon Terminal() => TerminalConstructor.Invoke(new object[] { lexer }) as Semicolon;
         CloseBrace CloseBrace() => CloseBraceConstructor.Invoke(new object[] { lexer }) as CloseBrace;
         OpenParenthesis OpenParenthesis() => OpenParenthesisConstructor.Invoke(new object[] { lexer }) as OpenParenthesis;
         Returns Returns() => ReturnsConstructor.Invoke(new object[] { lexer }) as Returns;
         OpenSquareBracket OpenSquareBracket() => OpenSquareBracketConstructor.Invoke(new object[] { lexer }) as OpenSquareBracket;
         CloseSquareBracket CloseSquareBracket() => CloseSquareBracketConstructor.Invoke(new object[] { lexer }) as CloseSquareBracket;
-        Separator Separator() => SeparatorConstructor.Invoke(new object[] { lexer }) as Separator;
+        Comma Separator() => SeparatorConstructor.Invoke(new object[] { lexer }) as Comma;
         CloseParenthesis CloseParenthesis() => CloseParenthesisConstructor.Invoke(new object[] { lexer }) as CloseParenthesis;
         Plus Plus() => PlusConstructor.Invoke(new object[] { lexer }) as Plus;
         Asterisk Asterisk() => AsteriskConstructor.Invoke(new object[] { lexer }) as Asterisk;
@@ -286,13 +286,13 @@ public class Lexer
 
     private static readonly ConstructorInfo OpenBraceConstructor = GetConstructor<OpenBrace>();
     private static readonly ConstructorInfo AssignConstructor = GetConstructor<Assign>();
-    private static readonly ConstructorInfo TerminalConstructor = GetConstructor<Terminal>();
+    private static readonly ConstructorInfo TerminalConstructor = GetConstructor<Semicolon>();
     private static readonly ConstructorInfo CloseBraceConstructor = GetConstructor<CloseBrace>();
     private static readonly ConstructorInfo OpenParenthesisConstructor = GetConstructor<OpenParenthesis>();
     private static readonly ConstructorInfo ReturnsConstructor = GetConstructor<Returns>();
     private static readonly ConstructorInfo OpenSquareBracketConstructor = GetConstructor<OpenSquareBracket>();
     private static readonly ConstructorInfo CloseSquareBracketConstructor = GetConstructor<CloseSquareBracket>();
-    private static readonly ConstructorInfo SeparatorConstructor = GetConstructor<Separator>();
+    private static readonly ConstructorInfo SeparatorConstructor = GetConstructor<Comma>();
     private static readonly ConstructorInfo CloseParenthesisConstructor = GetConstructor<CloseParenthesis>();
     private static readonly ConstructorInfo PlusConstructor = GetConstructor<Plus>();
     private static readonly ConstructorInfo AsteriskConstructor = GetConstructor<Asterisk>();
