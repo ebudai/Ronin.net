@@ -2,7 +2,7 @@
 
 namespace Ronin.Lexicon.Symbols;
 
-internal class Assign : Symbol
+internal class Assign : Punctuation
 {
     public const char character = '=';
     public const string symbol = "=";

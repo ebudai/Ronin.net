@@ -20,11 +20,11 @@ internal class Name : Syntax, IParsable
             {
                 names.Add(word.ToString());
             }
-            else if (parser.Current is Symbol symbol && CanBeUsedInNames(symbol))
+            else if (parser.Current is Symbol symbol and not Punctuation)
             {
                 names.Add(symbol.ToString());
             }
-            else if (parser.Current is not Trivium)
+            else
             {
                 break;
             }
@@ -36,13 +36,4 @@ internal class Name : Syntax, IParsable
 
         return new Name { Words = names.ToArray(), Source = parser.Commit(ref context) };
     }
-
-    private static bool CanBeUsedInNames(Symbol symbol) => symbol 
-        is not Open 
-        and not Close 
-        and not Returns 
-        and not Comma 
-        and not Semicolon
-        and not Assign
-        and not TextDelimiter;
 }

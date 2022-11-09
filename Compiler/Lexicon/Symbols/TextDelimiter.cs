@@ -2,7 +2,7 @@
 
 namespace Ronin.Lexicon.Symbols;
 
-internal class TextDelimiter : Symbol
+internal class TextDelimiter : Punctuation
 {
     public const char character = '"';
     public const string symbol = "\"";

@@ -82,3 +82,8 @@ internal class Symbol : Token
         ?? TextDelimiter.Lex(lexer)
         ?? Tilde.Lex(lexer) as Symbol;
 }
+
+internal class Punctuation : Symbol
+{
+    internal Punctuation(Lexer lexer, int length) : base(lexer, length) { }
+}

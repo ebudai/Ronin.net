@@ -2,7 +2,7 @@
 
 namespace Ronin.Lexicon.Symbols;
 
-internal class Returns : Symbol
+internal class Returns : Punctuation
 {
     public const string symbol = "=>";
 
