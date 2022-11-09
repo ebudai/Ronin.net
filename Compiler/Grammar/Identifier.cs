@@ -3,7 +3,7 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
+internal class Identifier : Syntax, IParsable
 {
     public static Syntax Parse(ref Parser context)
     {
@@ -20,8 +20,10 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
 
         if (components.Count is 0) return null;
 
-        return new Identifier { Values = components.ToArray(), Source = parser.Commit(ref context) };
+        return new Identifier { Components = components.ToArray(), Source = parser.Commit(ref context) };
     }
+
+    internal Component[] Components;
 
     internal class Component : Syntax, IParsable<Component>
     {
@@ -48,12 +50,6 @@ internal class Identifier : RepeatingSyntax<Identifier.Component>, IParsable
 
         private Component(Name name) => Name = name;
         private Component(Parameters parameters) => Parameters = parameters;
-
-        public static implicit operator Component(Name name) => new(name);
-        public static implicit operator Component(Parameters parameters) => new(parameters);
-
-        public static implicit operator Name(Component component) => component.Name;
-        public static implicit operator Parameters(Component component) => component.Parameters;
 
         private object _storage;
     }

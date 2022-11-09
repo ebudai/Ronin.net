@@ -19,9 +19,9 @@ public class Function
         Assert.IsType<Statement>(result[0]);
         var statement = result[0] as Statement;
         Assert.NotNull(statement.FunctionDeclaration);
-        Assert.NotEmpty(statement.FunctionDeclaration.Identifier.Values);
-        Assert.NotNull(statement.FunctionDeclaration.Identifier.Values[0].Name);
-        Assert.Equal("test", string.Join(' ', statement.FunctionDeclaration.Identifier.Values[0].Name.Words));
+        Assert.NotEmpty(statement.FunctionDeclaration.Identifier.Components);
+        Assert.NotNull(statement.FunctionDeclaration.Identifier.Components[0].Name);
+        Assert.Equal("test", string.Join(' ', statement.FunctionDeclaration.Identifier.Components[0].Name.Words));
 
     }
 }

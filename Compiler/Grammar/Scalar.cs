@@ -3,7 +3,7 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Scalar : RepeatingSyntax<Literal>, IParsable
+internal class Scalar : Syntax, IParsable
 {
     public static Syntax Parse(ref Parser context)
     {
@@ -19,6 +19,8 @@ internal class Scalar : RepeatingSyntax<Literal>, IParsable
 
         if (values.Count is 0) return null;
 
-        return new Scalar { Values = values.ToArray(), Source = parser.Commit(ref context) };
+        return new Scalar { Literals = values.ToArray(), Source = parser.Commit(ref context) };
     }
+
+    internal Literal[] Literals;
 }

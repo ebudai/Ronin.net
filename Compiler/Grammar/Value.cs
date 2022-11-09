@@ -64,17 +64,5 @@ internal class Value : Syntax, IParsable<Value>
     private Value(Function value) => Function = value;
     private Value(Datatype value) => Datatype = value;
 
-    public static implicit operator Value(Scalar value) => new(value);
-    public static implicit operator Value(Arguments value) => new(value);
-    public static implicit operator Value(Name value) => new(value);
-    public static implicit operator Value(Function value) => new(value);
-    public static implicit operator Value(Datatype value) => new(value);
-
-    public static implicit operator Scalar(Value value) => value.Scalar;
-    public static implicit operator Arguments(Value value) => value.Arguments;
-    public static implicit operator Name(Value value) => value.Name;
-    public static implicit operator Function(Value value) => value.Function;
-    public static implicit operator Datatype(Value value) => value.Datatype;
-
     private object _storage;
 }

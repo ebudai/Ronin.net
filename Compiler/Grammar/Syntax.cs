@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-//using System.Collections;
 
 namespace Ronin.Grammar;
 
@@ -18,18 +17,7 @@ public abstract class Syntax
     protected internal SourceLocation[] Source { get; init; }
 }
 
-internal abstract class RepeatingSyntax<T> : Syntax//, IEnumerable<T>
-{
-    /*public T this[int index] => Values[index];
-
-    public IEnumerator<T> GetEnumerator() => Values.Cast<T>().GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();*/
-
-    protected internal T[] Values;
-}
-
-internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : RepeatingSyntax<TElement>, IParsable
+internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable
     where TElement : IParsable<TElement>
     where T : AggregateSyntax<T, TOpen, TElement, TSeparator, TClose>, new()
 {
@@ -57,6 +45,8 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 
         return new T { Values = buffer.ToArray(), Source = parser.Commit(ref context) };
     }
+
+    protected internal TElement[] Values;
 }
 
 /*

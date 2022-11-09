@@ -267,8 +267,8 @@ public class Datum
         Assert.NotNull(datum.Initializer);
         Assert.NotNull(datum.Initializer.Scalar);
         var initialvalue = datum.Initializer.Scalar;
-        Assert.NotEmpty(initialvalue.Values);
-        Assert.Equal("2", initialvalue.Values[0].Sourcecode.ToString());
+        Assert.NotEmpty(initialvalue.Literals);
+        Assert.Equal("2", initialvalue.Literals[0].Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "keyword for datatype")]

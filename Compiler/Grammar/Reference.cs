@@ -3,7 +3,7 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal class Reference : RepeatingSyntax<Value>, IParsable
+internal class Reference : Syntax, IParsable
 {
     public static Syntax Parse(ref Parser context)
     {
@@ -12,7 +12,7 @@ internal class Reference : RepeatingSyntax<Value>, IParsable
 
         while (parser.IsNotFinished)
         {
-            if (parser.Current is Semicolon or Comma or Close or Assign or Returns) break;
+            if (parser.Current is Semicolon or Comma or Close or Assign or Returns or OpenBrace) break;
             
             var syntax = Value.Parse(ref parser);
             if (syntax is Error or null) return syntax;
@@ -21,4 +21,6 @@ internal class Reference : RepeatingSyntax<Value>, IParsable
 
         return values.Count is 0 ? null : new Reference { Values = values.ToArray(), Source = parser.Commit(ref context) };
     }
+
+    internal Value[] Values;
 }

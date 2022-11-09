@@ -85,17 +85,5 @@ internal class Statement : Syntax, IParsable
     private Statement(Datatype datatype) => DatatypeDeclaration = datatype;
     private Statement(Reference reference) => Reference = reference;
 
-    public static implicit operator Statement(PartOf partOf) => new(partOf);
-    public static implicit operator Statement(Import import) => new(import);
-    public static implicit operator Statement(Datum datum) => new(datum);
-    public static implicit operator Statement(Function function) => new(function);
-    public static implicit operator Statement(Reference reference) => new(reference);
-
-    public static implicit operator PartOf(Statement statement) => statement.PartOf;
-    public static implicit operator Import(Statement statement) => statement.Import;
-    public static implicit operator Datum(Statement statement) => statement.DatumDeclaration;
-    public static implicit operator Function(Statement statement) => statement.FunctionDeclaration;
-    public static implicit operator Reference(Statement statement) => statement.Reference;
-
     private object _storage;
 }

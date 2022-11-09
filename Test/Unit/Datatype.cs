@@ -19,8 +19,26 @@ public class Datatype
         Assert.IsType<Statement>(result[0]);
         var statement = result[0] as Statement;
         Assert.NotNull(statement.DatatypeDeclaration);
-        Assert.NotEmpty(statement.DatatypeDeclaration.Identifier.Values);
-        Assert.NotNull(statement.DatatypeDeclaration.Identifier.Values[0].Name);
-        Assert.Equal("Test", string.Join(' ', statement.DatatypeDeclaration.Identifier.Values[0].Name.Words));
+        Assert.NotEmpty(statement.DatatypeDeclaration.Identifier.Components);
+        Assert.NotNull(statement.DatatypeDeclaration.Identifier.Components[0].Name);
+        Assert.Equal("Test", string.Join(' ', statement.DatatypeDeclaration.Identifier.Components[0].Name.Words));
+    }
+
+    [Fact(DisplayName = "with algebra")]
+    public void Algebra()
+    {
+        const string declaration = "datatype Algebra = integer or { var cash => money; var debt => money; }";
+
+        Lexer lexer = new(declaration);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var result = parser.Parse();
+
+        Assert.NotEmpty(result);
+        Assert.IsType<Statement>(result[0]);
+        var statement = result[0] as Statement;
+        Assert.NotNull(statement.DatatypeDeclaration);
+        Assert.NotNull(statement.DatatypeDeclaration.Algebra);
+
     }
 }
