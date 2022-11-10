@@ -81,6 +81,6 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<UnknownType>(syntax[0]);
+        Assert.IsType<UnknownDatatype>(syntax[0]);
     }
 }
