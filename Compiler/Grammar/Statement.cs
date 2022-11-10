@@ -17,9 +17,7 @@ internal class Statement : Syntax, IParsable
                 ?? Datum.Parse(ref parser)
                 ?? Function.Parse(ref parser)
                 ?? Datatype.Parse(ref parser)
-                ?? Reference.Parse(ref parser)
-                ?? List.Parse(ref parser)
-                ?? Index.Parse(ref parser);
+                ?? Reference.Parse(ref parser);
 
         if (syntax is Error error)
         {

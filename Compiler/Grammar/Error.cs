@@ -1,12 +1,11 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
 internal abstract class Error : Syntax
 {
-    internal int Cursor { get; init; }
+    public int Cursor { get; init; }
 
     protected private static Syntax Parse<T>(ref Parser context) where T : Error, new()
     {

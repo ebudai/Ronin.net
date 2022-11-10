@@ -10,9 +10,6 @@
     <AssemblyName>Ronin.Test</AssemblyName>
 
     <RootNamespace></RootNamespace>
-
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
-    <LangVersion>preview</LangVersion>
     
   </PropertyGroup>
 

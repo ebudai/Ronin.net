@@ -1,10 +1,14 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
 internal class Reference : Syntax, IParsable
 {
+    public Value[] Values { get; private init; }
+    public Index Index { get; private init; }
+
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
@@ -12,15 +16,23 @@ internal class Reference : Syntax, IParsable
 
         while (parser.IsNotFinished)
         {
-            if (parser.Current is Semicolon or Comma or Close or Assign or Returns or Open and not OpenParenthesis) break;
+            if (parser.Current is Punctuation and not OpenParenthesis) break;
             
             var syntax = Value.Parse(ref parser);
             if (syntax is Error or null) return syntax;
             values.Add(Value.FromSyntax(syntax));            
         }
 
-        return values.Count is 0 ? null : new Reference { Values = values.ToArray(), Source = parser.Commit(ref context) };
-    }
+        if (values.Count is 0) return null;
 
-    internal Value[] Values;
+        var index = Index.Parse(ref parser);
+        if (index is Error) return index;
+
+        return new Reference 
+        {
+            Values = values.ToArray(), 
+            Index = index as Index, 
+            Source = parser.Commit(ref context) 
+        };
+    }
 }
