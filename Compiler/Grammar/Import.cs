@@ -21,7 +21,7 @@ internal class Import : Syntax, IParsable
 
         if (parser.IsNotFinished)
         {
-            if (parser.Current is not Semicolon) return ExpectedSemicolon.Parse(ref context);
+            if (parser.Current is not Terminal) return ExpectedTerminal.Parse(ref context);
         }
 
         return new Import { Name = name.Hierarchy, Source = parser.Commit(ref context) };

@@ -23,6 +23,7 @@ internal class Value : Syntax, IParsable<Value>
         Scalar scalar => new(scalar),
         Arguments arguments => new(arguments),
         Name name => new(name),
+        Datum datum => new(datum),
         Function function => new(function),
         Datatype datatype => new(datatype),
         _ => null,
@@ -46,6 +47,12 @@ internal class Value : Syntax, IParsable<Value>
         set => _storage = value;
     }
 
+    public Datum Datum
+    {
+        get => _storage as Datum;
+        set => _storage = value;
+    }
+
     public Function Function
     {
         get => _storage as Function; 
@@ -61,6 +68,7 @@ internal class Value : Syntax, IParsable<Value>
     private Value(Scalar value) => Scalar = value;
     private Value(Arguments value) => Arguments = value;
     private Value(Name value) => Name = value;
+    private Value(Datum value) => Datum = value;
     private Value(Function value) => Function = value;
     private Value(Datatype value) => Datatype = value;
 

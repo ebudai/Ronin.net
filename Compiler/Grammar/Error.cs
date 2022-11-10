@@ -14,7 +14,7 @@ internal abstract class Error : Syntax
         while (parser.IsNotFinished)
         {
             parser.Advance();
-            if (parser.Current is Semicolon or Comma or Close) break;
+            if (parser.Current is Terminal or Separator or Close) break;
         }
 
         return new T { Source = parser.Commit(ref context), Cursor = context.Index };

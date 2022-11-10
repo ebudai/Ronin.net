@@ -26,7 +26,7 @@ internal class Statement : Syntax, IParsable
         }
         if (syntax is null) return UnknownSyntax.Parse(ref context);
 
-        if (parser.Current is not Semicolon and not Sentinel) return ExpectedSemicolon.Parse(ref context);        
+        if (parser.Current is not Terminal and not Sentinel) return ExpectedTerminal.Parse(ref context);        
         
         context = parser;
         return FromSyntax(syntax);

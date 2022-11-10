@@ -27,7 +27,7 @@ public class Lexer
             var googles address = https://google.com;
         }
 
-        function run (list of stuff => integer[], things => number) away
+        function run (all my stuff => integer[], things => number) away
         {
             // this assumes the list of stuff has at least one element
             return list of stuff[0] + things * 7;
@@ -163,9 +163,9 @@ public class Lexer
             Name("run"),
             Whitespace(),
             OpenParenthesis(),
-            Name("list"),
+            Name("all"),
             Whitespace(),
-            Name("of"),
+            Name("my"),
             Whitespace(),
             Name("stuff"),
             Whitespace(),

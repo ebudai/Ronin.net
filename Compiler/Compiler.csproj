@@ -7,9 +7,8 @@
     <Nullable>disable</Nullable>
     <AssemblyName>Ronin</AssemblyName>
     <RootNamespace>Ronin</RootNamespace>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
-    <LangVersion>preview</LangVersion>
-
+    <TieredCompilation>false</TieredCompilation>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>

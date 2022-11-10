@@ -39,6 +39,5 @@ public class Datatype
         var statement = result[0] as Statement;
         Assert.NotNull(statement.DatatypeDeclaration);
         Assert.NotNull(statement.DatatypeDeclaration.Algebra);
-
     }
 }

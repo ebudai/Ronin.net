@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar.Errors;
 
-internal class ExpectedSemicolon : Error, IParsable
+internal class ExpectedTerminal : Error, IParsable
 {
-    public static Syntax Parse(ref Parser context) => Parse<ExpectedSemicolon>(ref context);
+    public static Syntax Parse(ref Parser context) => Parse<ExpectedTerminal>(ref context);
 }

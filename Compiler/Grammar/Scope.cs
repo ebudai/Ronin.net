@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-internal class Scope : AggregateSyntax<Scope, OpenBrace, Value, Semicolon, CloseBrace>
+internal class Scope : AggregateSyntax<Scope, OpenBrace, Value, Terminal, CloseBrace>
 {
 
 }

@@ -2,7 +2,7 @@
 
 namespace Ronin.Lexicon.Symbols;
 
-internal class Comma : Punctuation
+internal class Comma : Separator
 {
     public const char character = ',';
     public const string symbol = ",";
