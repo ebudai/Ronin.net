@@ -52,27 +52,28 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 /*
 [+ means and/or]
 
-x declare function - modifiers then declarator then identifier then scope
-x declare datatype - modifiers then declarator then identifier then { '=' then reference } (optional algebra) then scope
-x declare datum - declarator then parameter
+x declare function - modifiers declarator identifier scope
+x declare datatype - modifiers declarator identifier { '=' reference } (optional algebra) scope
+x declare datum - declarator parameter
 x identifier - name + parameters ...
 x reference - name + value ...
-x import - 'import' then name
-x partof - 'part of' then name
+x import - 'import' name
+x partof - 'part of' name
 
 x declarator - 'var' or 'constant' or 'let' or 'function' or 'datatype'
 x modifiers - 'optional' or 'compiled' or 'persistent' or 'shared'
 x name - word + wordable symbol ... [symbols don't need to be separated]
-x parameter - explicit - name then => then modifiers then reference [datatype] then = then value (optionally) [initializer]
-            - implicit - name then = then value
+x assignment - name = value
+x parameter - explicit - name => modifiers reference [datatype] = value (optionally) [initializer]
+            - implicit - assignment
 x scalar - literal ...
 x value - scalar or aggregate or reference or declaration [ie: returns a function tearaway or datatype value etc]
 
 x error - all until ';'
 
 aggregates
-x arguments - '(' then value, ... then ')'
-x index - '[' then value,... then ']'
-x scope - '{' then value; ... then '}'
-x parameters - '(' then parameter, ... then ')'
+x arguments - '(' value, ... ')'
+x index - '[' value,... ']'
+x scope - '{' value; ... '}'
+x parameters - '(' parameter, ... ')'
 */

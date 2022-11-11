@@ -7,7 +7,7 @@ namespace Ronin.Grammar;
 internal class Parameter : Syntax, IParsable<Parameter>
 {
     internal Modifiers Is { get; protected private init; }
-    internal string Name { get; protected private init; }
+    internal Name Name { get; protected private init; }
     internal Reference Datatype { get; protected private init; }
     internal Value Initializer { get; protected private init; }
 
@@ -17,7 +17,8 @@ internal class Parameter : Syntax, IParsable<Parameter>
     {
         Parser parser = context;
 
-        if (Grammar.Name.Parse(ref parser) is not Name name) return null;
+        var name = Name.Parse(ref parser) as Name;
+        if (name is null) return name;
 
         Modifiers modifiers = null;
         Syntax datatype = null;
@@ -42,7 +43,7 @@ internal class Parameter : Syntax, IParsable<Parameter>
 
         return new Parameter
         {
-            Name = string.Join(' ', name.Words),
+            Name = name,
             Is = modifiers,
             Datatype = datatype as Reference,
             Initializer = Value.FromSyntax(initializer),

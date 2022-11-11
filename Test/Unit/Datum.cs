@@ -28,7 +28,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Mutability is Declarator.Variable);
-        Assert.Equal("my variable", datum.Name);
+        Assert.Equal("my variable", datum.Name.Words[0]);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
         Ronin.Grammar.Name name = datum.Datatype.Values[0];
@@ -98,7 +98,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Mutability is Declarator.Reactive);
-        Assert.Equal($"{reactive} thing", datum.Name);        
+        Assert.Equal($"{reactive} thing", datum.Name.Words[0]);        
     }
 
     [Fact(DisplayName = $"{constant} twice")]
@@ -109,7 +109,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Mutability is Declarator.Constant);
-        Assert.Equal($"{constant} thing", datum.Name);
+        Assert.Equal($"{constant} thing", datum.Name.Words[0]);
     }
 
     [Fact(DisplayName = $"{var} twice")]
@@ -120,7 +120,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.False(datum.Mutability is Declarator.Constant);
-        Assert.Equal($"{var} thing", datum.Name);
+        Assert.Equal($"{var} thing", datum.Name.Words[0]);
     }
 
     [Fact(DisplayName = $"{compiled} twice")]
@@ -180,7 +180,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Is.Shared);
-        Assert.Equal(import, datum.Name);
+        Assert.Equal(import, datum.Name.Words[0]);
     }
 
     [Fact(DisplayName = "name has keywords")]
@@ -191,7 +191,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.False(datum.Mutability is Declarator.Constant);
-        Assert.Equal($"{shared} {reactive}", datum.Name);
+        Assert.Equal($"{shared} {reactive}", datum.Name.Words[0]);
     }
 
     [Fact(DisplayName = "datatype has keywords")]

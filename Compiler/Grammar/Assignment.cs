@@ -1,0 +1,31 @@
+﻿using Ronin.Compiler;
+using Ronin.Lexicon.Symbols;
+
+namespace Ronin.Grammar;
+
+internal class Assignment : Syntax, IParsable
+{
+    public Name Name { get; private init; }
+    public Value Value { get; private init; }
+
+    public static Syntax Parse(ref Parser context)
+    {
+        Parser parser = context;
+
+        var name = Name.Parse(ref parser) as Name;
+        if (name is null) return name;
+
+        if (parser.Current is not Assign) return null;
+        parser.Advance();
+
+        var value = Value.Parse(ref parser);
+        if (value is Error or null) return value;
+
+        return new Assignment
+        {
+            Name = name,
+            Value = Value.FromSyntax(value),
+            Source = parser.Commit(ref context),
+        };
+    }
+}
