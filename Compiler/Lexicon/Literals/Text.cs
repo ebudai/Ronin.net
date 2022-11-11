@@ -6,6 +6,8 @@ internal class Text : Literal
 {
     private Text(Lexer lexer, int length) : base(lexer, length) { }
 
+    internal string Value => ToString()[1..^1];
+
     internal static new Token Lex(Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not '"') return null;

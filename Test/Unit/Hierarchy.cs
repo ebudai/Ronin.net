@@ -1,4 +1,5 @@
-﻿using Ronin.Compiler;
+﻿using Failure;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 
@@ -50,7 +51,7 @@ public class Hierarchy
     [Fact(DisplayName = "keywords are just text")]
     public void WithKeywords()
     {
-        const string line = "import compiled to whatever secret stuff;";
+        const string line = "part of compiled to whatever secret stuff;";
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
@@ -64,7 +65,7 @@ public class Hierarchy
 
         Assert.NotEmpty(syntax);
         Assert.IsType<Ronin.Grammar.Hierarchy>(syntax[0]);
-        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
+        var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
         Assert.Equal(5, hierarchy.Name.Length);
@@ -73,6 +74,28 @@ public class Hierarchy
         Assert.Equal("whatever", hierarchy.Name[2]);
         Assert.Equal("secret", hierarchy.Name[3]);
         Assert.Equal("stuff", hierarchy.Name[4]);
-        Assert.Equal(Ronin.Grammar.Hierarchy.Discriminator.Import, hierarchy.Direction);
+        Assert.Equal(Ronin.Grammar.Hierarchy.Discriminator.Export, hierarchy.Direction);
+    }
+
+    [Fact(DisplayName = "using text literal")]
+    public void TextLiteral()
+    {
+        const string line = "part of literal testing \"fast version\" readonly;";
+
+        Lexer lexer = new(line);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var syntax = parser.Parse();
+
+        Assert.NotEmpty(syntax);
+        var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
+        Assert.NotNull(hierarchy);
+        Assert.NotEmpty(hierarchy.Name);
+        Assert.Equal(4, hierarchy.Name.Length);
+        Assert.Equal("literal", hierarchy.Name[0]);
+        Assert.Equal("testing", hierarchy.Name[1]);
+        Assert.Equal("fast version", hierarchy.Name[2]);
+        Assert.Equal("readonly", hierarchy.Name[3]);
+        Assert.Equal(Ronin.Grammar.Hierarchy.Discriminator.Export, hierarchy.Direction);
     }
 }

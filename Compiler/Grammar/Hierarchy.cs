@@ -29,17 +29,17 @@ internal class Hierarchy : Syntax, IParsable
         List<string> names = new();
         while (parser.IsNotFinished)
         {
-            if (parser.Current is Word word)
+            if (parser.Current is Word or Symbol and not Punctuation)
             {
-                names.Add($"{word}");
-            }
-            else if (parser.Current is Symbol symbol and not Punctuation)
-            {
-                names.Add($"{symbol}");
+                names.Add($"{parser.Current}");
             }
             else if (parser.Current is Text text)
             {
-                names.Add($"{text}");
+                names.Add(text.Value);
+            }
+            else if (parser.Current is not Terminal)
+            {
+                return ExpectedTerminal.Parse(ref context);
             }
             else
             {
@@ -47,11 +47,6 @@ internal class Hierarchy : Syntax, IParsable
             }
 
             parser.Advance();
-        }
-
-        if (parser.IsNotFinished)
-        {
-            if (parser.Current is not Terminal) return ExpectedTerminal.Parse(ref context);
         }
 
         if (names.Count is 0) return null;
