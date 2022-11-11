@@ -53,7 +53,7 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 [+ means and/or]
 
 x declare function - modifiers declarator identifier scope
-x declare datatype - modifiers declarator identifier { '=' reference } (optional algebra) scope
+x declare datatype - modifiers declarator identifier { '=' reference } (optional) [algebra]s scope
 x declare datum - declarator parameter
 x identifier - name + parameters ...
 x reference - name + value ...

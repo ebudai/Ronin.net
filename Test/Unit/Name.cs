@@ -1,5 +1,28 @@
-﻿namespace Unit;
+﻿using Ronin.Compiler;
+using Ronin.Grammar;
+
+namespace Unit;
 
 public class Name
 {
+    [Fact(DisplayName = "symbols")]
+    public void Symbols()
+    {
+        const string code = "name+things;";
+
+        Lexer lexer = new(code);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var result = parser.Parse();
+
+        Assert.NotEmpty(result);
+        var reference = result[0] as Reference;
+        Assert.NotNull(reference);
+        Assert.NotEmpty(reference.Values);
+        Ronin.Grammar.Name name = reference.Values[0];
+        Assert.Equal(3, name.Words.Length);
+        Assert.Equal("name", name.Words[0]);
+        Assert.Equal("+", name.Words[1]);
+        Assert.Equal("things", name.Words[2]);
+    }
 }
