@@ -1,13 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
 internal class Name : Syntax, IParsable
 {
     internal string[] Words { get; private init; }
-    internal string[] Hierarchy => string.Join(' ', Words).Split(' ' + Slash.symbol + ' ');
 
     public static Syntax Parse(ref Parser context)
     {

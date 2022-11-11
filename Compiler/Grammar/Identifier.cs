@@ -11,10 +11,16 @@ internal class Identifier : Syntax, IParsable
         
         while (parser.IsNotFinished)
         {
-            var component = Component.Parse(ref parser);
-            if (component is Error) return component;
-            if (component is null) break;
-            components.Add(Component.FromSyntax(component));
+            var syntax = Component.Parse(ref parser);
+            if (syntax is Error) return syntax;
+            if (syntax is null) break;
+            Component component = syntax switch
+            {
+                Name name => name,
+                Parameters parameters => parameters,
+                _ => null
+            };
+            components.Add(component);
         }
 
         if (components.Count is 0) return null;
@@ -24,31 +30,17 @@ internal class Identifier : Syntax, IParsable
 
     internal Component[] Components;
 
-    internal class Component : Syntax, IParsable<Component>
+    internal class Component : Syntax, IParsable
     {
-        internal Name Name
-        {
-            get => _storage as Name;
-            set => _storage = value;
-        }
+        public static Syntax Parse(ref Parser context)
+            => Name.Parse(ref context) 
+            ?? Parameters.Parse(ref context);
 
-        internal Parameters Parameters
-        {
-            get => _storage as Parameters;
-            set => _storage = value;
-        }
+        public static implicit operator Component(Name name) => new() { _storage = name };
+        public static implicit operator Component(Parameters parameters) => new() { _storage = parameters };
 
-        public static Component FromSyntax(Syntax syntax) => syntax switch
-        {
-            Name name => new(name),
-            Parameters parameters => new(parameters),
-            _ => null,
-        };
-
-        public static Syntax Parse(ref Parser context) => Name.Parse(ref context) ?? Parameters.Parse(ref context);
-
-        private Component(Name name) => Name = name;
-        private Component(Parameters parameters) => Parameters = parameters;
+        public static implicit operator Name(Component component) => component._storage as Name;
+        public static implicit operator Parameters(Component component) => component._storage as Parameters;
 
         private object _storage;
     }

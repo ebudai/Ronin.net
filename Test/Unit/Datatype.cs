@@ -16,12 +16,13 @@ public class Datatype
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Statement>(result[0]);
-        var statement = result[0] as Statement;
-        Assert.NotNull(statement.DatatypeDeclaration);
-        Assert.NotEmpty(statement.DatatypeDeclaration.Identifier.Components);
-        Assert.NotNull(statement.DatatypeDeclaration.Identifier.Components[0].Name);
-        Assert.Equal("Test", string.Join(' ', statement.DatatypeDeclaration.Identifier.Components[0].Name.Words));
+        Assert.IsType<Ronin.Grammar.Declaration.Datatype>(result[0]);
+        var datatype = result[0] as Ronin.Grammar.Declaration.Datatype;
+        Assert.NotNull(datatype);
+        Assert.NotEmpty(datatype.Identifier.Components);
+        Name name = datatype.Identifier.Components[0];
+        Assert.NotNull(name);
+        Assert.Equal("Test", string.Join(' ', name.Words));
     }
 
     [Fact(DisplayName = "with algebra")]
@@ -35,9 +36,9 @@ public class Datatype
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Statement>(result[0]);
-        var statement = result[0] as Statement;
-        Assert.NotNull(statement.DatatypeDeclaration);
-        Assert.NotNull(statement.DatatypeDeclaration.Algebra);
+        Assert.IsType<Ronin.Grammar.Declaration.Datatype>(result[0]);
+        var datatype = result[0] as Ronin.Grammar.Declaration.Datatype;
+        Assert.NotNull(datatype);
+        Assert.NotNull(datatype.Algebra);
     }
 }

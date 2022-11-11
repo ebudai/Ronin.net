@@ -1,5 +1,7 @@
 ﻿using Ronin.Grammar;
+using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Compiler;
 
@@ -16,6 +18,8 @@ public ref struct Parser
             var trivia = Trivia.Parse(ref this);
             if (trivia is not null) continue;
             var statement = Statement.Parse(ref this);
+            if (statement is Error error) Index = error.Cursor;
+            if (Current is not Terminal and not Sentinel) statement = ExpectedTerminal.Parse(ref this);
             statements.Add(statement);
         }
 
@@ -33,7 +37,7 @@ public ref struct Parser
 
     internal void Advance() 
     {
-        do { ++Index; } while (Current is Trivium);
+        do ++Index; while (Current is Trivium);
     }
 
     internal SourceLocation[] Commit(ref Parser context)

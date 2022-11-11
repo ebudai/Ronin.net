@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon.Reserved;
 using Ronin.Lexicon.Symbols;
 using static Ronin.Grammar.Declaration.Datum;
@@ -16,8 +17,8 @@ public class Datum
     private const string constant = Constant.keyword;
     private const string shared = Shared.keyword;
     private const string optional = Optional.keyword;
-    private const string import = Ronin.Lexicon.Reserved.Import.keyword;
-    private const string assign = Assign.symbol;
+    private const string import = Import.keyword;
+    private const string equals = Assign.symbol;
 
     [Fact(DisplayName = "typed")]
     public void Typed()
@@ -30,8 +31,10 @@ public class Datum
         Assert.Equal("my variable", datum.Name);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
-        Assert.NotEmpty(datum.Datatype.Values[0].Name.Words);
-        var datatype = datum.Datatype.Values[0].Name.Words[0];
+        Name name = datum.Datatype.Values[0];
+        Assert.NotNull(name);
+        Assert.NotEmpty(name.Words);
+        var datatype = name.Words[0];
         Assert.Equal("integer", datatype);
         Assert.Null(datum.Initializer);
     }
@@ -53,7 +56,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Modifiers.Compiled);
+        Assert.True(datum.Is.Compiled);
     }
 
     [Fact(DisplayName = $"{persistent}")]
@@ -64,7 +67,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Mutability is Declarator.Constant);
-        Assert.True(datum.Modifiers.Persistent);
+        Assert.True(datum.Is.Persistent);
     }
 
     [Fact(DisplayName = $"{shared}")]
@@ -74,7 +77,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Modifiers.Shared);
+        Assert.True(datum.Is.Shared);
     }
 
     [Fact(DisplayName = $"{optional}")]
@@ -84,7 +87,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Modifiers.Optional);
+        Assert.True(datum.Is.Optional);
     }
 
     [Fact(DisplayName = $"{reactive} twice")]
@@ -127,8 +130,8 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Modifiers.Compiled);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => value.Name).SelectMany(name => name.Words));
+        Assert.True(datum.Is.Compiled);
+        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{compiled} integer", name);
     }
 
@@ -139,8 +142,8 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Modifiers.Persistent);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => value.Name).SelectMany(name => name.Words));
+        Assert.True(datum.Is.Persistent);
+        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{persistent} integer", name);
     }
 
@@ -151,8 +154,8 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Modifiers.Optional);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => value.Name).SelectMany(name => name.Words));
+        Assert.True(datum.Is.Optional);
+        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{optional} integer", name);
     }
 
@@ -163,8 +166,8 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Modifiers.Shared);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => value.Name).SelectMany(name => name.Words));
+        Assert.True(datum.Is.Shared);
+        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{shared} integer", name);
     }
 
@@ -176,7 +179,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Modifiers.Shared);
+        Assert.True(datum.Is.Shared);
         Assert.Equal(import, datum.Name);
     }
 
@@ -200,7 +203,7 @@ public class Datum
 
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
-        var name = datum.Datatype.Values[0].Name;
+        Name name = datum.Datatype.Values[0];
         Assert.NotNull(name);
         Assert.Equal(3, name.Words.Length);
         Assert.Equal(import, name.Words[0]);
@@ -211,12 +214,11 @@ public class Datum
     [Fact(DisplayName = "initialized")]
     public void Initialized()
     {
-        const string declaration = $"{var} x {assign} things{end}";
+        const string declaration = $"{var} x {equals} things{end}";
 
         var datum = Compile(declaration);
 
-        Assert.NotNull(datum.Initializer);
-        var name = datum.Initializer.Name;
+        Name name = datum.Initializer;
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal("things", name.Words[0]);
@@ -225,12 +227,11 @@ public class Datum
     [Fact(DisplayName = "explicit initializer is keywords")]
     public void ExplicitInitializerIsKeyword()
     {
-        const string declaration = $"{var} x {returns} integer {assign} {import}{end}";
+        const string declaration = $"{var} x {returns} integer {equals} {import}{end}";
 
         var datum = Compile(declaration);
 
-        Assert.NotNull(datum.Initializer);
-        var name = datum.Initializer.Name;
+        Name name = datum.Initializer;
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal(import, name.Words[0]);
@@ -239,13 +240,12 @@ public class Datum
     [Fact(DisplayName = "implicit initializer is keywords")]
     public void ImplicitInitializerIsKeyword()
     {
-        const string declaration = $"{var} x {assign} {import}{end}";
+        const string declaration = $"{var} x {equals} {import}{end}";
 
         var datum = Compile(declaration);
 
-        Assert.NotNull(datum.Initializer);
-        var name = datum.Initializer.Name;
-        Assert.NotNull(name);        
+        Name name = datum.Initializer;
+        Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal(import, name.Words[0]);
     }
@@ -253,22 +253,21 @@ public class Datum
     [Fact(DisplayName = "typed and initialized via literal")]
     public void TypedAndInitialized()
     {
-        const string declaration = $"{var} thing {returns} integer {assign} 2{end}";
+        const string declaration = $"{var} thing {returns} integer {equals} 2{end}";
         
         var datum = Compile(declaration);
 
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
-        var datatype = datum.Datatype.Values[0].Name;
-        Assert.NotNull(datatype);
-        Assert.NotEmpty(datatype.Words);
-        Assert.Equal("integer", datatype.Words[0]);
+        Name name = datum.Datatype.Values[0];
+        Assert.NotNull(name);
+        Assert.NotEmpty(name.Words);
+        Assert.Equal("integer", name.Words[0]);
 
-        Assert.NotNull(datum.Initializer);
-        Assert.NotNull(datum.Initializer.Scalar);
-        var initialvalue = datum.Initializer.Scalar;
-        Assert.NotEmpty(initialvalue.Literals);
-        Assert.Equal("2", initialvalue.Literals[0].Sourcecode.ToString());
+        Scalar initializer = datum.Initializer;
+        Assert.NotNull(initializer);
+        Assert.NotEmpty(initializer.Literals);
+        Assert.Equal("2", initializer.Literals[0].Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "keyword for datatype")]
@@ -282,20 +281,19 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
-        var statement = syntax[0] as Ronin.Grammar.Statement;
-        Assert.NotNull(statement.DatumDeclaration?.Datatype);
-        var datatype = statement.DatumDeclaration.Datatype;
-        Assert.NotEmpty(datatype.Values);
-        Assert.NotNull(datatype.Values[0].Name);
-        var name = datatype.Values[0].Name;
+        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
+        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
+        Assert.NotNull(datum.Datatype);
+        Assert.NotEmpty(datum.Datatype.Values);
+        Name name = datum.Datatype.Values[0];
+        Assert.NotNull(name);
         Assert.Equal(reactive, string.Join(' ', name.Words));
     }
 
     [Fact(DisplayName = "keyword for initializer")]
     public void KeywordForInitializer()
     {
-        const string declaration = $"{var} x {returns} integer {assign} {constant}{end}";
+        const string declaration = $"{var} x {returns} integer {equals} {constant}{end}";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
@@ -303,12 +301,11 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
-        var statement = syntax[0] as Ronin.Grammar.Statement;
-        Assert.NotNull(statement.DatumDeclaration?.Initializer);
-        var initializer = statement.DatumDeclaration.Initializer;
-        Assert.NotNull(initializer.Name);
-        var name = initializer.Name;
+        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
+        var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
+        Assert.NotNull(datum);
+        Name name = datum.Initializer;
+        Assert.NotNull(name);
         Assert.Equal(constant, string.Join(' ', name.Words));
     }
 
@@ -327,8 +324,7 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Statement>(syntax[0]);
-        var statement = syntax[0] as Ronin.Grammar.Statement;
-        return statement.DatumDeclaration;
+        Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
+        return syntax[0] as Ronin.Grammar.Declaration.Datum;
     }
 }

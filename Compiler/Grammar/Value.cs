@@ -1,76 +1,25 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Declaration;
 
 namespace Ronin.Grammar;
 
 internal class Value : Syntax, IParsable<Value>
 {
     public static Syntax Parse(ref Parser context)
-    {
-        Parser parser = context;
-        var syntax = Scalar.Parse(ref parser)
-            ?? Arguments.Parse(ref parser)            
-            ?? Function.Parse(ref parser)
-            ?? Datatype.Parse(ref parser)
-            ?? Datum.Parse(ref parser)
-            ?? Name.Parse(ref parser);
-        if (syntax is not Error and not null) context = parser;
-        return syntax;
-    }
+        => Scalar.Parse(ref context)
+        ?? Arguments.Parse(ref context)
+        ?? Name.Parse(ref context);
 
     public static Value FromSyntax(Syntax syntax) => syntax switch
     {
-        Scalar scalar => new(scalar),
-        Arguments arguments => new(arguments),
-        Name name => new(name),
-        Datum datum => new(datum),
-        Function function => new(function),
-        Datatype datatype => new(datatype),
+        Scalar scalar => new() { _storage = scalar },
+        Arguments arguments => new() { _storage = arguments },
+        Name name => new() { _storage = name },
         _ => null,
     };
 
-    public Scalar Scalar
-    {
-        get => _storage as Scalar;
-        set => _storage = value;
-    }
-
-    public Arguments Arguments
-    {
-        get => _storage as Arguments;
-        set => _storage = value;
-    }
-
-    public Name Name
-    {
-        get => _storage as Name; 
-        set => _storage = value;
-    }
-
-    public Datum Datum
-    {
-        get => _storage as Datum;
-        set => _storage = value;
-    }
-
-    public Function Function
-    {
-        get => _storage as Function; 
-        set => _storage = value;
-    }
-
-    public Datatype Datatype
-    {
-        get => _storage as Datatype; 
-        set => _storage = value;        
-    }
-
-    private Value(Scalar value) => Scalar = value;
-    private Value(Arguments value) => Arguments = value;
-    private Value(Name value) => Name = value;
-    private Value(Datum value) => Datum = value;
-    private Value(Function value) => Function = value;
-    private Value(Datatype value) => Datatype = value;
+    public static implicit operator Scalar(Value value) => value._storage as Scalar;
+    public static implicit operator Arguments(Value value) => value._storage as Arguments;
+    public static implicit operator Name(Value value) => value._storage as Name;
 
     private object _storage;
 }

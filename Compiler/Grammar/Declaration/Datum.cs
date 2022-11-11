@@ -7,7 +7,7 @@ internal class Datum : Syntax, IParsable
 {
     internal Declarator Mutability { get; private init; }
     internal string Name { get; private init; }
-    internal Modifiers Modifiers { get; private init; }
+    internal Modifiers Is { get; private init; }
     internal Reference Datatype { get; private init; }
     internal Value Initializer { get; private init; }
 
@@ -32,7 +32,7 @@ internal class Datum : Syntax, IParsable
         {
             Mutability = declarator.Value,
             Name = parameter.Name,
-            Modifiers = parameter.Is,
+            Is = parameter.Is,
             Datatype = parameter.Datatype,
             Initializer = parameter.Initializer,
             Source = parser.Commit(ref context)

@@ -16,12 +16,13 @@ public class Function
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Statement>(result[0]);
-        var statement = result[0] as Statement;
-        Assert.NotNull(statement.FunctionDeclaration);
-        Assert.NotEmpty(statement.FunctionDeclaration.Identifier.Components);
-        Assert.NotNull(statement.FunctionDeclaration.Identifier.Components[0].Name);
-        Assert.Equal("test", string.Join(' ', statement.FunctionDeclaration.Identifier.Components[0].Name.Words));
+        Assert.IsType<Ronin.Grammar.Declaration.Function>(result[0]);
+        var function = result[0] as Ronin.Grammar.Declaration.Function;
+        Assert.NotNull(function);
+        Assert.NotEmpty(function.Identifier.Components);
+        Name name = function.Identifier.Components[0];
+        Assert.NotNull(name);
+        Assert.Equal("test", string.Join(' ', name.Words));
 
     }
 }

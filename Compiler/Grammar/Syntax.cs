@@ -18,7 +18,7 @@ public abstract class Syntax
 }
 
 internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable
-    where TElement : IParsable<TElement>
+    where TElement : class, IParsable<TElement>
     where T : AggregateSyntax<T, TOpen, TElement, TSeparator, TClose>, new()
 {
     public static Syntax Parse(ref Parser context)
@@ -55,7 +55,7 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 x declare function - modifiers then declarator then identifier then scope
 x declare datatype - modifiers then declarator then identifier then { '=' then reference } (optional algebra) then scope
 x declare datum - declarator then parameter
-x identifier - name + parameter or parameters ...
+x identifier - name + parameters ...
 x reference - name + value ...
 x import - 'import' then name
 x partof - 'part of' then name

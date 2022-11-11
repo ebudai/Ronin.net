@@ -16,11 +16,12 @@ public class Index
         var statements = parser.Parse();
 
         Assert.NotEmpty(statements);
-        Assert.IsType<Statement>(statements[0]);
-        var statement = statements[0] as Statement;
-        Assert.NotNull(statement.DatumDeclaration);
-        Assert.NotNull(statement.DatumDeclaration.Datatype);
-        Assert.NotEmpty(statement.DatumDeclaration.Datatype.Values);
-        Assert.NotNull(statement.DatumDeclaration.Datatype.Values[0].Name);
+        Assert.IsType<Ronin.Grammar.Declaration.Datum>(statements[0]);
+        var datum = statements[0] as Ronin.Grammar.Declaration.Datum;
+        Assert.NotNull(datum);
+        Assert.NotNull(datum.Datatype);
+        Assert.NotEmpty(datum.Datatype.Values);
+        Name name = datum.Datatype.Values[0];
+        Assert.NotNull(name);
     }
 }

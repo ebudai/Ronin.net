@@ -65,9 +65,9 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsAssignableFrom<Statement>(syntax[0]);
-        var statement = syntax[0] as Statement;
-        Assert.NotNull(statement.Reference);
+        Assert.IsType<Reference>(syntax[0]);
+        var reference = syntax[0] as Reference;
+        Assert.NotNull(reference);
     }
 
     [Fact(DisplayName = "missing datatype and initializer")]
