@@ -30,7 +30,7 @@ internal class Identifier : Syntax, IParsable
 
     internal Component[] Components;
 
-    internal class Component : Syntax, IParsable
+    public class Component : Syntax, IParsable
     {
         public static Syntax Parse(ref Parser context)
             => Name.Parse(ref context) 

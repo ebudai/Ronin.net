@@ -11,10 +11,12 @@ internal class Function : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
+
         var modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
         if (parser.Current is not Lexicon.Reserved.Function) return null;
         parser.Advance();
+
         var identifier = Identifier.Parse(ref parser);
         if (identifier is Error or null) return identifier;
 

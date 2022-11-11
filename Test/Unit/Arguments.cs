@@ -23,13 +23,13 @@ public class Arguments
         Ronin.Grammar.Arguments arguments = reference.Values[0];
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
-        Name name = arguments.Values[0];
+        Ronin.Grammar.Name name = arguments.Values[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal("test", name.Words[0]);
     }
 
-    /*[Fact(DisplayName = "separated")]
+    [Fact(DisplayName = "separated")]
     public void Separated()
     {
         const string declaration = "(test, stuff)";
@@ -40,25 +40,26 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Reference>(syntax[0]);
-        var reference = syntax[0] as Ronin.Grammar.Reference;
-        Assert.NotEmpty(reference.Name);
-        Assert.True(reference.Name[0].IsT2);
-        var @object = reference.Name[0].AsT2;
-        Assert.Equal(2, @object.Parameters.Length);
+        Assert.IsType<Reference>(syntax[0]);
+        var reference = syntax[0] as Reference;
+        Assert.NotNull(reference);
+        Assert.NotEmpty(reference.Values);
+        Ronin.Grammar.Arguments arguments = reference.Values[0];
+        Assert.NotNull(arguments);
+        Assert.Equal(2, arguments.Values.Length);
 
-        Assert.NotEmpty(@object.Parameters[0].Name);
-        Assert.True(@object.Parameters[0].Name[0].IsT0);
-        string name = @object.Parameters[0].Name[0].AsT0;
-        Assert.Equal("test", name);
+        Ronin.Grammar.Name test = arguments.Values[0];
+        Assert.NotNull(test);
+        Assert.NotEmpty(test.Words);
+        Assert.Equal("test", test.Words[0]);
 
-        Assert.NotEmpty(@object.Parameters[1].Name);
-        Assert.True(@object.Parameters[1].Name[0].IsT0);
-        string stuff = @object.Parameters[1].Name[0].AsT0;
-        Assert.Equal("stuff", stuff);
+        Ronin.Grammar.Name stuff = arguments.Values[1];
+        Assert.NotNull(stuff);
+        Assert.NotEmpty(stuff.Words);
+        Assert.Equal("stuff", stuff.Words[0]);
     }
 
-    [Fact(DisplayName = "empty parenthesis")]
+    /*[Fact(DisplayName = "empty parenthesis")]
     public void Empty()
     {
         const string declaration = "();";
@@ -75,6 +76,5 @@ public class Arguments
         Assert.True(reference.Name[0].IsT2);
         var @object = reference.Name[0].AsT2;
         Assert.Empty(@object.Parameters);
-
     }*/
 }

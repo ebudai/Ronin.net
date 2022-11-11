@@ -3,15 +3,11 @@ using Ronin.Lexicon.Reserved;
 
 namespace Ronin.Grammar.Declaration;
 
-internal class Datum : Syntax, IParsable
+internal class Datum : Parameter, IParsable
 {
     internal Declarator Mutability { get; private init; }
-    internal string Name { get; private init; }
-    internal Modifiers Is { get; private init; }
-    internal Reference Datatype { get; private init; }
-    internal Value Initializer { get; private init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static new Syntax Parse(ref Parser context)
     {
         Declarator? declarator = context.Current switch
         {
@@ -24,6 +20,7 @@ internal class Datum : Syntax, IParsable
 
         Parser parser = context;
         parser.Advance();
+
         var syntax = Parameter.Parse(ref parser);
         if (syntax is Error or null) return syntax;
         var parameter = syntax as Parameter;

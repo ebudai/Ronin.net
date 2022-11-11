@@ -20,7 +20,7 @@ public class Function
         var function = result[0] as Ronin.Grammar.Declaration.Function;
         Assert.NotNull(function);
         Assert.NotEmpty(function.Identifier.Components);
-        Name name = function.Identifier.Components[0];
+        Ronin.Grammar.Name name = function.Identifier.Components[0];
         Assert.NotNull(name);
         Assert.Equal("test", string.Join(' ', name.Words));
 

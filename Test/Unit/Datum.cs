@@ -31,7 +31,7 @@ public class Datum
         Assert.Equal("my variable", datum.Name);
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
-        Name name = datum.Datatype.Values[0];
+        Ronin.Grammar.Name name = datum.Datatype.Values[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         var datatype = name.Words[0];
@@ -131,7 +131,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Is.Compiled);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Name)value).SelectMany(name => name.Words));
+        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{compiled} integer", name);
     }
 
@@ -143,7 +143,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Is.Persistent);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Name)value).SelectMany(name => name.Words));
+        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{persistent} integer", name);
     }
 
@@ -155,7 +155,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Is.Optional);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Name)value).SelectMany(name => name.Words));
+        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{optional} integer", name);
     }
 
@@ -167,7 +167,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Is.Shared);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Name)value).SelectMany(name => name.Words));
+        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{shared} integer", name);
     }
 
@@ -203,7 +203,7 @@ public class Datum
 
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
-        Name name = datum.Datatype.Values[0];
+        Ronin.Grammar.Name name = datum.Datatype.Values[0];
         Assert.NotNull(name);
         Assert.Equal(3, name.Words.Length);
         Assert.Equal(import, name.Words[0]);
@@ -218,7 +218,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Name name = datum.Initializer;
+        Ronin.Grammar.Name name = datum.Initializer;
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal("things", name.Words[0]);
@@ -231,7 +231,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Name name = datum.Initializer;
+        Ronin.Grammar.Name name = datum.Initializer;
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal(import, name.Words[0]);
@@ -244,7 +244,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Name name = datum.Initializer;
+        Ronin.Grammar.Name name = datum.Initializer;
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal(import, name.Words[0]);
@@ -259,7 +259,7 @@ public class Datum
 
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
-        Name name = datum.Datatype.Values[0];
+        Ronin.Grammar.Name name = datum.Datatype.Values[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal("integer", name.Words[0]);
@@ -285,7 +285,7 @@ public class Datum
         var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
-        Name name = datum.Datatype.Values[0];
+        Ronin.Grammar.Name name = datum.Datatype.Values[0];
         Assert.NotNull(name);
         Assert.Equal(reactive, string.Join(' ', name.Words));
     }
@@ -304,7 +304,7 @@ public class Datum
         Assert.IsType<Ronin.Grammar.Declaration.Datum>(syntax[0]);
         var datum = syntax[0] as Ronin.Grammar.Declaration.Datum;
         Assert.NotNull(datum);
-        Name name = datum.Initializer;
+        Ronin.Grammar.Name name = datum.Initializer;
         Assert.NotNull(name);
         Assert.Equal(constant, string.Join(' ', name.Words));
     }

@@ -18,10 +18,10 @@ public class Index
         Assert.NotEmpty(statements);
         Assert.IsType<Ronin.Grammar.Declaration.Datum>(statements[0]);
         var datum = statements[0] as Ronin.Grammar.Declaration.Datum;
-        Assert.NotNull(datum);
-        Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Values);
-        Name name = datum.Datatype.Values[0];
-        Assert.NotNull(name);
+        Assert.NotNull(datum?.Datatype?.Index);
+        Assert.NotEmpty(datum.Datatype.Index.Values);
+        Scalar scalar = datum.Datatype.Index.Values[0];
+        Assert.NotEmpty(scalar.Literals);
+        Assert.Equal("4", scalar.Literals[0].ToString());
     }
 }

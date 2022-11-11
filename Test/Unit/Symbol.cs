@@ -111,6 +111,4 @@ public class Symbol
 
     [Fact(DisplayName = "period")]
     public void LexPeriod() => LexSymbol<Period>(Period.symbol);
-
-
 }

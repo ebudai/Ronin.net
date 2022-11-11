@@ -6,10 +6,10 @@ namespace Ronin.Grammar;
 
 internal class Parameter : Syntax, IParsable<Parameter>
 {
-    internal Modifiers Is { get; init; }
-    internal string Name { get; init; }
-    internal Reference Datatype { get; init; }
-    internal Value Initializer { get; init; }
+    internal Modifiers Is { get; protected private init; }
+    internal string Name { get; protected private init; }
+    internal Reference Datatype { get; protected private init; }
+    internal Value Initializer { get; protected private init; }
 
     public static Parameter FromSyntax(Syntax syntax) => syntax as Parameter;
 
