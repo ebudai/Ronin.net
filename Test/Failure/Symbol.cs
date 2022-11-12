@@ -3,6 +3,7 @@ using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class Symbol
 {
     [Fact(DisplayName = "isn't a symbol")]

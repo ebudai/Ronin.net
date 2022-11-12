@@ -3,6 +3,7 @@ using Ronin.Grammar;
 
 namespace Unit;
 
+[Trait("Parser", null)]
 public class Arguments
 {
     [Fact(DisplayName = "basic")]

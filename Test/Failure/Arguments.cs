@@ -3,6 +3,7 @@ using Ronin.Grammar;
 
 namespace Failure;
 
+[Trait("Parser", null)]
 public class Arguments
 {
     [Fact(DisplayName = "does not start with (")]
@@ -31,7 +32,7 @@ public class Arguments
         Assert.Empty(syntax);
     }
 
-    /*[Fact(DisplayName = "recursive bad syntax")]
+    [Fact(DisplayName = "recursive bad syntax")]
     public void RecursiveBadSyntax()
     {
         const string sourcecode = "(test, (thing;stuff));";
@@ -42,8 +43,8 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsAssignableFrom<Expected>(syntax[^1]);
-    }*/
+        Assert.IsAssignableFrom<Error>(syntax[^1]);
+    }
 
     [Fact(DisplayName = "terminated incorrectly")]
     public void TerminatedWrong()

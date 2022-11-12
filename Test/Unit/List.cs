@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+[Trait("Parser", null)]
 public class List
 {
     [Fact(DisplayName = "basic")]

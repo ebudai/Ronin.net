@@ -5,6 +5,7 @@ using Ronin.Lexicon.Literals;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class TextLiteral
 {
     [Fact(DisplayName = "without quotes")]

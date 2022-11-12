@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class UrlLiteral
 {
     [Fact(DisplayName = "basic")]

@@ -3,6 +3,7 @@ using Ronin.Lexicon;
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class BinaryLiteral
 {
     [Fact(DisplayName = "basic")]

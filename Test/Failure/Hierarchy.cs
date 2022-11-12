@@ -3,6 +3,7 @@ using Ronin.Grammar;
 
 namespace Failure;
 
+[Trait("Parser", null)]
 public class Hierarchy
 {
     [Fact(DisplayName = "missing name")]

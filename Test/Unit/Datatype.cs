@@ -4,6 +4,7 @@ using Ronin.Grammar.Declaration;
 
 namespace Unit;
 
+[Trait("Parser", null)]
 public class Datatype
 {
     [Fact(DisplayName = "basic")]
@@ -59,4 +60,6 @@ public class Datatype
         Ronin.Grammar.Name debttypename = debt.Datatype.Values[0];
         Assert.Equal("money", string.Join(' ', debttypename.Words));
     }
+
+
 }

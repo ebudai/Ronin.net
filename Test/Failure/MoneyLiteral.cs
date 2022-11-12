@@ -5,6 +5,7 @@ using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class MoneyLiteral
 {
     [Fact(DisplayName = "doesn't start with a dollar sign")]

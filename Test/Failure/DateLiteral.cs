@@ -3,6 +3,7 @@ using Ronin.Lexicon;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class DateLiteral
 {
     [Fact(DisplayName = "not a date literal")]

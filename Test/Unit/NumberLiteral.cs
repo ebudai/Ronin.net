@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class NumberLiteral
 {
     [Fact(DisplayName = "basic")]

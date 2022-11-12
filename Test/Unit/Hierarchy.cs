@@ -1,10 +1,9 @@
-﻿using Failure;
-using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 
 namespace Unit;
 
+[Trait("Parser", null)]
 public class Hierarchy
 {
     [Fact(DisplayName = "basic")]

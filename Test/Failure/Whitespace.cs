@@ -2,6 +2,7 @@
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class Whitespace
 {
     [Fact(DisplayName = "no data")]

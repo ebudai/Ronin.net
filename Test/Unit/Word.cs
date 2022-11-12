@@ -1,5 +1,6 @@
 ﻿namespace Unit;
 
+[Trait("Lexer", null)]
 public class Word
 {
     [Fact(DisplayName = "basic")]

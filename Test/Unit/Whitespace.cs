@@ -1,7 +1,6 @@
-﻿using Ronin.Compiler;
+﻿namespace Unit;
 
-namespace Unit;
-
+[Trait("Lexer", null)]
 public class Whitespace
 {
     [Fact(DisplayName = "basic")]

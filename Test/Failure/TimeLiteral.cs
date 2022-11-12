@@ -3,6 +3,7 @@ using Ronin.Lexicon;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class TimeLiteral
 {
     [Fact(DisplayName = "not a time literal")]

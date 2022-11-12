@@ -3,7 +3,7 @@
 namespace Ronin.Compiler;
 
 [ExcludeFromCodeCoverage] //remove later
-internal class Program
+internal class EntryPoint
 {
     static void Main()
     {

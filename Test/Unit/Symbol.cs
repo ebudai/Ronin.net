@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class Symbol
 {
     private static void LexSymbol<T>(string lexed) where T : Ronin.Lexicon.Symbol

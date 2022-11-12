@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class DateLiteral
 {
     [Fact(DisplayName = "basic")]

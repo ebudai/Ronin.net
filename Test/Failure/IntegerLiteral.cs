@@ -4,6 +4,7 @@ using Ronin.Lexicon.Literals;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class IntegerLiteral
 {
     [Fact(DisplayName = "doesn't start with a number")]

@@ -1,5 +1,6 @@
 ﻿namespace Unit;
 
+[Trait("Lexer", null)]
 public class Keyword
 {
     private const string datatype = Ronin.Lexicon.Reserved.Datatype.keyword;

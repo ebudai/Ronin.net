@@ -2,6 +2,7 @@ using Ronin.Lexicon;
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class TextLiteral
 {
     [Fact(DisplayName = "basic")]

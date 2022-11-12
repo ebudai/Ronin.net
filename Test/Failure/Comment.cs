@@ -2,6 +2,7 @@
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class Comment
 {
     [Fact(DisplayName = "no comment start")]

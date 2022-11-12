@@ -6,6 +6,7 @@ using static Ronin.Grammar.Declaration.Datum;
 
 namespace Unit;
 
+[Trait("Parser", null)]
 public class Datum
 {
     private const string var = Variable.keyword;

@@ -3,6 +3,7 @@ using Ronin.Lexicon;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class BinaryLiteral
 {
     [Fact(DisplayName = "doesn't start with 0x")]

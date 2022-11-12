@@ -4,6 +4,7 @@ using Ronin.Lexicon.Literals;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class HexLiteral
 {
     [Fact(DisplayName = "doesn't start with 0x")]

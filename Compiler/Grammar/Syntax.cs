@@ -52,15 +52,15 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 /*
 [+ means and/or]
 
-x declare function - modifiers declarator identifier scope
-x declare datatype - modifiers declarator identifier { '=' reference } (optional) [algebra]s scope
+x declare function - modifiers 'function' identifier scope
+x declare datatype - modifiers 'datatype' identifier { '=' reference } (optional) [algebra]s scope
 x declare datum - declarator parameter
 x identifier - name + parameters ...
 x reference - name + value ...
 x import - 'import' name
 x partof - 'part of' name
 
-x declarator - 'var' or 'constant' or 'let' or 'function' or 'datatype'
+x declarator - 'var' or 'constant' or 'let'
 x modifiers - 'optional' or 'compiled' or 'persistent' or 'shared'
 x name - word + wordable symbol ... [symbols don't need to be separated]
 x assignment - name = value
@@ -75,5 +75,5 @@ aggregates
 x arguments - '(' value, ... ')'
 x index - '[' value,... ']'
 x scope - '{' value; ... '}'
-x parameters - '(' parameter, ... ')'
+x parameters - '(' parameter + assignment, ... ')'
 */

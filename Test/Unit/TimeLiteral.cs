@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class TimeLiteral
 {
     [Fact(DisplayName = "two digits with spaced suffix")]

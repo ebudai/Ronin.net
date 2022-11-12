@@ -3,6 +3,7 @@ using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class HexLiteral
 {
     [Fact(DisplayName = "basic")]

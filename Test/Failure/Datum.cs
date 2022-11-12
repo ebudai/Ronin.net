@@ -6,6 +6,7 @@ using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
+[Trait("Parser", null)]
 public class Datum
 {
     private const string reactive = Reactive.keyword;

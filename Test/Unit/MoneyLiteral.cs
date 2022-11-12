@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class MoneyLiteral
 {
     [Fact(DisplayName = "basic")]

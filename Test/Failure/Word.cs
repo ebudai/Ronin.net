@@ -2,7 +2,8 @@
 
 namespace Failure;
 
-public class Name
+[Trait("Lexer", null)]
+public class Word
 {
     [Fact(DisplayName = "not a valid name")]
     public void NotAName()

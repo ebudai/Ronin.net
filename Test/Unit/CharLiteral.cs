@@ -1,8 +1,8 @@
-﻿using Ronin.Compiler;
-using Ronin.Lexicon;
+﻿using Ronin.Lexicon;
 
 namespace Unit;
 
+[Trait("Lexer", null)]
 public class CharLiteral
 {
     [Fact(DisplayName = "basic")]
@@ -20,7 +20,7 @@ public class CharLiteral
     [Fact(DisplayName = "unicode")]
     public void Unicode()
     {
-        const string literal = "'\u44A2'";
+        const string literal = @"'\u44A2'";
 
         Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);

@@ -3,6 +3,7 @@ using Ronin.Lexicon;
 
 namespace Failure;
 
+[Trait("Lexer", null)]
 public class CharLiteral
 {
     [Fact(DisplayName = "no single quotes")]
@@ -52,7 +53,7 @@ public class CharLiteral
     [Fact(DisplayName = "unichar with bad contents")]
     public void BadUnichar()
     {
-        const string literal = "'\\uABH7'";
+        const string literal = @"'\uABH7'";
 
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
