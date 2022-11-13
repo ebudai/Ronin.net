@@ -22,6 +22,6 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Program\" />
+    <Folder Include="Program\Primitives\" />
   </ItemGroup>
 </Project>
