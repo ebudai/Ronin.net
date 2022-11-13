@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Ronin.Compiler;
-
 [ExcludeFromCodeCoverage] //remove later
-internal class EntryPoint
+internal class Program
 {
     static void Main()
     {
