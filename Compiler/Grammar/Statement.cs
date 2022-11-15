@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-internal class Statement : Syntax, IParsable<Statement>
+internal class Statement : Syntax, Compiler.IParsable<Statement>
 {
     public static Syntax Parse(ref Parser context)
     {

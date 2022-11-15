@@ -7,15 +7,15 @@ internal partial class Declaration
 {
     internal class Datum : Parameter, IParsable
     {
-        internal Declarator Mutability { get; private init; }
+        internal Mutability Mutability { get; private init; }
 
         public static new Syntax Parse(ref Parser context)
         {
-            Declarator? declarator = context.Current switch
+            Mutability? declarator = context.Current switch
             {
-                Variable => Declarator.Variable,
-                Constant => Declarator.Constant,
-                Reactive => Declarator.Reactive,
+                Variable => Mutability.Variable,
+                Constant => Mutability.Constant,
+                Reactive => Mutability.Reactive,
                 _ => null
             };
             if (declarator is null) return null;
@@ -37,7 +37,5 @@ internal partial class Declaration
                 Source = parser.Commit(ref context)
             };
         }
-
-        internal enum Declarator { Variable, Constant, Reactive };
     }
 }

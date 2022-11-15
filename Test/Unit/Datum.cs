@@ -28,7 +28,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Mutability is Declarator.Variable);
+        Assert.True(datum.Mutability is Mutability.Variable);
         Assert.Equal("my variable", string.Join(' ', datum.Name.Words));
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
@@ -47,7 +47,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Mutability is Declarator.Reactive);
+        Assert.True(datum.Mutability is Mutability.Reactive);
     }
 
     [Fact(DisplayName = $"{compiled}")]
@@ -67,7 +67,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Mutability is Declarator.Constant);
+        Assert.True(datum.Mutability is Mutability.Constant);
         Assert.True(datum.Is.Persistent);
     }
 
@@ -98,7 +98,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Mutability is Declarator.Reactive);
+        Assert.True(datum.Mutability is Mutability.Reactive);
         Assert.Equal($"{reactive} thing", string.Join(' ', datum.Name.Words));        
     }
 
@@ -109,7 +109,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.True(datum.Mutability is Declarator.Constant);
+        Assert.True(datum.Mutability is Mutability.Constant);
         Assert.Equal($"{constant} thing", string.Join(' ', datum.Name.Words));
     }
 
@@ -120,7 +120,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.False(datum.Mutability is Declarator.Constant);
+        Assert.False(datum.Mutability is Mutability.Constant);
         Assert.Equal($"{var} thing", string.Join(' ', datum.Name.Words));
     }
 
@@ -191,7 +191,7 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Assert.False(datum.Mutability is Declarator.Constant);
+        Assert.False(datum.Mutability is Mutability.Constant);
         Assert.Equal($"{shared} {reactive}", string.Join(' ', datum.Name.Words));
     }
 

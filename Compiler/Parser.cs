@@ -5,6 +5,16 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Compiler;
 
+internal interface IParsable
+{
+    public static abstract Syntax Parse(ref Parser parser);
+}
+
+internal interface IParsable<T> : IParsable
+{
+    public static abstract T FromSyntax(Syntax syntax);
+}
+
 public ref struct Parser
 {
     public Parser(Token[] tokens) => this.tokens = tokens;

@@ -6,9 +6,9 @@ internal partial class Declaration
 {
     internal class Function : Syntax, IParsable
     {
-        internal Modifiers Is { get; private init; }
-        internal Identifier Identifier { get; private init; }
-        internal Scope Body { get; private init; }
+        public Modifiers Is { get; private init; }
+        public Identifier Identifier { get; private init; }
+        public Scope Body { get; private init; }
 
         public static Syntax Parse(ref Parser context)
         {

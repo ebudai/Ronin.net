@@ -4,7 +4,7 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal class Parameter : Syntax, IParsable<Parameter>
+internal class Parameter : Syntax, Compiler.IParsable<Parameter>
 {
     internal Modifiers Is { get; protected private init; }
     internal Name Name { get; protected private init; }

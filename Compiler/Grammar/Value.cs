@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-internal class Value : Syntax, IParsable<Value>
+internal class Value : Syntax, Compiler.IParsable<Value>
 {
     public static Syntax Parse(ref Parser context)
         => Scalar.Parse(ref context)

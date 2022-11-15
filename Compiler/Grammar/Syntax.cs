@@ -2,23 +2,13 @@
 
 namespace Ronin.Grammar;
 
-internal interface IParsable
-{
-    public static abstract Syntax Parse(ref Parser parser);
-}
-
-internal interface IParsable<T> : IParsable
-{
-    public static abstract T FromSyntax(Syntax syntax);
-}
-
 public abstract class Syntax
 {
     protected internal SourceLocation[] Source { get; init; }
 }
 
 internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable
-    where TElement : class, IParsable<TElement>
+    where TElement : class, Compiler.IParsable<TElement>
     where T : AggregateSyntax<T, TOpen, TElement, TSeparator, TClose>, new()
 {
     public static Syntax Parse(ref Parser context)
@@ -50,10 +40,11 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 }
 
 /*
+
 [+ means and/or]
 
 x declare function - modifiers 'function' identifier scope
-x declare datatype - modifiers 'datatype' identifier { '=' reference } (optional) [algebra]s scope
+x declare datatype - modifiers 'datatype' identifier { '=' reference } (optional) [algebra] scope
 x declare datum - declarator parameter
 x identifier - name + parameters ...
 x reference - name + value ...
@@ -64,7 +55,7 @@ x declarator - 'var' or 'constant' or 'let'
 x modifiers - 'optional' or 'compiled' or 'persistent' or 'shared'
 x name - word + wordable symbol ... [symbols don't need to be separated]
 x assignment - name = value
-x parameter - explicit - name => modifiers reference [datatype] = value (optionally) [initializer]
+x parameter - explicit - name => modifiers reference [datatype] { '=' value } (optionally) [initializer]
             - implicit - assignment
 x scalar - literal ...
 x value - scalar or aggregate or reference or declaration [ie: returns a function tearaway or datatype value etc]
@@ -76,4 +67,5 @@ x arguments - '(' value, ... ')'
 x index - '[' value,... ']'
 x scope - '{' value; ... '}'
 x parameters - '(' parameter + assignment, ... ')'
+
 */
