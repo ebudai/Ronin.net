@@ -2,9 +2,9 @@
 
 namespace Ronin.Grammar;
 
-internal partial class Declaration
+internal class Function
 {
-    internal class Function : Syntax, IParsable
+    internal class Declaration : Syntax, IParsable
     {
         public Modifiers Is { get; private init; }
         public Identifier Identifier { get; private init; }
@@ -25,7 +25,7 @@ internal partial class Declaration
             var body = Scope.Parse(ref parser);
             if (body is Error or null) return body;
 
-            return new Function
+            return new Declaration
             {
                 Is = modifiers,
                 Identifier = identifier as Identifier,

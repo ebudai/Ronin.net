@@ -2,4 +2,8 @@
 
 internal class Function : Block
 {
+    internal void GeneratePrimitiveMath()
+    {
+
+    }
 }

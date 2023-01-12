@@ -3,9 +3,9 @@ using Ronin.Lexicon.Reserved;
 
 namespace Ronin.Grammar;
 
-internal partial class Declaration
+internal partial class Datum
 {
-    internal class Datum : Parameter, IParsable
+    internal class Declaration : Parameter, IParsable
     {
         internal Mutability Mutability { get; private init; }
 
@@ -27,7 +27,7 @@ internal partial class Declaration
             if (syntax is Error or null) return syntax;
             var parameter = syntax as Parameter;
 
-            return new Datum
+            return new Declaration
             {
                 Mutability = declarator.Value,
                 Name = parameter.Name,

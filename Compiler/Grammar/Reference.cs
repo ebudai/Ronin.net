@@ -35,4 +35,21 @@ internal class Reference : Syntax, IParsable
             Source = parser.Commit(ref context) 
         };
     }
+
+    public List<Identifier.Component> Match(Identifier.Component[] components)
+    {
+        List<Identifier.Component> misses = new();
+        foreach (var value in Values)
+        {
+            foreach (var component in components)
+            {
+                Name name = component;
+                if (name is not null)
+                {
+
+                }
+            }
+        }
+        return misses;
+    }
 }

@@ -1,16 +1,17 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal partial class Declaration
+internal class Datatype
 {
-    internal class Datatype : Syntax, IParsable
+    internal class Declaration : Syntax, IParsable
     {
-        public Modifiers Is { get; private init; }
-        public Identifier Identifier { get; private init; }
-        public Reference Algebra { get; private init; }
-        public Scope Body { get; private init; }
+        public Modifiers Is { get; init; }
+        public Identifier Identifier { get; init; }
+        public Reference Algebra { get; init; }
+        public Scope Body { get; init; }
 
         public static Syntax Parse(ref Parser context)
         {
@@ -35,7 +36,7 @@ internal partial class Declaration
             var body = Scope.Parse(ref parser);
             if (body is Error or null) return body;
 
-            return new Datatype
+            return new Declaration
             {
                 Is = modifiers,
                 Identifier = identifier as Identifier,
@@ -45,4 +46,17 @@ internal partial class Declaration
             };
         }
     }
+
+    /*internal static Datatype Of(Scalar scalar)
+    {
+        if (scalar.Literals.Length is 0) return null; // this should be Scope.Global.stuff
+
+        if (scalar.Literals[0] is Binary binary)
+        {
+            var number = binary.Sourcecode[2..].Span
+        }
+
+
+        return default;
+    }*/
 }

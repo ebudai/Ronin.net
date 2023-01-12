@@ -4,6 +4,8 @@ namespace Ronin.Grammar;
 
 internal class Identifier : Syntax, IParsable
 {
+    public List<Component> Components { get; init; }
+
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
@@ -25,10 +27,8 @@ internal class Identifier : Syntax, IParsable
 
         if (components.Count is 0) return null;
 
-        return new Identifier { Components = components.ToArray(), Source = parser.Commit(ref context) };
+        return new Identifier { Components = components, Source = parser.Commit(ref context) };
     }
-
-    internal Component[] Components;
 
     public class Component : Syntax, IParsable
     {
@@ -41,6 +41,29 @@ internal class Identifier : Syntax, IParsable
 
         public static implicit operator Name(Component component) => component._storage as Name;
         public static implicit operator Parameters(Component component) => component._storage as Parameters;
+
+        /*public bool Matches(Value value)
+        {
+            Scalar scalar = value;
+            if (scalar is not null) return Matches(scalar);
+            {
+                if (_storage is Parameters parameters)
+                {
+                    //return parameters.Values.Length is 1 && 
+                }
+            }
+
+
+            return false;
+        }
+
+        private bool Matches(Scalar scalar)
+        {
+            if (_storage is Parameters parameters)
+            {
+
+            }
+        }*/
 
         private object _storage;
     }
