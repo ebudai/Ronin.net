@@ -2,11 +2,11 @@
 
 internal class Datatype : Block
 {
-    internal static void CreatePrimitiveDatatypes() => types.ForEach(CreatePrimitiveDatatype);
+    internal static void CreatePrimitiveDatatypes() => primitives.ForEach(CreatePrimitiveDatatype);
 
     private static void CreatePrimitiveDatatype(string name) => Global.Datatypes.Add(name.Split(' '), new Datatype { Parent = Global });
 
-    private static readonly List<string> types = new()
+    private static readonly List<string> primitives = new()
     {
         "something",
         "nothing",

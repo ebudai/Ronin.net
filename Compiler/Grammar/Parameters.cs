@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-internal class Parameters : AggregateSyntax<Parameters, OpenParenthesis, Parameter, Comma, CloseParenthesis> 
+internal class Parameters : AggregateSyntax<Parameters, OpenParenthesis, Argument, Comma, CloseParenthesis> 
 {
     public bool Matches(Scalar scalar)
     {

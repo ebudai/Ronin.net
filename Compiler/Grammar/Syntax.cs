@@ -8,8 +8,8 @@ public abstract class Syntax
 }
 
 internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable
-    where TElement : class, Compiler.IParsable<TElement>
     where T : AggregateSyntax<T, TOpen, TElement, TSeparator, TClose>, new()
+    where TElement : class, IParsableUnion<TElement>
 {
     public static Syntax Parse(ref Parser context)
     {
@@ -29,7 +29,7 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
                 parser.Advance();
                 break;
             }
-            buffer.Add(TElement.FromSyntax(syntax));
+            buffer.Add(syntax);
             if (parser.Current is TSeparator) parser.Advance();
         }
 
@@ -38,7 +38,6 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
 
     protected internal TElement[] Values;
 }
-
 /*
 
 [+ means and/or]

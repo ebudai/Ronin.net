@@ -10,9 +10,9 @@ internal interface IParsable
     public static abstract Syntax Parse(ref Parser parser);
 }
 
-internal interface IParsable<T> : IParsable
+internal interface IParsableUnion<T> : IParsable where T : IParsableUnion<T>
 {
-    public static abstract T FromSyntax(Syntax syntax);
+    public static abstract implicit operator T(Syntax syntax);
 }
 
 public ref struct Parser
@@ -29,7 +29,7 @@ public ref struct Parser
             if (trivia is not null) continue;
             var statement = Statement.Parse(ref this);
             if (statement is Error error) Index = error.Cursor;
-            if (Current is not Terminal and not Sentinel) statement = ExpectedTerminal.Parse(ref this);
+            if (Current is not Terminal and not Sentinel) statement = ExpectedTerminalError.Parse(ref this);
             statements.Add(statement);
         }
 
@@ -40,7 +40,7 @@ public ref struct Parser
 
     internal ref readonly Token Current => ref tokens[Index];
 
-    internal ref readonly Token this[int index] => ref tokens[this.Index + index];
+    internal ref readonly Token this[int index] => ref tokens[Index + index];
     internal ReadOnlySpan<Token> this[Range range] => tokens[range];
 
     internal bool IsNotFinished => Current is not Sentinel;

@@ -4,14 +4,12 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal class Parameter : Syntax, Compiler.IParsable<Parameter>
+internal class Parameter : Syntax, IParsable
 {
     internal Modifiers Is { get; protected private init; }
     internal Name Name { get; protected private init; }
     internal Reference Datatype { get; protected private init; }
     internal Value Initializer { get; protected private init; }
-
-    public static Parameter FromSyntax(Syntax syntax) => syntax as Parameter;
 
     public static Syntax Parse(ref Parser context)
     {
@@ -29,7 +27,7 @@ internal class Parameter : Syntax, Compiler.IParsable<Parameter>
             modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
             datatype = Reference.Parse(ref parser);
-            if (datatype is Error or null) return datatype ?? ExpectedReference.Parse(ref context);
+            if (datatype is Error or null) return datatype ?? ExpectedReferenceError.Parse(ref context);
         }
         
         Syntax initializer = null;
@@ -39,14 +37,14 @@ internal class Parameter : Syntax, Compiler.IParsable<Parameter>
             initializer = Value.Parse(ref parser);
         }
 
-        if (datatype is null && initializer is null) return UnknownDatatype.Parse(ref context);
+        if (datatype is null && initializer is null) return UnknownDatatypeError.Parse(ref context);
 
         return new Parameter
         {
             Name = name,
             Is = modifiers,
             Datatype = datatype as Reference,
-            Initializer = Value.FromSyntax(initializer),
+            Initializer = initializer,
             Source = parser.Commit(ref context)
         };
     }

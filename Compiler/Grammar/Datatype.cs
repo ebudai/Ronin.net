@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;

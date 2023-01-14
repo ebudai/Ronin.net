@@ -4,7 +4,7 @@ using Ronin.Grammar;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Arguments
+public class Values
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -21,7 +21,7 @@ public class Arguments
         var reference = syntax[0] as Reference;
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Arguments arguments = reference.Values[0];
+        Ronin.Grammar.Values arguments = reference.Values[0];
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
         Ronin.Grammar.Name name = arguments.Values[0];
@@ -45,7 +45,7 @@ public class Arguments
         var reference = syntax[0] as Reference;
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Arguments arguments = reference.Values[0];
+        Ronin.Grammar.Values arguments = reference.Values[0];
         Assert.NotNull(arguments);
         Assert.Equal(2, arguments.Values.Length);
 

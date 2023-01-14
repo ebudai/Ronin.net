@@ -39,7 +39,7 @@ internal class Hierarchy : Syntax, IParsable
             }
             else if (parser.Current is not Terminal)
             {
-                return ExpectedTerminal.Parse(ref context);
+                return ExpectedTerminalError.Parse(ref context);
             }
             else
             {

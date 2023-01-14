@@ -24,7 +24,7 @@ internal class Assignment : Syntax, IParsable
         return new Assignment
         {
             Name = name,
-            Value = Value.FromSyntax(value),
+            Value = value,
             Source = parser.Commit(ref context),
         };
     }

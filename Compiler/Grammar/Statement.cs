@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-internal class Statement : Syntax, Compiler.IParsable<Statement>
+internal class Statement : IParsableUnion<Statement>
 {
     public static Syntax Parse(ref Parser context)
     {
@@ -20,7 +20,14 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
         return syntax;
     }
 
-    public static Statement FromSyntax(Syntax syntax) => syntax switch 
+    public static implicit operator Hierarchy(Statement statement) => statement._storage as Hierarchy;
+    public static implicit operator Datum.Declaration(Statement statement) => statement._storage as Datum.Declaration;
+    public static implicit operator Function.Declaration(Statement statement) => statement._storage as Function.Declaration;
+    public static implicit operator Datatype.Declaration(Statement statement) => statement._storage as Datatype.Declaration;
+    public static implicit operator Assignment(Statement statement) => statement._storage as Assignment;
+    public static implicit operator Reference(Statement statement) => statement._storage as Reference;
+
+    public static implicit operator Statement(Syntax syntax) => syntax switch
     {
         Hierarchy hierarchy => new() { _storage = hierarchy },
         Datum.Declaration datum => new() { _storage = datum },
@@ -30,13 +37,6 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
         Reference reference => new() { _storage = reference },
         _ => null,
     };
-
-    public static implicit operator Hierarchy(Statement statement) => statement._storage as Hierarchy;
-    public static implicit operator Datum.Declaration(Statement statement) => statement._storage as Datum.Declaration;
-    public static implicit operator Function.Declaration(Statement statement) => statement._storage as Function.Declaration;
-    public static implicit operator Datatype.Declaration(Statement statement) => statement._storage as Datatype.Declaration;
-    public static implicit operator Assignment(Statement statement) => statement._storage as Assignment;
-    public static implicit operator Reference(Statement statement) => statement._storage as Reference;
 
     private object _storage;
 }

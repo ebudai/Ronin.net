@@ -20,7 +20,7 @@ internal class Reference : Syntax, IParsable
             
             var syntax = Value.Parse(ref parser);
             if (syntax is Error or null) return syntax;
-            values.Add(Value.FromSyntax(syntax));            
+            values.Add(syntax);
         }
 
         if (values.Count is 0) return null;
