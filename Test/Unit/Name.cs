@@ -21,7 +21,7 @@ public class Name
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Values);
         Ronin.Grammar.Name name = reference.Values[0];
-        Assert.Equal(3, name.Words.Length);
+        Assert.Equal(3, name.Words.Count);
         Assert.Equal("name", name.Words[0]);
         Assert.Equal("+", name.Words[1]);
         Assert.Equal("things", name.Words[2]);

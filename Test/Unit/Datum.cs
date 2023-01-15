@@ -206,7 +206,7 @@ public class Datum
         Assert.NotEmpty(datum.Datatype.Values);
         Ronin.Grammar.Name name = datum.Datatype.Values[0];
         Assert.NotNull(name);
-        Assert.Equal(3, name.Words.Length);
+        Assert.Equal(3, name.Words.Count);
         Assert.Equal(import, name.Words[0]);
         Assert.Equal(shared, name.Words[1]);
         Assert.Equal("things", name.Words[2]);

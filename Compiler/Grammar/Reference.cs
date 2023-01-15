@@ -37,9 +37,9 @@ internal class Reference : Syntax, IParsable
         };
     }
 
-    public List<Identifier.Component> Match(Identifier.Component[] components)
+    /*public List<IdentifierComponent> Match(IdentifierComponent[] components)
     {
-        List<Identifier.Component> misses = new();
+        List<IdentifierComponent> misses = new();
         foreach (var value in Values)
         {
             foreach (var component in components)
@@ -52,5 +52,5 @@ internal class Reference : Syntax, IParsable
             }
         }
         return misses;
-    }
+    }*/
 }

@@ -5,7 +5,7 @@ namespace Ronin.Grammar;
 
 internal class Name : Syntax, IParsable
 {
-    internal string[] Words { get; init; }
+    internal List<string> Words { get; init; }
 
     public static Syntax Parse(ref Parser context)
     {
@@ -32,6 +32,6 @@ internal class Name : Syntax, IParsable
 
         if (names.Count is 0) return null;
 
-        return new Name { Words = names.ToArray(), Source = parser.Commit(ref context) };
+        return new Name { Words = names, Source = parser.Commit(ref context) };
     }
 }
