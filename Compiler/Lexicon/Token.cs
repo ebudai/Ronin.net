@@ -6,6 +6,8 @@ public abstract class Token
 {
     public override string ToString() => Sourcecode.ToString();
 
+    public static implicit operator string(Token token) => token.ToString();
+
     protected internal ReadOnlyMemory<char> Sourcecode { get; }
     internal SourceLocation SourceLocation { get; }
 

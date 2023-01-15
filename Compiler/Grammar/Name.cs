@@ -14,19 +14,9 @@ internal class Name : Syntax, IParsable
 
         while (parser.IsNotFinished)
         {
-            if (parser.Current is Word word)
-            {
-                names.Add(word.ToString());
-            }
-            else if (parser.Current is Symbol symbol and not Punctuation)
-            {
-                names.Add(symbol.ToString());
-            }
-            else
-            {
-                break;
-            }
-
+            var name = parser.Current;
+            if (name is Word or Symbol and not Punctuation) names.Add(name);
+            else break;
             parser.Advance();
         }
 

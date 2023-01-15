@@ -23,5 +23,9 @@ internal class Scope : AggregateSyntax<Scope, OpenBrace, Statement, Terminal, Cl
     {
         Global = new();
 
+        Global.Datatypes.Add(new()
+        {
+            Is = new() { }
+        });
     }
 }
