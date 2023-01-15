@@ -1,6 +1,6 @@
-﻿using Ronin.Compiler;
+﻿using Ronin.Grammar;
 
-namespace Ronin.Grammar;
+namespace Ronin.Compiler;
 
 public abstract class Syntax
 {
@@ -9,14 +9,14 @@ public abstract class Syntax
 
 internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable
     where T : AggregateSyntax<T, TOpen, TElement, TSeparator, TClose>, new()
-    where TElement : class, IParsableUnion<TElement>
+    where TElement : IParsableUnion<TElement>
 {
     public static Syntax Parse(ref Parser context)
     {
         if (context.Current is not TOpen) return null;
 
         Parser parser = context;
-        List<TElement> buffer = new();
+        List<TElement> values = new();
         parser.Advance();
 
         while (parser.IsNotFinished)
@@ -29,14 +29,14 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
                 parser.Advance();
                 break;
             }
-            buffer.Add(syntax);
+            values.Add(syntax);
             if (parser.Current is TSeparator) parser.Advance();
         }
 
-        return new T { Values = buffer.ToArray(), Source = parser.Commit(ref context) };
+        return new T { Values = values, Source = parser.Commit(ref context) };
     }
 
-    protected internal TElement[] Values;
+    protected internal List<TElement> Values;
 }
 /*
 

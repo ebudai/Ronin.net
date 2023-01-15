@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Grammar;
+namespace Ronin.Grammar.Unions;
 
 internal class Value : IParsableUnion<Value>
 {

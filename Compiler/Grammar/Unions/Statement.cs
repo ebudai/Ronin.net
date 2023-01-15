@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Grammar;
+namespace Ronin.Grammar.Unions;
 
 internal class Statement : IParsableUnion<Statement>
 {
@@ -9,9 +9,9 @@ internal class Statement : IParsableUnion<Statement>
         Parser parser = context;
 
         var syntax = Hierarchy.Parse(ref parser)
-            ?? Datum.Declaration.Parse(ref parser)
-            ?? Function.Declaration.Parse(ref parser)
-            ?? Datatype.Declaration.Parse(ref parser)
+            ?? Datum.Parse(ref parser)
+            ?? Function.Parse(ref parser)
+            ?? Datatype.Parse(ref parser)
             ?? Assignment.Parse(ref parser)
             ?? Reference.Parse(ref parser);
 
@@ -21,18 +21,18 @@ internal class Statement : IParsableUnion<Statement>
     }
 
     public static implicit operator Hierarchy(Statement statement) => statement._storage as Hierarchy;
-    public static implicit operator Datum.Declaration(Statement statement) => statement._storage as Datum.Declaration;
-    public static implicit operator Function.Declaration(Statement statement) => statement._storage as Function.Declaration;
-    public static implicit operator Datatype.Declaration(Statement statement) => statement._storage as Datatype.Declaration;
+    public static implicit operator Datum(Statement statement) => statement._storage as Datum;
+    public static implicit operator Function(Statement statement) => statement._storage as Function;
+    public static implicit operator Datatype(Statement statement) => statement._storage as Datatype;
     public static implicit operator Assignment(Statement statement) => statement._storage as Assignment;
     public static implicit operator Reference(Statement statement) => statement._storage as Reference;
 
     public static implicit operator Statement(Syntax syntax) => syntax switch
     {
         Hierarchy hierarchy => new() { _storage = hierarchy },
-        Datum.Declaration datum => new() { _storage = datum },
-        Function.Declaration function => new() { _storage = function },
-        Datatype.Declaration datatype => new() { _storage = datatype },
+        Datum datum => new() { _storage = datum },
+        Function function => new() { _storage = function },
+        Datatype datatype => new() { _storage = datatype },
         Assignment assignment => new() { _storage = assignment },
         Reference reference => new() { _storage = reference },
         _ => null,

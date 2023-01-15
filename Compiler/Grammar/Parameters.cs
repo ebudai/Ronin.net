@@ -1,4 +1,6 @@
-﻿using Ronin.Lexicon.Symbols;
+﻿using Ronin.Compiler;
+using Ronin.Grammar.Unions;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -6,7 +8,7 @@ internal class Parameters : AggregateSyntax<Parameters, OpenParenthesis, Argumen
 {
     public bool Matches(Scalar scalar)
     {
-        if (Values.Length is not 1) return false;
+        if (Values.Count is not 1) return false;
         var parameter = Values[0];
         //parameter.
 

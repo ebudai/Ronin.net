@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 
 namespace Unit;
 
@@ -17,8 +16,8 @@ public class Datatype
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Ronin.Grammar.Datatype.Declaration>(result[0]);
-        var datatype = result[0] as Ronin.Grammar.Datatype.Declaration;
+        Assert.IsType<Ronin.Grammar.Datatype>(result[0]);
+        var datatype = result[0] as Ronin.Grammar.Datatype;
         Assert.NotNull(datatype);
         Assert.NotEmpty(datatype.Identifier.Components);
         Ronin.Grammar.Name name = datatype.Identifier.Components[0];
@@ -37,13 +36,13 @@ public class Datatype
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Ronin.Grammar.Datatype.Declaration>(result[0]);
-        var datatype = result[0] as Ronin.Grammar.Datatype.Declaration;
+        Assert.IsType<Ronin.Grammar.Datatype>(result[0]);
+        var datatype = result[0] as Ronin.Grammar.Datatype;
         Assert.NotNull(datatype);
         Assert.NotNull(datatype.Algebra);
-        Assert.Equal(2, datatype.Body.Values.Length);
+        Assert.Equal(2, datatype.Body.Values.Count);
         
-        Ronin.Grammar.Datum.Declaration cash = datatype.Body.Values[0];
+        Ronin.Grammar.Datum cash = datatype.Body.Values[0];
         Assert.NotNull(cash);
         Assert.Equal(Mutability.Variable, cash.Mutability);
         Assert.Equal("cash", cash.Name.Words[0]);
@@ -51,7 +50,7 @@ public class Datatype
         Ronin.Grammar.Name cashtypename = cash.Datatype.Values[0];
         Assert.Equal("money", string.Join(' ', cashtypename.Words));
 
-        Ronin.Grammar.Datum.Declaration debt = datatype.Body.Values[1];
+        Ronin.Grammar.Datum debt = datatype.Body.Values[1];
         Assert.NotNull(debt);
         Assert.Equal(Mutability.Variable, debt.Mutability);
         Assert.Equal("debt", debt.Name.Words[0]);

@@ -2,7 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon.Reserved;
 using Ronin.Lexicon.Symbols;
-using static Ronin.Grammar.Datum.Declaration;
+using static Ronin.Grammar.Datum;
 
 namespace Unit;
 
@@ -282,8 +282,8 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Datum.Declaration>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Datum.Declaration;
+        Assert.IsType<Ronin.Grammar.Datum>(syntax[0]);
+        var datum = syntax[0] as Ronin.Grammar.Datum;
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Values);
         Ronin.Grammar.Name name = datum.Datatype.Values[0];
@@ -302,8 +302,8 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Datum.Declaration>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Datum.Declaration;
+        Assert.IsType<Ronin.Grammar.Datum>(syntax[0]);
+        var datum = syntax[0] as Ronin.Grammar.Datum;
         Assert.NotNull(datum);
         Ronin.Grammar.Name name = datum.Initializer;
         Assert.NotNull(name);
@@ -317,7 +317,7 @@ public class Datum
 
     }*/
 
-    private static Ronin.Grammar.Datum.Declaration Compile(string declaration)
+    private static Ronin.Grammar.Datum Compile(string declaration)
     {
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
@@ -325,7 +325,7 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Datum.Declaration>(syntax[0]);
-        return syntax[0] as Ronin.Grammar.Datum.Declaration;
+        Assert.IsType<Ronin.Grammar.Datum>(syntax[0]);
+        return syntax[0] as Ronin.Grammar.Datum;
     }
 }

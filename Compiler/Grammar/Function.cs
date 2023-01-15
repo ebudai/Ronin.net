@@ -2,36 +2,33 @@
 
 namespace Ronin.Grammar;
 
-internal class Function
+internal class Function : Syntax, IParsable
 {
-    internal class Declaration : Syntax, IParsable
+    public Modifiers Is { get; private init; }
+    public Identifier Identifier { get; private init; }
+    public Scope Body { get; private init; }
+
+    public static Syntax Parse(ref Parser context)
     {
-        public Modifiers Is { get; private init; }
-        public Identifier Identifier { get; private init; }
-        public Scope Body { get; private init; }
+        Parser parser = context;
 
-        public static Syntax Parse(ref Parser context)
+        var modifiers = Modifiers.Parse(ref parser) as Modifiers;
+
+        if (parser.Current is not Lexicon.Reserved.Function) return null;
+        parser.Advance();
+
+        var identifier = Identifier.Parse(ref parser);
+        if (identifier is Error or null) return identifier;
+
+        var body = Scope.Parse(ref parser);
+        if (body is Error or null) return body;
+
+        return new Function
         {
-            Parser parser = context;
-
-            var modifiers = Modifiers.Parse(ref parser) as Modifiers;
-
-            if (parser.Current is not Lexicon.Reserved.Function) return null;
-            parser.Advance();
-
-            var identifier = Identifier.Parse(ref parser);
-            if (identifier is Error or null) return identifier;
-
-            var body = Scope.Parse(ref parser);
-            if (body is Error or null) return body;
-
-            return new Declaration
-            {
-                Is = modifiers,
-                Identifier = identifier as Identifier,
-                Body = body as Scope,
-                Source = parser.Commit(ref context)
-            };
-        }
+            Is = modifiers,
+            Identifier = identifier as Identifier,
+            Body = body as Scope,
+            Source = parser.Commit(ref context)
+        };
     }
 }

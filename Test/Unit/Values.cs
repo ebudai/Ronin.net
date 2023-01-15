@@ -47,7 +47,7 @@ public class Values
         Assert.NotEmpty(reference.Values);
         Ronin.Grammar.Values arguments = reference.Values[0];
         Assert.NotNull(arguments);
-        Assert.Equal(2, arguments.Values.Length);
+        Assert.Equal(2, arguments.Values.Count);
 
         Ronin.Grammar.Name test = arguments.Values[0];
         Assert.NotNull(test);
