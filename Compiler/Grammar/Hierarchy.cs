@@ -9,21 +9,16 @@ namespace Ronin.Grammar;
 
 internal class Hierarchy : Syntax, IParsable
 {
-    internal Discriminator Direction { get; private init; }
+    internal Keyword Direction { get; private init; }
     internal List<string> Name { get; private init; }
 
     public static Syntax Parse(ref Parser context)
     {
-        Discriminator? direction = context.Current switch
-        {            
-            PartOf => Discriminator.Export,
-            Import => Discriminator.Import,
-            _ => null
-        };
+        Keyword direction = context.Current is PartOf or Import ? context.Current as Keyword : null;
         if (direction is null) return null;
 
         Parser parser = context;
-        
+
         parser.Advance();
 
         List<string> names = new();
@@ -51,8 +46,6 @@ internal class Hierarchy : Syntax, IParsable
 
         if (names.Count is 0) return null;
 
-        return new Hierarchy { Name = names, Direction = direction.Value, Source = parser.Commit(ref context) };
-    }
-
-    internal enum Discriminator { Import, Export };
+        return new Hierarchy { Name = names, Direction = direction, Source = parser.Commit(ref context) };
+    }   
 }

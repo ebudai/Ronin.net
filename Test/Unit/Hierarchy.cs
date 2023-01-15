@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Reserved;
 
 namespace Unit;
 
@@ -22,7 +23,7 @@ public class Hierarchy
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
         Assert.Equal("standard", hierarchy.Name[0]);
-        Assert.Equal(Ronin.Grammar.Hierarchy.Discriminator.Export, hierarchy.Direction);
+        Assert.IsType<PartOf>(hierarchy.Direction);
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -44,7 +45,7 @@ public class Hierarchy
         Assert.Equal("standard", hierarchy.Name[0]);
         Assert.Equal("funstuff", hierarchy.Name[1]);
         Assert.Equal("websockets", hierarchy.Name[2]);
-        Assert.Equal(Ronin.Grammar.Hierarchy.Discriminator.Import, hierarchy.Direction);
+        Assert.IsType<Import>(hierarchy.Direction);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -73,7 +74,7 @@ public class Hierarchy
         Assert.Equal("whatever", hierarchy.Name[2]);
         Assert.Equal("secret", hierarchy.Name[3]);
         Assert.Equal("stuff", hierarchy.Name[4]);
-        Assert.Equal(Ronin.Grammar.Hierarchy.Discriminator.Export, hierarchy.Direction);
+        Assert.IsType<PartOf>(hierarchy.Direction);
     }
 
     [Fact(DisplayName = "using text literal")]
@@ -95,6 +96,6 @@ public class Hierarchy
         Assert.Equal("testing", hierarchy.Name[1]);
         Assert.Equal("fast version", hierarchy.Name[2]);
         Assert.Equal("readonly", hierarchy.Name[3]);
-        Assert.Equal(Ronin.Grammar.Hierarchy.Discriminator.Export, hierarchy.Direction);
+        Assert.IsType<PartOf>(hierarchy.Direction);
     }
 }
