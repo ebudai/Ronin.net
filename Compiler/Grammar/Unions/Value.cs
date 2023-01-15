@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar.Unions;
 

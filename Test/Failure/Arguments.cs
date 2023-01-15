@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Grammar.Aggregates;
 
 namespace Failure;
 
@@ -14,7 +15,7 @@ public class Arguments
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Ronin.Grammar.Values.Parse(ref parser);
+        var aggregate = Values.Parse(ref parser);
 
         Assert.Null(aggregate);
     }

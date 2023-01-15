@@ -10,7 +10,7 @@ namespace Ronin.Grammar;
 internal class Hierarchy : Syntax, IParsable
 {
     internal Discriminator Direction { get; private init; }
-    internal string[] Name { get; private init; }
+    internal List<string> Name { get; private init; }
 
     public static Syntax Parse(ref Parser context)
     {
@@ -51,7 +51,7 @@ internal class Hierarchy : Syntax, IParsable
 
         if (names.Count is 0) return null;
 
-        return new Hierarchy { Name = names.ToArray(), Direction = direction.Value, Source = parser.Commit(ref context) };
+        return new Hierarchy { Name = names, Direction = direction.Value, Source = parser.Commit(ref context) };
     }
 
     internal enum Discriminator { Import, Export };

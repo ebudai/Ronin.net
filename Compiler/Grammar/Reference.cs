@@ -7,7 +7,7 @@ namespace Ronin.Grammar;
 
 internal class Reference : Syntax, IParsable
 {
-    public Value[] Values { get; private init; }
+    public List<Value> Values { get; private init; }
     public Index Index { get; private init; }
 
     public static Syntax Parse(ref Parser context)
@@ -31,7 +31,7 @@ internal class Reference : Syntax, IParsable
 
         return new Reference 
         {
-            Values = values.ToArray(), 
+            Values = values, 
             Index = index as Index, 
             Source = parser.Commit(ref context) 
         };

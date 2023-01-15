@@ -8,11 +8,7 @@ internal class Argument : IParsableUnion<Argument>
 
     public static implicit operator Parameter(Argument value) => value._storage;
 
-    public static implicit operator Argument(Syntax syntax) => syntax switch
-    {
-        Parameter parameter => new() { _storage = parameter },
-        _ => null,
-    };
+    public static implicit operator Argument(Syntax syntax) => syntax is Parameter parameter ? new() { _storage = parameter } : null;
 
     private Parameter _storage;
 }

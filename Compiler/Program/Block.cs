@@ -6,7 +6,7 @@ internal class Block
 
     public Dictionary<string, Block> Children { get; } = new();
     public Dictionary<string, Block> Imports { get; } = new();
-    public Dictionary<string, Datum> Data { get; } = new();
+    //public Dictionary<string, Datum> Data { get; } = new();
     public Dictionary<string[], Function> Functions { get; } = new();
     public Dictionary<string[], Datatype> Datatypes { get; } = new();
 
@@ -18,7 +18,7 @@ internal class Block
 
         Datatype.CreatePrimitiveDatatypes();
 
-        Datum @true = new() { Value = true };
+        /*Datum @true = new() { Value = true };
         Datum @false = new() { Value = false };
         Global.Data.Add("true", @true);
         Global.Data.Add("yes", @true);
@@ -26,7 +26,7 @@ internal class Block
         Global.Data.Add("no", @false);
 
         Datum nothing = new() { Value = null };
-        Global.Data.Add("nothing", nothing);
+        Global.Data.Add("nothing", nothing);*/
 
         
     }

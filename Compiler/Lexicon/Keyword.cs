@@ -18,7 +18,8 @@ internal abstract class Keyword : Word
         : CanLex(lexer, Persistent.keyword) ? new Persistent(lexer)
         : CanLex(lexer, Shared.keyword) ? new Shared(lexer)
         : CanLex(lexer, Optional.keyword) ? new Optional(lexer)
-        : CanLex(lexer, Variable.keyword) ? new Variable(lexer) : null;
+        : CanLex(lexer, Variable.keyword) ? new Variable(lexer)
+        : null;
         
     private static bool CanLex(Lexer lexer, string keyword) => lexer.StartsWith(keyword) && char.IsWhiteSpace(lexer[keyword.Length]);    
 }

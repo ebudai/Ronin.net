@@ -1,21 +1,16 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Reserved;
 
 namespace Ronin.Grammar;
 
-internal partial class Datum : Parameter, IParsable
+internal class Datum : Parameter, IParsable
 {
-    internal Mutability Mutability { get; private init; }
+    internal Keyword Mutability { get; private init; }
 
     public static new Syntax Parse(ref Parser context)
     {
-        Mutability? declarator = context.Current switch
-        {
-            Variable => Mutability.Variable,
-            Constant => Mutability.Constant,
-            Reactive => Mutability.Reactive,
-            _ => null
-        };
+        Keyword declarator = context.Current is Variable or Constant or Reactive ? context.Current as Keyword : null;
         if (declarator is null) return null;
 
         Parser parser = context;
@@ -27,7 +22,7 @@ internal partial class Datum : Parameter, IParsable
 
         return new Datum
         {
-            Mutability = declarator.Value,
+            Mutability = declarator,
             Name = parameter.Name,
             Is = parameter.Is,
             Datatype = parameter.Datatype,

@@ -1,4 +1,6 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
+using Ronin.Lexicon.Reserved;
 
 namespace Unit;
 
@@ -44,7 +46,7 @@ public class Datatype
         
         Ronin.Grammar.Datum cash = datatype.Body.Values[0];
         Assert.NotNull(cash);
-        Assert.Equal(Mutability.Variable, cash.Mutability);
+        Assert.IsType<Variable>(cash.Mutability);
         Assert.Equal("cash", cash.Name.Words[0]);
         Assert.NotEmpty(cash.Datatype.Values);
         Ronin.Grammar.Name cashtypename = cash.Datatype.Values[0];
@@ -52,7 +54,7 @@ public class Datatype
 
         Ronin.Grammar.Datum debt = datatype.Body.Values[1];
         Assert.NotNull(debt);
-        Assert.Equal(Mutability.Variable, debt.Mutability);
+        Assert.IsType<Variable>(debt.Mutability);
         Assert.Equal("debt", debt.Name.Words[0]);
         Assert.NotEmpty(debt.Datatype.Values);
         Ronin.Grammar.Name debttypename = debt.Datatype.Values[0];

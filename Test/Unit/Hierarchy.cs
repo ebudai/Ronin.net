@@ -40,7 +40,7 @@ public class Hierarchy
         var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
-        Assert.Equal(3, hierarchy.Name.Length);
+        Assert.Equal(3, hierarchy.Name.Count);
         Assert.Equal("standard", hierarchy.Name[0]);
         Assert.Equal("funstuff", hierarchy.Name[1]);
         Assert.Equal("websockets", hierarchy.Name[2]);
@@ -67,7 +67,7 @@ public class Hierarchy
         var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
-        Assert.Equal(5, hierarchy.Name.Length);
+        Assert.Equal(5, hierarchy.Name.Count);
         Assert.Equal("compiled", hierarchy.Name[0]);
         Assert.Equal("to", hierarchy.Name[1]);
         Assert.Equal("whatever", hierarchy.Name[2]);
@@ -90,7 +90,7 @@ public class Hierarchy
         var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
-        Assert.Equal(4, hierarchy.Name.Length);
+        Assert.Equal(4, hierarchy.Name.Count);
         Assert.Equal("literal", hierarchy.Name[0]);
         Assert.Equal("testing", hierarchy.Name[1]);
         Assert.Equal("fast version", hierarchy.Name[2]);
