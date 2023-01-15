@@ -2,6 +2,7 @@
 using Ronin.Grammar.Unions;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using Index = Ronin.Grammar.Aggregates.Index;
 
 namespace Ronin.Grammar;
 

@@ -15,7 +15,7 @@ public class Arguments
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Values.Parse(ref parser);
+        var aggregate = Aggregate.Parse(ref parser);
 
         Assert.Null(aggregate);
     }

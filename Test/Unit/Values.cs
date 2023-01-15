@@ -21,7 +21,7 @@ public class Values
         var reference = syntax[0] as Reference;
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Aggregates.Values arguments = reference.Values[0];
+        Ronin.Grammar.Aggregates.Aggregate arguments = reference.Values[0];
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
         Ronin.Grammar.Name name = arguments.Values[0];
@@ -45,7 +45,7 @@ public class Values
         var reference = syntax[0] as Reference;
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Aggregates.Values arguments = reference.Values[0];
+        Ronin.Grammar.Aggregates.Aggregate arguments = reference.Values[0];
         Assert.NotNull(arguments);
         Assert.Equal(2, arguments.Values.Count);
 

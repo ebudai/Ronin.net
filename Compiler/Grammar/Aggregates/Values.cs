@@ -4,7 +4,7 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Aggregates;
 
-internal class Values : AggregateSyntax<Values, OpenParenthesis, Value, Comma, CloseParenthesis>
+internal class Aggregate : AggregateSyntax<Aggregate, OpenParenthesis, Value, Comma, CloseParenthesis>
 {
 
 }
