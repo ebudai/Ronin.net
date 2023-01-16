@@ -7,17 +7,14 @@ internal class IdentifierComponent : IParsableUnion<IdentifierComponent>
 {
     public static Syntax Parse(ref Parser context)
         => Name.Parse(ref context)
-        ?? Parameter.Parse(ref context)
         ?? Parameters.Parse(ref context);
 
     public static implicit operator Name(IdentifierComponent component) => component._storage as Name;
-    public static implicit operator Parameter(IdentifierComponent component) => component._storage as Parameter;
     public static implicit operator Parameters(IdentifierComponent component) => component._storage as Parameters;
 
     public static implicit operator IdentifierComponent(Syntax syntax) => syntax switch
     {
         Name name => new() { _storage = name },
-        Parameter parameter => new() { _storage = parameter },
         Parameters parameters => new() { _storage = parameters },
         _ => null,
     };

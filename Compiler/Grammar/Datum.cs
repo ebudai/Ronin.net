@@ -6,7 +6,7 @@ namespace Ronin.Grammar;
 
 internal class Datum : Parameter, IParsable
 {
-    internal Keyword Mutability { get; private init; }
+    public Keyword Mutability { get; init; }
 
     public static new Syntax Parse(ref Parser context)
     {
