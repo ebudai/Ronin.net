@@ -38,7 +38,7 @@ internal class Parameter : Syntax, IParsable
             initializer = Value.Parse(ref parser);
         }
 
-        if (datatype is null && initializer is null) return UnknownDatatypeError.Parse(ref context);
+        if (datatype is null && initializer is null) return UnspecifiedDatatypeError.Parse(ref context);
 
         return new Parameter
         {
