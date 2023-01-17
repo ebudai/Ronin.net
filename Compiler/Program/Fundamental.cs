@@ -42,6 +42,6 @@ internal class Fundamental
     private static Grammar.Datatype GenerateFundamentalDatatype(string name) => new()
     {
         Is = new(),
-        Identifier = new() { Components = { new Name { Words = { name } } } },
+        Identifier = new() { Components = { new Identifier.Component { Syntax = new Name { Words = { name } } } } },
     };
 }

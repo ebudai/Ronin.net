@@ -21,7 +21,7 @@ public class Datatype
         var datatype = result[0] as Ronin.Grammar.Datatype;
         Assert.NotNull(datatype);
         Assert.NotEmpty(datatype.Identifier.Components);
-        Ronin.Grammar.Name name = datatype.Identifier.Components[0];
+        var name = datatype.Identifier.Components[0].Syntax as Ronin.Grammar.Name;
         Assert.NotNull(name);
         Assert.Equal("Test", string.Join(' ', name.Words));
     }

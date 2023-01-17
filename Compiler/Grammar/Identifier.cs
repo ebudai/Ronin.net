@@ -1,23 +1,24 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar.Aggregates;
 using Ronin.Grammar.Unions;
 
 namespace Ronin.Grammar;
 
 internal class Identifier : Syntax, IParsable
 {
-    public List<IdentifierComponent> Components { get; init; }
+    public List<Component> Components { get; init; }
 
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        List<IdentifierComponent> components = new();
+        List<Component> components = new();
         
         while (parser.IsNotFinished)
         {
-            var syntax = IdentifierComponent.Parse(ref parser);
+            var syntax = Component.Parse(ref parser);
             if (syntax is Error) return syntax;
             if (syntax is null) break;
-            components.Add(syntax);
+            components.Add(syntax as Component);
         }
 
         if (components.Count is 0) return null;
@@ -25,5 +26,19 @@ internal class Identifier : Syntax, IParsable
         return new Identifier { Components = components, Source = parser.Commit(ref context) };
     }
 
-    
+    public class Component : Syntax, IParsable
+    {
+        public Syntax Syntax { get; init; }
+
+        public static Syntax Parse(ref Parser context)
+        {
+            Parser parser = context;
+            
+            Syntax syntax = Name.Parse(ref parser) ?? Parameters.Parse(ref parser);
+            if (syntax is Error or null) return syntax;
+
+            return new Component { Syntax = syntax, Source = parser.Commit(ref context) };
+        }        
+    }
+
 }
