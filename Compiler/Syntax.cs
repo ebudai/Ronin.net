@@ -1,10 +1,11 @@
 ﻿using Ronin.Grammar;
+using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
 
 public abstract class Syntax
 {
-    protected internal SourceLocation[] Source { get; init; }
+    protected internal Token[] Source { get; init; }
 }
 
 internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable

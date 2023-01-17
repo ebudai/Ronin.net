@@ -50,13 +50,11 @@ public ref struct Parser
         do ++Index; while (Current is Trivium);
     }
 
-    internal SourceLocation[] Commit(ref Parser context)
+    internal Token[] Commit(ref Parser context)
     {
-        var tokens = context[context.Index..Index];
-        List<SourceLocation> sources = new();
-        foreach (var token in tokens) sources.Add(token.SourceLocation);
-        context.Index = Index;
-        return sources.ToArray();
+        var tokens = context[context.Index..Index].ToArray();
+        context = this;        
+        return tokens;
     }
 
     private readonly ReadOnlySpan<Token> tokens;
