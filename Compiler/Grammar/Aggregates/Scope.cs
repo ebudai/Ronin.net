@@ -4,7 +4,7 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Aggregates;
 
-internal class Scope : AggregateSyntax<Scope, OpenBrace, Statement, Terminal, CloseBrace>
+internal class Scope : AggregateElementSyntax<Scope, OpenBrace, Statement, Terminal, CloseBrace>
 {
     public Scope Parent { get; init; }
     

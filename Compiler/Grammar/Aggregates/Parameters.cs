@@ -4,7 +4,7 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Aggregates;
 
-internal class Parameters : AggregateSyntax<Parameters, OpenParenthesis, Argument, Comma, CloseParenthesis> 
+internal class Parameters : AggregateSyntax<Parameters, OpenParenthesis, Parameter, Comma, CloseParenthesis> 
 {
     public bool Matches(Scalar scalar)
     {
