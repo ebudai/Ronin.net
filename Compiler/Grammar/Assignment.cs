@@ -5,8 +5,8 @@ namespace Ronin.Grammar;
 
 internal class Assignment : Syntax, IParsable
 {
-    public Name Name { get; private init; }
-    public Value Value { get; private init; }
+    public Name Name { get; init; }
+    public Value Value { get; init; }
 
     public static Syntax Parse(ref Parser context)
     {
@@ -28,4 +28,6 @@ internal class Assignment : Syntax, IParsable
             Source = parser.Commit(ref context),
         };
     }
+
+    public override string ToString() => Name + " = " + Value;
 }

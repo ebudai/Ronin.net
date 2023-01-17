@@ -43,4 +43,14 @@ internal class Datatype : Syntax, IParsable
             Source = parser.Commit(ref context)
         };
     }
+
+    public override string ToString()
+    {
+        var code = Is.Shared ? "static " : string.Empty;
+        code += Identifier;
+
+        return code;
+    }
+
+    
 }

@@ -11,20 +11,12 @@ internal class Scope : AggregateSyntax<Scope, OpenBrace, Statement, Terminal, Cl
     public List<Function> Functions { get; } = new();
     public List<Datatype> Datatypes { get; } = new();
 
+    public override string ToString() => '{' + string.Join(",", Values) + '}';
+
     /*public Syntax Find(Reference reference)
     {
         foreach (var data in Data) if (data.n)
     }*/
 
     public static Scope Global;
-
-    static Scope()
-    {
-        Global = new();
-
-        Global.Datatypes.Add(new()
-        {
-            Is = new() { }
-        });
-    }
 }

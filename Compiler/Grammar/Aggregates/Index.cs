@@ -5,5 +5,5 @@ namespace Ronin.Grammar.Aggregates;
 
 internal class Index : AggregateSyntax<Index, OpenSquareBracket, Value, Comma, CloseSquareBracket>
 {
-
+    public override string ToString() => '[' + string.Join(",", Values) + ']';
 }
