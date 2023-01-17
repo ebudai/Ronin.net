@@ -3,7 +3,7 @@ using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar.Unions;
 
-internal class IdentifierComponent : IParsableUnion<IdentifierComponent>
+internal class IdentifierComponent : IParsable, IElement<IdentifierComponent>
 {
     public static Syntax Parse(ref Parser context)
         => Name.Parse(ref context)

@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar.Unions;
 
-internal class Argument : IParsableUnion<Argument>
+internal class Argument : IParsable, IElement<Argument>
 {
     public static Syntax Parse(ref Parser parser) => Parameter.Parse(ref parser);
 

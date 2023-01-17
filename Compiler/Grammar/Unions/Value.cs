@@ -3,7 +3,7 @@ using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar.Unions;
 
-internal class Value : IParsableUnion<Value>
+internal class Value : IParsable, IElement<Value>
 {
     public static Syntax Parse(ref Parser context)
         => Scalar.Parse(ref context)

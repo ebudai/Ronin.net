@@ -11,7 +11,7 @@ internal interface IParsable
     public static abstract Syntax Parse(ref Parser parser);
 }
 
-internal interface IParsableUnion<T> : IParsable where T : IParsableUnion<T>
+internal interface IElement<T> where T : IElement<T>
 {
     public static abstract implicit operator T(Syntax syntax);
 }

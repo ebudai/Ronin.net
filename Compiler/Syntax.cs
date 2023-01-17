@@ -9,7 +9,7 @@ public abstract class Syntax
 
 internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable
     where T : AggregateSyntax<T, TOpen, TElement, TSeparator, TClose>, new()
-    where TElement : IParsableUnion<TElement>
+    where TElement : IParsable, IElement<TElement>
 {
     public static Syntax Parse(ref Parser context)
     {
