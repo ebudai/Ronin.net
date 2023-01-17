@@ -2,7 +2,7 @@
 
 namespace Ronin.Lexicon.Symbols;
 
-internal class Close : Punctuation
+internal abstract class Close : Punctuation
 {
     public Close(Lexer lexer, int length) : base(lexer, length) { }
 }

@@ -1,5 +1,4 @@
-﻿using Ronin.Compiler;
-using Ronin.Lexicon.Symbols;
+﻿using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Aggregates;
 
@@ -12,11 +11,6 @@ internal class Scope : AggregateSyntax<Scope, OpenBrace, Statement, Terminal, Cl
     public List<Datatype> Datatypes { get; } = new();
 
     public override string ToString() => '{' + string.Join(",", Values) + '}';
-
-    /*public Syntax Find(Reference reference)
-    {
-        foreach (var data in Data) if (data.n)
-    }*/
 
     public static Scope Global;
 }

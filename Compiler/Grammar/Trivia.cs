@@ -13,4 +13,11 @@ internal class Trivia : Syntax, IParsable
         if (parser[0] is Terminal) parser.Advance();
         return parser.Current == context.Current ? null : new Trivia { Source = parser.Commit(ref context) };
     }
+
+    public override string ToString()
+    {
+        var code = string.Empty;
+        foreach (var token in Source) code += token.Sourcecode;
+        return code;
+    }
 }

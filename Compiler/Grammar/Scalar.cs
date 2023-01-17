@@ -23,4 +23,6 @@ internal class Scalar : Syntax, IParsable
 
         return new Scalar { Literals = values, Source = parser.Commit(ref context) };
     }
+
+    public override string ToString() => string.Join(" ", Literals);
 }

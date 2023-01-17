@@ -58,7 +58,7 @@ public class Values
         Assert.Equal("stuff", stuff.Words[0]);
     }
 
-    /*[Fact(DisplayName = "empty parenthesis")]
+    [Fact(DisplayName = "empty parenthesis")]
     public void Empty()
     {
         const string declaration = "();";
@@ -69,11 +69,10 @@ public class Values
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Reference>(syntax[0]);
-        var reference = syntax[0] as Ronin.Grammar.Reference;
-        Assert.NotEmpty(reference.Name);
-        Assert.True(reference.Name[0].IsT2);
-        var @object = reference.Name[0].AsT2;
-        Assert.Empty(@object.Parameters);
-    }*/
+        Reference reference = syntax[0] as Statement;
+        Assert.NotEmpty(reference.Values);
+        Ronin.Grammar.Aggregates.Object @object = reference.Values[0];
+        Assert.NotNull(@object);
+        Assert.Empty(@object.Values);
+    }
 }

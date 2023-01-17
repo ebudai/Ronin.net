@@ -25,6 +25,8 @@ internal class Identifier : Syntax, IParsable
         return new Identifier { Components = components, Source = parser.Commit(ref context) };
     }
 
+    public override string ToString() => string.Join("", Components);
+
     public class Component : Syntax, IParsable
     {
         public Syntax Syntax { get; init; }
@@ -39,5 +41,4 @@ internal class Identifier : Syntax, IParsable
             return new Component { Syntax = syntax, Source = parser.Commit(ref context) };
         }        
     }
-
 }

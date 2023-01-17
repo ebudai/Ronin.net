@@ -32,4 +32,6 @@ internal class Function : Syntax, IParsable
             Source = parser.Commit(ref context)
         };
     }
+
+    public override string ToString() => Is + " " + Identifier + Body;
 }

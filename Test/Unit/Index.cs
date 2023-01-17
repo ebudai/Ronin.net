@@ -20,7 +20,7 @@ public class Index
         Ronin.Grammar.Datum datum = statements[0] as Statement;
         Assert.NotNull(datum?.Datatype?.Index);
         Assert.NotEmpty(datum.Datatype.Index.Values);
-        Scalar scalar = datum.Datatype.Index.Values[0];
+        Ronin.Grammar.Scalar scalar = datum.Datatype.Index.Values[0];
         Assert.NotEmpty(scalar.Literals);
         Assert.Equal("4", scalar.Literals[0].ToString());
     }

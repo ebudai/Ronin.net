@@ -7,7 +7,7 @@ namespace Ronin.Compiler;
 
 internal interface IParsable
 {
-    public static abstract Syntax Parse(ref Parser parser);
+    public static abstract Syntax Parse(ref Parser context);
 }
 
 internal interface IElement<T> where T : IElement<T>

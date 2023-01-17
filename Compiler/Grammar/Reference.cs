@@ -18,7 +18,7 @@ internal class Reference : Syntax, IParsable
         while (parser.IsNotFinished)
         {
             if (parser.Current is Punctuation and not OpenParenthesis) break;
-            
+
             var syntax = Value.Parse(ref parser);
             if (syntax is Error or null) return syntax;
             values.Add(syntax as Value);
@@ -29,28 +29,18 @@ internal class Reference : Syntax, IParsable
         var index = Index.Parse(ref parser);
         if (index is Error) return index;
 
-        return new Reference 
+        return new Reference
         {
-            Values = values, 
-            Index = index as Index, 
-            Source = parser.Commit(ref context) 
+            Values = values,
+            Index = index as Index,
+            Source = parser.Commit(ref context)
         };
     }
 
-    /*public List<IdentifierComponent> Match(IdentifierComponent[] components)
+    public override string ToString()
     {
-        List<IdentifierComponent> misses = new();
-        foreach (var value in Values)
-        {
-            foreach (var component in components)
-            {
-                Name name = component;
-                if (name is not null)
-                {
-
-                }
-            }
-        }
-        return misses;
-    }*/
+        var code = string.Join(" ", Values);
+        if (Index is not null) code += Index;
+        return code;
+    }
 }

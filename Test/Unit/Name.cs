@@ -26,4 +26,24 @@ public class Name
         Assert.Equal("+", name.Words[1]);
         Assert.Equal("things", name.Words[2]);
     }
+
+    [Fact(DisplayName = "transpile")]
+    public void Transpile() 
+    {
+        const string code = "my variable";
+
+        Lexer lexer = new(code);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var result = parser.Parse();
+
+        Assert.NotEmpty(result);
+        Reference reference = result[0] as Statement;
+        Assert.NotNull(reference);
+        Assert.NotEmpty(reference.Values);
+        Ronin.Grammar.Name name = reference.Values[0];
+        
+        var transpiled = name.ToString();
+        Assert.Equal("my_variable", transpiled);
+    }
 }

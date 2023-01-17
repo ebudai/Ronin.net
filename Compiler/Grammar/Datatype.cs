@@ -44,13 +44,7 @@ internal class Datatype : Syntax, IParsable
         };
     }
 
-    public override string ToString()
-    {
-        var code = Is.Shared ? "static " : string.Empty;
-        code += Identifier;
-
-        return code;
-    }
-
+    public override string ToString() => Is + " " + Identifier + AlgebraString() + Body;
     
+    private string AlgebraString() => Algebra.ToString(); //todo algebra transpile
 }

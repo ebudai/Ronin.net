@@ -6,10 +6,10 @@ namespace Ronin.Grammar;
 
 internal class Parameter : Syntax, IParsable
 {
-    internal Modifiers Is { get; protected private init; }
-    internal Name Name { get; protected private init; }
-    internal Reference Datatype { get; protected private init; }
-    internal Value Initializer { get; protected private init; }
+    public Modifiers Is { get; init; }
+    public Name Name { get; init; }
+    public Reference Datatype { get; init; }
+    public Value Initializer { get; init; }
 
     public static Syntax Parse(ref Parser context)
     {
@@ -48,4 +48,13 @@ internal class Parameter : Syntax, IParsable
             Source = parser.Commit(ref context)
         };
     }
+
+    public override string ToString()
+    {
+        var code = Is + " " + Name;
+        if (Datatype is not null) code += " " + Datatype;
+        if (Initializer is not null) code += " = " + Initializer;
+        return code;
+    }
+
 }

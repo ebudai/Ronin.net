@@ -265,7 +265,7 @@ public class Datum
         Assert.NotEmpty(name.Words);
         Assert.Equal("integer", name.Words[0]);
 
-        Scalar initializer = datum.Initializer;
+        Ronin.Grammar.Scalar initializer = datum.Initializer;
         Assert.NotNull(initializer);
         Assert.NotEmpty(initializer.Literals);
         Assert.Equal("2", initializer.Literals[0].Sourcecode.ToString());

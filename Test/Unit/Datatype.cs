@@ -57,7 +57,8 @@ public class Datatype
         Assert.NotEmpty(debt.Datatype.Values);
         Ronin.Grammar.Name debttypename = debt.Datatype.Values[0];
         Assert.Equal("money", string.Join(' ', debttypename.Words));
+
+        var x = datatype.ToString();
+        Console.WriteLine(x);
     }
-
-
 }

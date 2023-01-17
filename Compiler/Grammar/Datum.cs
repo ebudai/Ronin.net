@@ -30,4 +30,11 @@ internal class Datum : Parameter, IParsable
             Source = parser.Commit(ref context)
         };
     }
+
+    public override string ToString() => MutabilityString() + ' ' + base.ToString();
+
+    private string MutabilityString()
+    {
+        return Mutability.ToString(); //todo mutability transpile
+    }
 }
