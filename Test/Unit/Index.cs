@@ -17,8 +17,7 @@ public class Index
         var statements = parser.Parse();
 
         Assert.NotEmpty(statements);
-        Assert.IsType<Ronin.Grammar.Datum>(statements[0]);
-        var datum = statements[0] as Ronin.Grammar.Datum;
+        Ronin.Grammar.Datum datum = statements[0] as Statement;
         Assert.NotNull(datum?.Datatype?.Index);
         Assert.NotEmpty(datum.Datatype.Index.Values);
         Scalar scalar = datum.Datatype.Index.Values[0];

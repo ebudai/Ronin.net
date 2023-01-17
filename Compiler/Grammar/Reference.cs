@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Unions;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 using Index = Ronin.Grammar.Aggregates.Index;
@@ -22,7 +21,7 @@ internal class Reference : Syntax, IParsable
             
             var syntax = Value.Parse(ref parser);
             if (syntax is Error or null) return syntax;
-            values.Add(syntax);
+            values.Add(syntax as Value);
         }
 
         if (values.Count is 0) return null;

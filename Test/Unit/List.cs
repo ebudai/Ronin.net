@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 
 namespace Unit;
 
@@ -16,8 +17,7 @@ public class List
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Datum>(syntax[0]);
-        var datum = syntax[0] as Ronin.Grammar.Datum;
+        Ronin.Grammar.Datum datum = syntax[0] as Statement;
         Assert.NotNull(datum);
         Assert.NotNull(datum.Datatype);
         Assert.Empty(datum.Datatype.Index.Values);

@@ -1,6 +1,5 @@
 ﻿using Ronin.Grammar;
 using Ronin.Grammar.Errors;
-using Ronin.Grammar.Unions;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 

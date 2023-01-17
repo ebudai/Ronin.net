@@ -39,7 +39,7 @@ internal abstract class AggregateSyntax<T, TOpen, TElement, TSeparator, TClose> 
     protected internal List<TElement> Values;
 }
 
-internal abstract class AggregateElementSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable
+/*internal abstract class AggregateElementSyntax<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsable
     where T : AggregateElementSyntax<T, TOpen, TElement, TSeparator, TClose>, new()
     where TElement : IParsable, IElement<TElement>
 {
@@ -69,7 +69,7 @@ internal abstract class AggregateElementSyntax<T, TOpen, TElement, TSeparator, T
     }
 
     protected internal List<TElement> Values;
-}
+}*/
 /*
 
 [+ means and/or]

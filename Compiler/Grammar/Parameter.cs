@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Errors;
-using Ronin.Grammar.Unions;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -45,7 +44,7 @@ internal class Parameter : Syntax, IParsable
             Name = name,
             Is = modifiers,
             Datatype = datatype as Reference,
-            Initializer = initializer,
+            Initializer = initializer as Value,
             Source = parser.Commit(ref context)
         };
     }

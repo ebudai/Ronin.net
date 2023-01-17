@@ -66,8 +66,7 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Reference>(syntax[0]);
-        var reference = syntax[0] as Reference;
+        Reference reference = syntax[0] as Statement;
         Assert.NotNull(reference);
     }
 

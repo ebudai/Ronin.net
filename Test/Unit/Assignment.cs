@@ -17,8 +17,7 @@ public class Assignment
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Ronin.Grammar.Assignment>(result[0]);
-        var assignment = result[0] as Ronin.Grammar.Assignment;
+        Ronin.Grammar.Assignment assignment = result[0] as Statement;
         Assert.Equal("x", string.Join(' ', assignment.Name.Words));
         Scalar value = assignment.Value;
         Assert.NotNull(value);

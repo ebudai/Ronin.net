@@ -20,8 +20,7 @@ public class Hierarchy
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Reference>(result[0]);
-        var reference = result[0] as Reference;
+        Reference reference = result[0] as Statement;
         Assert.NotNull(reference);
     }
 

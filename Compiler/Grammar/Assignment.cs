@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Unions;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -25,7 +24,7 @@ internal class Assignment : Syntax, IParsable
         return new Assignment
         {
             Name = name,
-            Value = value,
+            Value = value as Value,
             Source = parser.Commit(ref context),
         };
     }

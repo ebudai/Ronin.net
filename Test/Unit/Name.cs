@@ -17,7 +17,7 @@ public class Name
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        var reference = result[0] as Reference;
+        Reference reference = result[0] as Statement;
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Values);
         Ronin.Grammar.Name name = reference.Values[0];

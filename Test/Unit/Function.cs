@@ -17,8 +17,7 @@ public class Function
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Assert.IsType<Ronin.Grammar.Function>(result[0]);
-        var function = result[0] as Ronin.Grammar.Function;
+        Ronin.Grammar.Function function = result[0] as Statement;
         Assert.NotNull(function);
         Assert.NotEmpty(function.Identifier.Components);
         var name = function.Identifier.Components[0].Syntax as Ronin.Grammar.Name;

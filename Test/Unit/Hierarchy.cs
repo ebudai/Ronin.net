@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Reserved;
 
@@ -18,8 +19,7 @@ public class Hierarchy
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Hierarchy>(syntax[0]);
-        var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
+        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
         Assert.Equal("standard", hierarchy.Name[0]);
@@ -37,8 +37,7 @@ public class Hierarchy
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Hierarchy>(syntax[0]);
-        var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
+        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
         Assert.Equal(3, hierarchy.Name.Count);
@@ -64,8 +63,7 @@ public class Hierarchy
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Assert.IsType<Ronin.Grammar.Hierarchy>(syntax[0]);
-        var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
+        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
         Assert.Equal(5, hierarchy.Name.Count);
@@ -88,7 +86,7 @@ public class Hierarchy
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        var hierarchy = syntax[0] as Ronin.Grammar.Hierarchy;
+        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name);
         Assert.Equal(4, hierarchy.Name.Count);
