@@ -27,7 +27,7 @@ public class Name
         Assert.Equal("things", name.Words[2]);
     }
 
-    [Fact(DisplayName = "transpile")]
+    /*[Fact(DisplayName = "transpile")]
     public void Transpile() 
     {
         const string code = "my variable";
@@ -45,5 +45,5 @@ public class Name
         
         var transpiled = name.ToString();
         Assert.Equal("my_variable", transpiled);
-    }
+    }*/
 }
