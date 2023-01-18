@@ -29,5 +29,5 @@ internal class Statement : Syntax, IParsable
     public static implicit operator Assignment(Statement statement) => statement.Syntax as Assignment;
     public static implicit operator Reference(Statement statement) => statement.Syntax as Reference;
 
-    public override string ToString() => Syntax.ToString();
+    //public override string ToString() => Syntax.ToString();
 }

@@ -28,7 +28,7 @@ internal class Hierarchy : Syntax, IParsable
         };
     }
 
-    public override string ToString()
+    /*public override string ToString()
     {
         var code = Direction switch
         {
@@ -37,5 +37,5 @@ internal class Hierarchy : Syntax, IParsable
             _ => string.Empty,
         };
         return code + string.Join(".", Name);
-    }
+    }*/
 }

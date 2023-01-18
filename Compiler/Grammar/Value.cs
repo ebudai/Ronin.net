@@ -27,5 +27,5 @@ internal class Value : Syntax, IParsable
     public static implicit operator Scope(Value value) => value.Syntax as Scope;
     public static implicit operator Name(Value value) => value.Syntax as Name;
 
-    public override string ToString() => Syntax.ToString();
+    //public override string ToString() => Syntax.ToString();
 }

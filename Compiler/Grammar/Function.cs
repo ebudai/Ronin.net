@@ -33,5 +33,5 @@ internal class Function : Syntax, IParsable
         };
     }
 
-    public override string ToString() => Is + " " + Identifier + Body;
+    //public override string ToString() => Is + " " + Identifier + Body;
 }

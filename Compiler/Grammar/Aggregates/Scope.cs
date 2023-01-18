@@ -10,7 +10,7 @@ internal class Scope : Aggregate<Scope, OpenBrace, Statement, Terminal, CloseBra
     public List<Function> Functions { get; } = new();
     public List<Datatype> Datatypes { get; } = new();
 
-    public override string ToString() => '{' + string.Join(",", Values) + '}';
+    //public override string ToString() => '{' + string.Join(",", Values) + '}';
 
     public static Scope Global;
 }

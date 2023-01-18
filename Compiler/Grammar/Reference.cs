@@ -1,6 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 using Index = Ronin.Grammar.Aggregates.Index;
 
@@ -29,10 +27,10 @@ internal class Reference : Syntax, IParsable
         };
     }
 
-    public override string ToString()
+    /*public override string ToString()
     {
         var code = string.Join(" ", Values);
         if (Index is not null) code += Index;
         return code;
-    }
+    }*/
 }

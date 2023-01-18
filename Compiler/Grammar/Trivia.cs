@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -14,10 +13,10 @@ internal class Trivia : Syntax, IParsable
         return parser.Current == context.Current ? null : new Trivia { Source = parser.Commit(ref context) };
     }
 
-    public override string ToString()
+    /*public override string ToString()
     {
         var code = string.Empty;
         foreach (var token in Source) code += token.Sourcecode;
         return code;
-    }
+    }*/
 }

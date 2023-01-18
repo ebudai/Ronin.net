@@ -28,5 +28,5 @@ internal class Assignment : Syntax, IParsable
         };
     }
 
-    public override string ToString() => Name + " = " + Value;
+    //public override string ToString() => Name + " = " + Value;
 }

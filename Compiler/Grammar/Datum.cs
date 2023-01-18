@@ -31,10 +31,10 @@ internal class Datum : Parameter, IParsable
         };
     }
 
-    public override string ToString() => MutabilityString() + ' ' + base.ToString();
+    /*public override string ToString() => MutabilityString() + ' ' + base.ToString();
 
     private string MutabilityString()
     {
         return Mutability.ToString(); //todo mutability transpile
-    }
+    }*/
 }

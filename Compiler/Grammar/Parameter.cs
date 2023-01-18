@@ -55,6 +55,6 @@ internal class Parameter : Syntax, IParsable
         if (Datatype is not null) code += " " + Datatype;
         if (Initializer is not null) code += " = " + Initializer;
         return code;
-    */}
+    }*/
 
 }
