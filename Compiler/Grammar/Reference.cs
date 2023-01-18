@@ -1,14 +1,15 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+
 using Index = Ronin.Grammar.Aggregates.Index;
 
 namespace Ronin.Grammar;
 
 internal class Reference : Syntax, IParsable
 {
-    public List<Value> Values { get; private init; }
-    public Index Index { get; private init; }
+    public List<Value> Values { get; init; }
+    public Index Index { get; init; }
 
     public static Syntax Parse(ref Parser context)
     {

@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -7,7 +8,7 @@ internal class Datatype : Syntax, IParsable
 {
     public Modifiers Is { get; init; }
     public Identifier Identifier { get; init; }
-    public Reference Algebra { get; init; }
+    public List<Algebra> Algebra { get; init; }
     public Scope Body { get; init; }
 
     public static Syntax Parse(ref Parser context)
@@ -22,12 +23,18 @@ internal class Datatype : Syntax, IParsable
         var identifier = Identifier.Parse(ref parser);
         if (identifier is Error or null) return identifier;
 
-        Syntax algebra = null;
+        List<Algebra> algebra = null;
         if (parser.Current is Assign)
         {
+            algebra = new();
             parser.Advance();
-            algebra = Reference.Parse(ref parser);
-            if (algebra is Error or null) return algebra;
+            while (parser.IsNotFinished)
+            {
+                if (parser.Current is OpenBrace or Terminal or Separator) break;
+                var reference = Grammar.Algebra.Parse(ref parser);
+                if (reference is Error or null) return reference;
+                algebra.Add(reference as Algebra);
+            }
         }
 
         var body = Scope.Parse(ref parser);
@@ -37,13 +44,13 @@ internal class Datatype : Syntax, IParsable
         {
             Is = modifiers,
             Identifier = identifier as Identifier,
-            Algebra = algebra as Reference,
+            Algebra = algebra,
             Body = body as Scope,
             Source = parser.Commit(ref context)
         };
     }
 
-    public override string ToString() => Is + " " + Identifier + AlgebraString() + Body;
+    /*public override string ToString() => Is + " " + Identifier + AlgebraString() + Body;
     
-    private string AlgebraString() => Algebra.ToString(); //todo algebra transpile
+    private string AlgebraString() => Algebra.ToString(); //todo algebra transpile*/
 }
