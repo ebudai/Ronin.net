@@ -9,11 +9,6 @@ internal interface IParsable
     public static abstract Syntax Parse(ref Parser context);
 }
 
-internal interface IElement<T> where T : IElement<T>
-{
-    public static abstract implicit operator T(Syntax syntax);
-}
-
 public ref struct Parser
 {
     public Parser(Token[] tokens) => this.tokens = tokens;
