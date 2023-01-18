@@ -4,7 +4,7 @@ using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
 
-internal interface IParsable
+public interface IParsable
 {
     public static abstract Syntax Parse(ref Parser context);
 }
@@ -28,6 +28,20 @@ public ref struct Parser
         }
 
         return statements.ToArray();
+    }
+
+    //todo fix line 40 - see if we can add errors to the parser instead of returning them - then we can have T.Parse(ref parser) return T instead of Syntax
+    public List<T> Parse<T>() where T : class, IParsable
+    {
+        List<T> parsed = new();
+        while (IsNotFinished)
+        {
+            var syntax = T.Parse(ref this);
+            //if (syntax is Error) return syntax;
+            if (syntax is null) break;
+            parsed.Add(syntax as T);
+        }
+        return parsed;
     }
 
     internal int Index;

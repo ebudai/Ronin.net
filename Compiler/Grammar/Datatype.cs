@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -26,15 +25,8 @@ internal class Datatype : Syntax, IParsable
         List<Algebra> algebra = null;
         if (parser.Current is Assign)
         {
-            algebra = new();
             parser.Advance();
-            while (parser.IsNotFinished)
-            {
-                if (parser.Current is OpenBrace or Terminal or Separator) break;
-                var reference = Grammar.Algebra.Parse(ref parser);
-                if (reference is Error or null) return reference;
-                algebra.Add(reference as Algebra);
-            }
+            algebra = parser.Parse<Algebra>();
         }
 
         var body = Scope.Parse(ref parser);

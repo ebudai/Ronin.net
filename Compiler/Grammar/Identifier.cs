@@ -10,15 +10,7 @@ internal class Identifier : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        List<Component> components = new();
-        
-        while (parser.IsNotFinished)
-        {
-            var syntax = Component.Parse(ref parser);
-            if (syntax is Error) return syntax;
-            if (syntax is null) break;
-            components.Add(syntax as Component);
-        }
+        var components = parser.Parse<Component>();
 
         if (components.Count is 0) return null;
 

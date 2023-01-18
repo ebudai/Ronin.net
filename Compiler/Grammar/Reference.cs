@@ -14,16 +14,7 @@ internal class Reference : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        List<Value> values = new();
-
-        while (parser.IsNotFinished)
-        {
-            if (parser.Current is Punctuation and not OpenParenthesis and not OpenBrace) break;
-
-            var syntax = Value.Parse(ref parser);
-            if (syntax is Error or null) return syntax;
-            values.Add(syntax as Value);
-        }
+        var values = parser.Parse<Value>();
 
         if (values.Count is 0) return null;
 
