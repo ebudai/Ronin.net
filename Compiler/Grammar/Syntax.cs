@@ -55,7 +55,7 @@ x partof - 'part of' name
 x declarator - 'var' or 'constant' or 'let'
 x modifiers - 'optional' or 'compiled' or 'persistent' or 'shared'
 x name - word + wordable symbol ... [symbols don't need to be separated]
-x assignment - name = value
+x assignment - name '=' value
 x parameter - explicit - name => modifiers reference [datatype] { '=' value } (optionally) [initializer]
             - implicit - assignment
 x scalar - literal ...
