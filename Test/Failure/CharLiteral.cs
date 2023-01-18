@@ -57,6 +57,8 @@ public class CharLiteral
 
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
+
+        Assert.Null(lexed);
     }
 
     [Fact(DisplayName = "no data")]
