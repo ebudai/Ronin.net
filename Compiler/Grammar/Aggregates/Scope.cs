@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar.Aggregates;
 
-internal class Scope : AggregateSyntax<Scope, OpenBrace, Statement, Terminal, CloseBrace>
+internal class Scope : Aggregate<Scope, OpenBrace, Statement, Terminal, CloseBrace>
 {
     public Scope Parent { get; init; }
     
