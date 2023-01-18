@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Errors;
 
 namespace Failure;
 

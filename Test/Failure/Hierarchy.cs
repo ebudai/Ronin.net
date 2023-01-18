@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Grammar.Errors;
 
 namespace Failure;
 
@@ -38,5 +39,19 @@ public class Hierarchy
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
+    }
+
+    [Fact(DisplayName = "bad name")]
+    public void BadName()
+    {
+        const string bad = "part of thing)stuff;";
+
+        Lexer lexer = new(bad);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var result = parser.Parse();
+
+        Assert.NotEmpty(result);
+        Assert.IsType<UnexpectedSyntaxError>(result[0]);
     }
 }
