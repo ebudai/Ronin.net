@@ -4,7 +4,7 @@ namespace Ronin.Grammar.Aggregates;
 
 internal class Scope : Aggregate<Scope, OpenBrace, Statement, Terminal, CloseBrace>
 {
-    public Scope Parent { get; init; }
+    /*public Scope Parent { get; init; }
     
     public List<Datum> Data { get; } = new();
     public List<Function> Functions { get; } = new();
@@ -12,5 +12,5 @@ internal class Scope : Aggregate<Scope, OpenBrace, Statement, Terminal, CloseBra
 
     //public override string ToString() => '{' + string.Join(",", Values) + '}';
 
-    public static Scope Global;
+    public static Scope Global;*/
 }

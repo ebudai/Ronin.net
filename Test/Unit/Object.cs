@@ -4,7 +4,7 @@ using Ronin.Grammar;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Values
+public class Object
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
