@@ -2,7 +2,7 @@
 
 namespace Ronin.Program;
 
-internal class Fundamental
+/*internal class Fundamental
 {
     public static readonly Grammar.Datatype something = GenerateFundamentalDatatype(nameof(something));
     public static readonly Grammar.Datatype nothing = GenerateFundamentalDatatype(nameof(nothing));
@@ -45,3 +45,4 @@ internal class Fundamental
         Identifier = new() { Components = { new Identifier.Component { Syntax = new Name { Words = { name } } } } },
     };
 }
+*/
