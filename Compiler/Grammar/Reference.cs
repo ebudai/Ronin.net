@@ -17,7 +17,7 @@ internal class Reference : Syntax, IParsable
 
         while (parser.IsNotFinished)
         {
-            if (parser.Current is Punctuation and not OpenParenthesis) break;
+            if (parser.Current is Punctuation and not OpenParenthesis and not OpenBrace) break;
 
             var syntax = Value.Parse(ref parser);
             if (syntax is Error or null) return syntax;
