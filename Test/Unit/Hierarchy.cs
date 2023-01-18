@@ -21,8 +21,10 @@ public class Hierarchy
         Assert.NotEmpty(syntax);
         Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
         Assert.NotNull(hierarchy);
-        Assert.NotEmpty(hierarchy.Name);
-        Assert.Equal("standard", hierarchy.Name[0]);
+        Assert.NotNull(hierarchy.Name);
+        //Assert.IsType<Ronin.Grammar.Name>
+        Assert.NotEmpty(hierarchy.Name.Words);
+        Assert.Equal("standard", hierarchy.Name.Words[0]);
         Assert.IsType<PartOf>(hierarchy.Direction);
     }
 
@@ -39,11 +41,11 @@ public class Hierarchy
         Assert.NotEmpty(syntax);
         Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
         Assert.NotNull(hierarchy);
-        Assert.NotEmpty(hierarchy.Name);
-        Assert.Equal(3, hierarchy.Name.Count);
-        Assert.Equal("standard", hierarchy.Name[0]);
-        Assert.Equal("funstuff", hierarchy.Name[1]);
-        Assert.Equal("websockets", hierarchy.Name[2]);
+        Assert.NotEmpty(hierarchy.Name.Words);
+        Assert.Equal(3, hierarchy.Name.Words.Count);
+        Assert.Equal("standard", hierarchy.Name.Words[0]);
+        Assert.Equal("funstuff", hierarchy.Name.Words[1]);
+        Assert.Equal("websockets", hierarchy.Name.Words[2]);
         Assert.IsType<Import>(hierarchy.Direction);
     }
 
@@ -65,13 +67,13 @@ public class Hierarchy
         Assert.NotEmpty(syntax);
         Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
         Assert.NotNull(hierarchy);
-        Assert.NotEmpty(hierarchy.Name);
-        Assert.Equal(5, hierarchy.Name.Count);
-        Assert.Equal("compiled", hierarchy.Name[0]);
-        Assert.Equal("to", hierarchy.Name[1]);
-        Assert.Equal("whatever", hierarchy.Name[2]);
-        Assert.Equal("secret", hierarchy.Name[3]);
-        Assert.Equal("stuff", hierarchy.Name[4]);
+        Assert.NotEmpty(hierarchy.Name.Words);
+        Assert.Equal(5, hierarchy.Name.Words.Count);
+        Assert.Equal("compiled", hierarchy.Name.Words[0]);
+        Assert.Equal("to", hierarchy.Name.Words[1]);
+        Assert.Equal("whatever", hierarchy.Name.Words[2]);
+        Assert.Equal("secret", hierarchy.Name.Words[3]);
+        Assert.Equal("stuff", hierarchy.Name.Words[4]);
         Assert.IsType<PartOf>(hierarchy.Direction);
     }
 

@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
@@ -15,8 +16,16 @@ internal class Name : Syntax, IParsable
         while (parser.IsNotFinished)
         {
             var name = parser.Current;
-            if (name is Word or Symbol and not Punctuation) names.Add(name);
-            else break;
+            
+            if (name is Word or Symbol and not Punctuation)
+            {
+                names.Add(name);
+            }
+            else
+            {
+                break;
+            }
+
             parser.Advance();
         }
 
