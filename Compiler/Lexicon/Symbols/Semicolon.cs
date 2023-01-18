@@ -2,7 +2,7 @@
 
 namespace Ronin.Lexicon.Symbols;
 
-internal class Semicolon : Terminal
+internal class Semicolon : Punctuation
 {
     public const char character = ';';
     public const string symbol = ";";

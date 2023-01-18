@@ -11,7 +11,7 @@ public class Datum
 {
     private const string var = Variable.keyword;
     private const string returns = Returns.symbol;
-    private const string end = Semicolon.symbol;
+    private const string end = Terminal.symbol;
     private const string reactive = Reactive.keyword;
     private const string compiled = Compiled.keyword;
     private const string persistent = Persistent.keyword;

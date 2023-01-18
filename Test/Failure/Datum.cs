@@ -11,7 +11,7 @@ public class Datum
 {
     private const string reactive = Reactive.keyword;
     private const string returns = Returns.symbol;
-    private const string end = Semicolon.symbol;
+    private const string end = Terminal.symbol;
     private const string var = Variable.keyword;
 
     [Fact(DisplayName = "comments and whitespace")]

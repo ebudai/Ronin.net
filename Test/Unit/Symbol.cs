@@ -18,10 +18,10 @@ public class Symbol
     }
 
     [Fact(DisplayName = "terminal")]
-    public void LexTerminal() => LexSymbol<Semicolon>(Semicolon.symbol);
+    public void LexTerminal() => LexSymbol<Terminal>(Terminal.symbol);
 
     [Fact(DisplayName = "separator")]
-    public void LexSeparator() => LexSymbol<Comma>(Comma.symbol);
+    public void LexSeparator() => LexSymbol<Separator>(Separator.symbol);
 
     [Fact(DisplayName = "open brace")]
     public void LexOpenBrace() => LexSymbol<OpenBrace>(OpenBrace.symbol);

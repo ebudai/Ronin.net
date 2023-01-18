@@ -1,5 +1,8 @@
-﻿//global using Terminal = Ronin.Lexicon.Symbols.Semicolon;
-//global using Separator = Ronin.Lexicon.Symbols.Comma;
+﻿global using Assign = Ronin.Lexicon.Symbols.Equal;
+global using CharacterDelimiter = Ronin.Lexicon.Symbols.Quote;
+global using Separator = Ronin.Lexicon.Symbols.Comma;
+global using Terminal = Ronin.Lexicon.Symbols.Semicolon;
+global using TextDelimiter = Ronin.Lexicon.Symbols.DoubleQuote;
 
 using Ronin.Compiler;
 using Ronin.Lexicon.Symbols;
@@ -16,12 +19,12 @@ internal class Symbol : Token
         if (text.IsEmpty) return false;
         return text.StartsWith(Returns.symbol)
             || text[0] is Ampersand.character
-            or Assign.character
+            or Equal.character
             or Asterisk.character
             or At.character
             or Backslash.character
             or Backtick.character
-            or CharacterDelimiter.character
+            or Quote.character
             or Chevron.character
             or CloseBrace.character
             or CloseParenthesis.character
@@ -44,19 +47,19 @@ internal class Symbol : Token
             or Question.character
             or Semicolon.character
             or Slash.character
-            or TextDelimiter.character
+            or DoubleQuote.character
             or Tilde.character;
     }
 
     internal static Symbol Lex(Lexer lexer)
         => Ampersand.Lex(lexer)
-        ?? Returns.Lex(lexer) // needs to be above Assign
-        ?? Assign.Lex(lexer)
+        ?? Returns.Lex(lexer) // needs to be above Equals
+        ?? Symbols.Equal.Lex(lexer)
         ?? Asterisk.Lex(lexer)
         ?? At.Lex(lexer)
         ?? Backslash.Lex(lexer)
         ?? Backtick.Lex(lexer)
-        ?? CharacterDelimiter.Lex(lexer)
+        ?? Quote.Lex(lexer)
         ?? Chevron.Lex(lexer)
         ?? CloseBrace.Lex(lexer)
         ?? CloseParenthesis.Lex(lexer)
@@ -79,7 +82,7 @@ internal class Symbol : Token
         ?? Question.Lex(lexer)
         ?? Semicolon.Lex(lexer)        
         ?? Slash.Lex(lexer)
-        ?? TextDelimiter.Lex(lexer)
+        ?? DoubleQuote.Lex(lexer)
         ?? Tilde.Lex(lexer) as Symbol;
 }
 
