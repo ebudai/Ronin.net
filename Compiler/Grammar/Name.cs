@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
@@ -34,5 +33,5 @@ internal class Name : Syntax, IParsable
         return new Name { Words = names, Source = parser.Commit(ref context) };
     }
 
-    public override string ToString() => string.Join("_", Words);
+    //public override string ToString() => string.Join("_", Words);
 }

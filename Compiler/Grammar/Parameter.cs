@@ -15,8 +15,7 @@ internal class Parameter : Syntax, IParsable
     {
         Parser parser = context;
 
-        var name = Name.Parse(ref parser) as Name;
-        if (name is null) return null;
+        if (Name.Parse(ref parser) is not Name name) return null;
 
         Modifiers modifiers = null;
         Syntax datatype = null;
@@ -50,12 +49,12 @@ internal class Parameter : Syntax, IParsable
         };
     }
 
-    public override string ToString()
+    /*public override string ToString()
     {
         var code = Is + " " + Name;
         if (Datatype is not null) code += " " + Datatype;
         if (Initializer is not null) code += " = " + Initializer;
         return code;
-    }
+    */}
 
 }

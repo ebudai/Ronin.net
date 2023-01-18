@@ -42,5 +42,5 @@ internal class Modifiers : Syntax, IParsable
         };
     }
 
-    public override string ToString() => Shared ? "static" : string.Empty;
+    //public override string ToString() => Shared ? "static" : string.Empty;
 }
