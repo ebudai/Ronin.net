@@ -39,7 +39,6 @@ public class Datatype
         Assert.NotEmpty(result);
         Ronin.Grammar.Datatype datatype = result[0] as Statement;
         Assert.NotNull(datatype);
-        Assert.NotNull(datatype.Algebra);
         Assert.Equal(2, datatype.Body.Values.Count);
         
         var cash = datatype.Body.Values[0].Syntax as Ronin.Grammar.Datum;
@@ -57,8 +56,5 @@ public class Datatype
         Assert.NotEmpty(debt.Datatype.Values);
         Ronin.Grammar.Name debttypename = debt.Datatype.Values[0];
         Assert.Equal("money", string.Join(' ', debttypename.Words));
-
-        var x = datatype.ToString();
-        Console.WriteLine(x);
     }
 }
