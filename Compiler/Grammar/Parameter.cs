@@ -16,7 +16,7 @@ internal class Parameter : Syntax, IParsable
         Parser parser = context;
 
         var name = Name.Parse(ref parser) as Name;
-        if (name is null) return name;
+        if (name is null) return null;
 
         Modifiers modifiers = null;
         Syntax datatype = null;
@@ -27,7 +27,8 @@ internal class Parameter : Syntax, IParsable
             modifiers = Modifiers.Parse(ref parser) as Modifiers;
 
             datatype = Reference.Parse(ref parser);
-            if (datatype is Error or null) return datatype ?? ExpectedReferenceError.Parse(ref context);
+            if (datatype is Error) return datatype;
+            if (datatype is null) return ExpectedReferenceError.Parse(ref context);
         }
         
         Syntax initializer = null;

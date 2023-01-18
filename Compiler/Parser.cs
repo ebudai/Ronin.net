@@ -1,7 +1,6 @@
 ﻿using Ronin.Grammar;
 using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Compiler;
 
@@ -29,7 +28,7 @@ public ref struct Parser
             if (trivia is not null) continue;
             var statement = Statement.Parse(ref this);
             if (statement is Error error) Index = error.Cursor;
-            if (Current is not Terminal and not Sentinel) statement = ExpectedTerminalError.Parse(ref this);
+            else if (Current is not Terminal and not Sentinel) statement = UnexpectedSyntaxError.Parse(ref this);
             statements.Add(statement);
         }
 
