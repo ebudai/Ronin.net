@@ -12,7 +12,7 @@ internal class Assignment : Syntax, IParsable
         Parser parser = context;
 
         var name = Name.Parse(ref parser) as Name;
-        if (name is null) return name;
+        if (name is null) return null;
 
         if (parser.Current is not Assign) return null;
         parser.Advance();
