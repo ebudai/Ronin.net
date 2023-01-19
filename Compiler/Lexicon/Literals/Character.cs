@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Lexicon.Literals;
 

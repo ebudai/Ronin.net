@@ -6,9 +6,11 @@ global using TextDelimiter = Ronin.Lexicon.Symbols.DoubleQuote;
 
 using Ronin.Compiler;
 using Ronin.Lexicon.Symbols;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Lexicon;
 
+[SuppressMessage("Style", "IDE0001")]
 internal class Symbol : Token
 {
     internal Symbol(Lexer lexer, int length) : base(lexer, length) { }
@@ -54,7 +56,7 @@ internal class Symbol : Token
     internal static Symbol Lex(Lexer lexer)
         => Ampersand.Lex(lexer)
         ?? Returns.Lex(lexer) // needs to be above Equals
-        ?? Symbols.Equal.Lex(lexer)
+        ?? Equal.Lex(lexer)
         ?? Asterisk.Lex(lexer)
         ?? At.Lex(lexer)
         ?? Backslash.Lex(lexer)
