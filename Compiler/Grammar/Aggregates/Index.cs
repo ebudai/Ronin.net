@@ -9,13 +9,15 @@ namespace Ronin.Grammar.Aggregates;
 /// </summary>
 /// 
 /// <remarks>
-///     This is used to declare a List or a Lookup, or to retrieve an element from one of those datatypes
+///     This is used to declare a List or a Lookup, or to retrieve an element from one
 /// </remarks>
 /// 
 /// <example>
 ///     var apples => Apple[];
 ///     var apple = apples[7];
-///     var 
+///     var capital cities => City[text];
+///     const Ottawa => City;
+///     capital cities["Canada"] = Ottawa;
 /// </example>
 /// 
 internal class Index : Aggregate<Index, OpenSquareBracket, Value, Separator, CloseSquareBracket>
