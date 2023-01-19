@@ -31,17 +31,16 @@ public ref struct Parser
     }
 
     //todo fix line 40 - see if we can add errors to the parser instead of returning them - then we can have T.Parse(ref parser) return T instead of Syntax
-    public List<T> Parse<T>() where T : class, IParsable
+    internal Error ParseRepeating<T>(List<T> parsed) where T : class, IParsable
     {
-        List<T> parsed = new();
         while (IsNotFinished)
         {
             var syntax = T.Parse(ref this);
-            //if (syntax is Error) return syntax;
+            if (syntax is Error error) return error;
             if (syntax is null) break;
             parsed.Add(syntax as T);
         }
-        return parsed;
+        return null;
     }
 
     internal int Index;
@@ -49,7 +48,7 @@ public ref struct Parser
     internal ref readonly Token Current => ref tokens[Index];
 
     internal ref readonly Token this[int index] => ref tokens[Index + index];
-    internal ReadOnlySpan<Token> this[Range range] => tokens[range];
+    internal readonly ReadOnlySpan<Token> this[Range range] => tokens[range];
 
     internal bool IsNotFinished => Current is not Sentinel;
 

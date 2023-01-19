@@ -12,8 +12,10 @@ internal class Reference : Syntax, IParsable
     public static Syntax Parse(ref Parser context)
     {
         Parser parser = context;
-        var values = parser.Parse<Value>();
 
+        List<Value> values = new();        
+        var error = parser.ParseRepeating(values);
+        if (error is not null) return error;
         if (values.Count is 0) return null;
 
         var index = Index.Parse(ref parser);

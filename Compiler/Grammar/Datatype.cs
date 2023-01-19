@@ -26,7 +26,9 @@ internal class Datatype : Syntax, IParsable
         if (parser.Current is Assign)
         {
             parser.Advance();
-            algebra = parser.Parse<Algebra>();
+            algebra = new();
+            var error = parser.ParseRepeating(algebra);
+            if (error is not null) return error;
         }
 
         var body = Scope.Parse(ref parser);
