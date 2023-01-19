@@ -19,7 +19,6 @@ namespace Ronin.Grammar.Aggregates;
 ///     const Ottawa => City;
 ///     capital cities["Canada"] = Ottawa;
 /// </example>
-/// 
 internal class Index : Aggregate<Index, OpenSquareBracket, Value, Separator, CloseSquareBracket>
 {
     

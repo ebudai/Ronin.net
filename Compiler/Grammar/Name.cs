@@ -32,6 +32,4 @@ internal class Name : Syntax, IParsable
 
         return new Name { Words = names, Source = parser.Commit(ref context) };
     }
-
-    //public override string ToString() => string.Join("_", Words);
 }

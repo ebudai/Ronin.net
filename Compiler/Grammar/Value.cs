@@ -1,8 +1,16 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
+
 using Arguments = Ronin.Grammar.Aggregates.Arguments;
 
 namespace Ronin.Grammar;
+
+/// <summary>
+///     Union of <see cref="Scalar"/>, <see cref="Arguments"/>, <see cref="Scope"/>, and <see cref="Name"/>
+/// </summary>
+/// <exception cref=""
 
 internal class Value : Syntax, IParsable
 {

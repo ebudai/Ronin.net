@@ -1,7 +1,17 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Union of <see cref="Hierarchy"/>, <see cref="Datum"/>, <see cref="Function"/>, <see cref="Datatype"/>, <see cref="Assignment"/>, and <see cref="Reference"/>
+/// </summary>
+/// 
+/// <remarks>
+///     This is the central workhorse class for <see cref="Parser"/>
+/// </remarks>
+/// <exception cref=""
 internal class Statement : Syntax, IParsable
 {
     public Syntax Syntax { get; init; }
@@ -28,6 +38,4 @@ internal class Statement : Syntax, IParsable
     public static implicit operator Datatype(Statement statement) => statement.Syntax as Datatype;
     public static implicit operator Assignment(Statement statement) => statement.Syntax as Assignment;
     public static implicit operator Reference(Statement statement) => statement.Syntax as Reference;
-
-    //public override string ToString() => Syntax.ToString();
 }

@@ -1,7 +1,12 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+/// 
+/// </summary>
 internal class Assignment : Syntax, IParsable
 {
     public Name Name { get; init; }
@@ -11,8 +16,7 @@ internal class Assignment : Syntax, IParsable
     {
         Parser parser = context;
 
-        var name = Name.Parse(ref parser) as Name;
-        if (name is null) return null;
+        if (Name.Parse(ref parser) is not Name name) return null;
 
         if (parser.Current is not Assign) return null;
         parser.Advance();
@@ -27,6 +31,4 @@ internal class Assignment : Syntax, IParsable
             Source = parser.Commit(ref context),
         };
     }
-
-    //public override string ToString() => Name + " = " + Value;
 }

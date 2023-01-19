@@ -1,9 +1,16 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 using Ronin.Grammar.Errors;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Named data used for passing information into a <see cref="Function"/>
+/// </summary>
+/// <example>function withdraw(var amount => money) from (account => Account) { }</example>
+/// <exception cref="UnspecifiedDatatypeError"/>
 internal class Parameter : Syntax, IParsable
 {
     public Modifiers Is { get; init; }
@@ -27,7 +34,7 @@ internal class Parameter : Syntax, IParsable
 
             datatype = Reference.Parse(ref parser);
             if (datatype is Error) return datatype;
-            if (datatype is null) return ExpectedReferenceError.Parse(ref context);
+            if (datatype is null) return UnspecifiedDatatypeError.Parse(ref context);
         }
         
         Syntax initializer = null;
@@ -48,13 +55,4 @@ internal class Parameter : Syntax, IParsable
             Source = parser.Commit(ref context)
         };
     }
-
-    /*public override string ToString()
-    {
-        var code = Is + " " + Name;
-        if (Datatype is not null) code += " " + Datatype;
-        if (Initializer is not null) code += " = " + Initializer;
-        return code;
-    }*/
-
 }

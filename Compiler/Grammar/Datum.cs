@@ -10,7 +10,7 @@ internal class Datum : Parameter, IParsable
 
     public static new Syntax Parse(ref Parser context)
     {
-        Keyword declarator = context.Current is Variable or Constant or Reactive ? context.Current as Keyword : null;
+        var declarator = context.Current is Variable or Constant or Reactive ? context.Current as Keyword : null;
         if (declarator is null) return null;
 
         Parser parser = context;
@@ -30,11 +30,4 @@ internal class Datum : Parameter, IParsable
             Source = parser.Commit(ref context)
         };
     }
-
-    /*public override string ToString() => MutabilityString() + ' ' + base.ToString();
-
-    private string MutabilityString()
-    {
-        return Mutability.ToString(); //todo mutability transpile
-    }*/
 }
