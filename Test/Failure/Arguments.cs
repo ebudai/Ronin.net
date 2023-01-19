@@ -16,7 +16,7 @@ public class Arguments
         Lexer lexer = new(sourcecode);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var aggregate = Ronin.Grammar.Aggregates.Object.Parse(ref parser);
+        var aggregate = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
 
         Assert.Null(aggregate);
     }

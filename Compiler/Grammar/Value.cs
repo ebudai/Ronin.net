@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Object = Ronin.Grammar.Aggregates.Object;
+using Arguments = Ronin.Grammar.Aggregates.Arguments;
 
 namespace Ronin.Grammar;
 
@@ -13,7 +13,7 @@ internal class Value : Syntax, IParsable
         Parser parser = context;
 
         var syntax = Scalar.Parse(ref parser)
-            ?? Object.Parse(ref parser)
+            ?? Arguments.Parse(ref parser)
             ?? Scope.Parse(ref parser)
             ?? Name.Parse(ref parser);
 
@@ -23,7 +23,7 @@ internal class Value : Syntax, IParsable
     }
 
     public static implicit operator Scalar(Value value) => value.Syntax as Scalar;
-    public static implicit operator Object(Value value) => value.Syntax as Object;
+    public static implicit operator Arguments(Value value) => value.Syntax as Arguments;
     public static implicit operator Scope(Value value) => value.Syntax as Scope;
     public static implicit operator Name(Value value) => value.Syntax as Name;
 

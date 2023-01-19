@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 
-using Object = Ronin.Grammar.Aggregates.Object;
+using Arguments = Ronin.Grammar.Aggregates.Arguments;
 
 namespace Ronin.Grammar;
 
@@ -13,7 +13,7 @@ internal class Algebra : Syntax, IParsable
         Parser parser = context;
 
         var syntax = Scalar.Parse(ref parser)
-            ?? Object.Parse(ref parser)
+            ?? Arguments.Parse(ref parser)
             ?? Name.Parse(ref parser);
 
         if (syntax is Error or null) return syntax;

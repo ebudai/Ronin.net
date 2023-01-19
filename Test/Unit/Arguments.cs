@@ -4,7 +4,7 @@ using Ronin.Grammar;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Object
+public class Arguments
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -20,7 +20,7 @@ public class Object
         Reference reference = syntax[0] as Statement;
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Aggregates.Object arguments = reference.Values[0];
+        Ronin.Grammar.Aggregates.Arguments arguments = reference.Values[0];
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
         Ronin.Grammar.Name name = arguments.Values[0];
@@ -43,7 +43,7 @@ public class Object
         Reference reference = syntax[0] as Statement;
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Aggregates.Object arguments = reference.Values[0];
+        Ronin.Grammar.Aggregates.Arguments arguments = reference.Values[0];
         Assert.NotNull(arguments);
         Assert.Equal(2, arguments.Values.Count);
 
@@ -71,7 +71,7 @@ public class Object
         Assert.NotEmpty(syntax);
         Reference reference = syntax[0] as Statement;
         Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Aggregates.Object @object = reference.Values[0];
+        Ronin.Grammar.Aggregates.Arguments @object = reference.Values[0];
         Assert.NotNull(@object);
         Assert.Empty(@object.Values);
     }
