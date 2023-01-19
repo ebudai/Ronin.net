@@ -1,8 +1,10 @@
-﻿namespace Ronin.Lexicon;
+﻿using Ronin.Compiler;
+
+namespace Ronin.Lexicon;
 
 internal class Sentinel : Token
 {
     public static readonly Sentinel Instance = new();
 
-    private Sentinel() : base(new(string.Empty), 0) { }
+    private Sentinel() : base(new Lexer(string.Empty), 0) { }
 }
