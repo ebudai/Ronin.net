@@ -24,7 +24,7 @@ namespace Ronin.Grammar;
 /// </typeparam>
 /// 
 /// <typeparam name="TSeparator">
-///     <see cref="Symbol"/> used to separate each <see cref="{TElement}"/>
+///     <see cref="Symbol"/> used to separate each <typeparamref name="TElement"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TClose">

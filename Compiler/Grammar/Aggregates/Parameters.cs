@@ -9,7 +9,7 @@ namespace Ronin.Grammar.Aggregates;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Comma"/>-separated <see cref="Parameter"/>s between <see cref="OpenParenthesis"/> and <see cref="CloseParenthesis"/>
+///     <see cref="Separator"/>-separated <see cref="Parameter"/>s between <see cref="OpenParenthesis"/> and <see cref="CloseParenthesis"/>
 /// </remarks>
 /// 
 /// <example>
