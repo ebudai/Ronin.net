@@ -39,8 +39,4 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
             Source = parser.Commit(ref context)
         };
     }
-
-    /*public override string ToString() => Is + " " + Identifier + AlgebraString() + Body;
-    
-    private string AlgebraString() => Algebra.ToString(); //todo algebra transpile*/
 }

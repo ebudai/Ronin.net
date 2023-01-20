@@ -41,6 +41,4 @@ internal class Modifiers : Syntax, Compiler.IParsable<Modifiers>
             Source = parser.Commit(ref context)
         };
     }
-
-    //public override string ToString() => Shared ? "static" : string.Empty;
 }

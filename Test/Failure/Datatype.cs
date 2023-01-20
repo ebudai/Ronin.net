@@ -5,28 +5,26 @@ using Ronin.Grammar.Errors;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Function
+public class Datatype
 {
-    [Fact(DisplayName = "bad name")]
-    public void BadName()
+    [Fact(DisplayName = "no identifier")]
+    public void NoIdentifier()
     {
-        const string line = "function test) thing(x => number) { }";
+        const string declaration = "datatype {}";
 
-        Lexer lexer = new(line);
+        Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
         var statements = parser.Parse();
 
-        Assert.Empty(statements);
-        Assert.NotEmpty(parser.Errors);
-        var error = parser.Errors[0];
-        Assert.IsType<UnexpectedSyntaxError>(error);
+        Assert.NotEmpty(statements);
+        Assert.IsType<Reference>(statements[0].Syntax);
     }
 
-    [Fact(DisplayName = "no identifier")]
-    public void NoIdentifier()
+    [Fact(DisplayName = "no scope")]
+    public void NoScope()
     {
-        const string declaration = "function {}";
+        const string declaration = "datatype x;";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
