@@ -5,7 +5,7 @@ using Ronin.Compiler;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     
+///     An assignment of one value to a datum or parameter
 /// </summary>
 internal class Assignment : Syntax, Compiler.IParsable<Assignment>
 {

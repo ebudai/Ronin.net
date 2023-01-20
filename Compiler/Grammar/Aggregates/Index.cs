@@ -5,19 +5,27 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar.Aggregates;
 
 /// <summary>
-///     Comma-separated list of values in square brackets
+///     Aggregate of <see cref="Value"/>s intended for selecting an element from, or delcaring, a List or Lookup
 /// </summary>
 /// 
 /// <remarks>
-///     This is used to declare a List or a Lookup, or to retrieve an element from one
+///     <see cref="Comma"/>-separated <see cref="Value"/>s between <see cref="OpenSquareBracket"/> and <see cref="CloseSquareBracket"/>
 /// </remarks>
 /// 
 /// <example>
 ///     var apples => Apple[];
+///                        ↑↑
 ///     var apple = apples[7];
+///                       ↑↑↑
 ///     var capital cities => City[text];
+///                               ↑↑↑↑↑↑
 ///     const Ottawa => City;
 ///     capital cities["Canada"] = Ottawa;
+///                   ↑↑↑↑↑↑↑↑↑↑
+///     var multi-dimensional list => number[7,15,87];
+///                                         ↑↑↑↑↑↑↑↑↑
+///     var selected value = multi-dimensional list[3, 1, 0];
+///                                                ↑↑↑↑↑↑↑↑↑
 /// </example>
 internal class Index : Aggregate<Index, OpenSquareBracket, Value, Separator, CloseSquareBracket>
 {

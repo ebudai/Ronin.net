@@ -6,15 +6,16 @@ using Ronin.Grammar.Aggregates;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Union of <see cref="Scalar"/>, <see cref="Arguments"/>, and <see cref="Name"/>
+///     This is used to produce unions and child classes for datatypes
 /// </summary>
 /// 
 /// <remarks>
-///     This is used to produce unions and subclasses for datatypes
+///     Union of <see cref="Scalar"/>, <see cref="Arguments"/>, and <see cref="Name"/>
 /// </remarks>
 /// 
 /// <example>
 ///     datatype Squirrel = Mammal and 
+///                         ↑↑↑↑↑↑↑↑↑↑
 ///     {
 ///         var tail fluffiness => number;
 ///         var home => Tree;

@@ -5,21 +5,22 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar.Aggregates;
 
 /// <summary>
-///     Semicolon-separated list of <see cref="Statement"/> in braces
+///     Body of conditionals, loops, <see cref="Function"/>s and <see cref="Datatype"/>s.  Can also be a <see cref="Value"/>.
 /// </summary>
 /// 
 /// <remarks>
-///     Used as the body of conditionals, loops, <see cref="Function"/> and <see cref="Datatype"/>
+///     <see cref="Terminal"/>-separated <see cref="Statement"/>s between <see cref="OpenBrace"/> and <see cref="CloseBrace"/>
 /// </remarks>
 /// 
 /// <example>
 ///     datatype Speaker
-///     {
-///         var volume => number; 
-///         var base => number; 
-///         var treble => number; 
-///         var brand => text;
-///     }
+///     → {
+///     →     var volume => number; 
+///     →     var base => number; 
+///     →     var treble => number; 
+///     →     var brand => text;
+///     → }
+///       ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
 internal class Scope : Aggregate<Scope, OpenBrace, Statement, Terminal, CloseBrace>
 {
