@@ -7,6 +7,10 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     An assignment of a <see cref="Grammar.Value"/> to a <see cref="Datum"/> or <see cref="Parameter"/>
 /// </summary>
+/// 
+/// <example>
+///     x = 16;
+/// </example>
 internal class Assignment : Syntax, Compiler.IParsable<Assignment>
 {
     public Name Name { get; init; }

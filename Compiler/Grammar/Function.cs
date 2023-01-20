@@ -1,4 +1,6 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
