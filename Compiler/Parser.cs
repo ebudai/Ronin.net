@@ -4,43 +4,50 @@ using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
 
-public interface IParsable
+internal interface IParsable<T> where T : IParsable<T>
 {
-    public static abstract Syntax Parse(ref Parser context);
+    public static abstract T Parse(ref Parser context);
 }
 
-public ref struct Parser
+internal ref struct Parser
 {
     public Parser(Token[] tokens) => this.tokens = tokens;
 
-    public Syntax[] Parse()
+    public List<Statement> Parse()
     {
-        List<Syntax> statements = new();
-
+        List<Statement> statements = new();
+        
         while (IsNotFinished)
         {
-            var trivia = Trivia.Parse(ref this);
-            if (trivia is not null) continue;
-            var statement = Statement.Parse(ref this);
-            if (statement is Error error) Index = error.Cursor;
-            else if (Current is not Terminal and not Sentinel) statement = UnexpectedSyntaxError.Parse(ref this);
-            statements.Add(statement);
+            if (Trivia.Parse(ref this) is not null) continue;
+
+            try
+            {
+                var statement = Statement.Parse(ref this);
+                if (Current is not Terminal and not Sentinel) throw new UnexpectedSyntaxError(ref this);
+                statements.Add(statement);
+            }
+            catch (Error error)
+            {
+                Index = error.Cursor;
+                Errors.Add(error);
+            }
         }
 
-        return statements.ToArray();
+        return statements;
     }
 
     //todo fix line 40 - see if we can add errors to the parser instead of returning them - then we can have T.Parse(ref parser) return T instead of Syntax
-    internal Error ParseRepeating<T>(List<T> parsed) where T : class, IParsable
+    internal List<T> ParseRepeating<T>() where T : class, IParsable<T>
     {
+        List<T> parsed = new();
         while (IsNotFinished)
         {
             var syntax = T.Parse(ref this);
-            if (syntax is Error error) return error;
             if (syntax is null) break;
             parsed.Add(syntax as T);
         }
-        return null;
+        return parsed;
     }
 
     internal int Index;
@@ -51,6 +58,8 @@ public ref struct Parser
     internal readonly ReadOnlySpan<Token> this[Range range] => tokens[range];
 
     internal bool IsNotFinished => Current is not Sentinel;
+
+    internal List<Error> Errors { get; } = new();
 
     internal void Advance() 
     {

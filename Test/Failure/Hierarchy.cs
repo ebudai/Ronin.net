@@ -38,7 +38,9 @@ public class Hierarchy
         Parser parser = new(tokens);
         var result = parser.Parse();
 
-        Assert.NotEmpty(result);
+        Assert.Empty(result);
+        Assert.NotEmpty(parser.Errors);
+        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
 
     [Fact(DisplayName = "bad name")]
@@ -51,7 +53,8 @@ public class Hierarchy
         Parser parser = new(tokens);
         var result = parser.Parse();
 
-        Assert.NotEmpty(result);
-        Assert.IsType<UnexpectedSyntaxError>(result[0]);
+        Assert.Empty(result);
+        Assert.NotEmpty(parser.Errors);
+        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
 }

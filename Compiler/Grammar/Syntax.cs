@@ -2,7 +2,7 @@
 
 namespace Ronin.Grammar;
 
-public abstract class Syntax
+internal abstract class Syntax
 {
     protected internal Token[] Source { get; init; }
 }

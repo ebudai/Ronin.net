@@ -3,11 +3,11 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Scalar : Syntax, IParsable
+internal class Scalar : Syntax, Compiler.IParsable<Scalar>
 {
     public List<Literal> Literals { get; private init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Scalar Parse(ref Parser context)
     {
         Parser parser = context;
         List<Literal> values = new();
@@ -23,6 +23,4 @@ internal class Scalar : Syntax, IParsable
 
         return new Scalar { Literals = values, Source = parser.Commit(ref context) };
     }
-
-    public override string ToString() => string.Join(" ", Literals);
 }

@@ -3,35 +3,31 @@ using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
-internal class Function : Syntax, IParsable
+internal class Function : Syntax, Compiler.IParsable<Function>
 {
     public Modifiers Is { get; private init; }
     public Identifier Identifier { get; private init; }
     public Scope Body { get; private init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Function Parse(ref Parser context)
     {
         Parser parser = context;
 
-        var modifiers = Modifiers.Parse(ref parser) as Modifiers;
+        var modifiers = Modifiers.Parse(ref parser);
 
         if (parser.Current is not Lexicon.Reserved.Function) return null;
         parser.Advance();
 
-        var identifier = Identifier.Parse(ref parser);
-        if (identifier is Error or null) return identifier;
+        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
-        var body = Scope.Parse(ref parser);
-        if (body is Error or null) return body;
+        if (Scope.Parse(ref parser) is not Scope body) return null;
 
         return new Function
         {
             Is = modifiers,
-            Identifier = identifier as Identifier,
-            Body = body as Scope,
+            Identifier = identifier,
+            Body = body,
             Source = parser.Commit(ref context)
         };
     }
-
-    //public override string ToString() => Is + " " + Identifier + Body;
 }

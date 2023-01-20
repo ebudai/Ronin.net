@@ -10,22 +10,20 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Union of <see cref="Scalar"/>, <see cref="Arguments"/>, <see cref="Scope"/>, and <see cref="Name"/>
 /// </summary>
-/// <exception cref=""
-
-internal class Value : Syntax, IParsable
+internal class Value : Syntax, Compiler.IParsable<Value>
 {
     public Syntax Syntax { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Value Parse(ref Parser context)
     {
         Parser parser = context;
 
         var syntax = Scalar.Parse(ref parser)
             ?? Arguments.Parse(ref parser)
             ?? Scope.Parse(ref parser)
-            ?? Name.Parse(ref parser);
+            ?? Name.Parse(ref parser) as Syntax;
 
-        if (syntax is Error or null) return syntax;
+        if (syntax is null) return null;
 
         return new Value { Syntax = syntax, Source = parser.Commit(ref context) };
     }
@@ -34,6 +32,4 @@ internal class Value : Syntax, IParsable
     public static implicit operator Arguments(Value value) => value.Syntax as Arguments;
     public static implicit operator Scope(Value value) => value.Syntax as Scope;
     public static implicit operator Name(Value value) => value.Syntax as Name;
-
-    //public override string ToString() => Syntax.ToString();
 }

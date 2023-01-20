@@ -11,47 +11,47 @@ namespace Ronin.Grammar;
 /// </summary>
 /// <example>function withdraw(var amount => money) from (account => Account) { }</example>
 /// <exception cref="UnspecifiedDatatypeError"/>
-internal class Parameter : Syntax, IParsable
+internal class Parameter : Syntax, Compiler.IParsable<Parameter>
 {
     public Modifiers Is { get; init; }
     public Name Name { get; init; }
     public Reference Datatype { get; init; }
     public Value Initializer { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Parameter Parse(ref Parser context)
     {
         Parser parser = context;
 
         if (Name.Parse(ref parser) is not Name name) return null;
 
         Modifiers modifiers = null;
-        Syntax datatype = null;
+        Reference datatype = null;
         if (parser.Current is Returns)
         {
             parser.Advance();
 
-            modifiers = Modifiers.Parse(ref parser) as Modifiers;
+            modifiers = Modifiers.Parse(ref parser);
 
             datatype = Reference.Parse(ref parser);
-            if (datatype is Error) return datatype;
-            if (datatype is null) return UnspecifiedDatatypeError.Parse(ref context);
+            
+            if (datatype is null) throw new UnspecifiedDatatypeError(ref context);
         }
         
-        Syntax initializer = null;
+        Value initializer = null;
         if (parser.Current is Assign)
         {
             parser.Advance();
             initializer = Value.Parse(ref parser);
         }
 
-        if (datatype is null && initializer is null) return UnspecifiedDatatypeError.Parse(ref context);
+        if (datatype is null && initializer is null) throw new UnspecifiedDatatypeError(ref context);
 
         return new Parameter
         {
             Name = name,
             Is = modifiers,
-            Datatype = datatype as Reference,
-            Initializer = initializer as Value,
+            Datatype = datatype,
+            Initializer = initializer,
             Source = parser.Commit(ref context)
         };
     }

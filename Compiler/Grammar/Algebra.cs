@@ -1,8 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Grammar.Aggregates;
 using Ronin.Compiler;
-
+using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
@@ -21,19 +20,19 @@ namespace Ronin.Grammar;
 ///         var home => Tree;
 ///     }
 /// </example>
-internal class Algebra : Syntax, IParsable
+internal class Algebra : Syntax, Compiler.IParsable<Algebra>
 {
     public Syntax Syntax { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Algebra Parse(ref Parser context)
     {
         Parser parser = context;
 
         var syntax = Scalar.Parse(ref parser)
             ?? Arguments.Parse(ref parser)
-            ?? Name.Parse(ref parser);
+            ?? Name.Parse(ref parser) as Syntax;
 
-        if (syntax is Error or null) return syntax;
+        if (syntax is null) return null;
 
         return new Algebra { Syntax = syntax, Source = parser.Commit(ref context) };
     }

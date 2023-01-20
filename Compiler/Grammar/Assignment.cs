@@ -5,14 +5,14 @@ using Ronin.Compiler;
 namespace Ronin.Grammar;
 
 /// <summary>
-/// 
+///     
 /// </summary>
-internal class Assignment : Syntax, IParsable
+internal class Assignment : Syntax, Compiler.IParsable<Assignment>
 {
     public Name Name { get; init; }
     public Value Value { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Assignment Parse(ref Parser context)
     {
         Parser parser = context;
 
@@ -21,13 +21,12 @@ internal class Assignment : Syntax, IParsable
         if (parser.Current is not Assign) return null;
         parser.Advance();
 
-        var value = Value.Parse(ref parser);
-        if (value is Error or null) return value;
+        if (Value.Parse(ref parser) is not Value value) return null;
 
         return new Assignment
         {
             Name = name,
-            Value = value as Value,
+            Value = value,
             Source = parser.Commit(ref context),
         };
     }

@@ -3,17 +3,15 @@ using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
-internal class Identifier : Syntax, IParsable
+internal class Identifier : Syntax, Compiler.IParsable<Identifier>
 {
     public List<Component> Components { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Identifier Parse(ref Parser context)
     {
         Parser parser = context;
 
-        List<Component> components = new();
-        var error = parser.ParseRepeating(components);
-        if (error is not null) return error;
+        var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
 
         return new Identifier { Components = components, Source = parser.Commit(ref context) };
@@ -22,16 +20,16 @@ internal class Identifier : Syntax, IParsable
     /// <summary>
     ///     Union of <see cref="Name"/> and <see cref="Parameters"/>
     /// </summary>
-    public class Component : Syntax, IParsable
+    public class Component : Syntax, Compiler.IParsable<Component>
     {
         public Syntax Syntax { get; init; }
 
-        public static Syntax Parse(ref Parser context)
+        public static Component Parse(ref Parser context)
         {
             Parser parser = context;
             
-            Syntax syntax = Name.Parse(ref parser) ?? Parameters.Parse(ref parser);
-            if (syntax is Error or null) return syntax;
+            var syntax = Name.Parse(ref parser) ?? Parameters.Parse(ref parser) as Syntax;
+            if (syntax is null) return null;
 
             return new Component { Syntax = syntax, Source = parser.Commit(ref context) };
         }        

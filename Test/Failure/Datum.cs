@@ -37,12 +37,14 @@ public class Datum
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Assert.IsAssignableFrom<Error>(syntax[0]);
+        Assert.Empty(syntax);
+        Assert.NotEmpty(parser.Errors);
+        var error = parser.Errors[0];
+        Assert.IsType<UnexpectedSyntaxError>(error);
     }
 
     [Fact(DisplayName = "blank datatype")]
-    public void NoDatatypeOrInitializer()
+    public void BlankDatatype()
     {
         const string declaration = $"{var} x {returns} {end}";
 
@@ -51,8 +53,10 @@ public class Datum
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Assert.IsAssignableFrom<Error>(syntax[0]);
+        Assert.Empty(syntax);
+        Assert.NotEmpty(parser.Errors);
+        var error = parser.Errors[0];
+        Assert.IsType<UnspecifiedDatatypeError>(error);
     }
 
     [Fact(DisplayName = "literal instead of identifier")]
@@ -80,7 +84,9 @@ public class Datum
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Assert.IsType<UnspecifiedDatatypeError>(syntax[0]);
+        Assert.Empty(syntax);
+        Assert.NotEmpty(parser.Errors);
+        var error = parser.Errors[0];
+        Assert.IsType<UnspecifiedDatatypeError>(error);
     }
 }

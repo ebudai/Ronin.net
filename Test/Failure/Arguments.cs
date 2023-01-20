@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -44,8 +44,9 @@ public class Arguments
         Parser parser = new(tokens);
         var syntax = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Assert.IsAssignableFrom<Error>(syntax[^1]);
+        Assert.Empty(syntax);
+        Assert.NotEmpty(parser.Errors);
+        Assert.IsType<ExpectedSyntaxError<Separator, CloseParenthesis>>(parser.Errors[0]);
     }
 
     [Fact(DisplayName = "terminated incorrectly")]
@@ -57,7 +58,9 @@ public class Arguments
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
         var statements = parser.Parse();
-        Assert.NotNull(statements);
-        Assert.IsAssignableFrom<Error>(statements[0]);
+
+        Assert.Empty(statements);
+        Assert.NotEmpty(parser.Errors);
+        Assert.IsType<ExpectedSyntaxError<Separator, CloseParenthesis>>(parser.Errors[0]);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Ronin.Compiler;
 
-public class Lexer
+internal class Lexer
 {
     public Lexer(string sourcecode)
     {

@@ -12,16 +12,17 @@ namespace Ronin.Grammar;
 /// 
 /// <example>
 ///     part of best package for weather lookups
+///     
 ///     import best package for weather lookups
-///     import git://github.com/ebudai/Ronin
+///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
 /// 
-internal class Hierarchy : Syntax, IParsable
+internal class Hierarchy : Syntax, Compiler.IParsable<Hierarchy>
 {
     public Keyword Direction { get; init; }
     public Name Name { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Hierarchy Parse(ref Parser context)
     {
         var direction = context.Current is PartOf or Import ? context.Current as Keyword : null;
         if (direction is null) return null;
@@ -29,13 +30,12 @@ internal class Hierarchy : Syntax, IParsable
         Parser parser = context;
         parser.Advance();
 
-        var name = Name.Parse(ref parser);
-        if (name is null) return null;
+        if (Name.Parse(ref parser) is not Name name) return null;
 
         return new Hierarchy 
         {
             Direction = direction,
-            Name = name as Name,             
+            Name = name,             
             Source = parser.Commit(ref context) 
         };
     }

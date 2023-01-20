@@ -3,43 +3,39 @@ using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
-internal class Datatype : Syntax, IParsable
+internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 {
     public Modifiers Is { get; init; }
     public Identifier Identifier { get; init; }
     public List<Algebra> Algebra { get; init; }
     public Scope Body { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Datatype Parse(ref Parser context)
     {
         Parser parser = context;
 
-        var modifiers = Modifiers.Parse(ref parser) as Modifiers;
+        var modifiers = Modifiers.Parse(ref parser);
 
         if (parser.Current is not Lexicon.Reserved.Datatype) return null;
         parser.Advance();
 
-        var identifier = Identifier.Parse(ref parser);
-        if (identifier is Error or null) return identifier;
+        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         List<Algebra> algebra = null;
         if (parser.Current is Assign)
         {
             parser.Advance();
-            algebra = new();
-            var error = parser.ParseRepeating(algebra);
-            if (error is not null) return error;
+            algebra = parser.ParseRepeating<Algebra>();
         }
 
-        var body = Scope.Parse(ref parser);
-        if (body is Error or null) return body;
+        if (Scope.Parse(ref parser) is not Scope body) return null;
 
         return new Datatype
         {
             Is = modifiers,
-            Identifier = identifier as Identifier,
+            Identifier = identifier,
             Algebra = algebra,
-            Body = body as Scope,
+            Body = body,
             Source = parser.Commit(ref context)
         };
     }

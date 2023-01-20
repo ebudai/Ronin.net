@@ -3,14 +3,14 @@ using Ronin.Lexicon.Reserved;
 
 namespace Ronin.Grammar;
 
-internal class Modifiers : Syntax, IParsable
+internal class Modifiers : Syntax, Compiler.IParsable<Modifiers>
 {
     internal bool Persistent { get; private init; }
     internal bool Compiled { get; private init; }
     internal bool Shared { get; private init; }
     internal bool Optional { get; private init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Modifiers Parse(ref Parser context)
     {
         bool persistent = false;
         bool compiled = false;

@@ -17,11 +17,9 @@ public class Function
         Parser parser = new(tokens);
         var statements = parser.Parse();
 
-        Assert.NotEmpty(statements);
-        var statement = statements[0] as Statement;
-        Assert.Null(statement);
-        var error = statements[0] as Error;
-        Assert.NotNull(error);
+        Assert.Empty(statements);
+        Assert.NotEmpty(parser.Errors);
+        var error = parser.Errors[0];
         Assert.IsType<UnexpectedSyntaxError>(error);
     }
 }

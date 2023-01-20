@@ -11,12 +11,11 @@ namespace Ronin.Grammar;
 /// <remarks>
 ///     This is the central workhorse class for <see cref="Parser"/>
 /// </remarks>
-/// <exception cref=""
-internal class Statement : Syntax, IParsable
+internal class Statement : Syntax, Compiler.IParsable<Statement>
 {
     public Syntax Syntax { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Statement Parse(ref Parser context)
     {
         Parser parser = context;
 
@@ -25,9 +24,9 @@ internal class Statement : Syntax, IParsable
             ?? Function.Parse(ref parser)
             ?? Datatype.Parse(ref parser)
             ?? Assignment.Parse(ref parser)
-            ?? Reference.Parse(ref parser);
+            ?? Reference.Parse(ref parser) as Syntax;
 
-        if (syntax is Error or null) return syntax;
+        if (syntax is null) return null;
 
         return new Statement { Syntax = syntax, Source = parser.Commit(ref context) };
     }

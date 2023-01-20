@@ -1,22 +1,21 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
-internal abstract class Error : Syntax
+internal abstract class Error : Exception
 {
     public int Cursor { get; init; }
 
-    protected private static Syntax Parse<T>(ref Parser context) where T : Error, new()
+    public Error(ref Parser parser)
     {
-        Parser parser = context;
-
-        while (parser.IsNotFinished)
+        do
         {
             parser.Advance();
-            if (parser.Current is Terminal or Separator or Close) break;
         }
+        while (parser.Current is not Sentinel and not Terminal and not Separator and not Close);
 
-        return new T { Source = parser.Commit(ref context), Cursor = context.Index };
+        Cursor = parser.Index;
     }
 }

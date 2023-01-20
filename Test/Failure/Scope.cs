@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -15,7 +16,8 @@ public class Scope
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
         var statements = parser.Parse();
-        Assert.NotNull(statements);
-        Assert.IsType<UnexpectedSyntaxError>(statements[0]);
+        Assert.Empty(statements);
+        Assert.NotEmpty(parser.Errors);
+        Assert.IsType<ExpectedSyntaxError<Terminal, CloseBrace>>(parser.Errors[0]);
     }
 }

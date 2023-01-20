@@ -3,11 +3,11 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Name : Syntax, IParsable
+internal class Name : Syntax, Compiler.IParsable<Name>
 {
     internal List<string> Words { get; init; }
 
-    public static Syntax Parse(ref Parser context)
+    public static Name Parse(ref Parser context)
     {
         List<string> names = new(64);
         Parser parser = context;

@@ -7,7 +7,7 @@ namespace Ronin.Grammar.Errors;
 /// <summary>
 ///     Generalized parsing error used when no construct fits the given code
 /// </summary>
-internal class UnexpectedSyntaxError : Error, IParsable
+internal class UnexpectedSyntaxError : Error
 {
-    public static Syntax Parse(ref Parser context) => Parse<UnexpectedSyntaxError>(ref context);
+    public UnexpectedSyntaxError(ref Parser context) : base(ref context) { }
 }
