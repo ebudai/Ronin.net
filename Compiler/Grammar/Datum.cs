@@ -6,6 +6,16 @@ using Ronin.Lexicon.Reserved;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     A singular piece of data residing in memory, and declared in a <see cref="Scope"/>
+/// </summary>
+/// <example>
+///     datatype Building
+///     {
+///         var floors => number;
+///         ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+///     }
+/// </example>
 internal class Datum : Parameter, Compiler.IParsable<Datum>
 {
     public Keyword Mutability { get; init; }

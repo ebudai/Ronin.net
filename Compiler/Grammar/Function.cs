@@ -5,6 +5,9 @@ using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Ordered grouping of instructions to execute when called
+/// </summary>
 internal class Function : Syntax, Compiler.IParsable<Function>
 {
     public Modifiers Is { get; private init; }

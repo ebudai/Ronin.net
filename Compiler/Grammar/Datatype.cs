@@ -5,6 +5,13 @@ using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Restricts a <see cref="Datum"/>, <see cref="Parameter"/>, or <see cref="Function"/> return <see cref="Value"/> to a specific type of data
+/// </summary>
+/// 
+/// <example>
+///     datatype Car { var speed => number; var price => money; }
+/// </example>
 internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 {
     public Modifiers Is { get; init; }
