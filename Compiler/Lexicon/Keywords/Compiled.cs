@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 
-namespace Ronin.Lexicon.Reserved;
+namespace Ronin.Lexicon.Keywords;
 
 internal class Compiled : Keyword
 {

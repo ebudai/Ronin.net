@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon.Reserved;
+using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Lexicon;
 
