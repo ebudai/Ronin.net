@@ -37,7 +37,6 @@ internal ref struct Parser
         return statements;
     }
 
-    //todo fix line 40 - see if we can add errors to the parser instead of returning them - then we can have T.Parse(ref parser) return T instead of Syntax
     internal List<T> ParseRepeating<T>() where T : class, IParsable<T>
     {
         List<T> parsed = new();
