@@ -33,7 +33,9 @@ public class Function
         Parser parser = new(tokens);
         var statements = parser.Parse();
 
-        Assert.NotEmpty(statements);
-        Assert.IsType<Reference>(statements[0].Syntax);
+        Assert.Empty(statements);
+        Assert.NotEmpty(parser.Errors);
+        var error = parser.Errors[0];
+        Assert.IsType<UnexpectedSyntaxError>(error);
     }
 }
