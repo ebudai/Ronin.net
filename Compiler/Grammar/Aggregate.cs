@@ -4,6 +4,7 @@ using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
 using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -32,10 +33,10 @@ namespace Ronin.Grammar;
 /// </typeparam>
 internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Syntax, Compiler.IParsable<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
-    where TOpen : Symbol
+    where TOpen : Open
     where TElement : Compiler.IParsable<TElement>
     where TSeparator : Symbol
-    where TClose : Symbol
+    where TClose : Close
 {
     public static T Parse(ref Parser context)
     {

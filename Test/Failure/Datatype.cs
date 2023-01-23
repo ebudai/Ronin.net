@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -10,15 +11,17 @@ public class Datatype
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
-        const string declaration = "datatype {}";
+        const string declaration = "datatype { };";
 
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
         var statements = parser.Parse();
 
-        Assert.NotEmpty(statements);
-        Assert.IsType<Reference>(statements[0].Syntax);
+        Assert.Empty(statements);
+        Assert.NotEmpty(parser.Errors);
+        var error = parser.Errors[0];
+        Assert.IsType<UnexpectedSyntaxError>(error);
     }
 
     [Fact(DisplayName = "no scope")]
@@ -31,7 +34,9 @@ public class Datatype
         Parser parser = new(tokens);
         var statements = parser.Parse();
 
-        Assert.NotEmpty(statements);
-        Assert.IsType<Reference>(statements[0].Syntax);
+        Assert.Empty(statements);
+        Assert.NotEmpty(parser.Errors);
+        var error = parser.Errors[0];
+        Assert.IsType<ExpectedSyntaxError<OpenBrace>>(error);
     }
 }

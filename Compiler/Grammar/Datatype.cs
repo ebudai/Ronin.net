@@ -2,6 +2,8 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Errors;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -37,7 +39,7 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
             algebra = parser.ParseRepeating<Algebra>();
         }
 
-        if (Scope.Parse(ref parser) is not Scope body) return null;
+        if (Scope.Parse(ref parser) is not Scope body) throw new ExpectedSyntaxError<OpenBrace>(ref context);
 
         return new Datatype
         {
