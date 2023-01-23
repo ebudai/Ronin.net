@@ -21,6 +21,7 @@ internal class Function : Syntax, Compiler.IParsable<Function>
         var modifiers = Modifiers.Parse(ref parser);
 
         if (parser.Current is not Lexicon.Keywords.Function) return null;
+        
         parser.Advance();
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;

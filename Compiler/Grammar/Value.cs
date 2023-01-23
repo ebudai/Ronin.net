@@ -12,24 +12,22 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Value : Syntax, Compiler.IParsable<Value>
 {
-    public Syntax Syntax { get; init; }
-
     public static Value Parse(ref Parser context)
     {
         Parser parser = context;
 
         var syntax = Scalar.Parse(ref parser)
             ?? Arguments.Parse(ref parser)
-            ?? Scope.Parse(ref parser)
-            ?? Name.Parse(ref parser) as Syntax;
+            ?? Scope.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
-        return new Value { Syntax = syntax, Source = parser.Commit(ref context) };
+        return new Value { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    public static implicit operator Scalar(Value value) => value.Syntax as Scalar;
-    public static implicit operator Arguments(Value value) => value.Syntax as Arguments;
-    public static implicit operator Scope(Value value) => value.Syntax as Scope;
-    public static implicit operator Name(Value value) => value.Syntax as Name;
+    public static implicit operator Scalar(Value value) => value.value as Scalar;
+    public static implicit operator Arguments(Value value) => value.value as Arguments;
+    public static implicit operator Scope(Value value) => value.value as Scope;
+
+    private Syntax value;
 }
