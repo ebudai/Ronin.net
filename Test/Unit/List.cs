@@ -20,6 +20,6 @@ public class List
         Ronin.Grammar.Datum datum = syntax[0] as Statement;
         Assert.NotNull(datum);
         Assert.NotNull(datum.Datatype);
-        Assert.Empty(datum.Datatype.Index.Values);
+        Assert.Empty(datum.Datatype.Ordinal.Values);
     }
 }

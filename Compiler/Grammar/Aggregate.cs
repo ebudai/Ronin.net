@@ -8,7 +8,7 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Parent class for all groupings (<see cref="Arguments"/>, <see cref="Index"/>, <see cref="Parameters"/>, and <see cref="Scope"/>)
+///     Parent class for all groupings (<see cref="Arguments"/>, <see cref="Ordinal"/>, <see cref="Parameters"/>, and <see cref="Scope"/>)
 /// </summary>
 /// 
 /// <typeparam name="T">
