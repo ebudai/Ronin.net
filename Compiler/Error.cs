@@ -5,7 +5,7 @@ using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
-namespace Ronin.Grammar;
+namespace Ronin;
 
 /// <summary>
 ///     Parent class of all compiler errors (<see cref="ExpectedSyntaxError{TSeparator, TClose}"/>, <see cref="UnexpectedSyntaxError"/>, and <see cref="UnspecifiedDatatypeError"/>)
