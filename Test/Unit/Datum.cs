@@ -1,8 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Lexicon.Reserved;
+using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
-using static Ronin.Grammar.Datum;
 
 namespace Unit;
 
@@ -31,8 +30,8 @@ public class Datum
         Assert.True(datum.Mutability is Variable);
         Assert.Equal("my variable", string.Join(' ', datum.Name.Words));
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Values);
-        Ronin.Grammar.Name name = datum.Datatype.Values[0];
+        Assert.NotEmpty(datum.Datatype.Components);
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         var datatype = name.Words[0];
@@ -132,7 +131,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Is.Compiled);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
+        var name = string.Join(' ', datum.Datatype.Components.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{compiled} integer", name);
     }
 
@@ -141,10 +140,10 @@ public class Datum
     {
         const string declaration = $"{var} thing {returns} {persistent} {persistent} integer{end}";
 
-        var datum = Compile(declaration);
+        var datum = Compile/* bugaboo */(declaration);
 
         Assert.True(datum.Is.Persistent);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
+        var name = string.Join(' ', datum.Datatype.Components.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{persistent} integer", name);
     }
 
@@ -156,7 +155,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Is.Optional);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
+        var name = string.Join(' ', datum.Datatype.Components.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{optional} integer", name);
     }
 
@@ -168,7 +167,7 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.True(datum.Is.Shared);
-        var name = string.Join(' ', datum.Datatype.Values.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
+        var name = string.Join(' ', datum.Datatype.Components.Select(value => (Ronin.Grammar.Name)value).SelectMany(name => name.Words));
         Assert.Equal($"{shared} integer", name);
     }
 
@@ -203,8 +202,8 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Values);
-        Ronin.Grammar.Name name = datum.Datatype.Values[0];
+        Assert.NotEmpty(datum.Datatype.Components);
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.NotNull(name);
         Assert.Equal(3, name.Words.Count);
         Assert.Equal(import, name.Words[0]);
@@ -259,8 +258,8 @@ public class Datum
         var datum = Compile(declaration);
 
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Values);
-        Ronin.Grammar.Name name = datum.Datatype.Values[0];
+        Assert.NotEmpty(datum.Datatype.Components);
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal("integer", name.Words[0]);
@@ -284,8 +283,8 @@ public class Datum
         Assert.NotEmpty(syntax);
         Ronin.Grammar.Datum datum = syntax[0] as Statement;
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Values);
-        Ronin.Grammar.Name name = datum.Datatype.Values[0];
+        Assert.NotEmpty(datum.Datatype.Components);
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.NotNull(name);
         Assert.Equal(reactive, string.Join(' ', name.Words));
     }
