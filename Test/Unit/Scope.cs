@@ -18,7 +18,7 @@ public class Scope
         var statements = parser.Parse();
 
         Assert.NotEmpty(statements);
-        Value value = statements[0];
+        Temporary value = statements[0];
         Assert.NotNull(value);
         Ronin.Grammar.Aggregates.Scope scope = value;
         Assert.NotNull(scope);

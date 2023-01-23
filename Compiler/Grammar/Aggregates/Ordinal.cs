@@ -5,11 +5,11 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar.Aggregates;
 
 /// <summary>
-///     Aggregate of <see cref="Value"/>s intended for selecting an element from, or delcaring, a List or Lookup
+///     Aggregate of <see cref="Temporary"/>s intended for selecting an element from, or delcaring, a List or Lookup
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Value"/>s between <see cref="OpenSquareBracket"/> and <see cref="CloseSquareBracket"/>
+///     <see cref="Separator"/>-separated <see cref="Temporary"/>s between <see cref="OpenSquareBracket"/> and <see cref="CloseSquareBracket"/>
 /// </remarks>
 /// 
 /// <example>
@@ -27,7 +27,7 @@ namespace Ronin.Grammar.Aggregates;
 ///     var selected value = multi-dimensional list[3, 1, 0];
 ///                                                ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Ordinal : Aggregate<Ordinal, OpenSquareBracket, Value, Separator, CloseSquareBracket>
+internal class Ordinal : Aggregate<Ordinal, OpenSquareBracket, Temporary, Separator, CloseSquareBracket>
 {
     
 }

@@ -273,7 +273,7 @@ public class Datum
         Assert.NotEmpty(name.Words);
         Assert.Equal("integer", name.Words[0]);
 
-        Value value = datum.Initializer;
+        Temporary value = datum.Initializer;
         Assert.NotNull(value);
         Ronin.Grammar.Scalar scalar = value;
         Assert.NotNull(scalar);

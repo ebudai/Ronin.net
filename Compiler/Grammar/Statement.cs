@@ -6,7 +6,7 @@ namespace Ronin.Grammar;
 
 /// <summary>
 ///     Union of <see cref="Hierarchy"/>, <see cref="Datum"/>, <see cref="Function"/>, 
-///     <see cref="Datatype"/>, <see cref="Assignment"/>, <see cref="Reference"/>, and <see cref="Value"/>
+///     <see cref="Datatype"/>, <see cref="Assignment"/>, <see cref="Reference"/>, and <see cref="Temporary"/>
 /// </summary>
 /// 
 /// <remarks>
@@ -24,7 +24,7 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
             ?? Datatype.Parse(ref parser)
             ?? Assignment.Parse(ref parser)
             ?? Reference.Parse(ref parser)
-            ?? Value.Parse(ref parser) as Syntax;
+            ?? Temporary.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -37,7 +37,7 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
     public static implicit operator Datatype(Statement statement) => statement.value as Datatype;
     public static implicit operator Assignment(Statement statement) => statement.value as Assignment;
     public static implicit operator Reference(Statement statement) => statement.value as Reference;
-    public static implicit operator Value(Statement statement) => statement.value as Value;
+    public static implicit operator Temporary(Statement statement) => statement.value as Temporary;
 
     private Syntax value;
 }

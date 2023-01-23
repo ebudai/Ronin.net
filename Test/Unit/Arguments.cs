@@ -17,9 +17,9 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Value value = syntax[0];
-        Assert.NotNull(value);
-        Ronin.Grammar.Aggregates.Arguments arguments = value;
+        Temporary temporary = syntax[0];
+        Assert.NotNull(temporary);
+        Ronin.Grammar.Aggregates.Arguments arguments = temporary;
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
         Reference reference = arguments.Values[0];
@@ -41,9 +41,9 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Value value = syntax[0];
-        Assert.NotNull(value);
-        Ronin.Grammar.Aggregates.Arguments arguments = value;
+        Temporary temporary = syntax[0];
+        Assert.NotNull(temporary);
+        Ronin.Grammar.Aggregates.Arguments arguments = temporary;
         Assert.NotNull(arguments);
         Assert.Equal(2, arguments.Values.Count);
 
@@ -73,7 +73,7 @@ public class Arguments
         var statements = parser.Parse();
 
         Assert.NotEmpty(statements);
-        Value value = statements[0];
+        Temporary value = statements[0];
         Assert.NotNull(value);
         Ronin.Grammar.Aggregates.Arguments arguments = value;
         Assert.NotNull(arguments);
@@ -104,7 +104,7 @@ public class Arguments
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
 
-        Value value = arguments.Values[0];
+        Temporary value = arguments.Values[0];
         Assert.NotNull(value);
         Ronin.Grammar.Scalar scalar = value;
         Assert.NotNull(scalar);

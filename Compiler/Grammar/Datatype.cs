@@ -8,7 +8,7 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Restricts a <see cref="Datum"/>, <see cref="Parameter"/>, or <see cref="Function"/> return <see cref="Value"/> to a specific type of data
+///     Restricts a <see cref="Datum"/>, <see cref="Parameter"/>, or <see cref="Function"/> return <see cref="Temporary"/> to a specific type of data
 /// </summary>
 /// 
 /// <example>
