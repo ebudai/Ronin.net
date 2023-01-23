@@ -16,7 +16,7 @@ namespace Ronin.Grammar.Aggregates;
 ///     var x = pack(a, 8.2, "first name");
 ///                 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Arguments : Aggregate<Arguments, OpenParenthesis, Value, Separator, CloseParenthesis>
+internal class Arguments : Aggregate<Arguments, OpenParenthesis, Argument, Separator, CloseParenthesis>
 {
     
 }
