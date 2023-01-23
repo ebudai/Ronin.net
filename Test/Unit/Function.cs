@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 
 namespace Unit;
 
@@ -17,10 +16,10 @@ public class Function
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Ronin.Grammar.Function function = result[0] as Statement;
+        Ronin.Grammar.Function function = result[0];
         Assert.NotNull(function);
         Assert.NotEmpty(function.Identifier.Components);
-        var name = function.Identifier.Components[0].Syntax as Ronin.Grammar.Name;
+        Ronin.Grammar.Name name = function.Identifier.Components[0];
         Assert.NotNull(name);
         Assert.Equal("test", string.Join(' ', name.Words));
 

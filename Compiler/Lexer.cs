@@ -15,7 +15,7 @@ internal class Lexer
 
         while (Cursor < Sourcecode.Length)
         {
-            Token token = Whitespace.Lex(this)
+            var token = Whitespace.Lex(this)
                 ?? Literal.Lex(this)
                 ?? Comment.Lex(this)
                 ?? Symbol.Lex(this)

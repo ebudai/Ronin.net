@@ -24,16 +24,19 @@ internal class Identifier : Syntax, Compiler.IParsable<Identifier>
     /// </summary>
     public class Component : Syntax, Compiler.IParsable<Component>
     {
-        public Syntax Syntax { get; init; }
-
         public static Component Parse(ref Parser context)
         {
             Parser parser = context;
             
-            var syntax = Name.Parse(ref parser) ?? Parameters.Parse(ref parser) as Syntax;
-            if (syntax is null) return null;
+            var value = Name.Parse(ref parser) ?? Parameters.Parse(ref parser) as Syntax;
+            if (value is null) return null;
 
-            return new Component { Syntax = syntax, Source = parser.Commit(ref context) };
-        }        
+            return new Component { value = value, Source = parser.Commit(ref context) };
+        }
+
+        public static implicit operator Name(Component component) => component.value as Name;
+        public static implicit operator Parameters(Component component) => component.value as Parameters;
+
+        private Syntax value;
     }
 }

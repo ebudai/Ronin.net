@@ -17,13 +17,15 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Reference reference = syntax[0] as Statement;
+        Reference reference = syntax[0];
         Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Aggregates.Arguments arguments = reference.Values[0];
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Aggregates.Arguments arguments = reference.Components[0];
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
-        Ronin.Grammar.Name name = arguments.Values[0];
+        reference = arguments.Values[0];
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal("test", name.Words[0]);
@@ -40,22 +42,26 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Reference reference = syntax[0] as Statement;
+        Reference reference = syntax[0];
         Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Aggregates.Arguments arguments = reference.Values[0];
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Aggregates.Arguments arguments = reference.Components[0];
         Assert.NotNull(arguments);
         Assert.Equal(2, arguments.Values.Count);
 
-        Ronin.Grammar.Name test = arguments.Values[0];
-        Assert.NotNull(test);
-        Assert.NotEmpty(test.Words);
-        Assert.Equal("test", test.Words[0]);
+        Reference test = arguments.Values[0];
+        Assert.NotEmpty(test.Components);
+        Ronin.Grammar.Name name = test.Components[0];
+        Assert.NotNull(name);
+        Assert.NotEmpty(name.Words);
+        Assert.Equal("test", name.Words[0]);
 
-        Ronin.Grammar.Name stuff = arguments.Values[1];
-        Assert.NotNull(stuff);
-        Assert.NotEmpty(stuff.Words);
-        Assert.Equal("stuff", stuff.Words[0]);
+        Reference stuff = arguments.Values[1];
+        Assert.NotEmpty(stuff.Components);
+        name = stuff.Components[0];
+        Assert.NotNull(name);
+        Assert.NotEmpty(name.Words);
+        Assert.Equal("stuff", name.Words[0]);
     }
 
     [Fact(DisplayName = "empty parenthesis")]
@@ -70,8 +76,8 @@ public class Arguments
 
         Assert.NotEmpty(syntax);
         Reference reference = syntax[0] as Statement;
-        Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Aggregates.Arguments @object = reference.Values[0];
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Aggregates.Arguments @object = reference.Components[0];
         Assert.NotNull(@object);
         Assert.Empty(@object.Values);
     }
