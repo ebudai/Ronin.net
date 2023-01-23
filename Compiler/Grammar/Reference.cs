@@ -1,30 +1,51 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-
-using Index = Ronin.Grammar.Aggregates.Index;
+using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
 internal class Reference : Syntax, Compiler.IParsable<Reference>
 {
-    public List<Value> Values { get; init; }
-    public Index Index { get; init; }
+    public List<Component> Components { get; init; }
+    public Ordinal Ordinal { get; init; }
 
     public static Reference Parse(ref Parser context)
     {
         Parser parser = context;
 
-        var values = parser.ParseRepeating<Value>();
-        if (values.Count is 0) return null;
+        var components = parser.ParseRepeating<Component>();
+        if (components.Count is 0) return null;
 
-        var index = Index.Parse(ref parser);
+        var ordinal = Ordinal.Parse(ref parser);
 
         return new Reference
         {
-            Values = values,
-            Index = index,
+            Components = components,
+            Ordinal = ordinal,
             Source = parser.Commit(ref context)
         };
+    }
+
+    public class Component : Syntax, Compiler.IParsable<Component>
+    {
+        public static Component Parse(ref Parser context)
+        {
+            Parser parser = context;
+
+            var syntax = Name.Parse(ref parser)
+                ?? Scalar.Parse(ref parser)
+                ?? Arguments.Parse(ref parser) as Syntax;
+
+            if (syntax is null) return null;
+
+            return new Component { value = syntax, Source = parser.Commit(ref context) };
+        }
+
+        public static implicit operator Name(Component component) => component.value as Name;
+        public static implicit operator Scalar(Component component) => component.value as Scalar;
+        public static implicit operator Arguments(Component component) => component.value as Arguments;
+
+        private Syntax value;
     }
 }

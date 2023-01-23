@@ -19,8 +19,8 @@ public class Name
         Assert.NotEmpty(result);
         Reference reference = result[0] as Statement;
         Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Values);
-        Ronin.Grammar.Name name = reference.Values[0];
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.Equal(3, name.Words.Count);
         Assert.Equal("name", name.Words[0]);
         Assert.Equal("+", name.Words[1]);

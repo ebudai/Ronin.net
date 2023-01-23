@@ -8,7 +8,6 @@ internal abstract class Syntax
 {
     protected internal Token[] Source { get; init; }
 }
-
 /*
 
 [+ means and/or]
@@ -17,7 +16,7 @@ x declare function - modifiers 'function' identifier scope
 x declare datatype - modifiers 'datatype' identifier { '=' reference } (optional) [algebra] scope
 x declare datum - declarator parameter
 x identifier - name + parameters ...
-x reference - name + value ...
+x reference - name + arguments ...
 x import - 'import' name
 x partof - 'part of' name
 
@@ -28,7 +27,7 @@ x assignment - name '=' value
 x parameter - explicit - name => modifiers reference [datatype] { '=' value } (optionally) [initializer]
             - implicit - assignment
 x scalar - literal ...
-x value - scalar or aggregate or reference or declaration [ie: returns a function tearaway or datatype value etc]
+x value - scalar or reference or scope
 
 x error - all until ';'
 
