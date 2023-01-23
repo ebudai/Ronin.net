@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Grammar.Errors;
-using Ronin.Lexicon.Reserved;
+using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;

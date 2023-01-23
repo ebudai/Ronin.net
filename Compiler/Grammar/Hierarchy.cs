@@ -2,7 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Reserved;
+using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Grammar;
 

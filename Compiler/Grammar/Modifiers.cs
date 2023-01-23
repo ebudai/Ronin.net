@@ -1,7 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Lexicon.Reserved;
+using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Grammar;
 

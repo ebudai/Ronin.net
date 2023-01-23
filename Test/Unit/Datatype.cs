@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Lexicon.Reserved;
+using Ronin.Lexicon.Keywords;
 
 namespace Unit;
 
@@ -18,10 +18,10 @@ public class Datatype
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Ronin.Grammar.Datatype datatype = result[0] as Statement;
+        Ronin.Grammar.Datatype datatype = result[0];
         Assert.NotNull(datatype);
         Assert.NotEmpty(datatype.Identifier.Components);
-        var name = datatype.Identifier.Components[0].Syntax as Ronin.Grammar.Name;
+        Ronin.Grammar.Name name = datatype.Identifier.Components[0];
         Assert.NotNull(name);
         Assert.Equal("Test", string.Join(' ', name.Words));
     }
@@ -37,7 +37,7 @@ public class Datatype
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Ronin.Grammar.Datatype datatype = result[0] as Statement;
+        Ronin.Grammar.Datatype datatype = result[0];
         Assert.NotNull(datatype);
         Assert.Equal(2, datatype.Body.Values.Count);
         
@@ -45,16 +45,16 @@ public class Datatype
         Assert.NotNull(cash);
         Assert.IsType<Variable>(cash.Mutability);
         Assert.Equal("cash", cash.Name.Words[0]);
-        Assert.NotEmpty(cash.Datatype.Values);
-        Ronin.Grammar.Name cashtypename = cash.Datatype.Values[0];
+        Assert.NotEmpty(cash.Datatype.Components);
+        Ronin.Grammar.Name cashtypename = cash.Datatype.Components[0];
         Assert.Equal("money", string.Join(' ', cashtypename.Words));
 
         var debt = datatype.Body.Values[1].Syntax as Ronin.Grammar.Datum;
         Assert.NotNull(debt);
         Assert.IsType<Variable>(debt.Mutability);
         Assert.Equal("debt", debt.Name.Words[0]);
-        Assert.NotEmpty(debt.Datatype.Values);
-        Ronin.Grammar.Name debttypename = debt.Datatype.Values[0];
+        Assert.NotEmpty(debt.Datatype.Components);
+        Ronin.Grammar.Name debttypename = debt.Datatype.Components[0];
         Assert.Equal("money", string.Join(' ', debttypename.Words));
     }
 }

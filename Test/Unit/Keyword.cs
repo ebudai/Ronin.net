@@ -3,8 +3,8 @@
 [Trait("Lexer", null)]
 public class Keyword
 {
-    private const string datatype = Ronin.Lexicon.Reserved.Datatype.keyword;
-    private const string function = Ronin.Lexicon.Reserved.Function.keyword;
+    private const string datatype = Ronin.Lexicon.Keywords.Datatype.keyword;
+    private const string function = Ronin.Lexicon.Keywords.Function.keyword;
 
     [Fact(DisplayName = "datatype")]
     public void Datatype()
