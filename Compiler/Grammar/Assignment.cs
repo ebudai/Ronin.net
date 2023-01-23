@@ -14,7 +14,7 @@ namespace Ronin.Grammar;
 internal class Assignment : Syntax, Compiler.IParsable<Assignment>
 {
     public Name Name { get; init; }
-    public Value Value { get; init; }
+    public Argument Argument { get; init; }
 
     public static Assignment Parse(ref Parser context)
     {
@@ -25,12 +25,12 @@ internal class Assignment : Syntax, Compiler.IParsable<Assignment>
         if (parser.Current is not Assign) return null;
         parser.Advance();
 
-        if (Value.Parse(ref parser) is not Value value) return null;
+        if (Argument.Parse(ref parser) is not Argument argument) return null;
 
         return new Assignment
         {
             Name = name,
-            Value = value,
+            Argument = argument,
             Source = parser.Commit(ref context),
         };
     }

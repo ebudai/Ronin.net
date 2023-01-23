@@ -5,7 +5,8 @@ using Ronin.Compiler;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Union of <see cref="Hierarchy"/>, <see cref="Datum"/>, <see cref="Function"/>, <see cref="Datatype"/>, <see cref="Assignment"/>, and <see cref="Reference"/>
+///     Union of <see cref="Hierarchy"/>, <see cref="Datum"/>, <see cref="Function"/>, 
+///     <see cref="Datatype"/>, <see cref="Assignment"/>, <see cref="Reference"/>, and <see cref="Value"/>
 /// </summary>
 /// 
 /// <remarks>
@@ -13,8 +14,6 @@ namespace Ronin.Grammar;
 /// </remarks>
 internal class Statement : Syntax, Compiler.IParsable<Statement>
 {
-    public Syntax Syntax { get; init; }
-
     public static Statement Parse(ref Parser context)
     {
         Parser parser = context;
@@ -24,17 +23,21 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
             ?? Function.Parse(ref parser)
             ?? Datatype.Parse(ref parser)
             ?? Assignment.Parse(ref parser)
-            ?? Reference.Parse(ref parser) as Syntax;
+            ?? Reference.Parse(ref parser)
+            ?? Value.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
-        return new Statement { Syntax = syntax, Source = parser.Commit(ref context) };
+        return new Statement { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    public static implicit operator Hierarchy(Statement statement) => statement.Syntax as Hierarchy;
-    public static implicit operator Datum(Statement statement) => statement.Syntax as Datum;
-    public static implicit operator Function(Statement statement) => statement.Syntax as Function;
-    public static implicit operator Datatype(Statement statement) => statement.Syntax as Datatype;
-    public static implicit operator Assignment(Statement statement) => statement.Syntax as Assignment;
-    public static implicit operator Reference(Statement statement) => statement.Syntax as Reference;
+    public static implicit operator Hierarchy(Statement statement) => statement.value as Hierarchy;
+    public static implicit operator Datum(Statement statement) => statement.value as Datum;
+    public static implicit operator Function(Statement statement) => statement.value as Function;
+    public static implicit operator Datatype(Statement statement) => statement.value as Datatype;
+    public static implicit operator Assignment(Statement statement) => statement.value as Assignment;
+    public static implicit operator Reference(Statement statement) => statement.value as Reference;
+    public static implicit operator Value(Statement statement) => statement.value as Value;
+
+    private Syntax value;
 }

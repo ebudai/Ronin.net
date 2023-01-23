@@ -17,13 +17,12 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Reference reference = syntax[0];
-        Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Components);
-        Ronin.Grammar.Aggregates.Arguments arguments = reference.Components[0];
+        Value value = syntax[0];
+        Assert.NotNull(value);
+        Ronin.Grammar.Aggregates.Arguments arguments = value;
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
-        reference = arguments.Values[0];
+        Reference reference = arguments.Values[0];
         Assert.NotEmpty(reference.Components);
         Ronin.Grammar.Name name = reference.Components[0];
         Assert.NotNull(name);
@@ -42,10 +41,9 @@ public class Arguments
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Reference reference = syntax[0];
-        Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Components);
-        Ronin.Grammar.Aggregates.Arguments arguments = reference.Components[0];
+        Value value = syntax[0];
+        Assert.NotNull(value);
+        Ronin.Grammar.Aggregates.Arguments arguments = value;
         Assert.NotNull(arguments);
         Assert.Equal(2, arguments.Values.Count);
 
@@ -72,13 +70,62 @@ public class Arguments
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Reference reference = syntax[0] as Statement;
-        Assert.NotEmpty(reference.Components);
-        Ronin.Grammar.Aggregates.Arguments @object = reference.Components[0];
-        Assert.NotNull(@object);
-        Assert.Empty(@object.Values);
+        Assert.NotEmpty(statements);
+        Value value = statements[0];
+        Assert.NotNull(value);
+        Ronin.Grammar.Aggregates.Arguments arguments = value;
+        Assert.NotNull(arguments);
+        Assert.Empty(arguments.Values);
     }
+
+    [Fact(DisplayName = "named")]
+    public void Named()
+    {
+        const string declaration = "execute call(1, 2, thing);";
+
+        Lexer lexer = new(declaration);
+        var tokens = lexer.Lex();
+        Parser parser = new(tokens);
+        var statements = parser.Parse();
+
+        Assert.NotEmpty(statements);
+        Reference reference = statements[0];
+        Assert.Equal(2, reference.Components.Count);
+
+        Ronin.Grammar.Name name = reference.Components[0];
+        Assert.NotNull(name);
+        Assert.Equal(2, name.Words.Count);
+        Assert.Equal("execute", name.Words[0]);
+        Assert.Equal("call", name.Words[1]);
+
+        Ronin.Grammar.Aggregates.Arguments arguments = reference.Components[1];
+        Assert.NotNull(arguments);
+        Assert.NotEmpty(arguments.Values);
+
+        Value value = arguments.Values[0];
+        Assert.NotNull(value);
+        Ronin.Grammar.Scalar scalar = value;
+        Assert.NotNull(scalar);
+        Assert.NotEmpty(scalar.Literals);
+        Assert.Equal("1", scalar.Literals[0].ToString());
+
+        value = arguments.Values[1];
+        Assert.NotNull(value);
+        scalar = value;
+        Assert.NotNull(scalar);
+        Assert.NotEmpty(scalar.Literals);
+        Assert.Equal("2", scalar.Literals[0].ToString());
+
+        reference = arguments.Values[2];
+        Assert.NotNull(reference);
+        Assert.NotEmpty(reference.Components);
+        name = reference.Components[0];
+        Assert.NotNull(name);
+        Assert.NotEmpty(name.Words);
+        Assert.Equal("thing", name.Words[0]);
+
+    }
+
 }

@@ -218,7 +218,10 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Ronin.Grammar.Name name = datum.Initializer;
+        Reference reference = datum.Initializer;
+        Assert.NotNull(reference);
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal("things", name.Words[0]);
@@ -231,7 +234,10 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Ronin.Grammar.Name name = datum.Initializer;
+        Reference reference = datum.Initializer;
+        Assert.NotNull(reference);
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal(import, name.Words[0]);
@@ -244,7 +250,10 @@ public class Datum
 
         var datum = Compile(declaration);
 
-        Ronin.Grammar.Name name = datum.Initializer;
+        Reference reference = datum.Initializer;
+        Assert.NotNull(reference);
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal(import, name.Words[0]);
@@ -264,10 +273,12 @@ public class Datum
         Assert.NotEmpty(name.Words);
         Assert.Equal("integer", name.Words[0]);
 
-        Ronin.Grammar.Scalar initializer = datum.Initializer;
-        Assert.NotNull(initializer);
-        Assert.NotEmpty(initializer.Literals);
-        Assert.Equal("2", initializer.Literals[0].Sourcecode.ToString());
+        Value value = datum.Initializer;
+        Assert.NotNull(value);
+        Ronin.Grammar.Scalar scalar = value;
+        Assert.NotNull(scalar);
+        Assert.NotEmpty(scalar.Literals);
+        Assert.Equal("2", scalar.Literals[0].Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "keyword for datatype")]
@@ -281,7 +292,7 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Ronin.Grammar.Datum datum = syntax[0] as Statement;
+        Ronin.Grammar.Datum datum = syntax[0];
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Components);
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
@@ -300,9 +311,12 @@ public class Datum
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Ronin.Grammar.Datum datum = syntax[0] as Statement;
+        Ronin.Grammar.Datum datum = syntax[0];
         Assert.NotNull(datum);
-        Ronin.Grammar.Name name = datum.Initializer;
+        Reference reference = datum.Initializer;
+        Assert.NotNull(reference);
+        Assert.NotEmpty(reference.Components);
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.NotNull(name);
         Assert.Equal(constant, string.Join(' ', name.Words));
     }

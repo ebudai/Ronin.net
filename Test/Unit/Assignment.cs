@@ -17,11 +17,12 @@ public class Assignment
         var result = parser.Parse();
 
         Assert.NotEmpty(result);
-        Ronin.Grammar.Assignment assignment = result[0] as Statement;
+        Ronin.Grammar.Assignment assignment = result[0];
         Assert.Equal("x", string.Join(' ', assignment.Name.Words));
-        Ronin.Grammar.Scalar value = assignment.Value;
+        Value value = assignment.Argument;
         Assert.NotNull(value);
-        Assert.NotEmpty(value.Literals);
-        Assert.Equal("17", value.Literals[0].ToString());
+        Ronin.Grammar.Scalar scalar = value;
+        Assert.NotEmpty(scalar.Literals);
+        Assert.Equal("17", scalar.Literals[0].ToString());
     }
 }

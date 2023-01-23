@@ -16,7 +16,7 @@ internal class Parameter : Syntax, Compiler.IParsable<Parameter>
     public Modifiers Is { get; init; }
     public Name Name { get; init; }
     public Reference Datatype { get; init; }
-    public Value Initializer { get; init; }
+    public Argument Initializer { get; init; }
 
     public static Parameter Parse(ref Parser context)
     {
@@ -36,12 +36,12 @@ internal class Parameter : Syntax, Compiler.IParsable<Parameter>
             
             if (datatype is null) throw new UnspecifiedDatatypeError(ref context);
         }
-        
-        Value initializer = null;
+
+        Argument initializer = null;
         if (parser.Current is Assign)
         {
             parser.Advance();
-            initializer = Value.Parse(ref parser);
+            initializer = Argument.Parse(ref parser);
         }
 
         if (datatype is null && initializer is null) throw new UnspecifiedDatatypeError(ref context);
@@ -49,7 +49,7 @@ internal class Parameter : Syntax, Compiler.IParsable<Parameter>
         return new Parameter
         {
             Name = name,
-            Is = modifiers,
+            Is = modifiers ?? new(),
             Datatype = datatype,
             Initializer = initializer,
             Source = parser.Commit(ref context)
