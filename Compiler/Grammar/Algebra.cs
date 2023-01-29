@@ -23,8 +23,6 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Algebra : Syntax, Compiler.IParsable<Algebra>
 {
-    public Syntax Syntax { get; init; }
-
     public static Algebra Parse(ref Parser context)
     {
         Parser parser = context;
@@ -35,6 +33,12 @@ internal class Algebra : Syntax, Compiler.IParsable<Algebra>
 
         if (syntax is null) return null;
 
-        return new Algebra { Syntax = syntax, Source = parser.Commit(ref context) };
+        return new Algebra { value = syntax, Source = parser.Commit(ref context) };
     }
+
+    public static implicit operator Scalar(Algebra algebra) => algebra.value as Scalar;
+    public static implicit operator Arguments(Algebra algebra) => algebra.value as Arguments;
+    public static implicit operator Name(Algebra algebra) => algebra.value as Name;
+
+    private Syntax value;
 }

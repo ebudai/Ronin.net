@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -33,8 +32,8 @@ internal class Parameter : Syntax, Compiler.IParsable<Parameter>
             modifiers = Modifiers.Parse(ref parser);
 
             datatype = Reference.Parse(ref parser);
-            
-            if (datatype is null) throw new UnspecifiedDatatypeError(ref context);
+
+            if (datatype is null) throw new Error(ref context);
         }
 
         Value initializer = null;
@@ -44,7 +43,7 @@ internal class Parameter : Syntax, Compiler.IParsable<Parameter>
             initializer = Value.Parse(ref parser);
         }
 
-        if (datatype is null && initializer is null) throw new UnspecifiedDatatypeError(ref context);
+        if (datatype is null && initializer is null) throw new Error(ref context);
 
         return new Parameter
         {

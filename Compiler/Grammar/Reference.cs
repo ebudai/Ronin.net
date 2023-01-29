@@ -16,7 +16,7 @@ internal class Reference : Syntax, Compiler.IParsable<Reference>
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
-        if (components.Any(component => component.Is<Name>()) is false) return null;
+        if (components.All(component => component.IsNot<Name>())) return null;
  
         var ordinal = Ordinal.Parse(ref parser);
 
@@ -47,7 +47,7 @@ internal class Reference : Syntax, Compiler.IParsable<Reference>
         public static implicit operator Scalar(Component component) => component.value as Scalar;
         public static implicit operator Arguments(Component component) => component.value as Arguments;
 
-        public bool Is<T>() => value is T;
+        public bool IsNot<T>() => value is not T;
 
         private Syntax value;
     }

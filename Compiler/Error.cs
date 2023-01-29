@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
@@ -10,7 +9,7 @@ namespace Ronin;
 /// <summary>
 ///     Parent class of all compiler errors (<see cref="ExpectedSyntaxError{TSeparator, TClose}"/>, <see cref="UnexpectedSyntaxError"/>, and <see cref="UnspecifiedDatatypeError"/>)
 /// </summary>
-internal abstract class Error : Exception
+internal class Error : Exception
 {
     public int Cursor { get; init; }
 

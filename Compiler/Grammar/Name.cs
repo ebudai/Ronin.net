@@ -11,7 +11,7 @@ internal class Name : Syntax, Compiler.IParsable<Name>
 
     public static Name Parse(ref Parser context)
     {
-        List<string> names = new(64);
+        List<string> words = new(64);
         Parser parser = context;
 
         while (parser.IsNotFinished)
@@ -20,7 +20,7 @@ internal class Name : Syntax, Compiler.IParsable<Name>
             
             if (name is Word or Symbol and not Punctuation)
             {
-                names.Add(name);
+                words.Add(name);
             }
             else
             {
@@ -30,8 +30,8 @@ internal class Name : Syntax, Compiler.IParsable<Name>
             parser.Advance();
         }
 
-        if (names.Count is 0) return null;
+        if (words.Count is 0) return null;
 
-        return new Name { Words = names, Source = parser.Commit(ref context) };
+        return new Name { Words = words, Source = parser.Commit(ref context) };
     }
 }
