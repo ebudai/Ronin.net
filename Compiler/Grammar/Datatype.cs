@@ -2,13 +2,12 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Ronin.Grammar.Errors;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Restricts a <see cref="Datum"/>, <see cref="Parameter"/>, or <see cref="Function"/> return <see cref="Temporary"/> to a specific type of data
+///     Restricts a <see cref="Datum"/>, <see cref="Parameter"/>, or the <see cref="Temporary"/> 
+///     resulting from evaluation of a <see cref="Function"/> to a specific type of data
 /// </summary>
 /// 
 /// <example>
@@ -18,8 +17,8 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 {
     public Modifiers Is { get; init; }
     public Identifier Identifier { get; init; }
-    public List<Algebra> Algebra { get; init; }
-    public Scope Body { get; init; }
+    public List<Algebra> Algebra { get; init; } //todo this should just be a reference, to be split up later
+    public Body Body { get; init; }
 
     public static Datatype Parse(ref Parser context)
     {
@@ -39,7 +38,8 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
             algebra = parser.ParseRepeating<Algebra>();
         }
 
-        if (Scope.Parse(ref parser) is not Scope body) throw new ExpectedSyntaxError<OpenBrace>(ref context);
+        var body = Body.Parse(ref parser);
+        if (body is null && algebra is null) throw new Error(ref context);
 
         return new Datatype
         {
