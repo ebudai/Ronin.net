@@ -1,8 +1,10 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -16,27 +18,54 @@ namespace Ronin.Grammar;
 ///         ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 ///     }
 /// </example>
-internal class Datum : Parameter, Compiler.IParsable<Datum>
+internal class Datum : Syntax, Compiler.IParsable<Datum>
 {
     public Keyword Mutability { get; init; }
+    public Modifiers Is { get; init; }
+    public Name Name { get; init; }
+    public Reference Datatype { get; init; }
+    public Value Initializer { get; init; }
 
-    public static new Datum Parse(ref Parser context)
+    public static Datum Parse(ref Parser context)
     {
-        var declarator = context.Current is Variable or Constant or Reactive ? context.Current as Keyword : null;
-        if (declarator is null) return null;
-        
         Parser parser = context;
-        parser.Advance();
 
-        if (Parameter.Parse(ref parser) is not Parameter parameter) return null;
+        var mutator = parser.Current is Variable or Constant or Reactive ? parser.Current as Keyword : null;
+        if (mutator is not null) parser.Advance();
+
+        if (parser.Current is Keyword) return null;
+
+        if (Name.Parse(ref parser) is not Name name) return null;
+
+        Modifiers modifiers = null;
+        Reference datatype = null;
+        if (parser.Current is Returns)
+        {
+            parser.Advance();
+
+            modifiers = Modifiers.Parse(ref parser);
+
+            datatype = Reference.Parse(ref parser);
+
+            if (datatype is null) throw new UnspecifiedDatatypeError(ref context);
+        }
+
+        Value initializer = null;
+        if (parser.Current is Assign)
+        {
+            parser.Advance();
+            initializer = Value.Parse(ref parser);
+        }
+
+        if (datatype is null && initializer is null) throw new UnspecifiedDatatypeError(ref context);
 
         return new Datum
         {
-            Mutability = declarator,
-            Name = parameter.Name,
-            Is = parameter.Is,
-            Datatype = parameter.Datatype,
-            Initializer = parameter.Initializer,
+            Mutability = mutator,
+            Name = name,
+            Is = modifiers ?? new(),
+            Datatype = datatype,
+            Initializer = initializer,
             Source = parser.Commit(ref context)
         };
     }
