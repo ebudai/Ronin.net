@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -12,6 +13,8 @@ internal class Reference : Syntax, Compiler.IParsable<Reference>
 
     public static Reference Parse(ref Parser context)
     {
+        if (context.Current is Keyword) return null;
+
         Parser parser = context;
 
         var components = parser.ParseRepeating<Component>();

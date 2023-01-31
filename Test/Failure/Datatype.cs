@@ -37,6 +37,6 @@ public class Datatype
         Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         var error = parser.Errors[0];
-        Assert.IsType<ExpectedSyntaxError<OpenBrace>>(error);
+        Assert.IsType<ExpectedSyntaxError<OpenBrace, Assign>>(error);
     }
 }

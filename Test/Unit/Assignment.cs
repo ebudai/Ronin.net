@@ -18,7 +18,11 @@ public class Assignment
 
         Assert.NotEmpty(result);
         Ronin.Grammar.Assignment assignment = result[0];
-        Assert.Equal("x", string.Join(' ', assignment.Name.Words));
+        Assert.NotNull(assignment);
+        Assert.Single(assignment.Reference.Components);
+        Ronin.Grammar.Name name = assignment.Reference.Components[0];
+        Assert.NotEmpty(name.Words);
+        Assert.Equal("x", string.Join(' ', name.Words));
         Temporary value = assignment.Value;
         Assert.NotNull(value);
         Ronin.Grammar.Scalar scalar = value;

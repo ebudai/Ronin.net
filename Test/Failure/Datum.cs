@@ -35,9 +35,9 @@ public class Datum
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.Empty(syntax);
+        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         var error = parser.Errors[0];
         Assert.IsType<UnexpectedSyntaxError>(error);
@@ -51,9 +51,9 @@ public class Datum
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.Empty(syntax);
+        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         var error = parser.Errors[0];
         Assert.IsType<UnspecifiedDatatypeError>(error);
@@ -67,11 +67,11 @@ public class Datum
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Reference reference = syntax[0] as Statement;
-        Assert.NotNull(reference);
+        Assert.Empty(statements);
+        Assert.Single(parser.Errors);
+        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
 
     [Fact(DisplayName = "missing datatype and initializer")]
@@ -82,9 +82,9 @@ public class Datum
         Lexer lexer = new(declaration);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.Empty(syntax);
+        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         var error = parser.Errors[0];
         Assert.IsType<UnspecifiedDatatypeError>(error);

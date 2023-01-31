@@ -14,15 +14,12 @@ public class Hierarchy
 
         Lexer lexer = new(somethingelse);
         var tokens = lexer.Lex();
-
-        Assert.NotEmpty(tokens);
-
         Parser parser = new(tokens);
-        var result = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.NotEmpty(result);
-        Reference reference = result[0] as Statement;
-        Assert.NotNull(reference);
+        Assert.Empty(statements);
+        Assert.Single(parser.Errors);
+        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
 
     [Fact(DisplayName = "improperly terminated")]
@@ -32,13 +29,10 @@ public class Hierarchy
 
         Lexer lexer = new(unterminated);
         var tokens = lexer.Lex();
-
-        Assert.NotEmpty(tokens);
-
         Parser parser = new(tokens);
-        var result = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.Empty(result);
+        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
@@ -51,9 +45,9 @@ public class Hierarchy
         Lexer lexer = new(bad);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var result = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.Empty(result);
+        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
