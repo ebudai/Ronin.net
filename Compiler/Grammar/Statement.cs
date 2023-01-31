@@ -19,12 +19,12 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
         Parser parser = context;
 
         var syntax = Hierarchy.Parse(ref parser)
-            ?? Datum.Parse(ref parser)
             ?? Function.Parse(ref parser)
             ?? Datatype.Parse(ref parser)
             ?? Assignment.Parse(ref parser)
             ?? Reference.Parse(ref parser)
-            ?? Temporary.Parse(ref parser) as Syntax;
+            ?? Temporary.Parse(ref parser)
+            ?? Datum.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
