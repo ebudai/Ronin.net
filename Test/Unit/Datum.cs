@@ -184,13 +184,6 @@ public class Datum
         Assert.Equal(constant, string.Join(' ', name.Words));
     }
 
-
-    /*[Fact(DisplayName = "lambda")]
-    public void Lambda()
-    {
-
-    }*/
-
     private static Ronin.Grammar.Datum Compile(string declaration)
     {
         Lexer lexer = new(declaration);

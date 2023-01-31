@@ -18,17 +18,6 @@ public class NumberLiteral
         Assert.Null(lexed);
     }
 
-    [Fact(DisplayName = "doesn't have a .")]
-    public void DoesntHaveADot()
-    {
-        const string integer = "98723";
-
-        Lexer lexer = new(integer);
-        var lexed = Number.Lex(lexer);
-
-        Assert.Null(lexed);
-    }
-
     [Fact(DisplayName = "unterminated")]
     public void Unterminated()
     {
@@ -38,8 +27,8 @@ public class NumberLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Integer>(lexed);
-        var integer = lexed as Integer;
+        Assert.IsType<Number>(lexed);
+        var integer = lexed as Number;
         Assert.Equal("9".ToArray(), integer.Sourcecode.ToArray());
     }
 
@@ -66,9 +55,23 @@ public class NumberLiteral
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
-        Assert.IsType<Number>(lexed);
         var number = lexed as Number;
+        Assert.NotNull(number);
         Assert.Equal("9.2".ToArray(), number.Sourcecode.ToArray());
+    }
+
+    [Fact(DisplayName = "bad commas")]
+    public void BadCommas()
+    {
+        const string literal = "9,22.33";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(lexer);
+
+        Assert.NotNull(lexed);
+        var number = lexed as Number;
+        Assert.NotNull(number);
+        Assert.Equal(new[] { '9' }, number.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "no data")]

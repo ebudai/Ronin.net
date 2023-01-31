@@ -8,7 +8,7 @@ public class NumberLiteral
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string literal = "123_456.78_90";
+        const string literal = "123,456.7890";
 
         Ronin.Compiler.Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
