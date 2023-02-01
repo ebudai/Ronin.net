@@ -2,6 +2,8 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Errors;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -11,38 +13,37 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Function : Syntax, Compiler.IParsable<Function>
 {
-    public Modifiers Is { get; init; }
     public Identifier Identifier { get; init; }
-    public Reference ReturnType { get; init; }
+    public Modifiers Modifiers { get; init; }
+    public Reference Returns { get; init; }
     public Scope Body { get; init; }
 
     public static Function Parse(ref Parser context)
     {
         Parser parser = context;
 
-        var modifiers = Modifiers.Parse(ref parser);
-
-        if (parser.Current is not Lexicon.Keywords.Function) return null;
-        
+        if (parser.Current is not Lexicon.Keywords.Function) return null;        
         parser.Advance();
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
-        Reference returnType = null;
+        Modifiers modifiers = null;
+        Reference returns = null;
         if (parser.Current is Returns)
         {
             parser.Advance();
-            returnType = Reference.Parse(ref parser);
-            if (returnType is null) return null;
+            modifiers = Modifiers.Parse(ref parser);
+            returns = Reference.Parse(ref parser);
+            if (returns is null) throw new ExpectedSyntaxError<Word, Literal, OpenParenthesis>(ref context);
         }
 
-        if (Scope.Parse(ref parser) is not Scope body) return null;
+        var body = Scope.Parse(ref parser);
 
         return new Function
         {
-            Is = modifiers,
             Identifier = identifier,
-            ReturnType = returnType,
+            Modifiers = modifiers,
+            Returns = returns,
             Body = body,
             Source = parser.Commit(ref context)
         };

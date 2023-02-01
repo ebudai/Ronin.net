@@ -7,14 +7,11 @@ namespace Ronin.Grammar.Errors;
 ///     Thrown when parser's current <see cref="Token"/> is not <typeparamref name="TSeparator"/> or <typeparamref name="TClose"/>
 /// </summary>
 /// 
-/// <typeparam name="TSeparator">
-///     <see cref="Symbol"/> separating each element of the Aggregate
+/// <typeparam name="T">
+///     <see cref="Token"/> expected
 /// </typeparam>
-/// 
-/// <typeparam name="TClose">
-///     <see cref="Symbol"/> completing the Aggregate
-/// </typeparam>
-internal class ExpectedSyntaxError<T> : Error where T : Symbol
+internal class ExpectedSyntaxError<T> : Error
+    where T : Token
 {
     public ExpectedSyntaxError(ref Parser parser) : base(ref parser) { }
 }
@@ -24,15 +21,38 @@ internal class ExpectedSyntaxError<T> : Error where T : Symbol
 /// </summary>
 /// 
 /// <typeparam name="T0">
-///     <see cref="Symbol"/> separating each element of the Aggregate
+///     <see cref="Token"/> expected
 /// </typeparam>
 /// 
 /// <typeparam name="T1">
-///     <see cref="Symbol"/> completing the Aggregate
+///     <see cref="Token"/> expected
 /// </typeparam>
 internal class ExpectedSyntaxError<T0, T1> : Error 
-    where T0 : Symbol
-    where T1 : Symbol
+    where T0 : Token
+    where T1 : Token
+{
+    public ExpectedSyntaxError(ref Parser parser) : base(ref parser) { }
+}
+
+/// <summary>
+///     Thrown when parser's current <see cref="Token"/> is not <typeparamref name="T0"/>, <typeparamref name="T1"/>, or <typeparamref name="T2"/>
+/// </summary>
+/// 
+/// <typeparam name="T0">
+///     <see cref="Token"/> expected
+/// </typeparam>
+/// 
+/// <typeparam name="T1">
+///     <see cref="Token"/> expected
+/// </typeparam>
+/// 
+/// <typeparam name="T2">
+///     <see cref="Token"/> expected
+/// </typeparam>
+internal class ExpectedSyntaxError<T0, T1, T2> : Error
+    where T0 : Token
+    where T1 : Token
+    where T2 : Token
 {
     public ExpectedSyntaxError(ref Parser parser) : base(ref parser) { }
 }

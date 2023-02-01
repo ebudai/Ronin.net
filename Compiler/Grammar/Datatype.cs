@@ -8,7 +8,7 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Restricts a <see cref="Datum"/>, <see cref="Parameter"/>, or the <see cref="Temporary"/> 
+///     Restricts a <see cref="Datum"/> or the <see cref="Temporary"/> 
 ///     resulting from evaluation of a <see cref="Function"/> to a specific type of data
 /// </summary>
 /// 
@@ -19,7 +19,7 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 {
     public Modifiers Is { get; init; }
     public Identifier Identifier { get; init; }
-    public Reference Reference { get; init; } //todo this should just be a reference, to be split up later
+    public Reference Reference { get; init; }
     public Scope Body { get; init; }
 
     public static Datatype Parse(ref Parser context)
