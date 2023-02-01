@@ -1,7 +1,17 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 
 namespace Ronin.Lexicon;
 
+/// <summary>
+///     Text embedded within the source code which does not participate in compilation
+/// </summary>
+/// 
+/// <remarks>
+///     Single-line comments start with // and end with a newline or the eof.  
+///     Multi-line comments start with /* and end with */, and if they don't balance, the rest of the file is a comment.
+/// </remarks>
 internal class Comment : Trivium
 {
     public class SingleLine
