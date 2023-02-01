@@ -17,11 +17,11 @@ namespace Ronin.Grammar;
 /// </typeparam>
 /// 
 /// <typeparam name="TOpen">
-///     <see cref="Symbol"/> used to denote the start of the grouping
+///     <see cref="Symbol"/> used to denote the start of the grouping - must be subclass of <see cref="Open"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TElement">
-///     class to be grouped
+///     class to be grouped - must be implementation of <see cref="Compiler.IParsable{TElement}"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TSeparator">
@@ -29,7 +29,7 @@ namespace Ronin.Grammar;
 /// </typeparam>
 /// 
 /// <typeparam name="TClose">
-///     <see cref="Symbol"/> used to denote the completion of the grouping
+///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Close"/>
 /// </typeparam>
 internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Syntax, Compiler.IParsable<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()

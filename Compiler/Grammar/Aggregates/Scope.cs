@@ -5,7 +5,7 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar.Aggregates;
 
 /// <summary>
-///     Body of conditionals, loops, <see cref="Function"/>s and <see cref="Datatype"/>s.  Can also be a <see cref="Temporary"/>.
+///     Body of conditionals, loops, <see cref="Datatype"/>s and <see cref="Function"/>s.  Can also be a <see cref="Temporary"/>.
 /// </summary>
 /// 
 /// <remarks>
