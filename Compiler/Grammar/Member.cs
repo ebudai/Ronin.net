@@ -19,5 +19,4 @@ internal class Member : Syntax, Compiler.IParsable<Member>
     public static implicit operator Function(Member member) => member.value as Function;
 
     private Syntax value;
-
 }

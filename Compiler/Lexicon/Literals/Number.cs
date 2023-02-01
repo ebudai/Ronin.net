@@ -9,7 +9,7 @@ internal partial class Number : Literal
 
     internal static new Token Lex(Lexer lexer)
     {
-        if (lexer.Length is 0 || char.IsNumber(lexer[0]) is false) return null;
+        if (lexer.IsEmpty || char.IsNumber(lexer[0]) is false) return null;
 
         int length = 1;
         for (int max = lexer.Length; length != max; ++length)
@@ -26,7 +26,7 @@ internal partial class Number : Literal
         if (match.Success) return new Number(lexer, match.Length);
 
         match = nocommasregex.Match(number);
-        return match.Success ? new Number(lexer, match.Length) : null;
+        return new Number(lexer, match.Length);
     }
 
     private static readonly Regex nocommasregex = NoCommasRegex();
