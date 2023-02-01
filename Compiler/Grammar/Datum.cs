@@ -11,6 +11,7 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     A singular piece of data residing in memory, and declared in a <see cref="Scope"/>
 /// </summary>
+/// 
 /// <example>
 ///     datatype Building
 ///     {
@@ -32,8 +33,6 @@ internal class Datum : Syntax, Compiler.IParsable<Datum>
 
         var mutator = parser.Current is Variable or Constant or Reactive ? parser.Current as Keyword : null;
         if (mutator is not null) parser.Advance();
-
-        if (parser.Current is Keyword) return null;
 
         if (Name.Parse(ref parser) is not Name name) return null;
 
