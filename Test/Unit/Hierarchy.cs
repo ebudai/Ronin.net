@@ -52,32 +52,28 @@ public class Hierarchy
     [Fact(DisplayName = "keywords are just text")]
     public void WithKeywords()
     {
-        const string line = "part of compiled to whatever secret stuff;";
+        const string line = "part of thing compiled to whatever secret stuff;";
 
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
-
-        // ensure hierarchy starts with a keyword
-        Assert.True(tokens.Length is > 2);
-        Assert.IsAssignableFrom<Ronin.Lexicon.Keyword>(tokens[2]);
-
         Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
+        Assert.NotEmpty(statements);
+        Ronin.Grammar.Hierarchy hierarchy = statements[0];
         Assert.NotNull(hierarchy);
         Assert.NotEmpty(hierarchy.Name.Words);
-        Assert.Equal(5, hierarchy.Name.Words.Count);
-        Assert.Equal("compiled", hierarchy.Name.Words[0]);
-        Assert.Equal("to", hierarchy.Name.Words[1]);
-        Assert.Equal("whatever", hierarchy.Name.Words[2]);
-        Assert.Equal("secret", hierarchy.Name.Words[3]);
-        Assert.Equal("stuff", hierarchy.Name.Words[4]);
+        Assert.Equal(6, hierarchy.Name.Words.Count);
+        Assert.Equal("thing", hierarchy.Name.Words[0]);
+        Assert.Equal("compiled", hierarchy.Name.Words[1]);
+        Assert.Equal("to", hierarchy.Name.Words[2]);
+        Assert.Equal("whatever", hierarchy.Name.Words[3]);
+        Assert.Equal("secret", hierarchy.Name.Words[4]);
+        Assert.Equal("stuff", hierarchy.Name.Words[5]);
         Assert.IsType<PartOf>(hierarchy.Direction);
     }
 
-    /*[Fact(DisplayName = "using text literal")]
+    [Fact(DisplayName = "using text literal")]
     public void TextLiteral()
     {
         const string line = "part of literal testing \"fast version\" readonly;";
@@ -85,17 +81,17 @@ public class Hierarchy
         Lexer lexer = new(line);
         var tokens = lexer.Lex();
         Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        var statements = parser.Parse();
 
-        Assert.NotEmpty(syntax);
-        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
+        Assert.NotEmpty(statements);
+        Ronin.Grammar.Hierarchy hierarchy = statements[0];
         Assert.NotNull(hierarchy);
-        Assert.NotEmpty(hierarchy.Name);
-        Assert.Equal(4, hierarchy.Name.Count);
-        Assert.Equal("literal", hierarchy.Name[0]);
-        Assert.Equal("testing", hierarchy.Name[1]);
-        Assert.Equal("fast version", hierarchy.Name[2]);
-        Assert.Equal("readonly", hierarchy.Name[3]);
+        Assert.NotEmpty(hierarchy.Name.Words);
+        Assert.Equal(4, hierarchy.Name.Words.Count);
+        Assert.Equal("literal", hierarchy.Name.Words[0]);
+        Assert.Equal("testing", hierarchy.Name.Words[1]);
+        Assert.Equal("fast version", hierarchy.Name.Words[2]);
+        Assert.Equal("readonly", hierarchy.Name.Words[3]);
         Assert.IsType<PartOf>(hierarchy.Direction);
-    }*/
+    }
 }
