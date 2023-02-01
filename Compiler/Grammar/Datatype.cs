@@ -19,8 +19,8 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 {
     public Modifiers Is { get; init; }
     public Identifier Identifier { get; init; }
-    public List<Algebra> Algebra { get; init; } //todo this should just be a reference, to be split up later
-    public Body Body { get; init; }
+    public Reference Reference { get; init; } //todo this should just be a reference, to be split up later
+    public Scope Body { get; init; }
 
     public static Datatype Parse(ref Parser context)
     {
@@ -33,21 +33,21 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
-        List<Algebra> algebra = null;
+        Reference reference = null;
         if (parser.Current is Assign)
         {
             parser.Advance();
-            algebra = parser.ParseRepeating<Algebra>();
+            reference = Reference.Parse(ref parser);
         }
 
-        var body = Body.Parse(ref parser);
-        if (body is null && algebra is null) throw new ExpectedSyntaxError<OpenBrace, Assign>(ref context);
+        var body = Scope.Parse(ref parser);
+        if (body is null && reference is null) throw new ExpectedSyntaxError<OpenBrace, Assign>(ref context);
 
         return new Datatype
         {
             Is = modifiers,
             Identifier = identifier,
-            Algebra = algebra,
+            Reference = reference,
             Body = body,
             Source = parser.Commit(ref context)
         };
