@@ -19,13 +19,15 @@ public class Hierarchy
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
+        Ronin.Grammar.Hierarchy hierarchy = syntax[0];
         Assert.NotNull(hierarchy);
-        Assert.NotNull(hierarchy.Name);
-        //Assert.IsType<Ronin.Grammar.Name>
-        Assert.NotEmpty(hierarchy.Name.Words);
-        Assert.Equal("standard", hierarchy.Name.Words[0]);
+
         Assert.IsType<PartOf>(hierarchy.Direction);
+
+        Assert.Single(hierarchy.Components);
+        Ronin.Grammar.Name name = hierarchy.Components[0];
+        Assert.NotEmpty(name.Words);
+        Assert.Equal("standard", name.Words[0]);        
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -39,14 +41,17 @@ public class Hierarchy
         var syntax = parser.Parse();
 
         Assert.NotEmpty(syntax);
-        Ronin.Grammar.Hierarchy hierarchy = syntax[0] as Statement;
+        Ronin.Grammar.Hierarchy hierarchy = syntax[0];
         Assert.NotNull(hierarchy);
-        Assert.NotEmpty(hierarchy.Name.Words);
-        Assert.Equal(3, hierarchy.Name.Words.Count);
-        Assert.Equal("standard", hierarchy.Name.Words[0]);
-        Assert.Equal("funstuff", hierarchy.Name.Words[1]);
-        Assert.Equal("websockets", hierarchy.Name.Words[2]);
+
         Assert.IsType<Import>(hierarchy.Direction);
+
+        Assert.Single(hierarchy.Components);
+        Ronin.Grammar.Name name = hierarchy.Components[0];
+        Assert.Equal(3, name.Words.Count);
+        Assert.Equal("standard", name.Words[0]);
+        Assert.Equal("funstuff", name.Words[1]);
+        Assert.Equal("websockets", name.Words[2]);        
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -62,15 +67,18 @@ public class Hierarchy
         Assert.NotEmpty(statements);
         Ronin.Grammar.Hierarchy hierarchy = statements[0];
         Assert.NotNull(hierarchy);
-        Assert.NotEmpty(hierarchy.Name.Words);
-        Assert.Equal(6, hierarchy.Name.Words.Count);
-        Assert.Equal("thing", hierarchy.Name.Words[0]);
-        Assert.Equal("compiled", hierarchy.Name.Words[1]);
-        Assert.Equal("to", hierarchy.Name.Words[2]);
-        Assert.Equal("whatever", hierarchy.Name.Words[3]);
-        Assert.Equal("secret", hierarchy.Name.Words[4]);
-        Assert.Equal("stuff", hierarchy.Name.Words[5]);
+
         Assert.IsType<PartOf>(hierarchy.Direction);
+
+        Assert.Single(hierarchy.Components);
+        Ronin.Grammar.Name name = hierarchy.Components[0];
+        Assert.Equal(6, name.Words.Count);
+        Assert.Equal("thing", name.Words[0]);
+        Assert.Equal("compiled", name.Words[1]);
+        Assert.Equal("to", name.Words[2]);
+        Assert.Equal("whatever", name.Words[3]);
+        Assert.Equal("secret", name.Words[4]);
+        Assert.Equal("stuff", name.Words[5]);        
     }
 
     [Fact(DisplayName = "using text literal")]
@@ -86,12 +94,22 @@ public class Hierarchy
         Assert.NotEmpty(statements);
         Ronin.Grammar.Hierarchy hierarchy = statements[0];
         Assert.NotNull(hierarchy);
-        Assert.NotEmpty(hierarchy.Name.Words);
-        Assert.Equal(4, hierarchy.Name.Words.Count);
-        Assert.Equal("literal", hierarchy.Name.Words[0]);
-        Assert.Equal("testing", hierarchy.Name.Words[1]);
-        Assert.Equal("fast version", hierarchy.Name.Words[2]);
-        Assert.Equal("readonly", hierarchy.Name.Words[3]);
+
         Assert.IsType<PartOf>(hierarchy.Direction);
+
+        Assert.Equal(3, hierarchy.Components.Count);
+
+        Ronin.Grammar.Name name = hierarchy.Components[0];
+        Assert.Equal(2, name.Words.Count);
+        Assert.Equal("literal", name.Words[0]);
+        Assert.Equal("testing", name.Words[1]);
+
+        Ronin.Grammar.Scalar scalar = hierarchy.Components[1];
+        Assert.Single(scalar.Literals);
+        Assert.Equal("\"fast version\"", scalar.Literals[0].ToString());
+
+        name = hierarchy.Components[2];
+        Assert.Single(name.Words);
+        Assert.Equal("readonly", name.Words[0]);
     }
 }
