@@ -22,19 +22,18 @@ internal partial class Number : Literal
 
         var number = lexer[..length].Span.ToString();
 
-        var match = commasregex.Match(number);
+        var match = NumbersWithCommas().Match(number);
         if (match.Success) return new Number(lexer, match.Length);
 
-        match = nocommasregex.Match(number);
+        match = NumbersWithoutCommas().Match(number);
         return new Number(lexer, match.Length);
     }
 
-    private static readonly Regex nocommasregex = NoCommasRegex();
-    private static readonly Regex commasregex = CommasRegex();
-
-    [GeneratedRegex(@"\d+([.]\d+)?", RegexOptions.Compiled | RegexOptions.Singleline)]
-    private static partial Regex NoCommasRegex();
+    [GeneratedRegex(@"\d+([.]\d+)?", options)]
+    private static partial Regex NumbersWithoutCommas();
  
-    [GeneratedRegex(@"\d{1,3}(,\d{3})+([.]\d+)?", RegexOptions.Compiled | RegexOptions.Singleline)]
-    private static partial Regex CommasRegex();
+    [GeneratedRegex(@"\d{1,3}(,\d{3})+([.]\d+)?", options)]
+    private static partial Regex NumbersWithCommas();
+
+    private const RegexOptions options = RegexOptions.Compiled | RegexOptions.Singleline;
 }
