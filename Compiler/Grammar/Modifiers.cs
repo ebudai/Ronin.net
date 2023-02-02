@@ -23,7 +23,7 @@ internal class Modifiers : Syntax, Compiler.IParsable<Modifiers>
         
         while (parser.IsNotFinished)
         {
-            var modifier = parser.Current;
+            var modifier = parser.CurrentToken;
 
             // the point of these is to break if you encounter a keyword twice
             // the 2nd time it's part of the name, which is parsed somewhere else

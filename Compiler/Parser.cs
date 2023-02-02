@@ -24,7 +24,7 @@ internal ref struct Parser
             try
             {
                 var statement = Statement.Parse(ref this);
-                if (Current is not Terminal and not Sentinel) throw new UnexpectedSyntaxError(ref this);
+                if (CurrentToken is not Terminal and not Sentinel) throw new UnexpectedSyntaxError(ref this);
                 statements.Add(statement);
             }
             catch (Error error)
@@ -51,18 +51,18 @@ internal ref struct Parser
 
     internal int Index;
 
-    internal ref readonly Token Current => ref tokens[Index];
+    internal ref readonly Token CurrentToken => ref tokens[Index];
 
     internal ref readonly Token this[int index] => ref tokens[Index + index];
     internal readonly ReadOnlySpan<Token> this[Range range] => tokens[range];
 
-    internal bool IsNotFinished => Current is not Sentinel;
+    internal bool IsNotFinished => CurrentToken is not Sentinel;
 
     internal List<Error> Errors { get; } = new();
 
     internal void Advance() 
     {
-        do ++Index; while (Current is Trivium);
+        do ++Index; while (CurrentToken is Trivium);
     }
 
     internal Token[] Commit(ref Parser context)

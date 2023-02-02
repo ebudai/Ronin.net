@@ -28,13 +28,13 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 
         var modifiers = Modifiers.Parse(ref parser);
 
-        if (parser.Current is not Lexicon.Keywords.Datatype) return null;
+        if (parser.CurrentToken is not Lexicon.Keywords.Datatype) return null;
         parser.Advance();
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         Reference reference = null;
-        if (parser.Current is Assign)
+        if (parser.CurrentToken is Assign)
         {
             parser.Advance();
             reference = Reference.Parse(ref parser);

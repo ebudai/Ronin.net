@@ -22,14 +22,14 @@ internal class Function : Syntax, Compiler.IParsable<Function>
     {
         Parser parser = context;
 
-        if (parser.Current is not Lexicon.Keywords.Function) return null;        
+        if (parser.CurrentToken is not Lexicon.Keywords.Function) return null;        
         parser.Advance();
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         Modifiers modifiers = null;
         Reference returns = null;
-        if (parser.Current is Returns)
+        if (parser.CurrentToken is Returns)
         {
             parser.Advance();
             modifiers = Modifiers.Parse(ref parser);

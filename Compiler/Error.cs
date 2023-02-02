@@ -19,7 +19,7 @@ internal class Error : Exception
         {
             parser.Advance();
         }
-        while (parser.Current is not Sentinel and not Terminal and not Separator and not Close);
+        while (parser.CurrentToken is not Sentinel and not Terminal and not Separator and not Close);
 
         Cursor = parser.Index;
     }

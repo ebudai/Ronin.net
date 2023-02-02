@@ -25,7 +25,7 @@ internal class Hierarchy : Syntax, Compiler.IParsable<Hierarchy>
 
     public static Hierarchy Parse(ref Parser context)
     {
-        var direction = context.Current is PartOf or Import ? context.Current as Keyword : null;
+        var direction = context.CurrentToken is PartOf or Import ? context.CurrentToken as Keyword : null;
         if (direction is null) return null;
 
         Parser parser = context;

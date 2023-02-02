@@ -40,7 +40,7 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Synt
 {
     public static T Parse(ref Parser context)
     {
-        if (context.Current is not TOpen) return null;
+        if (context.CurrentToken is not TOpen) return null;
 
         Parser parser = context;
         List<TElement> values = new();
@@ -51,12 +51,12 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Synt
             var syntax = TElement.Parse(ref parser);
             if (syntax is null)
             {
-                if (parser.Current is not TClose) throw new ExpectedSyntaxError<TSeparator, TClose>(ref context);
+                if (parser.CurrentToken is not TClose) throw new ExpectedSyntaxError<TSeparator, TClose>(ref context);
                 parser.Advance();
                 break;
             }
             values.Add(syntax);
-            if (parser.Current is TSeparator) parser.Advance();
+            if (parser.CurrentToken is TSeparator) parser.Advance();
         }
 
         return new T { Values = values, Source = parser.Commit(ref context) };

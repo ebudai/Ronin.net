@@ -12,6 +12,6 @@ internal class Trivia : Syntax, Compiler.IParsable<Trivia>
         Parser parser = context;
         while (parser[0] is Trivium) parser.Advance();
         if (parser[0] is Terminal) parser.Advance();
-        return parser.Current == context.Current ? null : new Trivia { Source = parser.Commit(ref context) };
+        return parser.CurrentToken == context.CurrentToken ? null : new Trivia { Source = parser.Commit(ref context) };
     }
 }

@@ -31,14 +31,14 @@ internal class Datum : Syntax, Compiler.IParsable<Datum>
     {
         Parser parser = context;
 
-        var mutator = parser.Current is Variable or Constant or Reactive ? parser.Current as Keyword : null;
+        var mutator = parser.CurrentToken is Variable or Constant or Reactive ? parser.CurrentToken as Keyword : null;
         if (mutator is not null) parser.Advance();
 
         if (Name.Parse(ref parser) is not Name name) return null;
 
         Modifiers modifiers = null;
         Reference datatype = null;
-        if (parser.Current is Returns)
+        if (parser.CurrentToken is Returns)
         {
             parser.Advance();
 
@@ -50,7 +50,7 @@ internal class Datum : Syntax, Compiler.IParsable<Datum>
         }
 
         Value initializer = null;
-        if (parser.Current is Assign)
+        if (parser.CurrentToken is Assign)
         {
             parser.Advance();
             initializer = Value.Parse(ref parser);

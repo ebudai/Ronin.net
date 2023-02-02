@@ -5,20 +5,23 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     The part of an <see cref="Identifier"/> or <see cref="Reference"/> which is not being used for parameters     
+/// </summary>
 internal class Name : Syntax, Compiler.IParsable<Name>
 {
     internal List<string> Words { get; init; }
 
     public static Name Parse(ref Parser context)
     {
-        if (context.Current is Keyword) return null;
+        if (context.CurrentToken is Keyword) return null;
 
         List<string> words = new(64);
         Parser parser = context;
 
         while (parser.IsNotFinished)
         {
-            var name = parser.Current;
+            var name = parser.CurrentToken;
             
             if (name is Word or Symbol and not Punctuation)
             {
