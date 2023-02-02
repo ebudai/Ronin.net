@@ -4,7 +4,7 @@ namespace Ronin.Lexicon.Keywords;
 
 internal class Compiled : Keyword
 {
-    internal const string keyword = "compiled";
+    public const string keyword = "compiled";
 
-    public Compiled(Lexer lexer) : base(lexer, keyword.Length) { }
+    internal Compiled(Lexer lexer) : base(lexer, keyword.Length) { }
 }

@@ -4,7 +4,7 @@ namespace Ronin.Lexicon.Keywords;
 
 internal class Constant : Keyword
 {
-    internal const string keyword = "constant";
+    public const string keyword = "constant";
 
-    public Constant(Lexer lexer) : base(lexer, keyword.Length) { }
+    internal Constant(Lexer lexer) : base(lexer, keyword.Length) { }
 }
