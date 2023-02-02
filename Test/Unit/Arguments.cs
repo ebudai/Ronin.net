@@ -1,5 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 using Test;
@@ -7,18 +9,21 @@ using Test;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Arguments
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class arguments
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        TokensGenerator tokens = new();
+        Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
-            .Add<Ronin.Lexicon.Word>("test")
-            .Add<CloseParenthesis, Terminal>();
+            .Add<Word>("test")
+            .Add<CloseParenthesis>()
+            .Add<Terminal>();
 
-        Parser parser = new(tokens.Tokens.ToArray());
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        Parser parser = new(tokens.ToArray());
+        var arguments = Arguments.Parse(ref parser);
 
         Assert.NotNull(arguments);
 
@@ -27,7 +32,7 @@ public class Arguments
         Assert.NotNull(reference);
 
         Assert.Single(reference.Components);
-        Ronin.Grammar.Name name = reference.Components[0];
+        Name name = reference.Components[0];
         Assert.NotNull(name);
         Assert.Single(name.Words);
         Assert.Equal("test", name.Words[0]);
@@ -36,15 +41,16 @@ public class Arguments
     [Fact(DisplayName = "multiple")]
     public void Multiple()
     {
-        TokensGenerator tokens = new();
+        Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
-            .Add<Ronin.Lexicon.Word>("test")
-            .Add<Separator, Ronin.Lexicon.Whitespace>()
-            .Add<Ronin.Lexicon.Word>("stuff")
-            .Add<CloseParenthesis, Terminal>();
+            .Add<Word>("test")
+            .Add<Separator>()
+            .Add<Word>("stuff")
+            .Add<CloseParenthesis>()
+            .Add<Terminal>();
 
-        Parser parser = new(tokens.Tokens.ToArray());
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        Parser parser = new(tokens.ToArray());
+        var arguments = Arguments.Parse(ref parser);
 
         Assert.NotNull(arguments);
         Assert.NotNull(arguments.Values);
@@ -52,7 +58,7 @@ public class Arguments
 
         Reference test = arguments.Values[0];
         Assert.Single(test.Components);
-        Ronin.Grammar.Name name = test.Components[0];
+        Name name = test.Components[0];
         Assert.NotNull(name);
         Assert.Single(name.Words);
         Assert.Equal("test", name.Words[0]);
@@ -68,11 +74,13 @@ public class Arguments
     [Fact(DisplayName = "empty parenthesis")]
     public void Empty()
     {
-        TokensGenerator tokens = new();
-        tokens.Add<OpenParenthesis, CloseParenthesis, Terminal>();
+        Tokens tokens = new();
+        tokens.Add<OpenParenthesis>()
+            .Add<CloseParenthesis>()
+            .Add<Terminal>();
 
-        Parser parser = new(tokens.Tokens.ToArray());
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        Parser parser = new(tokens.ToArray());
+        var arguments = Arguments.Parse(ref parser);
 
         Assert.NotNull(arguments);
         Assert.Empty(arguments.Values);
@@ -81,24 +89,25 @@ public class Arguments
     [Fact(DisplayName = "named")]
     public void Named()
     {
-        TokensGenerator tokens = new();
+        Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
             .Add<Number>("1")
-            .Add<Separator, Ronin.Lexicon.Whitespace>()
+            .Add<Separator>()
             .Add<Number>("2")
-            .Add<Separator, Ronin.Lexicon.Whitespace>()
-            .Add<Ronin.Lexicon.Word>("thing")
-            .Add<CloseParenthesis, Terminal>();
+            .Add<Separator>()
+            .Add<Word>("thing")
+            .Add<CloseParenthesis>()
+            .Add<Terminal>();
 
-        Parser parser = new(tokens.Tokens.ToArray());
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        Parser parser = new(tokens.ToArray());
+        var arguments = Arguments.Parse(ref parser);
 
         Assert.NotNull(arguments);
         Assert.NotEmpty(arguments.Values);
 
         Temporary temporary = arguments.Values[0];
         Assert.NotNull(temporary);
-        Ronin.Grammar.Scalar scalar = temporary;
+        Scalar scalar = temporary;
         Assert.NotNull(scalar);
         Assert.NotEmpty(scalar.Literals);
         Assert.Equal("1", scalar.Literals[0].ToString());
@@ -113,7 +122,7 @@ public class Arguments
         Reference reference = arguments.Values[2];
         Assert.NotNull(reference);
         Assert.NotEmpty(reference.Components);
-        Ronin.Grammar.Name name = reference.Components[0];
+        Name name = reference.Components[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         Assert.Equal("thing", name.Words[0]);

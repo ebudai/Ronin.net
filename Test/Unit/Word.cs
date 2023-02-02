@@ -1,15 +1,20 @@
-﻿namespace Unit;
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
+
+namespace Unit;
 
 [Trait("Lexer", null)]
-public class Word
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class word
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         const string name = "thing";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name.ToArray(), lexed.Sourcecode.ToArray());
@@ -20,8 +25,8 @@ public class Word
     {
         const string name = "thing;";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -32,8 +37,8 @@ public class Word
     {
         const string name = "thing,";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -44,8 +49,8 @@ public class Word
     {
         const string name = "thing(";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -56,8 +61,8 @@ public class Word
     {
         const string name = "thing)";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -68,8 +73,8 @@ public class Word
     {
         const string name = "thing[";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -80,8 +85,8 @@ public class Word
     {
         const string name = "thing]";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -92,8 +97,8 @@ public class Word
     {
         const string name = "thing{";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -104,8 +109,8 @@ public class Word
     {
         const string name = "thing}";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -116,8 +121,8 @@ public class Word
     {
         const string name = "thing'";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -128,8 +133,8 @@ public class Word
     {
         const string name = "thing\"";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
@@ -140,8 +145,8 @@ public class Word
     {
         const string name = "thing ";
 
-        Ronin.Compiler.Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        Lexer lexer = new(name);
+        var lexed = Word.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());

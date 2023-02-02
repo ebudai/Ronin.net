@@ -6,7 +6,9 @@ using Ronin.Lexicon.Symbols;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Datum
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class datum
 {
     private const string var = Variable.keyword;
     private const string returns = Returns.symbol;
@@ -31,7 +33,7 @@ public class Datum
         Assert.Equal("my variable", string.Join(' ', datum.Name.Words));
         Assert.NotNull(datum.Datatype);
         Assert.NotEmpty(datum.Datatype.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.NotNull(name);
         Assert.NotEmpty(name.Words);
         var datatype = name.Words[0];
