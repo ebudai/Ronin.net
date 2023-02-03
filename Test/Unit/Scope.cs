@@ -1,30 +1,38 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
+using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Scope
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class scope
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string declaration = "{ var test = 56; }";
+        Tokens tokens = new();
+        tokens.Add<OpenBrace>()
+            .Add<Variable>()
+            .Add<Word>("test")
+            .Add<Assign>()
+            .Add<Number>("56")
+            .Add<Terminal>()
+            .Add<CloseBrace>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        var scope = Scope.Parse(ref parser);
 
-        Assert.NotEmpty(statements);
-        Temporary value = statements[0];
-        Assert.NotNull(value);
-        Ronin.Grammar.Aggregates.Scope scope = value;
         Assert.NotNull(scope);
-        Assert.NotEmpty(scope.Values);
-        
-        Ronin.Grammar.Datum datum = scope.Values[0];
+
+        Assert.Single(scope.Values);        
+        Datum datum = scope.Values[0];
         Assert.NotNull(datum);
         
         Assert.IsType<Variable>(datum.Mutability);
@@ -39,11 +47,13 @@ public class Scope
         Assert.False(datum.Is.Shared);
 
         Assert.NotNull(datum.Initializer);
-        value = datum.Initializer;
-        Assert.NotNull(value);
-        Ronin.Grammar.Scalar scalar = value;
+        var initializer = datum.Initializer;
+        Assert.NotNull(initializer);
+        Temporary temporary = initializer;
+        Assert.NotNull(temporary);
+        Scalar scalar = temporary;
         Assert.NotNull(scalar);
-        Assert.NotEmpty(scalar.Literals);
+        Assert.Single(scalar.Literals);
         Assert.Equal("56", scalar.Literals[0].ToString());
     }
 }
