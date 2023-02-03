@@ -6,7 +6,9 @@ using Ronin.Lexicon.Literals;
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class TextLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class text
 {
     [Fact(DisplayName = "without quotes")]
     public void Fail()
@@ -33,8 +35,8 @@ public class TextLiteral
         var quote = lexed[0] as TextDelimiter;
         Assert.Equal(new[] { '"' }, quote.Sourcecode.ToArray());
 
-        Assert.IsType<Ronin.Lexicon.Word>(lexed[1]);
-        var name = lexed[1] as Ronin.Lexicon.Word;
+        Assert.IsType<Word>(lexed[1]);
+        var name = lexed[1] as Word;
         Assert.Equal("testtest", name.ToString());
     }
 

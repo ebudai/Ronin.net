@@ -4,13 +4,15 @@ using Ronin.Lexicon;
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class Keyword
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class keyword
 {
     [Fact(DisplayName = "no data")]
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +23,7 @@ public class Keyword
         const string notkeyword = "not a keyword";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }
@@ -32,7 +34,7 @@ public class Keyword
         const string notkeyword = "returned ";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Lexicon.Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(lexer);
 
         Assert.Null(lexed);
     }

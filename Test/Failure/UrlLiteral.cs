@@ -4,7 +4,9 @@ using Ronin.Lexicon;
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class UrlLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class url
 {
     [Fact(DisplayName = "unterminated url")]
     public void Unterminated()

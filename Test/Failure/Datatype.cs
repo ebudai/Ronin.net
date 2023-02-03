@@ -1,42 +1,45 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Datatype
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class datatype
 {
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
-        const string declaration = "datatype { };";
+        Tokens tokens = new();
+        tokens.Add<Datatype>()
+            .Add<OpenBrace>()
+            .Add<CloseBrace>()
+            .Add<Terminal>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Datatype.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
-        var error = parser.Errors[0];
-        Assert.IsType<UnexpectedSyntaxError>(error);
+        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
 
     [Fact(DisplayName = "no scope")]
     public void NoScope()
     {
-        const string declaration = "datatype x;";
+        Tokens tokens = new();
+        tokens.Add<Datatype>()
+            .Add<Word>("x")
+            .Add<Terminal>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Datatype.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
-        var error = parser.Errors[0];
-        Assert.IsType<ExpectedSyntaxError<OpenBrace, Assign>>(error);
+        Assert.IsType<ExpectedSyntaxError<OpenBrace, Assign>>(parser.Errors[0]);
     }
 }

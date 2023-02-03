@@ -1,22 +1,28 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
+using Ronin.Grammar.Aggregates;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Arguments
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class arguments
 {
     [Fact(DisplayName = "does not start with (")]
     public void NotAnObject()
     {
-        const string sourcecode = "not an object;";
+        Tokens tokens = new();
+        tokens.Add<Word>("not")
+            .Add<Word>("an")
+            .Add<Word>("object")
+            .Add<Terminal>();
 
-        Lexer lexer = new(sourcecode);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var aggregate = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        Parser parser = new(tokens.ToArray());
+        var aggregate = Arguments.Parse(ref parser);
 
         Assert.Null(aggregate);
     }
@@ -24,27 +30,32 @@ public class Arguments
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        const string sourcecode = "";
+        Tokens tokens = new();
 
-        Lexer lexer = new(sourcecode);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        var arguments = Arguments.Parse(ref parser);
 
-        Assert.Empty(syntax);
+        Assert.Null(arguments);
     }
 
     [Fact(DisplayName = "recursive bad syntax")]
     public void RecursiveBadSyntax()
     {
-        const string sourcecode = "(test, (thing;stuff));";
+        Tokens tokens = new();
+        tokens.Add<OpenParenthesis>()
+            .Add<Word>("test")
+            .Add<Separator>()
+            .Add<OpenParenthesis>()
+            .Add<Word>("thing")
+            .Add<Terminal>()
+            .Add<Word>("stuff")
+            .Add<CloseParenthesis>()
+            .Add<CloseParenthesis>()
+            .Add<Terminal>();
 
-        Lexer lexer = new(sourcecode);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Arguments.Parse(ref parser);
 
-        Assert.Empty(syntax);
         Assert.NotEmpty(parser.Errors);
         Assert.IsType<ExpectedSyntaxError<Separator, CloseParenthesis>>(parser.Errors[0]);
     }
@@ -52,14 +63,16 @@ public class Arguments
     [Fact(DisplayName = "terminated incorrectly")]
     public void TerminatedWrong()
     {
-        const string sourcecode = "(test;);";
+        Tokens tokens = new();
+        tokens.Add<OpenParenthesis>()
+            .Add<Word>("test")
+            .Add<Terminal>()
+            .Add<CloseParenthesis>()
+            .Add<Terminal>();
 
-        Lexer lexer = new(sourcecode);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Arguments.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         Assert.IsType<ExpectedSyntaxError<Separator, CloseParenthesis>>(parser.Errors[0]);
     }

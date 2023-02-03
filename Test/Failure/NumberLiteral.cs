@@ -5,7 +5,9 @@ using Ronin.Lexicon.Literals;
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class NumberLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class number
 {
     [Fact(DisplayName = "doesn't start with a number")]
     public void DoesntStartWithANumber()

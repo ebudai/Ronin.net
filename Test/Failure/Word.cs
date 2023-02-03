@@ -3,7 +3,9 @@
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class Word
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class word
 {
     [Fact(DisplayName = "not a valid name")]
     public void NotAName()

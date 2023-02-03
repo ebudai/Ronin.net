@@ -1,22 +1,27 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Assignment
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class assignment
 {
     [Fact(DisplayName = "no value")]
     public void NoValue()
     {
-        const string declaration = "x =;";
+        Tokens tokens = new();
+        tokens.Add<Word>("x")
+            .Add<Assign>()
+            .Add<Terminal>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Assignment.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotNull(parser.Errors);
         Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }

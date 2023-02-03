@@ -4,7 +4,9 @@ using Ronin.Lexicon;
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class CharLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class character
 {
     [Fact(DisplayName = "no single quotes")]
     public void Fail()

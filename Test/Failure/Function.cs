@@ -1,41 +1,52 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Function
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class function
 {
     [Fact(DisplayName = "bad name")]
     public void BadName()
     {
-        const string line = "function test) thing(x => number) { }";
+        Tokens tokens = new();
+        tokens.Add<Function>()
+            .Add<Word>("test")
+            .Add<CloseParenthesis>()
+            .Add<Word>("thing")
+            .Add<OpenParenthesis>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Word>("number")
+            .Add<CloseParenthesis>()
+            .Add<OpenBrace>()
+            .Add<CloseBrace>();
 
-        Lexer lexer = new(line);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Function.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
-        var error = parser.Errors[0];
-        Assert.IsType<UnexpectedSyntaxError>(error);
+        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
 
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
-        const string declaration = "function {}";
+        Tokens tokens = new();
+        tokens.Add<Function>()
+            .Add<OpenBrace>()
+            .Add<CloseBrace>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Function.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
-        var error = parser.Errors[0];
-        Assert.IsType<UnexpectedSyntaxError>(error);
+        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
 }

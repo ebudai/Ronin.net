@@ -1,22 +1,27 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Hierarchy
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class hierarchy
 {
     [Fact(DisplayName = "missing name")]
     public void MissingName()
     {
-        const string somethingelse = "part of ;";
+        Tokens tokens = new();
+        tokens.Add<PartOf>()
+            .Add<Terminal>();
 
-        Lexer lexer = new(somethingelse);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Hierarchy.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.Single(parser.Errors);
         Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
@@ -24,14 +29,16 @@ public class Hierarchy
     [Fact(DisplayName = "improperly terminated")]
     public void Unterminated()
     {
-        const string unterminated = "part of thing/stuff (";
+        Tokens tokens = new();
+        tokens.Add<PartOf>()
+            .Add<Word>("thing")
+            .Add<Slash>()
+            .Add<Word>("stuff")
+            .Add<OpenParenthesis>();
 
-        Lexer lexer = new(unterminated);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Hierarchy.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
@@ -39,14 +46,16 @@ public class Hierarchy
     [Fact(DisplayName = "bad name")]
     public void BadName()
     {
-        const string bad = "part of thing)stuff;";
+        Tokens tokens = new();
+        tokens.Add<PartOf>()
+            .Add<Word>("thing")
+            .Add<CloseParenthesis>()
+            .Add<Word>("stuff")
+            .Add<Terminal>();
 
-        Lexer lexer = new(bad);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Hierarchy.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
         Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }

@@ -1,75 +1,61 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Grammar.Errors;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Datum
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class datum
 {
-    private const string reactive = Reactive.keyword;
-    private const string returns = Returns.symbol;
-    private const string end = Terminal.symbol;
-    private const string var = Variable.keyword;
-
-    [Fact(DisplayName = "comments and whitespace")]
-    public void CommentsAndWhitespace()
-    {
-        const string sourcecode = "  /* some comments */   ";
-
-        Lexer lexer = new(sourcecode);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
-
-        Assert.Empty(syntax);
-    }
-
     [Fact(DisplayName = $"{Reactive.keyword} before name")]
     public void ReturnsBeforeName()
     {
-        const string declaration = $"{reactive} {returns} 44.3{end}";
+        Tokens tokens = new();
+        tokens.Add<Reactive>()
+            .Add<Returns>()
+            .Add<Number>("44.3")
+            .Add<Terminal>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
-        var error = parser.Errors[0];
-        Assert.IsType<UnexpectedSyntaxError>(error);
+        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
 
     [Fact(DisplayName = "blank datatype")]
     public void BlankDatatype()
     {
-        const string declaration = $"{var} x {returns} {end}";
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Terminal>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
-        var error = parser.Errors[0];
-        Assert.IsType<UnspecifiedDatatypeError>(error);
+        Assert.IsType<UnspecifiedDatatypeError>(parser.Errors[0]);
     }
 
     [Fact(DisplayName = "literal instead of identifier")]
     public void LiteralInsteadOfIdentifier()
     {
-        const string declaration = $"{var} 555{end}";
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Number>("555")
+            .Add<Terminal>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.Single(parser.Errors);
         Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
     }
@@ -77,16 +63,16 @@ public class Datum
     [Fact(DisplayName = "missing datatype and initializer")]
     public void MissingDatatypeAndInitializer()
     {
-        const string declaration = $"{var} x{end}";
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Word>("x")
+            .Add<Terminal>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.Empty(statements);
         Assert.NotEmpty(parser.Errors);
-        var error = parser.Errors[0];
-        Assert.IsType<UnspecifiedDatatypeError>(error);
+        Assert.IsType<UnspecifiedDatatypeError>(parser.Errors[0]);
     }
 }
+

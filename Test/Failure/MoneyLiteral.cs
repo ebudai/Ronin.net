@@ -6,7 +6,9 @@ using Ronin.Lexicon.Symbols;
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class MoneyLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class money
 {
     [Fact(DisplayName = "doesn't start with a dollar sign")]
     public void DoesntStartWithADollarSign()
