@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
@@ -34,7 +33,6 @@ internal class Function : Syntax, Compiler.IParsable<Function>
             parser.Advance();
             modifiers = Modifiers.Parse(ref parser);
             returns = Reference.Parse(ref parser);
-            if (returns is null) throw new ExpectedSyntaxError<Word, Literal, OpenParenthesis>(ref context);
         }
 
         var body = Scope.Parse(ref parser);

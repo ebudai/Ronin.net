@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Test;
 
@@ -20,9 +19,7 @@ public class assignment
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Assignment.Parse(ref parser);
-
-        Assert.NotNull(parser.Errors);
-        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
+        var syntax = Assignment.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 }

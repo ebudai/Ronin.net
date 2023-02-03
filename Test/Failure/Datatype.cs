@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
@@ -22,10 +21,8 @@ public class datatype
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Datatype.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
+        var syntax = Ronin.Grammar.Datatype.Parse(ref parser);
+        Assert.IsType<Ronin.Grammar.Unknown>(syntax);
     }
 
     [Fact(DisplayName = "no scope")]
@@ -37,9 +34,7 @@ public class datatype
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Datatype.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<ExpectedSyntaxError<OpenBrace, Assign>>(parser.Errors[0]);
+        var syntax = Ronin.Grammar.Datatype.Parse(ref parser);
+        Assert.IsType<Ronin.Grammar.Unknown>(syntax);
     }
 }

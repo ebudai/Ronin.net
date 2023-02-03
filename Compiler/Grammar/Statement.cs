@@ -24,7 +24,8 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
             ?? Assignment.Parse(ref parser)
             ?? Reference.Parse(ref parser)
             ?? Temporary.Parse(ref parser)
-            ?? Datum.Parse(ref parser) as Syntax;
+            ?? Datum.Parse(ref parser)
+            ?? Unknown.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -38,6 +39,7 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
     public static implicit operator Assignment(Statement statement) => statement.value as Assignment;
     public static implicit operator Reference(Statement statement) => statement.value as Reference;
     public static implicit operator Temporary(Statement statement) => statement.value as Temporary;
+    public static implicit operator Unknown(Statement statement) => statement.value as Unknown;
 
     private Syntax value;
 }

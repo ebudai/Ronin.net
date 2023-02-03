@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
@@ -41,23 +40,16 @@ internal class Datum : Syntax, Compiler.IParsable<Datum>
         if (parser.CurrentToken is Returns)
         {
             parser.Advance();
-
             modifiers = Modifiers.Parse(ref parser);
-
             datatype = Reference.Parse(ref parser);
-
-            if (datatype is null) throw new UnspecifiedDatatypeError(ref context);
         }
 
         Value initializer = null;
         if (parser.CurrentToken is Assign)
         {
             parser.Advance();
-
             initializer = Value.Parse(ref parser);
         }
-
-        if (datatype is null && initializer is null) throw new UnspecifiedDatatypeError(ref context);
 
         return new Datum
         {

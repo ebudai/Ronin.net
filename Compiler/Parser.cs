@@ -1,5 +1,4 @@
 ﻿using Ronin.Grammar;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
@@ -21,17 +20,8 @@ internal ref struct Parser
         {
             if (Trivia.Parse(ref this) is not null) continue;
 
-            try
-            {
-                var statement = Statement.Parse(ref this);
-                if (CurrentToken is not Terminal and not Sentinel) throw new UnexpectedSyntaxError(ref this);
-                statements.Add(statement);
-            }
-            catch (Error error)
-            {
-                Index = error.Cursor;
-                Errors.Add(error);
-            }
+            var statement = Statement.Parse(ref this);
+            if (CurrentToken is Terminal or Sentinel) statements.Add(statement);            
         }
 
         return statements;
@@ -57,8 +47,6 @@ internal ref struct Parser
     internal readonly ReadOnlySpan<Token> this[Range range] => tokens[range];
 
     internal bool IsNotFinished => CurrentToken is not Sentinel;
-
-    internal List<Error> Errors { get; } = new();
 
     internal void Advance() 
     {

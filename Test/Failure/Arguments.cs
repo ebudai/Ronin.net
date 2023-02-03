@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 using Test;
@@ -54,10 +54,8 @@ public class arguments
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Arguments.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<ExpectedSyntaxError<Separator, CloseParenthesis>>(parser.Errors[0]);
+        var syntax = Arguments.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 
     [Fact(DisplayName = "terminated incorrectly")]
@@ -71,9 +69,7 @@ public class arguments
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Arguments.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<ExpectedSyntaxError<Separator, CloseParenthesis>>(parser.Errors[0]);
+        var syntax = Arguments.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 }

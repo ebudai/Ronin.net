@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Errors;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
@@ -20,10 +20,8 @@ public class hierarchy
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Hierarchy.Parse(ref parser);
-
-        Assert.Single(parser.Errors);
-        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
+        var syntax = Hierarchy.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 
     [Fact(DisplayName = "improperly terminated")]
@@ -37,10 +35,8 @@ public class hierarchy
             .Add<OpenParenthesis>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Hierarchy.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
+        var syntax = Hierarchy.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 
     [Fact(DisplayName = "bad name")]
@@ -54,9 +50,7 @@ public class hierarchy
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Hierarchy.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
+        var syntax = Hierarchy.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 }

@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
@@ -21,7 +20,7 @@ namespace Ronin.Grammar;
 /// </typeparam>
 /// 
 /// <typeparam name="TElement">
-///     class to be grouped - must be implementation of <see cref="Compiler.IParsable{TElement}"/>
+///     class to be grouped - must be implementation of <see cref="IParsable{TElement}"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TSeparator">
@@ -51,7 +50,7 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Synt
             var syntax = TElement.Parse(ref parser);
             if (syntax is null)
             {
-                if (parser.CurrentToken is not TClose) throw new ExpectedSyntaxError<TSeparator, TClose>(ref context);
+                if (parser.CurrentToken is not TClose) return null;
                 parser.Advance();
                 break;
             }

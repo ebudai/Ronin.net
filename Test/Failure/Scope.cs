@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
-using Ronin.Grammar.Errors;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 using Test;
@@ -26,9 +26,7 @@ public class scope
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Scope.Parse(ref parser);
-        
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<ExpectedSyntaxError<Terminal, CloseBrace>>(parser.Errors[0]);
+        var syntax = Scope.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 }

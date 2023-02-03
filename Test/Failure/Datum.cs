@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Errors;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
@@ -23,10 +23,8 @@ public class datum
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Datum.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
+        var syntax = Datum.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 
     [Fact(DisplayName = "blank datatype")]
@@ -39,10 +37,8 @@ public class datum
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Datum.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<UnspecifiedDatatypeError>(parser.Errors[0]);
+        var syntax = Datum.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 
     [Fact(DisplayName = "literal instead of identifier")]
@@ -54,10 +50,8 @@ public class datum
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Datum.Parse(ref parser);
-
-        Assert.Single(parser.Errors);
-        Assert.IsType<UnexpectedSyntaxError>(parser.Errors[0]);
+        var syntax = Datum.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 
     [Fact(DisplayName = "missing datatype and initializer")]
@@ -69,10 +63,8 @@ public class datum
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        Ronin.Grammar.Datum.Parse(ref parser);
-
-        Assert.NotEmpty(parser.Errors);
-        Assert.IsType<UnspecifiedDatatypeError>(parser.Errors[0]);
+        var syntax = Datum.Parse(ref parser);
+        Assert.IsType<Unknown>(syntax);
     }
 }
 
