@@ -1,5 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
@@ -11,17 +14,17 @@ public class name
     [Fact(DisplayName = "symbols")]
     public void Symbols()
     {
-        const string code = "name+things;";
+        Tokens tokens = new();
+        tokens.Add<Word>("name")
+            .Add<Plus>()
+            .Add<Word>("things")
+            .Add<Terminal>();
 
-        Lexer lexer = new(code);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var result = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        var reference = Reference.Parse(ref parser);
 
-        Assert.NotEmpty(result);
-        Reference reference = result[0];
         Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Components);
+        Assert.Single(reference.Components);
         Name name = reference.Components[0];
         Assert.Equal(3, name.Words.Count);
         Assert.Equal("name", name.Words[0]);
