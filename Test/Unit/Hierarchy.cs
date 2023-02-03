@@ -2,52 +2,56 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Hierarchy
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class hierarchy
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string line = "part of standard;";
+        Tokens tokens = new();
+        tokens.Add<PartOf>()
+            .Add<Word>("standard")
+            .Add<Terminal>();
 
-        Lexer lexer = new(line);
-        Token[] tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        var hierarchy = Hierarchy.Parse(ref parser);
 
-        Assert.NotEmpty(syntax);
-        Ronin.Grammar.Hierarchy hierarchy = syntax[0];
         Assert.NotNull(hierarchy);
 
         Assert.IsType<PartOf>(hierarchy.Direction);
 
         Assert.Single(hierarchy.Components);
-        Ronin.Grammar.Name name = hierarchy.Components[0];
-        Assert.NotEmpty(name.Words);
+        Name name = hierarchy.Components[0];
+        Assert.Single(name.Words);
         Assert.Equal("standard", name.Words[0]);        
     }
 
     [Fact(DisplayName = "with some hierarchy")]
     public void WithHierarchy()
     {
-        const string line = "import standard funstuff websockets;";
+        Tokens tokens = new();
+        tokens.Add<Import>()
+            .Add<Word>("standard")
+            .Add<Word>("funstuff")
+            .Add<Word>("websockets")
+            .Add<Terminal>();
+                
+        Parser parser = new(tokens.ToArray());
+        var hierarchy = Hierarchy.Parse(ref parser);
 
-        Lexer lexer = new(line);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
-
-        Assert.NotEmpty(syntax);
-        Ronin.Grammar.Hierarchy hierarchy = syntax[0];
         Assert.NotNull(hierarchy);
 
         Assert.IsType<Import>(hierarchy.Direction);
 
         Assert.Single(hierarchy.Components);
-        Ronin.Grammar.Name name = hierarchy.Components[0];
+        Name name = hierarchy.Components[0];
         Assert.Equal(3, name.Words.Count);
         Assert.Equal("standard", name.Words[0]);
         Assert.Equal("funstuff", name.Words[1]);
@@ -57,21 +61,25 @@ public class Hierarchy
     [Fact(DisplayName = "keywords are just text")]
     public void WithKeywords()
     {
-        const string line = "part of thing compiled to whatever secret stuff;";
+        Tokens tokens = new();
+        tokens.Add<PartOf>()
+            .Add<Word>("thing")
+            .Add<Word>("compiled")
+            .Add<Word>("to")
+            .Add<Word>("whatever")
+            .Add<Word>("secret")
+            .Add<Word>("stuff")
+            .Add<Terminal>();
+        
+        Parser parser = new(tokens.ToArray());
+        var hierarchy = Hierarchy.Parse(ref parser);
 
-        Lexer lexer = new(line);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
-
-        Assert.NotEmpty(statements);
-        Ronin.Grammar.Hierarchy hierarchy = statements[0];
         Assert.NotNull(hierarchy);
 
         Assert.IsType<PartOf>(hierarchy.Direction);
 
         Assert.Single(hierarchy.Components);
-        Ronin.Grammar.Name name = hierarchy.Components[0];
+        Name name = hierarchy.Components[0];
         Assert.Equal(6, name.Words.Count);
         Assert.Equal("thing", name.Words[0]);
         Assert.Equal("compiled", name.Words[1]);
@@ -84,27 +92,29 @@ public class Hierarchy
     [Fact(DisplayName = "using text literal")]
     public void TextLiteral()
     {
-        const string line = "part of literal testing \"fast version\" readonly;";
+        Tokens tokens = new();
+        tokens.Add<PartOf>()
+            .Add<Word>("literal")
+            .Add<Word>("testing")
+            .Add<Text>("\"fast version\"")
+            .Add<Word>("readonly")
+            .Add<Terminal>();
+        
+        Parser parser = new(tokens.ToArray());
+        var hierarchy = Hierarchy.Parse(ref parser);
 
-        Lexer lexer = new(line);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
-
-        Assert.NotEmpty(statements);
-        Ronin.Grammar.Hierarchy hierarchy = statements[0];
         Assert.NotNull(hierarchy);
 
         Assert.IsType<PartOf>(hierarchy.Direction);
 
         Assert.Equal(3, hierarchy.Components.Count);
 
-        Ronin.Grammar.Name name = hierarchy.Components[0];
+        Name name = hierarchy.Components[0];
         Assert.Equal(2, name.Words.Count);
         Assert.Equal("literal", name.Words[0]);
         Assert.Equal("testing", name.Words[1]);
 
-        Ronin.Grammar.Scalar scalar = hierarchy.Components[1];
+        Scalar scalar = hierarchy.Components[1];
         Assert.Single(scalar.Literals);
         Assert.Equal("\"fast version\"", scalar.Literals[0].ToString());
 
