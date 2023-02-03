@@ -1,15 +1,19 @@
-﻿using Ronin.Lexicon.Symbols;
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class Symbol
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class symbol
 {
-    private static void LexSymbol<T>(string lexed) where T : Ronin.Lexicon.Symbol
+    private static void LexSymbol<T>(string lexed) where T : Symbol
     {
-        Ronin.Compiler.Lexer lexer = new(lexed);
-        Assert.True(Ronin.Lexicon.Symbol.IsSymbol(lexer));
-        var symbol = Ronin.Lexicon.Symbol.Lex(lexer);
+        Lexer lexer = new(lexed);
+        Assert.True(Symbol.IsSymbol(lexer));
+        var symbol = Symbol.Lex(lexer);
 
         Assert.NotNull(symbol);
         Assert.Equal(lexed.ToArray(), symbol.Sourcecode.ToArray());

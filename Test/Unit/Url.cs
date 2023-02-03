@@ -1,16 +1,19 @@
-﻿using Ronin.Lexicon;
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class UrlLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class url
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         const string literal = "http://test.com";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -22,7 +25,7 @@ public class UrlLiteral
     {
         const string literal = "http://test.com;";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);

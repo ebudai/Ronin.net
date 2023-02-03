@@ -1,16 +1,19 @@
-﻿using Ronin.Lexicon;
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class TimeLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class time
 {
     [Fact(DisplayName = "two digits with spaced suffix")]
     public void TwoDigitWithSpacedSuffix()
     {
         const string literal = "11:45:12 p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -22,7 +25,7 @@ public class TimeLiteral
     {
         const string literal = "10:15:02p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -34,7 +37,7 @@ public class TimeLiteral
     {
         const string literal = "12:30:59";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -46,7 +49,7 @@ public class TimeLiteral
     {
         const string literal = "9:08:45 p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -58,7 +61,7 @@ public class TimeLiteral
     {
         const string literal = "2:22:18p";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -70,7 +73,7 @@ public class TimeLiteral
     {
         const string literal = "17:22:18 ";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);

@@ -1,17 +1,20 @@
+using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class TextLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class text
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         const string literal = "\"testtest\"";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -23,7 +26,7 @@ public class TextLiteral
     {
         const string literal = @"""tes\""tte\""st""";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -35,7 +38,7 @@ public class TextLiteral
     {
         const string literal = "\"test\n\nanother test\"";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -48,7 +51,7 @@ public class TextLiteral
     {
         const string literal = "\"testtest\"";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         var text = lexed as Text;

@@ -1,16 +1,19 @@
-﻿using Ronin.Lexicon;
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class MoneyLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class number
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string literal = "$123_456.78_90";
+        const string literal = "123,456.7890";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -20,9 +23,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with terminator")]
     public void WithTerminator()
     {
-        const string literal = "$1234.4567;";
+        const string literal = "1234.4567;";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -32,9 +35,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with separator")]
     public void WithSeparator()
     {
-        const string literal = "$1234.4567,";
+        const string literal = "1234.4567,";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -44,9 +47,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with opening parenthesis")]
     public void WithOpeningParenthesis()
     {
-        const string literal = "$1234.4567(";
+        const string literal = "1234.4567(";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -56,9 +59,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with closing parenthesis")]
     public void WithClosingParenthesis()
     {
-        const string literal = "$1234.4567)";
+        const string literal = "1234.4567)";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -68,9 +71,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with opening bracket")]
     public void WithOpeningBracket()
     {
-        const string literal = "$1234.4567[";
+        const string literal = "1234.4567[";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -80,9 +83,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with closing bracket")]
     public void WithClosingBracket()
     {
-        const string literal = "$1234.4567]";
+        const string literal = "1234.4567]";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -92,9 +95,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with opening brace")]
     public void WithOpeningBrace()
     {
-        const string literal = "$1234.4567{";
+        const string literal = "1234.4567{";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -104,9 +107,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with closing brace")]
     public void WithClosingBrace()
     {
-        const string literal = "$1234.4567}";
+        const string literal = "1234.4567}";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -116,9 +119,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with single quote")]
     public void WithSingleQuote()
     {
-        const string literal = "$1234.4567'";
+        const string literal = "1234.4567'";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -128,9 +131,9 @@ public class MoneyLiteral
     [Fact(DisplayName = "with double quote")]
     public void WithDoubleQuote()
     {
-        const string literal = "$1234.4567\"";
+        const string literal = "1234.4567\"";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -140,24 +143,12 @@ public class MoneyLiteral
     [Fact(DisplayName = "with space")]
     public void WithSpace()
     {
-        const string literal = "$1234.4567 ";
+        const string literal = "1234.4567 ";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
         Assert.Equal(literal[..^1].ToArray(), lexed.Sourcecode.ToArray());
-    }
-
-    [Fact(DisplayName = "whole value")]
-    public void Whole()
-    {
-        const string literal = "$1234";
-
-        Ronin.Compiler.Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
-
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
     }
 }

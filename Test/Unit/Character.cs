@@ -1,16 +1,19 @@
-﻿using Ronin.Lexicon;
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class CharLiteral
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class character
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         const string literal = "'c'";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);
@@ -22,7 +25,7 @@ public class CharLiteral
     {
         const string literal = @"'\u44A2'";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
+        Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
         Assert.NotNull(lexed);

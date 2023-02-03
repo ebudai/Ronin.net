@@ -1,19 +1,24 @@
-﻿namespace Unit;
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
+
+namespace Unit;
 
 [Trait("Lexer", null)]
-public class Comment
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class comment
 {
-    public const string singleline = Ronin.Lexicon.Comment.SingleLine.Start;
-    public const string multilinestart = Ronin.Lexicon.Comment.Multiline.Start;
-    public const string multilineend = Ronin.Lexicon.Comment.Multiline.End;
+    public const string singleline = Comment.SingleLine.Start;
+    public const string multilinestart = Comment.Multiline.Start;
+    public const string multilineend = Comment.Multiline.End;
 
     [Fact(DisplayName = "single-line")]
     public void SingleLine()
     {
         const string literal = $"{singleline} this is a comment\r\n\r\n";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
-        var comment = Ronin.Lexicon.Comment.Lex(lexer);
+        Lexer lexer = new(literal);
+        var comment = Comment.Lex(lexer);
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray()[..^4], comment.Sourcecode.ToArray());
@@ -24,8 +29,8 @@ public class Comment
     {
         const string literal = $"{singleline} this is a comment";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
-        var comment = Ronin.Lexicon.Comment.Lex(lexer);
+        Lexer lexer = new(literal);
+        var comment = Comment.Lex(lexer);
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
@@ -41,8 +46,8 @@ public class Comment
 
          """;
 
-        Ronin.Compiler.Lexer lexer = new(literal);
-        var comment = Ronin.Lexicon.Comment.Lex(lexer);
+        Lexer lexer = new(literal);
+        var comment = Comment.Lex(lexer);
 
         Assert.NotNull(comment);
         Assert.Equal(literal[..^2].ToArray(), comment.Sourcecode.ToArray());
@@ -53,8 +58,8 @@ public class Comment
     {
         const string literal = $"{multilinestart}\n\n this{multilinestart} is a c{multilineend}omment\n\n{multilineend}";
 
-        Ronin.Compiler.Lexer lexer = new(literal);
-        var comment = Ronin.Lexicon.Comment.Lex(lexer);
+        Lexer lexer = new(literal);
+        var comment = Comment.Lex(lexer);
 
         Assert.NotNull(comment);
         Assert.Equal(literal.ToArray(), comment.Sourcecode.ToArray());
