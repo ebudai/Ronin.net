@@ -53,6 +53,7 @@ internal class Datum : Syntax, Compiler.IParsable<Datum>
         if (parser.CurrentToken is Assign)
         {
             parser.Advance();
+
             initializer = Value.Parse(ref parser);
         }
 

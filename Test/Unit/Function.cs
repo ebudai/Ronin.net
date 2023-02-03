@@ -1,91 +1,126 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
+using Ronin.Lexicon.Symbols;
+using Test;
+
+using Function = Ronin.Grammar.Function;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Function
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class function
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string declaration = "function test(x => number) { return 7; }";
+        Tokens tokens = new();
+        tokens.Add<Ronin.Lexicon.Keywords.Function>()
+            .Add<Word>("test")
+            .Add<OpenParenthesis>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Word>("number")
+            .Add<CloseParenthesis>()
+            .Add<OpenBrace>()
+            .Add<Word>("return")
+            .Add<Number>("7")
+            .Add<Terminal>()
+            .Add<CloseBrace>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var result = parser.Parse();
-
-        Assert.NotEmpty(result);
-        Ronin.Grammar.Function function = result[0];
+        Parser parser = new(tokens.ToArray());
+        var function = Function.Parse(ref parser);
+        
         Assert.NotNull(function);
+
+        Assert.NotNull(function.Identifier);
         Assert.Equal(2, function.Identifier.Components.Count);
 
-        Ronin.Grammar.Name name = function.Identifier.Components[0];
+        Name name = function.Identifier.Components[0];
         Assert.NotNull(name);
-        Assert.Equal("test", string.Join(' ', name.Words));
+        Assert.Single(name.Words);
+        Assert.Equal("test", name.Words[0]);
 
         Parameters parameters = function.Identifier.Components[1];
         Assert.NotNull(parameters);
-        Assert.NotEmpty(parameters.Values);
+        Assert.Single(parameters.Values);
         var parameter = parameters.Values[0];
-        Assert.NotEmpty(parameter.Name.Words);
+        Assert.Single(parameter.Name.Words);
         Assert.Equal("x", parameter.Name.Words[0]);
-        
-        Assert.NotEmpty(parameter.Datatype.Components);
-        Ronin.Grammar.Name datatype = parameter.Datatype.Components[0];
-        Assert.NotEmpty(datatype.Words);
+
+        Assert.Null(function.Modifiers);
+
+        Assert.Single(parameter.Datatype.Components);
+        Name datatype = parameter.Datatype.Components[0];
+        Assert.Single(datatype.Words);
         Assert.Equal("number", datatype.Words[0]);
 
-        Assert.NotEmpty(function.Body.Values);
+        Assert.Single(function.Body.Values);
         Reference line = function.Body.Values[0];
         Assert.NotNull(line);
         Assert.Equal(2, line.Components.Count);
 
-        Ronin.Grammar.Name @return = line.Components[0];
+        Name @return = line.Components[0];
         Assert.NotNull(@return);
-        Assert.NotEmpty(@return.Words);
+        Assert.Single(@return.Words);
         Assert.Equal("return", @return.Words[0]);
 
-        Ronin.Grammar.Scalar scalar = line.Components[1];
+        Scalar scalar = line.Components[1];
         Assert.NotNull(scalar);
-        Assert.NotEmpty(scalar.Literals);
+        Assert.Single(scalar.Literals);
         Assert.Equal("7", scalar.Literals[0].ToString());        
     }
 
     [Fact(DisplayName = "specifies return datatype")]
     public void Returns()
     {
-        const string declaration = "function test(x => text) => optional number { return x as number; }";
+        Tokens tokens = new();
+        tokens.Add<Ronin.Lexicon.Keywords.Function>()
+            .Add<Word>("test")
+            .Add<OpenParenthesis>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Word>("text")
+            .Add<CloseParenthesis>()
+            .Add<Returns>()
+            .Add<Optional>()
+            .Add<Word>("number")
+            .Add<OpenBrace>()
+            .Add<Word>("return")
+            .Add<Word>("x")
+            .Add<Word>("as")
+            .Add<Word>("number")
+            .Add<Terminal>()
+            .Add<CloseBrace>();
 
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var statements = parser.Parse();
+        Parser parser = new(tokens.ToArray());
+        var function = Function.Parse(ref parser);
 
-        Assert.NotEmpty(statements);
-        Ronin.Grammar.Function function = statements[0];
         Assert.NotNull(function);
         Assert.Equal(2, function.Identifier.Components.Count);
 
-        Ronin.Grammar.Name name = function.Identifier.Components[0];
+        Name name = function.Identifier.Components[0];
         Assert.NotNull(name);
-        Assert.Equal("test", string.Join(' ', name.Words));
+        Assert.Single(name.Words);
+        Assert.Equal("test", name.Words[0]);
 
         Parameters parameters = function.Identifier.Components[1];
         Assert.NotNull(parameters);
-        Assert.NotEmpty(parameters.Values);
+        Assert.Single(parameters.Values);
         var parameter = parameters.Values[0];
-        Assert.NotEmpty(parameter.Name.Words);
+        Assert.Single(parameter.Name.Words);
         Assert.Equal("x", parameter.Name.Words[0]);
 
-        Assert.NotEmpty(parameter.Datatype.Components);
-        Ronin.Grammar.Name datatype = parameter.Datatype.Components[0];
-        Assert.NotEmpty(datatype.Words);
+        Assert.Single(parameter.Datatype.Components);
+        Name datatype = parameter.Datatype.Components[0];
+        Assert.Single(datatype.Words);
         Assert.Equal("text", datatype.Words[0]);
 
-        Assert.NotNull(function.Modifiers);
         Assert.True(function.Modifiers.Optional);
         Assert.False(function.Modifiers.Persistent);
         Assert.False(function.Modifiers.Shared);
@@ -97,12 +132,12 @@ public class Function
         Assert.Single(name.Words);        
         Assert.Equal("number", name.Words[0]);
 
-        Assert.NotEmpty(function.Body.Values);
+        Assert.Single(function.Body.Values);
         Reference line = function.Body.Values[0];
         Assert.NotNull(line);
         Assert.Single(line.Components);
 
-        Ronin.Grammar.Name @return = line.Components[0];
+        Name @return = line.Components[0];
         Assert.NotNull(@return);
         Assert.Equal(4, @return.Words.Count);
         Assert.Equal("return", @return.Words[0]);

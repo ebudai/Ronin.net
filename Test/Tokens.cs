@@ -6,7 +6,7 @@ namespace Test;
 
 internal class Tokens
 {
-    public Token[] ToArray() => tokens.ToArray();
+    public Token[] ToArray() => tokens.Append(Sentinel.Instance).ToArray();
 
     public Tokens Add<T>(string source = "") where T : Token
     {

@@ -22,8 +22,7 @@ public class datatype
         tokens.Add<DatatypeKeyword>()
             .Add<Word>("Test")
             .Add<OpenBrace>()
-            .Add<CloseBrace>()
-            .Add(Sentinel.Instance);
+            .Add<CloseBrace>();
         
         Parser parser = new(tokens.ToArray());
         var datatype = Datatype.Parse(ref parser);
@@ -57,8 +56,7 @@ public class datatype
             .Add<Returns>()
             .Add<Word>("money")
             .Add<Terminal>()
-            .Add<CloseBrace>()
-            .Add(Sentinel.Instance);
+            .Add<CloseBrace>();
 
         Parser parser = new(tokens.ToArray());
         var datatype = Datatype.Parse(ref parser);

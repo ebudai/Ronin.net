@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Test;
 
@@ -20,7 +21,7 @@ public class assignment
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
+        var assignment = Assignment.Parse(ref parser);
 
         Assert.NotNull(assignment);
 
@@ -44,13 +45,13 @@ public class assignment
     public void NoWhitespace()
     {
         Tokens tokens = new();
-        tokens.Add<Ronin.Lexicon.Word>("x")
+        tokens.Add<Word>("x")
             .Add<Assign>()
             .Add<Number>("17")
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
+        var assignment = Assignment.Parse(ref parser);
 
         Assert.NotNull(assignment);
 

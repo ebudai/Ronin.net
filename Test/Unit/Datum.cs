@@ -1,7 +1,10 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
@@ -10,190 +13,301 @@ namespace Unit;
 #pragma warning disable IDE1006
 public class datum
 {
-    private const string var = Variable.keyword;
-    private const string returns = Returns.symbol;
-    private const string end = Terminal.symbol;
-    private const string reactive = Reactive.keyword;
-    private const string compiled = Compiled.keyword;
-    private const string persistent = Persistent.keyword;
-    private const string constant = Constant.keyword;
-    private const string shared = Shared.keyword;
-    private const string optional = Optional.keyword;
-    private const string import = Import.keyword;
-    private const string equals = Assign.symbol;
-
     [Fact(DisplayName = "typed")]
     public void Typed()
     {
-        const string declaration = $"{var} my variable {returns} integer{end}";
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Word>("my")
+            .Add<Word>("variable")
+            .Add<Returns>()
+            .Add<Word>("number")
+            .Add<Terminal>();
 
-        var datum = Compile(declaration);
+        Parser parser = new(tokens.ToArray());
+        var datum = Datum.Parse(ref parser);
 
-        Assert.True(datum.Mutability is Variable);
-        Assert.Equal("my variable", string.Join(' ', datum.Name.Words));
+        Assert.IsType<Variable>(datum.Mutability);
+
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
+
+        Assert.NotNull(datum.Name);
+        Assert.NotNull(datum.Name.Words);
+        Assert.Equal(2, datum.Name.Words.Count);
+        Assert.Equal("my", datum.Name.Words[0]);
+        Assert.Equal("variable", datum.Name.Words[1]);
+        
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Components);
+        Assert.Single(datum.Datatype.Components);
         Name name = datum.Datatype.Components[0];
         Assert.NotNull(name);
-        Assert.NotEmpty(name.Words);
-        var datatype = name.Words[0];
-        Assert.Equal("integer", datatype);
+        Assert.Single(name.Words);
+        Assert.Equal("number", name.Words[0]);
+
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{reactive}")]
+    [Fact(DisplayName = $"reactive")]
     public void ReactiveDatatype()
     {
-        const string declaration = $"{reactive} x {returns} integer{end}";
+        Tokens tokens = new();
+        tokens.Add<Reactive>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Word>("text")
+            .Add<Terminal>();
 
-        var datum = Compile(declaration);
+        Parser parser = new(tokens.ToArray());
+        var datum = Datum.Parse(ref parser);
 
-        Assert.True(datum.Mutability is Reactive);
+        Assert.IsType<Reactive>(datum.Mutability);
+
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
+
+        Assert.NotNull(datum.Name);
+        Assert.NotNull(datum.Name.Words);
+        Assert.Single(datum.Name.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
+
+        Assert.NotNull(datum.Datatype);
+        Assert.Single(datum.Datatype.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.NotNull(name);
+        Assert.Single(name.Words);
+        Assert.Equal("text", name.Words[0]);
+
+        Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{compiled}")]
+    [Fact(DisplayName = $"compiled")]
     public void CompiledDatatype()
     {
-        const string declaration = $"{var} x {returns} {compiled} integer{end}";
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Compiled>()
+            .Add<Word>("text")
+            .Add<Terminal>();
 
-        var datum = Compile(declaration);
+        Parser parser = new(tokens.ToArray());
+        var datum = Datum.Parse(ref parser);
+
+        Assert.IsType<Variable>(datum.Mutability);
 
         Assert.True(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
+
+        Assert.NotNull(datum.Name);
+        Assert.NotNull(datum.Name.Words);
+        Assert.Single(datum.Name.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
+
+        Assert.NotNull(datum.Datatype);
+        Assert.Single(datum.Datatype.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.NotNull(name);
+        Assert.Single(name.Words);
+        Assert.Equal("text", name.Words[0]);
+
+        Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{persistent}")]
+    [Fact(DisplayName = $"persistent")]
     public void PersistentDatatype()
     {
-        const string declaration = $"{constant} x {returns} {persistent} integer{end}";
+        Tokens tokens = new();
+        tokens.Add<Constant>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Persistent>()
+            .Add<Word>("text")
+            .Add<Terminal>();
 
-        var datum = Compile(declaration);
+        Parser parser = new(tokens.ToArray());
+        var datum = Datum.Parse(ref parser);
 
-        Assert.True(datum.Mutability is Constant);
+        Assert.IsType<Constant>(datum.Mutability);
+
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
         Assert.True(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
+
+        Assert.NotNull(datum.Name);
+        Assert.NotNull(datum.Name.Words);
+        Assert.Single(datum.Name.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
+
+        Assert.NotNull(datum.Datatype);
+        Assert.Single(datum.Datatype.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.NotNull(name);
+        Assert.Single(name.Words);
+        Assert.Equal("text", name.Words[0]);
+
+        Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{shared}")]
+    [Fact(DisplayName = $"shared")]
     public void SharedDatatype()
     {
-        const string declaration = $"{var} x {returns} {shared} integer{end}";
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Shared>()
+            .Add<Word>("text")
+            .Add<Terminal>();
 
-        var datum = Compile(declaration);
+        Parser parser = new(tokens.ToArray());
+        var datum = Datum.Parse(ref parser);
 
+        Assert.IsType<Variable>(datum.Mutability);
+
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
         Assert.True(datum.Is.Shared);
+
+        Assert.NotNull(datum.Name);
+        Assert.NotNull(datum.Name.Words);
+        Assert.Single(datum.Name.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
+
+        Assert.NotNull(datum.Datatype);
+        Assert.Single(datum.Datatype.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.NotNull(name);
+        Assert.Single(name.Words);
+        Assert.Equal("text", name.Words[0]);
+
+        Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{optional}")]
+    [Fact(DisplayName = $"optional")]
     public void OptionalDatatype()
     {
-        const string declaration = $"{reactive} x {returns} {optional} integer{end}";
+        Tokens tokens = new();
+        tokens.Add<Reactive>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Optional>()
+            .Add<Word>("text")
+            .Add<Terminal>();
 
-        var datum = Compile(declaration);
+        Parser parser = new(tokens.ToArray());
+        var datum = Datum.Parse(ref parser);
 
+        Assert.IsType<Reactive>(datum.Mutability);
+
+        Assert.False(datum.Is.Compiled);
         Assert.True(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
+
+        Assert.NotNull(datum.Name);
+        Assert.NotNull(datum.Name.Words);
+        Assert.Single(datum.Name.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
+
+        Assert.NotNull(datum.Datatype);
+        Assert.Single(datum.Datatype.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.NotNull(name);
+        Assert.Single(name.Words);
+        Assert.Equal("text", name.Words[0]);
+
+        Assert.Null(datum.Initializer);
     }
 
     [Fact(DisplayName = "initialized")]
     public void Initialized()
     {
-        const string declaration = $"{var} x {equals} things{end}";
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Word>("x")
+            .Add<Assign>()
+            .Add<Word>("things")
+            .Add<Terminal>();
 
-        var datum = Compile(declaration);
+        Parser parser = new(tokens.ToArray());
+        var datum = Datum.Parse(ref parser);
 
+        Assert.IsType<Variable>(datum.Mutability);
+
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
+
+        Assert.NotNull(datum.Name);
+        Assert.NotNull(datum.Name.Words);
+        Assert.Single(datum.Name.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
+
+        Assert.Null(datum.Datatype);
+
+        Assert.NotNull(datum.Initializer);
         Reference reference = datum.Initializer;
         Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Components);
-        Ronin.Grammar.Name name = reference.Components[0];
+        Assert.Single(reference.Components);
+        Name name = reference.Components[0];
         Assert.NotNull(name);
-        Assert.NotEmpty(name.Words);
+        Assert.Single(name.Words);
         Assert.Equal("things", name.Words[0]);
-    }
-
-    [Fact(DisplayName = "explicit initializer is keywords")]
-    public void ExplicitInitializerIsKeyword()
-    {
-        const string declaration = $"{var} x {returns} integer {equals} {import}{end}";
-
-        var datum = Compile(declaration);
-
-        Reference reference = datum.Initializer;
-        Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Components);
-        Ronin.Grammar.Name name = reference.Components[0];
-        Assert.NotNull(name);
-        Assert.NotEmpty(name.Words);
-        Assert.Equal(import, name.Words[0]);
     }
 
     [Fact(DisplayName = "typed and initialized via literal")]
     public void TypedAndInitialized()
     {
-        const string declaration = $"{var} thing {returns} integer {equals} 2{end}";
-        
-        var datum = Compile(declaration);
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Word>("thing")
+            .Add<Returns>()
+            .Add<Word>("number")
+            .Add<Assign>()
+            .Add<Number>("2")
+            .Add<Terminal>();
+
+        Parser parser = new(tokens.ToArray());
+        var datum = Datum.Parse(ref parser);
+
+        Assert.IsType<Variable>(datum.Mutability);
+
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
+
+        Assert.NotNull(datum.Name);
+        Assert.NotNull(datum.Name.Words);
+        Assert.Single(datum.Name.Words);
+        Assert.Equal("thing", datum.Name.Words[0]);
 
         Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
+        Assert.Single(datum.Datatype.Components);
+        Name name = datum.Datatype.Components[0];
         Assert.NotNull(name);
-        Assert.NotEmpty(name.Words);
-        Assert.Equal("integer", name.Words[0]);
+        Assert.Single(name.Words);
+        Assert.Equal("number", name.Words[0]);
 
-        Temporary value = datum.Initializer;
-        Assert.NotNull(value);
-        Ronin.Grammar.Scalar scalar = value;
+        Assert.NotNull(datum.Initializer);
+        Temporary temporary = datum.Initializer;
+        Assert.NotNull(temporary);
+        Scalar scalar = temporary;
         Assert.NotNull(scalar);
-        Assert.NotEmpty(scalar.Literals);
-        Assert.Equal("2", scalar.Literals[0].Sourcecode.ToString());
-    }
-
-    [Fact(DisplayName = "keyword for datatype")]
-    public void KeywordForDatatype()
-    {
-        const string declaration = $"{var} x {returns} {reactive}{end}";
-
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
-
-        Assert.NotEmpty(syntax);
-        Ronin.Grammar.Datum datum = syntax[0];
-        Assert.NotNull(datum.Datatype);
-        Assert.NotEmpty(datum.Datatype.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
-        Assert.NotNull(name);
-        Assert.Equal(reactive, string.Join(' ', name.Words));
-    }
-
-    [Fact(DisplayName = "keyword for initializer")]
-    public void KeywordForInitializer()
-    {
-        const string declaration = $"{var} x {returns} integer {equals} {constant}{end}";
-
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
-
-        Assert.NotEmpty(syntax);
-        Ronin.Grammar.Datum datum = syntax[0];
-        Assert.NotNull(datum);
-        Reference reference = datum.Initializer;
-        Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Components);
-        Ronin.Grammar.Name name = reference.Components[0];
-        Assert.NotNull(name);
-        Assert.Equal(constant, string.Join(' ', name.Words));
-    }
-
-    private static Ronin.Grammar.Datum Compile(string declaration)
-    {
-        Lexer lexer = new(declaration);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        var syntax = parser.Parse();
-
-        Assert.NotEmpty(syntax);
-        return syntax[0] as Statement;
+        Assert.Single(scalar.Literals);
+        var number = scalar.Literals[0] as Number;
+        Assert.NotNull(number);
+        Assert.Equal("2", number.ToString());
     }
 }
