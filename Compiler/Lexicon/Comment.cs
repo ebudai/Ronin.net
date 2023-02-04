@@ -30,7 +30,7 @@ internal class Comment : Trivium
 
     private Comment(Lexer lexer, int length) : base(lexer, length) { }
 
-    public static Token Lex(Lexer lexer)
+    public static Comment Lex(Lexer lexer)
     {
         if (lexer.StartsWith(SingleLine.Start))
         {
