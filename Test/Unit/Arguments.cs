@@ -16,11 +16,11 @@ public class arguments
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        // (test)
+        // (stuff)
 
         Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
-            .Add<Word>("test")
+            .Add<Word>("stuff")
             .Add<CloseParenthesis>();
 
         Parser parser = new(tokens.ToArray());
@@ -28,7 +28,7 @@ public class arguments
 
         Reference reference = arguments?.Values?[0];
         Name name = reference?.Components?[0];
-        Assert.Equal("test", name?.Words?[0]);
+        Assert.Equal("stuff", name?.Words?[0]);
     }
 
     [Fact(DisplayName = "multiple")]
