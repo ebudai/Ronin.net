@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Failure;
 
@@ -13,7 +14,7 @@ public class comment
         const string notcomment = "not a comment";
 
         Lexer lexer = new(notcomment);
-        var comment = Ronin.Lexicon.Comment.Lex(lexer);
+        var comment = Comment.Lex(lexer);
 
         Assert.Null(comment);
     }
@@ -24,13 +25,10 @@ public class comment
         const string badcomment = "/*unbalanced /*comment*/\r\nthis is a function call();";
 
         Lexer lexer = new(badcomment);
-        var lexeme = Ronin.Lexicon.Comment.Lex(lexer);
+        var comment = Comment.Lex(lexer);
 
-        Assert.NotNull(lexeme);
-        Assert.IsType<Ronin.Lexicon.Comment>(lexeme);
-        var comment = lexeme as Ronin.Lexicon.Comment;
-        Assert.False(comment.Terminated);
-        Assert.Equal(badcomment, comment.ToString());
+        Assert.False(comment?.Terminated);
+        Assert.Equal(badcomment, comment?.ToString());
     }
 
     [Fact(DisplayName = "unbalanced nested multiline end")]
@@ -39,12 +37,9 @@ public class comment
         const string badcomment = "/*unbalanced */comment*/";
 
         Lexer lexer = new(badcomment);
-        var lexeme = Ronin.Lexicon.Comment.Lex(lexer);
+        var comment = Comment.Lex(lexer);
 
-        Assert.NotNull(lexeme);
-        Assert.IsType<Ronin.Lexicon.Comment>(lexeme);
-        var comment = lexeme as Ronin.Lexicon.Comment;
-        Assert.True(comment.Terminated);
-        Assert.Equal("/*unbalanced */", comment.ToString());
+        Assert.True(comment?.Terminated);
+        Assert.Equal("/*unbalanced */", comment?.ToString());
     }
 }

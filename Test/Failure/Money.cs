@@ -40,10 +40,9 @@ public class money
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
         Assert.IsType<Money>(lexed);
         var money = lexed as Money;
-        Assert.Equal("$9".ToArray(), money.Sourcecode.ToArray());
+        Assert.Equal("$9".ToArray(), money?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -54,10 +53,9 @@ public class money
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
         Assert.IsType<Money>(lexed);
         var money = lexed as Money;
-        Assert.Equal("$9.2".ToArray(), money.Sourcecode.ToArray());
+        Assert.Equal("$9.2".ToArray(), money?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "no data")]
@@ -77,10 +75,9 @@ public class money
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
         Assert.IsType<Money>(lexed);
         var money = lexed as Money;
-        Assert.Equal("$9.25".ToArray(), money.Sourcecode.ToArray());
+        Assert.Equal("$9.25".ToArray(), money?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "just a dollar sign")]
@@ -89,9 +86,8 @@ public class money
         const string literal = "$";
 
         Lexer lexer = new(literal);
-        var lexed = lexer.Lex();
+        var value = Literal.Lex(lexer);
 
-        Assert.NotEmpty(lexed);
-        Assert.IsType<Dollar>(lexed[0]);
+        Assert.IsNotType<Literal>(value);
     }
 }

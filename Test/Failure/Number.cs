@@ -26,12 +26,9 @@ public class number
         const string literal = "9.";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var number = Literal.Lex(lexer) as Number;
 
-        Assert.NotNull(lexed);
-        Assert.IsType<Number>(lexed);
-        var integer = lexed as Number;
-        Assert.Equal("9".ToArray(), integer.Sourcecode.ToArray());
+        Assert.Equal("9".ToArray(), number?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -40,12 +37,9 @@ public class number
         const string literal = "9.2v5";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var number = Literal.Lex(lexer) as Number;
 
-        Assert.NotNull(lexed);
-        Assert.IsType<Number>(lexed);
-        var error = lexed as Number;
-        Assert.Equal("9.2".ToArray(), error.Sourcecode.ToArray());
+        Assert.Equal("9.2".ToArray(), number?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "contains multiple dots")]
