@@ -9,12 +9,12 @@ namespace Failure;
 [Trait("Parser", null)]
 #pragma warning disable CS8981
 #pragma warning disable IDE1006
-public class arguments
+public class ordinal
 {
-    [Fact(DisplayName = "does not start with (")]
-    public void NotAnArguments()
+    [Fact(DisplayName = "does not start with [")]
+    public void NotAnOrdinal()
     {
-        // not an object;
+        // not an ordinal;
 
         Tokens tokens = new();
         tokens.Add<Word>("not")
@@ -23,7 +23,7 @@ public class arguments
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var aggregate = Arguments.Parse(ref parser);
+        var aggregate = Ordinal.Parse(ref parser);
 
         Assert.Null(aggregate);
     }
@@ -34,18 +34,18 @@ public class arguments
         Tokens tokens = new();
 
         Parser parser = new(tokens.ToArray());
-        var arguments = Arguments.Parse(ref parser);
+        var arguments = Ordinal.Parse(ref parser);
 
         Assert.Null(arguments);
     }
 
-    [Fact(DisplayName = "bad separator")]
-    public void BadSeparator()
+    [Fact(DisplayName = "bad component")]
+    public void BadComponent()
     {
-        // (test, (thing;stuff))
+        // [test, (thing;stuff)]
 
         Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
+        tokens.Add<OpenSquareBracket>()
             .Add<Word>("test")
             .Add<Separator>()
             .Add<OpenParenthesis>()
@@ -53,26 +53,26 @@ public class arguments
             .Add<Terminal>()
             .Add<Word>("stuff")
             .Add<CloseParenthesis>()
-            .Add<CloseParenthesis>();
+            .Add<CloseSquareBracket>();
 
         Parser parser = new(tokens.ToArray());
-        var arguments = Arguments.Parse(ref parser);
+        var arguments = Ordinal.Parse(ref parser);
         Assert.Null(arguments);
     }
 
     [Fact(DisplayName = "terminated incorrectly")]
     public void TerminatedWrong()
     {
-        // (test;)
+        // [test;]
 
         Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
+        tokens.Add<OpenSquareBracket>()
             .Add<Word>("test")
             .Add<Terminal>()
-            .Add<CloseParenthesis>();
+            .Add<CloseSquareBracket>();
 
         Parser parser = new(tokens.ToArray());
-        var arguments = Arguments.Parse(ref parser);
+        var arguments = Ordinal.Parse(ref parser);
         Assert.Null(arguments);
     }
 }
