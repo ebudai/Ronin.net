@@ -27,6 +27,6 @@ public class scope
 
         Parser parser = new(tokens.ToArray());
         var syntax = Scope.Parse(ref parser);
-        Assert.IsType<Unknown>(syntax);
+        Assert.Null(syntax);
     }
 }

@@ -34,7 +34,7 @@ internal ref struct Parser
         {
             var syntax = T.Parse(ref this);
             if (syntax is null) break;
-            parsed.Add(syntax as T);
+            parsed.Add(syntax);
         }
         return parsed;
     }

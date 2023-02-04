@@ -10,6 +10,8 @@ internal class Unknown : Syntax, Compiler.IParsable<Unknown>
     {
         Parser parser = context;
 
+        if (parser.CurrentToken is Sentinel or Terminal or Separator or Close) return null;
+
         do
         {
             parser.Advance();

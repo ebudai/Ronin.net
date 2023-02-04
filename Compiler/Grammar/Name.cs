@@ -14,7 +14,7 @@ internal class Name : Syntax, Compiler.IParsable<Name>
 
     public static Name Parse(ref Parser context)
     {
-        if (context.CurrentToken is Keyword) return null;
+        if (context.CurrentToken is Keyword or Punctuation) return null;
 
         List<string> words = new(64);
         Parser parser = context;

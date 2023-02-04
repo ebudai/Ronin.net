@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
@@ -15,6 +14,8 @@ public class arguments
     [Fact(DisplayName = "does not start with (")]
     public void NotAnObject()
     {
+        // not an object;
+
         Tokens tokens = new();
         tokens.Add<Word>("not")
             .Add<Word>("an")
@@ -38,9 +39,10 @@ public class arguments
         Assert.Null(arguments);
     }
 
-    [Fact(DisplayName = "recursive bad syntax")]
-    public void RecursiveBadSyntax()
+    [Fact(DisplayName = "bad separator")]
+    public void BadSeparator()
     {
+        // (test, (thing;stuff))
         Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
             .Add<Word>("test")
@@ -50,26 +52,26 @@ public class arguments
             .Add<Terminal>()
             .Add<Word>("stuff")
             .Add<CloseParenthesis>()
-            .Add<CloseParenthesis>()
-            .Add<Terminal>();
+            .Add<CloseParenthesis>();
 
         Parser parser = new(tokens.ToArray());
-        var syntax = Arguments.Parse(ref parser);
-        Assert.IsType<Unknown>(syntax);
+        var arguments = Arguments.Parse(ref parser);
+        Assert.Null(arguments);
     }
 
     [Fact(DisplayName = "terminated incorrectly")]
     public void TerminatedWrong()
     {
+        // (test;)
+
         Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
             .Add<Word>("test")
             .Add<Terminal>()
-            .Add<CloseParenthesis>()
-            .Add<Terminal>();
+            .Add<CloseParenthesis>();
 
         Parser parser = new(tokens.ToArray());
-        var syntax = Arguments.Parse(ref parser);
-        Assert.IsType<Unknown>(syntax);
+        var arguments = Arguments.Parse(ref parser);
+        Assert.Null(arguments);
     }
 }

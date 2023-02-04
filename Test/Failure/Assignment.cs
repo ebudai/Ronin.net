@@ -19,7 +19,7 @@ public class assignment
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var syntax = Assignment.Parse(ref parser);
-        Assert.IsType<Unknown>(syntax);
+        var assignment = Assignment.Parse(ref parser);
+        Assert.Null(assignment);
     }
 }

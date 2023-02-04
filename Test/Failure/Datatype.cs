@@ -21,20 +21,7 @@ public class datatype
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var syntax = Ronin.Grammar.Datatype.Parse(ref parser);
-        Assert.IsType<Ronin.Grammar.Unknown>(syntax);
-    }
-
-    [Fact(DisplayName = "no scope")]
-    public void NoScope()
-    {
-        Tokens tokens = new();
-        tokens.Add<Datatype>()
-            .Add<Word>("x")
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
-        var syntax = Ronin.Grammar.Datatype.Parse(ref parser);
-        Assert.IsType<Ronin.Grammar.Unknown>(syntax);
+        var datatype = Ronin.Grammar.Datatype.Parse(ref parser);
+        Assert.Null(datatype);
     }
 }

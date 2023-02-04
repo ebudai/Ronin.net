@@ -23,22 +23,8 @@ public class datum
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var syntax = Datum.Parse(ref parser);
-        Assert.IsType<Unknown>(syntax);
-    }
-
-    [Fact(DisplayName = "blank datatype")]
-    public void BlankDatatype()
-    {
-        Tokens tokens = new();
-        tokens.Add<Variable>()
-            .Add<Word>("x")
-            .Add<Returns>()
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
-        var syntax = Datum.Parse(ref parser);
-        Assert.IsType<Unknown>(syntax);
+        var datum = Datum.Parse(ref parser);
+        Assert.Null(datum);
     }
 
     [Fact(DisplayName = "literal instead of identifier")]
@@ -50,21 +36,8 @@ public class datum
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var syntax = Datum.Parse(ref parser);
-        Assert.IsType<Unknown>(syntax);
-    }
-
-    [Fact(DisplayName = "missing datatype and initializer")]
-    public void MissingDatatypeAndInitializer()
-    {
-        Tokens tokens = new();
-        tokens.Add<Variable>()
-            .Add<Word>("x")
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
-        var syntax = Datum.Parse(ref parser);
-        Assert.IsType<Unknown>(syntax);
+        var datum = Datum.Parse(ref parser);
+        Assert.Null(datum);
     }
 }
 

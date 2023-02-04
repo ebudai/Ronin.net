@@ -16,11 +16,12 @@ public class arguments
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
+        // (test)
+
         Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
             .Add<Word>("test")
-            .Add<CloseParenthesis>()
-            .Add<Terminal>();
+            .Add<CloseParenthesis>();
 
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
@@ -41,13 +42,14 @@ public class arguments
     [Fact(DisplayName = "multiple")]
     public void Multiple()
     {
+        // (test, stuff)
+
         Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
             .Add<Word>("test")
             .Add<Separator>()
             .Add<Word>("stuff")
-            .Add<CloseParenthesis>()
-            .Add<Terminal>();
+            .Add<CloseParenthesis>();
 
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
@@ -74,10 +76,11 @@ public class arguments
     [Fact(DisplayName = "empty parenthesis")]
     public void Empty()
     {
+        // ()
+
         Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
-            .Add<CloseParenthesis>()
-            .Add<Terminal>();
+            .Add<CloseParenthesis>();
 
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
@@ -89,6 +92,8 @@ public class arguments
     [Fact(DisplayName = "named")]
     public void Named()
     {
+        // (1, 2, thing)
+
         Tokens tokens = new();
         tokens.Add<OpenParenthesis>()
             .Add<Number>("1")
@@ -96,8 +101,7 @@ public class arguments
             .Add<Number>("2")
             .Add<Separator>()
             .Add<Word>("thing")
-            .Add<CloseParenthesis>()
-            .Add<Terminal>();
+            .Add<CloseParenthesis>();
 
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);

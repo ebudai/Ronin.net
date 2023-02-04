@@ -1,12 +1,8 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
+using Ronin.Grammar;
 using Ronin.Lexicon.Symbols;
 using Test;
-
-using DatatypeKeyword = Ronin.Lexicon.Keywords.Datatype;
-using Datatype = Ronin.Grammar.Datatype;
 
 namespace Unit;
 
@@ -19,7 +15,7 @@ public class datatype
     public void Basic()
     {
         Tokens tokens = new();
-        tokens.Add<DatatypeKeyword>()
+        tokens.Add<Ronin.Lexicon.Keywords.Datatype>()
             .Add<Word>("Test")
             .Add<OpenBrace>()
             .Add<CloseBrace>();
@@ -40,18 +36,18 @@ public class datatype
     public void Algebra()
     {
         Tokens tokens = new();
-        tokens.Add<DatatypeKeyword>()
+        tokens.Add<Ronin.Lexicon.Keywords.Datatype>()
             .Add<Word>("Algebra")
             .Add<Assign>()
             .Add<Word>("number")
             .Add<Word>("or")
             .Add<OpenBrace>()
-            .Add<Variable>()
+            .Add<Ronin.Lexicon.Keywords.Variable>()
             .Add<Word>("cash")
             .Add<Returns>()
             .Add<Word>("money")
             .Add<Terminal>()
-            .Add<Variable>()
+            .Add<Ronin.Lexicon.Keywords.Variable>()
             .Add<Word>("debt")
             .Add<Returns>()
             .Add<Word>("money")
@@ -77,18 +73,22 @@ public class datatype
 
         Datum cash = datatype.Body.Values[0];
         Assert.NotNull(cash);
-        Assert.IsType<Variable>(cash.Mutability);
+        Assert.IsType<Ronin.Lexicon.Keywords.Variable>(cash.Mutability);
         Assert.Equal("cash", cash.Name.Words[0]);
-        Assert.NotEmpty(cash.Datatype.Components);
+        Assert.Single(cash.Datatype.Components);
         Name cashtypename = cash.Datatype.Components[0];
-        Assert.Equal("money", string.Join(' ', cashtypename.Words));
+        Assert.NotNull(cashtypename);
+        Assert.Single(cashtypename.Words);
+        Assert.Equal("money", cashtypename.Words[0]);
 
         Datum debt = datatype.Body.Values[1];
         Assert.NotNull(debt);
-        Assert.IsType<Variable>(debt.Mutability);
+        Assert.IsType<Ronin.Lexicon.Keywords.Variable>(debt.Mutability);
         Assert.Equal("debt", debt.Name.Words[0]);
-        Assert.NotEmpty(debt.Datatype.Components);
+        Assert.Single(debt.Datatype.Components);
         Name debttypename = debt.Datatype.Components[0];
-        Assert.Equal("money", string.Join(' ', debttypename.Words));
+        Assert.NotNull(debttypename);
+        Assert.Single(debttypename.Words);
+        Assert.Equal("money", debttypename.Words[0]);
     }
 }

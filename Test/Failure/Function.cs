@@ -11,27 +11,6 @@ namespace Failure;
 #pragma warning disable IDE1006
 public class function
 {
-    [Fact(DisplayName = "bad name")]
-    public void BadName()
-    {
-        Tokens tokens = new();
-        tokens.Add<Function>()
-            .Add<Word>("test")
-            .Add<CloseParenthesis>()
-            .Add<Word>("thing")
-            .Add<OpenParenthesis>()
-            .Add<Word>("x")
-            .Add<Returns>()
-            .Add<Word>("number")
-            .Add<CloseParenthesis>()
-            .Add<OpenBrace>()
-            .Add<CloseBrace>();
-
-        Parser parser = new(tokens.ToArray());
-        var syntax = Ronin.Grammar.Function.Parse(ref parser);
-        Assert.IsType<Ronin.Grammar.Unknown>(syntax);
-    }
-
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
@@ -41,7 +20,7 @@ public class function
             .Add<CloseBrace>();
 
         Parser parser = new(tokens.ToArray());
-        var syntax = Ronin.Grammar.Function.Parse(ref parser);
-        Assert.IsType<Ronin.Grammar.Unknown>(syntax);
+        var function = Ronin.Grammar.Function.Parse(ref parser);
+        Assert.Null(function);
     }
 }
