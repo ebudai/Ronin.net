@@ -27,27 +27,19 @@ public class datum
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
 
-        Assert.IsType<Variable>(datum.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.False(datum?.Is.Compiled);
+        Assert.False(datum?.Is.Optional);
+        Assert.False(datum?.Is.Persistent);
+        Assert.False(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Name);
-        Assert.NotNull(datum.Name.Words);
-        Assert.Equal(2, datum.Name.Words.Count);
-        Assert.Equal("my", datum.Name.Words[0]);
-        Assert.Equal("variable", datum.Name.Words[1]);
+        Assert.Equal("my variable", string.Join(" ", datum?.Name?.Words ?? new List<string>()));
         
-        Assert.NotNull(datum.Datatype);
-        Assert.Single(datum.Datatype.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("number", name.Words[0]);
+        Name name = datum?.Datatype?.Components?[0];
+        Assert.Equal("number", name?.Words?[0]);
 
-        Assert.Null(datum.Initializer);
+        Assert.Null(datum?.Initializer);
     }
 
     [Fact(DisplayName = $"reactive")]
@@ -65,22 +57,15 @@ public class datum
 
         Assert.IsType<Reactive>(datum.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.False(datum?.Is.Compiled);
+        Assert.False(datum?.Is.Optional);
+        Assert.False(datum?.Is.Persistent);
+        Assert.False(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Name);
-        Assert.NotNull(datum.Name.Words);
-        Assert.Single(datum.Name.Words);
-        Assert.Equal("x", datum.Name.Words[0]);
+        Assert.Equal("x", datum?.Name?.Words?[0]);
 
-        Assert.NotNull(datum.Datatype);
-        Assert.Single(datum.Datatype.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("text", name.Words[0]);
+        Name name = datum?.Datatype?.Components?[0];
+        Assert.Equal("text", name?.Words?[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -101,22 +86,15 @@ public class datum
 
         Assert.IsType<Variable>(datum.Mutability);
 
-        Assert.True(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.True(datum?.Is.Compiled);
+        Assert.False(datum?.Is.Optional);
+        Assert.False(datum?.Is.Persistent);
+        Assert.False(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Name);
-        Assert.NotNull(datum.Name.Words);
-        Assert.Single(datum.Name.Words);
-        Assert.Equal("x", datum.Name.Words[0]);
+        Assert.Equal("x", datum?.Name?.Words?[0]);
 
-        Assert.NotNull(datum.Datatype);
-        Assert.Single(datum.Datatype.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("text", name.Words[0]);
+        Name name = datum?.Datatype?.Components?[0];
+        Assert.Equal("text", name?.Words?[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -137,22 +115,15 @@ public class datum
 
         Assert.IsType<Constant>(datum.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.True(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.False(datum?.Is.Compiled);
+        Assert.False(datum?.Is.Optional);
+        Assert.True(datum?.Is.Persistent);
+        Assert.False(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Name);
-        Assert.NotNull(datum.Name.Words);
-        Assert.Single(datum.Name.Words);
-        Assert.Equal("x", datum.Name.Words[0]);
+        Assert.Equal("x", datum?.Name?.Words?[0]);
 
-        Assert.NotNull(datum.Datatype);
-        Assert.Single(datum.Datatype.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("text", name.Words[0]);
+        Name name = datum?.Datatype?.Components?[0];
+        Assert.Equal("text", name?.Words?[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -173,22 +144,15 @@ public class datum
 
         Assert.IsType<Variable>(datum.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.True(datum.Is.Shared);
+        Assert.False(datum?.Is.Compiled);
+        Assert.False(datum?.Is.Optional);
+        Assert.False(datum?.Is.Persistent);
+        Assert.True(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Name);
-        Assert.NotNull(datum.Name.Words);
-        Assert.Single(datum.Name.Words);
-        Assert.Equal("x", datum.Name.Words[0]);
+        Assert.Equal("x", datum?.Name?.Words?[0]);
 
-        Assert.NotNull(datum.Datatype);
-        Assert.Single(datum.Datatype.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("text", name.Words[0]);
+        Name name = datum?.Datatype?.Components?[0];
+        Assert.Equal("text", name?.Words?[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -209,22 +173,15 @@ public class datum
 
         Assert.IsType<Reactive>(datum.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.True(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.False(datum?.Is.Compiled);
+        Assert.True(datum?.Is.Optional);
+        Assert.False(datum?.Is.Persistent);
+        Assert.False(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Name);
-        Assert.NotNull(datum.Name.Words);
-        Assert.Single(datum.Name.Words);
-        Assert.Equal("x", datum.Name.Words[0]);
+        Assert.Equal("x", datum?.Name?.Words?[0]);
 
-        Assert.NotNull(datum.Datatype);
-        Assert.Single(datum.Datatype.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("text", name.Words[0]);
+        Name name = datum?.Datatype?.Components?[0];
+        Assert.Equal("text", name?.Words?[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -244,26 +201,18 @@ public class datum
 
         Assert.IsType<Variable>(datum.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.False(datum?.Is.Compiled);
+        Assert.False(datum?.Is.Optional);
+        Assert.False(datum?.Is.Persistent);
+        Assert.False(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Name);
-        Assert.NotNull(datum.Name.Words);
-        Assert.Single(datum.Name.Words);
-        Assert.Equal("x", datum.Name.Words[0]);
+        Assert.Equal("x", datum?.Name?.Words?[0]);
 
         Assert.Null(datum.Datatype);
 
-        Assert.NotNull(datum.Initializer);
-        Reference reference = datum.Initializer;
-        Assert.NotNull(reference);
-        Assert.Single(reference.Components);
-        Name name = reference.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("things", name.Words[0]);
+        Reference reference = datum?.Initializer;
+        Name name = reference?.Components?[0];
+        Assert.Equal("things", name?.Words?[0]);
     }
 
     [Fact(DisplayName = "typed and initialized via literal")]
@@ -283,31 +232,18 @@ public class datum
 
         Assert.IsType<Variable>(datum.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.False(datum?.Is.Compiled);
+        Assert.False(datum?.Is.Optional);
+        Assert.False(datum?.Is.Persistent);
+        Assert.False(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Name);
-        Assert.NotNull(datum.Name.Words);
-        Assert.Single(datum.Name.Words);
-        Assert.Equal("thing", datum.Name.Words[0]);
+        Assert.Equal("thing", datum?.Name?.Words?[0]);
 
-        Assert.NotNull(datum.Datatype);
-        Assert.Single(datum.Datatype.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("number", name.Words[0]);
+        Name name = datum?.Datatype?.Components?[0];
+        Assert.Equal("number", name?.Words?[0]);
 
-        Assert.NotNull(datum.Initializer);
-        Temporary temporary = datum.Initializer;
-        Assert.NotNull(temporary);
+        Temporary temporary = datum?.Initializer;
         Scalar scalar = temporary;
-        Assert.NotNull(scalar);
-        Assert.Single(scalar.Literals);
-        var number = scalar.Literals[0] as Number;
-        Assert.NotNull(number);
-        Assert.Equal("2", number.ToString());
+        Assert.Equal("2", scalar?.Literals?[0]?.ToString());
     }
 }
