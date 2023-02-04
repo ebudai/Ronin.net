@@ -26,7 +26,8 @@ public class scope
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var syntax = Scope.Parse(ref parser);
-        Assert.Null(syntax);
+        var scope = Scope.Parse(ref parser);
+
+        Assert.Null(scope);
     }
 }

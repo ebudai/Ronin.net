@@ -19,13 +19,13 @@ public class ordinal
         Tokens tokens = new();
         tokens.Add<Word>("not")
             .Add<Word>("an")
-            .Add<Word>("object")
+            .Add<Word>("ordinal")
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var aggregate = Ordinal.Parse(ref parser);
+        var ordinal = Ordinal.Parse(ref parser);
 
-        Assert.Null(aggregate);
+        Assert.Null(ordinal);
     }
 
     [Fact(DisplayName = "blank")]
@@ -56,8 +56,9 @@ public class ordinal
             .Add<CloseSquareBracket>();
 
         Parser parser = new(tokens.ToArray());
-        var arguments = Ordinal.Parse(ref parser);
-        Assert.Null(arguments);
+        var ordinal = Ordinal.Parse(ref parser);
+
+        Assert.Null(ordinal);
     }
 
     [Fact(DisplayName = "terminated incorrectly")]
@@ -72,7 +73,8 @@ public class ordinal
             .Add<CloseSquareBracket>();
 
         Parser parser = new(tokens.ToArray());
-        var arguments = Ordinal.Parse(ref parser);
-        Assert.Null(arguments);
+        var ordinal = Ordinal.Parse(ref parser);
+
+        Assert.Null(ordinal);
     }
 }

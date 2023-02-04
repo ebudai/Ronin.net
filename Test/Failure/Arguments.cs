@@ -23,9 +23,9 @@ public class arguments
             .Add<Terminal>();
 
         Parser parser = new(tokens.ToArray());
-        var aggregate = Arguments.Parse(ref parser);
+        var arguments = Arguments.Parse(ref parser);
 
-        Assert.Null(aggregate);
+        Assert.Null(arguments);
     }
 
     [Fact(DisplayName = "blank")]
