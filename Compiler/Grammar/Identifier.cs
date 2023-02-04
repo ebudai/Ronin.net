@@ -2,9 +2,14 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     A unique name for a <see cref="Datatype"/> or a <see cref="Function"/>
+///     which can contain multiple <see cref="Word"/>s and <see cref="Parameters"/>
+/// </summary>
 internal class Identifier : Syntax, Compiler.IParsable<Identifier>
 {
     public List<Component> Components { get; init; }
