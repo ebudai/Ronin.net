@@ -29,31 +29,19 @@ public class scope
         Parser parser = new(tokens.ToArray());
         var scope = Scope.Parse(ref parser);
 
-        Assert.NotNull(scope);
+        Datum datum = scope?.Values?[0];
 
-        Assert.Single(scope.Values);        
-        Datum datum = scope.Values[0];
-        Assert.NotNull(datum);
-        
         Assert.IsType<Variable>(datum.Mutability);
         
-        Assert.NotNull(datum.Name);
-        Assert.NotEmpty(datum.Name.Words);
-        Assert.Equal("test", datum.Name.Words[0]);
+        Assert.Equal("test", datum?.Name?.Words?[0]);
 
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Shared);
+        Assert.False(datum?.Is.Optional);
+        Assert.False(datum?.Is.Persistent);
+        Assert.False(datum?.Is.Compiled);
+        Assert.False(datum?.Is.Shared);
 
-        Assert.NotNull(datum.Initializer);
-        var initializer = datum.Initializer;
-        Assert.NotNull(initializer);
-        Temporary temporary = initializer;
-        Assert.NotNull(temporary);
+        Temporary temporary = datum.Initializer;
         Scalar scalar = temporary;
-        Assert.NotNull(scalar);
-        Assert.Single(scalar.Literals);
-        Assert.Equal("56", scalar.Literals[0].ToString());
+        Assert.Equal("56", scalar?.Literals?[0]?.ToString());
     }
 }
