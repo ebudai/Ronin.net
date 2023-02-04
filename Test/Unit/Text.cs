@@ -17,8 +17,7 @@ public class text
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with escaped quotes")]
@@ -29,8 +28,7 @@ public class text
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "multiline")]
@@ -41,8 +39,7 @@ public class text
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
         Assert.Equal(3, lexer.Line);
     }
 
@@ -55,7 +52,6 @@ public class text
         var lexed = Literal.Lex(lexer);
 
         var text = lexed as Text;
-        Assert.NotNull(text);
-        Assert.Equal("testtest", text.Value);
+        Assert.Equal("testtest", text?.Value);
     }
 }

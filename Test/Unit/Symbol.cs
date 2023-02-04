@@ -15,8 +15,7 @@ public class symbol
         Assert.True(Symbol.IsSymbol(lexer));
         var symbol = Symbol.Lex(lexer);
 
-        Assert.NotNull(symbol);
-        Assert.Equal(lexed.ToArray(), symbol.Sourcecode.ToArray());
+        Assert.Equal(lexed.ToArray(), symbol?.Sourcecode.ToArray());
 
         Assert.IsType<T>(symbol);
     }

@@ -16,8 +16,7 @@ public class time
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "two digits with unspaced suffix")]
@@ -28,8 +27,7 @@ public class time
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "two digits without suffix")]
@@ -40,8 +38,7 @@ public class time
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "one digit with spaced suffix")]
@@ -52,8 +49,7 @@ public class time
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "one digit with unspaced suffix")]
@@ -64,8 +60,7 @@ public class time
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "two digit with spaced no suffix")]
@@ -76,7 +71,6 @@ public class time
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(literal.Trim().ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(literal.Trim().ToArray(), lexed?.Sourcecode.ToArray());
     }
 }

@@ -20,8 +20,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("datatype".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("datatype".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "function")]
@@ -32,8 +31,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("function".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("function".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "variable")]
@@ -44,8 +42,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("var".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("var".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "constant")]
@@ -56,8 +53,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("constant".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("constant".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "reactive")]
@@ -68,8 +64,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("reactive".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("reactive".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "compiled")]
@@ -80,8 +75,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("compiled".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("compiled".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "shared")]
@@ -92,8 +86,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("shared".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("shared".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "optional")]
@@ -104,8 +97,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("optional".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("optional".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "part of")]
@@ -116,8 +108,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("part of".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("part of".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "import")]
@@ -128,8 +119,7 @@ public class keyword
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal("import".ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal("import".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
 

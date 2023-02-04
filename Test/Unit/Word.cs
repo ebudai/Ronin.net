@@ -16,8 +16,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name.ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name.ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with terminator")]
@@ -28,8 +27,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with separator")]
@@ -40,8 +38,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with opening parenthesis")]
@@ -52,8 +49,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with closing parenthesis")]
@@ -64,8 +60,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with opening bracket")]
@@ -76,8 +71,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with closing bracket")]
@@ -88,8 +82,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with opening brace")]
@@ -100,8 +93,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with closing brace")]
@@ -112,8 +104,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with single quote")]
@@ -124,8 +115,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with double quote")]
@@ -136,8 +126,7 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with space")]
@@ -148,7 +137,6 @@ public class word
         Lexer lexer = new(name);
         var lexed = Word.Lex(lexer);
 
-        Assert.NotNull(lexed);
-        Assert.Equal(name[..^1].ToArray(), lexed.Sourcecode.ToArray());
+        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
 }

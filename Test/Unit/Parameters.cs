@@ -71,7 +71,7 @@ public class parameters
         Assert.Equal(2, parameters.Values.Count);
 
         {
-            Datum datum = parameters.Values[0];
+            Datum datum = parameters?.Values?[0];
             
             Assert.Null(datum?.Mutability);
 
@@ -87,7 +87,7 @@ public class parameters
         }
 
         {
-            Datum datum = parameters.Values[1];
+            Datum datum = parameters?.Values?[1];
 
             Assert.Null(datum?.Mutability);
 
@@ -109,8 +109,7 @@ public class parameters
         // ()
 
         Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<CloseParenthesis>();
+        tokens.Add<OpenParenthesis>().Add<CloseParenthesis>();
 
         Parser parser = new(tokens.ToArray());
         var arguments = Parameters.Parse(ref parser);
