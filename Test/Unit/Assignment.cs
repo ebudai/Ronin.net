@@ -23,22 +23,12 @@ public class assignment
         Parser parser = new(tokens.ToArray());
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.NotNull(assignment);
+        Name name = assignment?.Reference?.Components?[0];        
+        Assert.Equal("x", name?.Words?[0]);
 
-        Assert.NotNull(assignment.Reference);
-        Assert.Single(assignment.Reference.Components);
-
-        Name name = assignment.Reference.Components[0];        
-        Assert.Single(name.Words);
-        Assert.Equal("x", name.Words[0]);
-
-        Temporary value = assignment.Value;
-        Assert.NotNull(value);
-
+        Temporary value = assignment?.Value;
         Scalar scalar = value;
-        Assert.NotNull(scalar);
-        Assert.Single(scalar.Literals);
-        Assert.Equal("17", scalar.Literals[0].ToString());
+        Assert.Equal("17", scalar?.Literals?[0]?.ToString());
     }
 
     [Fact(DisplayName = "no whitespace")]
@@ -53,21 +43,11 @@ public class assignment
         Parser parser = new(tokens.ToArray());
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.NotNull(assignment);
+        Name name = assignment?.Reference?.Components?[0];
+        Assert.Equal("x", name?.Words?[0]);
 
-        Assert.NotNull(assignment.Reference);
-        Assert.Single(assignment.Reference.Components);
-
-        Name name = assignment.Reference.Components[0];
-        Assert.Single(name.Words);
-        Assert.Equal("x", name.Words[0]);
-
-        Temporary value = assignment.Value;
-        Assert.NotNull(value);
-
+        Temporary value = assignment?.Value;
         Scalar scalar = value;
-        Assert.NotNull(scalar);
-        Assert.Single(scalar.Literals);
-        Assert.Equal("17", scalar.Literals[0].ToString());
+        Assert.Equal("17", scalar?.Literals?[0]?.ToString());
     }
 }
