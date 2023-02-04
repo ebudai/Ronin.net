@@ -51,7 +51,7 @@ public class function
         Assert.Equal("return", @return?.Words?[0]);
 
         Scalar scalar = line?.Components?[1];
-        Assert.Equal("7", scalar?.Literals?[0].ToString());        
+        Assert.Equal("7", scalar?.Literals?[0].ToString());
     }
 
     [Fact(DisplayName = "specifies return datatype")]

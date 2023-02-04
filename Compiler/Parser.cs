@@ -1,5 +1,6 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Compiler;
 
@@ -20,8 +21,7 @@ internal ref struct Parser
         {
             if (Trivia.Parse(ref this) is not null) continue;
 
-            var statement = Statement.Parse(ref this);
-            if (CurrentToken is Terminal or Sentinel) statements.Add(statement);            
+            statements.Add(Statement.Parse(ref this));
         }
 
         return statements;
