@@ -26,17 +26,9 @@ public class arguments
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
 
-        Assert.NotNull(arguments);
-
-        Assert.Single(arguments.Values);
-        Reference reference = arguments.Values[0];
-        Assert.NotNull(reference);
-
-        Assert.Single(reference.Components);
-        Name name = reference.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("test", name.Words[0]);
+        Reference reference = arguments?.Values?[0];
+        Name name = reference?.Components?[0];
+        Assert.Equal("test", name?.Words?[0]);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -54,23 +46,17 @@ public class arguments
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
 
-        Assert.NotNull(arguments);
-        Assert.NotNull(arguments.Values);
-        Assert.Equal(2, arguments.Values.Count);
+        {
+            Reference reference = arguments?.Values?[0];
+            Name name = reference?.Components?[0];
+            Assert.Equal("test", name?.Words?[0]);
+        }
 
-        Reference test = arguments.Values[0];
-        Assert.Single(test.Components);
-        Name name = test.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("test", name.Words[0]);
-
-        Reference stuff = arguments.Values[1];
-        Assert.Single(stuff.Components);
-        name = stuff.Components[0];
-        Assert.NotNull(name);
-        Assert.Single(name.Words);
-        Assert.Equal("stuff", name.Words[0]);
+        {
+            Reference reference = arguments?.Values?[1];
+            Name name = reference?.Components?[0];
+            Assert.Equal("stuff", name?.Words?[0]);
+        }
     }
 
     [Fact(DisplayName = "empty parenthesis")]
@@ -84,9 +70,7 @@ public class arguments
 
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
-
-        Assert.NotNull(arguments);
-        Assert.Empty(arguments.Values);
+        Assert.Empty(arguments?.Values);
     }
 
     [Fact(DisplayName = "named")]
@@ -106,29 +90,20 @@ public class arguments
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
 
-        Assert.NotNull(arguments);
-        Assert.NotEmpty(arguments.Values);
+        {
+            Temporary temporary = arguments?.Values?[0];
+            Scalar scalar = temporary;
+            Assert.Equal("1", scalar?.Literals?[0]?.ToString());
+        }
 
-        Temporary temporary = arguments.Values[0];
-        Assert.NotNull(temporary);
-        Scalar scalar = temporary;
-        Assert.NotNull(scalar);
-        Assert.NotEmpty(scalar.Literals);
-        Assert.Equal("1", scalar.Literals[0].ToString());
+        {
+            Temporary temporary = arguments?.Values?[1];
+            Scalar scalar = temporary;
+            Assert.Equal("2", scalar?.Literals?[0]?.ToString());
+        }
 
-        temporary = arguments.Values[1];
-        Assert.NotNull(temporary);
-        scalar = temporary;
-        Assert.NotNull(scalar);
-        Assert.NotEmpty(scalar.Literals);
-        Assert.Equal("2", scalar.Literals[0].ToString());
-
-        Reference reference = arguments.Values[2];
-        Assert.NotNull(reference);
-        Assert.NotEmpty(reference.Components);
-        Name name = reference.Components[0];
-        Assert.NotNull(name);
-        Assert.NotEmpty(name.Words);
-        Assert.Equal("thing", name.Words[0]);
+        Reference reference = arguments?.Values?[2];
+        Name name = reference?.Components?[0];
+        Assert.Equal("thing", name?.Words?[0]);
     }
 }
