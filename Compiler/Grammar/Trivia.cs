@@ -10,8 +10,8 @@ internal class Trivia : Syntax, Compiler.IParsable<Trivia>
     public static Trivia Parse(ref Parser context)
     {
         Parser parser = context;
-        while (parser.CurrentToken is Trivium) parser.Advance();
-        if (parser.CurrentToken is Terminal) parser.Advance();
-        return parser.CurrentToken == context.CurrentToken ? null : new Trivia { Source = parser.Commit(ref context) };
+        if (parser.CurrentToken is not Trivium) return null;
+        parser.Advance();
+        return new Trivia { Source = parser.Commit(ref context) };
     }
 }

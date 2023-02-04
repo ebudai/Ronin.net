@@ -20,8 +20,8 @@ internal ref struct Parser
         while (IsNotFinished)
         {
             if (Trivia.Parse(ref this) is not null) continue;
-
             statements.Add(Statement.Parse(ref this));
+            if (CurrentToken is Terminal) Advance();
         }
 
         return statements;
