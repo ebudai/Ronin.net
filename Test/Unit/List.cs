@@ -12,17 +12,17 @@ namespace Unit;
 #pragma warning disable IDE1006
 public class list
 {
-    [Fact(DisplayName = "basic")]
-    public void Basic()
+    [Fact(DisplayName = "declare")]
+    public void Declare()
     {
+        // var x => number[]
         Tokens tokens = new();
         tokens.Add<Variable>()
             .Add<Word>("x")
             .Add<Returns>()
             .Add<Word>("number")
             .Add<OpenSquareBracket>()
-            .Add<CloseSquareBracket>()
-            .Add<Terminal>();
+            .Add<CloseSquareBracket>();
 
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
