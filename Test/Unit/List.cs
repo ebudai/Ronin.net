@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
@@ -12,22 +13,17 @@ namespace Unit;
 #pragma warning disable IDE1006
 public class list
 {
-    [Fact(DisplayName = "declare")]
-    public void Declare()
+    [Fact(DisplayName = "basic")]
+    public void Basic()
     {
-        // var x => number[]
+        // []
         Tokens tokens = new();
-        tokens.Add<Variable>()
-            .Add<Word>("x")
-            .Add<Returns>()
-            .Add<Word>("number")
-            .Add<OpenSquareBracket>()
+        tokens.Add<OpenSquareBracket>()
             .Add<CloseSquareBracket>();
 
         Parser parser = new(tokens.ToArray());
-        var datum = Datum.Parse(ref parser);
+        var ordinal = Ordinal.Parse(ref parser);
 
-        Assert.NotNull(datum?.Datatype?.Ordinal);
-        Assert.Empty(datum.Datatype.Ordinal.Values);
+        Assert.Empty(ordinal?.Values);
     }
 }
