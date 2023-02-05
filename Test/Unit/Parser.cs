@@ -81,10 +81,40 @@ public class parser
             .Add<Terminal>()
             .Add<CloseBrace>();
 
+        // 7;
+
+        tokens.Add<Number>("7")
+            .Add<Terminal>();
+
+        // (a, b, "text");
+
+        tokens.Add<OpenParenthesis>()
+            .Add<Word>("a")
+            .Add<Separator>()
+            .Add<Word>("b")
+            .Add<Separator>()
+            .Add<Text>("\"text\"")
+            .Add<CloseParenthesis>()
+            .Add<Terminal>();
+
+        // { var x => moment; florb x now; }
+
+        tokens.Add<OpenBrace>()
+            .Add<Variable>()
+            .Add<Word>("x")
+            .Add<Returns>()
+            .Add<Word>("moment")
+            .Add<Terminal>()
+            .Add<Word>("florb")
+            .Add<Word>("x")
+            .Add<Word>("now")
+            .Add<Terminal>()
+            .Add<CloseBrace>();
+
         Parser parser = new(tokens.ToArray());
         var statements = parser.Parse();
 
-        Assert.Equal(5, statements?.Count);
+        Assert.Equal(8, statements?.Count);
 
         Ronin.Grammar.Hierarchy partof = statements[0];
         Assert.NotNull(partof);
@@ -100,5 +130,14 @@ public class parser
 
         Ronin.Grammar.Datatype datatype = statements[4];
         Assert.NotNull(datatype);
+
+        Ronin.Grammar.Scalar scalar = statements[5];
+        Assert.NotNull(scalar);
+
+        Ronin.Grammar.Aggregates.Arguments arguments = statements[6];
+        Assert.NotNull(arguments);
+
+        Ronin.Grammar.Aggregates.Scope scope = statements[7];
+        Assert.NotNull(scope);
     }
 }

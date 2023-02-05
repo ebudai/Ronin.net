@@ -55,17 +55,20 @@ public class datum
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
 
-        Assert.IsType<Reactive>(datum.Mutability);
+        Assert.IsType<Reactive>(datum?.Mutability);
 
-        Assert.False(datum?.Is.Compiled);
-        Assert.False(datum?.Is.Optional);
-        Assert.False(datum?.Is.Persistent);
-        Assert.False(datum?.Is.Shared);
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
 
-        Assert.Equal("x", datum?.Name?.Words?[0]);
+        Assert.Single(datum.Name?.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
 
-        Name name = datum?.Datatype?.Components?[0];
-        Assert.Equal("text", name?.Words?[0]);
+        Assert.Single(datum.Datatype?.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("text", name.Words[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -84,17 +87,20 @@ public class datum
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
 
-        Assert.IsType<Variable>(datum.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.True(datum?.Is.Compiled);
-        Assert.False(datum?.Is.Optional);
-        Assert.False(datum?.Is.Persistent);
-        Assert.False(datum?.Is.Shared);
+        Assert.True(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
 
-        Assert.Equal("x", datum?.Name?.Words?[0]);
+        Assert.Single(datum.Name?.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
 
-        Name name = datum?.Datatype?.Components?[0];
-        Assert.Equal("text", name?.Words?[0]);
+        Assert.Single(datum.Datatype?.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("text", name.Words[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -113,17 +119,20 @@ public class datum
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
 
-        Assert.IsType<Constant>(datum.Mutability);
+        Assert.IsType<Constant>(datum?.Mutability);
 
-        Assert.False(datum?.Is.Compiled);
-        Assert.False(datum?.Is.Optional);
-        Assert.True(datum?.Is.Persistent);
-        Assert.False(datum?.Is.Shared);
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.True(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
 
-        Assert.Equal("x", datum?.Name?.Words?[0]);
+        Assert.Single(datum.Name?.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
 
-        Name name = datum?.Datatype?.Components?[0];
-        Assert.Equal("text", name?.Words?[0]);
+        Assert.Single(datum.Datatype?.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("text", name.Words[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -142,17 +151,20 @@ public class datum
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
 
-        Assert.IsType<Variable>(datum.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum?.Is.Compiled);
-        Assert.False(datum?.Is.Optional);
-        Assert.False(datum?.Is.Persistent);
-        Assert.True(datum?.Is.Shared);
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.True(datum.Is.Shared);
 
-        Assert.Equal("x", datum?.Name?.Words?[0]);
+        Assert.Single(datum.Name?.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
 
-        Name name = datum?.Datatype?.Components?[0];
-        Assert.Equal("text", name?.Words?[0]);
+        Assert.Single(datum.Datatype?.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("text", name.Words[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -171,17 +183,20 @@ public class datum
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
 
-        Assert.IsType<Reactive>(datum.Mutability);
+        Assert.IsType<Reactive>(datum?.Mutability);
 
-        Assert.False(datum?.Is.Compiled);
-        Assert.True(datum?.Is.Optional);
-        Assert.False(datum?.Is.Persistent);
-        Assert.False(datum?.Is.Shared);
+        Assert.False(datum.Is.Compiled);
+        Assert.True(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
 
-        Assert.Equal("x", datum?.Name?.Words?[0]);
+        Assert.Single(datum.Name?.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
 
-        Name name = datum?.Datatype?.Components?[0];
-        Assert.Equal("text", name?.Words?[0]);
+        Assert.Single(datum.Datatype?.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("text", name.Words[0]);
 
         Assert.Null(datum.Initializer);
     }
@@ -199,20 +214,23 @@ public class datum
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
 
-        Assert.IsType<Variable>(datum.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum?.Is.Compiled);
-        Assert.False(datum?.Is.Optional);
-        Assert.False(datum?.Is.Persistent);
-        Assert.False(datum?.Is.Shared);
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
 
-        Assert.Equal("x", datum?.Name?.Words?[0]);
+        Assert.Single(datum.Name?.Words);
+        Assert.Equal("x", datum.Name.Words[0]);
 
         Assert.Null(datum.Datatype);
 
         Reference reference = datum?.Initializer;
-        Name name = reference?.Components?[0];
-        Assert.Equal("things", name?.Words?[0]);
+        Assert.Single(reference?.Components);
+        Name name = reference.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("things", name.Words[0]);
     }
 
     [Fact(DisplayName = "typed and initialized via literal")]
@@ -230,19 +248,23 @@ public class datum
         Parser parser = new(tokens.ToArray());
         var datum = Datum.Parse(ref parser);
 
-        Assert.IsType<Variable>(datum.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum?.Is.Compiled);
-        Assert.False(datum?.Is.Optional);
-        Assert.False(datum?.Is.Persistent);
-        Assert.False(datum?.Is.Shared);
+        Assert.False(datum.Is.Compiled);
+        Assert.False(datum.Is.Optional);
+        Assert.False(datum.Is.Persistent);
+        Assert.False(datum.Is.Shared);
 
-        Assert.Equal("thing", datum?.Name?.Words?[0]);
+        Assert.Single(datum.Name?.Words);
+        Assert.Equal("thing", datum.Name.Words[0]);
 
-        Name name = datum?.Datatype?.Components?[0];
-        Assert.Equal("number", name?.Words?[0]);
+        Assert.Single(datum.Datatype?.Components);
+        Name name = datum.Datatype.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("number", name.Words[0]);
 
-        Scalar scalar = datum?.Initializer;
-        Assert.Equal("2", scalar?.Literals?[0]?.ToString());
+        Scalar scalar = datum.Initializer;
+        Assert.Single(scalar?.Literals);
+        Assert.Equal("2", scalar.Literals[0]?.ToString());
     }
 }

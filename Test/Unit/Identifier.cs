@@ -28,16 +28,23 @@ public class identifier
 
         Assert.Equal(2, identifier?.Components?.Count);
 
-        Name name = identifier.Components[0];
-        Assert.Equal("test", string.Join(" ", name?.Words ?? new List<string>()));
+        {
+            Name name = identifier.Components[0];
+            Assert.Single(name?.Words);
+            Assert.Equal("test", name.Words[0]);
+        }
 
-        Parameters parameters = identifier.Components[1];
-        Assert.Single(parameters?.Values);
-        Datum datum = parameters.Values[0];
-        Assert.Equal("thing", string.Join(" ", datum?.Name?.Words ?? new List<string>()));
-        Assert.Single(datum?.Datatype?.Components);
-        name = datum.Datatype.Components[0];
-        Assert.Equal("number", string.Join(" ", name?.Words ?? new List<string>()));
+        {
+            Parameters parameters = identifier.Components[1];
+            Assert.Single(parameters?.Values);
+            Datum datum = parameters.Values[0];
+            Assert.Single(datum?.Name?.Words);
+            Assert.Equal("thing", datum.Name.Words[0]);
+            Assert.Single(datum?.Datatype?.Components);
+            Name name = datum.Datatype.Components[0];
+            Assert.Single(name?.Words);
+            Assert.Equal("number", name.Words[0]);
+        }        
     }
 }
 

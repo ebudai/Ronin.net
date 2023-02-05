@@ -25,8 +25,10 @@ public class hierarchy
 
         Assert.IsType<PartOf>(hierarchy?.Direction);
 
-        Name name = hierarchy?.Components?[0];
-        Assert.Equal("standard", name?.Words?[0]);        
+        Assert.Single(hierarchy.Components);
+        Name name = hierarchy.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("standard", name.Words[0]);        
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -43,7 +45,8 @@ public class hierarchy
         var hierarchy = Hierarchy.Parse(ref parser);
 
         Assert.IsType<Import>(hierarchy?.Direction);
-        Name name = hierarchy?.Components?[0];
+        Assert.Single(hierarchy.Components);
+        Name name = hierarchy.Components[0];
         Assert.Equal("standard funstuff websockets", string.Join(" ", name?.Words ?? new List<string>()));
     }
 
@@ -64,7 +67,8 @@ public class hierarchy
         var hierarchy = Hierarchy.Parse(ref parser);
 
         Assert.IsType<PartOf>(hierarchy?.Direction);
-        Name name = hierarchy?.Components?[0];
+        Assert.Single(hierarchy.Components);
+        Name name = hierarchy.Components[0];
         Assert.Equal("thing compiled to whatever secret stuff", string.Join(" ", name?.Words ?? new List<string>()));
     }
 
@@ -84,13 +88,22 @@ public class hierarchy
 
         Assert.IsType<PartOf>(hierarchy?.Direction);
 
-        Name name = hierarchy?.Components?[0];
-        Assert.Equal("literal testing", string.Join(" ", name?.Words ?? new List<string>()));
+        Assert.Equal(3, hierarchy.Components?.Count);
 
-        Scalar scalar = hierarchy?.Components?[1];
-        Assert.Equal("\"fast version\"", scalar?.Literals?[0].ToString());
+        {
+            Name name = hierarchy.Components[0];
+            Assert.Equal("literal testing", string.Join(" ", name?.Words ?? new List<string>()));
+        }
 
-        name = hierarchy?.Components?[2];
-        Assert.Equal("readonly", name?.Words?[0]);
+        {
+            Scalar scalar = hierarchy.Components[1];
+            Assert.Equal("\"fast version\"", scalar?.Literals?[0].ToString());
+        }
+
+        {
+            Name name = hierarchy.Components[2];
+            Assert.Single(name?.Words);
+            Assert.Equal("readonly", name.Words[0]);
+        }
     }
 }

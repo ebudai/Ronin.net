@@ -23,11 +23,14 @@ public class assignment
         Parser parser = new(tokens.ToArray());
         var assignment = Assignment.Parse(ref parser);
 
-        Name name = assignment?.Reference?.Components?[0];        
-        Assert.Equal("x", name?.Words?[0]);
+        Assert.Single(assignment?.Reference?.Components);
+        Name name = assignment.Reference.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("x", name.Words[0]);
 
-        Scalar scalar = assignment?.Value;
-        Assert.Equal("17", scalar?.Literals?[0]?.ToString());
+        Scalar scalar = assignment.Value;
+        Assert.Single(scalar?.Literals);
+        Assert.Equal("17", scalar.Literals[0]?.ToString());
     }
 
     [Fact(DisplayName = "no whitespace")]
@@ -42,10 +45,13 @@ public class assignment
         Parser parser = new(tokens.ToArray());
         var assignment = Assignment.Parse(ref parser);
 
-        Name name = assignment?.Reference?.Components?[0];
-        Assert.Equal("x", name?.Words?[0]);
+        Assert.Single(assignment?.Reference?.Components);
+        Name name = assignment.Reference.Components?[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("x", name.Words[0]);
 
-        Scalar scalar = assignment?.Value;
-        Assert.Equal("17", scalar?.Literals?[0]?.ToString());
+        Scalar scalar = assignment.Value;
+        Assert.Single(scalar?.Literals);
+        Assert.Equal("17", scalar.Literals[0]?.ToString());
     }
 }

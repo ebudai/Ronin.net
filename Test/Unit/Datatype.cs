@@ -23,9 +23,11 @@ public class datatype
         
         Parser parser = new(tokens.ToArray());
         var datatype = Ronin.Grammar.Datatype.Parse(ref parser);
-        
-        Name name = datatype?.Identifier?.Components?[0];
-        Assert.Equal("Test", name?.Words?[0]);
+
+        Assert.Single(datatype?.Identifier?.Components);
+        Name name = datatype.Identifier.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("Test", name.Words[0]);
     }
 
     [Fact(DisplayName = "with algebra and members")]
@@ -53,19 +55,34 @@ public class datatype
         Parser parser = new(tokens.ToArray());
         var datatype = Ronin.Grammar.Datatype.Parse(ref parser);
 
-        Name algebra = datatype?.Algebra?.Components?[0];
-        Assert.Equal("number or", string.Join(" ", algebra?.Words ?? new List<string>()));
+        Assert.Single(datatype?.Identifier?.Components);
+        Name algebra = datatype.Algebra.Components[0];
+        Assert.Equal(2, algebra?.Words.Count);
+        Assert.Equal("number", algebra.Words[0]);
+        Assert.Equal("or", algebra.Words[1]);
         
-        Datum cash = datatype?.Body?.Values?[0];
-        Assert.IsType<Variable>(cash?.Mutability);
-        Assert.Equal("cash", cash?.Name?.Words?[0]);
-        Name cashtypename = cash?.Datatype?.Components?[0];
-        Assert.Equal("money", cashtypename?.Words?[0]);
+        Assert.Equal(2, datatype.Body?.Values.Count);
 
-        Datum debt = datatype?.Body?.Values?[1];
-        Assert.IsType<Variable>(debt?.Mutability);
-        Assert.Equal("debt", debt?.Name?.Words?[0]);
-        Name debttypename = debt?.Datatype?.Components?[0];
-        Assert.Equal("money", debttypename?.Words?[0]);
+        {
+            Datum cash = datatype.Body.Values[0];
+            Assert.IsType<Variable>(cash?.Mutability);
+            Assert.Single(cash.Name?.Words);
+            Assert.Equal("cash", cash.Name.Words[0]);
+            Assert.Single(cash.Datatype?.Components);
+            Name type = cash.Datatype.Components[0];
+            Assert.Single(type?.Words);
+            Assert.Equal("money", type.Words[0]);
+        }
+
+        {
+            Datum debt = datatype.Body.Values[1];
+            Assert.IsType<Variable>(debt?.Mutability);
+            Assert.Single(debt.Name?.Words);
+            Assert.Equal("debt", debt.Name.Words[0]);
+            Assert.Single(debt.Datatype?.Components);
+            Name type = debt.Datatype.Components[0];
+            Assert.Single(type?.Words);
+            Assert.Equal("money", type.Words[0]);
+        }        
     }
 }
