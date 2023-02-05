@@ -70,7 +70,7 @@ public class keyword
     [Fact(DisplayName = "compiled")]
     public void Compiled()
     {
-        const string sourcecode = "compiled constant thing";
+        const string sourcecode = "compiled thing";
 
         Lexer lexer = new(sourcecode);
         var lexed = Keyword.Lex(lexer);
@@ -98,6 +98,17 @@ public class keyword
         var lexed = Keyword.Lex(lexer);
 
         Assert.Equal("optional".ToArray(), lexed?.Sourcecode.ToArray());
+    }
+
+    [Fact(DisplayName = "persistent")]
+    public void Persistent()
+    {
+        const string sourcecode = "persistent thing";
+
+        Lexer lexer = new(sourcecode);
+        var lexed = Keyword.Lex(lexer);
+
+        Assert.Equal("persistent".ToArray(), lexed?.Sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "part of")]
