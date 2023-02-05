@@ -17,12 +17,26 @@ public class parser
     {
         Tokens tokens = new();
 
+        // part of testing apparatus;
+
+        tokens.Add<PartOf>()
+            .Add<Word>("testing")
+            .Add<Word>("apparatus")
+            .Add<Terminal>();
+
         // var a = 3;
 
         tokens.Add<Variable>()
             .Add<Word>("a")
             .Add<Assign>()
             .Add<Number>("3")
+            .Add<Terminal>();
+
+        // a = 6;
+
+        tokens.Add<Word>("a")
+            .Add<Assign>()
+            .Add<Number>("6")
             .Add<Terminal>();
 
         // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
@@ -70,15 +84,21 @@ public class parser
         Parser parser = new(tokens.ToArray());
         var statements = parser.Parse();
 
-        Assert.Equal(3, statements?.Count);
+        Assert.Equal(5, statements?.Count);
 
-        Ronin.Grammar.Datum datum = statements[0];
+        Ronin.Grammar.Hierarchy partof = statements[0];
+        Assert.NotNull(partof);
+
+        Ronin.Grammar.Datum datum = statements[1];
         Assert.NotNull(datum);
 
-        Ronin.Grammar.Function function = statements[1];
+        Ronin.Grammar.Assignment assignment = statements[2];
+        Assert.NotNull(assignment);
+
+        Ronin.Grammar.Function function = statements[3];
         Assert.NotNull(function);
 
-        Ronin.Grammar.Datatype datatype = statements[2];
+        Ronin.Grammar.Datatype datatype = statements[4];
         Assert.NotNull(datatype);
     }
 }
