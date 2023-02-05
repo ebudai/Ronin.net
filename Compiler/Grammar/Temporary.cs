@@ -8,9 +8,9 @@ using Arguments = Ronin.Grammar.Aggregates.Arguments;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Union of <see cref="Scalar"/>, <see cref="Arguments"/>, <see cref="Scope"/>, and <see cref="Name"/>
+///     Union of <see cref="Scalar"/>, <see cref="Arguments"/>, and <see cref="Scope"/>
 /// </summary>
-internal class Temporary : Syntax, Compiler.IParsable<Temporary>
+/*internal class Temporary : Syntax, Compiler.IParsable<Temporary>
 {
     public static Temporary Parse(ref Parser context)
     {
@@ -30,4 +30,4 @@ internal class Temporary : Syntax, Compiler.IParsable<Temporary>
     public static implicit operator Scope(Temporary value) => value.value as Scope;
 
     private Syntax value;
-}
+}*/

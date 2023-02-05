@@ -242,8 +242,7 @@ public class datum
         Name name = datum?.Datatype?.Components?[0];
         Assert.Equal("number", name?.Words?[0]);
 
-        Temporary temporary = datum?.Initializer;
-        Scalar scalar = temporary;
+        Scalar scalar = datum?.Initializer;
         Assert.Equal("2", scalar?.Literals?[0]?.ToString());
     }
 }

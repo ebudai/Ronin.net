@@ -91,14 +91,12 @@ public class ordinal
         var arguments = Ordinal.Parse(ref parser);
 
         {
-            Temporary temporary = arguments?.Values?[0];
-            Scalar scalar = temporary;
+            Scalar scalar = arguments?.Values?[0];
             Assert.Equal("1", scalar?.Literals?[0]?.ToString());
         }
 
         {
-            Temporary temporary = arguments?.Values?[1];
-            Scalar scalar = temporary;
+            Scalar scalar = arguments?.Values?[1];
             Assert.Equal("2", scalar?.Literals?[0]?.ToString());
         }
 

@@ -37,8 +37,7 @@ public class reference
 
         Arguments arguments = reference.Components[2];
         Assert.Single(arguments?.Values);
-        Temporary temporary = arguments.Values[0];
-        scalar = temporary;
+        scalar = arguments.Values[0];
         Assert.Single(scalar?.Literals);
         Assert.Equal("\"stuff\"", scalar.Literals[0].ToString());
     }

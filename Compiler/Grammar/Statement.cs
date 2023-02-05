@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
@@ -23,7 +24,9 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
             ?? Datatype.Parse(ref parser)
             ?? Assignment.Parse(ref parser)
             ?? Reference.Parse(ref parser)
-            ?? Temporary.Parse(ref parser)
+            ?? Scalar.Parse(ref parser)
+            ?? Arguments.Parse(ref parser)
+            ?? Scope.Parse(ref parser)
             ?? Datum.Parse(ref parser)
             ?? Unknown.Parse(ref parser) as Syntax;
 
@@ -38,7 +41,9 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
     public static implicit operator Datatype(Statement statement) => statement.value as Datatype;
     public static implicit operator Assignment(Statement statement) => statement.value as Assignment;
     public static implicit operator Reference(Statement statement) => statement.value as Reference;
-    public static implicit operator Temporary(Statement statement) => statement.value as Temporary;
+    public static implicit operator Scalar(Statement statement) => statement.value as Scalar;
+    public static implicit operator Arguments(Statement statement) => statement.value as Arguments;
+    public static implicit operator Scope(Statement statement) => statement.value as Scope;
     public static implicit operator Unknown(Statement statement) => statement.value as Unknown;
 
     private Syntax value;

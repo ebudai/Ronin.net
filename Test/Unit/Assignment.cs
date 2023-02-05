@@ -26,8 +26,7 @@ public class assignment
         Name name = assignment?.Reference?.Components?[0];        
         Assert.Equal("x", name?.Words?[0]);
 
-        Temporary value = assignment?.Value;
-        Scalar scalar = value;
+        Scalar scalar = assignment?.Value;
         Assert.Equal("17", scalar?.Literals?[0]?.ToString());
     }
 
@@ -46,8 +45,7 @@ public class assignment
         Name name = assignment?.Reference?.Components?[0];
         Assert.Equal("x", name?.Words?[0]);
 
-        Temporary value = assignment?.Value;
-        Scalar scalar = value;
+        Scalar scalar = assignment?.Value;
         Assert.Equal("17", scalar?.Literals?[0]?.ToString());
     }
 }

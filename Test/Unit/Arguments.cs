@@ -26,9 +26,12 @@ public class arguments
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
 
-        Reference reference = arguments?.Values?[0];
-        Name name = reference?.Components?[0];
-        Assert.Equal("stuff", name?.Words?[0]);
+        Assert.Single(arguments?.Values);
+        Reference reference = arguments.Values[0];
+        Assert.Single(reference?.Components);
+        Name name = reference.Components[0];
+        Assert.Single(name?.Words);
+        Assert.Equal("stuff", name.Words[0]);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -46,16 +49,22 @@ public class arguments
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
 
-        {
-            Reference reference = arguments?.Values?[0];
-            Name name = reference?.Components?[0];
-            Assert.Equal("test", name?.Words?[0]);
+        Assert.Equal(2, arguments?.Values.Count);
+
+        {            
+            Reference reference = arguments.Values[0];
+            Assert.Single(reference?.Components);
+            Name name = reference.Components[0];
+            Assert.Single(name?.Words);
+            Assert.Equal("test", name.Words[0]);
         }
 
         {
-            Reference reference = arguments?.Values?[1];
-            Name name = reference?.Components?[0];
-            Assert.Equal("stuff", name?.Words?[0]);
+            Reference reference = arguments.Values[1];
+            Assert.Single(reference?.Components);
+            Name name = reference.Components[0];
+            Assert.Single(name?.Words);
+            Assert.Equal("stuff", name.Words[0]);
         }
     }
 
@@ -90,20 +99,26 @@ public class arguments
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
 
+        Assert.Equal(3, arguments?.Values.Count);
+        
         {
-            Temporary temporary = arguments?.Values?[0];
-            Scalar scalar = temporary;
-            Assert.Equal("1", scalar?.Literals?[0]?.ToString());
+            Scalar scalar = arguments.Values[0];
+            Assert.Single(scalar?.Literals);
+            Assert.Equal("1", scalar.Literals[0]?.ToString());
         }
 
         {
-            Temporary temporary = arguments?.Values?[1];
-            Scalar scalar = temporary;
-            Assert.Equal("2", scalar?.Literals?[0]?.ToString());
+            Scalar scalar = arguments.Values[1];
+            Assert.Single(scalar?.Literals);
+            Assert.Equal("2", scalar.Literals[0]?.ToString());
         }
 
-        Reference reference = arguments?.Values?[2];
-        Name name = reference?.Components?[0];
-        Assert.Equal("thing", name?.Words?[0]);
+        {
+            Reference reference = arguments.Values[2];
+            Assert.Single(reference?.Components);
+            Name name = reference.Components[0];
+            Assert.Single(name?.Words);
+            Assert.Equal("thing", name.Words[0]);
+        }
     }
 }
