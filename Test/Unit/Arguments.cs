@@ -49,7 +49,7 @@ public class arguments
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
 
-        Assert.Equal(2, arguments?.Values.Count);
+        Assert.Equal(2, arguments?.Values?.Count);
 
         {            
             Reference reference = arguments.Values[0];
@@ -99,7 +99,7 @@ public class arguments
         Parser parser = new(tokens.ToArray());
         var arguments = Arguments.Parse(ref parser);
 
-        Assert.Equal(3, arguments?.Values.Count);
+        Assert.Equal(3, arguments?.Values?.Count);
         
         {
             Scalar scalar = arguments.Values[0];
@@ -119,6 +119,69 @@ public class arguments
             Name name = reference.Components[0];
             Assert.Single(name?.Words);
             Assert.Equal("thing", name.Words[0]);
+        }
+    }
+
+    [Fact(DisplayName = "arguments of arguments")]
+    public void Recursive()
+    {
+        // (a, 3, (1, 2, 3))
+
+        Tokens tokens = new();
+        tokens.Add<OpenParenthesis>()
+            .Add<Word>("a")
+            .Add<Separator>()
+            .Add<Number>("3")
+            .Add<Separator>()
+            .Add<OpenParenthesis>()
+            .Add<Number>("1")
+            .Add<Separator>()
+            .Add<Number>("2")
+            .Add<Separator>()
+            .Add<Number>("3")
+            .Add<CloseParenthesis>()
+            .Add<CloseParenthesis>();
+
+        Parser parser = new(tokens.ToArray());
+        var arguments = Arguments.Parse(ref parser);
+
+        Assert.Equal(3, arguments?.Values?.Count);
+
+        {
+            Reference reference = arguments.Values[0];
+            Assert.Single(reference?.Components);
+            Name name = reference.Components[0];
+            Assert.Single(name?.Words);
+            Assert.Equal("a", name.Words[0]);
+        }
+
+        {
+            Scalar scalar = arguments.Values[1];
+            Assert.Single(scalar?.Literals);
+            Assert.Equal("3", scalar.Literals[0]?.ToString());
+        }
+
+        {
+            Arguments subargs = arguments.Values[2];
+            Assert.Equal(3, subargs?.Values?.Count);
+
+            {
+                Scalar scalar = subargs?.Values[0];
+                Assert.Single(scalar?.Literals);
+                Assert.Equal("1", scalar.Literals[0]?.ToString());
+            }
+
+            {
+                Scalar scalar = subargs?.Values[1];
+                Assert.Single(scalar?.Literals);
+                Assert.Equal("2", scalar.Literals[0]?.ToString());
+            }
+
+            {
+                Scalar scalar = subargs?.Values[2];
+                Assert.Single(scalar?.Literals);
+                Assert.Equal("3", scalar.Literals[0]?.ToString());
+            }
         }
     }
 }

@@ -22,7 +22,6 @@ internal class Value : Syntax, Compiler.IParsable<Value>
     public static implicit operator Reference(Value value) => value.value as Reference;
     public static implicit operator Scalar(Value value) => value.value as Scalar;
     public static implicit operator Arguments(Value value) => value.value as Arguments;
-    public static implicit operator Scope(Value value) => value.value as Scope;
-
+    
     private Syntax value;
 }

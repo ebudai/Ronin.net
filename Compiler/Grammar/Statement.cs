@@ -7,7 +7,8 @@ namespace Ronin.Grammar;
 
 /// <summary>
 ///     Union of <see cref="Hierarchy"/>, <see cref="Datum"/>, <see cref="Function"/>, 
-///     <see cref="Datatype"/>, <see cref="Assignment"/>, <see cref="Reference"/>, and <see cref="Temporary"/>
+///     <see cref="Datatype"/>, <see cref="Assignment"/>, <see cref="Reference"/>, <see cref="Scalar"/>, 
+///     <see cref="Arguments"/>, <see cref="Scope"/>, <see cref="Datum"/> and <see cref="Unknown"/>
 /// </summary>
 /// 
 /// <remarks>

@@ -20,7 +20,7 @@ internal class Symbol : Token
         var text = lexer[i..].Span;
         if (text.IsEmpty) return false;
         return text.StartsWith(Returns.symbol)
-            || text.StartsWith(Interval.symbol)
+            //|| text.StartsWith(Interval.symbol)
             || text[0] is Ampersand.character
             or Equal.character
             or Asterisk.character
@@ -57,7 +57,7 @@ internal class Symbol : Token
     internal static Symbol Lex(Lexer lexer)
         => Ampersand.Lex(lexer)
         ?? Returns.Lex(lexer) // needs to be above Equals
-        ?? Interval.Lex(lexer) // needs to be above Period
+        //?? Interval.Lex(lexer) // needs to be above Period
         ?? Equal.Lex(lexer)
         ?? Asterisk.Lex(lexer)
         ?? At.Lex(lexer)
