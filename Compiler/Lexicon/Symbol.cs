@@ -20,20 +20,20 @@ internal class Symbol : Token
         var text = lexer[i..].Span;
         if (text.IsEmpty) return false;
         return text.StartsWith(Returns.symbol)
-            //|| text.StartsWith(Interval.symbol)
+            || text.StartsWith(Symbols.Range.symbol)
             || text[0] is Ampersand.character
-            or Equal.character
+            or Assign.character
             or Asterisk.character
             or At.character
             or Backslash.character
             or Backtick.character
-            or Quote.character
+            or CharacterDelimiter.character
             or Chevron.character
             or CloseBrace.character
             or CloseParenthesis.character
             or CloseSquareBracket.character
             or Colon.character
-            or Comma.character
+            or Separator.character
             or Dollar.character
             or Exclamation.character
             or GreaterThan.character
@@ -48,28 +48,28 @@ internal class Symbol : Token
             or Plus.character
             or Pound.character
             or Question.character
-            or Semicolon.character
+            or Terminal.character
             or Slash.character
-            or DoubleQuote.character
+            or TextDelimiter.character
             or Tilde.character;
     }
 
     internal static Symbol Lex(Lexer lexer)
         => Ampersand.Lex(lexer)
         ?? Returns.Lex(lexer) // needs to be above Equals
-        //?? Interval.Lex(lexer) // needs to be above Period
-        ?? Equal.Lex(lexer)
+        ?? Symbols.Range.Lex(lexer) // needs to be above Period
+        ?? Assign.Lex(lexer)
         ?? Asterisk.Lex(lexer)
         ?? At.Lex(lexer)
         ?? Backslash.Lex(lexer)
         ?? Backtick.Lex(lexer)
-        ?? Quote.Lex(lexer)
+        ?? CharacterDelimiter.Lex(lexer)
         ?? Chevron.Lex(lexer)
         ?? CloseBrace.Lex(lexer)
         ?? CloseParenthesis.Lex(lexer)
         ?? CloseSquareBracket.Lex(lexer)
         ?? Colon.Lex(lexer)
-        ?? Comma.Lex(lexer)
+        ?? Separator.Lex(lexer)
         ?? Dollar.Lex(lexer)
         ?? Exclamation.Lex(lexer)
         ?? GreaterThan.Lex(lexer)
@@ -84,9 +84,9 @@ internal class Symbol : Token
         ?? Plus.Lex(lexer)
         ?? Pound.Lex(lexer)
         ?? Question.Lex(lexer)
-        ?? Semicolon.Lex(lexer)        
+        ?? Terminal.Lex(lexer)        
         ?? Slash.Lex(lexer)
-        ?? DoubleQuote.Lex(lexer)
+        ?? TextDelimiter.Lex(lexer)
         ?? Tilde.Lex(lexer) as Symbol;
 }
 
