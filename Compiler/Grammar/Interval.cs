@@ -11,12 +11,12 @@ internal class Interval : Syntax, Compiler.IParsable<Interval>
     {
         Parser parser = context;
 
-        if (Value.Parse(ref parser) is not Value start) return null;
+        var start = Value.Parse(ref parser);
 
         if (parser.CurrentToken is not Lexicon.Symbols.Range) return null;
         parser.Advance();
 
-        if (Value.Parse(ref parser) is not Value end) return null;
+        var end = Value.Parse(ref parser);
 
         return new Interval
         {

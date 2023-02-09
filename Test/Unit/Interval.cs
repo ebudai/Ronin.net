@@ -1,7 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 using Test;
 
 namespace Unit;
@@ -11,46 +10,62 @@ namespace Unit;
 #pragma warning disable IDE1006
 public class interval
 {
-    [Fact(DisplayName = "closed")]
-    public void Closed()
+    [Fact(DisplayName = "basic")]
+    public void Basic()
     {
-        Test("2", "7");
-    }
+        const string two = "2";
+        const string sixteen = "16";
 
-    [Fact(DisplayName = "open")]
-    public void Open()
-    {
-        Test("0", "18");
-    }
-
-    [Fact(DisplayName = "left open")]
-    public void LeftOpen()
-    {
-        Test("-100", "0");
-    }
-
-    [Fact(DisplayName = "right open")]
-    public void RightOpen()
-    {
-        Test("1002", "1003");
-    }
-
-    private static void Test(string startvalue, string endvalue)
-    {
         Tokens tokens = new();
-        tokens.Add<Number>(startvalue)
+        tokens.Add<Number>(two)
             .Add<Ronin.Lexicon.Symbols.Range>()
-            .Add<Number>(endvalue);
+            .Add<Number>(sixteen);
 
         Parser parser = new(tokens.ToArray());
         var interval = Interval.Parse(ref parser);
 
         Scalar start = interval.Start;
         Assert.Single(start?.Literals);
-        Assert.Equal(startvalue, start.Literals[0]?.ToString());
+        Assert.Equal(two, start.Literals[0]?.ToString());
 
         Scalar end = interval.End;
         Assert.Single(end?.Literals);
-        Assert.Equal(endvalue, end.Literals[0]?.ToString());
+        Assert.Equal(sixteen, end.Literals[0]?.ToString());
+    }
+
+    [Fact(DisplayName = "left unspecified")]
+    public void LeftUnspecified()
+    {
+        const string four = "4";
+
+        Tokens tokens = new();
+        tokens.Add<Ronin.Lexicon.Symbols.Range>().Add<Number>(four);
+
+        Parser parser = new(tokens.ToArray());
+        var interval = Interval.Parse(ref parser);
+
+        Assert.Null(interval.Start);
+
+        Scalar end = interval.End;
+        Assert.Single(end?.Literals);
+        Assert.Equal(four, end.Literals[0]?.ToString());
+    }
+
+    [Fact(DisplayName = "right unspecified")]
+    public void RightUnspecified() 
+    {
+        const string twelve = "12";
+
+        Tokens tokens = new();
+        tokens.Add<Number>(twelve).Add<Ronin.Lexicon.Symbols.Range>();
+
+        Parser parser = new(tokens.ToArray());
+        var interval = Interval.Parse(ref parser);
+
+        Scalar start = interval.Start;
+        Assert.Single(start?.Literals);
+        Assert.Equal(twelve, start.Literals[0]?.ToString());
+
+        Assert.Null(interval.End);
     }
 }

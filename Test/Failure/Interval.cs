@@ -1,12 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Ronin.Compiler;
+using Ronin.Grammar;
+using Ronin.Lexicon;
+using Test;
 
-namespace Failure
+namespace Failure;
+
+[Trait("Parser", null)]
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+public class interval
 {
-    internal class Interval
+    [Fact(DisplayName = "not an interval")]
+    public void NotAnInterval()
     {
+        // not an interval;
+
+        Tokens tokens = new();
+        tokens.Add<Word>("not")
+            .Add<Word>("an")
+            .Add<Word>("interval")
+            .Add<Terminal>();
+
+        Parser parser = new(tokens.ToArray());
+        var ordinal = Interval.Parse(ref parser);
+
+        Assert.Null(ordinal);
     }
 }
