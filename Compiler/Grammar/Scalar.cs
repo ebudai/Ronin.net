@@ -17,8 +17,8 @@ internal class Scalar : Syntax, Compiler.IParsable<Scalar>
         while (parser.IsNotFinished)
         {            
             if (parser.CurrentToken is not Literal literal) break;
-            values.Add(literal);
             parser.Advance();
+            values.Add(literal);   
         }
 
         if (values.Count is 0) return null;

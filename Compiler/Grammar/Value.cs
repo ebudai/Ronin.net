@@ -9,10 +9,10 @@ internal class Value : Syntax, Compiler.IParsable<Value>
     {
         Parser parser = context;
 
-        var syntax = Reference.Parse(ref parser)
-            ?? Scalar.Parse(ref parser)
+        var syntax = Scalar.Parse(ref parser)
             ?? Arguments.Parse(ref parser)
-            ?? Scope.Parse(ref parser) as Syntax;
+            ?? Scope.Parse(ref parser) 
+            ?? Reference.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -22,6 +22,7 @@ internal class Value : Syntax, Compiler.IParsable<Value>
     public static implicit operator Reference(Value value) => value.value as Reference;
     public static implicit operator Scalar(Value value) => value.value as Scalar;
     public static implicit operator Arguments(Value value) => value.value as Arguments;
+    public static implicit operator Scope(Value value) => value.value as Scope;
     
     private Syntax value;
 }

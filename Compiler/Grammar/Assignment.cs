@@ -22,8 +22,7 @@ internal class Assignment : Syntax, Compiler.IParsable<Assignment>
 
         if (Reference.Parse(ref parser) is not Reference reference) return null;
 
-        if (parser.CurrentToken is not Assign) return null;
-        parser.Advance();
+        if (parser.FailedToConsume<Assign>()) return null;
 
         if (Value.Parse(ref parser) is not Value value) return null;
 

@@ -38,6 +38,13 @@ internal ref struct Parser
         return parsed;
     }
 
+    internal bool FailedToConsume<T>() where T : Token
+    {
+        var consumed = CurrentToken is T;
+        if (consumed) Advance();
+        return consumed is false;
+    }
+
     internal int Index;
 
     internal ref readonly Token CurrentToken => ref tokens[Index];

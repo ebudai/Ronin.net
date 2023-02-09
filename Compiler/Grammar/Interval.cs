@@ -13,8 +13,7 @@ internal class Interval : Syntax, Compiler.IParsable<Interval>
 
         var start = Value.Parse(ref parser);
 
-        if (parser.CurrentToken is not Lexicon.Symbols.Range) return null;
-        parser.Advance();
+        if (parser.FailedToConsume<Lexicon.Symbols.Range>()) return null;
 
         var end = Value.Parse(ref parser);
 

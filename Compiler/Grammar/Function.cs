@@ -21,8 +21,7 @@ internal class Function : Syntax, Compiler.IParsable<Function>
     {
         Parser parser = context;
 
-        if (parser.CurrentToken is not Lexicon.Keywords.Function) return null;        
-        parser.Advance();
+        if (parser.FailedToConsume<Lexicon.Keywords.Function>()) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
