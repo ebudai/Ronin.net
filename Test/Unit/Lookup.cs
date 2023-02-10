@@ -1,6 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 using Test;
@@ -38,5 +40,31 @@ public class lookup
         Scalar value = association.Value;
         Assert.Single(value?.Literals);
         Assert.Equal(seven, value.Literals[0]?.ToString());
+    }
+
+    [Fact(DisplayName = "as value")]
+    public void AsValue()
+    {
+        const string dave = "dave";
+        const string x = "\"x\"";
+        const string twelve = "12";
+
+        Tokens tokens = new();
+        tokens.Add<Variable>()
+            .Add<Word>(dave)
+            .Add<Assign>()
+            .Add<OpenBrace>()
+            .Add<Text>(x)
+            .Add<Assign>()
+            .Add<Number>(twelve)
+            .Add<CloseBrace>();
+
+        Parser parser = new(tokens.ToArray());
+        var statements = parser.Parse();
+
+        Assert.Single(statements);
+        Datum datum = statements[0];
+        Lookup lookup = datum?.Initializer;
+        Assert.NotNull(lookup);
     }
 }

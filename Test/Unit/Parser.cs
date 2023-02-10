@@ -131,10 +131,12 @@ public class parser
         Ronin.Grammar.Datatype datatype = statements[4];
         Assert.NotNull(datatype);
 
-        Ronin.Grammar.Scalar scalar = statements[5];
+        Ronin.Grammar.Value scalar_value = statements[5];
+        Ronin.Grammar.Scalar scalar = scalar_value;
         Assert.NotNull(scalar);
 
-        Ronin.Grammar.Aggregates.Arguments arguments = statements[6];
+        Ronin.Grammar.Value arguments_value = statements[6];
+        Ronin.Grammar.Aggregates.Arguments arguments = arguments_value;
         Assert.NotNull(arguments);
 
         Ronin.Grammar.Aggregates.Scope scope = statements[7];

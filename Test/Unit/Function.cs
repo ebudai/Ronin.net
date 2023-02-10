@@ -61,7 +61,8 @@ public class function
         }
 
         Assert.Single(function.Body?.Values);
-        Reference line = function.Body.Values[0];
+        Value value = function.Body.Values[0];
+        Reference line = value;
         
         Assert.Equal(2, line?.Components?.Count);
 
@@ -137,7 +138,8 @@ public class function
         Assert.Equal("number", returns.Words[0]);
 
         Assert.Single(function.Body?.Values);
-        Reference line = function.Body.Values[0];
+        Value value = function.Body.Values[0];
+        Reference line = value;
         Assert.Single(line?.Components);
         Name @return = line.Components[0];
         Assert.Equal("return x as number", string.Join(" ", @return?.Words ?? new List<string>()));

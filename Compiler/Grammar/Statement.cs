@@ -21,13 +21,11 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
         Parser parser = context;
 
         var syntax = Hierarchy.Parse(ref parser)
+            ?? Assignment.Parse(ref parser)
             ?? Function.Parse(ref parser)
             ?? Datatype.Parse(ref parser)
-            ?? Assignment.Parse(ref parser)            
-            ?? Scalar.Parse(ref parser)
-            ?? Arguments.Parse(ref parser)
             ?? Scope.Parse(ref parser)
-            ?? Reference.Parse(ref parser)
+            ?? Value.Parse(ref parser)            
             ?? Datum.Parse(ref parser)
             ?? Unknown.Parse(ref parser) as Syntax;
 
@@ -40,12 +38,10 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
     public static implicit operator Function(Statement statement) => statement.value as Function;
     public static implicit operator Datatype(Statement statement) => statement.value as Datatype;
     public static implicit operator Assignment(Statement statement) => statement.value as Assignment;
-    public static implicit operator Scalar(Statement statement) => statement.value as Scalar;
-    public static implicit operator Arguments(Statement statement) => statement.value as Arguments;
+    public static implicit operator Value(Statement statement) => statement.value as Value;
     public static implicit operator Scope(Statement statement) => statement.value as Scope;
-    public static implicit operator Reference(Statement statement) => statement.value as Reference;
     public static implicit operator Datum(Statement statement) => statement.value as Datum;
-    public static implicit operator Unknown(Statement statement) => statement.value as Unknown;
+    public static implicit operator Unknown(Statement statement) => statement.value as Unknown;    
 
     private Syntax value;
 }
