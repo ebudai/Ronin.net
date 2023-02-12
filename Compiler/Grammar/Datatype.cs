@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -12,11 +11,10 @@ namespace Ronin.Grammar;
 /// </summary>
 /// 
 /// <example>
-///     datatype Car { var speed => number; var price => money; }
+///     datatype Car = Vehicle and { var speed => number; var price => money; }
 /// </example>
 internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 {
-    public Modifiers Is { get; init; }
     public Identifier Identifier { get; init; }
     public Reference Algebra { get; init; }
     public Scope Body { get; init; }
@@ -24,8 +22,6 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
     public static Datatype Parse(ref Parser context)
     {
         Parser parser = context;
-
-        var modifiers = Modifiers.Parse(ref parser);
 
         if (parser.FailedToConsume<Lexicon.Keywords.Datatype>()) return null;
 
@@ -42,7 +38,6 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
 
         return new Datatype
         {
-            Is = modifiers,
             Identifier = identifier,
             Algebra = algebra,
             Body = body,

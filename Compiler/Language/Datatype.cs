@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Ronin.Language;
 
-namespace Ronin.Language
+internal class Datatype
 {
-    internal class Datatype
-    {
-    }
+
 }
