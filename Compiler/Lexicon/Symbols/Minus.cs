@@ -7,7 +7,9 @@ internal class Minus : Symbol
     public const char character = '-';
     public const string symbol = "-";
 
-    private Minus(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Minus Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Minus(lexer) : null;
+    public static new Minus Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Minus { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

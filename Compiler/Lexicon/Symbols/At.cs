@@ -7,7 +7,9 @@ internal class At : Symbol
     public const char character = '@';
     public const string symbol = "@";
 
-    private At(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new At Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new At(lexer) : null;
+    public static new At Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new At { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

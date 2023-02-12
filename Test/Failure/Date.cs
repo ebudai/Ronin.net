@@ -14,7 +14,7 @@ public class date
         const string literal = "not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -25,7 +25,7 @@ public class date
         const string literal = "1not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -36,7 +36,7 @@ public class date
         const string literal = "19not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -47,7 +47,7 @@ public class date
         const string literal = "198not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -58,7 +58,7 @@ public class date
         const string literal = "1984not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -69,7 +69,7 @@ public class date
         const string literal = "1984-not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -80,7 +80,7 @@ public class date
         const string literal = "1984-0not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -91,7 +91,7 @@ public class date
         const string literal = "1984-04not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -102,7 +102,7 @@ public class date
         const string literal = "1984-04-not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -113,7 +113,7 @@ public class date
         const string literal = "1984-04-1not a date literal";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -124,7 +124,7 @@ public class date
         const string literal = "1984-01-4";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -133,7 +133,7 @@ public class date
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }

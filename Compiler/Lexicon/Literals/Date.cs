@@ -4,9 +4,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Date : Literal
 {
-    private Date(Lexer lexer) : base(lexer, Length) { }
-
-    internal static new Token Lex(Lexer lexer)
+    public static new Token Lex(ref Lexer lexer)
     {
         if (lexer.Length is < Length) return null;
 
@@ -21,7 +19,7 @@ internal class Date : Literal
         if (char.IsNumber(lexer[8]) is not true) return null;
         if (char.IsNumber(lexer[9]) is not true) return null;
 
-        return new Date(lexer);
+        return new Date { Sourcecode = lexer.Commit(Length) };
     }
 
     private const int Length = 10;

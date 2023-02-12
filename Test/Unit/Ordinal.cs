@@ -104,13 +104,13 @@ public class ordinal
         {
             Scalar scalar = arguments.Values[0];
             Assert.Single(scalar?.Literals);
-            Assert.Equal("1", scalar.Literals[0]?.ToString());
+            Assert.Equal("1", scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
             Scalar scalar = arguments.Values[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal("2", scalar.Literals[0]?.ToString());
+            Assert.Equal("2", scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {

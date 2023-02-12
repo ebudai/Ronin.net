@@ -6,12 +6,9 @@ internal class Range : Punctuation
 {
     public const string symbol = "..";
 
-    private Range(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Range Lex(Lexer lexer) //=> lexer.IsNotEmpty && lexer.StartsWith(symbol) ? new Range(lexer) : null;
+    public static new Range Lex(ref Lexer lexer)
     {
-        if (lexer.IsEmpty) return null;
-        if (lexer.StartsWith(symbol)) return new Range(lexer);
-        return null;
+        if (lexer.IsEmpty || lexer.DoesNotStartWith(symbol)) return null;
+        return new Range { Sourcecode = lexer.Commit(symbol.Length) };
     }
 }

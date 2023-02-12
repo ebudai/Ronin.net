@@ -12,8 +12,8 @@ public class symbol
     private static void LexSymbol<T>(string lexed) where T : Symbol
     {
         Lexer lexer = new(lexed);
-        Assert.True(Symbol.IsSymbol(lexer));
-        var symbol = Symbol.Lex(lexer);
+        Assert.True(Symbol.IsSymbol(ref lexer));
+        var symbol = Symbol.Lex(ref lexer);
 
         Assert.Equal(lexed.ToArray(), symbol?.Sourcecode.ToArray());
 

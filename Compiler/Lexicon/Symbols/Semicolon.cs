@@ -7,7 +7,9 @@ internal class Semicolon : Punctuation
     public const char character = ';';
     public const string symbol = ";";
 
-    private Semicolon(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Semicolon Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Semicolon(lexer) : null;
+    public static new Semicolon Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Semicolon { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

@@ -5,14 +5,12 @@ namespace Ronin.Lexicon;
 
 internal class Literal : Token
 {
-    internal Literal(Lexer lexer, int length) : base(lexer, length) { }
-
-    internal static Token Lex(Lexer lexer)
-        => Character.Lex(lexer)
-        ?? Date.Lex(lexer)
-        ?? Time.Lex(lexer)
-        ?? Money.Lex(lexer)
-        ?? Number.Lex(lexer)
-        ?? Text.Lex(lexer)
-        ?? Url.Lex(lexer);
+    public static Token Lex(ref Lexer lexer)
+        => Character.Lex(ref lexer)
+        ?? Date.Lex(ref lexer)
+        ?? Time.Lex(ref lexer)
+        ?? Money.Lex(ref lexer)
+        ?? Number.Lex(ref lexer)
+        ?? Text.Lex(ref lexer)
+        ?? Url.Lex(ref lexer);
 }

@@ -7,7 +7,9 @@ internal class OpenBrace : Open
     public const char character = '{';
     public const string symbol = "{";
 
-    private OpenBrace(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new OpenBrace Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new OpenBrace(lexer) : null;
+    public static new OpenBrace Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new OpenBrace { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

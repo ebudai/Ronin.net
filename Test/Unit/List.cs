@@ -29,7 +29,7 @@ public class list
         Assert.Single(list?.Values);
         Scalar scalar = list.Values[0];
         Assert.Single(scalar?.Literals);
-        Assert.Equal("3", scalar.Literals[0]?.ToString());
+        Assert.Equal("3", scalar.Literals[0]?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "multiple")]
@@ -56,19 +56,19 @@ public class list
         {
             Scalar scalar = list.Values[0];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(one, scalar.Literals[0]?.ToString());
+            Assert.Equal(one, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
             Scalar scalar = list.Values[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(two, scalar.Literals[0]?.ToString());
+            Assert.Equal(two, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
             Scalar scalar = list.Values[2];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(six, scalar.Literals[0]?.ToString());
+            Assert.Equal(six, scalar.Literals[0]?.Sourcecode.ToString());
         }
     }
 

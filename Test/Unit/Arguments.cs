@@ -113,13 +113,13 @@ public class arguments
         {
             Scalar scalar = arguments.Values[0];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(one, scalar.Literals[0]?.ToString());
+            Assert.Equal(one, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
             Scalar scalar = arguments.Values[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(two, scalar.Literals[0]?.ToString());
+            Assert.Equal(two, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
@@ -172,7 +172,7 @@ public class arguments
         {
             Scalar scalar = arguments.Values[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(three, scalar.Literals[0]?.ToString());
+            Assert.Equal(three, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
@@ -182,19 +182,19 @@ public class arguments
             {
                 Scalar scalar = subargs?.Values[0];
                 Assert.Single(scalar?.Literals);
-                Assert.Equal(one, scalar.Literals[0]?.ToString());
+                Assert.Equal(one, scalar.Literals[0]?.Sourcecode.ToString());
             }
 
             {
                 Scalar scalar = subargs?.Values[1];
                 Assert.Single(scalar?.Literals);
-                Assert.Equal(two, scalar.Literals[0]?.ToString());
+                Assert.Equal(two, scalar.Literals[0]?.Sourcecode.ToString());
             }
 
             {
                 Scalar scalar = subargs?.Values[2];
                 Assert.Single(scalar?.Literals);
-                Assert.Equal(three, scalar.Literals[0]?.ToString());
+                Assert.Equal(three, scalar.Literals[0]?.Sourcecode.ToString());
             }
         }
     }

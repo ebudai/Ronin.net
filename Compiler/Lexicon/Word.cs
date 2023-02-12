@@ -4,9 +4,7 @@ namespace Ronin.Lexicon;
 
 internal class Word : Token
 {
-    internal Word(Lexer lexer, int length) : base(lexer, length) { }
-
-    internal static Word Lex(Lexer lexer)
+    internal static Word Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
 
@@ -15,8 +13,9 @@ internal class Word : Token
         var length = 0;
         while (length < lexer.Length 
             && !char.IsWhiteSpace(lexer[length])
-            && !Symbol.IsSymbol(lexer, length)) ++length;
+            && !Symbol.IsSymbol(ref lexer, length)) ++length;
 
-        return length is 0 ? null : new Word(lexer, length);
+        if (length is 0) return null;
+        return new Word { Sourcecode = lexer.Commit(length) };
     }
 }

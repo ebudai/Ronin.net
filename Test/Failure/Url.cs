@@ -14,7 +14,7 @@ public class url
         const string literal = "abc://";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -25,7 +25,7 @@ public class url
         const string literal = "a://";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -36,7 +36,7 @@ public class url
         const string literal = "123things://stuff.com";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -47,7 +47,7 @@ public class url
         const string literal = "notAUrlLiteral";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }

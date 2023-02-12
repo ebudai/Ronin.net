@@ -15,7 +15,7 @@ public class number
         const string literal = "g987.23";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -26,7 +26,7 @@ public class number
         const string literal = "9.";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal("9".ToArray(), number?.Sourcecode.ToArray());
     }
@@ -37,7 +37,7 @@ public class number
         const string literal = "9.2v5";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal("9.2".ToArray(), number?.Sourcecode.ToArray());
     }
@@ -48,7 +48,7 @@ public class number
         const string literal = "9.2.5";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.NotNull(lexed);
         var number = lexed as Number;
@@ -62,7 +62,7 @@ public class number
         const string literal = "9,22.33";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.NotNull(lexed);
         var number = lexed as Number;
@@ -74,7 +74,7 @@ public class number
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

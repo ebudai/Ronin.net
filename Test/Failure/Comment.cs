@@ -14,7 +14,7 @@ public class comment
         const string notcomment = "not a comment";
 
         Lexer lexer = new(notcomment);
-        var comment = Comment.Lex(lexer);
+        var comment = Comment.Lex(ref lexer);
 
         Assert.Null(comment);
     }
@@ -25,10 +25,10 @@ public class comment
         const string badcomment = "/*unbalanced /*comment*/\r\nthis is a function call();";
 
         Lexer lexer = new(badcomment);
-        var comment = Comment.Lex(lexer);
+        var comment = Comment.Lex(ref lexer);
 
         Assert.False(comment?.Terminated);
-        Assert.Equal(badcomment, comment?.ToString());
+        Assert.Equal(badcomment, comment?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "unbalanced nested multiline end")]
@@ -37,9 +37,9 @@ public class comment
         const string badcomment = "/*unbalanced */comment*/";
 
         Lexer lexer = new(badcomment);
-        var comment = Comment.Lex(lexer);
+        var comment = Comment.Lex(ref lexer);
 
         Assert.True(comment?.Terminated);
-        Assert.Equal("/*unbalanced */", comment?.ToString());
+        Assert.Equal("/*unbalanced */", comment?.Sourcecode.ToString());
     }
 }

@@ -16,7 +16,7 @@ public class text
         const string literal = "testtest";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -29,7 +29,7 @@ public class text
         Lexer lexer = new(literal);
         var lexed = lexer.Lex();
 
-        Assert.Equal(3, lexed.Length);
+        Assert.Equal(3, lexed.Count);
         
         Assert.IsType<TextDelimiter>(lexed[0]);
         var quote = lexed[0] as TextDelimiter;
@@ -37,7 +37,7 @@ public class text
 
         Assert.IsType<Word>(lexed[1]);
         var name = lexed[1] as Word;
-        Assert.Equal("testtest", name.ToString());
+        Assert.Equal("testtest", name.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "lone double quote")]
@@ -70,7 +70,7 @@ public class text
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

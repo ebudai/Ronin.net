@@ -26,11 +26,11 @@ public class interval
 
         Scalar start = interval.Start;
         Assert.Single(start?.Literals);
-        Assert.Equal(two, start.Literals[0]?.ToString());
+        Assert.Equal(two, start.Literals[0]?.Sourcecode.ToString());
 
         Scalar end = interval.End;
         Assert.Single(end?.Literals);
-        Assert.Equal(sixteen, end.Literals[0]?.ToString());
+        Assert.Equal(sixteen, end.Literals[0]?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "left unspecified")]
@@ -48,7 +48,7 @@ public class interval
 
         Scalar end = interval.End;
         Assert.Single(end?.Literals);
-        Assert.Equal(four, end.Literals[0]?.ToString());
+        Assert.Equal(four, end.Literals[0]?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "right unspecified")]
@@ -64,7 +64,7 @@ public class interval
 
         Scalar start = interval.Start;
         Assert.Single(start?.Literals);
-        Assert.Equal(twelve, start.Literals[0]?.ToString());
+        Assert.Equal(twelve, start.Literals[0]?.Sourcecode.ToString());
 
         Assert.Null(interval.End);
     }

@@ -13,7 +13,7 @@ public class word
         const string name = "7stew";
 
         Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        var lexed = Ronin.Lexicon.Word.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -24,7 +24,7 @@ public class word
         const string name = "(";
 
         Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        var lexed = Ronin.Lexicon.Word.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -33,7 +33,7 @@ public class word
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Lexicon.Word.Lex(lexer);
+        var lexed = Ronin.Lexicon.Word.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

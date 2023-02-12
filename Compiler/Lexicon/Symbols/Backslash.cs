@@ -7,7 +7,9 @@ internal class Backslash : Symbol
     public const char character = '\\';
     public const string symbol = "\\";
 
-    private Backslash(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Backslash Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Backslash(lexer) : null;
+    public static new Backslash Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Backslash { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

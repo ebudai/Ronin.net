@@ -25,7 +25,7 @@ internal class Name : Syntax, Compiler.IParsable<Name>
             
             if (name is Word or Symbol and not Punctuation)
             {
-                words.Add(name);
+                words.Add(name.Sourcecode.ToString());
             }
             else
             {

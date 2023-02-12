@@ -16,7 +16,7 @@ public class money
         const string number = "987.23";
 
         Lexer lexer = new(number);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Money>(lexed);
     }
@@ -27,7 +27,7 @@ public class money
         const string literal = "$f987.23";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -38,7 +38,7 @@ public class money
         const string literal = "$9.";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsType<Money>(lexed);
         var money = lexed as Money;
@@ -51,7 +51,7 @@ public class money
         const string literal = "$9.2v5";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsType<Money>(lexed);
         var money = lexed as Money;
@@ -62,7 +62,7 @@ public class money
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -73,7 +73,7 @@ public class money
         const string literal = "$9.25.4";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsType<Money>(lexed);
         var money = lexed as Money;
@@ -86,7 +86,7 @@ public class money
         const string literal = "$";
 
         Lexer lexer = new(literal);
-        var value = Literal.Lex(lexer);
+        var value = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(value);
     }

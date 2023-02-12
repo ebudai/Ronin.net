@@ -7,7 +7,9 @@ internal class Exclamation : Symbol
     public const char character = '!';
     public const string symbol = "!";
 
-    private Exclamation(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Exclamation Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Exclamation(lexer) : null;
+    public static new Exclamation Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Exclamation { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

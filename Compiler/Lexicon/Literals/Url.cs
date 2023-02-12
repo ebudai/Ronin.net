@@ -4,9 +4,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Url : Literal
 {
-    private Url(Lexer lexer, int length) : base(lexer, length) { }
-
-    internal static new Url Lex(Lexer lexer)
+    public static new Url Lex(ref Lexer lexer)
     {
         if (lexer.Length is < 5) return null;
 
@@ -20,7 +18,7 @@ internal class Url : Literal
         length += 3;
         while (length < lexer.Length && IsValidUrlCharacter(lexer[length])) ++length;
 
-        return new Url(lexer, length);
+        return new Url { Sourcecode = lexer.Commit(length) };
     }
 
     private static bool IsValidUrlCharacter(char value) => char.IsLetterOrDigit(value) || value is '~' or '*' or '(' or ')' or '.' or '-' or '_' or '/';

@@ -4,9 +4,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Money : Literal
 {
-    private Money(Lexer lexer, int length) : base(lexer, length) { }
-
-    internal static new Token Lex(Lexer lexer)
+    public static new Token Lex(ref Lexer lexer)
     {
         if (lexer.Length is < 2
             || lexer[0] is not '$' 
@@ -29,6 +27,6 @@ internal class Money : Literal
 
         if (lexer[length - 1] is '.') --length;
 
-        return new Money(lexer, length);
+        return new Money { Sourcecode = lexer.Commit(length) };
     }
 }

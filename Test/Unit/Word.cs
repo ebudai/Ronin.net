@@ -14,7 +14,7 @@ public class word
         const string name = "thing";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name.ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -25,7 +25,7 @@ public class word
         const string name = "thing;";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -36,7 +36,7 @@ public class word
         const string name = "thing,";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -47,7 +47,7 @@ public class word
         const string name = "thing(";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -58,7 +58,7 @@ public class word
         const string name = "thing)";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -69,7 +69,7 @@ public class word
         const string name = "thing[";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -80,7 +80,7 @@ public class word
         const string name = "thing]";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -91,7 +91,7 @@ public class word
         const string name = "thing{";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -102,7 +102,7 @@ public class word
         const string name = "thing}";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -113,7 +113,7 @@ public class word
         const string name = "thing'";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -124,7 +124,7 @@ public class word
         const string name = "thing\"";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -135,7 +135,7 @@ public class word
         const string name = "thing ";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }

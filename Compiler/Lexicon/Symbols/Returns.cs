@@ -6,7 +6,9 @@ internal class Returns : Punctuation
 {
     public const string symbol = "=>";
 
-    private Returns(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Returns Lex(Lexer lexer) => lexer.IsNotEmpty && lexer.StartsWith(symbol) ? new Returns(lexer) : null;
+    public static new Returns Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer.DoesNotStartWith(symbol)) return null;
+        return new Returns { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

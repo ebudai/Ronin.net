@@ -7,7 +7,9 @@ internal class CloseBrace : Close
     public const char character = '}';
     public const string symbol = "}";
 
-    private CloseBrace(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new CloseBrace Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new CloseBrace(lexer) : null;
+    public static new CloseBrace Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new CloseBrace { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

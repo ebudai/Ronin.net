@@ -5,9 +5,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal partial class Number : Literal
 {
-    private Number(Lexer lexer, int length) : base(lexer, length) { }
-
-    internal static new Token Lex(Lexer lexer)
+    public static new Token Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || char.IsNumber(lexer[0]) is false) return null;
 
@@ -20,13 +18,13 @@ internal partial class Number : Literal
             if (char.IsNumber(c) is false && c is not ',' and not '.') break;
         }
 
-        var number = lexer[..length].Span.ToString();
+        var number = lexer[..length].ToString();
 
         var match = NumbersWithCommas().Match(number);
-        if (match.Success) return new Number(lexer, match.Length);
+        if (match.Success) return new Number { Sourcecode = lexer.Commit(match.Length) };
 
         match = NumbersWithoutCommas().Match(number);
-        return new Number(lexer, match.Length);
+        return new Number{ Sourcecode = lexer.Commit(match.Length) };
     }
 
     [GeneratedRegex(@"\d+([.]\d+)?", options)]

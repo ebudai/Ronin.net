@@ -12,7 +12,7 @@ public class whitespace
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Whitespace.Lex(lexer);
+        var lexed = Whitespace.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

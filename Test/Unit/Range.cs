@@ -14,7 +14,7 @@ public class range
         const string dots = "..";
 
         Lexer lexer = new(dots);
-        var range = Range.Lex(lexer);
+        var range = Range.Lex(ref lexer);
 
         Assert.Equal(dots.ToArray(), range?.Sourcecode.ToArray());
     }

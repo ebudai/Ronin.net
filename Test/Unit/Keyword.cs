@@ -18,7 +18,7 @@ public class keyword
         const string sourcecode = $"{datatype} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("datatype".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -29,7 +29,7 @@ public class keyword
         const string sourcecode = $"{function} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("function".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -40,7 +40,7 @@ public class keyword
         const string sourcecode = "var thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("var".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -51,7 +51,7 @@ public class keyword
         const string sourcecode = "constant thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("constant".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -62,7 +62,7 @@ public class keyword
         const string sourcecode = "reactive thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("reactive".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -73,7 +73,7 @@ public class keyword
         const string sourcecode = "compiled thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("compiled".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -84,7 +84,7 @@ public class keyword
         const string sourcecode = "shared thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("shared".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -95,7 +95,7 @@ public class keyword
         const string sourcecode = "optional thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("optional".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -106,7 +106,7 @@ public class keyword
         const string sourcecode = "persistent thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("persistent".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -117,7 +117,7 @@ public class keyword
         const string sourcecode = "part of standard.stuff";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("part of".ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -128,7 +128,7 @@ public class keyword
         const string sourcecode = "import git://github.com/ebudai/ronin/libsuperpowers.ronin;";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Equal("import".ToArray(), lexed?.Sourcecode.ToArray());
     }

@@ -53,7 +53,7 @@ public class @delegate
         {
             Scalar scalar = line.Components[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(three, scalar.Literals[0]?.ToString());
+            Assert.Equal(three, scalar.Literals[0]?.Sourcecode.ToString());
         }
     }
 
@@ -109,7 +109,7 @@ public class @delegate
         {
             Scalar scalar = line.Components[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(three, scalar.Literals[0]?.ToString());
+            Assert.Equal(three, scalar.Literals[0]?.Sourcecode.ToString());
         }
     }
 
@@ -145,7 +145,7 @@ public class @delegate
         {
             Scalar scalar = line.Components[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(three, scalar.Literals[0]?.ToString());
+            Assert.Equal(three, scalar.Literals[0]?.Sourcecode.ToString());
         }
     }
 

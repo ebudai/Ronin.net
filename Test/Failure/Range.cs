@@ -14,7 +14,7 @@ public class range
         const string literal = "notARange";
 
         Lexer lexer = new(literal);
-        var lexed = Range.Lex(lexer);
+        var lexed = Range.Lex(ref lexer);
 
         Assert.IsNotType<Range>(lexed);
     }

@@ -14,7 +14,7 @@ public class time
         const string literal = "11:45:12 p";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -25,7 +25,7 @@ public class time
         const string literal = "10:15:02p";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -36,7 +36,7 @@ public class time
         const string literal = "12:30:59";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -47,7 +47,7 @@ public class time
         const string literal = "9:08:45 p";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -58,7 +58,7 @@ public class time
         const string literal = "2:22:18p";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -69,7 +69,7 @@ public class time
         const string literal = "17:22:18 ";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal.Trim().ToArray(), lexed?.Sourcecode.ToArray());
     }

@@ -7,7 +7,9 @@ internal class Dollar : Symbol
     public const char character = '$';
     public const string symbol = "$";
 
-    private Dollar(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Dollar Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Dollar(lexer) : null;
+    public static new Dollar Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Dollar { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

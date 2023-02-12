@@ -12,7 +12,7 @@ public class keyword
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -23,7 +23,7 @@ public class keyword
         const string notkeyword = "not a keyword";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -34,7 +34,7 @@ public class keyword
         const string notkeyword = "returned ";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Keyword.Lex(lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

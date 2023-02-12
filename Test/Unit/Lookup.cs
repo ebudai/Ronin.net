@@ -35,11 +35,11 @@ public class lookup
         
         Scalar key = association.Key;
         Assert.Single(key?.Literals);
-        Assert.Equal(billy, key.Literals[0]?.ToString());
+        Assert.Equal(billy, key.Literals[0]?.Sourcecode.ToString());
 
         Scalar value = association.Value;
         Assert.Single(value?.Literals);
-        Assert.Equal(seven, value.Literals[0]?.ToString());
+        Assert.Equal(seven, value.Literals[0]?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "as value")]

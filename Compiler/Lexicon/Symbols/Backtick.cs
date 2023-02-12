@@ -7,7 +7,9 @@ internal class Backtick : Symbol
     public const char character = '`';
     public const string symbol = "`";
 
-    private Backtick(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Backtick Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Backtick(lexer) : null;
+    public static new Backtick Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Backtick { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

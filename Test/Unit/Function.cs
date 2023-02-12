@@ -75,7 +75,7 @@ public class function
         {
             Scalar scalar = line.Components[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal("7", scalar.Literals[0]?.ToString());
+            Assert.Equal("7", scalar.Literals[0]?.Sourcecode.ToString());
         }
     }
 

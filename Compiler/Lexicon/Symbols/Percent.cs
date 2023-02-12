@@ -7,7 +7,9 @@ internal class Percent : Symbol
     public const char character = '%';
     public const string symbol = "%";
 
-    private Percent(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Percent Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Percent(lexer) : null;
+    public static new Percent Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Percent { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

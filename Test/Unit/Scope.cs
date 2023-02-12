@@ -45,6 +45,6 @@ public class scope
 
         Scalar scalar = datum.Initializer;
         Assert.Single(scalar?.Literals);
-        Assert.Equal("56", scalar.Literals[0]?.ToString());
+        Assert.Equal("56", scalar.Literals[0]?.Sourcecode.ToString());
     }
 }

@@ -4,32 +4,24 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Text : Literal
 {
-    private Text(Lexer lexer, int length) : base(lexer, length) { }
-
-    internal string Value => ToString()[1..^1];
-
-    internal static new Token Lex(Lexer lexer)
+    public static new Token Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not TextDelimiter.character) return null;
 
         var index = 1;
-        var length = lexer[index..].Span.IndexOf(TextDelimiter.character);
+        var length = lexer[index..].IndexOf(TextDelimiter.character);
         if (length is < 0) return null;
 
         while (lexer[index + length - 1] is '\\' && length < lexer.Length && length is not -1)
         {
             index += length + 1;
-            length = lexer[index..].Span.IndexOf(TextDelimiter.character);
+            length = lexer[index..].IndexOf(TextDelimiter.character);
         }
 
         if (length is < 0) return null;
 
         length += index + 1;
-        for (var i = index; i != length; ++i)
-        {
-            if (lexer[i] is '\n') ++lexer.Line;
-        }
 
-        return new Text(lexer, length);
+        return new Text { Sourcecode = lexer.Commit(length) };
     }
 }

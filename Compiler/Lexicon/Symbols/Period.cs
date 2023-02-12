@@ -7,7 +7,9 @@ internal class Period : Symbol
     public const char character = '.';
     public const string symbol = ".";
 
-    private Period(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Period Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Period(lexer) : null;
+    public static new Period Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Period { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

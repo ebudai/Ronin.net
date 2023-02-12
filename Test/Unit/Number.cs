@@ -14,7 +14,7 @@ public class number
         const string literal = "123,456.7890";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -25,7 +25,7 @@ public class number
         const string literal = "1234.4567;";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -36,7 +36,7 @@ public class number
         const string literal = "1234.4567,";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -47,7 +47,7 @@ public class number
         const string literal = "1234.4567(";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -58,7 +58,7 @@ public class number
         const string literal = "1234.4567)";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -69,7 +69,7 @@ public class number
         const string literal = "1234.4567[";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -80,7 +80,7 @@ public class number
         const string literal = "1234.4567]";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -91,7 +91,7 @@ public class number
         const string literal = "1234.4567{";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -102,7 +102,7 @@ public class number
         const string literal = "1234.4567}";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -113,7 +113,7 @@ public class number
         const string literal = "1234.4567'";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -124,7 +124,7 @@ public class number
         const string literal = "1234.4567\"";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }
@@ -135,7 +135,7 @@ public class number
         const string literal = "1234.4567 ";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
     }

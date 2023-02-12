@@ -14,7 +14,7 @@ public class character
         const string literal = "testtest";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.IsNotType<Literal>(lexed);
     }
@@ -25,7 +25,7 @@ public class character
         const string literal = "'c";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -36,7 +36,7 @@ public class character
         const string literal = "''";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -47,7 +47,7 @@ public class character
         const string literal = "'test'";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -58,7 +58,7 @@ public class character
         const string literal = @"'\uABH7'";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -67,7 +67,7 @@ public class character
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

@@ -33,12 +33,12 @@ public class reference
 
         Scalar scalar = reference.Components[1];
         Assert.Single(scalar?.Literals);
-        Assert.Equal("7", scalar.Literals[0].ToString());
+        Assert.Equal("7", scalar.Literals[0]?.Sourcecode.ToString());
 
         Arguments arguments = reference.Components[2];
         Assert.Single(arguments?.Values);
         scalar = arguments.Values[0];
         Assert.Single(scalar?.Literals);
-        Assert.Equal("\"stuff\"", scalar.Literals[0].ToString());
+        Assert.Equal("\"stuff\"", scalar.Literals[0]?.Sourcecode.ToString());
     }
 }

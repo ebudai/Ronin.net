@@ -7,7 +7,9 @@ internal class Plus : Symbol
     public const char character = '+';
     public const string symbol = "+";
 
-    private Plus(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Plus Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Plus(lexer) : null;
+    public static new Plus Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Plus { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

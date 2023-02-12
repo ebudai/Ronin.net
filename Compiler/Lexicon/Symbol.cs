@@ -6,18 +6,49 @@ global using TextDelimiter = Ronin.Lexicon.Symbols.DoubleQuote;
 
 using Ronin.Compiler;
 using Ronin.Lexicon.Symbols;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Lexicon;
 
-[SuppressMessage("Style", "IDE0001")]
 internal class Symbol : Token
 {
-    internal Symbol(Lexer lexer, int length) : base(lexer, length) { }
+    public static Symbol Lex(ref Lexer lexer)
+        => Ampersand.Lex(ref lexer)
+        ?? Returns.Lex(ref lexer) // needs to be above Equals
+        ?? Symbols.Range.Lex(ref lexer) // needs to be above Period
+        ?? Assign.Lex(ref lexer)
+        ?? Asterisk.Lex(ref lexer)
+        ?? At.Lex(ref lexer)
+        ?? Backslash.Lex(ref lexer)
+        ?? Backtick.Lex(ref lexer)
+        ?? CharacterDelimiter.Lex(ref lexer)
+        ?? Chevron.Lex(ref lexer)
+        ?? CloseBrace.Lex(ref lexer)
+        ?? CloseParenthesis.Lex(ref lexer)
+        ?? CloseSquareBracket.Lex(ref lexer)
+        ?? Colon.Lex(ref lexer)
+        ?? Separator.Lex(ref lexer)
+        ?? Dollar.Lex(ref lexer)
+        ?? Exclamation.Lex(ref lexer)
+        ?? GreaterThan.Lex(ref lexer)
+        ?? LessThan.Lex(ref lexer)
+        ?? Minus.Lex(ref lexer)
+        ?? OpenBrace.Lex(ref lexer)
+        ?? OpenParenthesis.Lex(ref lexer)
+        ?? OpenSquareBracket.Lex(ref lexer)
+        ?? Percent.Lex(ref lexer)
+        ?? Period.Lex(ref lexer)
+        ?? Pipe.Lex(ref lexer)
+        ?? Plus.Lex(ref lexer)
+        ?? Pound.Lex(ref lexer)
+        ?? Question.Lex(ref lexer)
+        ?? Terminal.Lex(ref lexer)
+        ?? Slash.Lex(ref lexer)
+        ?? TextDelimiter.Lex(ref lexer)
+        ?? Tilde.Lex(ref lexer) as Symbol;
 
-    internal static bool IsSymbol(Lexer lexer, int i = 0)
+    internal static bool IsSymbol(ref Lexer lexer, int i = 0)
     {
-        var text = lexer[i..].Span;
+        var text = lexer[i..];
         if (text.IsEmpty) return false;
         return text.StartsWith(Returns.symbol)
             || text.StartsWith(Symbols.Range.symbol)
@@ -53,44 +84,6 @@ internal class Symbol : Token
             or TextDelimiter.character
             or Tilde.character;
     }
-
-    internal static Symbol Lex(Lexer lexer)
-        => Ampersand.Lex(lexer)
-        ?? Returns.Lex(lexer) // needs to be above Equals
-        ?? Symbols.Range.Lex(lexer) // needs to be above Period
-        ?? Assign.Lex(lexer)
-        ?? Asterisk.Lex(lexer)
-        ?? At.Lex(lexer)
-        ?? Backslash.Lex(lexer)
-        ?? Backtick.Lex(lexer)
-        ?? CharacterDelimiter.Lex(lexer)
-        ?? Chevron.Lex(lexer)
-        ?? CloseBrace.Lex(lexer)
-        ?? CloseParenthesis.Lex(lexer)
-        ?? CloseSquareBracket.Lex(lexer)
-        ?? Colon.Lex(lexer)
-        ?? Separator.Lex(lexer)
-        ?? Dollar.Lex(lexer)
-        ?? Exclamation.Lex(lexer)
-        ?? GreaterThan.Lex(lexer)
-        ?? LessThan.Lex(lexer)
-        ?? Minus.Lex(lexer)
-        ?? OpenBrace.Lex(lexer)
-        ?? OpenParenthesis.Lex(lexer)
-        ?? OpenSquareBracket.Lex(lexer)
-        ?? Percent.Lex(lexer)
-        ?? Period.Lex(lexer)
-        ?? Pipe.Lex(lexer)
-        ?? Plus.Lex(lexer)
-        ?? Pound.Lex(lexer)
-        ?? Question.Lex(lexer)
-        ?? Terminal.Lex(lexer)        
-        ?? Slash.Lex(lexer)
-        ?? TextDelimiter.Lex(lexer)
-        ?? Tilde.Lex(lexer) as Symbol;
 }
 
-internal class Punctuation : Symbol
-{
-    internal Punctuation(Lexer lexer, int length) : base(lexer, length) { }
-}
+internal class Punctuation : Symbol { }

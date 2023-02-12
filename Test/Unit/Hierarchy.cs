@@ -97,7 +97,8 @@ public class hierarchy
 
         {
             Scalar scalar = hierarchy.Components[1];
-            Assert.Equal("\"fast version\"", scalar?.Literals?[0].ToString());
+            Assert.Single(scalar?.Literals);
+            Assert.Equal("\"fast version\"", scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {

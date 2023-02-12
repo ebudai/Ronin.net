@@ -7,7 +7,9 @@ internal class OpenSquareBracket : Open
     public const char character = '[';
     public const string symbol = "[";
 
-    private OpenSquareBracket(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new OpenSquareBracket Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new OpenSquareBracket(lexer) : null;
+    public static new OpenSquareBracket Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new OpenSquareBracket { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

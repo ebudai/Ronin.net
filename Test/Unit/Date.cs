@@ -14,7 +14,7 @@ public class date
         const string literal = "1984-05-04";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(lexer);
+        var lexed = Literal.Lex(ref lexer);
 
         Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
     }

@@ -7,7 +7,9 @@ internal class Colon : Symbol
     public const char character = ':';
     public const string symbol = ":";
 
-    private Colon(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Colon Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Colon(lexer) : null;
+    public static new Colon Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Colon { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

@@ -7,7 +7,9 @@ internal class CloseSquareBracket : Close
     public const char character = ']';
     public const string symbol = "]";
 
-    private CloseSquareBracket(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new CloseSquareBracket Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new CloseSquareBracket(lexer) : null;
+    public static new CloseSquareBracket Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new CloseSquareBracket { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

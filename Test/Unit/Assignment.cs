@@ -30,7 +30,7 @@ public class assignment
 
         Scalar scalar = assignment.Value;
         Assert.Single(scalar?.Literals);
-        Assert.Equal("17", scalar.Literals[0]?.ToString());
+        Assert.Equal("17", scalar.Literals[0]?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "no whitespace")]
@@ -52,6 +52,6 @@ public class assignment
 
         Scalar scalar = assignment.Value;
         Assert.Single(scalar?.Literals);
-        Assert.Equal("17", scalar.Literals[0]?.ToString());
+        Assert.Equal("17", scalar.Literals[0]?.Sourcecode.ToString());
     }
 }

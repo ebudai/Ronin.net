@@ -265,6 +265,6 @@ public class datum
 
         Scalar scalar = datum.Initializer;
         Assert.Single(scalar?.Literals);
-        Assert.Equal("2", scalar.Literals[0]?.ToString());
+        Assert.Equal("2", scalar.Literals[0]?.Sourcecode.ToString());
     }
 }

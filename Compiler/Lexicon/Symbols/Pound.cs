@@ -7,7 +7,9 @@ internal class Pound : Symbol
     public const char character = '#';
     public const string symbol = "#";
 
-    private Pound(Lexer lexer) : base(lexer, symbol.Length) { }
-
-    public static new Pound Lex(Lexer lexer) => lexer.IsNotEmpty && lexer[0] is character ? new Pound(lexer) : null;
+    public static new Pound Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Pound { Sourcecode = lexer.Commit(symbol.Length) };
+    }
 }

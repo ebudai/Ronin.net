@@ -2,57 +2,53 @@
 
 namespace Ronin.Compiler;
 
-internal class Lexer
+//todo make this a ref struct, and instantiate tokens the same way syntax is
+internal ref struct Lexer
 {
     public Lexer(string sourcecode)
     {
-        Sourcecode = sourcecode.AsMemory();
+        Sourcecode = sourcecode.AsSpan();
     }
 
-    public Token[] Lex()
+    public List<Token> Lex()
     {
-        List<Token> tokens = new(64);
+        List<Token> tokens = new();
 
         while (Cursor < Sourcecode.Length)
         {
-            var token = Whitespace.Lex(this)
-                ?? Literal.Lex(this)
-                ?? Comment.Lex(this)
-                ?? Symbol.Lex(this)
-                ?? Keyword.Lex(this)
-                ?? Word.Lex(this) as Token;
+            var token = Whitespace.Lex(ref this)
+                ?? Literal.Lex(ref this)
+                ?? Comment.Lex(ref this)
+                ?? Symbol.Lex(ref this)
+                ?? Keyword.Lex(ref this)
+                ?? Word.Lex(ref this) as Token;
             tokens.Add(token);
-            Column += token.SourceLocation.Length;
         }
 
         tokens.Add(Sentinel.Instance);
 
-        return tokens.ToArray();
+        return tokens;
     }
 
-    internal ReadOnlyMemory<char> Sourcecode { get; }
+    public ReadOnlyMemory<char> Commit(int length)
+    {
+        var memory = this[..length].ToArray();
+        Cursor += length;
+        return memory;
+    }
+
+    internal readonly ReadOnlySpan<char> Sourcecode { get; }
 
     internal int Cursor { get; set; }
-    internal int Line
-    {
-        get => line;
-        set
-        {
-            line = value;
-            Column = 0;
-        }
-    }
-    internal int Column { get; set; }
-    internal bool IsEmpty => Span.IsEmpty;
+    internal bool IsEmpty => Sourcecode[Cursor..].IsEmpty;
     internal bool IsNotEmpty => IsEmpty is false;
-    internal int Length => Span.Length;
+    internal int Length => Sourcecode[Cursor..].Length;
 
-    internal ReadOnlySpan<char> Span => Sourcecode[Cursor..].Span;
-    internal ref readonly char this[int index] => ref Span[index];
-    internal ReadOnlyMemory<char> this[Range range] => Sourcecode[Cursor..][range];
+    internal ref readonly char this[int index] => ref Sourcecode[Cursor..][index];
+    internal readonly ReadOnlySpan<char> this[Range range] => Sourcecode[Cursor..][range];
     
-    internal bool StartsWith(string text) => Span.StartsWith(text);
+    internal bool StartsWith(string text) => Sourcecode[Cursor..].StartsWith(text);
     internal bool DoesNotStartWith(string text) => StartsWith(text) is not true;
 
-    private int line = 1;
+    internal int IndexOf(char character) => Sourcecode[Cursor..].IndexOf(character);
 }

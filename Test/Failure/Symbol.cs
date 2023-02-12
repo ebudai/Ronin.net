@@ -15,8 +15,8 @@ public class symbol
         const string literal = "not a close brace";
 
         Lexer lexer = new(literal);
-        Assert.False(Symbol.IsSymbol(lexer));
-        var lexed = Symbol.Lex(lexer);
+        Assert.False(Symbol.IsSymbol(ref lexer));
+        var lexed = Symbol.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -27,7 +27,7 @@ public class symbol
         const string literal = "->";
 
         Lexer lexer = new(literal);
-        var lexed = Symbol.Lex(lexer);
+        var lexed = Symbol.Lex(ref lexer);
 
         Assert.IsNotType<Returns>(lexed);
     }
@@ -36,8 +36,8 @@ public class symbol
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        Assert.False(Symbol.IsSymbol(lexer));
-        var lexed = Symbol.Lex(lexer);
+        Assert.False(Symbol.IsSymbol(ref lexer));
+        var lexed = Symbol.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
