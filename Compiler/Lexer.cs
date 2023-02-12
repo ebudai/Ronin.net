@@ -41,7 +41,6 @@ internal ref struct Lexer
 
     internal int Cursor { get; set; }
     internal bool IsEmpty => Sourcecode[Cursor..].IsEmpty;
-    internal bool IsNotEmpty => IsEmpty is false;
     internal int Length => Sourcecode[Cursor..].Length;
 
     internal ref readonly char this[int index] => ref Sourcecode[Cursor..][index];
