@@ -1,4 +1,6 @@
-﻿namespace Ronin.Language;
+﻿using Ronin.Compiler;
+
+namespace Ronin.Language;
 
 internal class Module
 {
