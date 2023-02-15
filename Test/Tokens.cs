@@ -1,5 +1,4 @@
-﻿using Ronin.Compiler;
-using Ronin.Lexicon;
+﻿using Ronin.Lexicon;
 using System.Reflection;
 
 namespace Test;
@@ -11,6 +10,7 @@ internal class Tokens
     public Tokens Add<T>(string source = "") where T : Token, new()
     {
         var field = typeof(T).GetField("symbol", BindingFlags.Public | BindingFlags.Static);
+        field ??= typeof(T).GetField("keyword", BindingFlags.Public | BindingFlags.Static);
         var sourcecode = field is null ? source : field.GetValue(null) as string;
         tokens.Add(new T { Sourcecode = sourcecode.ToArray() });
         return this;

@@ -22,11 +22,11 @@ internal class Value : Syntax, Compiler.IParsable<Value>
     }
 
     public static implicit operator Scalar(Value value) => value.value as Scalar;
-    public static implicit operator Delegate(Value value) => value.value as Delegate;
     public static implicit operator Arguments(Value value) => value.value as Arguments;
     public static implicit operator List(Value value) => value.value as List;
     public static implicit operator Lookup(Value value) => value.value as Lookup;
-    public static implicit operator Reference(Value value) => value.value as Reference;
+    public static implicit operator Delegate(Value value) => value.value as Delegate;
+    public static implicit operator Reference(Value value) => value.value as Reference;    
 
     private Syntax value;
 }

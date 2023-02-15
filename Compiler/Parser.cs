@@ -50,6 +50,7 @@ internal ref struct Parser
     internal ref readonly Token CurrentToken => ref tokens[Index];
 
     internal readonly ReadOnlySpan<Token> this[Range range] => tokens[range];
+    internal ref readonly Token this[Index index] => ref tokens[index];
 
     internal bool IsNotFinished => CurrentToken is not Sentinel;
 

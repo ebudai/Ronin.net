@@ -13,19 +13,19 @@ internal class Delegate : Syntax, Compiler.IParsable<Delegate>
     {
         Parser parser = context;
 
-        List<Datum> data = null;
+        List<Datum> data;
         var datum = Datum.Parse(ref parser);
         if (datum is null)
         {
             var parameters = Parameters.Parse(ref parser);
             data = parameters?.Values;
+            if (data is not null && parser.FailedToConsume<Returns>()) return null;
         }
         else
         {
             data = new List<Datum> { datum };
+            if (parser[parser.Index - 1] is not Returns) return null;
         }
-
-        if (parser.CurrentToken is Returns) parser.Advance();
 
         if (Scope.Parse(ref parser) is not Scope body) return null;
 

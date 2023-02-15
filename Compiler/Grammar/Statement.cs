@@ -16,6 +16,8 @@ namespace Ronin.Grammar;
 /// </remarks>
 internal class Statement : Syntax, Compiler.IParsable<Statement>
 {
+    public Syntax Syntax { get; init; }
+
     public static Statement Parse(ref Parser context)
     {
         Parser parser = context;
@@ -25,23 +27,23 @@ internal class Statement : Syntax, Compiler.IParsable<Statement>
             ?? Function.Parse(ref parser)
             ?? Datatype.Parse(ref parser)
             ?? Scope.Parse(ref parser)
+            ?? Interval.Parse(ref parser)
             ?? Value.Parse(ref parser)            
             ?? Datum.Parse(ref parser)
             ?? Unknown.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
-        return new Statement { value = syntax, Source = parser.Commit(ref context) };
+        return new Statement { Syntax = syntax, Source = parser.Commit(ref context) };
     }
 
-    public static implicit operator Hierarchy(Statement statement) => statement.value as Hierarchy;
-    public static implicit operator Function(Statement statement) => statement.value as Function;
-    public static implicit operator Datatype(Statement statement) => statement.value as Datatype;
-    public static implicit operator Assignment(Statement statement) => statement.value as Assignment;
-    public static implicit operator Value(Statement statement) => statement.value as Value;
-    public static implicit operator Scope(Statement statement) => statement.value as Scope;
-    public static implicit operator Datum(Statement statement) => statement.value as Datum;
-    public static implicit operator Unknown(Statement statement) => statement.value as Unknown;    
-
-    private Syntax value;
+    public static implicit operator Hierarchy(Statement statement) => statement.Syntax as Hierarchy;
+    public static implicit operator Function(Statement statement) => statement.Syntax as Function;
+    public static implicit operator Datatype(Statement statement) => statement.Syntax as Datatype;
+    public static implicit operator Assignment(Statement statement) => statement.Syntax as Assignment;
+    public static implicit operator Interval(Statement statement) => statement.Syntax as Interval;
+    public static implicit operator Value(Statement statement) => statement.Syntax as Value;
+    public static implicit operator Scope(Statement statement) => statement.Syntax as Scope;
+    public static implicit operator Datum(Statement statement) => statement.Syntax as Datum;
+    public static implicit operator Unknown(Statement statement) => statement.Syntax as Unknown;    
 }
