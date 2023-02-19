@@ -1,7 +1,9 @@
 ﻿using Ronin.Compiler;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
+[ExcludeFromCodeCoverage]
 internal class Module
 {
     public List<Module> Modules { get; init; } = new();
