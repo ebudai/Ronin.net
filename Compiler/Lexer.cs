@@ -2,19 +2,13 @@
 
 namespace Ronin.Compiler;
 
-//todo make this a ref struct, and instantiate tokens the same way syntax is
-internal ref struct Lexer
+internal struct Lexer
 {
-    public Lexer(string sourcecode)
-    {
-        Sourcecode = sourcecode.AsSpan();
-    }
+    public Lexer(in string sourcecode) => this.sourcecode = sourcecode.AsMemory();
 
-    public List<Token> Lex()
+    public IEnumerable<Token> Lex()
     {
-        List<Token> tokens = new();
-
-        while (Cursor < Sourcecode.Length)
+        while (cursor < sourcecode.Length)
         {
             var token = Whitespace.Lex(ref this)
                 ?? Literal.Lex(ref this)
@@ -22,32 +16,30 @@ internal ref struct Lexer
                 ?? Symbol.Lex(ref this)
                 ?? Keyword.Lex(ref this)
                 ?? Word.Lex(ref this) as Token;
-            tokens.Add(token);
+            yield return token;
         }
 
-        tokens.Add(Sentinel.Instance);
-
-        return tokens;
+        yield return Sentinel.Instance;
     }
 
     public ReadOnlyMemory<char> Commit(int length)
     {
-        var memory = this[..length].ToArray();
-        Cursor += length;
+        var memory = sourcecode.Slice(cursor, length);
+        cursor += length;
         return memory;
     }
 
-    internal readonly ReadOnlySpan<char> Sourcecode { get; }
+    public bool IsEmpty => sourcecode[cursor..].IsEmpty;
+    public int Length => sourcecode[cursor..].Length;
 
-    internal int Cursor { get; set; }
-    internal bool IsEmpty => Sourcecode[Cursor..].IsEmpty;
-    internal int Length => Sourcecode[Cursor..].Length;
+    public readonly ref readonly char this[int index] => ref sourcecode.Span[cursor..][index];
+    public readonly ReadOnlyMemory<char> this[Range range] => sourcecode[cursor..][range];
 
-    internal ref readonly char this[int index] => ref Sourcecode[Cursor..][index];
-    internal readonly ReadOnlySpan<char> this[Range range] => Sourcecode[Cursor..][range];
-    
-    internal bool StartsWith(string text) => Sourcecode[Cursor..].StartsWith(text);
-    internal bool DoesNotStartWith(string text) => StartsWith(text) is not true;
+    public bool StartsWith(string text) => sourcecode[cursor..].Span.StartsWith(text);
+    public bool DoesNotStartWith(string text) => StartsWith(text) is not true;
 
-    internal int IndexOf(char character) => Sourcecode[Cursor..].IndexOf(character);
+    public int IndexOf(char character) => sourcecode.Span[cursor..].IndexOf(character);
+
+    private int cursor;
+    private readonly ReadOnlyMemory<char> sourcecode;
 }
