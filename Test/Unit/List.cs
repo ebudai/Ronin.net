@@ -6,7 +6,6 @@ using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 using System.Security.Cryptography.X509Certificates;
-using Test;
 
 namespace Unit;
 
@@ -18,37 +17,38 @@ public class list
     [Fact(DisplayName = "single")]
     public void Single()
     {
-        Tokens tokens = new();
-        tokens.Add<OpenBrace>()
-            .Add<Number>("3")
-            .Add<CloseBrace>();
+        Token[] tokens =
+        {
+            new OpenBrace(),
+            new Number(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var list = List.Parse(ref parser);
 
         Assert.Single(list?.Values);
         Scalar scalar = list.Values[0];
         Assert.Single(scalar?.Literals);
-        Assert.Equal("3", scalar.Literals[0]?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "multiple")]
     public void Multiple()
     {
-        const string one = "1";
-        const string two = "2";
-        const string six = "6";
+        Token[] tokens =
+        {
+            new OpenBrace(),
+            new Number(),
+            new Separator(),
+            new Number(),
+            new Separator(),
+            new Number(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
 
-        Tokens tokens = new();
-        tokens.Add<OpenBrace>()
-            .Add<Number>(one)
-            .Add<Separator>()
-            .Add<Number>(two)
-            .Add<Separator>()
-            .Add<Number>(six)
-            .Add<CloseBrace>();
-
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var list = List.Parse(ref parser);
 
         Assert.Equal(3, list?.Values?.Count);
@@ -56,43 +56,38 @@ public class list
         {
             Scalar scalar = list.Values[0];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(one, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
             Scalar scalar = list.Values[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(two, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
             Scalar scalar = list.Values[2];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(six, scalar.Literals[0]?.Sourcecode.ToString());
         }
     }
 
     [Fact(DisplayName = "as value")]
     public void AsValue()
     {
-        const string thing = "thing";
-        const string one = "1";
-        const string two = "2";
-        const string stuff = "stuff";
+        Token[] tokens =
+        {
+            new Variable(),
+            new Word(),
+            new Assign(),
+            new OpenBrace(),
+            new Number(),
+            new Separator(),
+            new Number(),
+            new Separator(),
+            new Word(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
 
-        Tokens tokens = new();
-        tokens.Add<Variable>()
-            .Add<Word>(thing)
-            .Add<Assign>()
-            .Add<OpenBrace>()
-            .Add<Number>(one)
-            .Add<Separator>()
-            .Add<Number>(two)
-            .Add<Separator>()
-            .Add<Word>(stuff)
-            .Add<CloseBrace>();
-
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var statements = parser.Parse();
 
         Assert.Single(statements);

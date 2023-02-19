@@ -4,7 +4,6 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Failure;
 
@@ -16,27 +15,37 @@ public class datum
     [Fact(DisplayName = $"{Reactive.keyword} before name")]
     public void ReturnsBeforeName()
     {
-        Tokens tokens = new();
-        tokens.Add<Reactive>()
-            .Add<Returns>()
-            .Add<Number>("44.3")
-            .Add<Terminal>();
+        // reactive => 44.3;
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new Reactive(),
+            new Returns(),
+            new Number(),
+            new Terminal()
+        };
+        
+        Parser parser = new(tokens);
         var datum = Datum.Parse(ref parser);
+        
         Assert.Null(datum);
     }
 
     [Fact(DisplayName = "literal instead of identifier")]
     public void LiteralInsteadOfIdentifier()
     {
-        Tokens tokens = new();
-        tokens.Add<Variable>()
-            .Add<Number>("555")
-            .Add<Terminal>();
+        // var 555;
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new Variable(),
+            new Number(),
+            new Terminal()
+        };
+        
+        Parser parser = new(tokens);
         var datum = Datum.Parse(ref parser);
+        
         Assert.Null(datum);
     }
 }

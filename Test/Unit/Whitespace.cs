@@ -15,6 +15,6 @@ public class whitespace
         Ronin.Compiler.Lexer lexer = new(source);
         var whitespace = Whitespace.Lex(ref lexer);
 
-        Assert.Equal(source.ToArray(), whitespace?.Sourcecode.ToArray());
+        Assert.Equal(source.ToArray(), whitespace?.sourcecode.ToArray());
     }
 }

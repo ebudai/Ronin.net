@@ -5,7 +5,6 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -17,17 +16,17 @@ public class lookup
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string billy = "\"Billy\"";
-        const string seven = "7";
+        Token[] tokens = 
+        {
+            new OpenBrace(),
+            new Text(),
+            new Assign(),
+            new Number(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
 
-        Tokens tokens = new();
-        tokens.Add<OpenBrace>()
-            .Add<Text>(billy)
-            .Add<Assign>()
-            .Add<Number>(seven)
-            .Add<CloseBrace>();
-
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var lookup = Lookup.Parse(ref parser);
 
         Assert.Single(lookup?.Values);
@@ -35,31 +34,28 @@ public class lookup
         
         Scalar key = association.Key;
         Assert.Single(key?.Literals);
-        Assert.Equal(billy, key.Literals[0]?.Sourcecode.ToString());
 
         Scalar value = association.Value;
         Assert.Single(value?.Literals);
-        Assert.Equal(seven, value.Literals[0]?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "as value")]
     public void AsValue()
     {
-        const string dave = "dave";
-        const string x = "\"x\"";
-        const string twelve = "12";
+        Token[] tokens =
+        {
+            new Variable(),
+            new Word(),
+            new Assign(),
+            new OpenBrace(),
+            new Text(),
+            new Assign(),
+            new Number(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
 
-        Tokens tokens = new();
-        tokens.Add<Variable>()
-            .Add<Word>(dave)
-            .Add<Assign>()
-            .Add<OpenBrace>()
-            .Add<Text>(x)
-            .Add<Assign>()
-            .Add<Number>(twelve)
-            .Add<CloseBrace>();
-
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var statements = parser.Parse();
 
         Assert.Single(statements);

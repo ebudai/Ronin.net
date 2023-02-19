@@ -1,7 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Test;
 
 namespace Failure;
 
@@ -13,13 +12,16 @@ public class assignment
     [Fact(DisplayName = "no value")]
     public void NoValue()
     {
-        Tokens tokens = new();
-        tokens.Add<Word>("x")
-            .Add<Assign>()
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new Word(),
+            new Assign(),
+            new Terminal()
+        };
+        
+        Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
+        
         Assert.Null(assignment);
     }
 }

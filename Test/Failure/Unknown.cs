@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Failure;
 
@@ -13,13 +13,17 @@ public class unknown
     [Fact(DisplayName = "unknown")]
     public void Unknown()
     {
-        Tokens tokens = new();
-        tokens.Add<Datatype>()
-            .Add<Returns>()
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new Datatype(),
+            new Returns(),
+            new Terminal(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var statements = parser.Parse();
+        
         Assert.Single(statements);
         Ronin.Grammar.Unknown unknown = statements[0];
         Assert.NotNull(unknown);

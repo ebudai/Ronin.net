@@ -27,17 +27,15 @@ public class text
         const string literal = "\"testtest";
 
         Lexer lexer = new(literal);
-        var lexed = lexer.Lex();
+        var tokens = lexer.Lex().ToArray();
 
-        Assert.Equal(3, lexed.Count);
-        
-        Assert.IsType<TextDelimiter>(lexed[0]);
-        var quote = lexed[0] as TextDelimiter;
-        Assert.Equal(new[] { '"' }, quote.Sourcecode.ToArray());
+        Assert.Equal(3, tokens.Length);
 
-        Assert.IsType<Word>(lexed[1]);
-        var name = lexed[1] as Word;
-        Assert.Equal("testtest", name.Sourcecode.ToString());
+        var quote = tokens[0] as TextDelimiter;
+        Assert.Equal(TextDelimiter.symbol, quote?.ToString());
+
+        var word = tokens[1] as Word;
+        Assert.Equal(literal[1..], word?.ToString());
     }
 
     [Fact(DisplayName = "lone double quote")]
@@ -46,12 +44,12 @@ public class text
         const string literal = "\"";
 
         Lexer lexer = new(literal);
-        var lexed = lexer.Lex();
+        var lexed = lexer.Lex().ToArray();
 
-        Assert.NotEmpty(lexed);
-        Assert.IsType<TextDelimiter>(lexed[0]);
+        Assert.Equal(2, lexed.Length);
+
         var quote = lexed[0] as TextDelimiter;
-        Assert.Equal(literal.ToArray(), quote.Sourcecode.ToArray());
+        Assert.Equal(literal, quote?.ToString());
     }
 
     [Fact(DisplayName = "tricky unterminated")]
@@ -62,7 +60,6 @@ public class text
         Lexer lexer = new(literal);
         var lexed = lexer.Lex();
 
-        Assert.NotEmpty(lexed);
         foreach (var lexeme in lexed) Assert.IsNotType<Text>(lexeme);
     }
 

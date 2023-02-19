@@ -28,7 +28,7 @@ public class number
         Lexer lexer = new(literal);
         var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal("9".ToArray(), number?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -39,7 +39,7 @@ public class number
         Lexer lexer = new(literal);
         var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal("9.2".ToArray(), number?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^2], number?.ToString());
     }
 
     [Fact(DisplayName = "contains multiple dots")]
@@ -48,12 +48,9 @@ public class number
         const string literal = "9.2.5";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.NotNull(lexed);
-        var number = lexed as Number;
-        Assert.NotNull(number);
-        Assert.Equal("9.2".ToArray(), number.Sourcecode.ToArray());
+        Assert.Equal(literal[..^2], number?.ToString());
     }
 
     [Fact(DisplayName = "bad commas")]
@@ -62,12 +59,9 @@ public class number
         const string literal = "9,22.33";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.NotNull(lexed);
-        var number = lexed as Number;
-        Assert.NotNull(number);
-        Assert.Equal(new[] { '9' }, number.Sourcecode.ToArray());
+        Assert.Equal(literal[..1], number?.ToString());
     }
 
     [Fact(DisplayName = "no data")]

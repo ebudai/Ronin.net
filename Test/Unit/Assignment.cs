@@ -2,7 +2,6 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
-using Test;
 
 namespace Unit;
 
@@ -14,44 +13,49 @@ public class assignment
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        Tokens tokens = new();
-        tokens.Add<Ronin.Lexicon.Word>("x")
-            .Add<Assign>()
-            .Add<Number>("17")
-            .Add<Terminal>();
+        // a = 3;
+        
+        Token[] tokens =
+        {
+            new Word(),
+            new Assign(),
+            new Number(),
+            new Terminal(),
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
         Name name = assignment.Reference.Components[0];
         Assert.Single(name?.Words);
-        Assert.Equal("x", name.Words[0]);
 
         Scalar scalar = assignment.Value;
         Assert.Single(scalar?.Literals);
-        Assert.Equal("17", scalar.Literals[0]?.Sourcecode.ToString());
     }
 
     [Fact(DisplayName = "no whitespace")]
     public void NoWhitespace()
     {
-        Tokens tokens = new();
-        tokens.Add<Word>("x")
-            .Add<Assign>()
-            .Add<Number>("17")
-            .Add<Terminal>();
+        // thing = 0
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new Word(),
+            new Assign(),
+            new Number(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
         Name name = assignment.Reference.Components?[0];
         Assert.Single(name?.Words);
-        Assert.Equal("x", name.Words[0]);
-
+        
         Scalar scalar = assignment.Value;
         Assert.Single(scalar?.Literals);
-        Assert.Equal("17", scalar.Literals[0]?.Sourcecode.ToString());
     }
 }

@@ -4,7 +4,6 @@ using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -16,29 +15,38 @@ public class reference
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        Tokens tokens = new();
-        tokens.Add<Word>("thing")
-            .Add<Number>("7")
-            .Add<OpenParenthesis>()
-            .Add<Text>("\"stuff\"")
-            .Add<CloseParenthesis>();
+        // thing 7 (stuff)
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new Word(),
+            new Number(),
+            new OpenParenthesis(),
+            new Text(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var reference = Reference.Parse(ref parser);
 
         Assert.Equal(3, reference?.Components?.Count);
 
-        Name name = reference.Components[0];
-        Assert.Equal("thing", string.Join(" ", name?.Words ?? new List<string>()));
+        {
+            Name name = reference.Components[0];
+            Assert.Single(name?.Words);
+        }
 
-        Scalar scalar = reference.Components[1];
-        Assert.Single(scalar?.Literals);
-        Assert.Equal("7", scalar.Literals[0]?.Sourcecode.ToString());
+        {
+            Scalar scalar = reference.Components[1];
+            Assert.Single(scalar?.Literals);
+        }
 
-        Arguments arguments = reference.Components[2];
-        Assert.Single(arguments?.Values);
-        scalar = arguments.Values[0];
-        Assert.Single(scalar?.Literals);
-        Assert.Equal("\"stuff\"", scalar.Literals[0]?.Sourcecode.ToString());
+        {
+            Arguments arguments = reference.Components[2];
+            Assert.Single(arguments?.Values);
+            Scalar scalar = arguments.Values[0];
+            Assert.Single(scalar?.Literals);
+        }
     }
 }

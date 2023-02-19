@@ -4,7 +4,6 @@ using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -18,15 +17,18 @@ public class parameters
     {
         // (var test => money)
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Variable>()
-            .Add<Word>("test")
-            .Add<Returns>()
-            .Add<Word>("money")
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new OpenParenthesis(),
+            new Variable(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Single(parameters?.Values);
@@ -41,10 +43,9 @@ public class parameters
         Assert.False(datum.Is.Shared);
 
         Assert.Single(datum.Name?.Words);
-        Assert.Equal("test", datum.Name.Words[0]);
 
         Name name = datum?.Datatype?.Components?[0];
-        Assert.Equal("money", name?.Words?[0]);
+        Assert.Single(name?.Words);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -52,20 +53,23 @@ public class parameters
     {
         // (test => number, stuff in things => text)
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>("test")
-            .Add<Returns>()
-            .Add<Word>("number")
-            .Add<Separator>()
-            .Add<Word>("stuff")
-            .Add<Word>("in")
-            .Add<Word>("things")
-            .Add<Returns>()
-            .Add<Word>("text")
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new OpenParenthesis(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new Separator(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Equal(2, parameters?.Values?.Count);
@@ -81,12 +85,10 @@ public class parameters
             Assert.False(datum.Is.Shared);
 
             Assert.Single(datum.Name?.Words);
-            Assert.Equal("test", datum.Name.Words[0]);
-
+        
             Assert.Single(datum.Datatype?.Components);
             Name name = datum.Datatype.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("number", name.Words[0]);
         }
 
         {
@@ -99,12 +101,9 @@ public class parameters
             Assert.False(datum.Is.Persistent);
             Assert.False(datum.Is.Shared);
 
-            Assert.Equal("stuff in things", string.Join(" ", datum?.Name?.Words ?? new List<string>()));
-
             Assert.Single(datum.Datatype?.Components);
             Name name = datum.Datatype.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("text", name.Words[0]);
         }
     }
 
@@ -113,10 +112,14 @@ public class parameters
     {
         // ()
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>().Add<CloseParenthesis>();
+        Token[] tokens = 
+        {
+            new OpenParenthesis(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var arguments = Parameters.Parse(ref parser);
 
         Assert.Empty(arguments?.Values);

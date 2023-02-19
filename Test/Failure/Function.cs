@@ -2,7 +2,6 @@
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Failure;
 
@@ -14,13 +13,18 @@ public class function
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
-        Tokens tokens = new();
-        tokens.Add<Function>()
-            .Add<OpenBrace>()
-            .Add<CloseBrace>();
+        // function { }
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new Function(),
+            new OpenBrace(),
+            new CloseBrace()
+        };
+
+        Parser parser = new(tokens);
         var function = Ronin.Grammar.Function.Parse(ref parser);
+        
         Assert.Null(function);
     }
 }

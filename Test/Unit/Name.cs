@@ -2,7 +2,6 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -16,14 +15,17 @@ public class name
     {
         // name + things
 
-        Tokens tokens = new();
-        tokens.Add<Word>("name")
-            .Add<Plus>()
-            .Add<Word>("things");
+        Token[] tokens = 
+        {
+            new Word(),
+            new Plus(),
+            new Word(),
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var name = Name.Parse(ref parser);
 
-        Assert.Equal("name + things", string.Join(" ", name?.Words ?? new List<string>()));
+        Assert.Equal(3, name?.Words?.Count);
     }
 }

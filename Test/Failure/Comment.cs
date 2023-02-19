@@ -28,7 +28,7 @@ public class comment
         var comment = Comment.Lex(ref lexer);
 
         Assert.False(comment?.Terminated);
-        Assert.Equal(badcomment, comment?.Sourcecode.ToString());
+        Assert.Equal(badcomment, comment?.sourcecode.ToString());
     }
 
     [Fact(DisplayName = "unbalanced nested multiline end")]
@@ -40,6 +40,6 @@ public class comment
         var comment = Comment.Lex(ref lexer);
 
         Assert.True(comment?.Terminated);
-        Assert.Equal("/*unbalanced */", comment?.Sourcecode.ToString());
+        Assert.Equal("/*unbalanced */", comment?.sourcecode.ToString());
     }
 }

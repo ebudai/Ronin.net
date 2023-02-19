@@ -16,6 +16,6 @@ public class date
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.sourcecode.ToArray());
     }
 }

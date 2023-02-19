@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
@@ -14,9 +15,9 @@ public class number
         const string literal = "123,456.7890";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, number?.ToString());
     }
 
     [Fact(DisplayName = "with terminator")]
@@ -25,9 +26,9 @@ public class number
         const string literal = "1234.4567;";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with separator")]
@@ -36,9 +37,9 @@ public class number
         const string literal = "1234.4567,";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with opening parenthesis")]
@@ -47,9 +48,9 @@ public class number
         const string literal = "1234.4567(";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with closing parenthesis")]
@@ -58,9 +59,9 @@ public class number
         const string literal = "1234.4567)";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with opening bracket")]
@@ -69,9 +70,9 @@ public class number
         const string literal = "1234.4567[";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with closing bracket")]
@@ -80,9 +81,9 @@ public class number
         const string literal = "1234.4567]";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with opening brace")]
@@ -91,9 +92,9 @@ public class number
         const string literal = "1234.4567{";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with closing brace")]
@@ -102,9 +103,9 @@ public class number
         const string literal = "1234.4567}";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with single quote")]
@@ -113,9 +114,9 @@ public class number
         const string literal = "1234.4567'";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with double quote")]
@@ -124,9 +125,9 @@ public class number
         const string literal = "1234.4567\"";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 
     [Fact(DisplayName = "with space")]
@@ -135,8 +136,8 @@ public class number
         const string literal = "1234.4567 ";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var number = Literal.Lex(ref lexer) as Number;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], number?.ToString());
     }
 }

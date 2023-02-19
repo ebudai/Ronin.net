@@ -2,7 +2,7 @@
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using Test;
+using System.Net;
 
 namespace Failure;
 
@@ -16,13 +16,15 @@ public class arguments
     {
         // not an object;
 
-        Tokens tokens = new();
-        tokens.Add<Word>("not")
-            .Add<Word>("an")
-            .Add<Word>("object")
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new Word(),
+            new Word(),
+            new Word(),
+            new Terminal()
+        };
+        
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
 
         Assert.Null(arguments);
@@ -31,9 +33,8 @@ public class arguments
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        Tokens tokens = new();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = { Sentinel.Instance };
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
 
         Assert.Null(arguments);
@@ -44,19 +45,22 @@ public class arguments
     {
         // (test, (thing;stuff))
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>("test")
-            .Add<Separator>()
-            .Add<OpenParenthesis>()
-            .Add<Word>("thing")
-            .Add<Terminal>()
-            .Add<Word>("stuff")
-            .Add<CloseParenthesis>()
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenParenthesis(),
+            new Word(),
+            new Separator(),
+            new OpenParenthesis(),
+            new Word(),
+            new Terminal(),
+            new Word(),
+            new CloseParenthesis(),
+            new CloseParenthesis()
+        };
+        
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
+        
         Assert.Null(arguments);
     }
 
@@ -65,14 +69,17 @@ public class arguments
     {
         // (test;)
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>("test")
-            .Add<Terminal>()
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenParenthesis(),
+            new Word(),
+            new Terminal(),
+            new CloseParenthesis()
+        };
+        
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
+        
         Assert.Null(arguments);
     }
 }

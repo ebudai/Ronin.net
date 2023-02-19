@@ -1,9 +1,7 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Failure;
 
@@ -15,17 +13,21 @@ public class scope
     [Fact(DisplayName = "missing name")]
     public void MissingName()
     {
-        Tokens tokens = new();
-        tokens.Add<OpenBrace>()
-            .Add<DoubleQuote>()
-            .Add<Separator>()
-            .Add<Terminal>()
-            .Add<Separator>()
-            .Add<Word>("thing")
-            .Add<CloseBrace>()
-            .Add<Terminal>();
+        // { ",;,thing }
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenBrace(),
+            new DoubleQuote(),
+            new Separator(),
+            new Terminal(),
+            new Separator(),
+            new Word(),
+            new CloseBrace(),
+            new Terminal()
+        };
+        
+        Parser parser = new(tokens);
         var scope = Scope.Parse(ref parser);
 
         Assert.Null(scope);

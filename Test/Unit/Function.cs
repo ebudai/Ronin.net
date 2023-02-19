@@ -5,7 +5,6 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 using Function = Ronin.Grammar.Function;
 
@@ -21,21 +20,24 @@ public class function
     {
         // function test(x => number) { return 7; }
 
-        Tokens tokens = new();
-        tokens.Add<Ronin.Lexicon.Keywords.Function>()
-            .Add<Word>("test")
-            .Add<OpenParenthesis>()
-            .Add<Word>("x")
-            .Add<Returns>()
-            .Add<Word>("number")
-            .Add<CloseParenthesis>()
-            .Add<OpenBrace>()
-            .Add<Word>("return")
-            .Add<Number>("7")
-            .Add<Terminal>()
-            .Add<CloseBrace>();
+        Token[] tokens =
+        {
+            new Ronin.Lexicon.Keywords.Function(),
+            new Word(),
+            new OpenParenthesis(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new CloseParenthesis(),
+            new OpenBrace(),
+            new Word(),
+            new Number(),
+            new Terminal(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var function = Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
@@ -43,7 +45,6 @@ public class function
         {
             Name name = function.Identifier.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("test", name.Words[0]);
         }
 
         {
@@ -52,12 +53,10 @@ public class function
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
             Assert.Single(parameter?.Name?.Words);
-            Assert.Equal("x", parameter.Name.Words[0]);
 
             Assert.Single(parameter.Datatype?.Components);
             Name type = parameter.Datatype.Components[0];
             Assert.Single(type?.Words);
-            Assert.Equal("number", type.Words[0]);
         }
 
         Assert.Single(function.Body?.Values);
@@ -69,13 +68,11 @@ public class function
         {
             Name @return = line.Components[0];
             Assert.Single(@return?.Words);
-            Assert.Equal("return", @return.Words[0]);
         }
 
         {
             Scalar scalar = line.Components[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal("7", scalar.Literals[0]?.Sourcecode.ToString());
         }
     }
 
@@ -84,26 +81,29 @@ public class function
     {
         // function test(x => text) => optional number { return x as number; }
 
-        Tokens tokens = new();
-        tokens.Add<Ronin.Lexicon.Keywords.Function>()
-            .Add<Word>("test")
-            .Add<OpenParenthesis>()
-            .Add<Word>("x")
-            .Add<Returns>()
-            .Add<Word>("text")
-            .Add<CloseParenthesis>()
-            .Add<Returns>()
-            .Add<Optional>()
-            .Add<Word>("number")
-            .Add<OpenBrace>()
-            .Add<Word>("return")
-            .Add<Word>("x")
-            .Add<Word>("as")
-            .Add<Word>("number")
-            .Add<Terminal>()
-            .Add<CloseBrace>();
+        Token[] tokens =
+        {
+            new Ronin.Lexicon.Keywords.Function(),
+            new Word(),
+            new OpenParenthesis(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new CloseParenthesis(),
+            new Returns(),
+            new Optional(),
+            new Word(),
+            new OpenBrace(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new Terminal(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var function = Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);
@@ -111,7 +111,6 @@ public class function
         {
             Name name = function.Identifier.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("test", name.Words[0]);
         }
 
         {
@@ -119,12 +118,10 @@ public class function
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
             Assert.Single(parameter.Name?.Words);
-            Assert.Equal("x", parameter.Name.Words[0]);
 
             Assert.Single(parameter.Datatype?.Components);
             Name type = parameter.Datatype.Components[0];
             Assert.Single(type?.Words);
-            Assert.Equal("text", type.Words[0]);
         }
 
         Assert.True(function.Modifiers?.Optional);
@@ -135,13 +132,12 @@ public class function
         Assert.Single(function.Returns?.Components);
         Name returns = function.Returns.Components[0];
         Assert.Single(returns?.Words);
-        Assert.Equal("number", returns.Words[0]);
 
         Assert.Single(function.Body?.Values);
         Value value = function.Body.Values[0];
         Reference line = value;
         Assert.Single(line?.Components);
         Name @return = line.Components[0];
-        Assert.Equal("return x as number", string.Join(" ", @return?.Words ?? new List<string>()));
+        Assert.Equal(4, @return?.Words?.Count);
     }
 }

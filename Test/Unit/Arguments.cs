@@ -4,7 +4,6 @@ using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -16,16 +15,17 @@ public class arguments
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        const string stuff = "stuff";
-
         // (stuff)
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>(stuff)
-            .Add<CloseParenthesis>();
+        Token[] tokens =
+        {
+            new OpenParenthesis(),
+            new Word(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
 
         Assert.Single(arguments?.Values);
@@ -33,25 +33,24 @@ public class arguments
         Assert.Single(reference?.Components);
         Name name = reference.Components[0];
         Assert.Single(name?.Words);
-        Assert.Equal(stuff, name.Words[0]);
     }
 
     [Fact(DisplayName = "multiple")]
     public void Multiple()
     {
-        const string test = "test";
-        const string stuff = "stuff";
-
         // (test, stuff)
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>(test)
-            .Add<Separator>()
-            .Add<Word>(stuff)
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenParenthesis(),
+            new Word(),
+            new Separator(),
+            new Word(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
 
         Assert.Equal(2, arguments?.Values?.Count);
@@ -61,7 +60,6 @@ public class arguments
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal(test, name.Words[0]);
         }
 
         {
@@ -69,7 +67,6 @@ public class arguments
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal(stuff, name.Words[0]);
         }
     }
 
@@ -78,11 +75,14 @@ public class arguments
     {
         // ()
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenParenthesis(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
         Assert.Empty(arguments?.Values);
     }
@@ -90,22 +90,21 @@ public class arguments
     [Fact(DisplayName = "named")]
     public void Named()
     {
-        const string one = "1";
-        const string two = "2";
-        const string thing = "thing";
-
         // (1, 2, thing)
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Number>(one)
-            .Add<Separator>()
-            .Add<Number>(two)
-            .Add<Separator>()
-            .Add<Word>(thing)
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenParenthesis(),
+            new Number(),
+            new Separator(),
+            new Number(),
+            new Separator(),
+            new Word(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
@@ -113,13 +112,11 @@ public class arguments
         {
             Scalar scalar = arguments.Values[0];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(one, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
             Scalar scalar = arguments.Values[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(two, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
@@ -127,36 +124,33 @@ public class arguments
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal(thing, name.Words[0]);
         }
     }
 
     [Fact(DisplayName = "arguments of arguments")]
     public void Recursive()
     {
-        const string a = "a";        
-        const string one = "1";
-        const string two = "2";
-        const string three = "3";
-
         // (a, 3, (1, 2, 3))
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>(a)
-            .Add<Separator>()
-            .Add<Number>(three)
-            .Add<Separator>()
-            .Add<OpenParenthesis>()
-            .Add<Number>(one)
-            .Add<Separator>()
-            .Add<Number>(two)
-            .Add<Separator>()
-            .Add<Number>(three)
-            .Add<CloseParenthesis>()
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenParenthesis(),
+            new Word(),
+            new Separator(),
+            new Number(),
+            new Separator(),
+            new OpenParenthesis(),
+            new Number(),
+            new Separator(),
+            new Number(),
+            new Separator(),
+            new Number(),
+            new CloseParenthesis(),
+            new CloseParenthesis(),
+            Sentinel.Instance,
+        };
+        
+        Parser parser = new(tokens);
         var arguments = Arguments.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
@@ -166,13 +160,11 @@ public class arguments
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal(a, name.Words[0]);
         }
 
         {
             Scalar scalar = arguments.Values[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal(three, scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
@@ -182,19 +174,16 @@ public class arguments
             {
                 Scalar scalar = subargs?.Values[0];
                 Assert.Single(scalar?.Literals);
-                Assert.Equal(one, scalar.Literals[0]?.Sourcecode.ToString());
             }
 
             {
                 Scalar scalar = subargs?.Values[1];
                 Assert.Single(scalar?.Literals);
-                Assert.Equal(two, scalar.Literals[0]?.Sourcecode.ToString());
             }
 
             {
                 Scalar scalar = subargs?.Values[2];
                 Assert.Single(scalar?.Literals);
-                Assert.Equal(three, scalar.Literals[0]?.Sourcecode.ToString());
             }
         }
     }

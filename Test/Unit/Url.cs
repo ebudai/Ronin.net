@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
@@ -14,9 +15,9 @@ public class url
         const string literal = "http://test.com";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var url = Literal.Lex(ref lexer) as Url;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, url?.ToString());
     }
 
     [Fact(DisplayName = "terminated")]
@@ -25,8 +26,8 @@ public class url
         const string literal = "http://test.com;";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var url = Literal.Lex(ref lexer) as Url;
 
-        Assert.Equal(literal[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], url?.ToString());
     }
 }

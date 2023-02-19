@@ -1,7 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Test;
 
 namespace Failure;
 
@@ -15,13 +14,15 @@ public class interval
     {
         // not an interval;
 
-        Tokens tokens = new();
-        tokens.Add<Word>("not")
-            .Add<Word>("an")
-            .Add<Word>("interval")
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new Word(),
+            new Word(),
+            new Word(),
+            new Terminal()
+        };
+        
+        Parser parser = new(tokens);
         var ordinal = Interval.Parse(ref parser);
 
         Assert.Null(ordinal);

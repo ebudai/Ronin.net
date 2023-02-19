@@ -16,7 +16,7 @@ public class character
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "unicode")]
@@ -27,6 +27,6 @@ public class character
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.sourcecode.ToArray());
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Failure;
 
@@ -13,13 +13,15 @@ public class datatype
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
-        Tokens tokens = new();
-        tokens.Add<Datatype>()
-            .Add<OpenBrace>()
-            .Add<CloseBrace>()
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new Datatype(),
+            new OpenBrace(),
+            new CloseBrace(),
+            new Terminal()
+        };
+        
+        Parser parser = new(tokens);
         var datatype = Ronin.Grammar.Datatype.Parse(ref parser);
         Assert.Null(datatype);
     }

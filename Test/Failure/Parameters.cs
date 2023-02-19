@@ -2,7 +2,6 @@
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Failure;
 
@@ -16,12 +15,15 @@ public class parameters
     {
         // not parameters;
 
-        Tokens tokens = new();
-        tokens.Add<Word>("not")
-            .Add<Word>("parameters")
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new Word(),
+            new Word(),
+            new Terminal(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
@@ -30,9 +32,8 @@ public class parameters
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        Tokens tokens = new();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = { Sentinel.Instance };
+        Parser parser = new(tokens);
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
@@ -43,20 +44,23 @@ public class parameters
     {
         // (test => money, [thing;stuff])
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>("test")
-            .Add<Returns>()
-            .Add<Word>("money")
-            .Add<Separator>()
-            .Add<OpenSquareBracket>()
-            .Add<Word>("thing")
-            .Add<Terminal>()
-            .Add<Word>("stuff")
-            .Add<CloseSquareBracket>()
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new OpenParenthesis(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new Separator(),
+            new OpenSquareBracket(),
+            new Word(),
+            new Terminal(),
+            new Word(),
+            new CloseSquareBracket(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
@@ -67,15 +71,17 @@ public class parameters
     {
         // (test => text;)
 
-        Tokens tokens = new();
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>("test")
-            .Add<Returns>()
-            .Add<Word>("text")
-            .Add<Terminal>()
-            .Add<CloseParenthesis>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new Word(),
+            new Returns(),
+            new Word(),
+            new Terminal(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Null(parameters);

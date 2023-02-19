@@ -3,7 +3,6 @@ using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -15,15 +14,18 @@ public class identifier
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        Tokens tokens = new();
-        tokens.Add<Word>("test")
-            .Add<OpenParenthesis>()
-            .Add<Word>("thing")
-            .Add<Returns>()
-            .Add<Word>("number")
-            .Add<CloseParenthesis>();
+        Token[] tokens =
+        {
+            new Word(),
+            new OpenParenthesis(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new CloseParenthesis(),
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var identifier = Identifier.Parse(ref parser);
 
         Assert.Equal(2, identifier?.Components?.Count);
@@ -31,7 +33,6 @@ public class identifier
         {
             Name name = identifier.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("test", name.Words[0]);
         }
 
         {
@@ -39,11 +40,10 @@ public class identifier
             Assert.Single(parameters?.Values);
             Datum datum = parameters.Values[0];
             Assert.Single(datum?.Name?.Words);
-            Assert.Equal("thing", datum.Name.Words[0]);
+
             Assert.Single(datum?.Datatype?.Components);
             Name name = datum.Datatype.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("number", name.Words[0]);
         }        
     }
 }

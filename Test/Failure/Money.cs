@@ -1,7 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -38,11 +37,9 @@ public class money
         const string literal = "$9.";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.IsType<Money>(lexed);
-        var money = lexed as Money;
-        Assert.Equal("$9".ToArray(), money?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^1], money.ToString());
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -51,11 +48,9 @@ public class money
         const string literal = "$9.2v5";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.IsType<Money>(lexed);
-        var money = lexed as Money;
-        Assert.Equal("$9.2".ToArray(), money?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^2], money.ToString());
     }
 
     [Fact(DisplayName = "no data")]
@@ -73,11 +68,9 @@ public class money
         const string literal = "$9.25.4";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.IsType<Money>(lexed);
-        var money = lexed as Money;
-        Assert.Equal("$9.25".ToArray(), money?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^2], money.ToString());
     }
 
     [Fact(DisplayName = "just a dollar sign")]

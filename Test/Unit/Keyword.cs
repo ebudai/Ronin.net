@@ -11,127 +11,134 @@ public class keyword
 {
     private const string datatype = Datatype.keyword;
     private const string function = Function.keyword;
+    private const string variable = Variable.keyword;
+    private const string constant = Constant.keyword;
+    private const string reactive = Reactive.keyword;
+    private const string compiled = Compiled.keyword;
+    private const string shared = Shared.keyword;
+    private const string optional = Optional.keyword;
+    private const string persistent = Persistent.keyword;
+    private const string partof = PartOf.keyword;
+    private const string import = Import.keyword;
 
-    [Fact(DisplayName = "datatype")]
+    [Fact(DisplayName = datatype)]
     public void Datatypes()
     {
         const string sourcecode = $"{datatype} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Datatype;
 
-        Assert.Equal("datatype".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(datatype, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "function")]
+    [Fact(DisplayName = function)]
     public void Functions()
     {
         const string sourcecode = $"{function} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Function;
 
-        Assert.Equal("function".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(function, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "variable")]
-    public void Variable()
+    [Fact(DisplayName = variable)]
+    public void Variables()
     {
-        const string sourcecode = "var thing";
+        const string sourcecode = $"{variable} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Variable;
 
-        Assert.Equal("var".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(variable, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "constant")]
-    public void Constant()
+    [Fact(DisplayName = constant)]
+    public void Constants()
     {
-        const string sourcecode = "constant thing";
+        const string sourcecode = $"{constant} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Constant;
 
-        Assert.Equal("constant".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(constant, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "reactive")]
-    public void Reactive()
+    [Fact(DisplayName = reactive)]
+    public void Reactives()
     {
-        const string sourcecode = "reactive thing";
+        const string sourcecode = $"{reactive} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Reactive;
 
-        Assert.Equal("reactive".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(reactive, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "compiled")]
-    public void Compiled()
+    [Fact(DisplayName = compiled)]
+    public void Compileds()
     {
-        const string sourcecode = "compiled thing";
+        const string sourcecode = $"{compiled} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Compiled;
 
-        Assert.Equal("compiled".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(compiled, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "shared")]
-    public void Shared()
+    [Fact(DisplayName = shared)]
+    public void Shareds()
     {
-        const string sourcecode = "shared thing";
+        const string sourcecode = $"{shared} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Shared;
 
-        Assert.Equal("shared".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(shared, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "optional")]
-    public void Optional()
+    [Fact(DisplayName = optional)]
+    public void Optionals()
     {
-        const string sourcecode = "optional thing";
+        const string sourcecode = $"{optional} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Optional;
 
-        Assert.Equal("optional".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(optional, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "persistent")]
-    public void Persistent()
+    [Fact(DisplayName = persistent)]
+    public void Persistents()
     {
-        const string sourcecode = "persistent thing";
+        const string sourcecode = $"{persistent} thing";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Persistent;
 
-        Assert.Equal("persistent".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(persistent, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "part of")]
-    public void PartOf()
+    [Fact(DisplayName = partof)]
+    public void PartOfs()
     {
-        const string sourcecode = "part of standard.stuff";
+        const string sourcecode = $"{partof} standard stuff";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as PartOf;
 
-        Assert.Equal("part of".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(partof, keyword?.ToString());
     }
 
-    [Fact(DisplayName = "import")]
-    public void Import()
+    [Fact(DisplayName = import)]
+    public void Imports()
     {
         const string sourcecode = "import git://github.com/ebudai/ronin/libsuperpowers.ronin;";
 
         Lexer lexer = new(sourcecode);
-        var lexed = Keyword.Lex(ref lexer);
+        var keyword = Keyword.Lex(ref lexer) as Import;
 
-        Assert.Equal("import".ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(import, keyword?.ToString());
     }
-
-
 }

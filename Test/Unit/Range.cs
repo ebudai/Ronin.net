@@ -16,6 +16,6 @@ public class range
         Lexer lexer = new(dots);
         var range = Range.Lex(ref lexer);
 
-        Assert.Equal(dots.ToArray(), range?.Sourcecode.ToArray());
+        Assert.Equal(dots.ToArray(), range?.sourcecode.ToArray());
     }
 }

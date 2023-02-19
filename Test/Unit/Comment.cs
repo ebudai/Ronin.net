@@ -20,7 +20,7 @@ public class comment
         Lexer lexer = new(literal);
         var comment = Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray()[..^4], comment?.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray()[..^4], comment?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "single-line at end of file")]
@@ -31,7 +31,7 @@ public class comment
         Lexer lexer = new(literal);
         var comment = Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray(), comment?.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), comment?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "multiline")]
@@ -47,7 +47,7 @@ public class comment
         Lexer lexer = new(literal);
         var comment = Comment.Lex(ref lexer);
 
-        Assert.Equal(literal[..^2].ToArray(), comment?.Sourcecode.ToArray());
+        Assert.Equal(literal[..^2].ToArray(), comment?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "multiline nested")]
@@ -58,6 +58,6 @@ public class comment
         Lexer lexer = new(literal);
         var comment = Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray(), comment?.Sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), comment?.sourcecode.ToArray());
     }
 }

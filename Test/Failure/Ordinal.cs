@@ -2,7 +2,6 @@
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Failure;
 
@@ -16,13 +15,15 @@ public class ordinal
     {
         // not an ordinal;
 
-        Tokens tokens = new();
-        tokens.Add<Word>("not")
-            .Add<Word>("an")
-            .Add<Word>("ordinal")
-            .Add<Terminal>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new Word(),
+            new Word(),
+            new Word(),
+            new Terminal()
+        };
+        
+        Parser parser = new(tokens);
         var ordinal = Ordinal.Parse(ref parser);
 
         Assert.Null(ordinal);
@@ -31,9 +32,8 @@ public class ordinal
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        Tokens tokens = new();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = { Sentinel.Instance };
+        Parser parser = new(tokens);
         var arguments = Ordinal.Parse(ref parser);
 
         Assert.Null(arguments);
@@ -44,18 +44,19 @@ public class ordinal
     {
         // [test, (thing;stuff)]
 
-        Tokens tokens = new();
-        tokens.Add<OpenSquareBracket>()
-            .Add<Word>("test")
-            .Add<Separator>()
-            .Add<OpenParenthesis>()
-            .Add<Word>("thing")
-            .Add<Terminal>()
-            .Add<Word>("stuff")
-            .Add<CloseParenthesis>()
-            .Add<CloseSquareBracket>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenSquareBracket(),
+            new Word(),
+            new Separator(),
+            new Word(),
+            new Terminal(),
+            new Word(),
+            new CloseParenthesis(),
+            new CloseSquareBracket()
+        };
+        
+        Parser parser = new(tokens);
         var ordinal = Ordinal.Parse(ref parser);
 
         Assert.Null(ordinal);
@@ -66,13 +67,15 @@ public class ordinal
     {
         // [test;]
 
-        Tokens tokens = new();
-        tokens.Add<OpenSquareBracket>()
-            .Add<Word>("test")
-            .Add<Terminal>()
-            .Add<CloseSquareBracket>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenSquareBracket(),
+            new Word(),
+            new Terminal(),
+            new CloseSquareBracket()
+        };
+        
+        Parser parser = new(tokens);
         var ordinal = Ordinal.Parse(ref parser);
 
         Assert.Null(ordinal);

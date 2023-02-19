@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
@@ -14,9 +15,9 @@ public class time
         const string literal = "11:45:12 p";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, time?.ToString());
     }
 
     [Fact(DisplayName = "two digits with unspaced suffix")]
@@ -25,9 +26,9 @@ public class time
         const string literal = "10:15:02p";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, time?.ToString());
     }
 
     [Fact(DisplayName = "two digits without suffix")]
@@ -36,9 +37,9 @@ public class time
         const string literal = "12:30:59";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, time?.ToString());
     }
 
     [Fact(DisplayName = "one digit with spaced suffix")]
@@ -47,9 +48,9 @@ public class time
         const string literal = "9:08:45 p";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, time?.ToString());
     }
 
     [Fact(DisplayName = "one digit with unspaced suffix")]
@@ -58,9 +59,9 @@ public class time
         const string literal = "2:22:18p";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, time?.ToString());
     }
 
     [Fact(DisplayName = "two digit with spaced no suffix")]
@@ -69,8 +70,8 @@ public class time
         const string literal = "17:22:18 ";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal.Trim().ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal.Trim(), time?.ToString());
     }
 }

@@ -3,7 +3,6 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -15,103 +14,106 @@ public class parser
     [Fact(DisplayName = "parse")]
     public void Parse()
     {
-        Tokens tokens = new();
+        Token[] tokens =
+        {
+            // part of testing apparatus;
 
-        // part of testing apparatus;
+            new PartOf(),
+            new Word(),
+            new Word(),
+            new Terminal(),
 
-        tokens.Add<PartOf>()
-            .Add<Word>("testing")
-            .Add<Word>("apparatus")
-            .Add<Terminal>();
+            // var a = 3;
 
-        // var a = 3;
+            new Variable(),
+            new Word(),
+            new Assign(),
+            new Number(),
+            new Terminal(),
 
-        tokens.Add<Variable>()
-            .Add<Word>("a")
-            .Add<Assign>()
-            .Add<Number>("3")
-            .Add<Terminal>();
+            // a = 6;
 
-        // a = 6;
+            new Word(),
+            new Assign(),
+            new Number(),
+            new Terminal(),
 
-        tokens.Add<Word>("a")
-            .Add<Assign>()
-            .Add<Number>("6")
-            .Add<Terminal>();
+            // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
 
-        // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
+            new Function(),
+            new Word(),
+            new OpenParenthesis(),
+            new Variable(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new CloseParenthesis(),
+            new Word(),
+            new OpenParenthesis(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new CloseParenthesis(),
+            new OpenBrace(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new Asterisk(),
+            new Word(),
+            new Terminal(),
+            new CloseBrace(),
 
-        tokens.Add<Function>()
-            .Add<Word>("x")
-            .Add<OpenParenthesis>()
-            .Add<Variable>()
-            .Add<Word>("a")
-            .Add<Returns>()
-            .Add<Word>("number")
-            .Add<CloseParenthesis>()
-            .Add<Word>("y")
-            .Add<OpenParenthesis>()
-            .Add<Word>("cash")
-            .Add<Word>("on")
-            .Add<Word>("hand")
-            .Add<Returns>()
-            .Add<Word>("money")
-            .Add<CloseParenthesis>()
-            .Add<OpenBrace>()
-            .Add<Word>("return")
-            .Add<Word>("cash")
-            .Add<Word>("on")
-            .Add<Word>("hand")
-            .Add<Asterisk>()
-            .Add<Word>("a")
-            .Add<Terminal>()
-            .Add<CloseBrace>();
+            // datatype big thing { constant size => whole number; }
 
-        // datatype big thing { constant size => whole number; }
+            new Datatype(),
+            new Word(),
+            new Word(),
+            new OpenBrace(),
+            new Constant(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new Word(),
+            new Terminal(),
+            new CloseBrace(),
 
-        tokens.Add<Datatype>()
-            .Add<Word>("big")
-            .Add<Word>("thing")
-            .Add<OpenBrace>()
-            .Add<Constant>()
-            .Add<Word>("size")
-            .Add<Returns>()
-            .Add<Word>("whole")
-            .Add<Word>("number")
-            .Add<Terminal>()
-            .Add<CloseBrace>();
+            // 7;
 
-        // 7;
+            new Number(),
+            new Terminal(),
 
-        tokens.Add<Number>("7")
-            .Add<Terminal>();
+            // (a, b, "text");
 
-        // (a, b, "text");
+            new OpenParenthesis(),
+            new Word(),
+            new Separator(),
+            new Word(),
+            new Separator(),
+            new Text(),
+            new CloseParenthesis(),
+            new Terminal(),
 
-        tokens.Add<OpenParenthesis>()
-            .Add<Word>("a")
-            .Add<Separator>()
-            .Add<Word>("b")
-            .Add<Separator>()
-            .Add<Text>("\"text\"")
-            .Add<CloseParenthesis>()
-            .Add<Terminal>();
+            // { var x => moment; florb x now; }
 
-        // { var x => moment; florb x now; }
+            new OpenBrace(),
+            new Variable(),
+            new Word(),
+            new Returns(),
+            new Word(),
+            new Terminal(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new Terminal(),
+            new CloseBrace(),
 
-        tokens.Add<OpenBrace>()
-            .Add<Variable>()
-            .Add<Word>("x")
-            .Add<Returns>()
-            .Add<Word>("moment")
-            .Add<Terminal>()
-            .Add<Word>("florb")
-            .Add<Word>("x")
-            .Add<Word>("now")
-            .Add<Terminal>()
-            .Add<CloseBrace>();
+            Sentinel.Instance
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var statements = parser.Parse();
 
         Assert.Equal(8, statements?.Count);

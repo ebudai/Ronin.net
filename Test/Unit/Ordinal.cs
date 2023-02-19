@@ -4,7 +4,6 @@ using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -18,12 +17,15 @@ public class ordinal
     {
         // [test]
 
-        Tokens tokens = new();
-        tokens.Add<OpenSquareBracket>()
-            .Add<Word>("test")
-            .Add<CloseSquareBracket>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenSquareBracket(),
+            new Word(),
+            new CloseSquareBracket(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var ordinal = Ordinal.Parse(ref parser);
 
         Assert.Single(ordinal?.Values);
@@ -31,7 +33,6 @@ public class ordinal
         Assert.Single(reference?.Components);
         Name name = reference.Components[0];
         Assert.Single(name?.Words);
-        Assert.Equal("test", name.Words[0]);
     }
 
     [Fact(DisplayName = "multidimensional")]
@@ -39,14 +40,17 @@ public class ordinal
     {
         // [test, stuff]
 
-        Tokens tokens = new();
-        tokens.Add<OpenSquareBracket>()
-            .Add<Word>("test")
-            .Add<Separator>()
-            .Add<Word>("stuff")
-            .Add<CloseSquareBracket>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new OpenSquareBracket(),
+            new Word(),
+            new Separator(),
+            new Word(),
+            new CloseSquareBracket(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var ordinal = Ordinal.Parse(ref parser);
 
         Assert.Equal(2, ordinal?.Values?.Count);
@@ -56,7 +60,6 @@ public class ordinal
             Assert.Single(test?.Components);
             Name name = test.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("test", name.Words[0]);
         }
 
         {
@@ -64,7 +67,6 @@ public class ordinal
             Assert.Single(stuff?.Components);
             Name name = stuff.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("stuff", name.Words[0]);
         }
     }
 
@@ -73,10 +75,14 @@ public class ordinal
     {
         // []
 
-        Tokens tokens = new();
-        tokens.Add<OpenSquareBracket>().Add<CloseSquareBracket>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new OpenSquareBracket(),
+            new CloseSquareBracket(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var ordinal = Ordinal.Parse(ref parser);
 
         Assert.Empty(ordinal?.Values);
@@ -87,16 +93,19 @@ public class ordinal
     {
         // [1, 2, thing]
 
-        Tokens tokens = new();
-        tokens.Add<OpenSquareBracket>()
-            .Add<Number>("1")
-            .Add<Separator>()
-            .Add<Number>("2")
-            .Add<Separator>()
-            .Add<Word>("thing")
-            .Add<CloseSquareBracket>();
-
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new OpenSquareBracket(),
+            new Number(),
+            new Separator(),
+            new Number(),
+            new Separator(),
+            new Word(),
+            new CloseSquareBracket(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var arguments = Ordinal.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
@@ -104,13 +113,11 @@ public class ordinal
         {
             Scalar scalar = arguments.Values[0];
             Assert.Single(scalar?.Literals);
-            Assert.Equal("1", scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
             Scalar scalar = arguments.Values[1];
             Assert.Single(scalar?.Literals);
-            Assert.Equal("2", scalar.Literals[0]?.Sourcecode.ToString());
         }
 
         {
@@ -118,7 +125,6 @@ public class ordinal
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
             Assert.Single(name?.Words);
-            Assert.Equal("thing", name.Words[0]);
         }        
     }
 }

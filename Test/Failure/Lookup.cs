@@ -1,8 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Failure;
 
@@ -14,13 +14,17 @@ public class lookup
     [Fact(DisplayName = "missing assign")]
     public void MissingAssign()
     {
-        Tokens tokens = new();
-        tokens.Add<OpenBrace>()
-            .Add<Text>("\"test\"")
-            .Add<Number>("3")
-            .Add<CloseBrace>();
+        // { "thing" 4 }
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenBrace(),
+            new Text(),
+            new Number(),
+            new CloseBrace()
+        };
+        
+        Parser parser = new(tokens);
         var lookup = Lookup.Parse(ref parser);
 
         Assert.IsNotType<Lookup>(lookup);
@@ -29,13 +33,17 @@ public class lookup
     [Fact(DisplayName = "missing key")]
     public void MissingKey()
     {
-        Tokens tokens = new();
-        tokens.Add<OpenBrace>()
-            .Add<Assign>()
-            .Add<Number>("3")
-            .Add<CloseBrace>();
+        // { = 4 }
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens =
+        {
+            new OpenBrace(),
+            new Assign(),
+            new Number(),
+            new CloseBrace()
+        };
+        
+        Parser parser = new(tokens);
         var lookup = Lookup.Parse(ref parser);
 
         Assert.IsNotType<Lookup>(lookup);
@@ -44,17 +52,18 @@ public class lookup
     [Fact(DisplayName = "missing value")]
     public void MissingValue()
     {
-        Tokens tokens = new();
-        tokens.Add<OpenBrace>()
-            .Add<Number>("3")
-            .Add<Assign>()
-            .Add<CloseBrace>();
-
-        Parser parser = new(tokens.ToArray());
+        // { 3 = }
+        Token[] tokens =
+        {
+            new OpenBrace(),
+            new Number(),
+            new Assign(),
+            new CloseBrace()
+        };
+        
+        Parser parser = new(tokens);
         var lookup = Lookup.Parse(ref parser);
 
         Assert.IsNotType<Lookup>(lookup);
     }
-
-
 }

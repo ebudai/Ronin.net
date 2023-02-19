@@ -14,9 +14,9 @@ public class word
         const string name = "thing";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name, word?.ToString());
     }
 
     [Fact(DisplayName = "with terminator")]
@@ -25,9 +25,9 @@ public class word
         const string name = "thing;";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with separator")]
@@ -36,9 +36,9 @@ public class word
         const string name = "thing,";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with opening parenthesis")]
@@ -47,9 +47,9 @@ public class word
         const string name = "thing(";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with closing parenthesis")]
@@ -58,9 +58,9 @@ public class word
         const string name = "thing)";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with opening bracket")]
@@ -69,9 +69,9 @@ public class word
         const string name = "thing[";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with closing bracket")]
@@ -80,9 +80,9 @@ public class word
         const string name = "thing]";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with opening brace")]
@@ -91,9 +91,9 @@ public class word
         const string name = "thing{";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with closing brace")]
@@ -102,9 +102,9 @@ public class word
         const string name = "thing}";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with single quote")]
@@ -113,9 +113,9 @@ public class word
         const string name = "thing'";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with double quote")]
@@ -124,9 +124,9 @@ public class word
         const string name = "thing\"";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 
     [Fact(DisplayName = "with space")]
@@ -135,8 +135,8 @@ public class word
         const string name = "thing ";
 
         Lexer lexer = new(name);
-        var lexed = Word.Lex(ref lexer);
+        var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1].ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(name[..^1], word?.ToString());
     }
 }

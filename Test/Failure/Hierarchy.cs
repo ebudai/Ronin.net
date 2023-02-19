@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
-using Test;
 
 namespace Failure;
 
@@ -13,11 +13,15 @@ public class hierarchy
     [Fact(DisplayName = "missing identifier")]
     public void MissingIdentifier() 
     {
-        Tokens tokens = new();
+        // part of ;
 
-        tokens.Add<PartOf>().Add<Terminal>();
+        Token[] tokens =
+        {
+            new PartOf(),
+            new Terminal()
+        };
 
-        Parser parser = new(tokens.ToArray());
+        Parser parser = new(tokens);
         var hierarchy = Hierarchy.Parse(ref parser);
 
         Assert.Null(hierarchy);

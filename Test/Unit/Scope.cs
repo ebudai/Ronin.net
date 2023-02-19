@@ -5,7 +5,6 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Test;
 
 namespace Unit;
 
@@ -17,16 +16,21 @@ public class scope
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        Tokens tokens = new();
-        tokens.Add<OpenBrace>()
-            .Add<Variable>()
-            .Add<Word>("test")
-            .Add<Assign>()
-            .Add<Number>("56")
-            .Add<Terminal>()
-            .Add<CloseBrace>();
+        // { var test = 56; }
 
-        Parser parser = new(tokens.ToArray());
+        Token[] tokens = 
+        {
+            new OpenBrace(),
+            new Variable(),
+            new Word(),
+            new Assign(),
+            new Number(),
+            new Terminal(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
+        
+        Parser parser = new(tokens);
         var scope = Scope.Parse(ref parser);
 
         Assert.Single(scope?.Values);
@@ -36,7 +40,6 @@ public class scope
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Single(datum.Name?.Words);
-        Assert.Equal("test", datum.Name.Words[0]);
 
         Assert.False(datum.Is.Optional);
         Assert.False(datum.Is.Persistent);
@@ -45,6 +48,5 @@ public class scope
 
         Scalar scalar = datum.Initializer;
         Assert.Single(scalar?.Literals);
-        Assert.Equal("56", scalar.Literals[0]?.Sourcecode.ToString());
     }
 }

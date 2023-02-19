@@ -15,9 +15,9 @@ public class text
         const string literal = "\"testtest\"";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var text = Literal.Lex(ref lexer) as Text;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, text?.ToString());
     }
 
     [Fact(DisplayName = "with escaped quotes")]
@@ -26,9 +26,9 @@ public class text
         const string literal = @"""tes\""tte\""st""";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var text = Literal.Lex(ref lexer) as Text;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, text?.ToString());
     }
 
     [Fact(DisplayName = "multiline")]
@@ -37,9 +37,9 @@ public class text
         const string literal = "\"test\n\nanother test\"";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var text = Literal.Lex(ref lexer) as Text;
 
-        Assert.Equal(literal.ToArray(), lexed?.Sourcecode.ToArray());
+        Assert.Equal(literal, text?.ToString());
     }
 
     [Fact(DisplayName = "value")]
@@ -48,9 +48,8 @@ public class text
         const string literal = "\"testtest\"";
 
         Lexer lexer = new(literal);
-        var lexed = Literal.Lex(ref lexer);
+        var text = Literal.Lex(ref lexer) as Text;
 
-        var text = lexed as Text;
-        Assert.Equal("\"testtest\"", text?.Sourcecode.ToString());
+        Assert.Equal(literal, text?.ToString());
     }
 }
