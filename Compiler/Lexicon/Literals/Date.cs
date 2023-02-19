@@ -19,7 +19,7 @@ internal class Date : Literal
         if (char.IsNumber(lexer[8]) is not true) return null;
         if (char.IsNumber(lexer[9]) is not true) return null;
 
-        return new Date { Sourcecode = lexer.Commit(Length) };
+        return new Date { sourcecode = lexer.Commit(Length) };
     }
 
     private const int Length = 10;

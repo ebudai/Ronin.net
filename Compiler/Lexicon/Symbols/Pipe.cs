@@ -10,6 +10,6 @@ internal class Pipe : Symbol
     public static new Pipe Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Pipe { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Pipe { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

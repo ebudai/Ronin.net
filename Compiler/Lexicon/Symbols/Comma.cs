@@ -10,6 +10,6 @@ internal class Comma : Punctuation
     public static new Comma Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Comma { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Comma { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

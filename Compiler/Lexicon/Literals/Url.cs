@@ -18,7 +18,7 @@ internal class Url : Literal
         length += 3;
         while (length < lexer.Length && IsValidUrlCharacter(lexer[length])) ++length;
 
-        return new Url { Sourcecode = lexer.Commit(length) };
+        return new Url { sourcecode = lexer.Commit(length) };
     }
 
     private static bool IsValidUrlCharacter(char value) => char.IsLetterOrDigit(value) || value is '~' or '*' or '(' or ')' or '.' or '-' or '_' or '/';

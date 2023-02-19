@@ -50,9 +50,9 @@ internal class Symbol : Token
     {
         var text = lexer[i..];
         if (text.IsEmpty) return false;
-        return text.StartsWith(Returns.symbol)
-            || text.StartsWith(Symbols.Range.symbol)
-            || text[0] is Ampersand.character
+        return text.Span.StartsWith(Returns.symbol)
+            || text.Span.StartsWith(Symbols.Range.symbol)
+            || text.Span[0] is Ampersand.character
             or Assign.character
             or Asterisk.character
             or At.character

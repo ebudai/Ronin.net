@@ -10,6 +10,6 @@ internal class Exclamation : Symbol
     public static new Exclamation Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Exclamation { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Exclamation { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

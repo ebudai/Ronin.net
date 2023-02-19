@@ -10,6 +10,6 @@ internal class OpenBrace : Open
     public static new OpenBrace Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new OpenBrace { Sourcecode = lexer.Commit(symbol.Length) };
+        return new OpenBrace { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

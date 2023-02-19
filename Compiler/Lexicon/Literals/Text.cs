@@ -9,19 +9,19 @@ internal class Text : Literal
         if (lexer.IsEmpty || lexer[0] is not TextDelimiter.character) return null;
 
         var index = 1;
-        var length = lexer[index..].IndexOf(TextDelimiter.character);
+        var length = lexer[index..].Span.IndexOf(TextDelimiter.character);
         if (length is < 0) return null;
 
         while (lexer[index + length - 1] is '\\' && length < lexer.Length && length is not -1)
         {
             index += length + 1;
-            length = lexer[index..].IndexOf(TextDelimiter.character);
+            length = lexer[index..].Span.IndexOf(TextDelimiter.character);
         }
 
         if (length is < 0) return null;
 
         length += index + 1;
 
-        return new Text { Sourcecode = lexer.Commit(length) };
+        return new Text { sourcecode = lexer.Commit(length) };
     }
 }

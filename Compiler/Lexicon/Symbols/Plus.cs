@@ -10,6 +10,6 @@ internal class Plus : Symbol
     public static new Plus Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Plus { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Plus { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

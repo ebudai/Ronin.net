@@ -16,6 +16,6 @@ internal class Word : Token
             && !Symbol.IsSymbol(ref lexer, length)) ++length;
 
         if (length is 0) return null;
-        return new Word { Sourcecode = lexer.Commit(length) };
+        return new Word { sourcecode = lexer.Commit(length) };
     }
 }

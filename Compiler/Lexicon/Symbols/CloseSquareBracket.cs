@@ -10,6 +10,6 @@ internal class CloseSquareBracket : Close
     public static new CloseSquareBracket Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new CloseSquareBracket { Sourcecode = lexer.Commit(symbol.Length) };
+        return new CloseSquareBracket { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

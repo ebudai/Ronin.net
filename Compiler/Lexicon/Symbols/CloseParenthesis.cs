@@ -10,6 +10,6 @@ internal class CloseParenthesis : Close
     public static new CloseParenthesis Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new CloseParenthesis { Sourcecode = lexer.Commit(symbol.Length) };
+        return new CloseParenthesis { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

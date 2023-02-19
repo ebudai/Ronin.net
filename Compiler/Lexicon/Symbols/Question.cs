@@ -10,6 +10,6 @@ internal class Question : Symbol
     public static new Question Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Question { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Question { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

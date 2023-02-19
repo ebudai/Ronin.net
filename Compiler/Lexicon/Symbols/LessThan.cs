@@ -10,6 +10,6 @@ internal class LessThan : Symbol
     public static new LessThan Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new LessThan { Sourcecode = lexer.Commit(symbol.Length) };
+        return new LessThan { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

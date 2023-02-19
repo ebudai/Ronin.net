@@ -10,6 +10,6 @@ internal class CloseBrace : Close
     public static new CloseBrace Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new CloseBrace { Sourcecode = lexer.Commit(symbol.Length) };
+        return new CloseBrace { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

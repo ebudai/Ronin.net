@@ -10,6 +10,6 @@ internal class Slash : Symbol
     public static new Slash Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Slash { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Slash { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

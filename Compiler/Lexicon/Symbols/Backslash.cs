@@ -10,6 +10,6 @@ internal class Backslash : Symbol
     public static new Backslash Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Backslash { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Backslash { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

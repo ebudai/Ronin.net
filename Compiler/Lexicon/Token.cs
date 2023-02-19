@@ -1,8 +1,8 @@
-﻿using Ronin.Compiler;
-
-namespace Ronin.Lexicon;
+﻿namespace Ronin.Lexicon;
 
 internal abstract class Token
 {
-    protected internal ReadOnlyMemory<char> Sourcecode { get; init; }
+    public override string ToString() => sourcecode.ToString();
+
+    protected internal ReadOnlyMemory<char> sourcecode;
 }

@@ -10,6 +10,6 @@ internal class Dollar : Symbol
     public static new Dollar Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Dollar { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Dollar { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

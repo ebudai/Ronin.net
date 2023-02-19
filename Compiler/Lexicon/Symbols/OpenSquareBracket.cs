@@ -10,6 +10,6 @@ internal class OpenSquareBracket : Open
     public static new OpenSquareBracket Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new OpenSquareBracket { Sourcecode = lexer.Commit(symbol.Length) };
+        return new OpenSquareBracket { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

@@ -10,6 +10,6 @@ internal class Chevron : Symbol
     public static new Chevron Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Chevron { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Chevron { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

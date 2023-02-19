@@ -10,6 +10,6 @@ internal class Colon : Symbol
     public static new Colon Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Colon { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Colon { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

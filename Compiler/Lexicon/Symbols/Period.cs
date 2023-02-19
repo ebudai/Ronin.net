@@ -10,6 +10,6 @@ internal class Period : Symbol
     public static new Period Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Period { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Period { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

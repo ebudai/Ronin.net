@@ -10,6 +10,6 @@ internal class Tilde : Symbol
     public static new Tilde Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Tilde { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Tilde { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

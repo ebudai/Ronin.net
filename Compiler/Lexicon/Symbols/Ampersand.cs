@@ -10,6 +10,6 @@ internal class Ampersand : Symbol
     public static new Ampersand Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Ampersand { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Ampersand { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

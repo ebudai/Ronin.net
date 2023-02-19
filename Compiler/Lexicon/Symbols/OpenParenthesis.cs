@@ -10,6 +10,6 @@ internal class OpenParenthesis : Open
     public static new OpenParenthesis Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new OpenParenthesis { Sourcecode = lexer.Commit(symbol.Length) };
+        return new OpenParenthesis { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

@@ -41,7 +41,7 @@ internal class Comment : Trivium
             {
                 --linelength;
             }            
-            return new Comment { Sourcecode = lexer.Commit(linelength) };
+            return new Comment { sourcecode = lexer.Commit(linelength) };
         }
 
         if (lexer.DoesNotStartWith(Multiline.Start)) return null;
@@ -51,7 +51,7 @@ internal class Comment : Trivium
 
         for (; length != lexer.Length; ++length)
         {
-            var innerspan = lexer[length..];     
+            var innerspan = lexer[length..].Span;     
             if (innerspan.StartsWith(Multiline.Start)) ++depth;
             else if (innerspan.StartsWith(Multiline.End)) --depth;
             if (depth is 0) break;
@@ -60,6 +60,6 @@ internal class Comment : Trivium
         length += Multiline.End.Length;
         if (depth is not 0 && length > lexer.Length) length = lexer.Length;
 
-        return new Comment { Terminated = depth is 0, Sourcecode = lexer.Commit(length) };
+        return new Comment { Terminated = depth is 0, sourcecode = lexer.Commit(length) };
     }
 }

@@ -10,6 +10,6 @@ internal class DoubleQuote : Punctuation
     public static new DoubleQuote Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new DoubleQuote { Sourcecode = lexer.Commit(symbol.Length) };
+        return new DoubleQuote { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

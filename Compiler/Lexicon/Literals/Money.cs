@@ -27,6 +27,6 @@ internal class Money : Literal
 
         if (lexer[length - 1] is '.') --length;
 
-        return new Money { Sourcecode = lexer.Commit(length) };
+        return new Money { sourcecode = lexer.Commit(length) };
     }
 }

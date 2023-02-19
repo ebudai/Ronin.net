@@ -10,6 +10,6 @@ internal class Asterisk : Symbol
     public static new Asterisk Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Asterisk { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Asterisk { sourcecode = lexer.Commit(symbol.Length) };
     }
 }

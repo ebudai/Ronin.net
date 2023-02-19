@@ -10,6 +10,6 @@ internal class Equal : Punctuation
     public static new Equal Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;
-        return new Equal { Sourcecode = lexer.Commit(symbol.Length) };
+        return new Equal { sourcecode = lexer.Commit(symbol.Length) };
     }
 }
