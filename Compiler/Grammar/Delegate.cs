@@ -24,7 +24,7 @@ internal class Delegate : Syntax, Compiler.IParsable<Delegate>
         else
         {
             data = new List<Datum> { datum };
-            if (parser[parser.Index - 1] is not Returns) return null;
+            if (parser.PreviousToken is not Returns) return null;
         }
 
         if (Scope.Parse(ref parser) is not Scope body) return null;

@@ -45,26 +45,25 @@ internal ref struct Parser
         return consumed is false;
     }
 
-    internal int Index;
-
-    internal ref readonly Token CurrentToken => ref tokens[Index];
+    internal ref readonly Token CurrentToken => ref tokens[cursor];
+    internal ref readonly Token PreviousToken => ref tokens[cursor - 1];
 
     internal readonly ReadOnlySpan<Token> this[Range range] => tokens[range];
-    internal ref readonly Token this[Index index] => ref tokens[index];
 
     internal bool IsNotFinished => CurrentToken is not Sentinel;
 
     internal void Advance() 
     {
-        do ++Index; while (CurrentToken is Trivium);
+        do ++cursor; while (CurrentToken is Trivium);
     }
 
-    internal Token[] Commit(ref Parser context)
+    internal Token[] Commit(/*scoped*/ ref Parser context)
     {
-        var tokens = context[context.Index..Index].ToArray();
+        var tokens = context[context.cursor..cursor].ToArray();
         context = this;        
         return tokens;
     }
 
     private readonly ReadOnlySpan<Token> tokens;
+    private int cursor;
 }
