@@ -27,12 +27,7 @@ internal class Loop : Syntax, Compiler.IParsable<Loop>
 
         if (Value.Parse(ref parser) is not Value list) return null;
 
-        var body = Scope.Parse(ref parser);// ?? Statement.Parse(ref parser);
-        if (body is null)
-        {
-            if (Statement.Parse(ref parser) is not Statement statement) return null;
-            body = new Scope { Values = new() { statement }, Source = statement.Source };
-        }
+        if (Scope.Parse(ref parser) is not Scope body) return null;
 
         return new Loop
         {
@@ -50,7 +45,7 @@ internal class Loop : Syntax, Compiler.IParsable<Loop>
         {
             if (context.CurrentToken is Keyword or Punctuation) return null;
 
-            List<string> words = new(64);
+            List<Token> words = new(64);
             Parser parser = context;
 
             while (parser.IsNotFinished)
@@ -59,7 +54,7 @@ internal class Loop : Syntax, Compiler.IParsable<Loop>
 
                 if (name is Word and not In or Symbol and not Punctuation)
                 {
-                    words.Add(name.Sourcecode.ToString());
+                    words.Add(name);
                 }
                 else
                 {
@@ -71,7 +66,7 @@ internal class Loop : Syntax, Compiler.IParsable<Loop>
 
             if (words.Count is 0) return null;
 
-            return new Name { Words = words, Source = parser.Commit(ref context) };
+            return new RestrictedName { Words = words, Source = parser.Commit(ref context) };
         }
     }
 }
