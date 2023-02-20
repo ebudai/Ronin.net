@@ -42,22 +42,5 @@ internal class Hierarchy : Syntax, Compiler.IParsable<Hierarchy>
         };
     }
 
-    public class Component : Syntax, Compiler.IParsable<Component>
-    {
-        public static Component Parse(ref Parser context)
-        {
-            Parser parser = context;
-
-            var syntax = Name.Parse(ref parser) ?? Scalar.Parse(ref parser) as Syntax;
-
-            if (syntax is null) return null;
-
-            return new Component { value = syntax, Source = parser.Commit(ref context) };
-        }
-        
-        public static implicit operator Name(Component component) => component.value as Name;
-        public static implicit operator Scalar(Component component) => component.value as Scalar;
-
-        private Syntax value;
-    }
+    public class Component : CompositeSyntax<Component, Name, Scalar> { }
 }

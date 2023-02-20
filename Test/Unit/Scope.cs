@@ -47,6 +47,6 @@ public class scope
         Assert.False(datum.Is.Shared);
 
         Scalar scalar = datum.Initializer;
-        Assert.Single(scalar?.Literals);
+        Assert.Single(scalar?.Source);
     }
 }

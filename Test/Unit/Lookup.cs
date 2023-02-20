@@ -33,10 +33,10 @@ public class lookup
         var association = lookup.Values[0];
         
         Scalar key = association.Key;
-        Assert.Single(key?.Literals);
+        Assert.Single(key?.Source);
 
         Scalar value = association.Value;
-        Assert.Single(value?.Literals);
+        Assert.Single(value?.Source);
     }
 
     [Fact(DisplayName = "as value")]

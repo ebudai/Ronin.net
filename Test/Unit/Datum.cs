@@ -289,6 +289,6 @@ public class datum
         Assert.Single(name?.Source);
 
         Scalar scalar = datum.Initializer;
-        Assert.Single(scalar?.Literals);
+        Assert.Single(scalar?.Source);
     }
 }

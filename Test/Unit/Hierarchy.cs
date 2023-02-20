@@ -115,7 +115,7 @@ public class hierarchy
 
         {
             Scalar scalar = hierarchy.Components[1];
-            Assert.Single(scalar?.Literals);            
+            Assert.Single(scalar?.Source);            
         }
 
         {

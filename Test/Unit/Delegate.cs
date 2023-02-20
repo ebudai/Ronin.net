@@ -49,7 +49,7 @@ public class @delegate
 
         {
             Scalar scalar = line.Components[1];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
     }
 
@@ -97,7 +97,7 @@ public class @delegate
 
         {
             Scalar scalar = line.Components[1];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
     }
 
@@ -133,7 +133,7 @@ public class @delegate
 
         {
             Scalar scalar = line.Components[1];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
     }
 

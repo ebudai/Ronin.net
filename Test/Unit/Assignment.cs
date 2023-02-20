@@ -32,7 +32,7 @@ public class assignment
         Assert.Single(name?.Source);
 
         Scalar scalar = assignment.Value;
-        Assert.Single(scalar?.Literals);
+        Assert.Single(scalar?.Source);
     }
 
     [Fact(DisplayName = "no whitespace")]
@@ -56,6 +56,6 @@ public class assignment
         Assert.Single(name?.Source);
         
         Scalar scalar = assignment.Value;
-        Assert.Single(scalar?.Literals);
+        Assert.Single(scalar?.Source);
     }
 }

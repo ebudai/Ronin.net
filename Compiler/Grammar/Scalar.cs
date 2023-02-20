@@ -7,8 +7,6 @@ namespace Ronin.Grammar;
 
 internal class Scalar : Syntax, Compiler.IParsable<Scalar>
 {
-    public List<Literal> Literals { get; private init; }
-
     public static Scalar Parse(ref Parser context)
     {
         Parser parser = context;
@@ -21,8 +19,8 @@ internal class Scalar : Syntax, Compiler.IParsable<Scalar>
             values.Add(literal);   
         }
 
-        if (values.Count is 0) return null;
+        if (parser.CurrentToken == context.CurrentToken) return null;
 
-        return new Scalar { Literals = values, Source = parser.Commit(ref context) };
+        return new Scalar { Source = parser.Commit(ref context) };
     }
 }

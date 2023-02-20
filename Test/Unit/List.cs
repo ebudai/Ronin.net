@@ -30,7 +30,7 @@ public class list
 
         Assert.Single(list?.Values);
         Scalar scalar = list.Values[0];
-        Assert.Single(scalar?.Literals);
+        Assert.Single(scalar?.Source);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -55,17 +55,17 @@ public class list
 
         {
             Scalar scalar = list.Values[0];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
 
         {
             Scalar scalar = list.Values[1];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
 
         {
             Scalar scalar = list.Values[2];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
     }
 

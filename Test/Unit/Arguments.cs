@@ -111,12 +111,12 @@ public class arguments
         
         {
             Scalar scalar = arguments.Values[0];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
 
         {
             Scalar scalar = arguments.Values[1];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
 
         {
@@ -164,7 +164,7 @@ public class arguments
 
         {
             Scalar scalar = arguments.Values[1];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
 
         {
@@ -173,17 +173,17 @@ public class arguments
 
             {
                 Scalar scalar = subargs?.Values[0];
-                Assert.Single(scalar?.Literals);
+                Assert.Single(scalar?.Source);
             }
 
             {
                 Scalar scalar = subargs?.Values[1];
-                Assert.Single(scalar?.Literals);
+                Assert.Single(scalar?.Source);
             }
 
             {
                 Scalar scalar = subargs?.Values[2];
-                Assert.Single(scalar?.Literals);
+                Assert.Single(scalar?.Source);
             }
         }
     }

@@ -27,10 +27,10 @@ public class interval
         var interval = Interval.Parse(ref parser);
 
         Scalar start = interval.Start;
-        Assert.Single(start?.Literals);
+        Assert.Single(start?.Source);
         
         Scalar end = interval.End;
-        Assert.Single(end?.Literals);
+        Assert.Single(end?.Source);
     }
 
     [Fact(DisplayName = "left unspecified")]
@@ -49,7 +49,7 @@ public class interval
         Assert.Null(interval.Start);
 
         Scalar end = interval.End;
-        Assert.Single(end?.Literals);
+        Assert.Single(end?.Source);
     }
 
     [Fact(DisplayName = "right unspecified")]
@@ -66,7 +66,7 @@ public class interval
         var interval = Interval.Parse(ref parser);
 
         Scalar start = interval.Start;
-        Assert.Single(start?.Literals);
+        Assert.Single(start?.Source);
 
         Assert.Null(interval.End);
     }

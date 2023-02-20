@@ -112,12 +112,12 @@ public class ordinal
 
         {
             Scalar scalar = arguments.Values[0];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
 
         {
             Scalar scalar = arguments.Values[1];
-            Assert.Single(scalar?.Literals);
+            Assert.Single(scalar?.Source);
         }
 
         {
