@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿// Copyright © 2023 Eric Budai
+
+using System.Diagnostics.CodeAnalysis;
 
 [ExcludeFromCodeCoverage] //remove later
 internal class Program

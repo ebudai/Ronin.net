@@ -1,4 +1,6 @@
-﻿using Ronin.Lexicon;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
 

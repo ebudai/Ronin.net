@@ -1,4 +1,6 @@
-﻿namespace Ronin.Lexicon.Keywords;
+﻿// Copyright © 2023 Eric Budai
+
+namespace Ronin.Lexicon.Keywords;
 
 internal class ForEach : Keyword
 {
