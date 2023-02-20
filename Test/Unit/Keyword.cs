@@ -20,6 +20,7 @@ public class keyword
     private const string persistent = Persistent.keyword;
     private const string partof = PartOf.keyword;
     private const string import = Import.keyword;
+    private const string @foreach = ForEach.keyword;
 
     [Fact(DisplayName = datatype)]
     public void Datatypes()
@@ -140,5 +141,16 @@ public class keyword
         var keyword = Keyword.Lex(ref lexer) as Import;
 
         Assert.Equal(import, keyword?.ToString());
+    }
+
+    [Fact(DisplayName = @foreach)]
+    public void ForEaches()
+    {
+        const string sourcecode = "for each thing in all the things { sorgaxulate thing; }";
+
+        Lexer lexer = new(sourcecode);
+        var keyword = Keyword.Lex(ref lexer) as ForEach;
+
+        Assert.Equal(@foreach, keyword?.ToString());
     }
 }

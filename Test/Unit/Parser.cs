@@ -38,6 +38,13 @@ public class parser
             new Number(),
             new Terminal(),
 
+            // 3..test;
+
+            new Number(),
+            new Ronin.Lexicon.Symbols.Range(),
+            new Word(),
+            new Terminal(),
+
             // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
 
             new Function(),
@@ -116,7 +123,7 @@ public class parser
         Parser parser = new(tokens);
         var statements = parser.Parse();
 
-        Assert.Equal(8, statements?.Count);
+        Assert.Equal(9, statements?.Count);
 
         Ronin.Grammar.Hierarchy partof = statements[0];
         Assert.NotNull(partof);
@@ -127,21 +134,24 @@ public class parser
         Ronin.Grammar.Assignment assignment = statements[2];
         Assert.NotNull(assignment);
 
-        Ronin.Grammar.Function function = statements[3];
+        Ronin.Grammar.Interval interval = statements[3];
+        Assert.NotNull(interval);
+
+        Ronin.Grammar.Function function = statements[4];
         Assert.NotNull(function);
 
-        Ronin.Grammar.Datatype datatype = statements[4];
+        Ronin.Grammar.Datatype datatype = statements[5];
         Assert.NotNull(datatype);
 
-        Ronin.Grammar.Value scalar_value = statements[5];
+        Ronin.Grammar.Value scalar_value = statements[6];
         Ronin.Grammar.Scalar scalar = scalar_value;
         Assert.NotNull(scalar);
 
-        Ronin.Grammar.Value arguments_value = statements[6];
+        Ronin.Grammar.Value arguments_value = statements[7];
         Ronin.Grammar.Aggregates.Arguments arguments = arguments_value;
         Assert.NotNull(arguments);
 
-        Ronin.Grammar.Aggregates.Scope scope = statements[7];
+        Ronin.Grammar.Aggregates.Scope scope = statements[8];
         Assert.NotNull(scope);
     }
 }

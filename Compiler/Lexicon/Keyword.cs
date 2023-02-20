@@ -12,7 +12,6 @@ internal abstract class Keyword : Word
         : CanLex(lexer, ForEach.keyword) ? new ForEach { sourcecode = lexer.Commit(ForEach.keyword.Length) }
         : CanLex(lexer, Function.keyword) ? new Function { sourcecode = lexer.Commit(Function.keyword.Length) }
         : CanLex(lexer, Import.keyword) ? new Import { sourcecode = lexer.Commit(Import.keyword.Length) }
-        : CanLex(lexer, In.keyword) ? new In { sourcecode = lexer.Commit(In.keyword.Length) }
         : CanLex(lexer, Reactive.keyword) ? new Reactive { sourcecode = lexer.Commit(Reactive.keyword.Length) }
         : CanLex(lexer, PartOf.keyword) ? new PartOf { sourcecode = lexer.Commit(PartOf.keyword.Length) }
         : CanLex(lexer, Persistent.keyword) ? new Persistent { sourcecode = lexer.Commit(Persistent.keyword.Length) }
