@@ -23,7 +23,7 @@ internal class Datatype : Syntax, Compiler.IParsable<Datatype>
     {
         Parser parser = context;
 
-        if (parser.FailedToConsume<Lexicon.Keywords.Datatype>()) return null;
+        if (parser.FailsToConsume<Lexicon.Keywords.Datatype>()) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 

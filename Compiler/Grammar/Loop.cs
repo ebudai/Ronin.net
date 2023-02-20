@@ -1,4 +1,6 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon.Keywords;
 
@@ -14,7 +16,7 @@ internal class Loop : Syntax, Compiler.IParsable<Loop>
     {
         Parser parser = context;
 
-        if (parser.FailedToConsume<ForEach>()) return null;
+        if (parser.FailsToConsume<ForEach>()) return null;
 
         if (Datum.Parse(ref parser) is not Datum header) return null;
 

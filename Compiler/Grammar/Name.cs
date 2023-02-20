@@ -18,14 +18,8 @@ internal class Name : Syntax, Compiler.IParsable<Name>
 
         while (parser.IsNotFinished)
         {
-            if (parser.CurrentToken is Word or Symbol and not Punctuation)
-            {
-                parser.Advance();
-            }
-            else
-            {
-                break;
-            }
+            if (parser.CurrentToken is not Word and not Symbol or Punctuation) break;
+            parser.Advance();
         }
 
         if (context.CurrentToken == parser.CurrentToken) return null;

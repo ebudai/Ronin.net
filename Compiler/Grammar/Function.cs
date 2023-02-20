@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -21,7 +20,7 @@ internal class Function : Syntax, Compiler.IParsable<Function>
     {
         Parser parser = context;
 
-        if (parser.FailedToConsume<Lexicon.Keywords.Function>()) return null;
+        if (parser.FailsToConsume<Lexicon.Keywords.Function>()) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 

@@ -50,7 +50,7 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Synt
             var syntax = TElement.Parse(ref parser);
             if (syntax is null)
             {
-                if (parser.FailedToConsume<TClose>()) return null;
+                if (parser.FailsToConsume<TClose>()) return null;
                 break;
             }
             values.Add(syntax);

@@ -1,4 +1,6 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon.Symbols;
 
@@ -19,7 +21,7 @@ internal class Delegate : Syntax, Compiler.IParsable<Delegate>
         {
             var parameters = Parameters.Parse(ref parser);
             data = parameters?.Values;
-            if (data is not null && parser.FailedToConsume<Returns>()) return null;
+            if (data is not null && parser.FailsToConsume<Returns>()) return null;
         }
         else
         {

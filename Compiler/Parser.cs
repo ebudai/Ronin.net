@@ -38,7 +38,7 @@ internal struct Parser
         return parsed;
     }
 
-    internal bool FailedToConsume<T>() where T : Token
+    internal bool FailsToConsume<T>() where T : Token
     {
         var consumed = CurrentToken is T;
         if (consumed) Advance();
