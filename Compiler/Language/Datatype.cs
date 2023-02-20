@@ -25,12 +25,14 @@ internal class Datatype
 
         foreach (var statement in type.Body.Values)
         {
-            /*switch (statement.Syntax)
+            switch (statement.value)
             {
-                case Hierarchy:
-                case Scope:
-                    case 
-            }*/
+                case Hierarchy: return new DatatypeCannotJoinNamedScope();
+                case Assignment: return new DatatypeDefinitionCannotContain<Assignment>();
+                //case Grammar.Function function: datatype.Operations.Add(function); break;
+                case Scope: return new DatatypeDefinitionCannotContain<Scope>();
+
+            }
         }        
 
         return datatype;
@@ -42,4 +44,14 @@ internal class UnresolvedDatatype : Datatype
 {
     public Reference Reference { get; init; }
     public Reference Algebra { get; init; }
+}
+
+internal class DatatypeCannotJoinNamedScope : Datatype, IError
+{
+
+}
+
+internal class DatatypeDefinitionCannotContain<T> : Datatype, IError where T : Syntax
+{
+
 }

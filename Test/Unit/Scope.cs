@@ -41,10 +41,7 @@ public class scope
 
         Assert.Single(datum.Name?.Source);
 
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Shared);
+        Assert.Null(datum.Is);
 
         Scalar scalar = datum.Initializer;
         Assert.Single(scalar?.Source);

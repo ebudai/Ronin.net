@@ -55,7 +55,7 @@ internal class Datum : Syntax, Compiler.IParsable<Datum>
         {
             Mutability = mutator,
             Name = name,
-            Is = modifiers ?? new(),
+            Is = modifiers,
             Datatype = datatype,
             Initializer = initializer,
             Source = parser.Commit(ref context)

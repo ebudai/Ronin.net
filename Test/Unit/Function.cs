@@ -124,11 +124,9 @@ public class function
             Assert.Single(type?.Source);
         }
 
-        Assert.True(function.Modifiers?.Optional);
-        Assert.False(function.Modifiers.Persistent);
-        Assert.False(function.Modifiers.Shared);
-        Assert.False(function.Modifiers.Compiled);
-
+        Assert.Single(function.Modifiers?.Source);
+        Assert.IsType<Optional>(function.Modifiers.Source[0]);
+        
         Assert.Single(function.Returns?.Components);
         Name returns = function.Returns.Components[0];
         Assert.Single(returns?.Source);

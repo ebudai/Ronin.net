@@ -33,10 +33,7 @@ public class datum
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.Null(datum.Is);
 
         Assert.Equal(2, datum.Name?.Source.Length);
 
@@ -67,10 +64,7 @@ public class datum
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.Null(datum.Is);
 
         Assert.Single(datum.Name?.Source);
         
@@ -102,11 +96,9 @@ public class datum
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.True(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
-
+        Assert.Single(datum.Is?.Source);
+        Assert.IsType<Compiled>(datum.Is.Source[0]);
+        
         Assert.Single(datum.Name?.Source);
 
         Assert.Single(datum.Datatype?.Components);
@@ -137,10 +129,8 @@ public class datum
 
         Assert.IsType<Constant>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.True(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.Single(datum.Is?.Source);
+        Assert.IsType<Persistent>(datum.Is.Source[0]);
 
         Assert.Single(datum.Name?.Source);
 
@@ -172,10 +162,8 @@ public class datum
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.True(datum.Is.Shared);
+        Assert.Single(datum.Is?.Source);
+        Assert.IsType<Shared>(datum.Is.Source[0]);
 
         Assert.Single(datum.Name?.Source);
 
@@ -206,10 +194,8 @@ public class datum
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.True(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.Single(datum.Is?.Source);
+        Assert.IsType<Optional>(datum.Is.Source[0]);
 
         Assert.Single(datum.Name?.Source);
         
@@ -240,11 +226,8 @@ public class datum
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
-
+        Assert.Null(datum.Is);
+        
         Assert.Single(datum.Name?.Source);
 
         Assert.Null(datum.Datatype);
@@ -277,10 +260,7 @@ public class datum
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.Null(datum.Is);
 
         Assert.Single(datum.Name?.Source);
 

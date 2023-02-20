@@ -37,10 +37,7 @@ public class parameters
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.False(datum.Is.Compiled);
-        Assert.False(datum.Is.Optional);
-        Assert.False(datum.Is.Persistent);
-        Assert.False(datum.Is.Shared);
+        Assert.Null(datum.Is);
 
         Assert.Single(datum.Name?.Source);
 
@@ -79,10 +76,7 @@ public class parameters
             
             Assert.Null(datum?.Mutability);
 
-            Assert.False(datum.Is.Compiled);
-            Assert.False(datum.Is.Optional);
-            Assert.False(datum.Is.Persistent);
-            Assert.False(datum.Is.Shared);
+            Assert.Null(datum.Is);
 
             Assert.Single(datum.Name?.Source);
         
@@ -96,10 +90,7 @@ public class parameters
 
             Assert.Null(datum?.Mutability);
 
-            Assert.False(datum.Is.Compiled);
-            Assert.False(datum.Is.Optional);
-            Assert.False(datum.Is.Persistent);
-            Assert.False(datum.Is.Shared);
+            Assert.Null(datum.Is);
 
             Assert.Single(datum.Datatype?.Components);
             Name name = datum.Datatype.Components[0];
