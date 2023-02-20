@@ -6,6 +6,18 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Instance of a <see cref="Function"/> which can be treated as a <see cref="Datum"/>
+/// </summary>
+/// 
+/// <example>
+///     var lambda = x => { return x + 3; };
+///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+///     var lambda = (a, b, c) => { return a + b * 3; };
+///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+///     var lambda = { return x; };
+///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑
+/// </example>
 internal class Delegate : Syntax, Compiler.IParsable<Delegate>
 {
     public List<Datum> Data { get; init; }

@@ -5,8 +5,23 @@ using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Aggregates;
 
+/// <summary>
+///     Aggregate of key=value pairs used to specify associations directly in code.
+/// </summary>
+/// 
+/// <remarks>
+///     <see cref="Separator"/>-delimited list of <see cref="Association"/>s
+/// </remarks>
+/// 
+/// <example>
+///     var x = { a = 3, b = 22.3, "special" = values maximum };
+///             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+/// </example>
 internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separator, CloseBrace>
 {
+    /// <summary>
+    ///     key=value pair
+    /// </summary>
     public class Association : Syntax, Compiler.IParsable<Association>
     {
         public Value Key { get; init; }
