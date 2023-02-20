@@ -1,4 +1,6 @@
-﻿using Ronin.Lexicon.Symbols;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Aggregates;
 
