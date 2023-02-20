@@ -44,7 +44,7 @@ public class function
 
         {
             Name name = function.Identifier.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {
@@ -52,11 +52,11 @@ public class function
             
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
-            Assert.Single(parameter?.Name?.Words);
+            Assert.Single(parameter?.Name?.Source);
 
             Assert.Single(parameter.Datatype?.Components);
             Name type = parameter.Datatype.Components[0];
-            Assert.Single(type?.Words);
+            Assert.Single(type?.Source);
         }
 
         Assert.Single(function.Body?.Values);
@@ -67,7 +67,7 @@ public class function
 
         {
             Name @return = line.Components[0];
-            Assert.Single(@return?.Words);
+            Assert.Single(@return?.Source);
         }
 
         {
@@ -110,18 +110,18 @@ public class function
 
         {
             Name name = function.Identifier.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {
             Parameters parameters = function.Identifier.Components[1];
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
-            Assert.Single(parameter.Name?.Words);
+            Assert.Single(parameter.Name?.Source);
 
             Assert.Single(parameter.Datatype?.Components);
             Name type = parameter.Datatype.Components[0];
-            Assert.Single(type?.Words);
+            Assert.Single(type?.Source);
         }
 
         Assert.True(function.Modifiers?.Optional);
@@ -131,13 +131,13 @@ public class function
 
         Assert.Single(function.Returns?.Components);
         Name returns = function.Returns.Components[0];
-        Assert.Single(returns?.Words);
+        Assert.Single(returns?.Source);
 
         Assert.Single(function.Body?.Values);
         Value value = function.Body.Values[0];
         Reference line = value;
         Assert.Single(line?.Components);
         Name @return = line.Components[0];
-        Assert.Equal(4, @return?.Words?.Count);
+        Assert.Equal(4, @return?.Source.Length);
     }
 }

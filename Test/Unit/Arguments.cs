@@ -32,7 +32,7 @@ public class arguments
         Reference reference = arguments.Values[0];
         Assert.Single(reference?.Components);
         Name name = reference.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -59,14 +59,14 @@ public class arguments
             Reference reference = arguments.Values[0];
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {
             Reference reference = arguments.Values[1];
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
     }
 
@@ -123,7 +123,7 @@ public class arguments
             Reference reference = arguments.Values[2];
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
     }
 
@@ -159,7 +159,7 @@ public class arguments
             Reference reference = arguments.Values[0];
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {

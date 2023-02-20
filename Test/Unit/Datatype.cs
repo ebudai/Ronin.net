@@ -32,7 +32,7 @@ public class datatype
 
         Assert.Single(datatype?.Identifier?.Components);
         Name name = datatype.Identifier.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
     }
 
     [Fact(DisplayName = "with algebra and members")]
@@ -68,26 +68,26 @@ public class datatype
 
         Assert.Single(datatype?.Identifier?.Components);
         Name algebra = datatype.Algebra.Components[0];
-        Assert.Equal(2, algebra?.Words.Count);
+        Assert.Equal(2, algebra?.Source.Length);
         
         Assert.Equal(2, datatype.Body?.Values.Count);
 
         {
             Datum cash = datatype.Body.Values[0];
             Assert.IsType<Variable>(cash?.Mutability);
-            Assert.Single(cash.Name?.Words);
+            Assert.Single(cash.Name?.Source);
             Assert.Single(cash.Datatype?.Components);
             Name type = cash.Datatype.Components[0];
-            Assert.Single(type?.Words);
+            Assert.Single(type?.Source);
         }
 
         {
             Datum debt = datatype.Body.Values[1];
             Assert.IsType<Variable>(debt?.Mutability);
-            Assert.Single(debt.Name?.Words);
+            Assert.Single(debt.Name?.Source);
             Assert.Single(debt.Datatype?.Components);
             Name type = debt.Datatype.Components[0];
-            Assert.Single(type?.Words);
+            Assert.Single(type?.Source);
         }        
     }
 }

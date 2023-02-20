@@ -39,7 +39,7 @@ public class scope
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
 
         Assert.False(datum.Is.Optional);
         Assert.False(datum.Is.Persistent);

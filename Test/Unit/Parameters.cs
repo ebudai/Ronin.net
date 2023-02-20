@@ -42,10 +42,10 @@ public class parameters
         Assert.False(datum.Is.Persistent);
         Assert.False(datum.Is.Shared);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
 
         Name name = datum?.Datatype?.Components?[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -84,11 +84,11 @@ public class parameters
             Assert.False(datum.Is.Persistent);
             Assert.False(datum.Is.Shared);
 
-            Assert.Single(datum.Name?.Words);
+            Assert.Single(datum.Name?.Source);
         
             Assert.Single(datum.Datatype?.Components);
             Name name = datum.Datatype.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {
@@ -103,7 +103,7 @@ public class parameters
 
             Assert.Single(datum.Datatype?.Components);
             Name name = datum.Datatype.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
     }
 

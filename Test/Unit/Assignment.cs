@@ -29,7 +29,7 @@ public class assignment
 
         Assert.Single(assignment?.Reference?.Components);
         Name name = assignment.Reference.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
 
         Scalar scalar = assignment.Value;
         Assert.Single(scalar?.Literals);
@@ -53,7 +53,7 @@ public class assignment
 
         Assert.Single(assignment?.Reference?.Components);
         Name name = assignment.Reference.Components?[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
         
         Scalar scalar = assignment.Value;
         Assert.Single(scalar?.Literals);

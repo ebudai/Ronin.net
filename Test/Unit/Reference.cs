@@ -34,7 +34,7 @@ public class reference
 
         {
             Name name = reference.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {

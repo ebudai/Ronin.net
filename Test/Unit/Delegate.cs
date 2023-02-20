@@ -35,7 +35,7 @@ public class @delegate
 
         Assert.Single(@delegate?.Data);
         Datum datum = @delegate.Data[0];
-        Assert.Single(datum?.Name?.Words);
+        Assert.Single(datum?.Name?.Source);
 
         Assert.Single(@delegate.Body?.Values);
         Value value = @delegate.Body?.Values[0];
@@ -44,7 +44,7 @@ public class @delegate
 
         {
             Name name = line.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {
@@ -81,9 +81,9 @@ public class @delegate
 
         Assert.Equal(3, @delegate?.Data?.Count);
 
-        Assert.Single(@delegate.Data[0]?.Name?.Words);
-        Assert.Single(@delegate.Data[1]?.Name?.Words);
-        Assert.Single(@delegate.Data[2]?.Name?.Words);
+        Assert.Single(@delegate.Data[0]?.Name?.Source);
+        Assert.Single(@delegate.Data[1]?.Name?.Source);
+        Assert.Single(@delegate.Data[2]?.Name?.Source);
 
         Assert.Single(@delegate.Body?.Values);
         Value value = @delegate.Body?.Values[0];
@@ -92,7 +92,7 @@ public class @delegate
 
         {
             Name name = line.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {
@@ -128,7 +128,7 @@ public class @delegate
 
         {
             Name name = line.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {

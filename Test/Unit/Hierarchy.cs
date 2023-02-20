@@ -31,7 +31,7 @@ public class hierarchy
 
         Assert.Single(hierarchy.Components);
         Name name = hierarchy.Components[0];
-        Assert.Single(name?.Words);     
+        Assert.Single(name?.Source);     
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -55,7 +55,7 @@ public class hierarchy
         Assert.IsType<Import>(hierarchy?.Direction);
         Assert.Single(hierarchy.Components);
         Name name = hierarchy.Components[0];
-        Assert.Equal(3, name?.Words?.Count);
+        Assert.Equal(3, name?.Source.Length);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -82,7 +82,7 @@ public class hierarchy
         Assert.IsType<PartOf>(hierarchy?.Direction);
         Assert.Single(hierarchy.Components);
         Name name = hierarchy.Components[0];
-        Assert.Equal(6, name?.Words?.Count);
+        Assert.Equal(6, name?.Source.Length);
     }
 
     [Fact(DisplayName = "using text literal")]
@@ -110,7 +110,7 @@ public class hierarchy
 
         {
             Name name = hierarchy.Components[0];
-            Assert.Equal(2, name?.Words?.Count);
+            Assert.Equal(2, name?.Source.Length);
         }
 
         {
@@ -120,7 +120,7 @@ public class hierarchy
 
         {
             Name name = hierarchy.Components[2];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
     }
 }

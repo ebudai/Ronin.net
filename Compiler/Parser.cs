@@ -8,7 +8,7 @@ internal interface IParsable<T> where T : IParsable<T>
     public static abstract T Parse(ref Parser context);
 }
 
-internal ref struct Parser
+internal struct Parser
 {
     public Parser(Token[] tokens) => this.tokens = tokens;
 
@@ -45,10 +45,10 @@ internal ref struct Parser
         return consumed is false;
     }
 
-    internal ref readonly Token CurrentToken => ref tokens[cursor];
-    internal ref readonly Token PreviousToken => ref tokens[cursor - 1];
+    internal ref readonly Token CurrentToken => ref tokens.Span[cursor];
+    internal ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
 
-    internal readonly ReadOnlySpan<Token> this[Range range] => tokens[range];
+    internal readonly ReadOnlySpan<Token> this[Range range] => tokens.Span[range];
 
     internal bool IsNotFinished => CurrentToken is not Sentinel;
 
@@ -64,6 +64,6 @@ internal ref struct Parser
         return tokens;
     }
 
-    private readonly ReadOnlySpan<Token> tokens;
+    private readonly ReadOnlyMemory<Token> tokens;
     private int cursor;
 }

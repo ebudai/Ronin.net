@@ -26,6 +26,6 @@ public class name
         Parser parser = new(tokens);
         var name = Name.Parse(ref parser);
 
-        Assert.Equal(3, name?.Words?.Count);
+        Assert.Equal(3, name?.Source.Length);
     }
 }

@@ -10,33 +10,26 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Name : Syntax, Compiler.IParsable<Name>
 {
-    public List<Token> Words { get; init; }
-
     public static Name Parse(ref Parser context)
     {
         if (context.CurrentToken is Keyword or Punctuation) return null;
 
-        List<Token> words = new(64);
         Parser parser = context;
 
         while (parser.IsNotFinished)
         {
-            var name = parser.CurrentToken;
-            
-            if (name is Word or Symbol and not Punctuation)
+            if (parser.CurrentToken is Word or Symbol and not Punctuation)
             {
-                words.Add(name);
+                parser.Advance();
             }
             else
             {
                 break;
             }
-
-            parser.Advance();
         }
 
-        if (words.Count is 0) return null;
+        if (context.CurrentToken == parser.CurrentToken) return null;
 
-        return new Name { Words = words, Source = parser.Commit(ref context) };
+        return new Name { Source = parser.Commit(ref context) };
     }
 }

@@ -32,18 +32,18 @@ public class identifier
 
         {
             Name name = identifier.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {
             Parameters parameters = identifier.Components[1];
             Assert.Single(parameters?.Values);
             Datum datum = parameters.Values[0];
-            Assert.Single(datum?.Name?.Words);
+            Assert.Single(datum?.Name?.Source);
 
             Assert.Single(datum?.Datatype?.Components);
             Name name = datum.Datatype.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }        
     }
 }

@@ -32,7 +32,7 @@ public class ordinal
         Reference reference = ordinal.Values[0];
         Assert.Single(reference?.Components);
         Name name = reference.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
     }
 
     [Fact(DisplayName = "multidimensional")]
@@ -59,14 +59,14 @@ public class ordinal
             Reference test = ordinal.Values[0];
             Assert.Single(test?.Components);
             Name name = test.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
 
         {
             Reference stuff = ordinal.Values[1];
             Assert.Single(stuff?.Components);
             Name name = stuff.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }
     }
 
@@ -124,7 +124,7 @@ public class ordinal
             Reference reference = arguments.Values[2];
             Assert.Single(reference?.Components);
             Name name = reference.Components[0];
-            Assert.Single(name?.Words);
+            Assert.Single(name?.Source);
         }        
     }
 }

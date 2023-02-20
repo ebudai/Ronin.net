@@ -36,7 +36,7 @@ public class loop
         Parser parser = new(tokens);
         var loop = Loop.Parse(ref parser);
 
-        Assert.Equal(3, loop?.Header?.Name?.Words?.Count);
+        Assert.Equal(3, loop?.Header?.Name?.Source.Length);
         
         Assert.Single(loop.Body?.Values);
         Assignment assignment = loop.Body.Values[0];

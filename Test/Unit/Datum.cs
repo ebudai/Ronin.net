@@ -38,11 +38,11 @@ public class datum
         Assert.False(datum.Is.Persistent);
         Assert.False(datum.Is.Shared);
 
-        Assert.Equal(2, datum.Name?.Words?.Count);
+        Assert.Equal(2, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
 
         Assert.Null(datum.Initializer);
     }
@@ -72,11 +72,11 @@ public class datum
         Assert.False(datum.Is.Persistent);
         Assert.False(datum.Is.Shared);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
         
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
         
         Assert.Null(datum.Initializer);
     }
@@ -107,11 +107,11 @@ public class datum
         Assert.False(datum.Is.Persistent);
         Assert.False(datum.Is.Shared);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
 
         Assert.Null(datum.Initializer);
     }
@@ -142,11 +142,11 @@ public class datum
         Assert.True(datum.Is.Persistent);
         Assert.False(datum.Is.Shared);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
 
         Assert.Null(datum.Initializer);
     }
@@ -177,11 +177,11 @@ public class datum
         Assert.False(datum.Is.Persistent);
         Assert.True(datum.Is.Shared);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
 
         Assert.Null(datum.Initializer);
     }
@@ -211,11 +211,11 @@ public class datum
         Assert.False(datum.Is.Persistent);
         Assert.False(datum.Is.Shared);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
         
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
         
         Assert.Null(datum.Initializer);
     }
@@ -245,14 +245,14 @@ public class datum
         Assert.False(datum.Is.Persistent);
         Assert.False(datum.Is.Shared);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
 
         Assert.Null(datum.Datatype);
 
         Reference reference = datum?.Initializer;
         Assert.Single(reference?.Components);
         Name name = reference.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
     }
 
     [Fact(DisplayName = "typed and initialized via literal")]
@@ -282,11 +282,11 @@ public class datum
         Assert.False(datum.Is.Persistent);
         Assert.False(datum.Is.Shared);
 
-        Assert.Single(datum.Name?.Words);
+        Assert.Single(datum.Name?.Source);
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Words);
+        Assert.Single(name?.Source);
 
         Scalar scalar = datum.Initializer;
         Assert.Single(scalar?.Literals);
