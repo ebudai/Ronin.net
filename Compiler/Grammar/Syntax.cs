@@ -36,13 +36,13 @@ internal abstract class CompositeSyntax<T, T0, T1> : CompositeSyntax, Compiler.I
     public static implicit operator T1(CompositeSyntax<T, T0, T1> value) => value.value as T1;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax, Compiler.IParsable<T>
+internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>, Compiler.IParsable<T>
     where T : CompositeSyntax, Compiler.IParsable<T>, new()
     where T0 : Syntax, Compiler.IParsable<T0>
     where T1 : Syntax, Compiler.IParsable<T1>
     where T2 : Syntax, Compiler.IParsable<T2>
 {
-    public static T Parse(ref Parser context)
+    public static new T Parse(ref Parser context)
     {
         var composite = CompositeSyntax<T, T0, T1>.Parse(ref context);
         if (composite is not null) return composite;
@@ -55,19 +55,17 @@ internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax, Compil
         return new T { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    public static implicit operator T0(CompositeSyntax<T, T0, T1, T2> value) => value.value as T0;
-    public static implicit operator T1(CompositeSyntax<T, T0, T1, T2> value) => value.value as T1;
     public static implicit operator T2(CompositeSyntax<T, T0, T1, T2> value) => value.value as T2;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3> : CompositeSyntax, Compiler.IParsable<T>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3> : CompositeSyntax<T, T0, T1, T2>, Compiler.IParsable<T>
     where T : CompositeSyntax, Compiler.IParsable<T>, new()
     where T0 : Syntax, Compiler.IParsable<T0>
     where T1 : Syntax, Compiler.IParsable<T1>
     where T2 : Syntax, Compiler.IParsable<T2>
     where T3 : Syntax, Compiler.IParsable<T3>
 {
-    public static T Parse(ref Parser context)
+    public static new T Parse(ref Parser context)
     {
         var composite = CompositeSyntax<T, T0, T1, T2>.Parse(ref context);
         if (composite is not null) return composite;
@@ -80,13 +78,10 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3> : CompositeSyntax, Co
         return new T { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    [ExcludeFromCodeCoverage] public static implicit operator T0(CompositeSyntax<T, T0, T1, T2, T3> value) => value.value as T0;
-    [ExcludeFromCodeCoverage] public static implicit operator T1(CompositeSyntax<T, T0, T1, T2, T3> value) => value.value as T1;
-    [ExcludeFromCodeCoverage] public static implicit operator T2(CompositeSyntax<T, T0, T1, T2, T3> value) => value.value as T2;
-    [ExcludeFromCodeCoverage] public static implicit operator T3(CompositeSyntax<T, T0, T1, T2, T3> value) => value.value as T3;
+    public static implicit operator T3(CompositeSyntax<T, T0, T1, T2, T3> value) => value.value as T3;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4> : CompositeSyntax, Compiler.IParsable<T>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4> : CompositeSyntax<T, T0, T1, T2, T3>, Compiler.IParsable<T>
     where T : CompositeSyntax, Compiler.IParsable<T>, new()
     where T0 : Syntax, Compiler.IParsable<T0>
     where T1 : Syntax, Compiler.IParsable<T1>
@@ -94,7 +89,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4> : CompositeSyntax
     where T3 : Syntax, Compiler.IParsable<T3>
     where T4 : Syntax, Compiler.IParsable<T4>
 {
-    public static T Parse(ref Parser context)
+    public static new T Parse(ref Parser context)
     {
         var composite = CompositeSyntax<T, T0, T1, T2, T3>.Parse(ref context);
         if (composite is not null) return composite;
@@ -107,14 +102,10 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4> : CompositeSyntax
         return new T { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    [ExcludeFromCodeCoverage] public static implicit operator T0(CompositeSyntax<T, T0, T1, T2, T3, T4> value) => value.value as T0;
-    [ExcludeFromCodeCoverage] public static implicit operator T1(CompositeSyntax<T, T0, T1, T2, T3, T4> value) => value.value as T1;
-    [ExcludeFromCodeCoverage] public static implicit operator T2(CompositeSyntax<T, T0, T1, T2, T3, T4> value) => value.value as T2;
-    [ExcludeFromCodeCoverage] public static implicit operator T3(CompositeSyntax<T, T0, T1, T2, T3, T4> value) => value.value as T3;
-    [ExcludeFromCodeCoverage] public static implicit operator T4(CompositeSyntax<T, T0, T1, T2, T3, T4> value) => value.value as T4;
+    public static implicit operator T4(CompositeSyntax<T, T0, T1, T2, T3, T4> value) => value.value as T4;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5> : CompositeSyntax, Compiler.IParsable<T>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5> : CompositeSyntax<T, T0, T1, T2, T3, T4>, Compiler.IParsable<T>
     where T : CompositeSyntax, Compiler.IParsable<T>, new()
     where T0 : Syntax, Compiler.IParsable<T0>
     where T1 : Syntax, Compiler.IParsable<T1>
@@ -123,7 +114,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5> : CompositeSy
     where T4 : Syntax, Compiler.IParsable<T4>
     where T5 : Syntax, Compiler.IParsable<T5>
 {
-    public static T Parse(ref Parser context)
+    public static new T Parse(ref Parser context)
     {
         var composite = CompositeSyntax<T, T0, T1, T2, T3, T4>.Parse(ref context);
         if (composite is not null) return composite;
@@ -136,15 +127,10 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5> : CompositeSy
         return new T { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    public static implicit operator T0(CompositeSyntax<T, T0, T1, T2, T3, T4, T5> value) => value.value as T0;
-    public static implicit operator T1(CompositeSyntax<T, T0, T1, T2, T3, T4, T5> value) => value.value as T1;
-    public static implicit operator T2(CompositeSyntax<T, T0, T1, T2, T3, T4, T5> value) => value.value as T2;
-    public static implicit operator T3(CompositeSyntax<T, T0, T1, T2, T3, T4, T5> value) => value.value as T3;
-    public static implicit operator T4(CompositeSyntax<T, T0, T1, T2, T3, T4, T5> value) => value.value as T4;
     public static implicit operator T5(CompositeSyntax<T, T0, T1, T2, T3, T4, T5> value) => value.value as T5;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> : CompositeSyntax, Compiler.IParsable<T>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5>, Compiler.IParsable<T>
     where T : CompositeSyntax, Compiler.IParsable<T>, new()
     where T0 : Syntax, Compiler.IParsable<T0>
     where T1 : Syntax, Compiler.IParsable<T1>
@@ -154,7 +140,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> : Composi
     where T5 : Syntax, Compiler.IParsable<T5>
     where T6 : Syntax, Compiler.IParsable<T6>
 {
-    public static T Parse(ref Parser context)
+    public static new T Parse(ref Parser context)
     {
         var composite = CompositeSyntax<T, T0, T1, T2, T3, T4, T5>.Parse(ref context);
         if (composite is not null) return composite;
@@ -167,16 +153,10 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> : Composi
         return new T { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    [ExcludeFromCodeCoverage] public static implicit operator T0(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T0;
-    [ExcludeFromCodeCoverage] public static implicit operator T1(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T1;
-    [ExcludeFromCodeCoverage] public static implicit operator T2(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T2;
-    [ExcludeFromCodeCoverage] public static implicit operator T3(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T3;
-    [ExcludeFromCodeCoverage] public static implicit operator T4(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T4;
-    [ExcludeFromCodeCoverage] public static implicit operator T5(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T5;
-    [ExcludeFromCodeCoverage] public static implicit operator T6(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T6;
+    public static implicit operator T6(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T6;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> : CompositeSyntax, Compiler.IParsable<T>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6>, Compiler.IParsable<T>
     where T : CompositeSyntax, Compiler.IParsable<T>, new()
     where T0 : Syntax, Compiler.IParsable<T0>
     where T1 : Syntax, Compiler.IParsable<T1>
@@ -187,7 +167,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> : Com
     where T6 : Syntax, Compiler.IParsable<T6>
     where T7 : Syntax, Compiler.IParsable<T7>
 {
-    public static T Parse(ref Parser context)
+    public static new T Parse(ref Parser context)
     {
         var composite = CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6>.Parse(ref context);
         if (composite is not null) return composite;
@@ -200,17 +180,10 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> : Com
         return new T { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    [ExcludeFromCodeCoverage] public static implicit operator T0(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T0;
-    [ExcludeFromCodeCoverage] public static implicit operator T1(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T1;
-    [ExcludeFromCodeCoverage] public static implicit operator T2(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T2;
-    [ExcludeFromCodeCoverage] public static implicit operator T3(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T3;
-    [ExcludeFromCodeCoverage] public static implicit operator T4(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T4;
-    [ExcludeFromCodeCoverage] public static implicit operator T5(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T5;
-    [ExcludeFromCodeCoverage] public static implicit operator T6(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T6;
-    [ExcludeFromCodeCoverage] public static implicit operator T7(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T7;
+    public static implicit operator T7(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T7;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> : CompositeSyntax, Compiler.IParsable<T>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7>, Compiler.IParsable<T>
     where T : CompositeSyntax, Compiler.IParsable<T>, new()
     where T0 : Syntax, Compiler.IParsable<T0>
     where T1 : Syntax, Compiler.IParsable<T1>
@@ -222,7 +195,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> :
     where T7 : Syntax, Compiler.IParsable<T7>
     where T8 : Syntax, Compiler.IParsable<T8>
 {
-    public static T Parse(ref Parser context)
+    public static new T Parse(ref Parser context)
     {
         var composite = CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7>.Parse(ref context);
         if (composite is not null) return composite;
@@ -235,14 +208,6 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> :
         return new T { value = syntax, Source = parser.Commit(ref context) };
     }
 
-    public static implicit operator T0(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T0;
-    public static implicit operator T1(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T1;
-    public static implicit operator T2(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T2;
-    public static implicit operator T3(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T3;
-    public static implicit operator T4(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T4;
-    public static implicit operator T5(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T5;
-    public static implicit operator T6(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T6;
-    public static implicit operator T7(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T7;
     public static implicit operator T8(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> value) => value.value as T8;
 }
 
