@@ -4,12 +4,12 @@ using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
-internal class Interval : Syntax, Compiler.IParsable<Interval>
+internal class IntervalSyntax : Syntax, Compiler.IParsable<IntervalSyntax>
 {
     public Value Start { get; init; }
     public Value End { get; init; }
     
-    public static Interval Parse(ref Parser context)
+    public static IntervalSyntax Parse(ref Parser context)
     {
         Parser parser = context;
 
@@ -19,7 +19,7 @@ internal class Interval : Syntax, Compiler.IParsable<Interval>
 
         var end = Value.Parse(ref parser);
 
-        return new Interval
+        return new IntervalSyntax
         {
             Start = start,
             End = end,

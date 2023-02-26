@@ -18,12 +18,12 @@ namespace Ronin.Grammar;
 ///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
 /// 
-internal class Hierarchy : Syntax, Compiler.IParsable<Hierarchy>
+internal class ImportExportSyntax : Syntax, Compiler.IParsable<ImportExportSyntax>
 {
     public Keyword Direction { get; init; }
     public List<Component> Components { get; init; }
 
-    public static Hierarchy Parse(ref Parser context)
+    public static ImportExportSyntax Parse(ref Parser context)
     {
         var direction = context.CurrentToken is PartOf or Import ? context.CurrentToken as Keyword : null;
         if (direction is null) return null;
@@ -34,7 +34,7 @@ internal class Hierarchy : Syntax, Compiler.IParsable<Hierarchy>
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
 
-        return new Hierarchy 
+        return new ImportExportSyntax 
         {
             Direction = direction,
             Components = components,
@@ -42,5 +42,5 @@ internal class Hierarchy : Syntax, Compiler.IParsable<Hierarchy>
         };
     }
 
-    public class Component : CompositeSyntax<Component, Name, Scalar> { }
+    public class Component : CompositeSyntax<Component, Name, LiteralSyntax> { }
 }

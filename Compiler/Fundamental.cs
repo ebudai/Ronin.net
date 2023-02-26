@@ -1,6 +1,6 @@
 ﻿using Ronin.Grammar;
 
-namespace Ronin.Program;
+namespace Ronin.Language;
 
 /*internal class Fundamental
 {

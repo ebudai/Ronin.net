@@ -22,7 +22,7 @@ public class hierarchy
         };
 
         Parser parser = new(tokens);
-        var hierarchy = Hierarchy.Parse(ref parser);
+        var hierarchy = ImportExportSyntax.Parse(ref parser);
 
         Assert.Null(hierarchy);
     }

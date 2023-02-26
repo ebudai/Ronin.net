@@ -9,20 +9,20 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Ordered grouping of instructions to execute when called
 /// </summary>
-internal class Function : Syntax, Compiler.IParsable<Function>
+internal class FunctionDeclarationSyntax : Syntax, Compiler.IParsable<FunctionDeclarationSyntax>
 {
-    public Identifier Identifier { get; init; }
+    public IdentifierSyntax Identifier { get; init; }
     public Modifiers Modifiers { get; init; }
     public Reference Returns { get; init; }
     public Scope Body { get; init; }
 
-    public static Function Parse(ref Parser context)
+    public static FunctionDeclarationSyntax Parse(ref Parser context)
     {
         Parser parser = context;
 
         if (parser.FailsToConsume<Lexicon.Keywords.Function>()) return null;
 
-        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
+        if (IdentifierSyntax.Parse(ref parser) is not IdentifierSyntax identifier) return null;
 
         Modifiers modifiers = null;
         Reference returns = null;
@@ -35,7 +35,7 @@ internal class Function : Syntax, Compiler.IParsable<Function>
 
         var body = Scope.Parse(ref parser);
 
-        return new Function
+        return new FunctionDeclarationSyntax
         {
             Identifier = identifier,
             Modifiers = modifiers,

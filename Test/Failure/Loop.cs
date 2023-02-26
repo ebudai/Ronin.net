@@ -26,7 +26,7 @@ public class loop
         };
 
         Parser parser = new(tokens);
-        var loop = Loop.Parse(ref parser);
+        var loop = LoopSyntax.Parse(ref parser);
 
         Assert.Null(loop);
     }
@@ -52,7 +52,7 @@ public class loop
         };
 
         Parser parser = new(tokens);
-        var loop = Loop.Parse(ref parser);
+        var loop = LoopSyntax.Parse(ref parser);
 
         Assert.Null(loop);
     }
@@ -77,7 +77,7 @@ public class loop
         };
 
         Parser parser = new(tokens);
-        var loop = Loop.Parse(ref parser);
+        var loop = LoopSyntax.Parse(ref parser);
 
         Assert.Null(loop);
     }

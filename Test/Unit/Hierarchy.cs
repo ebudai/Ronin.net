@@ -25,7 +25,7 @@ public class hierarchy
         };
 
         Parser parser = new(tokens);
-        var hierarchy = Hierarchy.Parse(ref parser);
+        var hierarchy = ImportExportSyntax.Parse(ref parser);
 
         Assert.IsType<PartOf>(hierarchy?.Direction);
 
@@ -50,7 +50,7 @@ public class hierarchy
         };
                 
         Parser parser = new(tokens);
-        var hierarchy = Hierarchy.Parse(ref parser);
+        var hierarchy = ImportExportSyntax.Parse(ref parser);
 
         Assert.IsType<Import>(hierarchy?.Direction);
         Assert.Single(hierarchy.Components);
@@ -77,7 +77,7 @@ public class hierarchy
         };
 
         Parser parser = new(tokens);
-        var hierarchy = Hierarchy.Parse(ref parser);
+        var hierarchy = ImportExportSyntax.Parse(ref parser);
 
         Assert.IsType<PartOf>(hierarchy?.Direction);
         Assert.Single(hierarchy.Components);
@@ -102,7 +102,7 @@ public class hierarchy
         };
         
         Parser parser = new(tokens);
-        var hierarchy = Hierarchy.Parse(ref parser);
+        var hierarchy = ImportExportSyntax.Parse(ref parser);
 
         Assert.IsType<PartOf>(hierarchy?.Direction);
 
@@ -114,7 +114,7 @@ public class hierarchy
         }
 
         {
-            Scalar scalar = hierarchy.Components[1];
+            LiteralSyntax scalar = hierarchy.Components[1];
             Assert.Single(scalar?.Source);            
         }
 

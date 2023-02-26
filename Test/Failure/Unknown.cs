@@ -25,7 +25,7 @@ public class unknown
         var statements = parser.Parse();
         
         Assert.Single(statements);
-        Ronin.Grammar.Unknown unknown = statements[0];
+        Ronin.Grammar.UnknownSyntax unknown = statements[0];
         Assert.NotNull(unknown);
     }
 }

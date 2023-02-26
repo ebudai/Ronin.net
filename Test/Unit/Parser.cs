@@ -125,26 +125,26 @@ public class parser
 
         Assert.Equal(9, statements?.Count);
 
-        Ronin.Grammar.Hierarchy partof = statements[0];
+        Ronin.Grammar.ImportExportSyntax partof = statements[0];
         Assert.NotNull(partof);
 
-        Ronin.Grammar.Datum datum = statements[1];
+        Ronin.Grammar.DatumDeclarationSyntax datum = statements[1];
         Assert.NotNull(datum);
 
-        Ronin.Grammar.Assignment assignment = statements[2];
+        Ronin.Grammar.AssignmentSyntax assignment = statements[2];
         Assert.NotNull(assignment);
 
-        Ronin.Grammar.Interval interval = statements[3];
+        Ronin.Grammar.IntervalSyntax interval = statements[3];
         Assert.NotNull(interval);
 
-        Ronin.Grammar.Function function = statements[4];
+        Ronin.Grammar.FunctionDeclarationSyntax function = statements[4];
         Assert.NotNull(function);
 
-        Ronin.Grammar.Datatype datatype = statements[5];
+        Ronin.Grammar.DatatypeDeclarationSyntax datatype = statements[5];
         Assert.NotNull(datatype);
 
         Ronin.Grammar.Value scalar_value = statements[6];
-        Ronin.Grammar.Scalar scalar = scalar_value;
+        Ronin.Grammar.LiteralSyntax scalar = scalar_value;
         Assert.NotNull(scalar);
 
         Ronin.Grammar.Value arguments_value = statements[7];

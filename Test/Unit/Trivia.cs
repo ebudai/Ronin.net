@@ -22,7 +22,7 @@ public class trivia
         };
         
         Parser parser = new(tokens);
-        var trivia = Trivia.Parse(ref parser);
+        var trivia = TriviaSyntax.Parse(ref parser);
         Assert.NotNull(trivia);
     }
 }

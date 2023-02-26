@@ -5,7 +5,7 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar.Aggregates;
 
 /// <summary>
-///     Body of conditionals, loops, <see cref="Datatype"/>s and <see cref="Function"/>s.  Can also be a <see cref="Temporary"/>.
+///     Body of conditionals, loops, <see cref="DatatypeDeclarationSyntax"/>s and <see cref="FunctionDeclarationSyntax"/>s.  Can also be a <see cref="Temporary"/>.
 /// </summary>
 /// 
 /// <remarks>
@@ -22,7 +22,7 @@ namespace Ronin.Grammar.Aggregates;
 ///     → }
 ///       ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Scope : Aggregate<Scope, OpenBrace, Statement, Terminal, CloseBrace>
+internal class Scope : AggregateSyntax<Scope, OpenBrace, Statement, Terminal, CloseBrace>
 {
 
 }

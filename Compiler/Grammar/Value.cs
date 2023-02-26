@@ -4,7 +4,7 @@ using Ronin.Grammar.Aggregates;
 
 namespace Ronin.Grammar;
 
-internal class Value : CompositeSyntax<Value, Scalar, Arguments, List, Lookup, Delegate, Reference>
+internal class Value : CompositeSyntax<Value, LiteralSyntax, Arguments, InlineListSyntax, InlineLookupSyntax, DelegateSyntax, Reference>
 {
 
 }

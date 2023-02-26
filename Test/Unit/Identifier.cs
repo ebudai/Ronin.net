@@ -26,7 +26,7 @@ public class identifier
         };
 
         Parser parser = new(tokens);
-        var identifier = Identifier.Parse(ref parser);
+        var identifier = IdentifierSyntax.Parse(ref parser);
 
         Assert.Equal(2, identifier?.Components?.Count);
 
@@ -38,7 +38,7 @@ public class identifier
         {
             Parameters parameters = identifier.Components[1];
             Assert.Single(parameters?.Values);
-            Datum datum = parameters.Values[0];
+            DatumDeclarationSyntax datum = parameters.Values[0];
             Assert.Single(datum?.Name?.Source);
 
             Assert.Single(datum?.Datatype?.Components);

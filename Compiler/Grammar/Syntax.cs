@@ -13,6 +13,7 @@ internal abstract class Syntax
 
 internal abstract class CompositeSyntax : Syntax
 {
+    public bool Is<T>() where T : Syntax => value is T;
     public bool IsNot<T>() where T : Syntax => value is not T;
 
     protected internal Syntax value;
@@ -27,8 +28,7 @@ internal abstract class CompositeSyntax<T, T0, T1> : CompositeSyntax, Compiler.I
     {
         Parser parser = context;
 
-        var syntax = T0.Parse(ref parser)
-            ?? T1.Parse(ref parser) as Syntax;
+        var syntax = T0.Parse(ref parser) ?? T1.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -49,9 +49,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax, Compil
     {
         Parser parser = context;
 
-        var syntax = T0.Parse(ref parser)
-            ?? T1.Parse(ref parser)
-            ?? T2.Parse(ref parser) as Syntax;
+        var syntax = CompositeSyntax<T, T0, T1>.Parse(ref parser) ?? T2.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -75,10 +73,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3> : CompositeSyntax, Co
     {
         Parser parser = context;
 
-        var syntax = T0.Parse(ref parser)
-            ?? T1.Parse(ref parser)
-            ?? T2.Parse(ref parser) 
-            ?? T3.Parse(ref parser) as Syntax;
+        var syntax = CompositeSyntax<T, T0, T1, T2>.Parse(ref parser) ?? T3.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -104,11 +99,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4> : CompositeSyntax
     {
         Parser parser = context;
 
-        var syntax = T0.Parse(ref parser)
-            ?? T1.Parse(ref parser)
-            ?? T2.Parse(ref parser)
-            ?? T3.Parse(ref parser)
-            ?? T4.Parse(ref parser) as Syntax;
+        var syntax = CompositeSyntax<T, T0, T1, T2, T3>.Parse(ref parser) ?? T4.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -136,12 +127,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5> : CompositeSy
     {
         Parser parser = context;
 
-        var syntax = T0.Parse(ref parser)
-            ?? T1.Parse(ref parser)
-            ?? T2.Parse(ref parser)
-            ?? T3.Parse(ref parser)
-            ?? T4.Parse(ref parser)
-            ?? T5.Parse(ref parser) as Syntax;
+        var syntax = CompositeSyntax<T, T0, T1, T2, T3, T4>.Parse(ref parser) ?? T5.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -171,13 +157,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> : Composi
     {
         Parser parser = context;
 
-        var syntax = T0.Parse(ref parser)
-            ?? T1.Parse(ref parser)
-            ?? T2.Parse(ref parser)
-            ?? T3.Parse(ref parser)
-            ?? T4.Parse(ref parser)
-            ?? T5.Parse(ref parser)
-            ?? T6.Parse(ref parser) as Syntax;
+        var syntax = CompositeSyntax<T, T0, T1, T2, T3, T4, T5>.Parse(ref parser) ?? T6.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -209,14 +189,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> : Com
     {
         Parser parser = context;
 
-        var syntax = T0.Parse(ref parser)
-            ?? T1.Parse(ref parser)
-            ?? T2.Parse(ref parser)
-            ?? T3.Parse(ref parser)
-            ?? T4.Parse(ref parser)
-            ?? T5.Parse(ref parser)
-            ?? T6.Parse(ref parser)
-            ?? T7.Parse(ref parser) as Syntax;
+        var syntax = CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6>.Parse(ref parser) ?? T7.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 
@@ -249,15 +222,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> :
     {
         Parser parser = context;
 
-        var syntax = T0.Parse(ref parser)
-            ?? T1.Parse(ref parser)
-            ?? T2.Parse(ref parser)
-            ?? T3.Parse(ref parser)
-            ?? T4.Parse(ref parser)
-            ?? T5.Parse(ref parser)
-            ?? T6.Parse(ref parser)
-            ?? T7.Parse(ref parser)
-            ?? T8.Parse(ref parser) as Syntax;
+        var syntax = CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7>.Parse(ref parser) ?? T8.Parse(ref parser) as Syntax;
 
         if (syntax is null) return null;
 

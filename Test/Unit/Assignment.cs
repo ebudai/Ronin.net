@@ -25,13 +25,13 @@ public class assignment
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = AssignmentSyntax.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
         Name name = assignment.Reference.Components[0];
         Assert.Single(name?.Source);
 
-        Scalar scalar = assignment.Value;
+        LiteralSyntax scalar = assignment.Value;
         Assert.Single(scalar?.Source);
     }
 
@@ -49,13 +49,13 @@ public class assignment
         };
         
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = AssignmentSyntax.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
         Name name = assignment.Reference.Components?[0];
         Assert.Single(name?.Source);
         
-        Scalar scalar = assignment.Value;
+        LiteralSyntax scalar = assignment.Value;
         Assert.Single(scalar?.Source);
     }
 }

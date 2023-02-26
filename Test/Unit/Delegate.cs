@@ -5,7 +5,7 @@ using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
-using Delegate = Ronin.Grammar.Delegate;
+using DelegateSyntax = Ronin.Grammar.DelegateSyntax;
 
 namespace Unit;
 
@@ -31,10 +31,10 @@ public class @delegate
         };
 
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = DelegateSyntax.Parse(ref parser);
 
         Assert.Single(@delegate?.Data);
-        Datum datum = @delegate.Data[0];
+        DatumDeclarationSyntax datum = @delegate.Data[0];
         Assert.Single(datum?.Name?.Source);
 
         Assert.Single(@delegate.Body?.Values);
@@ -48,7 +48,7 @@ public class @delegate
         }
 
         {
-            Scalar scalar = line.Components[1];
+            LiteralSyntax scalar = line.Components[1];
             Assert.Single(scalar?.Source);
         }
     }
@@ -77,7 +77,7 @@ public class @delegate
         };
         
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = DelegateSyntax.Parse(ref parser);
 
         Assert.Equal(3, @delegate?.Data?.Count);
 
@@ -96,7 +96,7 @@ public class @delegate
         }
 
         {
-            Scalar scalar = line.Components[1];
+            LiteralSyntax scalar = line.Components[1];
             Assert.Single(scalar?.Source);
         }
     }
@@ -117,7 +117,7 @@ public class @delegate
         };
         
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = DelegateSyntax.Parse(ref parser);
 
         Assert.Null(@delegate?.Data);
 
@@ -132,7 +132,7 @@ public class @delegate
         }
 
         {
-            Scalar scalar = line.Components[1];
+            LiteralSyntax scalar = line.Components[1];
             Assert.Single(scalar?.Source);
         }
     }
@@ -159,8 +159,8 @@ public class @delegate
         var statements = parser.Parse();
 
         Assert.Single(statements);
-        Datum datum = statements[0];
-        Delegate @delegate = datum?.Initializer;
+        DatumDeclarationSyntax datum = statements[0];
+        DelegateSyntax @delegate = datum?.Initializer;
         Assert.NotNull(@delegate);
     }
 }

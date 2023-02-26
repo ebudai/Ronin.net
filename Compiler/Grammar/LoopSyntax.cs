@@ -6,25 +6,25 @@ using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Grammar;
 
-internal class Loop : Syntax, Compiler.IParsable<Loop>
+internal class LoopSyntax : Syntax, Compiler.IParsable<LoopSyntax>
 {
-    public Datum Header { get; init; }
+    public DatumDeclarationSyntax Header { get; init; }
     public Reference List { get; init; }
     public Scope Body { get; init; }
 
-    public static Loop Parse(ref Parser context)
+    public static LoopSyntax Parse(ref Parser context)
     {
         Parser parser = context;
 
         if (parser.FailsToConsume<ForEach>()) return null;
 
-        if (Datum.Parse(ref parser) is not Datum header) return null;
+        if (DatumDeclarationSyntax.Parse(ref parser) is not DatumDeclarationSyntax header) return null;
 
         var list = header.Datatype is null ? null : Reference.Parse(ref parser);
 
         if (Scope.Parse(ref parser) is not Scope body) return null;
 
-        return new Loop
+        return new LoopSyntax
         {
             Header = header,
             List = list,

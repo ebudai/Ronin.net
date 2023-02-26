@@ -28,7 +28,7 @@ public class datatype
         };
         
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.Datatype.Parse(ref parser);
+        var datatype = Ronin.Grammar.DatatypeDeclarationSyntax.Parse(ref parser);
 
         Assert.Single(datatype?.Identifier?.Components);
         Name name = datatype.Identifier.Components[0];
@@ -64,7 +64,7 @@ public class datatype
         };
 
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.Datatype.Parse(ref parser);
+        var datatype = Ronin.Grammar.DatatypeDeclarationSyntax.Parse(ref parser);
 
         Assert.Single(datatype?.Identifier?.Components);
         Name algebra = datatype.Algebra.Components[0];
@@ -73,7 +73,7 @@ public class datatype
         Assert.Equal(2, datatype.Body?.Values.Count);
 
         {
-            Datum cash = datatype.Body.Values[0];
+            DatumDeclarationSyntax cash = datatype.Body.Values[0];
             Assert.IsType<Variable>(cash?.Mutability);
             Assert.Single(cash.Name?.Source);
             Assert.Single(cash.Datatype?.Components);
@@ -82,7 +82,7 @@ public class datatype
         }
 
         {
-            Datum debt = datatype.Body.Values[1];
+            DatumDeclarationSyntax debt = datatype.Body.Values[1];
             Assert.IsType<Variable>(debt?.Mutability);
             Assert.Single(debt.Name?.Source);
             Assert.Single(debt.Datatype?.Components);

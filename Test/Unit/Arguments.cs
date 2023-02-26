@@ -110,12 +110,12 @@ public class arguments
         Assert.Equal(3, arguments?.Values?.Count);
         
         {
-            Scalar scalar = arguments.Values[0];
+            LiteralSyntax scalar = arguments.Values[0];
             Assert.Single(scalar?.Source);
         }
 
         {
-            Scalar scalar = arguments.Values[1];
+            LiteralSyntax scalar = arguments.Values[1];
             Assert.Single(scalar?.Source);
         }
 
@@ -163,7 +163,7 @@ public class arguments
         }
 
         {
-            Scalar scalar = arguments.Values[1];
+            LiteralSyntax scalar = arguments.Values[1];
             Assert.Single(scalar?.Source);
         }
 
@@ -172,17 +172,17 @@ public class arguments
             Assert.Equal(3, subargs?.Values?.Count);
 
             {
-                Scalar scalar = subargs?.Values[0];
+                LiteralSyntax scalar = subargs?.Values[0];
                 Assert.Single(scalar?.Source);
             }
 
             {
-                Scalar scalar = subargs?.Values[1];
+                LiteralSyntax scalar = subargs?.Values[1];
                 Assert.Single(scalar?.Source);
             }
 
             {
-                Scalar scalar = subargs?.Values[2];
+                LiteralSyntax scalar = subargs?.Values[2];
                 Assert.Single(scalar?.Source);
             }
         }

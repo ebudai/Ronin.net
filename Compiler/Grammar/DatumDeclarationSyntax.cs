@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 ///         ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 ///     }
 /// </example>
-internal class Datum : Syntax, Compiler.IParsable<Datum>
+internal class DatumDeclarationSyntax : Syntax, Compiler.IParsable<DatumDeclarationSyntax>
 {
     public Keyword Mutability { get; init; }
     public Modifiers Is { get; init; }
@@ -26,7 +26,7 @@ internal class Datum : Syntax, Compiler.IParsable<Datum>
     public Reference Datatype { get; init; }
     public Value Initializer { get; init; }
 
-    public static Datum Parse(ref Parser context)
+    public static DatumDeclarationSyntax Parse(ref Parser context)
     {
         Parser parser = context;
 
@@ -51,7 +51,7 @@ internal class Datum : Syntax, Compiler.IParsable<Datum>
             initializer = Value.Parse(ref parser);
         }
 
-        return new Datum
+        return new DatumDeclarationSyntax
         {
             Mutability = mutator,
             Name = name,

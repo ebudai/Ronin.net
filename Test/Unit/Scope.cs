@@ -35,7 +35,7 @@ public class scope
 
         Assert.Single(scope?.Values);
 
-        Datum datum = scope.Values[0];
+        DatumDeclarationSyntax datum = scope.Values[0];
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -43,7 +43,7 @@ public class scope
 
         Assert.Null(datum.Is);
 
-        Scalar scalar = datum.Initializer;
+        LiteralSyntax scalar = datum.Initializer;
         Assert.Single(scalar?.Source);
     }
 }

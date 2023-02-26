@@ -5,18 +5,18 @@ using Ronin.Compiler;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     An assignment of a <see cref="Grammar.Temporary"/> to a <see cref="Datum"/> or <see cref="Parameter"/>
+///     An assignment of a <see cref="Grammar.Temporary"/> to a <see cref="DatumDeclarationSyntax"/> or <see cref="Parameter"/>
 /// </summary>
 /// 
 /// <example>
 ///     x = 16;
 /// </example>
-internal class Assignment : Syntax, Compiler.IParsable<Assignment>
+internal class AssignmentSyntax : Syntax, Compiler.IParsable<AssignmentSyntax>
 {
     public Reference Reference { get; init; }
     public Value Value { get; init; }
 
-    public static Assignment Parse(ref Parser context)
+    public static AssignmentSyntax Parse(ref Parser context)
     {
         Parser parser = context;
 
@@ -26,7 +26,7 @@ internal class Assignment : Syntax, Compiler.IParsable<Assignment>
 
         if (Value.Parse(ref parser) is not Value value) return null;
 
-        return new Assignment
+        return new AssignmentSyntax
         {
             Reference = reference,
             Value = value,

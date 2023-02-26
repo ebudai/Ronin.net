@@ -20,7 +20,7 @@ public class assignment
         };
         
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = AssignmentSyntax.Parse(ref parser);
         
         Assert.Null(assignment);
     }

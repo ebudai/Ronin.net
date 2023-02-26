@@ -33,7 +33,7 @@ public class parameters
 
         Assert.Single(parameters?.Values);
 
-        Datum datum = parameters.Values[0];
+        DatumDeclarationSyntax datum = parameters.Values[0];
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -72,7 +72,7 @@ public class parameters
         Assert.Equal(2, parameters?.Values?.Count);
 
         {
-            Datum datum = parameters.Values[0];
+            DatumDeclarationSyntax datum = parameters.Values[0];
             
             Assert.Null(datum?.Mutability);
 
@@ -86,7 +86,7 @@ public class parameters
         }
 
         {
-            Datum datum = parameters.Values[1];
+            DatumDeclarationSyntax datum = parameters.Values[1];
 
             Assert.Null(datum?.Mutability);
 

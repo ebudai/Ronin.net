@@ -24,12 +24,12 @@ public class interval
         };
         
         Parser parser = new(tokens);
-        var interval = Interval.Parse(ref parser);
+        var interval = IntervalSyntax.Parse(ref parser);
 
-        Scalar start = interval.Start;
+        LiteralSyntax start = interval.Start;
         Assert.Single(start?.Source);
         
-        Scalar end = interval.End;
+        LiteralSyntax end = interval.End;
         Assert.Single(end?.Source);
     }
 
@@ -44,11 +44,11 @@ public class interval
         };
 
         Parser parser = new(tokens);
-        var interval = Interval.Parse(ref parser);
+        var interval = IntervalSyntax.Parse(ref parser);
 
         Assert.Null(interval.Start);
 
-        Scalar end = interval.End;
+        LiteralSyntax end = interval.End;
         Assert.Single(end?.Source);
     }
 
@@ -63,9 +63,9 @@ public class interval
         };
         
         Parser parser = new(tokens);
-        var interval = Interval.Parse(ref parser);
+        var interval = IntervalSyntax.Parse(ref parser);
 
-        Scalar start = interval.Start;
+        LiteralSyntax start = interval.Start;
         Assert.Single(start?.Source);
 
         Assert.Null(interval.End);

@@ -5,22 +5,20 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Scalar : Syntax, Compiler.IParsable<Scalar>
+internal class LiteralSyntax : Syntax, Compiler.IParsable<LiteralSyntax>
 {
-    public static Scalar Parse(ref Parser context)
+    public static LiteralSyntax Parse(ref Parser context)
     {
         Parser parser = context;
-        List<Literal> values = new();
 
         while (parser.IsNotFinished)
         {            
-            if (parser.CurrentToken is not Literal literal) break;
+            if (parser.CurrentToken is not Literal) break;
             parser.Advance();
-            values.Add(literal);   
         }
 
         if (parser.CurrentToken == context.CurrentToken) return null;
 
-        return new Scalar { Source = parser.Commit(ref context) };
+        return new LiteralSyntax { Source = parser.Commit(ref context) };
     }
 }

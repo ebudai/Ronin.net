@@ -25,9 +25,9 @@ public class lookup
         };
         
         Parser parser = new(tokens);
-        var lookup = Lookup.Parse(ref parser);
+        var lookup = InlineLookupSyntax.Parse(ref parser);
 
-        Assert.IsNotType<Lookup>(lookup);
+        Assert.IsNotType<InlineLookupSyntax>(lookup);
     }
 
     [Fact(DisplayName = "missing key")]
@@ -44,9 +44,9 @@ public class lookup
         };
         
         Parser parser = new(tokens);
-        var lookup = Lookup.Parse(ref parser);
+        var lookup = InlineLookupSyntax.Parse(ref parser);
 
-        Assert.IsNotType<Lookup>(lookup);
+        Assert.IsNotType<InlineLookupSyntax>(lookup);
     }
 
     [Fact(DisplayName = "missing value")]
@@ -62,8 +62,8 @@ public class lookup
         };
         
         Parser parser = new(tokens);
-        var lookup = Lookup.Parse(ref parser);
+        var lookup = InlineLookupSyntax.Parse(ref parser);
 
-        Assert.IsNotType<Lookup>(lookup);
+        Assert.IsNotType<InlineLookupSyntax>(lookup);
     }
 }

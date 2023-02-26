@@ -111,12 +111,12 @@ public class ordinal
         Assert.Equal(3, arguments?.Values?.Count);
 
         {
-            Scalar scalar = arguments.Values[0];
+            LiteralSyntax scalar = arguments.Values[0];
             Assert.Single(scalar?.Source);
         }
 
         {
-            Scalar scalar = arguments.Values[1];
+            LiteralSyntax scalar = arguments.Values[1];
             Assert.Single(scalar?.Source);
         }
 

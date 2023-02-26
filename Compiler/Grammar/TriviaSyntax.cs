@@ -5,12 +5,12 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Trivia : Syntax, Compiler.IParsable<Trivia>
+internal class TriviaSyntax : Syntax, Compiler.IParsable<TriviaSyntax>
 {
-    public static Trivia Parse(ref Parser context)
+    public static TriviaSyntax Parse(ref Parser context)
     {
         Parser parser = context;
         if (parser.FailsToConsume<Trivium>()) return null;
-        return new Trivia { Source = parser.Commit(ref context) };
+        return new TriviaSyntax { Source = parser.Commit(ref context) };
     }
 }

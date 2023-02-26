@@ -27,15 +27,15 @@ public class lookup
         };
 
         Parser parser = new(tokens);
-        var lookup = Lookup.Parse(ref parser);
+        var lookup = InlineLookupSyntax.Parse(ref parser);
 
         Assert.Single(lookup?.Values);
         var association = lookup.Values[0];
         
-        Scalar key = association.Key;
+        LiteralSyntax key = association.Key;
         Assert.Single(key?.Source);
 
-        Scalar value = association.Value;
+        LiteralSyntax value = association.Value;
         Assert.Single(value?.Source);
     }
 
@@ -59,8 +59,8 @@ public class lookup
         var statements = parser.Parse();
 
         Assert.Single(statements);
-        Datum datum = statements[0];
-        Lookup lookup = datum?.Initializer;
+        DatumDeclarationSyntax datum = statements[0];
+        InlineLookupSyntax lookup = datum?.Initializer;
         Assert.NotNull(lookup);
     }
 }

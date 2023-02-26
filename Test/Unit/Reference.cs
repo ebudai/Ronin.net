@@ -38,14 +38,14 @@ public class reference
         }
 
         {
-            Scalar scalar = reference.Components[1];
+            LiteralSyntax scalar = reference.Components[1];
             Assert.Single(scalar?.Source);
         }
 
         {
             Arguments arguments = reference.Components[2];
             Assert.Single(arguments?.Values);
-            Scalar scalar = arguments.Values[0];
+            LiteralSyntax scalar = arguments.Values[0];
             Assert.Single(scalar?.Source);
         }
     }

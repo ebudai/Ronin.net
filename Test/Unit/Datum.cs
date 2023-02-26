@@ -29,7 +29,7 @@ public class datum
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -60,7 +60,7 @@ public class datum
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
@@ -92,7 +92,7 @@ public class datum
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -125,7 +125,7 @@ public class datum
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
 
         Assert.IsType<Constant>(datum?.Mutability);
 
@@ -158,7 +158,7 @@ public class datum
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -190,7 +190,7 @@ public class datum
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
@@ -222,7 +222,7 @@ public class datum
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -256,7 +256,7 @@ public class datum
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -268,7 +268,7 @@ public class datum
         Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source);
 
-        Scalar scalar = datum.Initializer;
+        LiteralSyntax scalar = datum.Initializer;
         Assert.Single(scalar?.Source);
     }
 }

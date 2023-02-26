@@ -26,10 +26,10 @@ public class list
         };
 
         Parser parser = new(tokens);
-        var list = List.Parse(ref parser);
+        var list = InlineListSyntax.Parse(ref parser);
 
         Assert.Single(list?.Values);
-        Scalar scalar = list.Values[0];
+        LiteralSyntax scalar = list.Values[0];
         Assert.Single(scalar?.Source);
     }
 
@@ -49,22 +49,22 @@ public class list
         };
 
         Parser parser = new(tokens);
-        var list = List.Parse(ref parser);
+        var list = InlineListSyntax.Parse(ref parser);
 
         Assert.Equal(3, list?.Values?.Count);
 
         {
-            Scalar scalar = list.Values[0];
+            LiteralSyntax scalar = list.Values[0];
             Assert.Single(scalar?.Source);
         }
 
         {
-            Scalar scalar = list.Values[1];
+            LiteralSyntax scalar = list.Values[1];
             Assert.Single(scalar?.Source);
         }
 
         {
-            Scalar scalar = list.Values[2];
+            LiteralSyntax scalar = list.Values[2];
             Assert.Single(scalar?.Source);
         }
     }
@@ -91,8 +91,8 @@ public class list
         var statements = parser.Parse();
 
         Assert.Single(statements);
-        Datum datum = statements[0];
-        List list = datum?.Initializer;
+        DatumDeclarationSyntax datum = statements[0];
+        InlineListSyntax list = datum?.Initializer;
         Assert.NotNull(list);
     }
 }

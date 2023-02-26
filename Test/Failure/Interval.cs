@@ -23,7 +23,7 @@ public class interval
         };
         
         Parser parser = new(tokens);
-        var ordinal = Interval.Parse(ref parser);
+        var ordinal = IntervalSyntax.Parse(ref parser);
 
         Assert.Null(ordinal);
     }

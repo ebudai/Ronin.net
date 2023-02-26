@@ -23,7 +23,7 @@ public class function
         };
 
         Parser parser = new(tokens);
-        var function = Ronin.Grammar.Function.Parse(ref parser);
+        var function = Ronin.Grammar.FunctionDeclarationSyntax.Parse(ref parser);
         
         Assert.Null(function);
     }

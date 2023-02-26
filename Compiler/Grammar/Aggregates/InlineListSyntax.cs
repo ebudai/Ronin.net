@@ -16,7 +16,7 @@ namespace Ronin.Grammar.Aggregates;
 ///     var x = { 1, 2, seven, three };
 ///             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class List : Aggregate<List, OpenBrace, Value, Separator, CloseBrace>
+internal class InlineListSyntax : AggregateSyntax<InlineListSyntax, OpenBrace, Value, Separator, CloseBrace>
 {
 
 }

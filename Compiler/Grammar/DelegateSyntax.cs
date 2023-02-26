@@ -7,7 +7,7 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Instance of a <see cref="Function"/> which can be treated as a <see cref="Datum"/>
+///     Instance of a <see cref="FunctionDeclarationSyntax"/> which can be treated as a <see cref="DatumDeclarationSyntax"/>
 /// </summary>
 /// 
 /// <example>
@@ -18,17 +18,17 @@ namespace Ronin.Grammar;
 ///     var lambda = { return x; };
 ///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Delegate : Syntax, Compiler.IParsable<Delegate>
+internal class DelegateSyntax : Syntax, Compiler.IParsable<DelegateSyntax>
 {
-    public List<Datum> Data { get; init; }
+    public List<DatumDeclarationSyntax> Data { get; init; }
     public Scope Body { get; init; }
 
-    public static Delegate Parse(ref Parser context)
+    public static DelegateSyntax Parse(ref Parser context)
     {
         Parser parser = context;
 
-        List<Datum> data;
-        var datum = Datum.Parse(ref parser);
+        List<DatumDeclarationSyntax> data;
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
         if (datum is null)
         {
             var parameters = Parameters.Parse(ref parser);
@@ -37,13 +37,13 @@ internal class Delegate : Syntax, Compiler.IParsable<Delegate>
         }
         else
         {
-            data = new List<Datum> { datum };
+            data = new List<DatumDeclarationSyntax> { datum };
             if (parser.PreviousToken is not Returns) return null;
         }
 
         if (Scope.Parse(ref parser) is not Scope body) return null;
 
-        return new Delegate
+        return new DelegateSyntax
         {
             Data = data,
             Body = body,

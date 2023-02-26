@@ -6,7 +6,7 @@ using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
-using Function = Ronin.Grammar.Function;
+using FunctionDeclarationSyntax = Ronin.Grammar.FunctionDeclarationSyntax;
 
 namespace Unit;
 
@@ -38,7 +38,7 @@ public class function
         };
 
         Parser parser = new(tokens);
-        var function = Function.Parse(ref parser);
+        var function = FunctionDeclarationSyntax.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
 
@@ -71,7 +71,7 @@ public class function
         }
 
         {
-            Scalar scalar = line.Components[1];
+            LiteralSyntax scalar = line.Components[1];
             Assert.Single(scalar?.Source);
         }
     }
@@ -104,7 +104,7 @@ public class function
         };
 
         Parser parser = new(tokens);
-        var function = Function.Parse(ref parser);
+        var function = FunctionDeclarationSyntax.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);
 

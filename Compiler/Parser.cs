@@ -20,7 +20,7 @@ internal struct Parser
         
         while (IsNotFinished)
         {
-            if (Trivia.Parse(ref this) is not null) continue;
+            if (TriviaSyntax.Parse(ref this) is not null) continue;
             statements.Add(Statement.Parse(ref this));
             if (CurrentToken is Terminal) Advance();
         }
@@ -28,7 +28,7 @@ internal struct Parser
         return statements;
     }
 
-    internal List<T> ParseRepeating<T>() where T : class, IParsable<T>
+    public List<T> ParseRepeating<T>() where T : class, IParsable<T>
     {
         List<T> parsed = new();
         while (IsNotFinished)
@@ -40,26 +40,26 @@ internal struct Parser
         return parsed;
     }
 
-    internal bool FailsToConsume<T>() where T : Token
+    public bool FailsToConsume<T>() where T : Token
     {
         var consumed = CurrentToken is T;
         if (consumed) Advance();
         return consumed is false;
     }
 
-    internal ref readonly Token CurrentToken => ref tokens.Span[cursor];
-    internal ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
+    public ref readonly Token CurrentToken => ref tokens.Span[cursor];
+    public ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
 
-    internal readonly ReadOnlySpan<Token> this[Range range] => tokens.Span[range];
+    public readonly ReadOnlySpan<Token> this[Range range] => tokens.Span[range];
 
-    internal bool IsNotFinished => CurrentToken is not Sentinel;
+    public bool IsNotFinished => CurrentToken is not Sentinel;
 
-    internal void Advance() 
+    public void Advance() 
     {
         do ++cursor; while (CurrentToken is Trivium);
     }
 
-    internal Token[] Commit(/*scoped*/ ref Parser context)
+    public Token[] Commit(scoped ref Parser context)
     {
         var tokens = context[context.cursor..cursor].ToArray();
         context = this;        

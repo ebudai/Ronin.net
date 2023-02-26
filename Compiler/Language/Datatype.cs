@@ -1,57 +1,68 @@
-﻿using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Datatype
+#pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
+internal class Datatype : Semantics
 {
     public Identifier Identifier { get; init; }
-    
+    public bool IsOptional { get; init; }
+
     public List<Datatype> InnerDatatypes { get; } = new();
     public List<Datum> Data { get; } = new();
-    public List<Function> Operations { get; } = new();
+    public List<Function> Methods { get; } = new();
 
     public List<Datatype> Parents { get; } = new();
     public List<Datatype> Unions { get; } = new();
 
-    public static Datatype Analyze(ref SemanticAnalyzer analyzer)
+    public Datatype(Semantics parent) : base(parent) { }
+
+    public Datatype(DatatypeDeclarationSyntax datatype, Semantics parent) : base(parent)
     {
-        if (analyzer.CurrentSyntax is not Grammar.Datatype type) return null;
+        Source = datatype;
 
-        UnresolvedDatatype datatype = new() { Identifier = type.Identifier, Algebra = type.Algebra };
+        Identifier = new(datatype.Identifier, parent);
 
-        foreach (var statement in type.Body.Values)
+        foreach (var statement in datatype.Body.Values)
         {
             switch (statement.value)
             {
-                case Hierarchy: return new DatatypeCannotJoinNamedScope();
-                case Assignment: return new DatatypeDefinitionCannotContain<Assignment>();
-                //case Grammar.Function function: datatype.Operations.Add(function); break;
-                case Scope: return new DatatypeDefinitionCannotContain<Scope>();
+                case FunctionDeclarationSyntax:     Methods.Add(new Function(statement, this));         break;
+                case DatatypeDeclarationSyntax:     InnerDatatypes.Add(new Datatype(statement, this));  break;
+                case DatumDeclarationSyntax:        Data.Add(new Datum(statement, this));               break;
 
+                case ImportExportSyntax:    Errors.Add(new DatatypeCannotJoinNamedScope { Statement = statement });                         break;
+                case AssignmentSyntax:      Errors.Add(new DatatypeDefinitionCannotContain<AssignmentSyntax> { Statement = statement });    break;                
+                case Scope:                 Errors.Add(new DatatypeDefinitionCannotContain<Scope> { Statement = statement });               break;
+                case IntervalSyntax:        Errors.Add(new DatatypeDefinitionCannotContain<IntervalSyntax> { Statement = statement });      break;
+                
+                case Value value: Errors.Add(value.value switch
+                {
+                    LiteralSyntax => new DatatypeDefinitionCannotContain<LiteralSyntax> { Statement = statement },
+                    Arguments => new DatatypeDefinitionCannotContain<Arguments> { Statement = statement },
+                    InlineListSyntax => new DatatypeDefinitionCannotContain<InlineListSyntax> { Statement = statement },
+                    InlineLookupSyntax => new DatatypeDefinitionCannotContain<InlineLookupSyntax> { Statement = statement },
+                    DelegateSyntax => new DatatypeDefinitionCannotContain<DelegateSyntax> { Statement = statement },
+                    Reference => new DatatypeDefinitionCannotContain<Reference> { Statement = statement },
+                }); break;
+
+                default: Errors.Add(new UnknownSyntaxError { Statement = statement }); break;
             }
-        }        
-
-        return datatype;
+        }
     }
 }
 
 [ExcludeFromCodeCoverage]
 internal class UnresolvedDatatype : Datatype
 {
-    public Reference Reference { get; init; }
-    public Reference Algebra { get; init; }
+    public UnresolvedDatatype(Reference reference, Semantics parent) : base(parent) => Source = reference;
 }
 
-internal class DatatypeCannotJoinNamedScope : Datatype, IError
-{
+[ExcludeFromCodeCoverage]
+internal class DatatypeCannotJoinNamedScope : Error { }
 
-}
-
-internal class DatatypeDefinitionCannotContain<T> : Datatype, IError where T : Syntax
-{
-
-}
+[ExcludeFromCodeCoverage]
+internal class DatatypeDefinitionCannotContain<T> : Error where T : Syntax { }

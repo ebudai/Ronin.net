@@ -28,5 +28,5 @@ internal class Reference : Syntax, Compiler.IParsable<Reference>
         };
     }
 
-    public class Component : CompositeSyntax<Component, Name, Scalar, Arguments> { }
+    public class Component : CompositeSyntax<Component, Name, LiteralSyntax, Arguments> { }
 }

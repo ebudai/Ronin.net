@@ -26,7 +26,7 @@ public class datum
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
         
         Assert.Null(datum);
     }
@@ -44,7 +44,7 @@ public class datum
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Parse(ref parser);
+        var datum = DatumDeclarationSyntax.Parse(ref parser);
         
         Assert.Null(datum);
     }

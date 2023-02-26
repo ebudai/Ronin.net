@@ -2,7 +2,7 @@
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
-using Delegate = Ronin.Grammar.Delegate;
+using DelegateSyntax = Ronin.Grammar.DelegateSyntax;
 
 namespace Failure;
 
@@ -31,7 +31,7 @@ public class @delegate
         };
 
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = DelegateSyntax.Parse(ref parser);
         
         Assert.Null(@delegate);
     }
