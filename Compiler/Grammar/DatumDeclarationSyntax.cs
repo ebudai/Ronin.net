@@ -2,8 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -30,14 +28,14 @@ internal class DatumDeclarationSyntax : Syntax, Compiler.IParsable<DatumDeclarat
     {
         Parser parser = context;
 
-        var mutator = parser.CurrentToken is Variable or Constant or Reactive ? parser.CurrentToken as Keyword : null;
+        var mutator = parser.CurrentToken is VariableKeyword or ConstantKeyword or ReactiveKeyword ? parser.CurrentToken as Keyword : null;
         if (mutator is not null) parser.Advance();
 
         if (Name.Parse(ref parser) is not Name name) return null;
 
         Modifiers modifiers = null;
         Reference datatype = null;
-        if (parser.CurrentToken is Returns)
+        if (parser.CurrentToken is ReturnsSymbol)
         {
             parser.Advance();
             modifiers = Modifiers.Parse(ref parser);
@@ -45,7 +43,7 @@ internal class DatumDeclarationSyntax : Syntax, Compiler.IParsable<DatumDeclarat
         }
 
         Value initializer = null;
-        if (parser.CurrentToken is Assign)
+        if (parser.CurrentToken is AssignSymbol)
         {
             parser.Advance();
             initializer = Value.Parse(ref parser);

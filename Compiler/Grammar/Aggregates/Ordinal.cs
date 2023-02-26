@@ -1,6 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar.Aggregates;
 
@@ -9,7 +9,7 @@ namespace Ronin.Grammar.Aggregates;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Temporary"/>s between <see cref="OpenSquareBracket"/> and <see cref="CloseSquareBracket"/>
+///     <see cref="SeparatorSymbol"/>-separated <see cref="Temporary"/>s between <see cref="OpenSquareBracketSymbol"/> and <see cref="CloseSquareBracketSymbol"/>
 /// </remarks>
 /// 
 /// <example>
@@ -27,7 +27,7 @@ namespace Ronin.Grammar.Aggregates;
 ///     var selected value = multi-dimensional list[3, 1, 0];
 ///                                                ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Ordinal : AggregateSyntax<Ordinal, OpenSquareBracket, Value, Separator, CloseSquareBracket>
+internal class Ordinal : AggregateSyntax<Ordinal, OpenSquareBracketSymbol, Value, SeparatorSymbol, CloseSquareBracketSymbol>
 {
     
 }

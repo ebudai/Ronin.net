@@ -2,7 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -33,12 +33,12 @@ internal class DelegateSyntax : Syntax, Compiler.IParsable<DelegateSyntax>
         {
             var parameters = Parameters.Parse(ref parser);
             data = parameters?.Values;
-            if (data is not null && parser.FailsToConsume<Returns>()) return null;
+            if (data is not null && parser.FailsToConsume<ReturnsSymbol>()) return null;
         }
         else
         {
             data = new List<DatumDeclarationSyntax> { datum };
-            if (parser.PreviousToken is not Returns) return null;
+            if (parser.PreviousToken is not ReturnsSymbol) return null;
         }
 
         if (Scope.Parse(ref parser) is not Scope body) return null;

@@ -1,15 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class hierarchy
+public class Hierarchy
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -18,19 +14,19 @@ public class hierarchy
 
         Token[] tokens =
         {
-            new PartOf(),
+            new PartOfKeyword(),
             new Word(),
-            new Terminal(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
         var hierarchy = ImportExportSyntax.Parse(ref parser);
 
-        Assert.IsType<PartOf>(hierarchy?.Direction);
+        Assert.IsType<PartOfKeyword>(hierarchy?.Direction);
 
         Assert.Single(hierarchy.Components);
-        Name name = hierarchy.Components[0];
+        Ronin.Grammar.Name name = hierarchy.Components[0];
         Assert.Single(name?.Source);     
     }
 
@@ -41,20 +37,20 @@ public class hierarchy
 
         Token[] tokens =
         {
-            new Import(),
+            new ImportKeyword(),
             new Word(),
             new Word(),
             new Word(),
-            new Terminal(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
                 
         Parser parser = new(tokens);
         var hierarchy = ImportExportSyntax.Parse(ref parser);
 
-        Assert.IsType<Import>(hierarchy?.Direction);
+        Assert.IsType<ImportKeyword>(hierarchy?.Direction);
         Assert.Single(hierarchy.Components);
-        Name name = hierarchy.Components[0];
+        Ronin.Grammar.Name name = hierarchy.Components[0];
         Assert.Equal(3, name?.Source.Length);
     }
 
@@ -65,23 +61,23 @@ public class hierarchy
 
         Token[] tokens =
         {
-            new PartOf(),
+            new PartOfKeyword(),
             new Word(),
-            new Compiled(),
-            new Word(),
-            new Word(),
+            new CompiledKeyword(),
             new Word(),
             new Word(),
-            new Terminal(),
+            new Word(),
+            new Word(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
         var hierarchy = ImportExportSyntax.Parse(ref parser);
 
-        Assert.IsType<PartOf>(hierarchy?.Direction);
+        Assert.IsType<PartOfKeyword>(hierarchy?.Direction);
         Assert.Single(hierarchy.Components);
-        Name name = hierarchy.Components[0];
+        Ronin.Grammar.Name name = hierarchy.Components[0];
         Assert.Equal(6, name?.Source.Length);
     }
 
@@ -92,24 +88,24 @@ public class hierarchy
 
         Token[] tokens =
         {
-            new PartOf(),
+            new PartOfKeyword(),
             new Word(),
             new Word(),
-            new Text(),
+            new TextLiteral(),
             new Word(),
-            new Terminal(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
         var hierarchy = ImportExportSyntax.Parse(ref parser);
 
-        Assert.IsType<PartOf>(hierarchy?.Direction);
+        Assert.IsType<PartOfKeyword>(hierarchy?.Direction);
 
         Assert.Equal(3, hierarchy.Components?.Count);
 
         {
-            Name name = hierarchy.Components[0];
+            Ronin.Grammar.Name name = hierarchy.Components[0];
             Assert.Equal(2, name?.Source.Length);
         }
 
@@ -119,7 +115,7 @@ public class hierarchy
         }
 
         {
-            Name name = hierarchy.Components[2];
+            Ronin.Grammar.Name name = hierarchy.Components[2];
             Assert.Single(name?.Source);
         }
     }

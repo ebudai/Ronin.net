@@ -1,7 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -13,7 +13,7 @@ internal class Modifiers : Syntax, Compiler.IParsable<Modifiers>
         
         while (parser.IsNotFinished)
         {
-            if (parser.CurrentToken is not Compiled and not Persistent and not Shared and not Optional) break;
+            if (parser.CurrentToken is not CompiledKeyword and not PersistentKeyword and not SharedKeyword and not OptionalKeyword) break;
             parser.Advance();
         }
 

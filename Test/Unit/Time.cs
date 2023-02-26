@@ -1,13 +1,10 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class time
+public class Time
 {
     [Fact(DisplayName = "two digits with spaced suffix")]
     public void TwoDigitWithSpacedSuffix()
@@ -15,7 +12,7 @@ public class time
         const string literal = "11:45:12 p";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as Time;
+        var time = Literal.Lex(ref lexer) as TimeLiteral;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -26,7 +23,7 @@ public class time
         const string literal = "10:15:02p";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as Time;
+        var time = Literal.Lex(ref lexer) as TimeLiteral;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -37,7 +34,7 @@ public class time
         const string literal = "12:30:59";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as Time;
+        var time = Literal.Lex(ref lexer) as TimeLiteral;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -48,7 +45,7 @@ public class time
         const string literal = "9:08:45 p";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as Time;
+        var time = Literal.Lex(ref lexer) as TimeLiteral;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -59,7 +56,7 @@ public class time
         const string literal = "2:22:18p";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as Time;
+        var time = Literal.Lex(ref lexer) as TimeLiteral;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -70,7 +67,7 @@ public class time
         const string literal = "17:22:18 ";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as Time;
+        var time = Literal.Lex(ref lexer) as TimeLiteral;
 
         Assert.Equal(literal.Trim(), time?.ToString());
     }

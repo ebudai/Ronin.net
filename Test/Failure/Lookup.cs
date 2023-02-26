@@ -1,15 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class lookup
+public class Lookup
 {
     [Fact(DisplayName = "missing assign")]
     public void MissingAssign()
@@ -18,10 +14,10 @@ public class lookup
 
         Token[] tokens =
         {
-            new OpenBrace(),
-            new Text(),
-            new Number(),
-            new CloseBrace()
+            new OpenBraceSymbol(),
+            new TextLiteral(),
+            new NumberLiteral(),
+            new CloseBraceSymbol()
         };
         
         Parser parser = new(tokens);
@@ -37,10 +33,10 @@ public class lookup
 
         Token[] tokens =
         {
-            new OpenBrace(),
-            new Assign(),
-            new Number(),
-            new CloseBrace()
+            new OpenBraceSymbol(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new CloseBraceSymbol()
         };
         
         Parser parser = new(tokens);
@@ -53,12 +49,13 @@ public class lookup
     public void MissingValue()
     {
         // { 3 = }
+
         Token[] tokens =
         {
-            new OpenBrace(),
-            new Number(),
-            new Assign(),
-            new CloseBrace()
+            new OpenBraceSymbol(),
+            new NumberLiteral(),
+            new AssignSymbol(),
+            new CloseBraceSymbol()
         };
         
         Parser parser = new(tokens);

@@ -1,17 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
-
-using Datatype = Ronin.Lexicon.Keywords.Datatype;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class datatype
+public class Datatype
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -20,18 +14,18 @@ public class datatype
 
         Token[] tokens = 
         {
-            new Datatype(),
+            new DatatypeKeyword(),
             new Word(),
-            new OpenBrace(),
-            new CloseBrace(),
+            new OpenBraceSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.DatatypeDeclarationSyntax.Parse(ref parser);
+        var datatype = DatatypeDeclarationSyntax.Parse(ref parser);
 
         Assert.Single(datatype?.Identifier?.Components);
-        Name name = datatype.Identifier.Components[0];
+        Ronin.Grammar.Name name = datatype.Identifier.Components[0];
         Assert.Single(name?.Source);
     }
 
@@ -42,51 +36,51 @@ public class datatype
 
         Token[] tokens =
         {
-            new Datatype(),
+            new DatatypeKeyword(),
             new Word(),
             new Word(),
-            new Assign(),
+            new AssignSymbol(),
             new Word(),
             new Word(),
-            new OpenBrace(),
-            new Variable(),
+            new OpenBraceSymbol(),
+            new VariableKeyword(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new Terminal(),
-            new Variable(),
+            new TerminalSymbol(),
+            new VariableKeyword(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new Terminal(),
-            new CloseBrace(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.DatatypeDeclarationSyntax.Parse(ref parser);
+        var datatype = DatatypeDeclarationSyntax.Parse(ref parser);
 
         Assert.Single(datatype?.Identifier?.Components);
-        Name algebra = datatype.Algebra.Components[0];
+        Ronin.Grammar.Name algebra = datatype.Algebra.Components[0];
         Assert.Equal(2, algebra?.Source.Length);
         
         Assert.Equal(2, datatype.Body?.Values.Count);
 
         {
             DatumDeclarationSyntax cash = datatype.Body.Values[0];
-            Assert.IsType<Variable>(cash?.Mutability);
+            Assert.IsType<VariableKeyword>(cash?.Mutability);
             Assert.Single(cash.Name?.Source);
             Assert.Single(cash.Datatype?.Components);
-            Name type = cash.Datatype.Components[0];
+            Ronin.Grammar.Name type = cash.Datatype.Components[0];
             Assert.Single(type?.Source);
         }
 
         {
             DatumDeclarationSyntax debt = datatype.Body.Values[1];
-            Assert.IsType<Variable>(debt?.Mutability);
+            Assert.IsType<VariableKeyword>(debt?.Mutability);
             Assert.Single(debt.Name?.Source);
             Assert.Single(debt.Datatype?.Components);
-            Name type = debt.Datatype.Components[0];
+            Ronin.Grammar.Name type = debt.Datatype.Components[0];
             Assert.Single(type?.Source);
         }        
     }

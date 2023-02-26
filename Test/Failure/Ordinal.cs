@@ -1,14 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class ordinal
+public class Ordinal
 {
     [Fact(DisplayName = "does not start with [")]
     public void NotAnOrdinal()
@@ -20,11 +17,11 @@ public class ordinal
             new Word(),
             new Word(),
             new Word(),
-            new Terminal()
+            new TerminalSymbol()
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
 
         Assert.Null(ordinal);
     }
@@ -34,7 +31,7 @@ public class ordinal
     {
         Token[] tokens = { Sentinel.Instance };
         Parser parser = new(tokens);
-        var arguments = Ordinal.Parse(ref parser);
+        var arguments = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
 
         Assert.Null(arguments);
     }
@@ -46,18 +43,18 @@ public class ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracket(),
+            new OpenSquareBracketSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
-            new Terminal(),
+            new TerminalSymbol(),
             new Word(),
-            new CloseParenthesis(),
-            new CloseSquareBracket()
+            new CloseParenthesisSymbol(),
+            new CloseSquareBracketSymbol()
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
 
         Assert.Null(ordinal);
     }
@@ -69,14 +66,14 @@ public class ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracket(),
+            new OpenSquareBracketSymbol(),
             new Word(),
-            new Terminal(),
-            new CloseSquareBracket()
+            new TerminalSymbol(),
+            new CloseSquareBracketSymbol()
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
 
         Assert.Null(ordinal);
     }

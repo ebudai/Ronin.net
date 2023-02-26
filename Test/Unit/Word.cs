@@ -4,9 +4,7 @@ using Ronin.Lexicon;
 namespace Unit;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class word
+public class Words
 {
     [Fact(DisplayName = "basic")]
     public void Basic()

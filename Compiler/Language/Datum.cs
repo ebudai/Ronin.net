@@ -1,5 +1,5 @@
 ﻿using Ronin.Grammar;
-using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
@@ -17,8 +17,8 @@ internal class Datum : Semantics
     {
         Mutability = datum.Mutability switch
         {
-            Variable => Mutability.Variable,
-            Reactive => Mutability.Reactive,
+            VariableKeyword => Mutability.Variable,
+            ReactiveKeyword => Mutability.Reactive,
             _ => Mutability.Constant
         };
 

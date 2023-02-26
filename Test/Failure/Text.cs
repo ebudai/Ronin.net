@@ -1,14 +1,10 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
-using Ronin.Lexicon.Literals;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class text
+public class Text
 {
     [Fact(DisplayName = "without quotes")]
     public void Fail()
@@ -31,8 +27,8 @@ public class text
 
         Assert.Equal(3, tokens.Length);
 
-        var quote = tokens[0] as TextDelimiter;
-        Assert.Equal(TextDelimiter.symbol, quote?.ToString());
+        var quote = tokens[0] as TextDelimiterSymbol;
+        Assert.Equal(TextDelimiterSymbol.symbol, quote?.ToString());
 
         var word = tokens[1] as Word;
         Assert.Equal(literal[1..], word?.ToString());
@@ -48,7 +44,7 @@ public class text
 
         Assert.Equal(2, lexed.Length);
 
-        var quote = lexed[0] as TextDelimiter;
+        var quote = lexed[0] as TextDelimiterSymbol;
         Assert.Equal(literal, quote?.ToString());
     }
 
@@ -60,7 +56,7 @@ public class text
         Lexer lexer = new(literal);
         var lexed = lexer.Lex();
 
-        foreach (var lexeme in lexed) Assert.IsNotType<Text>(lexeme);
+        foreach (var lexeme in lexed) Assert.IsNotType<TextLiteral>(lexeme);
     }
 
     [Fact(DisplayName = "no data")]

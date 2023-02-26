@@ -1,26 +1,23 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class keyword
+public class Keyword
 {
-    private const string datatype = Datatype.keyword;
-    private const string function = Function.keyword;
-    private const string variable = Variable.keyword;
-    private const string constant = Constant.keyword;
-    private const string reactive = Reactive.keyword;
-    private const string compiled = Compiled.keyword;
-    private const string shared = Shared.keyword;
-    private const string optional = Optional.keyword;
-    private const string persistent = Persistent.keyword;
-    private const string partof = PartOf.keyword;
-    private const string import = Import.keyword;
-    private const string @foreach = ForEach.keyword;
+    private const string datatype = DatatypeKeyword.keyword;
+    private const string function = FunctionKeyword.keyword;
+    private const string variable = VariableKeyword.keyword;
+    private const string constant = ConstantKeyword.keyword;
+    private const string reactive = ReactiveKeyword.keyword;
+    private const string compiled = CompiledKeyword.keyword;
+    private const string shared = SharedKeyword.keyword;
+    private const string optional = OptionalKeyword.keyword;
+    private const string persistent = PersistentKeyword.keyword;
+    private const string partof = PartOfKeyword.keyword;
+    private const string import = ImportKeyword.keyword;
+    private const string @foreach = ForEachKeyword.keyword;
 
     [Fact(DisplayName = datatype)]
     public void Datatypes()
@@ -28,7 +25,7 @@ public class keyword
         const string sourcecode = $"{datatype} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Datatype;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as DatatypeKeyword;
 
         Assert.Equal(datatype, keyword?.ToString());
     }
@@ -39,7 +36,7 @@ public class keyword
         const string sourcecode = $"{function} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Function;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as FunctionKeyword;
 
         Assert.Equal(function, keyword?.ToString());
     }
@@ -50,7 +47,7 @@ public class keyword
         const string sourcecode = $"{variable} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Variable;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as VariableKeyword;
 
         Assert.Equal(variable, keyword?.ToString());
     }
@@ -61,7 +58,7 @@ public class keyword
         const string sourcecode = $"{constant} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Constant;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as ConstantKeyword;
 
         Assert.Equal(constant, keyword?.ToString());
     }
@@ -72,7 +69,7 @@ public class keyword
         const string sourcecode = $"{reactive} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Reactive;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as ReactiveKeyword;
 
         Assert.Equal(reactive, keyword?.ToString());
     }
@@ -83,7 +80,7 @@ public class keyword
         const string sourcecode = $"{compiled} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Compiled;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as CompiledKeyword;
 
         Assert.Equal(compiled, keyword?.ToString());
     }
@@ -94,7 +91,7 @@ public class keyword
         const string sourcecode = $"{shared} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Shared;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as SharedKeyword;
 
         Assert.Equal(shared, keyword?.ToString());
     }
@@ -105,7 +102,7 @@ public class keyword
         const string sourcecode = $"{optional} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Optional;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as OptionalKeyword;
 
         Assert.Equal(optional, keyword?.ToString());
     }
@@ -116,7 +113,7 @@ public class keyword
         const string sourcecode = $"{persistent} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Persistent;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as PersistentKeyword;
 
         Assert.Equal(persistent, keyword?.ToString());
     }
@@ -127,7 +124,7 @@ public class keyword
         const string sourcecode = $"{partof} standard stuff";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as PartOf;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as PartOfKeyword;
 
         Assert.Equal(partof, keyword?.ToString());
     }
@@ -138,7 +135,7 @@ public class keyword
         const string sourcecode = "import git://github.com/ebudai/ronin/libsuperpowers.ronin;";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Import;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as ImportKeyword;
 
         Assert.Equal(import, keyword?.ToString());
     }
@@ -149,7 +146,7 @@ public class keyword
         const string sourcecode = "for each thing in all the things { sorgaxulate thing; }";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as ForEach;
+        var keyword = Ronin.Lexicon.Keyword.Lex(ref lexer) as ForEachKeyword;
 
         Assert.Equal(@foreach, keyword?.ToString());
     }

@@ -1,28 +1,23 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class datum
+public class Datum
 {
-    [Fact(DisplayName = $"{Reactive.keyword} before name")]
+    [Fact(DisplayName = $"{ReactiveKeyword.keyword} before name")]
     public void ReturnsBeforeName()
     {
         // reactive => 44.3;
 
         Token[] tokens = 
         {
-            new Reactive(),
-            new Returns(),
-            new Number(),
-            new Terminal()
+            new ReactiveKeyword(),
+            new ReturnsSymbol(),
+            new NumberLiteral(),
+            new TerminalSymbol()
         };
         
         Parser parser = new(tokens);
@@ -38,9 +33,9 @@ public class datum
 
         Token[] tokens = 
         {
-            new Variable(),
-            new Number(),
-            new Terminal()
+            new VariableKeyword(),
+            new NumberLiteral(),
+            new TerminalSymbol()
         };
         
         Parser parser = new(tokens);

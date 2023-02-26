@@ -5,9 +5,7 @@ using Ronin.Lexicon;
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class interval
+public class Interval
 {
     [Fact(DisplayName = "not an interval")]
     public void NotAnInterval()
@@ -19,7 +17,7 @@ public class interval
             new Word(),
             new Word(),
             new Word(),
-            new Terminal()
+            new TerminalSymbol()
         };
         
         Parser parser = new(tokens);

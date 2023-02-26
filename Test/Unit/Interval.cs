@@ -1,25 +1,22 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
-
-using Range = Ronin.Lexicon.Symbols.Range;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class interval
+public class Interval
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
+        // 3..4
+
         Token[] tokens =
         {
-            new Number(),
-            new Range(),
-            new Number(),
+            new NumberLiteral(),
+            new RangeSymbol(),
+            new NumberLiteral(),
             Sentinel.Instance
         };
         
@@ -36,10 +33,12 @@ public class interval
     [Fact(DisplayName = "left unspecified")]
     public void LeftUnspecified()
     {
+        // ..3
+
         Token[] tokens =
         {
-            new Range(),
-            new Number(),
+            new RangeSymbol(),
+            new NumberLiteral(),
             Sentinel.Instance
         };
 
@@ -55,10 +54,12 @@ public class interval
     [Fact(DisplayName = "right unspecified")]
     public void RightUnspecified() 
     {
+        // 7..
+
         Token[] tokens =
         {
-            new Number(),
-            new Range(),
+            new NumberLiteral(),
+            new RangeSymbol(),
             Sentinel.Instance
         };
         

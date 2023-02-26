@@ -1,27 +1,25 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class identifier
+public class Identifier
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
+        // x (y => number)
+
         Token[] tokens =
         {
             new Word(),
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new CloseParenthesis(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance
         };
 
@@ -31,18 +29,18 @@ public class identifier
         Assert.Equal(2, identifier?.Components?.Count);
 
         {
-            Name name = identifier.Components[0];
+            Ronin.Grammar.Name name = identifier.Components[0];
             Assert.Single(name?.Source);
         }
 
         {
-            Parameters parameters = identifier.Components[1];
+            Ronin.Grammar.Aggregates.Parameters parameters = identifier.Components[1];
             Assert.Single(parameters?.Values);
             DatumDeclarationSyntax datum = parameters.Values[0];
             Assert.Single(datum?.Name?.Source);
 
             Assert.Single(datum?.Datatype?.Components);
-            Name name = datum.Datatype.Components[0];
+            Ronin.Grammar.Name name = datum.Datatype.Components[0];
             Assert.Single(name?.Source);
         }        
     }

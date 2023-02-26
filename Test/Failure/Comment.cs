@@ -1,12 +1,9 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class comment
+public class Comment
 {
     [Fact(DisplayName = "no comment start")]
     public void Basic()
@@ -14,7 +11,7 @@ public class comment
         const string notcomment = "not a comment";
 
         Lexer lexer = new(notcomment);
-        var comment = Comment.Lex(ref lexer);
+        var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
         Assert.Null(comment);
     }
@@ -25,7 +22,7 @@ public class comment
         const string badcomment = "/*unbalanced /*comment*/\r\nthis is a function call();";
 
         Lexer lexer = new(badcomment);
-        var comment = Comment.Lex(ref lexer);
+        var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
         Assert.False(comment?.Terminated);
         Assert.Equal(badcomment, comment?.sourcecode.ToString());
@@ -37,7 +34,7 @@ public class comment
         const string badcomment = "/*unbalanced */comment*/";
 
         Lexer lexer = new(badcomment);
-        var comment = Comment.Lex(ref lexer);
+        var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
         Assert.True(comment?.Terminated);
         Assert.Equal("/*unbalanced */", comment?.sourcecode.ToString());

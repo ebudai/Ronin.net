@@ -1,16 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class ordinal
+public class Ordinal
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -19,19 +14,19 @@ public class ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracket(),
+            new OpenSquareBracketSymbol(),
             new Word(),
-            new CloseSquareBracket(),
+            new CloseSquareBracketSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
 
         Assert.Single(ordinal?.Values);
-        Reference reference = ordinal.Values[0];
+        Ronin.Grammar.Reference reference = ordinal.Values[0];
         Assert.Single(reference?.Components);
-        Name name = reference.Components[0];
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.Single(name?.Source);
     }
 
@@ -42,30 +37,30 @@ public class ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracket(),
+            new OpenSquareBracketSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
-            new CloseSquareBracket(),
+            new CloseSquareBracketSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
 
         Assert.Equal(2, ordinal?.Values?.Count);
 
         {            
-            Reference test = ordinal.Values[0];
+            Ronin.Grammar.Reference test = ordinal.Values[0];
             Assert.Single(test?.Components);
-            Name name = test.Components[0];
+            Ronin.Grammar.Name name = test.Components[0];
             Assert.Single(name?.Source);
         }
 
         {
-            Reference stuff = ordinal.Values[1];
+            Ronin.Grammar.Reference stuff = ordinal.Values[1];
             Assert.Single(stuff?.Components);
-            Name name = stuff.Components[0];
+            Ronin.Grammar.Name name = stuff.Components[0];
             Assert.Single(name?.Source);
         }
     }
@@ -77,13 +72,13 @@ public class ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracket(),
-            new CloseSquareBracket(),
+            new OpenSquareBracketSymbol(),
+            new CloseSquareBracketSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
 
         Assert.Empty(ordinal?.Values);
     }
@@ -95,18 +90,18 @@ public class ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracket(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
+            new OpenSquareBracketSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
             new Word(),
-            new CloseSquareBracket(),
+            new CloseSquareBracketSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Ordinal.Parse(ref parser);
+        var arguments = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
 
@@ -121,9 +116,9 @@ public class ordinal
         }
 
         {
-            Reference reference = arguments.Values[2];
+            Ronin.Grammar.Reference reference = arguments.Values[2];
             Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Single(name?.Source);
         }        
     }

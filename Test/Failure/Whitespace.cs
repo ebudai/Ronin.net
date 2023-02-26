@@ -1,18 +1,15 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class whitespace
+public class Whitespace
 {
     [Fact(DisplayName = "no data")]
     public void NoData()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Whitespace.Lex(ref lexer);
+        var lexed = Ronin.Lexicon.Whitespace.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

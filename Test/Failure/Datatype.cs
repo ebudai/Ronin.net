@@ -1,28 +1,27 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class datatype
+public class Datatype
 {
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
+        // datatype { };
+
         Token[] tokens =
         {
-            new Datatype(),
-            new OpenBrace(),
-            new CloseBrace(),
-            new Terminal()
+            new DatatypeKeyword(),
+            new OpenBraceSymbol(),
+            new CloseBraceSymbol(),
+            new TerminalSymbol()
         };
         
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.DatatypeDeclarationSyntax.Parse(ref parser);
+        var datatype = DatatypeDeclarationSyntax.Parse(ref parser);
         Assert.Null(datatype);
     }
 }

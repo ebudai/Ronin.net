@@ -4,9 +4,7 @@ using Ronin.Lexicon;
 namespace Failure;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class date
+public class Date
 {
     [Fact(DisplayName = "not a date literal")]
     public void Fail()

@@ -1,23 +1,20 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class unknown
+public class Unknown
 {
     [Fact(DisplayName = "unknown")]
-    public void Unknown()
+    public void UnknownSyntaxTest()
     {
         Token[] tokens = 
         {
-            new Datatype(),
-            new Returns(),
-            new Terminal(),
+            new DatatypeKeyword(),
+            new ReturnsSymbol(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
         
@@ -25,7 +22,7 @@ public class unknown
         var statements = parser.Parse();
         
         Assert.Single(statements);
-        Ronin.Grammar.UnknownSyntax unknown = statements[0];
+        UnknownSyntax unknown = statements[0];
         Assert.NotNull(unknown);
     }
 }

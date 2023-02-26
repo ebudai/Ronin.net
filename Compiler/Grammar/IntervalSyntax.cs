@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -15,7 +16,7 @@ internal class IntervalSyntax : Syntax, Compiler.IParsable<IntervalSyntax>
 
         var start = Value.Parse(ref parser);
 
-        if (parser.FailsToConsume<Lexicon.Symbols.Range>()) return null;
+        if (parser.FailsToConsume<RangeSymbol>()) return null;
 
         var end = Value.Parse(ref parser);
 

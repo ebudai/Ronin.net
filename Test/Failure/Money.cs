@@ -1,13 +1,10 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class money
+public class Money
 {
     [Fact(DisplayName = "doesn't start with a dollar sign")]
     public void DoesntStartWithADollarSign()
@@ -17,7 +14,7 @@ public class money
         Lexer lexer = new(number);
         var lexed = Literal.Lex(ref lexer);
 
-        Assert.IsNotType<Money>(lexed);
+        Assert.IsNotType<MoneyLiteral>(lexed);
     }
 
     [Fact(DisplayName = "doesn't continue with a number")]
@@ -37,7 +34,7 @@ public class money
         const string literal = "$9.";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as Money;
+        var money = Literal.Lex(ref lexer) as MoneyLiteral;
 
         Assert.Equal(literal[..^1], money.ToString());
     }
@@ -48,7 +45,7 @@ public class money
         const string literal = "$9.2v5";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as Money;
+        var money = Literal.Lex(ref lexer) as MoneyLiteral;
 
         Assert.Equal(literal[..^2], money.ToString());
     }
@@ -68,7 +65,7 @@ public class money
         const string literal = "$9.25.4";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as Money;
+        var money = Literal.Lex(ref lexer) as MoneyLiteral;
 
         Assert.Equal(literal[..^2], money.ToString());
     }

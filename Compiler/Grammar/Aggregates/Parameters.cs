@@ -1,6 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar.Aggregates;
 
@@ -9,14 +9,14 @@ namespace Ronin.Grammar.Aggregates;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Parameter"/>s between <see cref="OpenParenthesis"/> and <see cref="CloseParenthesis"/>
+///     <see cref="SeparatorSymbol"/>-separated <see cref="Parameter"/>s between <see cref="OpenParenthesisSymbol"/> and <see cref="CloseParenthesisSymbol"/>
 /// </remarks>
 /// 
 /// <example>
 ///     function thing (x => number, y => money) with stuff { return 8; }
 ///                    ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Parameters : AggregateSyntax<Parameters, OpenParenthesis, DatumDeclarationSyntax, Separator, CloseParenthesis> 
+internal class Parameters : AggregateSyntax<Parameters, OpenParenthesisSymbol, DatumDeclarationSyntax, SeparatorSymbol, CloseParenthesisSymbol> 
 {
     
 }

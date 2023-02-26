@@ -5,9 +5,7 @@ using Ronin.Lexicon;
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class assignment
+public class Assignment
 {
     [Fact(DisplayName = "no value")]
     public void NoValue()
@@ -15,8 +13,8 @@ public class assignment
         Token[] tokens = 
         {
             new Word(),
-            new Assign(),
-            new Terminal()
+            new AssignSymbol(),
+            new TerminalSymbol()
         };
         
         Parser parser = new(tokens);

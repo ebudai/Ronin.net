@@ -1,13 +1,10 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class symbol
+public class Symbol
 {
     [Fact(DisplayName = "isn't a symbol")]
     public void Failure()
@@ -15,8 +12,8 @@ public class symbol
         const string literal = "not a close brace";
 
         Lexer lexer = new(literal);
-        Assert.False(Symbol.IsSymbol(ref lexer));
-        var lexed = Symbol.Lex(ref lexer);
+        Assert.False(Ronin.Lexicon.Symbol.IsSymbol(ref lexer));
+        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -27,17 +24,17 @@ public class symbol
         const string literal = "->";
 
         Lexer lexer = new(literal);
-        var lexed = Symbol.Lex(ref lexer);
+        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
 
-        Assert.IsNotType<Returns>(lexed);
+        Assert.IsNotType<ReturnsSymbol>(lexed);
     }
 
     [Fact(DisplayName = "no data")]
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        Assert.False(Symbol.IsSymbol(ref lexer));
-        var lexed = Symbol.Lex(ref lexer);
+        Assert.False(Ronin.Lexicon.Symbol.IsSymbol(ref lexer));
+        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

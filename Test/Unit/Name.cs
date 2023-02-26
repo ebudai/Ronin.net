@@ -1,14 +1,10 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class name
+public class Name
 {
     [Fact(DisplayName = "symbols")]
     public void Symbols()
@@ -18,13 +14,13 @@ public class name
         Token[] tokens = 
         {
             new Word(),
-            new Plus(),
+            new PlusSymbol(),
             new Word(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var name = Name.Parse(ref parser);
+        var name = Ronin.Grammar.Name.Parse(ref parser);
 
         Assert.Equal(3, name?.Source.Length);
     }

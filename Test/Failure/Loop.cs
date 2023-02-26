@@ -1,18 +1,13 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class loop
+public class Loop
 {
-    [Fact(DisplayName = $"doesn't start with {ForEach.keyword}")]
+    [Fact(DisplayName = $"doesn't start with {ForEachKeyword.keyword}")]
     public void NotALoop()
     {
         // not loop;
@@ -21,7 +16,7 @@ public class loop
         {
             new Word(),
             new Word(),
-            new Terminal(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
 
@@ -38,16 +33,16 @@ public class loop
 
         Token[] tokens =
         {
-            new ForEach(),
-            new Number(),
+            new ForEachKeyword(),
+            new NumberLiteral(),
             new Word(),
             new Word(),
-            new OpenBrace(),
+            new OpenBraceSymbol(),
             new Word(),
             new Word(),
             new Word(),
-            new Terminal(),
-            new CloseBrace(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
@@ -64,15 +59,15 @@ public class loop
 
         Token[] tokens =
         {
-            new ForEach(),
+            new ForEachKeyword(),
             new Word(),
             new Word(),
             new Word(),
             new Word(),
             new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
 

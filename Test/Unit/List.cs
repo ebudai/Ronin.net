@@ -2,26 +2,22 @@
 using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class list
+public class List
 {
     [Fact(DisplayName = "single")]
     public void Single()
     {
+        // { 3 }
+
         Token[] tokens =
         {
-            new OpenBrace(),
-            new Number(),
-            new CloseBrace(),
+            new OpenBraceSymbol(),
+            new NumberLiteral(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
@@ -36,15 +32,17 @@ public class list
     [Fact(DisplayName = "multiple")]
     public void Multiple()
     {
+        // { 3, 4, 5 }
+
         Token[] tokens =
         {
-            new OpenBrace(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new CloseBrace(),
+            new OpenBraceSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
+            new NumberLiteral(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
@@ -72,18 +70,20 @@ public class list
     [Fact(DisplayName = "as value")]
     public void AsValue()
     {
+        // var x = { 5, 2, test }
+
         Token[] tokens =
         {
-            new Variable(),
+            new VariableKeyword(),
             new Word(),
-            new Assign(),
-            new OpenBrace(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
+            new AssignSymbol(),
+            new OpenBraceSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
             new Word(),
-            new CloseBrace(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 

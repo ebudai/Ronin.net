@@ -2,27 +2,24 @@
 using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class lookup
+public class Lookup
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
+        // { "dave" = 3 }
+
         Token[] tokens = 
         {
-            new OpenBrace(),
-            new Text(),
-            new Assign(),
-            new Number(),
-            new CloseBrace(),
+            new OpenBraceSymbol(),
+            new TextLiteral(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
@@ -42,16 +39,18 @@ public class lookup
     [Fact(DisplayName = "as value")]
     public void AsValue()
     {
+        // var x = { "stuff" = 4 }
+
         Token[] tokens =
         {
-            new Variable(),
+            new VariableKeyword(),
             new Word(),
-            new Assign(),
-            new OpenBrace(),
-            new Text(),
-            new Assign(),
-            new Number(),
-            new CloseBrace(),
+            new AssignSymbol(),
+            new OpenBraceSymbol(),
+            new TextLiteral(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 

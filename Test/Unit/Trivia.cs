@@ -5,9 +5,7 @@ using Ronin.Lexicon;
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class trivia
+public class Trivia
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -16,8 +14,8 @@ public class trivia
 
         Token[] tokens =
         {
-            new Whitespace(),
-            new Terminal(),
+            new Ronin.Lexicon.Whitespace(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
         

@@ -1,14 +1,10 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class scope
+public class Scope
 {
     [Fact(DisplayName = "missing name")]
     public void MissingName()
@@ -17,18 +13,18 @@ public class scope
 
         Token[] tokens =
         {
-            new OpenBrace(),
-            new DoubleQuote(),
-            new Separator(),
-            new Terminal(),
-            new Separator(),
+            new OpenBraceSymbol(),
+            new TextDelimiterSymbol(),
+            new SeparatorSymbol(),
+            new TerminalSymbol(),
+            new SeparatorSymbol(),
             new Word(),
-            new CloseBrace(),
-            new Terminal()
+            new CloseBraceSymbol(),
+            new TerminalSymbol()
         };
         
         Parser parser = new(tokens);
-        var scope = Scope.Parse(ref parser);
+        var scope = Ronin.Grammar.Aggregates.Scope.Parse(ref parser);
 
         Assert.Null(scope);
     }

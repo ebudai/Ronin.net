@@ -1,19 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
-
-using FunctionDeclarationSyntax = Ronin.Grammar.FunctionDeclarationSyntax;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class function
+public class Function
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -22,18 +14,18 @@ public class function
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keywords.Function(),
+            new FunctionKeyword(),
             new Word(),
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new CloseParenthesis(),
-            new OpenBrace(),
+            new CloseParenthesisSymbol(),
+            new OpenBraceSymbol(),
             new Word(),
-            new Number(),
-            new Terminal(),
-            new CloseBrace(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
@@ -43,30 +35,30 @@ public class function
         Assert.Equal(2, function?.Identifier?.Components.Count);
 
         {
-            Name name = function.Identifier.Components[0];
+            Ronin.Grammar.Name name = function.Identifier.Components[0];
             Assert.Single(name?.Source);
         }
 
         {
-            Parameters parameters = function.Identifier.Components[1];
+            Ronin.Grammar.Aggregates.Parameters parameters = function.Identifier.Components[1];
             
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
             Assert.Single(parameter?.Name?.Source);
 
             Assert.Single(parameter.Datatype?.Components);
-            Name type = parameter.Datatype.Components[0];
+            Ronin.Grammar.Name type = parameter.Datatype.Components[0];
             Assert.Single(type?.Source);
         }
 
         Assert.Single(function.Body?.Values);
         Value value = function.Body.Values[0];
-        Reference line = value;
+        Ronin.Grammar.Reference line = value;
         
         Assert.Equal(2, line?.Components?.Count);
 
         {
-            Name @return = line.Components[0];
+            Ronin.Grammar.Name @return = line.Components[0];
             Assert.Single(@return?.Source);
         }
 
@@ -83,23 +75,23 @@ public class function
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keywords.Function(),
+            new FunctionKeyword(),
             new Word(),
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new CloseParenthesis(),
-            new Returns(),
-            new Optional(),
+            new CloseParenthesisSymbol(),
+            new ReturnsSymbol(),
+            new OptionalKeyword(),
             new Word(),
-            new OpenBrace(),
-            new Word(),
-            new Word(),
+            new OpenBraceSymbol(),
             new Word(),
             new Word(),
-            new Terminal(),
-            new CloseBrace(),
+            new Word(),
+            new Word(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
@@ -109,33 +101,33 @@ public class function
         Assert.Equal(2, function?.Identifier?.Components?.Count);
 
         {
-            Name name = function.Identifier.Components[0];
+            Ronin.Grammar.Name name = function.Identifier.Components[0];
             Assert.Single(name?.Source);
         }
 
         {
-            Parameters parameters = function.Identifier.Components[1];
+            Ronin.Grammar.Aggregates.Parameters parameters = function.Identifier.Components[1];
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
             Assert.Single(parameter.Name?.Source);
 
             Assert.Single(parameter.Datatype?.Components);
-            Name type = parameter.Datatype.Components[0];
+            Ronin.Grammar.Name type = parameter.Datatype.Components[0];
             Assert.Single(type?.Source);
         }
 
         Assert.Single(function.Modifiers?.Source);
-        Assert.IsType<Optional>(function.Modifiers.Source[0]);
+        Assert.IsType<OptionalKeyword>(function.Modifiers.Source[0]);
         
         Assert.Single(function.Returns?.Components);
-        Name returns = function.Returns.Components[0];
+        Ronin.Grammar.Name returns = function.Returns.Components[0];
         Assert.Single(returns?.Source);
 
         Assert.Single(function.Body?.Values);
         Value value = function.Body.Values[0];
-        Reference line = value;
+        Ronin.Grammar.Reference line = value;
         Assert.Single(line?.Components);
-        Name @return = line.Components[0];
+        Ronin.Grammar.Name @return = line.Components[0];
         Assert.Equal(4, @return?.Source.Length);
     }
 }

@@ -1,16 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class parameters
+public class Parameters
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -19,29 +14,29 @@ public class parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesis(),
-            new Variable(),
+            new OpenParenthesisSymbol(),
+            new VariableKeyword(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new CloseParenthesis(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var parameters = Parameters.Parse(ref parser);
+        var parameters = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
 
         Assert.Single(parameters?.Values);
 
         DatumDeclarationSyntax datum = parameters.Values[0];
 
-        Assert.IsType<Variable>(datum?.Mutability);
+        Assert.IsType<VariableKeyword>(datum?.Mutability);
 
         Assert.Null(datum.Is);
 
         Assert.Single(datum.Name?.Source);
 
-        Name name = datum?.Datatype?.Components?[0];
+        Ronin.Grammar.Name name = datum?.Datatype?.Components?[0];
         Assert.Single(name?.Source);
     }
 
@@ -52,22 +47,22 @@ public class parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
             new Word(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new CloseParenthesis(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var parameters = Parameters.Parse(ref parser);
+        var parameters = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
 
         Assert.Equal(2, parameters?.Values?.Count);
 
@@ -81,7 +76,7 @@ public class parameters
             Assert.Single(datum.Name?.Source);
         
             Assert.Single(datum.Datatype?.Components);
-            Name name = datum.Datatype.Components[0];
+            Ronin.Grammar.Name name = datum.Datatype.Components[0];
             Assert.Single(name?.Source);
         }
 
@@ -93,7 +88,7 @@ public class parameters
             Assert.Null(datum.Is);
 
             Assert.Single(datum.Datatype?.Components);
-            Name name = datum.Datatype.Components[0];
+            Ronin.Grammar.Name name = datum.Datatype.Components[0];
             Assert.Single(name?.Source);
         }
     }
@@ -105,13 +100,13 @@ public class parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesis(),
-            new CloseParenthesis(),
+            new OpenParenthesisSymbol(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var arguments = Parameters.Parse(ref parser);
+        var arguments = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
 
         Assert.Empty(arguments?.Values);
     }

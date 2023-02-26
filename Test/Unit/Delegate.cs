@@ -1,17 +1,13 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 using DelegateSyntax = Ronin.Grammar.DelegateSyntax;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable IDE1006
-public class @delegate
+public class Delegate
 {
     [Fact(DisplayName = "one parameter")]
     public void OneParameter()
@@ -21,12 +17,12 @@ public class @delegate
         Token[] tokens =
         {
             new Word(),
-            new Returns(),
-            new OpenBrace(),
+            new ReturnsSymbol(),
+            new OpenBraceSymbol(),
             new Word(),
-            new Number(),
-            new Terminal(),
-            new CloseBrace(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
@@ -39,11 +35,11 @@ public class @delegate
 
         Assert.Single(@delegate.Body?.Values);
         Value value = @delegate.Body?.Values[0];
-        Reference line = value;
+        Ronin.Grammar.Reference line = value;
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Ronin.Grammar.Name name = line.Components[0];
             Assert.Single(name?.Source);
         }
 
@@ -60,19 +56,19 @@ public class @delegate
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
-            new CloseParenthesis(),
-            new Returns(),
-            new OpenBrace(),
+            new CloseParenthesisSymbol(),
+            new ReturnsSymbol(),
+            new OpenBraceSymbol(),
             new Word(),
-            new Number(),
-            new Terminal(),
-            new CloseBrace(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
         
@@ -87,11 +83,11 @@ public class @delegate
 
         Assert.Single(@delegate.Body?.Values);
         Value value = @delegate.Body?.Values[0];
-        Reference line = value;
+        Ronin.Grammar.Reference line = value;
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Ronin.Grammar.Name name = line.Components[0];
             Assert.Single(name?.Source);
         }
 
@@ -108,11 +104,11 @@ public class @delegate
 
         Token[] tokens =
         {
-            new OpenBrace(),
+            new OpenBraceSymbol(),
             new Word(),
-            new Number(),
-            new Terminal(),
-            new CloseBrace(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
         
@@ -123,11 +119,11 @@ public class @delegate
 
         Assert.Single(@delegate?.Body?.Values);
         Value value = @delegate.Body?.Values[0];
-        Reference line = value;
+        Ronin.Grammar.Reference line = value;
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Ronin.Grammar.Name name = line.Components[0];
             Assert.Single(name?.Source);
         }
 
@@ -144,14 +140,14 @@ public class @delegate
 
         Token[] tokens = 
         {
-            new Constant(),
+            new ConstantKeyword(),
             new Word(),
-            new Assign(),
-            new OpenBrace(),
+            new AssignSymbol(),
+            new OpenBraceSymbol(),
             new Word(),
-            new Number(),
-            new Terminal(),
-            new CloseBrace(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
         

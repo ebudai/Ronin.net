@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -23,12 +24,12 @@ internal class DatatypeDeclarationSyntax : Syntax, Compiler.IParsable<DatatypeDe
     {
         Parser parser = context;
 
-        if (parser.FailsToConsume<Lexicon.Keywords.Datatype>()) return null;
+        if (parser.FailsToConsume<DatatypeKeyword>()) return null;
 
         if (IdentifierSyntax.Parse(ref parser) is not IdentifierSyntax identifier) return null;
 
         Reference algebra = null;
-        if (parser.CurrentToken is Assign)
+        if (parser.CurrentToken is AssignSymbol)
         {
             parser.Advance();
             algebra = Reference.Parse(ref parser);

@@ -1,17 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class scope
+public class Scope
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -20,24 +14,24 @@ public class scope
 
         Token[] tokens = 
         {
-            new OpenBrace(),
-            new Variable(),
+            new OpenBraceSymbol(),
+            new VariableKeyword(),
             new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
-            new CloseBrace(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var scope = Scope.Parse(ref parser);
+        var scope = Ronin.Grammar.Aggregates.Scope.Parse(ref parser);
 
         Assert.Single(scope?.Values);
 
         DatumDeclarationSyntax datum = scope.Values[0];
 
-        Assert.IsType<Variable>(datum?.Mutability);
+        Assert.IsType<VariableKeyword>(datum?.Mutability);
 
         Assert.Single(datum.Name?.Source);
 

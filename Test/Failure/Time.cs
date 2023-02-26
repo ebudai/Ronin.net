@@ -4,9 +4,7 @@ using Ronin.Lexicon;
 namespace Failure;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class time
+public class Time
 {
     [Fact(DisplayName = "not a time literal")]
     public void Fail()

@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -22,7 +23,7 @@ internal class AssignmentSyntax : Syntax, Compiler.IParsable<AssignmentSyntax>
 
         if (Reference.Parse(ref parser) is not Reference reference) return null;
 
-        if (parser.FailsToConsume<Assign>()) return null;
+        if (parser.FailsToConsume<AssignSymbol>()) return null;
 
         if (Value.Parse(ref parser) is not Value value) return null;
 

@@ -1,11 +1,10 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class word
+public class Words
 {
     [Fact(DisplayName = "not a valid name")]
     public void NotAName()
@@ -13,7 +12,7 @@ public class word
         const string name = "7stew";
 
         Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(ref lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -24,7 +23,7 @@ public class word
         const string name = "(";
 
         Lexer lexer = new(name);
-        var lexed = Ronin.Lexicon.Word.Lex(ref lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -33,7 +32,7 @@ public class word
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Lexicon.Word.Lex(ref lexer);
+        var lexed = Word.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

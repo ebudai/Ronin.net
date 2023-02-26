@@ -2,7 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
-using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -16,7 +16,7 @@ internal class LoopSyntax : Syntax, Compiler.IParsable<LoopSyntax>
     {
         Parser parser = context;
 
-        if (parser.FailsToConsume<ForEach>()) return null;
+        if (parser.FailsToConsume<ForEachKeyword>()) return null;
 
         if (DatumDeclarationSyntax.Parse(ref parser) is not DatumDeclarationSyntax header) return null;
 

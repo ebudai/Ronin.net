@@ -1,14 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class assignment
+public class Assignment
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -18,9 +15,9 @@ public class assignment
         Token[] tokens =
         {
             new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
             Sentinel.Instance
         };
 
@@ -28,7 +25,7 @@ public class assignment
         var assignment = AssignmentSyntax.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Name name = assignment.Reference.Components[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components[0];
         Assert.Single(name?.Source);
 
         LiteralSyntax scalar = assignment.Value;
@@ -43,8 +40,8 @@ public class assignment
         Token[] tokens =
         {
             new Word(),
-            new Assign(),
-            new Number(),
+            new AssignSymbol(),
+            new NumberLiteral(),
             Sentinel.Instance
         };
         
@@ -52,7 +49,7 @@ public class assignment
         var assignment = AssignmentSyntax.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Name name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Single(name?.Source);
         
         LiteralSyntax scalar = assignment.Value;

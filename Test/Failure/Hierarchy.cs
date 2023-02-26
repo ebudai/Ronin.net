@@ -1,14 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class hierarchy
+public class Hierarchy
 {
     [Fact(DisplayName = "missing identifier")]
     public void MissingIdentifier() 
@@ -17,8 +14,8 @@ public class hierarchy
 
         Token[] tokens =
         {
-            new PartOf(),
-            new Terminal()
+            new PartOfKeyword(),
+            new TerminalSymbol()
         };
 
         Parser parser = new(tokens);

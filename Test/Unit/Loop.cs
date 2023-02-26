@@ -1,16 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class loop
+public class Loop
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -19,17 +14,17 @@ public class loop
 
         Token[] tokens =
         {
-            new ForEach(),
+            new ForEachKeyword(),
             new Word(),
             new Word(),
             new Word(),
-            new OpenBrace(),
+            new OpenBraceSymbol(),
             new Word(),
             new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
-            new CloseBrace(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
@@ -50,20 +45,20 @@ public class loop
         
         Token[] tokens =
         {
-            new ForEach(),
-            new Variable(),
+            new ForEachKeyword(),
+            new VariableKeyword(),
             new Word(),
-            new Returns(),
-            new Word(),
-            new Word(),
+            new ReturnsSymbol(),
             new Word(),
             new Word(),
-            new OpenBrace(),
             new Word(),
-            new Plus(),
-            new Plus(),
-            new Terminal(),
-            new CloseBrace(),
+            new Word(),
+            new OpenBraceSymbol(),
+            new Word(),
+            new PlusSymbol(),
+            new PlusSymbol(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 

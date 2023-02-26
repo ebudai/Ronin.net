@@ -1,16 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class arguments
+public class Arguments
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -19,19 +14,19 @@ public class arguments
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new CloseParenthesis(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var arguments = Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
 
         Assert.Single(arguments?.Values);
-        Reference reference = arguments.Values[0];
+        Ronin.Grammar.Reference reference = arguments.Values[0];
         Assert.Single(reference?.Components);
-        Name name = reference.Components[0];
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.Single(name?.Source);
     }
 
@@ -42,30 +37,30 @@ public class arguments
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
-            new CloseParenthesis(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
 
         Assert.Equal(2, arguments?.Values?.Count);
 
-        {            
-            Reference reference = arguments.Values[0];
+        {
+            Ronin.Grammar.Reference reference = arguments.Values[0];
             Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Single(name?.Source);
         }
 
         {
-            Reference reference = arguments.Values[1];
+            Ronin.Grammar.Reference reference = arguments.Values[1];
             Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Single(name?.Source);
         }
     }
@@ -77,13 +72,13 @@ public class arguments
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
-            new CloseParenthesis(),
+            new OpenParenthesisSymbol(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
         Assert.Empty(arguments?.Values);
     }
 
@@ -94,18 +89,18 @@ public class arguments
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
+            new OpenParenthesisSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
             new Word(),
-            new CloseParenthesis(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
         
@@ -120,9 +115,9 @@ public class arguments
         }
 
         {
-            Reference reference = arguments.Values[2];
+            Ronin.Grammar.Reference reference = arguments.Values[2];
             Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Single(name?.Source);
         }
     }
@@ -134,31 +129,31 @@ public class arguments
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new OpenParenthesis(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new CloseParenthesis(),
-            new CloseParenthesis(),
+            new SeparatorSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
+            new OpenParenthesisSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
+            new NumberLiteral(),
+            new SeparatorSymbol(),
+            new NumberLiteral(),
+            new CloseParenthesisSymbol(),
+            new CloseParenthesisSymbol(),
             Sentinel.Instance,
         };
         
         Parser parser = new(tokens);
-        var arguments = Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
 
         {
-            Reference reference = arguments.Values[0];
+            Ronin.Grammar.Reference reference = arguments.Values[0];
             Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Single(name?.Source);
         }
 
@@ -168,7 +163,7 @@ public class arguments
         }
 
         {
-            Arguments subargs = arguments.Values[2];
+            Ronin.Grammar.Aggregates.Arguments subargs = arguments.Values[2];
             Assert.Equal(3, subargs?.Values?.Count);
 
             {

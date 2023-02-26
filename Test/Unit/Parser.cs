@@ -1,15 +1,10 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class parser
+public class Parsing
 {
     [Fact(DisplayName = "parse")]
     public void Parse()
@@ -18,104 +13,104 @@ public class parser
         {
             // part of testing apparatus;
 
-            new PartOf(),
+            new PartOfKeyword(),
             new Word(),
             new Word(),
-            new Terminal(),
+            new TerminalSymbol(),
 
             // var a = 3;
 
-            new Variable(),
+            new VariableKeyword(),
             new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
 
             // a = 6;
 
             new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
+            new AssignSymbol(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
 
             // 3..test;
 
-            new Number(),
-            new Ronin.Lexicon.Symbols.Range(),
+            new NumberLiteral(),
+            new RangeSymbol(),
             new Word(),
-            new Terminal(),
+            new TerminalSymbol(),
 
             // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
 
-            new Function(),
+            new FunctionKeyword(),
             new Word(),
-            new OpenParenthesis(),
-            new Variable(),
+            new OpenParenthesisSymbol(),
+            new VariableKeyword(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new CloseParenthesis(),
+            new CloseParenthesisSymbol(),
             new Word(),
-            new OpenParenthesis(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new CloseParenthesis(),
-            new OpenBrace(),
+            new OpenParenthesisSymbol(),
             new Word(),
             new Word(),
             new Word(),
+            new ReturnsSymbol(),
             new Word(),
-            new Asterisk(),
+            new CloseParenthesisSymbol(),
+            new OpenBraceSymbol(),
             new Word(),
-            new Terminal(),
-            new CloseBrace(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new AsteriskSymbol(),
+            new Word(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
 
             // datatype big thing { constant size => whole number; }
 
-            new Datatype(),
+            new DatatypeKeyword(),
             new Word(),
             new Word(),
-            new OpenBrace(),
-            new Constant(),
+            new OpenBraceSymbol(),
+            new ConstantKeyword(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
             new Word(),
-            new Terminal(),
-            new CloseBrace(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
 
             // 7;
 
-            new Number(),
-            new Terminal(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
 
             // (a, b, "text");
 
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
-            new Separator(),
-            new Text(),
-            new CloseParenthesis(),
-            new Terminal(),
+            new SeparatorSymbol(),
+            new TextLiteral(),
+            new CloseParenthesisSymbol(),
+            new TerminalSymbol(),
 
             // { var x => moment; florb x now; }
 
-            new OpenBrace(),
-            new Variable(),
+            new OpenBraceSymbol(),
+            new VariableKeyword(),
             new Word(),
-            new Returns(),
+            new ReturnsSymbol(),
             new Word(),
-            new Terminal(),
+            new TerminalSymbol(),
             new Word(),
             new Word(),
             new Word(),
-            new Terminal(),
-            new CloseBrace(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
 
             Sentinel.Instance
         };

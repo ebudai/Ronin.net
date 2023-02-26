@@ -1,7 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar.Aggregates;
 
@@ -10,14 +10,14 @@ namespace Ronin.Grammar.Aggregates;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-delimited list of <see cref="Association"/>s
+///     <see cref="SeparatorSymbol"/>-delimited list of <see cref="Association"/>s
 /// </remarks>
 /// 
 /// <example>
 ///     var x = { a = 3, b = 22.3, "special" = values maximum };
 ///             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class InlineLookupSyntax : AggregateSyntax<InlineLookupSyntax, OpenBrace, InlineLookupSyntax.Association, Separator, CloseBrace>
+internal class InlineLookupSyntax : AggregateSyntax<InlineLookupSyntax, OpenBraceSymbol, InlineLookupSyntax.Association, SeparatorSymbol, CloseBraceSymbol>
 {
     /// <summary>
     ///     key=value pair
@@ -33,7 +33,7 @@ internal class InlineLookupSyntax : AggregateSyntax<InlineLookupSyntax, OpenBrac
 
             if (Value.Parse(ref parser) is not Value key) return null;
 
-            if (parser.FailsToConsume<Assign>()) return null;
+            if (parser.FailsToConsume<AssignSymbol>()) return null;
 
             if (Value.Parse(ref parser) is not Value value) return null;
 

@@ -3,7 +3,6 @@
 using Ronin.Compiler;
 using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Grammar;
 
@@ -25,7 +24,7 @@ internal class ImportExportSyntax : Syntax, Compiler.IParsable<ImportExportSynta
 
     public static ImportExportSyntax Parse(ref Parser context)
     {
-        var direction = context.CurrentToken is PartOf or Import ? context.CurrentToken as Keyword : null;
+        var direction = context.CurrentToken is PartOfKeyword or ImportKeyword ? context.CurrentToken as Keyword : null;
         if (direction is null) return null;
 
         Parser parser = context;

@@ -1,13 +1,10 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-#pragma warning disable CS8981
-#pragma warning disable IDE1006
-public class text
+public class Text
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -15,7 +12,7 @@ public class text
         const string literal = "\"testtest\"";
 
         Lexer lexer = new(literal);
-        var text = Literal.Lex(ref lexer) as Text;
+        var text = Literal.Lex(ref lexer) as TextLiteral;
 
         Assert.Equal(literal, text?.ToString());
     }
@@ -26,7 +23,7 @@ public class text
         const string literal = @"""tes\""tte\""st""";
 
         Lexer lexer = new(literal);
-        var text = Literal.Lex(ref lexer) as Text;
+        var text = Literal.Lex(ref lexer) as TextLiteral;
 
         Assert.Equal(literal, text?.ToString());
     }
@@ -37,7 +34,7 @@ public class text
         const string literal = "\"test\n\nanother test\"";
 
         Lexer lexer = new(literal);
-        var text = Literal.Lex(ref lexer) as Text;
+        var text = Literal.Lex(ref lexer) as TextLiteral;
 
         Assert.Equal(literal, text?.ToString());
     }
@@ -48,7 +45,7 @@ public class text
         const string literal = "\"testtest\"";
 
         Lexer lexer = new(literal);
-        var text = Literal.Lex(ref lexer) as Text;
+        var text = Literal.Lex(ref lexer) as TextLiteral;
 
         Assert.Equal(literal, text?.ToString());
     }

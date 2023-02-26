@@ -1,32 +1,29 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
-using DelegateSyntax = Ronin.Grammar.DelegateSyntax;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-#pragma warning disable IDE1006
-public class @delegate
+public class Delegate
 {
     [Fact(DisplayName = "missing returns symbol")]
     public void MissingReturns()
     {
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new OpenParenthesisSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
-            new Separator(),
+            new SeparatorSymbol(),
             new Word(),
-            new CloseParenthesis(),
-            new OpenBrace(),
+            new CloseParenthesisSymbol(),
+            new OpenBraceSymbol(),
             new Word(),
-            new Number(),
-            new Terminal(),
-            new CloseBrace(),
+            new NumberLiteral(),
+            new TerminalSymbol(),
+            new CloseBraceSymbol(),
             Sentinel.Instance
         };
 
