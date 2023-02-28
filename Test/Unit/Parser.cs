@@ -116,7 +116,7 @@ public class Parsing
         };
 
         Parser parser = new(tokens);
-        var statements = parser.Parse();
+        var statements = parser.Parse().Values;
 
         Assert.Equal(9, statements?.Count);
 

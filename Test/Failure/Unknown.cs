@@ -19,7 +19,7 @@ public class Unknown
         };
         
         Parser parser = new(tokens);
-        var statements = parser.Parse();
+        var statements = parser.Parse().Values;
         
         Assert.Single(statements);
         UnknownSyntax unknown = statements[0];

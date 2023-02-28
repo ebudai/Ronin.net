@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Grammar;
+using Ronin.Grammar.Aggregates;
 using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
@@ -14,7 +15,7 @@ internal struct Parser
 {
     public Parser(in ReadOnlyMemory<Token> tokens) => this.tokens = tokens;
 
-    public List<Statement> Parse()
+    public Scope Parse()
     {
         List<Statement> statements = new();
         
@@ -25,7 +26,7 @@ internal struct Parser
             if (CurrentToken is TerminalSymbol) Advance();
         }
 
-        return statements;
+        return new Scope { Values = statements, Source = tokens };
     }
 
     public List<T> ParseRepeating<T>() where T : class, IParsable<T>

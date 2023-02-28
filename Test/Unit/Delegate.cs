@@ -152,7 +152,7 @@ public class Delegate
         };
         
         Parser parser = new(tokens);
-        var statements = parser.Parse();
+        var statements = parser.Parse().Values;
 
         Assert.Single(statements);
         DatumDeclarationSyntax datum = statements[0];
