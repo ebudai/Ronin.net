@@ -27,7 +27,7 @@ public class Hierarchy
 
         Assert.Single(hierarchy.Components);
         Ronin.Grammar.Name name = hierarchy.Components[0];
-        Assert.Single(name?.Source);     
+        Assert.Equal(1, name?.Source.Length);     
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -111,12 +111,12 @@ public class Hierarchy
 
         {
             LiteralSyntax scalar = hierarchy.Components[1];
-            Assert.Single(scalar?.Source);            
+            Assert.Equal(1, scalar?.Source.Length);            
         }
 
         {
             Ronin.Grammar.Name name = hierarchy.Components[2];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
     }
 }

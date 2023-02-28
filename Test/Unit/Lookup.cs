@@ -30,10 +30,10 @@ public class Lookup
         var association = lookup.Values[0];
         
         LiteralSyntax key = association.Key;
-        Assert.Single(key?.Source);
+        Assert.Equal(1, key?.Source.Length);
 
         LiteralSyntax value = association.Value;
-        Assert.Single(value?.Source);
+        Assert.Equal(1, value?.Source.Length);
     }
 
     [Fact(DisplayName = "as value")]

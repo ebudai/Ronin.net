@@ -27,7 +27,7 @@ public class Arguments
         Ronin.Grammar.Reference reference = arguments.Values[0];
         Assert.Single(reference?.Components);
         Ronin.Grammar.Name name = reference.Components[0];
-        Assert.Single(name?.Source);
+        Assert.Equal(1, name?.Source.Length);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -54,14 +54,14 @@ public class Arguments
             Ronin.Grammar.Reference reference = arguments.Values[0];
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             Ronin.Grammar.Reference reference = arguments.Values[1];
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
     }
 
@@ -106,19 +106,19 @@ public class Arguments
         
         {
             LiteralSyntax scalar = arguments.Values[0];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = arguments.Values[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
             Ronin.Grammar.Reference reference = arguments.Values[2];
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
     }
 
@@ -154,12 +154,12 @@ public class Arguments
             Ronin.Grammar.Reference reference = arguments.Values[0];
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = arguments.Values[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
@@ -168,17 +168,17 @@ public class Arguments
 
             {
                 LiteralSyntax scalar = subargs?.Values[0];
-                Assert.Single(scalar?.Source);
+                Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
                 LiteralSyntax scalar = subargs?.Values[1];
-                Assert.Single(scalar?.Source);
+                Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
                 LiteralSyntax scalar = subargs?.Values[2];
-                Assert.Single(scalar?.Source);
+                Assert.Equal(1, scalar?.Source.Length);
             }
         }
     }

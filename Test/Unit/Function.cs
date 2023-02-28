@@ -36,7 +36,7 @@ public class Function
 
         {
             Ronin.Grammar.Name name = function.Identifier.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
@@ -44,11 +44,11 @@ public class Function
             
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
-            Assert.Single(parameter?.Name?.Source);
+            Assert.Equal(1, parameter?.Name?.Source.Length);
 
             Assert.Single(parameter.Datatype?.Components);
             Ronin.Grammar.Name type = parameter.Datatype.Components[0];
-            Assert.Single(type?.Source);
+            Assert.Equal(1, type?.Source.Length);
         }
 
         Assert.Single(function.Body?.Values);
@@ -59,12 +59,12 @@ public class Function
 
         {
             Ronin.Grammar.Name @return = line.Components[0];
-            Assert.Single(@return?.Source);
+            Assert.Equal(1, @return?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = line.Components[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
     }
 
@@ -102,26 +102,26 @@ public class Function
 
         {
             Ronin.Grammar.Name name = function.Identifier.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             Ronin.Grammar.Aggregates.Parameters parameters = function.Identifier.Components[1];
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
-            Assert.Single(parameter.Name?.Source);
+            Assert.Equal(1, parameter.Name?.Source.Length);
 
             Assert.Single(parameter.Datatype?.Components);
             Ronin.Grammar.Name type = parameter.Datatype.Components[0];
-            Assert.Single(type?.Source);
+            Assert.Equal(1, type?.Source.Length);
         }
 
-        Assert.Single(function.Modifiers?.Source);
-        Assert.IsType<OptionalKeyword>(function.Modifiers.Source[0]);
+        Assert.Equal(1, function.Modifiers?.Source.Length);
+        Assert.IsType<OptionalKeyword>(function.Modifiers.Source.Span[0]);
         
         Assert.Single(function.Returns?.Components);
         Ronin.Grammar.Name returns = function.Returns.Components[0];
-        Assert.Single(returns?.Source);
+        Assert.Equal(1, returns?.Source.Length);
 
         Assert.Single(function.Body?.Values);
         Value value = function.Body.Values[0];

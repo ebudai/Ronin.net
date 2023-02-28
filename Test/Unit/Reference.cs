@@ -29,19 +29,19 @@ public class Reference
 
         {
             Ronin.Grammar.Name name = reference.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = reference.Components[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
             Ronin.Grammar.Aggregates.Arguments arguments = reference.Components[2];
             Assert.Single(arguments?.Values);
             LiteralSyntax scalar = arguments.Values[0];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
     }
 }

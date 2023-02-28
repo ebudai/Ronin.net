@@ -30,18 +30,18 @@ public class Identifier
 
         {
             Ronin.Grammar.Name name = identifier.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             Ronin.Grammar.Aggregates.Parameters parameters = identifier.Components[1];
             Assert.Single(parameters?.Values);
             DatumDeclarationSyntax datum = parameters.Values[0];
-            Assert.Single(datum?.Name?.Source);
+            Assert.Equal(1, datum?.Name?.Source.Length);
 
             Assert.Single(datum?.Datatype?.Components);
             Ronin.Grammar.Name name = datum.Datatype.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }        
     }
 }

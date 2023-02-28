@@ -34,10 +34,10 @@ public class Parameters
 
         Assert.Null(datum.Is);
 
-        Assert.Single(datum.Name?.Source);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Ronin.Grammar.Name name = datum?.Datatype?.Components?[0];
-        Assert.Single(name?.Source);
+        Assert.Equal(1, name?.Source.Length);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -73,11 +73,11 @@ public class Parameters
 
             Assert.Null(datum.Is);
 
-            Assert.Single(datum.Name?.Source);
+            Assert.Equal(1, datum.Name?.Source.Length);
         
             Assert.Single(datum.Datatype?.Components);
             Ronin.Grammar.Name name = datum.Datatype.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
@@ -89,7 +89,7 @@ public class Parameters
 
             Assert.Single(datum.Datatype?.Components);
             Ronin.Grammar.Name name = datum.Datatype.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
     }
 

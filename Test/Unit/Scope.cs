@@ -33,11 +33,11 @@ public class Scope
 
         Assert.IsType<VariableKeyword>(datum?.Mutability);
 
-        Assert.Single(datum.Name?.Source);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Null(datum.Is);
 
         LiteralSyntax scalar = datum.Initializer;
-        Assert.Single(scalar?.Source);
+        Assert.Equal(1, scalar?.Source.Length);
     }
 }

@@ -12,7 +12,7 @@ internal interface IParsable<T> where T : IParsable<T>
 
 internal struct Parser
 {
-    public Parser(Token[] tokens) => this.tokens = tokens;
+    public Parser(in ReadOnlyMemory<Token> tokens) => this.tokens = tokens;
 
     public List<Statement> Parse()
     {

@@ -31,7 +31,7 @@ public class Delegate
 
         Assert.Single(@delegate?.Data);
         DatumDeclarationSyntax datum = @delegate.Data[0];
-        Assert.Single(datum?.Name?.Source);
+        Assert.Equal(1, datum?.Name?.Source.Length);
 
         Assert.Single(@delegate.Body?.Values);
         Value value = @delegate.Body?.Values[0];
@@ -40,12 +40,12 @@ public class Delegate
 
         {
             Ronin.Grammar.Name name = line.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = line.Components[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
     }
 
@@ -77,9 +77,9 @@ public class Delegate
 
         Assert.Equal(3, @delegate?.Data?.Count);
 
-        Assert.Single(@delegate.Data[0]?.Name?.Source);
-        Assert.Single(@delegate.Data[1]?.Name?.Source);
-        Assert.Single(@delegate.Data[2]?.Name?.Source);
+        Assert.Equal(1, @delegate.Data[0]?.Name?.Source.Length);
+        Assert.Equal(1, @delegate.Data[1]?.Name?.Source.Length);
+        Assert.Equal(1, @delegate.Data[2]?.Name?.Source.Length);
 
         Assert.Single(@delegate.Body?.Values);
         Value value = @delegate.Body?.Values[0];
@@ -88,12 +88,12 @@ public class Delegate
 
         {
             Ronin.Grammar.Name name = line.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = line.Components[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
     }
 
@@ -124,12 +124,12 @@ public class Delegate
 
         {
             Ronin.Grammar.Name name = line.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = line.Components[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
     }
 

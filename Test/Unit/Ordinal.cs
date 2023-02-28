@@ -27,7 +27,7 @@ public class Ordinal
         Ronin.Grammar.Reference reference = ordinal.Values[0];
         Assert.Single(reference?.Components);
         Ronin.Grammar.Name name = reference.Components[0];
-        Assert.Single(name?.Source);
+        Assert.Equal(1, name?.Source.Length);
     }
 
     [Fact(DisplayName = "multidimensional")]
@@ -54,14 +54,14 @@ public class Ordinal
             Ronin.Grammar.Reference test = ordinal.Values[0];
             Assert.Single(test?.Components);
             Ronin.Grammar.Name name = test.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
 
         {
             Ronin.Grammar.Reference stuff = ordinal.Values[1];
             Assert.Single(stuff?.Components);
             Ronin.Grammar.Name name = stuff.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }
     }
 
@@ -107,19 +107,19 @@ public class Ordinal
 
         {
             LiteralSyntax scalar = arguments.Values[0];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = arguments.Values[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
             Ronin.Grammar.Reference reference = arguments.Values[2];
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
-            Assert.Single(name?.Source);
+            Assert.Equal(1, name?.Source.Length);
         }        
     }
 }

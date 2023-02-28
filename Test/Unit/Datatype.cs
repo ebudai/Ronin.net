@@ -26,7 +26,7 @@ public class Datatype
 
         Assert.Single(datatype?.Identifier?.Components);
         Ronin.Grammar.Name name = datatype.Identifier.Components[0];
-        Assert.Single(name?.Source);
+        Assert.Equal(1, name?.Source.Length);
     }
 
     [Fact(DisplayName = "with algebra and members")]
@@ -69,19 +69,19 @@ public class Datatype
         {
             DatumDeclarationSyntax cash = datatype.Body.Values[0];
             Assert.IsType<VariableKeyword>(cash?.Mutability);
-            Assert.Single(cash.Name?.Source);
+            Assert.Equal(1, cash.Name?.Source.Length);
             Assert.Single(cash.Datatype?.Components);
             Ronin.Grammar.Name type = cash.Datatype.Components[0];
-            Assert.Single(type?.Source);
+            Assert.Equal(1, type?.Source.Length);
         }
 
         {
             DatumDeclarationSyntax debt = datatype.Body.Values[1];
             Assert.IsType<VariableKeyword>(debt?.Mutability);
-            Assert.Single(debt.Name?.Source);
+            Assert.Equal(1, debt.Name?.Source.Length);
             Assert.Single(debt.Datatype?.Components);
             Ronin.Grammar.Name type = debt.Datatype.Components[0];
-            Assert.Single(type?.Source);
+            Assert.Equal(1, type?.Source.Length);
         }        
     }
 }

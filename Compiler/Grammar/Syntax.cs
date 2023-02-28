@@ -2,13 +2,12 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
 internal abstract class Syntax
 {
-    protected internal Token[] Source { get; init; }
+    protected internal ReadOnlyMemory<Token> Source { get; init; }
 }
 
 internal abstract class CompositeSyntax : Syntax

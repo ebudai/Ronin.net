@@ -26,10 +26,10 @@ public class Assignment
 
         Assert.Single(assignment?.Reference?.Components);
         Ronin.Grammar.Name name = assignment.Reference.Components[0];
-        Assert.Single(name?.Source);
+        Assert.Equal(1, name?.Source.Length);
 
         LiteralSyntax scalar = assignment.Value;
-        Assert.Single(scalar?.Source);
+        Assert.Equal(1, scalar?.Source.Length);
     }
 
     [Fact(DisplayName = "no whitespace")]
@@ -50,9 +50,9 @@ public class Assignment
 
         Assert.Single(assignment?.Reference?.Components);
         Ronin.Grammar.Name name = assignment.Reference.Components?[0];
-        Assert.Single(name?.Source);
+        Assert.Equal(1, name?.Source.Length);
         
         LiteralSyntax scalar = assignment.Value;
-        Assert.Single(scalar?.Source);
+        Assert.Equal(1, scalar?.Source.Length);
     }
 }

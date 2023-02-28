@@ -26,7 +26,7 @@ public class List
 
         Assert.Single(list?.Values);
         LiteralSyntax scalar = list.Values[0];
-        Assert.Single(scalar?.Source);
+        Assert.Equal(1, scalar?.Source.Length);
     }
 
     [Fact(DisplayName = "multiple")]
@@ -53,17 +53,17 @@ public class List
 
         {
             LiteralSyntax scalar = list.Values[0];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = list.Values[1];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
             LiteralSyntax scalar = list.Values[2];
-            Assert.Single(scalar?.Source);
+            Assert.Equal(1, scalar?.Source.Length);
         }
     }
 

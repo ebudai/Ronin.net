@@ -24,10 +24,10 @@ public class Interval
         var interval = IntervalSyntax.Parse(ref parser);
 
         LiteralSyntax start = interval.Start;
-        Assert.Single(start?.Source);
+        Assert.Equal(1, start?.Source.Length);
         
         LiteralSyntax end = interval.End;
-        Assert.Single(end?.Source);
+        Assert.Equal(1, end?.Source.Length);
     }
 
     [Fact(DisplayName = "left unspecified")]
@@ -48,7 +48,7 @@ public class Interval
         Assert.Null(interval.Start);
 
         LiteralSyntax end = interval.End;
-        Assert.Single(end?.Source);
+        Assert.Equal(1, end?.Source.Length);
     }
 
     [Fact(DisplayName = "right unspecified")]
@@ -67,7 +67,7 @@ public class Interval
         var interval = IntervalSyntax.Parse(ref parser);
 
         LiteralSyntax start = interval.Start;
-        Assert.Single(start?.Source);
+        Assert.Equal(1, start?.Source.Length);
 
         Assert.Null(interval.End);
     }
