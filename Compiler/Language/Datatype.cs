@@ -18,21 +18,21 @@ internal class Datatype : Semantics
     public List<Datatype> Parents { get; } = new();
     public List<Datatype> Unions { get; } = new();
 
-    public Datatype(Semantics parent) : base(parent) { }
+    public Datatype() { }
 
-    public Datatype(DatatypeDeclarationSyntax datatype, Semantics parent) : base(parent)
+    public Datatype(DatatypeDeclarationSyntax declaration)
     {
-        Source = datatype;
+        Source = declaration;
 
-        Identifier = new(datatype.Identifier, parent);
+        Identifier = new(declaration.Identifier);
 
-        foreach (var statement in datatype.Body.Values)
+        foreach (var statement in declaration.Body.Values)
         {
             switch (statement.value)
             {
-                case FunctionDeclarationSyntax:     Methods.Add(new Function(statement, this));         break;
-                case DatatypeDeclarationSyntax:     InnerDatatypes.Add(new Datatype(statement, this));  break;
-                case DatumDeclarationSyntax:        Data.Add(new Datum(statement, this));               break;
+                case FunctionDeclarationSyntax:     Methods.Add(new Function(statement));         break;
+                case DatatypeDeclarationSyntax:     InnerDatatypes.Add(new Datatype(statement));  break;
+                case DatumDeclarationSyntax:        Data.Add(new Datum(statement));               break;
 
                 case ImportExportSyntax:    Errors.Add(new DatatypeCannotJoinNamedScope { Statement = statement });                         break;
                 case AssignmentSyntax:      Errors.Add(new DatatypeDefinitionCannotContain<AssignmentSyntax> { Statement = statement });    break;                
@@ -58,7 +58,7 @@ internal class Datatype : Semantics
 [ExcludeFromCodeCoverage]
 internal class UnresolvedDatatype : Datatype
 {
-    public UnresolvedDatatype(Reference reference, Semantics parent) : base(parent) => Source = reference;
+    public UnresolvedDatatype(Reference reference) => Source = reference;
 }
 
 [ExcludeFromCodeCoverage]

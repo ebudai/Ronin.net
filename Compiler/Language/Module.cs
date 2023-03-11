@@ -1,57 +1,84 @@
 ﻿using Ronin.Grammar;
 using Ronin.Grammar.Aggregates;
-using System.Diagnostics.CodeAnalysis;
+using Ronin.Lexicon;
+using System.Collections.Concurrent;
 
 namespace Ronin.Language;
 
-[ExcludeFromCodeCoverage]
 internal class Module : Semantics
 {
-    public List<ImportExportSyntax.Component> Name { get; init; } = new();
-    
-    public List<Module> Modules { get; init; } = new();
-    public List<Datatype> Datatypes { get; init; } = new();
-    public List<Function> Functions { get; init; } = new();
-    public List<Datum> Data { get; init; } = new();
-    public List<Instruction> Instructions { get; init; } = new();
+    public List<Part> Parts { get; } = new();
 
-    public Module Global
+    public List<Instruction> Instructions => Parts.SelectMany(static part => part.Instructions).ToList();
+
+    public static ConcurrentDictionary<string, Module> All { get; } = new();
+
+    public Module() { }
+
+    protected internal string GetName(List<Statement> statements)
     {
-        get
+        string name = string.Empty;
+        bool named = false;
+
+        foreach (var statement in statements)
         {
-            if (Parent is null) return this;
-            var global = Parent as Module;
-            while (global.Parent is not null) global = global.Parent as Module;
-            return global;
+            if (statement.value is not ImportExportSyntax syntax) continue;
+            if (syntax.Direction is not PartOfKeyword) continue;
+
+            if (named)
+            {
+                Errors.Add(new ModuleAlreadyNamed());
+                continue;
+            }
+
+            foreach (var component in syntax.Components)
+            {
+                foreach (var token in component.Source.Span)
+                {
+                    if (token is TextLiteral) name += $" {token.sourcecode[1..^1]}";
+                    else name += $" {token.sourcecode}";
+                }
+            }
+
+            named = true;
         }
+
+        return name is "" ? name : name[1..];
     }
 
-    public Module(Scope scope, Semantics parent) : base(parent)
+    public class Part
     {
-        foreach (var statement in scope.Values)
+        public Part(Scope scope)
         {
-            switch (statement.value)
+            foreach (var statement in scope.Values)
             {
-                case ImportExportSyntax hierarchy: Name = hierarchy.Components; break;
-                case AssignmentSyntax assignment: Instructions.Add(new Instruction(assignment, this)); break;
-                case FunctionDeclarationSyntax function: Functions.Add(new Function(function, this)); break;
-                case DatatypeDeclarationSyntax datatype: Datatypes.Add(new Datatype(datatype, this)); break;
-                case Scope inner:
-                    {
-                        Module module = new(inner, parent);
-                        Modules.Add(module);
-                        break;
-                    }
-                case IntervalSyntax: Instructions.Add(new Noop(statement.value)); break;
-                case DatumDeclarationSyntax datum: Data.Add(new Datum(datum, parent)); break;
-                default: Errors.Add(new UnknownSyntaxError { Statement = statement }); break;
+                if (statement.value is not ImportExportSyntax syntax) continue;
+                if (syntax.Direction is not ImportKeyword) continue;
+                var module = All.GetOrAdd(syntax.Name, _ => new UnresolvedModule());
+                Context.Add(module);
             }
         }
-    }
 
-    public void Resolve()
-    {
-        var global = Global;
-
+        public Context Context { get; init; }
+        public List<Instruction> Instructions { get; init; } = new();
     }
 }
+
+internal class UnresolvedModule : Module
+{
+    public ConcurrentQueue<Scope> Scopes { get; } = new();
+
+    public UnresolvedModule() { }
+
+    public static Module From(Scope scope)
+    {
+        UnresolvedModule unresolved = new();
+        var name = unresolved.GetName(scope.Values);
+        var module = All.GetOrAdd(name, _ => unresolved) as UnresolvedModule;
+        module.Scopes.Enqueue(scope);
+        if (unresolved != module) module.Errors.AddRange(unresolved.Errors);
+        return unresolved;
+    }
+}
+
+internal class ModuleAlreadyNamed : Error { }

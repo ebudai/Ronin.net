@@ -13,7 +13,7 @@ internal class Datum : Semantics
     public Datatype Datatype { get; init; }
     public Value Initializer { get; init; }
 
-    public Datum(DatumDeclarationSyntax datum, Semantics parent) : base(parent)
+    public Datum(DatumDeclarationSyntax datum)
     {
         Mutability = datum.Mutability switch
         {
@@ -24,7 +24,7 @@ internal class Datum : Semantics
 
         Name = datum.Name;
 
-        Datatype = new UnresolvedDatatype(datum.Datatype, parent);
+        Datatype = new UnresolvedDatatype(datum.Datatype);
 
         Initializer = datum.Initializer;
     }

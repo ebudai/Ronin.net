@@ -7,17 +7,26 @@ internal class Identifier : Semantics
 {
     public List<IComponent> Components { get; init; } = new();
 
-    public Identifier(IdentifierSyntax identifier, Semantics parent) : base(parent)
+    public Identifier(IdentifierSyntax identifier)
     {
         foreach (var component in identifier.Components)
         {
             Components.Add(component.value switch
             {
                 Grammar.Name name => new Name(name),
-                Grammar.Aggregates.Parameters parameters => new Parameters(parameters, parent),
+                Grammar.Aggregates.Parameters parameters => new Parameters(parameters),
             });
         }
     }
+
+    /*public int IndexOf(Reference reference)
+    {
+        int index = 0;
+        foreach (var component in Components)
+        {
+
+        }
+    }*/
 
     public interface IComponent
     {
@@ -31,9 +40,9 @@ internal class Identifier : Semantics
 
     public class Parameters : List<Datum>, IComponent
     {
-        public Parameters(Grammar.Aggregates.Parameters parameters, Semantics parent)
+        public Parameters(Grammar.Aggregates.Parameters parameters)
         {
-            foreach (var parameter in parameters.Values) Add(new Datum(parameter, parent));
+            foreach (var parameter in parameters.Values) Add(new Datum(parameter));
         }
     }
 }

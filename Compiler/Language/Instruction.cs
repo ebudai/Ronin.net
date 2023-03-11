@@ -8,34 +8,34 @@ namespace Ronin.Language;
 #pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
 internal class Instruction : Semantics
 {
-    public Instruction(Syntax syntax, Semantics parent) : base(parent) => Source = syntax;
+    public Instruction(Syntax syntax) => Source = syntax;
 
-    public static List<Instruction> From(Value value, Semantics parent) => value.value switch
+    public static List<Instruction> From(Value value) => value.value switch
     {
         LiteralSyntax or DelegateSyntax => new() { new Noop(value) },
-        InlineListSyntax list => From(list.Values, parent),
-        InlineLookupSyntax lookup => From(lookup.Values, parent),
-        Arguments arguments => From(arguments.Values, parent),
-        Reference reference => new() { new UnresolvedInstruction(reference, parent) },
+        InlineListSyntax list => From(list.Values),
+        InlineLookupSyntax lookup => From(lookup.Values),
+        Arguments arguments => From(arguments.Values),
+        Reference reference => new() { new UnresolvedInstruction(reference) },
     };
 
-    public static List<Instruction> From(List<Value> values, Semantics parent)
+    public static List<Instruction> From(List<Value> values)
     {
         List<Instruction> instructions = new();
         foreach (var value in values)
         {
-            if (value.value is Reference reference) instructions.Add(new UnresolvedInstruction(reference, parent));
+            if (value.value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
             else instructions.Add(new Noop(value.value));
         }
         return instructions;
     }
 
-    public static List<Instruction> From(List<InlineLookupSyntax.Association> associations, Semantics parent)
+    public static List<Instruction> From(List<InlineLookupSyntax.Association> associations)
     {
         List<Instruction> instructions = new();
         foreach (var association in associations)
         {
-            if (association.Value.value is Reference reference) instructions.Add(new UnresolvedInstruction(reference, parent));
+            if (association.Value.value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
             else instructions.Add(new Noop(association.Value.value));
         }
         return instructions;
@@ -44,10 +44,10 @@ internal class Instruction : Semantics
 
 internal class UnresolvedInstruction : Instruction
 {
-    public UnresolvedInstruction(Reference reference, Semantics parent) : base(reference, parent) { }
+    public UnresolvedInstruction(Reference reference) : base(reference) { }
 }
 
 internal class Noop : Instruction
 {
-    public Noop(Syntax syntax) : base(syntax, null) { }
+    public Noop(Syntax syntax) : base(syntax) { }
 }
