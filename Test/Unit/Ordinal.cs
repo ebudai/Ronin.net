@@ -1,6 +1,8 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -14,14 +16,14 @@ public class Ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracketSymbol(),
+            new OpenSquareBracket(),
             new Word(),
-            new CloseSquareBracketSymbol(),
+            new CloseSquareBracket(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Compound.Ordinal.Parse(ref parser);
 
         Assert.Single(ordinal?.Values);
         Ronin.Grammar.Reference reference = ordinal.Values[0];
@@ -37,16 +39,16 @@ public class Ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracketSymbol(),
+            new OpenSquareBracket(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new CloseSquareBracketSymbol(),
+            new CloseSquareBracket(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Compound.Ordinal.Parse(ref parser);
 
         Assert.Equal(2, ordinal?.Values?.Count);
 
@@ -72,13 +74,13 @@ public class Ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracketSymbol(),
-            new CloseSquareBracketSymbol(),
+            new OpenSquareBracket(),
+            new CloseSquareBracket(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Compound.Ordinal.Parse(ref parser);
 
         Assert.Empty(ordinal?.Values);
     }
@@ -90,28 +92,28 @@ public class Ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracketSymbol(),
+            new OpenSquareBracket(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new CloseSquareBracketSymbol(),
+            new CloseSquareBracket(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Aggregates.Ordinal.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Ordinal.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
 
         {
-            LiteralSyntax scalar = arguments.Values[0];
+            Ronin.Grammar.Literal scalar = arguments.Values[0];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            LiteralSyntax scalar = arguments.Values[1];
+            Ronin.Grammar.Literal scalar = arguments.Values[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
 

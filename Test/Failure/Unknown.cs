@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -12,9 +12,9 @@ public class Unknown
     {
         Token[] tokens = 
         {
-            new DatatypeKeyword(),
-            new ReturnsSymbol(),
-            new TerminalSymbol(),
+            new Ronin.Lexicon.Keyword.Datatype(),
+            new Returns(),
+            new Terminal(),
             Sentinel.Instance
         };
         
@@ -22,7 +22,7 @@ public class Unknown
         var statements = parser.Parse().Values;
         
         Assert.Single(statements);
-        UnknownSyntax unknown = statements[0];
+        Ronin.Grammar.Unknown unknown = statements[0];
         Assert.NotNull(unknown);
     }
 }

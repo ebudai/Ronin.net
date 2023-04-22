@@ -1,6 +1,8 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -14,14 +16,14 @@ public class Datatype
 
         Token[] tokens =
         {
-            new DatatypeKeyword(),
-            new OpenBraceSymbol(),
-            new CloseBraceSymbol(),
-            new TerminalSymbol()
+            new Ronin.Lexicon.Keyword.Datatype(),
+            new OpenBrace(),
+            new CloseBrace(),
+            new Terminal()
         };
         
         Parser parser = new(tokens);
-        var datatype = DatatypeDeclarationSyntax.Parse(ref parser);
+        var datatype = Ronin.Grammar.Datatype.Parse(ref parser);
         Assert.Null(datatype);
     }
 }

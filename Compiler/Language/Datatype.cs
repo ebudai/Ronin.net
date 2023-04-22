@@ -1,5 +1,5 @@
 ﻿using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Compound;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
@@ -20,7 +20,7 @@ internal class Datatype : Semantics
 
     public Datatype() { }
 
-    public Datatype(DatatypeDeclarationSyntax declaration)
+    public Datatype(Grammar.Datatype declaration)
     {
         Source = declaration;
 
@@ -30,22 +30,23 @@ internal class Datatype : Semantics
         {
             switch (statement.value)
             {
-                case FunctionDeclarationSyntax:     Methods.Add(new Function(statement));         break;
-                case DatatypeDeclarationSyntax:     InnerDatatypes.Add(new Datatype(statement));  break;
-                case DatumDeclarationSyntax:        Data.Add(new Datum(statement));               break;
+                case Grammar.Function: Methods.Add(new Function(statement));         break;
+                case Grammar.Datatype: InnerDatatypes.Add(new Datatype(statement));  break;
+                case Grammar.Datum: Data.Add(new Datum(statement));               break;
 
-                case ImportExportSyntax:    Errors.Add(new DatatypeCannotJoinNamedScope { Statement = statement });                         break;
-                case AssignmentSyntax:      Errors.Add(new DatatypeDefinitionCannotContain<AssignmentSyntax> { Statement = statement });    break;                
-                case Scope:                 Errors.Add(new DatatypeDefinitionCannotContain<Scope> { Statement = statement });               break;
-                case IntervalSyntax:        Errors.Add(new DatatypeDefinitionCannotContain<IntervalSyntax> { Statement = statement });      break;
+                case ImportExport: Errors.Add(new DatatypeCannotJoinNamedScope { Statement = statement });                         break;
+                case Assignment: Errors.Add(new DatatypeDefinitionCannotContain<Assignment> { Statement = statement });    break;                
+                case Scope: Errors.Add(new DatatypeDefinitionCannotContain<Scope> { Statement = statement });               break;
+                case Interval: Errors.Add(new DatatypeDefinitionCannotContain<Interval> { Statement = statement });      break;
                 
-                case Value value: Errors.Add(value.value switch
+                case Value value:
+                    Errors.Add(value.value switch
                 {
-                    LiteralSyntax => new DatatypeDefinitionCannotContain<LiteralSyntax> { Statement = statement },
+                    Literal => new DatatypeDefinitionCannotContain<Literal> { Statement = statement },
                     Arguments => new DatatypeDefinitionCannotContain<Arguments> { Statement = statement },
-                    InlineListSyntax => new DatatypeDefinitionCannotContain<InlineListSyntax> { Statement = statement },
-                    InlineLookupSyntax => new DatatypeDefinitionCannotContain<InlineLookupSyntax> { Statement = statement },
-                    DelegateSyntax => new DatatypeDefinitionCannotContain<DelegateSyntax> { Statement = statement },
+                    InlineList => new DatatypeDefinitionCannotContain<InlineList> { Statement = statement },
+                    InlineLookup => new DatatypeDefinitionCannotContain<InlineLookup> { Statement = statement },
+                    Grammar.Delegate => new DatatypeDefinitionCannotContain<Grammar.Delegate> { Statement = statement },
                     Reference => new DatatypeDefinitionCannotContain<Reference> { Statement = statement },
                 }); break;
 

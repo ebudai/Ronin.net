@@ -1,7 +1,7 @@
 global using Xunit;
-global using AssignSymbol = Ronin.Lexicon.EqualitySymbol;
-global using CharacterDelimiterSymbol = Ronin.Lexicon.QuoteSymbol;
-global using SeparatorSymbol = Ronin.Lexicon.CommaSymbol;
-global using TerminalSymbol = Ronin.Lexicon.SemicolonSymbol;
-global using TextDelimiterSymbol = Ronin.Lexicon.DoubleQuoteSymbol;
+global using Assign = Ronin.Lexicon.Punctuation.Equality;
+global using CharacterDelimiter = Ronin.Lexicon.Punctuation.Quote;
+global using Separator = Ronin.Lexicon.Punctuation.Comma;
+global using Terminal = Ronin.Lexicon.Punctuation.Semicolon;
+global using TextDelimiter = Ronin.Lexicon.Punctuation.DoubleQuote;
 

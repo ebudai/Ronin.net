@@ -1,5 +1,5 @@
 ﻿using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Compound;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
@@ -12,9 +12,9 @@ internal class Instruction : Semantics
 
     public static List<Instruction> From(Value value) => value.value switch
     {
-        LiteralSyntax or DelegateSyntax => new() { new Noop(value) },
-        InlineListSyntax list => From(list.Values),
-        InlineLookupSyntax lookup => From(lookup.Values),
+        Literal or Grammar.Delegate => new() { new Noop(value) },
+        InlineList list => From(list.Values),
+        InlineLookup lookup => From(lookup.Values),
         Arguments arguments => From(arguments.Values),
         Reference reference => new() { new UnresolvedInstruction(reference) },
     };
@@ -30,7 +30,7 @@ internal class Instruction : Semantics
         return instructions;
     }
 
-    public static List<Instruction> From(List<InlineLookupSyntax.Association> associations)
+    public static List<Instruction> From(List<InlineLookup.Association> associations)
     {
         List<Instruction> instructions = new();
         foreach (var association in associations)

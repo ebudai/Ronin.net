@@ -1,4 +1,5 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 
@@ -15,18 +16,18 @@ public class Interval
         Token[] tokens =
         {
             new NumberLiteral(),
-            new RangeSymbol(),
+            new Ronin.Lexicon.Punctuation.Range(),
             new NumberLiteral(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var interval = IntervalSyntax.Parse(ref parser);
+        var interval = Ronin.Grammar.Interval.Parse(ref parser);
 
-        LiteralSyntax start = interval.Start;
+        Ronin.Grammar.Literal start = interval.Start;
         Assert.Equal(1, start?.Source.Length);
-        
-        LiteralSyntax end = interval.End;
+
+        Ronin.Grammar.Literal end = interval.End;
         Assert.Equal(1, end?.Source.Length);
     }
 
@@ -37,17 +38,17 @@ public class Interval
 
         Token[] tokens =
         {
-            new RangeSymbol(),
+            new Ronin.Lexicon.Punctuation.Range(),
             new NumberLiteral(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var interval = IntervalSyntax.Parse(ref parser);
+        var interval = Ronin.Grammar.Interval.Parse(ref parser);
 
         Assert.Null(interval.Start);
 
-        LiteralSyntax end = interval.End;
+        Ronin.Grammar.Literal end = interval.End;
         Assert.Equal(1, end?.Source.Length);
     }
 
@@ -59,14 +60,14 @@ public class Interval
         Token[] tokens =
         {
             new NumberLiteral(),
-            new RangeSymbol(),
+            new Ronin.Lexicon.Punctuation.Range(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var interval = IntervalSyntax.Parse(ref parser);
+        var interval = Ronin.Grammar.Interval.Parse(ref parser);
 
-        LiteralSyntax start = interval.Start;
+        Ronin.Grammar.Literal start = interval.Start;
         Assert.Equal(1, start?.Source.Length);
 
         Assert.Null(interval.End);

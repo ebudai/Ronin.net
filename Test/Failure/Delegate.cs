@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -12,23 +12,23 @@ public class Delegate
     {
         Token[] tokens =
         {
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new CloseParenthesisSymbol(),
-            new OpenBraceSymbol(),
+            new CloseParenthesis(),
+            new OpenBrace(),
             new Word(),
             new NumberLiteral(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var @delegate = DelegateSyntax.Parse(ref parser);
+        var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
         
         Assert.Null(@delegate);
     }

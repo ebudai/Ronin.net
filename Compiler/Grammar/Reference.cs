@@ -1,11 +1,11 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Compound;
 
 namespace Ronin.Grammar;
 
-internal class Reference : Syntax, Compiler.IParsable<Reference>
+internal class Reference : Syntax, IParsableSyntax<Reference>
 {
     public List<Component> Components { get; init; }
     public Ordinal Ordinal { get; init; }
@@ -28,5 +28,5 @@ internal class Reference : Syntax, Compiler.IParsable<Reference>
         };
     }
 
-    public class Component : CompositeSyntax<Component, Name, LiteralSyntax, Arguments> { }
+    public class Component : CompositeSyntax<Component, Name, Literal, Arguments> { }
 }

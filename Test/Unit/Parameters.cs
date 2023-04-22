@@ -1,6 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -14,23 +16,23 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesisSymbol(),
-            new VariableKeyword(),
+            new OpenParenthesis(),
+            new Variable(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new CloseParenthesisSymbol(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var parameters = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
+        var parameters = Ronin.Grammar.Compound.Parameters.Parse(ref parser);
 
         Assert.Single(parameters?.Values);
 
-        DatumDeclarationSyntax datum = parameters.Values[0];
+        Ronin.Grammar.Datum datum = parameters.Values[0];
 
-        Assert.IsType<VariableKeyword>(datum?.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Null(datum.Is);
 
@@ -47,27 +49,27 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
             new Word(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new CloseParenthesisSymbol(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var parameters = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
+        var parameters = Ronin.Grammar.Compound.Parameters.Parse(ref parser);
 
         Assert.Equal(2, parameters?.Values?.Count);
 
         {
-            DatumDeclarationSyntax datum = parameters.Values[0];
+            Ronin.Grammar.Datum datum = parameters.Values[0];
             
             Assert.Null(datum?.Mutability);
 
@@ -81,7 +83,7 @@ public class Parameters
         }
 
         {
-            DatumDeclarationSyntax datum = parameters.Values[1];
+            Ronin.Grammar.Datum datum = parameters.Values[1];
 
             Assert.Null(datum?.Mutability);
 
@@ -100,13 +102,13 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesisSymbol(),
-            new CloseParenthesisSymbol(),
+            new OpenParenthesis(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Parameters.Parse(ref parser);
 
         Assert.Empty(arguments?.Values);
     }

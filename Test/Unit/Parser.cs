@@ -1,5 +1,8 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -13,104 +16,104 @@ public class Parsing
         {
             // part of testing apparatus;
 
-            new PartOfKeyword(),
+            new PartOf(),
             new Word(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
 
             // var a = 3;
 
-            new VariableKeyword(),
+            new Variable(),
             new Word(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
-            new TerminalSymbol(),
+            new Terminal(),
 
             // a = 6;
 
             new Word(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
-            new TerminalSymbol(),
+            new Terminal(),
 
             // 3..test;
 
             new NumberLiteral(),
-            new RangeSymbol(),
+            new Ronin.Lexicon.Punctuation.Range(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
 
             // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
 
-            new FunctionKeyword(),
+            new Ronin.Lexicon.Keyword.Function(),
             new Word(),
-            new OpenParenthesisSymbol(),
-            new VariableKeyword(),
+            new OpenParenthesis(),
+            new Variable(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new CloseParenthesisSymbol(),
+            new CloseParenthesis(),
             new Word(),
-            new OpenParenthesisSymbol(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new ReturnsSymbol(),
-            new Word(),
-            new CloseParenthesisSymbol(),
-            new OpenBraceSymbol(),
+            new OpenParenthesis(),
             new Word(),
             new Word(),
             new Word(),
+            new Returns(),
             new Word(),
-            new AsteriskSymbol(),
+            new CloseParenthesis(),
+            new OpenBrace(),
             new Word(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Word(),
+            new Word(),
+            new Word(),
+            new Asterisk(),
+            new Word(),
+            new Terminal(),
+            new CloseBrace(),
 
             // datatype big thing { constant size => whole number; }
 
-            new DatatypeKeyword(),
+            new Ronin.Lexicon.Keyword.Datatype(),
             new Word(),
             new Word(),
-            new OpenBraceSymbol(),
-            new ConstantKeyword(),
+            new OpenBrace(),
+            new Constant(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
             new Word(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
 
             // 7;
 
             new NumberLiteral(),
-            new TerminalSymbol(),
+            new Terminal(),
 
             // (a, b, "text");
 
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new TextLiteral(),
-            new CloseParenthesisSymbol(),
-            new TerminalSymbol(),
+            new CloseParenthesis(),
+            new Terminal(),
 
             // { var x => moment; florb x now; }
 
-            new OpenBraceSymbol(),
-            new VariableKeyword(),
+            new OpenBrace(),
+            new Variable(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             new Word(),
             new Word(),
             new Word(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
 
             Sentinel.Instance
         };
@@ -120,33 +123,33 @@ public class Parsing
 
         Assert.Equal(9, statements?.Count);
 
-        Ronin.Grammar.ImportExportSyntax partof = statements[0];
+        Ronin.Grammar.ImportExport partof = statements[0];
         Assert.NotNull(partof);
 
-        Ronin.Grammar.DatumDeclarationSyntax datum = statements[1];
+        Ronin.Grammar.Datum datum = statements[1];
         Assert.NotNull(datum);
 
-        Ronin.Grammar.AssignmentSyntax assignment = statements[2];
+        Ronin.Grammar.Assignment assignment = statements[2];
         Assert.NotNull(assignment);
 
-        Ronin.Grammar.IntervalSyntax interval = statements[3];
+        Ronin.Grammar.Interval interval = statements[3];
         Assert.NotNull(interval);
 
-        Ronin.Grammar.FunctionDeclarationSyntax function = statements[4];
+        Ronin.Grammar.Function function = statements[4];
         Assert.NotNull(function);
 
-        Ronin.Grammar.DatatypeDeclarationSyntax datatype = statements[5];
+        Ronin.Grammar.Datatype datatype = statements[5];
         Assert.NotNull(datatype);
 
         Ronin.Grammar.Value scalar_value = statements[6];
-        Ronin.Grammar.LiteralSyntax scalar = scalar_value;
+        Ronin.Grammar.Literal scalar = scalar_value;
         Assert.NotNull(scalar);
 
         Ronin.Grammar.Value arguments_value = statements[7];
-        Ronin.Grammar.Aggregates.Arguments arguments = arguments_value;
+        Ronin.Grammar.Compound.Arguments arguments = arguments_value;
         Assert.NotNull(arguments);
 
-        Ronin.Grammar.Aggregates.Scope scope = statements[8];
+        Ronin.Grammar.Compound.Scope scope = statements[8];
         Assert.NotNull(scope);
     }
 }

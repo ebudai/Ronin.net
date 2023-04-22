@@ -1,6 +1,8 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -14,14 +16,14 @@ public class Arguments
 
         Token[] tokens =
         {
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new CloseParenthesisSymbol(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
 
         Assert.Single(arguments?.Values);
         Ronin.Grammar.Reference reference = arguments.Values[0];
@@ -37,16 +39,16 @@ public class Arguments
 
         Token[] tokens =
         {
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new CloseParenthesisSymbol(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
 
         Assert.Equal(2, arguments?.Values?.Count);
 
@@ -72,13 +74,13 @@ public class Arguments
 
         Token[] tokens =
         {
-            new OpenParenthesisSymbol(),
-            new CloseParenthesisSymbol(),
+            new OpenParenthesis(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
         Assert.Empty(arguments?.Values);
     }
 
@@ -89,28 +91,28 @@ public class Arguments
 
         Token[] tokens =
         {
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new CloseParenthesisSymbol(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
         
         {
-            LiteralSyntax scalar = arguments.Values[0];
+            Ronin.Grammar.Literal scalar = arguments.Values[0];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            LiteralSyntax scalar = arguments.Values[1];
+            Ronin.Grammar.Literal scalar = arguments.Values[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
@@ -129,24 +131,24 @@ public class Arguments
 
         Token[] tokens =
         {
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
-            new OpenParenthesisSymbol(),
+            new Separator(),
+            new OpenParenthesis(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new NumberLiteral(),
-            new CloseParenthesisSymbol(),
-            new CloseParenthesisSymbol(),
+            new CloseParenthesis(),
+            new CloseParenthesis(),
             Sentinel.Instance,
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Aggregates.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
 
@@ -158,26 +160,26 @@ public class Arguments
         }
 
         {
-            LiteralSyntax scalar = arguments.Values[1];
+            Ronin.Grammar.Literal scalar = arguments.Values[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Aggregates.Arguments subargs = arguments.Values[2];
+            Ronin.Grammar.Compound.Arguments subargs = arguments.Values[2];
             Assert.Equal(3, subargs?.Values?.Count);
 
             {
-                LiteralSyntax scalar = subargs?.Values[0];
+                Ronin.Grammar.Literal scalar = subargs?.Values[0];
                 Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
-                LiteralSyntax scalar = subargs?.Values[1];
+                Ronin.Grammar.Literal scalar = subargs?.Values[1];
                 Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
-                LiteralSyntax scalar = subargs?.Values[2];
+                Ronin.Grammar.Literal scalar = subargs?.Values[2];
                 Assert.Equal(1, scalar?.Source.Length);
             }
         }

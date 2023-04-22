@@ -1,12 +1,12 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
 
-internal interface IParsable<T> where T : IParsable<T>
+internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
 {
     public static abstract T Parse(ref Parser context);
 }
@@ -18,18 +18,18 @@ internal struct Parser
     public Scope Parse()
     {
         List<Statement> statements = new();
-        
+
         while (IsNotFinished)
         {
-            if (TriviaSyntax.Parse(ref this) is not null) continue;
+            if (Trivia.Parse(ref this) is not null) continue;
             statements.Add(Statement.Parse(ref this));
-            if (CurrentToken is TerminalSymbol) Advance();
+            if (CurrentToken is Terminal) Advance();
         }
 
         return new Scope { Values = statements, Source = tokens };
     }
 
-    public List<T> ParseRepeating<T>() where T : class, IParsable<T>
+    public List<T> ParseRepeating<T>() where T : class, IParsableSyntax<T>
     {
         List<T> parsed = new();
         while (IsNotFinished)
@@ -51,11 +51,11 @@ internal struct Parser
     public ref readonly Token CurrentToken => ref tokens.Span[cursor];
     public ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
 
-    public readonly ReadOnlySpan<Token> this[Range range] => tokens.Span[range];
+    public readonly ReadOnlySpan<Token> this[System.Range range] => tokens.Span[range];
 
     public bool IsNotFinished => CurrentToken is not Sentinel;
 
-    public void Advance() 
+    public void Advance()
     {
         do ++cursor; while (CurrentToken is Trivium);
     }
@@ -63,7 +63,7 @@ internal struct Parser
     public Token[] Commit(scoped ref Parser context)
     {
         var tokens = context[context.cursor..cursor].ToArray();
-        context = this;        
+        context = this;
         return tokens;
     }
 

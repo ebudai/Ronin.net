@@ -1,13 +1,16 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
 [Trait("Parser", null)]
 public class Loop
 {
-    [Fact(DisplayName = $"doesn't start with {ForEachKeyword.keyword}")]
+    [Fact(DisplayName = $"doesn't start with {ForEach.keyword}")]
     public void NotALoop()
     {
         // not loop;
@@ -16,12 +19,12 @@ public class Loop
         {
             new Word(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var loop = LoopSyntax.Parse(ref parser);
+        var loop = Ronin.Grammar.Loop.Parse(ref parser);
 
         Assert.Null(loop);
     }
@@ -33,21 +36,21 @@ public class Loop
 
         Token[] tokens =
         {
-            new ForEachKeyword(),
+            new ForEach(),
             new NumberLiteral(),
             new Word(),
             new Word(),
-            new OpenBraceSymbol(),
+            new OpenBrace(),
             new Word(),
             new Word(),
             new Word(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var loop = LoopSyntax.Parse(ref parser);
+        var loop = Ronin.Grammar.Loop.Parse(ref parser);
 
         Assert.Null(loop);
     }
@@ -59,20 +62,20 @@ public class Loop
 
         Token[] tokens =
         {
-            new ForEachKeyword(),
+            new ForEach(),
             new Word(),
             new Word(),
             new Word(),
             new Word(),
             new Word(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var loop = LoopSyntax.Parse(ref parser);
+        var loop = Ronin.Grammar.Loop.Parse(ref parser);
 
         Assert.Null(loop);
     }

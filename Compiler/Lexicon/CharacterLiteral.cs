@@ -8,9 +8,9 @@ internal class CharacterLiteral : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
-        if (lexer.IsEmpty || lexer[0] is not CharacterDelimiterSymbol.character) return null;
+        if (lexer.IsEmpty || lexer[0] is not CharacterDelimiter.character) return null;
 
-        var length = lexer[1..].Span.IndexOf(CharacterDelimiterSymbol.character); // find the closing delimiter one
+        var length = lexer[1..].Span.IndexOf(CharacterDelimiter.character); // find the closing delimiter one
 
         if (length is not 1 and not 6) return null;
 

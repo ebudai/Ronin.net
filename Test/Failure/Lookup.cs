@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -14,16 +15,16 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBraceSymbol(),
+            new OpenBrace(),
             new TextLiteral(),
             new NumberLiteral(),
-            new CloseBraceSymbol()
+            new CloseBrace()
         };
         
         Parser parser = new(tokens);
-        var lookup = InlineLookupSyntax.Parse(ref parser);
+        var lookup = InlineLookup.Parse(ref parser);
 
-        Assert.IsNotType<InlineLookupSyntax>(lookup);
+        Assert.IsNotType<InlineLookup>(lookup);
     }
 
     [Fact(DisplayName = "missing key")]
@@ -33,16 +34,16 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBraceSymbol(),
-            new AssignSymbol(),
+            new OpenBrace(),
+            new Assign(),
             new NumberLiteral(),
-            new CloseBraceSymbol()
+            new CloseBrace()
         };
         
         Parser parser = new(tokens);
-        var lookup = InlineLookupSyntax.Parse(ref parser);
+        var lookup = InlineLookup.Parse(ref parser);
 
-        Assert.IsNotType<InlineLookupSyntax>(lookup);
+        Assert.IsNotType<InlineLookup>(lookup);
     }
 
     [Fact(DisplayName = "missing value")]
@@ -52,15 +53,15 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBraceSymbol(),
+            new OpenBrace(),
             new NumberLiteral(),
-            new AssignSymbol(),
-            new CloseBraceSymbol()
+            new Assign(),
+            new CloseBrace()
         };
         
         Parser parser = new(tokens);
-        var lookup = InlineLookupSyntax.Parse(ref parser);
+        var lookup = InlineLookup.Parse(ref parser);
 
-        Assert.IsNotType<InlineLookupSyntax>(lookup);
+        Assert.IsNotType<InlineLookup>(lookup);
     }
 }

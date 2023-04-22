@@ -2,4 +2,4 @@
 
 namespace Ronin.Lexicon;
 
-internal abstract class Close : Punctuation { }
+internal abstract class Close : BreakingSymbol { }

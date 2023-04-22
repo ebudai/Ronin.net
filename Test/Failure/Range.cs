@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
 
 namespace Failure;
 
@@ -12,8 +11,8 @@ public class Range
         const string literal = "notARange";
 
         Lexer lexer = new(literal);
-        var lexed = RangeSymbol.Lex(ref lexer);
+        var lexed = Ronin.Lexicon.Punctuation.Range.Lex(ref lexer);
 
-        Assert.IsNotType<RangeSymbol>(lexed);
+        Assert.IsNotType<Ronin.Lexicon.Punctuation.Range>(lexed);
     }
 }

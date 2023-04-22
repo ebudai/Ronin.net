@@ -6,19 +6,19 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     The part of an <see cref="IdentifierSyntax"/> or <see cref="Reference"/> which is not being used for parameters/arguments
+///     The part of an <see cref="Identifier"/> or <see cref="Reference"/> which is not being used for parameters/arguments
 /// </summary>
-internal class Name : Syntax, Compiler.IParsable<Name>
+internal class Name : Syntax, IParsableSyntax<Name>
 {
     public static Name Parse(ref Parser context)
     {
-        if (context.CurrentToken is Keyword or Punctuation) return null;
+        if (context.CurrentToken is Reserved or BreakingSymbol) return null;
 
         Parser parser = context;
 
         while (parser.IsNotFinished)
         {
-            if (parser.CurrentToken is not Word and not Symbol or Punctuation) break;
+            if (parser.CurrentToken is not Word and not Symbol or BreakingSymbol) break;
             parser.Advance();
         }
 

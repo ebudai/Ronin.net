@@ -1,5 +1,7 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -13,18 +15,17 @@ public class Scope
 
         Token[] tokens =
         {
-            new OpenBraceSymbol(),
-            new TextDelimiterSymbol(),
-            new SeparatorSymbol(),
-            new TerminalSymbol(),
-            new SeparatorSymbol(),
+            new OpenBrace(),
+            new TextDelimiter(),
+            new Separator(),
+            new Terminal(),
+            new Separator(),
             new Word(),
-            new CloseBraceSymbol(),
-            new TerminalSymbol()
+            new CloseBrace()
         };
         
         Parser parser = new(tokens);
-        var scope = Ronin.Grammar.Aggregates.Scope.Parse(ref parser);
+        var scope = Ronin.Grammar.Compound.Scope.Parse(ref parser);
 
         Assert.Null(scope);
     }

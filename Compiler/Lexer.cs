@@ -16,8 +16,8 @@ internal struct Lexer
                 ?? Literal.Lex(ref this)
                 ?? Comment.Lex(ref this)
                 ?? Symbol.Lex(ref this)
-                ?? Keyword.Lex(ref this)
-                ?? Word.Lex(ref this) as Token;
+                ?? Reserved.Lex(ref this) as Token
+                ?? Word.Lex(ref this);
             yield return token;
         }
 
@@ -32,6 +32,7 @@ internal struct Lexer
     }
 
     public bool IsEmpty => sourcecode[cursor..].IsEmpty;
+    public bool IsNotEmpty => IsEmpty is false;
     public int Length => sourcecode[cursor..].Length;
 
     public readonly ref readonly char this[int index] => ref sourcecode.Span[cursor..][index];

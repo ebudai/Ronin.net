@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -14,13 +15,13 @@ public class Function
 
         Token[] tokens = 
         {
-            new FunctionKeyword(),
-            new OpenBraceSymbol(),
-            new CloseBraceSymbol()
+            new Ronin.Lexicon.Keyword.Function(),
+            new OpenBrace(),
+            new CloseBrace()
         };
 
         Parser parser = new(tokens);
-        var function = FunctionDeclarationSyntax.Parse(ref parser);
+        var function = Ronin.Grammar.Function.Parse(ref parser);
         
         Assert.Null(function);
     }

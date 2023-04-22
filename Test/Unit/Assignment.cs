@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -15,20 +16,20 @@ public class Assignment
         Token[] tokens =
         {
             new Word(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var assignment = AssignmentSyntax.Parse(ref parser);
+        var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
         Ronin.Grammar.Name name = assignment.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
-        LiteralSyntax scalar = assignment.Value;
+        Ronin.Grammar.Literal scalar = assignment.Value;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -40,19 +41,19 @@ public class Assignment
         Token[] tokens =
         {
             new Word(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var assignment = AssignmentSyntax.Parse(ref parser);
+        var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
         Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
-        
-        LiteralSyntax scalar = assignment.Value;
+
+        Ronin.Grammar.Literal scalar = assignment.Value;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

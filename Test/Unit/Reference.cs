@@ -1,6 +1,8 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -10,15 +12,15 @@ public class Reference
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        // thing 7 (stuff)
+        // thing 7 ("stuff")
 
         Token[] tokens =
         {
             new Word(),
             new NumberLiteral(),
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new TextLiteral(),
-            new CloseParenthesisSymbol(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
         
@@ -33,14 +35,14 @@ public class Reference
         }
 
         {
-            LiteralSyntax scalar = reference.Components[1];
+            Ronin.Grammar.Literal scalar = reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Aggregates.Arguments arguments = reference.Components[2];
+            Ronin.Grammar.Compound.Arguments arguments = reference.Components[2];
             Assert.Single(arguments?.Values);
-            LiteralSyntax scalar = arguments.Values[0];
+            Ronin.Grammar.Literal scalar = arguments.Values[0];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }

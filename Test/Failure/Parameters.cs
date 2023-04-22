@@ -1,5 +1,7 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -15,12 +17,12 @@ public class Parameters
         {
             new Word(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var parameters = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
+        var parameters = Ronin.Grammar.Compound.Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
     }
@@ -30,7 +32,7 @@ public class Parameters
     {
         Token[] tokens = { Sentinel.Instance };
         Parser parser = new(tokens);
-        var parameters = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
+        var parameters = Ronin.Grammar.Compound.Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
     }
@@ -42,22 +44,22 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new SeparatorSymbol(),
-            new OpenSquareBracketSymbol(),
+            new Separator(),
+            new OpenSquareBracket(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             new Word(),
-            new CloseSquareBracketSymbol(),
-            new CloseParenthesisSymbol(),
+            new CloseSquareBracket(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var parameters = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
+        var parameters = Ronin.Grammar.Compound.Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
     }
@@ -70,15 +72,15 @@ public class Parameters
         Token[] tokens = 
         {
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new TerminalSymbol(),
-            new CloseParenthesisSymbol(),
+            new Terminal(),
+            new CloseParenthesis(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var parameters = Ronin.Grammar.Aggregates.Parameters.Parse(ref parser);
+        var parameters = Ronin.Grammar.Compound.Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
     }

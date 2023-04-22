@@ -12,12 +12,12 @@ public class Assignment
         Token[] tokens = 
         {
             new Word(),
-            new AssignSymbol(),
-            new TerminalSymbol()
+            new Assign(),
+            new Terminal()
         };
         
         Parser parser = new(tokens);
-        var assignment = AssignmentSyntax.Parse(ref parser);
+        var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
         
         Assert.Null(assignment);
     }

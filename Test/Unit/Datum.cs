@@ -1,6 +1,9 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -14,19 +17,19 @@ public class Datum
 
         Token[] tokens =
         {
-            new VariableKeyword(),
+            new Variable(),
             new Word(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.IsType<VariableKeyword>(datum?.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Null(datum.Is);
 
@@ -39,25 +42,25 @@ public class Datum
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{ReactiveKeyword.keyword}")]
+    [Fact(DisplayName = $"{Reactive.keyword}")]
     public void ReactiveDatatype()
     {
         // reactive x => text;
 
         Token[] tokens =
         {
-            new ReactiveKeyword(),
+            new Reactive(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.IsType<ReactiveKeyword>(datum?.Mutability);
+        Assert.IsType<Reactive>(datum?.Mutability);
 
         Assert.Null(datum.Is);
 
@@ -70,29 +73,29 @@ public class Datum
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{CompiledKeyword.keyword}")]
+    [Fact(DisplayName = $"{Compiled.keyword}")]
     public void CompiledDatatype()
     {
         // var x => compiled text;
 
         Token[] tokens =
         {
-            new VariableKeyword(),
+            new Variable(),
             new Word(),
-            new ReturnsSymbol(),
-            new CompiledKeyword(),
+            new Returns(),
+            new Compiled(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.IsType<VariableKeyword>(datum?.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Equal(1, datum.Is?.Source.Length);
-        Assert.IsType<CompiledKeyword>(datum.Is.Source.Span[0]);
+        Assert.IsType<Compiled>(datum.Is.Source.Span[0]);
         
         Assert.Equal(1, datum.Name?.Source.Length);
 
@@ -103,29 +106,29 @@ public class Datum
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{PersistentKeyword.keyword}")]
+    [Fact(DisplayName = $"{Persistent.keyword}")]
     public void PersistentDatatype()
     {
         // constant x => persistent text;
 
         Token[] tokens =
         {
-            new ConstantKeyword(),
+            new Constant(),
             new Word(),
-            new ReturnsSymbol(),
-            new PersistentKeyword(),
+            new Returns(),
+            new Persistent(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.IsType<ConstantKeyword>(datum?.Mutability);
+        Assert.IsType<Constant>(datum?.Mutability);
 
         Assert.Equal(1, datum.Is?.Source.Length);
-        Assert.IsType<PersistentKeyword>(datum.Is.Source.Span[0]);
+        Assert.IsType<Persistent>(datum.Is.Source.Span[0]);
 
         Assert.Equal(1, datum.Name?.Source.Length);
 
@@ -136,29 +139,29 @@ public class Datum
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{SharedKeyword.keyword}")]
+    [Fact(DisplayName = $"{Shared.keyword}")]
     public void SharedDatatype()
     {
         // var x => shared text;
 
         Token[] tokens = 
         {
-            new VariableKeyword(),
+            new Variable(),
             new Word(),
-            new ReturnsSymbol(),
-            new SharedKeyword(),
+            new Returns(),
+            new Shared(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.IsType<VariableKeyword>(datum?.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Equal(1, datum.Is?.Source.Length);
-        Assert.IsType<SharedKeyword>(datum.Is.Source.Span[0]);
+        Assert.IsType<Shared>(datum.Is.Source.Span[0]);
 
         Assert.Equal(1, datum.Name?.Source.Length);
 
@@ -169,28 +172,28 @@ public class Datum
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{OptionalKeyword.keyword}")]
+    [Fact(DisplayName = $"{Optional.keyword}")]
     public void OptionalDatatype()
     {
         // reactive x => optional text;
 
         Token[] tokens =
         {
-            new ReactiveKeyword(),
+            new Reactive(),
             new Word(),
-            new ReturnsSymbol(),
-            new OptionalKeyword(),
+            new Returns(),
+            new Optional(),
             new Word(),
-            new TerminalSymbol()
+            new Terminal()
         };
 
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.IsType<ReactiveKeyword>(datum?.Mutability);
+        Assert.IsType<Reactive>(datum?.Mutability);
 
         Assert.Equal(1, datum.Is?.Source.Length);
-        Assert.IsType<OptionalKeyword>(datum.Is.Source.Span[0]);
+        Assert.IsType<Optional>(datum.Is.Source.Span[0]);
 
         Assert.Equal(1, datum.Name?.Source.Length);
         
@@ -208,18 +211,18 @@ public class Datum
 
         Token[] tokens =
         {
-            new VariableKeyword(),
+            new Variable(),
             new Word(),
-            new AssignSymbol(),
+            new Assign(),
             new Word(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.IsType<VariableKeyword>(datum?.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Null(datum.Is);
         
@@ -240,20 +243,20 @@ public class Datum
 
         Token[] tokens =
         {
-            new VariableKeyword(),
+            new Variable(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
 
-        Assert.IsType<VariableKeyword>(datum?.Mutability);
+        Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Null(datum.Is);
 
@@ -263,7 +266,7 @@ public class Datum
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
-        LiteralSyntax scalar = datum.Initializer;
+        Ronin.Grammar.Literal scalar = datum.Initializer;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

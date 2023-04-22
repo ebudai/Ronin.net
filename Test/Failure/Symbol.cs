@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -26,7 +26,7 @@ public class Symbol
         Lexer lexer = new(literal);
         var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
 
-        Assert.IsNotType<ReturnsSymbol>(lexed);
+        Assert.IsNotType<Returns>(lexed);
     }
 
     [Fact(DisplayName = "no data")]

@@ -15,10 +15,10 @@ internal abstract class CompositeSyntax : Syntax
     protected internal Syntax value;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1> : CompositeSyntax, Compiler.IParsable<T>
-    where T : CompositeSyntax, Compiler.IParsable<T>, new()
-    where T0 : Syntax, Compiler.IParsable<T0>
-    where T1 : Syntax, Compiler.IParsable<T1>
+internal abstract class CompositeSyntax<T, T0, T1> : CompositeSyntax, IParsableSyntax<T>
+    where T : CompositeSyntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
 {
     public static T Parse(ref Parser context)
     {
@@ -35,11 +35,11 @@ internal abstract class CompositeSyntax<T, T0, T1> : CompositeSyntax, Compiler.I
     public static implicit operator T1(CompositeSyntax<T, T0, T1> value) => value.value as T1;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>, Compiler.IParsable<T>
-    where T : CompositeSyntax, Compiler.IParsable<T>, new()
-    where T0 : Syntax, Compiler.IParsable<T0>
-    where T1 : Syntax, Compiler.IParsable<T1>
-    where T2 : Syntax, Compiler.IParsable<T2>
+internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>, IParsableSyntax<T>
+    where T : CompositeSyntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
 {
     public static new T Parse(ref Parser context)
     {
@@ -57,12 +57,12 @@ internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, 
     public static implicit operator T2(CompositeSyntax<T, T0, T1, T2> value) => value.value as T2;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3> : CompositeSyntax<T, T0, T1, T2>, Compiler.IParsable<T>
-    where T : CompositeSyntax, Compiler.IParsable<T>, new()
-    where T0 : Syntax, Compiler.IParsable<T0>
-    where T1 : Syntax, Compiler.IParsable<T1>
-    where T2 : Syntax, Compiler.IParsable<T2>
-    where T3 : Syntax, Compiler.IParsable<T3>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3> : CompositeSyntax<T, T0, T1, T2>, IParsableSyntax<T>
+    where T : CompositeSyntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
+    where T3 : Syntax, IParsableSyntax<T3>
 {
     public static new T Parse(ref Parser context)
     {
@@ -80,13 +80,13 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3> : CompositeSyntax<T, 
     public static implicit operator T3(CompositeSyntax<T, T0, T1, T2, T3> value) => value.value as T3;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4> : CompositeSyntax<T, T0, T1, T2, T3>, Compiler.IParsable<T>
-    where T : CompositeSyntax, Compiler.IParsable<T>, new()
-    where T0 : Syntax, Compiler.IParsable<T0>
-    where T1 : Syntax, Compiler.IParsable<T1>
-    where T2 : Syntax, Compiler.IParsable<T2>
-    where T3 : Syntax, Compiler.IParsable<T3>
-    where T4 : Syntax, Compiler.IParsable<T4>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4> : CompositeSyntax<T, T0, T1, T2, T3>, IParsableSyntax<T>
+    where T : CompositeSyntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
+    where T3 : Syntax, IParsableSyntax<T3>
+    where T4 : Syntax, IParsableSyntax<T4>
 {
     public static new T Parse(ref Parser context)
     {
@@ -104,14 +104,14 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4> : CompositeSyntax
     public static implicit operator T4(CompositeSyntax<T, T0, T1, T2, T3, T4> value) => value.value as T4;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5> : CompositeSyntax<T, T0, T1, T2, T3, T4>, Compiler.IParsable<T>
-    where T : CompositeSyntax, Compiler.IParsable<T>, new()
-    where T0 : Syntax, Compiler.IParsable<T0>
-    where T1 : Syntax, Compiler.IParsable<T1>
-    where T2 : Syntax, Compiler.IParsable<T2>
-    where T3 : Syntax, Compiler.IParsable<T3>
-    where T4 : Syntax, Compiler.IParsable<T4>
-    where T5 : Syntax, Compiler.IParsable<T5>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5> : CompositeSyntax<T, T0, T1, T2, T3, T4>, IParsableSyntax<T>
+    where T : CompositeSyntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
+    where T3 : Syntax, IParsableSyntax<T3>
+    where T4 : Syntax, IParsableSyntax<T4>
+    where T5 : Syntax, IParsableSyntax<T5>
 {
     public static new T Parse(ref Parser context)
     {
@@ -129,15 +129,15 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5> : CompositeSy
     public static implicit operator T5(CompositeSyntax<T, T0, T1, T2, T3, T4, T5> value) => value.value as T5;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5>, Compiler.IParsable<T>
-    where T : CompositeSyntax, Compiler.IParsable<T>, new()
-    where T0 : Syntax, Compiler.IParsable<T0>
-    where T1 : Syntax, Compiler.IParsable<T1>
-    where T2 : Syntax, Compiler.IParsable<T2>
-    where T3 : Syntax, Compiler.IParsable<T3>
-    where T4 : Syntax, Compiler.IParsable<T4>
-    where T5 : Syntax, Compiler.IParsable<T5>
-    where T6 : Syntax, Compiler.IParsable<T6>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5>, IParsableSyntax<T>
+    where T : CompositeSyntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
+    where T3 : Syntax, IParsableSyntax<T3>
+    where T4 : Syntax, IParsableSyntax<T4>
+    where T5 : Syntax, IParsableSyntax<T5>
+    where T6 : Syntax, IParsableSyntax<T6>
 {
     public static new T Parse(ref Parser context)
     {
@@ -155,16 +155,16 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> : Composi
     public static implicit operator T6(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6> value) => value.value as T6;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6>, Compiler.IParsable<T>
-    where T : CompositeSyntax, Compiler.IParsable<T>, new()
-    where T0 : Syntax, Compiler.IParsable<T0>
-    where T1 : Syntax, Compiler.IParsable<T1>
-    where T2 : Syntax, Compiler.IParsable<T2>
-    where T3 : Syntax, Compiler.IParsable<T3>
-    where T4 : Syntax, Compiler.IParsable<T4>
-    where T5 : Syntax, Compiler.IParsable<T5>
-    where T6 : Syntax, Compiler.IParsable<T6>
-    where T7 : Syntax, Compiler.IParsable<T7>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6>, IParsableSyntax<T>
+    where T : CompositeSyntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
+    where T3 : Syntax, IParsableSyntax<T3>
+    where T4 : Syntax, IParsableSyntax<T4>
+    where T5 : Syntax, IParsableSyntax<T5>
+    where T6 : Syntax, IParsableSyntax<T6>
+    where T7 : Syntax, IParsableSyntax<T7>
 {
     public static new T Parse(ref Parser context)
     {
@@ -182,17 +182,17 @@ internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> : Com
     public static implicit operator T7(CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7> value) => value.value as T7;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7>, Compiler.IParsable<T>
-    where T : CompositeSyntax, Compiler.IParsable<T>, new()
-    where T0 : Syntax, Compiler.IParsable<T0>
-    where T1 : Syntax, Compiler.IParsable<T1>
-    where T2 : Syntax, Compiler.IParsable<T2>
-    where T3 : Syntax, Compiler.IParsable<T3>
-    where T4 : Syntax, Compiler.IParsable<T4>
-    where T5 : Syntax, Compiler.IParsable<T5>
-    where T6 : Syntax, Compiler.IParsable<T6>
-    where T7 : Syntax, Compiler.IParsable<T7>
-    where T8 : Syntax, Compiler.IParsable<T8>
+internal abstract class CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7, T8> : CompositeSyntax<T, T0, T1, T2, T3, T4, T5, T6, T7>, IParsableSyntax<T>
+    where T : CompositeSyntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
+    where T3 : Syntax, IParsableSyntax<T3>
+    where T4 : Syntax, IParsableSyntax<T4>
+    where T5 : Syntax, IParsableSyntax<T5>
+    where T6 : Syntax, IParsableSyntax<T6>
+    where T7 : Syntax, IParsableSyntax<T7>
+    where T8 : Syntax, IParsableSyntax<T8>
 {
     public static new T Parse(ref Parser context)
     {

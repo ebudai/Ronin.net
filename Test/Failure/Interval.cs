@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -17,11 +18,11 @@ public class Interval
             new Word(),
             new Word(),
             new Word(),
-            new TerminalSymbol()
+            new Terminal()
         };
         
         Parser parser = new(tokens);
-        var ordinal = IntervalSyntax.Parse(ref parser);
+        var ordinal = Ronin.Grammar.Interval.Parse(ref parser);
 
         Assert.Null(ordinal);
     }

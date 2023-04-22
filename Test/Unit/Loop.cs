@@ -1,6 +1,9 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -14,27 +17,27 @@ public class Loop
 
         Token[] tokens =
         {
-            new ForEachKeyword(),
+            new ForEach(),
             new Word(),
             new Word(),
             new Word(),
-            new OpenBraceSymbol(),
+            new OpenBrace(),
             new Word(),
             new Word(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var loop = LoopSyntax.Parse(ref parser);
+        var loop = Ronin.Grammar.Loop.Parse(ref parser);
 
         Assert.Equal(3, loop?.Header?.Name?.Source.Length);
         
         Assert.Single(loop.Body?.Values);
-        AssignmentSyntax assignment = loop.Body.Values[0];
+        Ronin.Grammar.Assignment assignment = loop.Body.Values[0];
         Assert.NotNull(assignment);
     }
 
@@ -45,25 +48,25 @@ public class Loop
         
         Token[] tokens =
         {
-            new ForEachKeyword(),
-            new VariableKeyword(),
+            new ForEach(),
+            new Variable(),
             new Word(),
-            new ReturnsSymbol(),
-            new Word(),
-            new Word(),
+            new Returns(),
             new Word(),
             new Word(),
-            new OpenBraceSymbol(),
             new Word(),
-            new PlusSymbol(),
-            new PlusSymbol(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Word(),
+            new OpenBrace(),
+            new Word(),
+            new Plus(),
+            new Plus(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var loop = LoopSyntax.Parse(ref parser);
+        var loop = Ronin.Grammar.Loop.Parse(ref parser);
 
         Assert.NotNull(loop?.Header?.Datatype);
     }

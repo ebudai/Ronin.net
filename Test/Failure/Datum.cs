@@ -1,27 +1,29 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
 [Trait("Parser", null)]
 public class Datum
 {
-    [Fact(DisplayName = $"{ReactiveKeyword.keyword} before name")]
+    [Fact(DisplayName = $"{Reactive.keyword} before name")]
     public void ReturnsBeforeName()
     {
         // reactive => 44.3;
 
         Token[] tokens = 
         {
-            new ReactiveKeyword(),
-            new ReturnsSymbol(),
+            new Reactive(),
+            new Returns(),
             new NumberLiteral(),
-            new TerminalSymbol()
+            new Terminal()
         };
         
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
         
         Assert.Null(datum);
     }
@@ -33,13 +35,13 @@ public class Datum
 
         Token[] tokens = 
         {
-            new VariableKeyword(),
+            new Variable(),
             new NumberLiteral(),
-            new TerminalSymbol()
+            new Terminal()
         };
         
         Parser parser = new(tokens);
-        var datum = DatumDeclarationSyntax.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Parse(ref parser);
         
         Assert.Null(datum);
     }

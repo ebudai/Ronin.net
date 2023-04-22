@@ -1,6 +1,9 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -14,23 +17,23 @@ public class Function
 
         Token[] tokens =
         {
-            new FunctionKeyword(),
+            new Ronin.Lexicon.Keyword.Function(),
             new Word(),
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new CloseParenthesisSymbol(),
-            new OpenBraceSymbol(),
+            new CloseParenthesis(),
+            new OpenBrace(),
             new Word(),
             new NumberLiteral(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var function = FunctionDeclarationSyntax.Parse(ref parser);
+        var function = Ronin.Grammar.Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
 
@@ -40,7 +43,7 @@ public class Function
         }
 
         {
-            Ronin.Grammar.Aggregates.Parameters parameters = function.Identifier.Components[1];
+            Ronin.Grammar.Compound.Parameters parameters = function.Identifier.Components[1];
             
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
@@ -63,7 +66,7 @@ public class Function
         }
 
         {
-            LiteralSyntax scalar = line.Components[1];
+            Ronin.Grammar.Literal scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -75,28 +78,28 @@ public class Function
 
         Token[] tokens =
         {
-            new FunctionKeyword(),
+            new Ronin.Lexicon.Keyword.Function(),
             new Word(),
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new ReturnsSymbol(),
+            new Returns(),
             new Word(),
-            new CloseParenthesisSymbol(),
-            new ReturnsSymbol(),
-            new OptionalKeyword(),
+            new CloseParenthesis(),
+            new Returns(),
+            new Optional(),
             new Word(),
-            new OpenBraceSymbol(),
-            new Word(),
-            new Word(),
+            new OpenBrace(),
             new Word(),
             new Word(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Word(),
+            new Word(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var function = FunctionDeclarationSyntax.Parse(ref parser);
+        var function = Ronin.Grammar.Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);
 
@@ -106,7 +109,7 @@ public class Function
         }
 
         {
-            Ronin.Grammar.Aggregates.Parameters parameters = function.Identifier.Components[1];
+            Ronin.Grammar.Compound.Parameters parameters = function.Identifier.Components[1];
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
             Assert.Equal(1, parameter.Name?.Source.Length);
@@ -117,7 +120,7 @@ public class Function
         }
 
         Assert.Equal(1, function.Modifiers?.Source.Length);
-        Assert.IsType<OptionalKeyword>(function.Modifiers.Source.Span[0]);
+        Assert.IsType<Optional>(function.Modifiers.Source.Span[0]);
         
         Assert.Single(function.Returns?.Components);
         Ronin.Grammar.Name returns = function.Returns.Components[0];

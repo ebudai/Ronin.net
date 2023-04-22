@@ -1,5 +1,7 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -18,98 +20,98 @@ public class Symbol
     }
 
     [Fact(DisplayName = "terminal")]
-    public void LexTerminal() => LexSymbol<TerminalSymbol>(TerminalSymbol.symbol);
+    public void LexTerminal() => LexSymbol<Terminal>(Terminal.symbol);
 
     [Fact(DisplayName = "separator")]
-    public void LexSeparator() => LexSymbol<SeparatorSymbol>(SeparatorSymbol.symbol);
+    public void LexSeparator() => LexSymbol<Separator>(Separator.symbol);
 
     [Fact(DisplayName = "open brace")]
-    public void LexOpenBrace() => LexSymbol<OpenBraceSymbol>(OpenBraceSymbol.symbol);
+    public void LexOpenBrace() => LexSymbol<OpenBrace>(OpenBrace.symbol);
 
     [Fact(DisplayName = "open parenthesis")]
-    public void LexOpenParenthesis() => LexSymbol<OpenParenthesisSymbol>(OpenParenthesisSymbol.symbol);
+    public void LexOpenParenthesis() => LexSymbol<OpenParenthesis>(OpenParenthesis.symbol);
 
     [Fact(DisplayName = "open square bracket")]
-    public void LexOpenSquareBracket() => LexSymbol<OpenSquareBracketSymbol>(OpenSquareBracketSymbol.symbol);
+    public void LexOpenSquareBracket() => LexSymbol<OpenSquareBracket>(OpenSquareBracket.symbol);
 
     [Fact(DisplayName = "close brace")]
-    public void LexCloseBrace() => LexSymbol<CloseBraceSymbol>(CloseBraceSymbol.symbol);
+    public void LexCloseBrace() => LexSymbol<CloseBrace>(CloseBrace.symbol);
 
     [Fact(DisplayName = "close parenthesis")]
-    public void LexCloseParenthesis() => LexSymbol<CloseParenthesisSymbol>(CloseParenthesisSymbol.symbol);
+    public void LexCloseParenthesis() => LexSymbol<CloseParenthesis>(CloseParenthesis.symbol);
 
     [Fact(DisplayName = "close square bracket")]
-    public void LexCloseSquareBracket() => LexSymbol<CloseSquareBracketSymbol>(CloseSquareBracketSymbol.symbol);
+    public void LexCloseSquareBracket() => LexSymbol<CloseSquareBracket>(CloseSquareBracket.symbol);
 
     [Fact(DisplayName = "character delimiter")]
-    public void LexSingleQuote() => LexSymbol<CharacterDelimiterSymbol>(CharacterDelimiterSymbol.symbol);
+    public void LexSingleQuote() => LexSymbol<CharacterDelimiter>(CharacterDelimiter.symbol);
 
     [Fact(DisplayName = "text delimiter")]
-    public void LexDoubleQuote() => LexSymbol<TextDelimiterSymbol>(TextDelimiterSymbol.symbol);
+    public void LexDoubleQuote() => LexSymbol<TextDelimiter>(TextDelimiter.symbol);
 
     [Fact(DisplayName = "returns")]
-    public void LexReturns() => LexSymbol<ReturnsSymbol>(ReturnsSymbol.symbol);
+    public void LexReturns() => LexSymbol<Returns>(Returns.symbol);
 
     [Fact(DisplayName = "assign")]
-    public void LexAssign() => LexSymbol<AssignSymbol>(AssignSymbol.symbol);
+    public void LexAssign() => LexSymbol<Assign>(Assign.symbol);
 
     [Fact(DisplayName = "ampersand")]
-    public void LexAmpersand() => LexSymbol<AmpersandSymbol>(AmpersandSymbol.symbol);
+    public void LexAmpersand() => LexSymbol<Ampersand>(Ampersand.symbol);
 
     [Fact(DisplayName = "asterisk")]
-    public void LexAsterisk() => LexSymbol<AsteriskSymbol>(AsteriskSymbol.symbol);
+    public void LexAsterisk() => LexSymbol<Asterisk>(Asterisk.symbol);
 
     [Fact(DisplayName = "at")]
-    public void LexAt() => LexSymbol<AtSymbol>(AtSymbol.symbol);
+    public void LexAt() => LexSymbol<At>(At.symbol);
 
     [Fact(DisplayName = "backslash")]
-    public void LexBackslash() => LexSymbol<BackslashSymbol>(BackslashSymbol.symbol);
+    public void LexBackslash() => LexSymbol<Backslash>(Backslash.symbol);
 
     [Fact(DisplayName = "chevron")]
-    public void LexChevron() => LexSymbol<ChevronSymbol>(ChevronSymbol.symbol);
+    public void LexChevron() => LexSymbol<Chevron>(Chevron.symbol);
 
     [Fact(DisplayName = "colon")]
-    public void LexColon() => LexSymbol<ColonSymbol>(ColonSymbol.symbol);
+    public void LexColon() => LexSymbol<Colon>(Colon.symbol);
 
     [Fact(DisplayName = "dollar")]
-    public void LexDollar() => LexSymbol<DollarSymbol>(DollarSymbol.symbol);
+    public void LexDollar() => LexSymbol<Dollar>(Dollar.symbol);
 
     [Fact(DisplayName = "exclamation")]
-    public void LexExclamation() => LexSymbol<ExclamationSymbol>(ExclamationSymbol.symbol);
+    public void LexExclamation() => LexSymbol<Exclamation>(Exclamation.symbol);
 
     [Fact(DisplayName = "greater than")]
-    public void LexGreaterThan() => LexSymbol<GreaterThanSymbol>(GreaterThanSymbol.symbol);
+    public void LexGreaterThan() => LexSymbol<GreaterThan>(GreaterThan.symbol);
 
     [Fact(DisplayName = "less than")]
-    public void LexLessThan() => LexSymbol<LessThanSymbol>(LessThanSymbol.symbol);
+    public void LexLessThan() => LexSymbol<LessThan>(LessThan.symbol);
 
     [Fact(DisplayName = "minus")]
-    public void LexMinus() => LexSymbol<MinusSymbol>(MinusSymbol.symbol);
+    public void LexMinus() => LexSymbol<Minus>(Minus.symbol);
 
     [Fact(DisplayName = "percent")]
-    public void LexPercent() => LexSymbol<PercentSymbol>(PercentSymbol.symbol);
+    public void LexPercent() => LexSymbol<Percent>(Percent.symbol);
 
     [Fact(DisplayName = "pipe")]
-    public void LexPipe() => LexSymbol<PipeSymbol>(PipeSymbol.symbol);
+    public void LexPipe() => LexSymbol<Pipe>(Pipe.symbol);
 
     [Fact(DisplayName = "plus")]
-    public void LexPlus() => LexSymbol<PlusSymbol>(PlusSymbol.symbol);
+    public void LexPlus() => LexSymbol<Plus>(Plus.symbol);
 
     [Fact(DisplayName = "pound")]
-    public void LexPound() => LexSymbol<PoundSymbol>(PoundSymbol.symbol);
+    public void LexPound() => LexSymbol<Pound>(Pound.symbol);
 
     [Fact(DisplayName = "question")]
-    public void LexQuestion() => LexSymbol<QuestionSymbol>(QuestionSymbol.symbol);
+    public void LexQuestion() => LexSymbol<Question>(Question.symbol);
 
     [Fact(DisplayName = "slash")]
-    public void LexSlash() => LexSymbol<SlashSymbol>(SlashSymbol.symbol);
+    public void LexSlash() => LexSymbol<Slash>(Slash.symbol);
 
     [Fact(DisplayName = "tilde")]
-    public void LexTilde() => LexSymbol<TildeSymbol>(TildeSymbol.symbol);
+    public void LexTilde() => LexSymbol<Tilde>(Tilde.symbol);
 
     [Fact(DisplayName = "backtick")]
-    public void LexBacktick() => LexSymbol<BacktickSymbol>(BacktickSymbol.symbol);
+    public void LexBacktick() => LexSymbol<Backtick>(Backtick.symbol);
 
     [Fact(DisplayName = "period")]
-    public void LexPeriod() => LexSymbol<PeriodSymbol>(PeriodSymbol.symbol);
+    public void LexPeriod() => LexSymbol<Period>(Period.symbol);
 }

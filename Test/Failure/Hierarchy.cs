@@ -1,6 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
@@ -14,12 +16,12 @@ public class Hierarchy
 
         Token[] tokens =
         {
-            new PartOfKeyword(),
-            new TerminalSymbol()
+            new PartOf(),
+            new Terminal()
         };
 
         Parser parser = new(tokens);
-        var hierarchy = ImportExportSyntax.Parse(ref parser);
+        var hierarchy = ImportExport.Parse(ref parser);
 
         Assert.Null(hierarchy);
     }

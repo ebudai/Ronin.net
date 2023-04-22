@@ -1,5 +1,7 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -14,7 +16,7 @@ public class Name
         Token[] tokens = 
         {
             new Word(),
-            new PlusSymbol(),
+            new Plus(),
             new Word(),
             Sentinel.Instance
         };

@@ -1,7 +1,9 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -15,24 +17,24 @@ public class Lookup
 
         Token[] tokens = 
         {
-            new OpenBraceSymbol(),
+            new OpenBrace(),
             new TextLiteral(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
-            new CloseBraceSymbol(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var lookup = InlineLookupSyntax.Parse(ref parser);
+        var lookup = InlineLookup.Parse(ref parser);
 
         Assert.Single(lookup?.Values);
         var association = lookup.Values[0];
-        
-        LiteralSyntax key = association.Key;
+
+        Ronin.Grammar.Literal key = association.Key;
         Assert.Equal(1, key?.Source.Length);
 
-        LiteralSyntax value = association.Value;
+        Ronin.Grammar.Literal value = association.Value;
         Assert.Equal(1, value?.Source.Length);
     }
 
@@ -43,14 +45,14 @@ public class Lookup
 
         Token[] tokens =
         {
-            new VariableKeyword(),
+            new Variable(),
             new Word(),
-            new AssignSymbol(),
-            new OpenBraceSymbol(),
+            new Assign(),
+            new OpenBrace(),
             new TextLiteral(),
-            new AssignSymbol(),
+            new Assign(),
             new NumberLiteral(),
-            new CloseBraceSymbol(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
@@ -58,8 +60,8 @@ public class Lookup
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        DatumDeclarationSyntax datum = statements[0];
-        InlineLookupSyntax lookup = datum?.Initializer;
+        Ronin.Grammar.Datum datum = statements[0];
+        InlineLookup lookup = datum?.Initializer;
         Assert.NotNull(lookup);
     }
 }

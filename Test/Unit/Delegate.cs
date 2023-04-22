@@ -1,8 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-
-using DelegateSyntax = Ronin.Grammar.DelegateSyntax;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -17,20 +17,20 @@ public class Delegate
         Token[] tokens =
         {
             new Word(),
-            new ReturnsSymbol(),
-            new OpenBraceSymbol(),
+            new Returns(),
+            new OpenBrace(),
             new Word(),
             new NumberLiteral(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var @delegate = DelegateSyntax.Parse(ref parser);
+        var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
 
         Assert.Single(@delegate?.Data);
-        DatumDeclarationSyntax datum = @delegate.Data[0];
+        Ronin.Grammar.Datum datum = @delegate.Data[0];
         Assert.Equal(1, datum?.Name?.Source.Length);
 
         Assert.Single(@delegate.Body?.Values);
@@ -44,7 +44,7 @@ public class Delegate
         }
 
         {
-            LiteralSyntax scalar = line.Components[1];
+            Ronin.Grammar.Literal scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -56,24 +56,24 @@ public class Delegate
 
         Token[] tokens =
         {
-            new OpenParenthesisSymbol(),
+            new OpenParenthesis(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new CloseParenthesisSymbol(),
-            new ReturnsSymbol(),
-            new OpenBraceSymbol(),
+            new CloseParenthesis(),
+            new Returns(),
+            new OpenBrace(),
             new Word(),
             new NumberLiteral(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var @delegate = DelegateSyntax.Parse(ref parser);
+        var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
 
         Assert.Equal(3, @delegate?.Data?.Count);
 
@@ -92,7 +92,7 @@ public class Delegate
         }
 
         {
-            LiteralSyntax scalar = line.Components[1];
+            Ronin.Grammar.Literal scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -104,16 +104,16 @@ public class Delegate
 
         Token[] tokens =
         {
-            new OpenBraceSymbol(),
+            new OpenBrace(),
             new Word(),
             new NumberLiteral(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var @delegate = DelegateSyntax.Parse(ref parser);
+        var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
 
         Assert.Null(@delegate?.Data);
 
@@ -128,7 +128,7 @@ public class Delegate
         }
 
         {
-            LiteralSyntax scalar = line.Components[1];
+            Ronin.Grammar.Literal scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -140,14 +140,14 @@ public class Delegate
 
         Token[] tokens = 
         {
-            new ConstantKeyword(),
+            new Constant(),
             new Word(),
-            new AssignSymbol(),
-            new OpenBraceSymbol(),
+            new Assign(),
+            new OpenBrace(),
             new Word(),
             new NumberLiteral(),
-            new TerminalSymbol(),
-            new CloseBraceSymbol(),
+            new Terminal(),
+            new CloseBrace(),
             Sentinel.Instance
         };
         
@@ -155,8 +155,8 @@ public class Delegate
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        DatumDeclarationSyntax datum = statements[0];
-        DelegateSyntax @delegate = datum?.Initializer;
+        Ronin.Grammar.Datum datum = statements[0];
+        Ronin.Grammar.Delegate @delegate = datum?.Initializer;
         Assert.NotNull(@delegate);
     }
 }

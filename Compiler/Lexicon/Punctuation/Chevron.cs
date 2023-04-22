@@ -1,0 +1,17 @@
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
+
+namespace Ronin.Lexicon.Punctuation;
+
+internal class Chevron : Symbol
+{
+    public const char character = '^';
+    public const string symbol = "^";
+
+    public static new Chevron Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not character) return null;
+        return new Chevron { sourcecode = lexer.Commit(symbol.Length) };
+    }
+}

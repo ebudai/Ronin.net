@@ -1,6 +1,7 @@
 ﻿using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
 using System.Collections.Concurrent;
 
 namespace Ronin.Language;
@@ -22,8 +23,8 @@ internal class Module : Semantics
 
         foreach (var statement in statements)
         {
-            if (statement.value is not ImportExportSyntax syntax) continue;
-            if (syntax.Direction is not PartOfKeyword) continue;
+            if (statement.value is not ImportExport syntax) continue;
+            if (syntax.Direction is not PartOf) continue;
 
             if (named)
             {
@@ -52,8 +53,8 @@ internal class Module : Semantics
         {
             foreach (var statement in scope.Values)
             {
-                if (statement.value is not ImportExportSyntax syntax) continue;
-                if (syntax.Direction is not ImportKeyword) continue;
+                if (statement.value is not ImportExport syntax) continue;
+                if (syntax.Direction is not Import) continue;
                 var module = All.GetOrAdd(syntax.Name, _ => new UnresolvedModule());
                 Context.Add(module);
             }

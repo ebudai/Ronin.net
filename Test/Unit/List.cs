@@ -1,7 +1,9 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Grammar.Aggregates;
+using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -15,17 +17,17 @@ public class List
 
         Token[] tokens =
         {
-            new OpenBraceSymbol(),
+            new OpenBrace(),
             new NumberLiteral(),
-            new CloseBraceSymbol(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var list = InlineListSyntax.Parse(ref parser);
+        var list = InlineList.Parse(ref parser);
 
         Assert.Single(list?.Values);
-        LiteralSyntax scalar = list.Values[0];
+        Ronin.Grammar.Literal scalar = list.Values[0];
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -36,33 +38,33 @@ public class List
 
         Token[] tokens =
         {
-            new OpenBraceSymbol(),
+            new OpenBrace(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new NumberLiteral(),
-            new CloseBraceSymbol(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var list = InlineListSyntax.Parse(ref parser);
+        var list = InlineList.Parse(ref parser);
 
         Assert.Equal(3, list?.Values?.Count);
 
         {
-            LiteralSyntax scalar = list.Values[0];
+            Ronin.Grammar.Literal scalar = list.Values[0];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            LiteralSyntax scalar = list.Values[1];
+            Ronin.Grammar.Literal scalar = list.Values[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            LiteralSyntax scalar = list.Values[2];
+            Ronin.Grammar.Literal scalar = list.Values[2];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -74,16 +76,16 @@ public class List
 
         Token[] tokens =
         {
-            new VariableKeyword(),
+            new Variable(),
             new Word(),
-            new AssignSymbol(),
-            new OpenBraceSymbol(),
+            new Assign(),
+            new OpenBrace(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new NumberLiteral(),
-            new SeparatorSymbol(),
+            new Separator(),
             new Word(),
-            new CloseBraceSymbol(),
+            new CloseBrace(),
             Sentinel.Instance
         };
 
@@ -91,8 +93,8 @@ public class List
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        DatumDeclarationSyntax datum = statements[0];
-        InlineListSyntax list = datum?.Initializer;
+        Ronin.Grammar.Datum datum = statements[0];
+        InlineList list = datum?.Initializer;
         Assert.NotNull(list);
     }
 }

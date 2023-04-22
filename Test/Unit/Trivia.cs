@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
 
 namespace Unit;
@@ -15,12 +14,12 @@ public class Trivia
         Token[] tokens =
         {
             new Ronin.Lexicon.Whitespace(),
-            new TerminalSymbol(),
+            new Terminal(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var trivia = TriviaSyntax.Parse(ref parser);
+        var trivia = Ronin.Grammar.Trivia.Parse(ref parser);
         Assert.NotNull(trivia);
     }
 }
