@@ -2,8 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
-using Ronin.Lexicon.Punctuation;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -27,7 +25,7 @@ internal class Datatype : Syntax, IParsableSyntax<Datatype>
 
         if (parser.FailsToConsume<Lexicon.Keyword.Datatype>()) return null;
 
-        if (Grammar.Identifier.Parse(ref parser) is not Identifier identifier) return null;
+        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         Reference algebra = null;
         if (parser.CurrentToken is Assign)
@@ -45,15 +43,5 @@ internal class Datatype : Syntax, IParsableSyntax<Datatype>
             Body = body,
             Source = parser.Commit(ref context)
         };
-    }
-
-    public static Datatype Parse(string s, IFormatProvider provider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryParse([NotNullWhen(true)] string s, IFormatProvider provider, [MaybeNullWhen(false)] out Datatype result)
-    {
-        throw new NotImplementedException();
     }
 }
