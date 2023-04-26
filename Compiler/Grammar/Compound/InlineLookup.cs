@@ -27,13 +27,13 @@ internal class InlineLookup : Aggregate<InlineLookup, OpenBrace, InlineLookup.As
         public Value Key { get; init; }
         public Value Value { get; init; }
 
-        public static Association Parse(ref Parser context)
+        public static Association Parse(ref Parser current)
         {
-            Parser parser = context;
+            Parser parser = current;
 
             if (Value.Parse(ref parser) is not Value key) return null;
 
-            if (parser.FailsToConsume<Assign>()) return null;
+            if (parser.TryConsume<Assign>() is false) return null;
 
             if (Value.Parse(ref parser) is not Value value) return null;
 
@@ -41,7 +41,7 @@ internal class InlineLookup : Aggregate<InlineLookup, OpenBrace, InlineLookup.As
             {
                 Key = key,
                 Value = value,
-                Source = parser.Commit(ref context),
+                Source = parser.Commit(ref current),
             };
         }
     }

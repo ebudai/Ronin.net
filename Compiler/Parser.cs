@@ -3,16 +3,19 @@
 using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
+using System.Collections.Concurrent;
 
 namespace Ronin.Compiler;
 
 internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
 {
-    public static abstract T Parse(ref Parser context);
+    public static abstract T Parse(ref Parser current);
 }
 
 internal struct Parser
 {
+    public ConcurrentDictionary<Reference, Syntax> Context { get; } = new();
+
     public Parser(in ReadOnlyMemory<Token> tokens) => this.tokens = tokens;
 
     public Scope Parse()
@@ -23,7 +26,7 @@ internal struct Parser
         {
             if (Trivia.Parse(ref this) is not null) continue;
             statements.Add(Statement.Parse(ref this));
-            if (CurrentToken is Terminal) Advance();
+            if (Token is Terminal) Advance();
         }
 
         return new Scope { Values = statements, Source = tokens };
@@ -41,29 +44,29 @@ internal struct Parser
         return parsed;
     }
 
-    public bool FailsToConsume<T>() where T : Token
+    public bool TryConsume<T>() where T : Token
     {
-        var consumed = CurrentToken is T;
+        var consumed = Token is T;
         if (consumed) Advance();
-        return consumed is false;
+        return consumed;
     }
 
-    public ref readonly Token CurrentToken => ref tokens.Span[cursor];
+    public ref readonly Token Token => ref tokens.Span[cursor];
     public ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
 
-    public readonly ReadOnlySpan<Token> this[System.Range range] => tokens.Span[range];
+    public readonly ReadOnlySpan<Token> this[Range range] => tokens.Span[range];
 
-    public bool IsNotFinished => CurrentToken is not Sentinel;
+    public bool IsNotFinished => Token is not Sentinel;
 
     public void Advance()
     {
-        do ++cursor; while (CurrentToken is Trivium);
+        do ++cursor; while (Token is Trivium);
     }
 
-    public Token[] Commit(scoped ref Parser context)
+    public Token[] Commit(scoped ref Parser current)
     {
-        var tokens = context[context.cursor..cursor].ToArray();
-        context = this;
+        var tokens = current[current.cursor..cursor].ToArray();
+        current = this;
         return tokens;
     }
 

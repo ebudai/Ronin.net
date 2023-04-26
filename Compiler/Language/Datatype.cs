@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-#pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
 internal class Datatype : Semantics
 {
     public Identifier Identifier { get; init; }
@@ -15,7 +14,7 @@ internal class Datatype : Semantics
     public List<Datum> Data { get; } = new();
     public List<Function> Methods { get; } = new();
 
-    public List<Datatype> Parents { get; } = new();
+    public List<Datatype> BaseDatatypes { get; } = new();
     public List<Datatype> Unions { get; } = new();
 
     public Datatype() { }
@@ -24,23 +23,22 @@ internal class Datatype : Semantics
     {
         Source = declaration;
 
-        Identifier = new(declaration.Identifier);
+        Identifier = declaration.Identifier;
 
         foreach (var statement in declaration.Body.Values)
         {
             switch (statement.value)
             {
-                case Grammar.Function: Methods.Add(new Function(statement));         break;
-                case Grammar.Datatype: InnerDatatypes.Add(new Datatype(statement));  break;
-                case Grammar.Datum: Data.Add(new Datum(statement));               break;
+                case Grammar.Function: Methods.Add(new Function(statement));            break;
+                case Grammar.Datatype: InnerDatatypes.Add(new Datatype(statement));     break;
+                case Grammar.Datum: Data.Add(new Datum(statement));                     break;
 
-                case ImportExport: Errors.Add(new DatatypeCannotJoinNamedScope { Statement = statement });                         break;
-                case Assignment: Errors.Add(new DatatypeDefinitionCannotContain<Assignment> { Statement = statement });    break;                
+                case ImportExport: Errors.Add(new DatatypeCannotJoinNamedScope { Statement = statement });                  break;
+                case Assignment: Errors.Add(new DatatypeDefinitionCannotContain<Assignment> { Statement = statement });     break;                
                 case Scope: Errors.Add(new DatatypeDefinitionCannotContain<Scope> { Statement = statement });               break;
-                case Interval: Errors.Add(new DatatypeDefinitionCannotContain<Interval> { Statement = statement });      break;
+                case Interval: Errors.Add(new DatatypeDefinitionCannotContain<Interval> { Statement = statement });         break;
                 
-                case Value value:
-                    Errors.Add(value.value switch
+                case Value value: Errors.Add(value.value switch
                 {
                     Literal => new DatatypeDefinitionCannotContain<Literal> { Statement = statement },
                     Arguments => new DatatypeDefinitionCannotContain<Arguments> { Statement = statement },
@@ -48,6 +46,7 @@ internal class Datatype : Semantics
                     InlineLookup => new DatatypeDefinitionCannotContain<InlineLookup> { Statement = statement },
                     Grammar.Delegate => new DatatypeDefinitionCannotContain<Grammar.Delegate> { Statement = statement },
                     Reference => new DatatypeDefinitionCannotContain<Reference> { Statement = statement },
+                    _ => new UnknownSyntaxError { Statement = statement }
                 }); break;
 
                 default: Errors.Add(new UnknownSyntaxError { Statement = statement }); break;

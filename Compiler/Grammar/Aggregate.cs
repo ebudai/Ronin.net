@@ -32,15 +32,15 @@ namespace Ronin.Grammar;
 internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsableSyntax<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
     where TOpen : Open
-    where TElement : IParsableSyntax<TElement>
-    where TSeparator : Symbol
+    where TElement : Syntax, IParsableSyntax<TElement>
+    where TSeparator : BreakingSymbol
     where TClose : Close
 {
-    public static T Parse(ref Parser context)
+    public static T Parse(ref Parser current)
     {
-        if (context.CurrentToken is not TOpen) return null;
+        if (current.Token is not TOpen) return null;
 
-        Parser parser = context;
+        Parser parser = current;
         List<TElement> values = new();
         parser.Advance();
 
@@ -49,14 +49,14 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Synt
             var syntax = TElement.Parse(ref parser);
             if (syntax is null)
             {
-                if (parser.FailsToConsume<TClose>()) return null;
+                if (parser.TryConsume<TClose>() is false) return null;
                 break;
             }
             values.Add(syntax);
-            if (parser.CurrentToken is TSeparator) parser.Advance();
+            if (parser.Token is TSeparator) parser.Advance();
         }
 
-        return new T { Values = values, Source = parser.Commit(ref context) };
+        return new T { Values = values, Source = parser.Commit(ref current) };
     }
 
     protected internal List<TElement> Values;

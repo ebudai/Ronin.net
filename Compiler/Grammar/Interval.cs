@@ -9,13 +9,13 @@ internal class Interval : Syntax, IParsableSyntax<Interval>
     public Value Start { get; init; }
     public Value End { get; init; }
     
-    public static Interval Parse(ref Parser context)
+    public static Interval Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
         var start = Value.Parse(ref parser);
 
-        if (parser.FailsToConsume<Lexicon.Punctuation.Range>()) return null;
+        if (parser.TryConsume<Lexicon.Punctuation.Range>() is false) return null;
 
         var end = Value.Parse(ref parser);
 
@@ -23,7 +23,7 @@ internal class Interval : Syntax, IParsableSyntax<Interval>
         {
             Start = start,
             End = end,
-            Source = parser.Commit(ref context)
+            Source = parser.Commit(ref current)
         };
     }
 }

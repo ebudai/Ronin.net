@@ -14,14 +14,14 @@ internal class Identifier : Syntax, Compiler.IParsableSyntax<Identifier>
 {
     public List<Component> Components { get; init; }
 
-    public static Identifier Parse(ref Parser context)
+    public static Identifier Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
 
-        return new Identifier { Components = components, Source = parser.Commit(ref context) };
+        return new Identifier { Components = components, Source = parser.Commit(ref current) };
     }
 
     public class Component : CompositeSyntax<Component, Name, Parameters> { }

@@ -12,11 +12,11 @@ internal class Loop : Syntax, IParsableSyntax<Loop>
     public Reference List { get; init; }
     public Scope Body { get; init; }
 
-    public static Loop Parse(ref Parser context)
+    public static Loop Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
-        if (parser.FailsToConsume<ForEach>()) return null;
+        if (parser.TryConsume<ForEach>() is false) return null;
 
         if (Datum.Parse(ref parser) is not Datum header) return null;
 
@@ -29,7 +29,7 @@ internal class Loop : Syntax, IParsableSyntax<Loop>
             Header = header,
             List = list,
             Body = body,
-            Source = parser.Commit(ref context)
+            Source = parser.Commit(ref current)
         };
     }
 }

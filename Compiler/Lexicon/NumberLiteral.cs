@@ -26,11 +26,12 @@ internal partial class NumberLiteral : Literal
         if (match.Success) return new NumberLiteral { sourcecode = lexer.Commit(match.Length) };
 
         match = NumbersWithoutCommas().Match(number);
-        return new NumberLiteral{ sourcecode = lexer.Commit(match.Length) };
+        return new NumberLiteral { sourcecode = lexer.Commit(match.Length) };
     }
 
-    [GeneratedRegex("\\d+([.]\\d+)?", options)] private static partial Regex NumbersWithoutCommas();
-    [GeneratedRegex("\\d{1,3}(,\\d{3})+([.]\\d+)?", options)] private static partial Regex NumbersWithCommas();
-
-    private const RegexOptions options = RegexOptions.Compiled | RegexOptions.Singleline;
+    [GeneratedRegex("\\d+([.]\\d+)?", RegexOptions.Compiled | RegexOptions.Singleline)] 
+    private static partial Regex NumbersWithoutCommas();
+    
+    [GeneratedRegex("\\d{1,3}(,\\d{3})+([.]\\d+)?", RegexOptions.Compiled | RegexOptions.Singleline)] 
+    private static partial Regex NumbersWithCommas();
 }

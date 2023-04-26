@@ -4,8 +4,6 @@ using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keyword;
-using System.Collections.Generic;
-using static Ronin.Language.Identifier;
 
 namespace Ronin.Grammar;
 
@@ -43,12 +41,12 @@ internal class ImportExport : Syntax, IParsableSyntax<ImportExport>
         }
     }
 
-    public static ImportExport Parse(ref Parser context)
+    public static ImportExport Parse(ref Parser current)
     {
-        var direction = context.CurrentToken is PartOf or Import ? context.CurrentToken as Reserved : null;
+        var direction = current.Token is PartOf or Import ? current.Token as Reserved : null;
         if (direction is null) return null;
 
-        Parser parser = context;
+        Parser parser = current;
         parser.Advance();
 
         var components = parser.ParseRepeating<Component>();
@@ -58,7 +56,7 @@ internal class ImportExport : Syntax, IParsableSyntax<ImportExport>
         {
             Direction = direction,
             Components = components,
-            Source = parser.Commit(ref context) 
+            Source = parser.Commit(ref current) 
         };
     }
 

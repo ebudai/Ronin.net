@@ -10,20 +10,20 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Name : Syntax, IParsableSyntax<Name>
 {
-    public static Name Parse(ref Parser context)
+    public static Name Parse(ref Parser current)
     {
-        if (context.CurrentToken is Reserved or BreakingSymbol) return null;
+        if (current.Token is Reserved or BreakingSymbol) return null;
 
-        Parser parser = context;
+        Parser parser = current;
 
         while (parser.IsNotFinished)
         {
-            if (parser.CurrentToken is not Word and not Symbol or BreakingSymbol) break;
+            if (parser.Token is not Word and not Symbol or BreakingSymbol) break;
             parser.Advance();
         }
 
-        if (context.CurrentToken == parser.CurrentToken) return null;
+        if (current.Token == parser.Token) return null;
 
-        return new Name { Source = parser.Commit(ref context) };
+        return new Name { Source = parser.Commit(ref current) };
     }
 }

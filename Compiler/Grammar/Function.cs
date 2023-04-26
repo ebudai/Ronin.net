@@ -16,17 +16,17 @@ internal class Function : Syntax, IParsableSyntax<Function>
     public Reference Returns { get; init; }
     public Scope Body { get; init; }
 
-    public static Function Parse(ref Parser context)
+    public static Function Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
-        if (parser.FailsToConsume<Lexicon.Keyword.Function>()) return null;
+        if (parser.TryConsume<Lexicon.Keyword.Function>() is false) return null;
 
         if (Grammar.Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         Modifiers modifiers = null;
         Reference returns = null;
-        if (parser.CurrentToken is Returns)
+        if (parser.Token is Returns)
         {
             parser.Advance();
             modifiers = Modifiers.Parse(ref parser);
@@ -41,7 +41,7 @@ internal class Function : Syntax, IParsableSyntax<Function>
             Modifiers = modifiers,
             Returns = returns,
             Body = body,
-            Source = parser.Commit(ref context)
+            Source = parser.Commit(ref current)
         };
     }
 }

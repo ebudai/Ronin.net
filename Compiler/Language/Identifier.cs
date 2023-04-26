@@ -3,7 +3,7 @@ using Ronin.Grammar.Compound;
 
 namespace Ronin.Language;
 
-#pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
+/*#pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
 internal class Identifier : Semantics
 {
     public List<IComponent> Components { get; init; } = new();
@@ -74,4 +74,4 @@ internal class Identifier : Semantics
             Arguments arguments => Count == arguments.Values.Count,
         };
     }
-}
+}*/

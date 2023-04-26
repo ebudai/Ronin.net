@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-#pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
 internal class Instruction : Semantics
 {
     public Instruction(Syntax syntax) => Source = syntax;
@@ -17,6 +16,7 @@ internal class Instruction : Semantics
         InlineLookup lookup => From(lookup.Values),
         Arguments arguments => From(arguments.Values),
         Reference reference => new() { new UnresolvedInstruction(reference) },
+        //_ => new() { new UnknownSyntaxError { Statement = value } },
     };
 
     public static List<Instruction> From(List<Value> values)

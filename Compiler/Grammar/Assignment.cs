@@ -5,7 +5,7 @@ using Ronin.Compiler;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     An assignment of a <see cref="Grammar.Temporary"/> to a <see cref="Datum"/> or <see cref="Parameter"/>
+///     Sets the current <see cref="Grammar.Value"/> of a <see cref="Datum"/>
 /// </summary>
 /// 
 /// <example>
@@ -13,16 +13,16 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Assignment : Syntax, IParsableSyntax<Assignment>
 {
-    public Reference Reference { get; init; }
+    public Datum Reference { get; init; }
     public Value Value { get; init; }
 
-    public static Assignment Parse(ref Parser context)
+    public static Assignment Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
-        if (Reference.Parse(ref parser) is not Reference reference) return null;
+        if (Grammar.Reference.Parse(ref parser) is not Reference reference) return null;
 
-        if (parser.FailsToConsume<Assign>()) return null;
+        if (parser.TryConsume<Assign>() is false) return null;
 
         if (Value.Parse(ref parser) is not Value value) return null;
 
@@ -30,7 +30,7 @@ internal class Assignment : Syntax, IParsableSyntax<Assignment>
         {
             Reference = reference,
             Value = value,
-            Source = parser.Commit(ref context),
+            Source = parser.Commit(ref current),
         };
     }
 }

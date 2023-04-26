@@ -23,9 +23,9 @@ internal class Delegate : Syntax, IParsableSyntax<Delegate>
     public List<Datum> Data { get; init; }
     public Scope Body { get; init; }
 
-    public static Delegate Parse(ref Parser context)
+    public static Delegate Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
         List<Datum> data;
         var datum = Datum.Parse(ref parser);
@@ -33,7 +33,7 @@ internal class Delegate : Syntax, IParsableSyntax<Delegate>
         {
             var parameters = Parameters.Parse(ref parser);
             data = parameters?.Values;
-            if (data is not null && parser.FailsToConsume<Returns>()) return null;
+            if (data is not null && parser.TryConsume<Returns>() is false) return null;
         }
         else
         {
@@ -47,7 +47,7 @@ internal class Delegate : Syntax, IParsableSyntax<Delegate>
         {
             Data = data,
             Body = body,
-            Source = parser.Commit(ref context)
+            Source = parser.Commit(ref current)
         };
     }
 }

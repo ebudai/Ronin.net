@@ -10,9 +10,9 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
     public List<Component> Components { get; init; }
     public Ordinal Ordinal { get; init; }
 
-    public static Reference Parse(ref Parser context)
+    public static Reference Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
@@ -24,7 +24,7 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
         {
             Components = components,
             Ordinal = ordinal,
-            Source = parser.Commit(ref context)
+            Source = parser.Commit(ref current)
         };
     }
 

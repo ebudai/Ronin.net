@@ -22,7 +22,7 @@ internal class Function : Semantics
 
     public Function(Grammar.Function function)
     {
-        Identifier = new(function.Identifier);
+        Identifier = function.Identifier;
 
         ReturnDatatype = new UnresolvedDatatype(function.Returns);
 

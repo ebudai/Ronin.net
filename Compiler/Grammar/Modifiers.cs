@@ -7,18 +7,18 @@ namespace Ronin.Grammar;
 
 internal class Modifiers : Syntax, Compiler.IParsableSyntax<Modifiers>
 {
-    public static Modifiers Parse(ref Parser context)
+    public static Modifiers Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
         
         while (parser.IsNotFinished)
         {
-            if (parser.CurrentToken is not Compiled and not Persistent and not Shared and not Optional) break;
+            if (parser.Token is not Compiled and not Persistent and not Shared and not Optional) break;
             parser.Advance();
         }
 
-        if (context.CurrentToken == parser.CurrentToken) return null;
+        if (current.Token == parser.Token) return null;
 
-        return new Modifiers { Source = parser.Commit(ref context) };
+        return new Modifiers { Source = parser.Commit(ref current) };
     }
 }

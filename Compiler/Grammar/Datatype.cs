@@ -6,8 +6,8 @@ using Ronin.Grammar.Compound;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Restricts a <see cref="Datum"/> or the <see cref="Temporary"/> 
-///     resulting from evaluation of a <see cref="Function"/> to a specific type of data
+///     Restricts a <see cref="Datum"/> to a particular shape of data
+///     resulting from evaluation of a <see cref="Function"/> or <see cref="Datum"/>
 /// </summary>
 /// 
 /// <example>
@@ -19,16 +19,16 @@ internal class Datatype : Syntax, IParsableSyntax<Datatype>
     public Reference Algebra { get; init; }
     public Scope Body { get; init; }
 
-    public static Datatype Parse(ref Parser context)
+    public static Datatype Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
-        if (parser.FailsToConsume<Lexicon.Keyword.Datatype>()) return null;
+        if (parser.TryConsume<Lexicon.Keyword.Datatype>() is false) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         Reference algebra = null;
-        if (parser.CurrentToken is Assign)
+        if (parser.Token is Assign)
         {
             parser.Advance();
             algebra = Reference.Parse(ref parser);
@@ -41,7 +41,7 @@ internal class Datatype : Syntax, IParsableSyntax<Datatype>
             Identifier = identifier,
             Algebra = algebra,
             Body = body,
-            Source = parser.Commit(ref context)
+            Source = parser.Commit(ref current)
         };
     }
 }

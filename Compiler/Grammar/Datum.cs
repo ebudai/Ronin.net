@@ -17,6 +17,9 @@ namespace Ronin.Grammar;
 ///         var floors => number;
 ///         ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 ///     }
+///     
+///     function do stuff(x => number, y => date) { }
+///                       ↑↑↑↑↑↑↑↑↑↑↑  ↑↑↑↑↑↑↑↑↑
 /// </example>
 internal class Datum : Syntax, IParsableSyntax<Datum>
 {
@@ -26,18 +29,18 @@ internal class Datum : Syntax, IParsableSyntax<Datum>
     public Reference Datatype { get; init; }
     public Value Initializer { get; init; }
 
-    public static Datum Parse(ref Parser context)
+    public static Datum Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
-        var mutator = parser.CurrentToken is Variable or Constant or Reactive ? parser.CurrentToken as Reserved : null;
+        var mutator = parser.Token is Variable or Constant or Reactive ? parser.Token as Reserved : null;
         if (mutator is not null) parser.Advance();
 
         if (Name.Parse(ref parser) is not Name name) return null;
 
         Modifiers modifiers = null;
         Reference datatype = null;
-        if (parser.CurrentToken is Returns)
+        if (parser.Token is Returns)
         {
             parser.Advance();
             modifiers = Modifiers.Parse(ref parser);
@@ -45,7 +48,7 @@ internal class Datum : Syntax, IParsableSyntax<Datum>
         }
 
         Value initializer = null;
-        if (parser.CurrentToken is Assign)
+        if (parser.Token is Assign)
         {
             parser.Advance();
             initializer = Value.Parse(ref parser);
@@ -58,7 +61,7 @@ internal class Datum : Syntax, IParsableSyntax<Datum>
             Is = modifiers,
             Datatype = datatype,
             Initializer = initializer,
-            Source = parser.Commit(ref context)
+            Source = parser.Commit(ref current)
         };
     }
 }

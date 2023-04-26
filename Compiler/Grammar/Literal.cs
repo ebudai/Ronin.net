@@ -7,18 +7,18 @@ namespace Ronin.Grammar;
 
 internal class Literal : Syntax, IParsableSyntax<Literal>
 {
-    public static Literal Parse(ref Parser context)
+    public static Literal Parse(ref Parser current)
     {
-        Parser parser = context;
+        Parser parser = current;
 
         while (parser.IsNotFinished)
         {            
-            if (parser.CurrentToken is not Lexicon.Literal) break;
+            if (parser.Token is not Lexicon.Literal) break;
             parser.Advance();
         }
 
-        if (parser.CurrentToken == context.CurrentToken) return null;
+        if (parser.Token == current.Token) return null;
 
-        return new Literal { Source = parser.Commit(ref context) };
+        return new Literal { Source = parser.Commit(ref current) };
     }
 }
