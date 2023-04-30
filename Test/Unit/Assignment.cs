@@ -1,7 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
 
 namespace Unit;
 
@@ -29,7 +27,7 @@ public class Assignment
         Ronin.Grammar.Name name = assignment.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
-        Ronin.Grammar.Literal scalar = assignment.Value;
+        var scalar = assignment.Value as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -53,7 +51,7 @@ public class Assignment
         Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
-        Ronin.Grammar.Literal scalar = assignment.Value;
+        var scalar = assignment.Value as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

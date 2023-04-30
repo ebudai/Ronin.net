@@ -29,14 +29,14 @@ namespace Ronin.Grammar;
 /// <typeparam name="TClose">
 ///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Close"/>
 /// </typeparam>
-internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Syntax, IParsableSyntax<T>
+internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Anonymous, IParsableSyntax<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
     where TOpen : Open
     where TElement : Syntax, IParsableSyntax<TElement>
     where TSeparator : BreakingSymbol
     where TClose : Close
 {
-    public static T Parse(ref Parser current)
+    public new static T Parse(ref Parser current)
     {
         if (current.Token is not TOpen) return null;
 

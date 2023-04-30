@@ -31,7 +31,7 @@ public class Scope
 
         Assert.Single(scope?.Values);
 
-        Ronin.Grammar.Datum datum = scope.Values[0];
+        var datum = scope.Values[0] as Ronin.Grammar.Datum;
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -39,7 +39,7 @@ public class Scope
 
         Assert.Null(datum.Is);
 
-        Ronin.Grammar.Literal scalar = datum.Initializer;
+        var scalar = datum.Initializer as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

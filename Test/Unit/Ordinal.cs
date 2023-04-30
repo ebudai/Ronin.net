@@ -26,7 +26,7 @@ public class Ordinal
         var ordinal = Ronin.Grammar.Compound.Ordinal.Parse(ref parser);
 
         Assert.Single(ordinal?.Values);
-        Ronin.Grammar.Reference reference = ordinal.Values[0];
+        var reference = ordinal.Values[0] as Ronin.Grammar.Reference;
         Assert.Single(reference?.Components);
         Ronin.Grammar.Name name = reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
@@ -53,14 +53,14 @@ public class Ordinal
         Assert.Equal(2, ordinal?.Values?.Count);
 
         {            
-            Ronin.Grammar.Reference test = ordinal.Values[0];
+            var test = ordinal.Values[0] as Ronin.Grammar.Reference;
             Assert.Single(test?.Components);
             Ronin.Grammar.Name name = test.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Reference stuff = ordinal.Values[1];
+            var stuff = ordinal.Values[1] as Ronin.Grammar.Reference;
             Assert.Single(stuff?.Components);
             Ronin.Grammar.Name name = stuff.Components[0];
             Assert.Equal(1, name?.Source.Length);
@@ -108,17 +108,17 @@ public class Ordinal
         Assert.Equal(3, arguments?.Values?.Count);
 
         {
-            Ronin.Grammar.Literal scalar = arguments.Values[0];
+            var scalar = arguments.Values[0] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Literal scalar = arguments.Values[1];
+            var scalar = arguments.Values[1] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Reference reference = arguments.Values[2];
+            var reference = arguments.Values[2] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);

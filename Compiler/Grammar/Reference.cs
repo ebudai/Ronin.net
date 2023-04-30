@@ -5,12 +5,12 @@ using Ronin.Grammar.Compound;
 
 namespace Ronin.Grammar;
 
-internal class Reference : Syntax, IParsableSyntax<Reference>
+internal class Reference : Value, IParsableSyntax<Reference>
 {
     public List<Component> Components { get; init; }
     public Ordinal Ordinal { get; init; }
 
-    public static Reference Parse(ref Parser current)
+    public new static Reference Parse(ref Parser current)
     {
         Parser parser = current;
 
@@ -28,5 +28,5 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
         };
     }
 
-    public class Component : CompositeSyntax<Component, Name, Literal, Arguments> { }
+    public class Component : CompositeSyntax<Component, Name, Anonymous> { }
 }

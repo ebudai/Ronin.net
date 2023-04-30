@@ -15,10 +15,10 @@ internal class Context
 
         foreach (var module in imports)
         {
-            foreach (var part in module.Parts)
+            /*foreach (var part in module.Parts)
             {
                 found.AddRange(part.Context.Find(reference));
-            }
+            }*/
         }
 
         foreach (var datatype in datatypes)

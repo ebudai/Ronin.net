@@ -2,33 +2,31 @@
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keyword;
-using System.Collections.Concurrent;
 
 namespace Ronin.Language;
 
 internal class Module : Semantics
 {
-    public List<Part> Parts { get; } = new();
+    public static Dictionary<string, Module> All { get; } = new();
 
-    public List<Instruction> Instructions => Parts.SelectMany(static part => part.Instructions).ToList();
+    public Context Context { get; init; }
+    public List<Instruction> Instructions { get; init; } = new();    
 
-    public static ConcurrentDictionary<string, Module> All { get; } = new();
+    public Module(Scope scope) { }
 
-    public Module() { }
-
-    protected internal string GetName(List<Statement> statements)
+    public string GetName(List<Statement> statements)
     {
         string name = string.Empty;
-        bool named = false;
+        bool alreadyNamed = false;
 
         foreach (var statement in statements)
         {
-            if (statement.value is not ImportExport syntax) continue;
+            if (statement is not ImportExport syntax) continue;
             if (syntax.Direction is not PartOf) continue;
 
-            if (named)
+            if (alreadyNamed)
             {
-                Errors.Add(new ModuleAlreadyNamed());
+                Errors.Add(new ModuleAlreadyNamed { Statement = statement });
                 continue;
             }
 
@@ -41,13 +39,13 @@ internal class Module : Semantics
                 }
             }
 
-            named = true;
+            alreadyNamed = true;
         }
 
         return name is "" ? name : name[1..];
     }
 
-    public class Part
+    /*public class Part
     {
         public Part(Scope scope)
         {
@@ -60,12 +58,12 @@ internal class Module : Semantics
             }
         }
 
-        public Context Context { get; init; }
-        public List<Instruction> Instructions { get; init; } = new();
-    }
+        
+        
+    }*/
 }
 
-internal class UnresolvedModule : Module
+/*internal class UnresolvedModule : Module
 {
     public ConcurrentQueue<Scope> Scopes { get; } = new();
 
@@ -80,6 +78,6 @@ internal class UnresolvedModule : Module
         if (unresolved != module) module.Errors.AddRange(unresolved.Errors);
         return unresolved;
     }
-}
+}*/
 
 internal class ModuleAlreadyNamed : Error { }

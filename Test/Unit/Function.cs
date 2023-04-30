@@ -55,9 +55,8 @@ public class Function
         }
 
         Assert.Single(function.Body?.Values);
-        Value value = function.Body.Values[0];
-        Ronin.Grammar.Reference line = value;
-        
+        var line = function.Body.Values[0] as Ronin.Grammar.Reference;
+            
         Assert.Equal(2, line?.Components?.Count);
 
         {
@@ -66,7 +65,7 @@ public class Function
         }
 
         {
-            Ronin.Grammar.Literal scalar = line.Components[1];
+            Anonymous scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -127,8 +126,7 @@ public class Function
         Assert.Equal(1, returns?.Source.Length);
 
         Assert.Single(function.Body?.Values);
-        Value value = function.Body.Values[0];
-        Ronin.Grammar.Reference line = value;
+        var line = function.Body.Values[0] as Ronin.Grammar.Reference;
         Assert.Single(line?.Components);
         Ronin.Grammar.Name @return = line.Components[0];
         Assert.Equal(4, @return?.Source.Length);

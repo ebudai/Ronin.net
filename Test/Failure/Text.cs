@@ -56,7 +56,7 @@ public class Text
         Lexer lexer = new(literal);
         var lexed = lexer.Lex();
 
-        foreach (var lexeme in lexed) Assert.IsNotType<TextLiteral>(lexeme);
+        foreach (var lexeme in lexed.ToArray()) Assert.IsNotType<TextLiteral>(lexeme);
     }
 
     [Fact(DisplayName = "no data")]

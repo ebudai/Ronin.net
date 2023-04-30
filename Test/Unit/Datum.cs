@@ -230,7 +230,7 @@ public class Datum
 
         Assert.Null(datum.Datatype);
 
-        Ronin.Grammar.Reference reference = datum?.Initializer;
+        var reference = datum?.Initializer as Ronin.Grammar.Reference;
         Assert.Single(reference?.Components);
         Ronin.Grammar.Name name = reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
@@ -266,7 +266,7 @@ public class Datum
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
-        Ronin.Grammar.Literal scalar = datum.Initializer;
+        var scalar = datum.Initializer as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

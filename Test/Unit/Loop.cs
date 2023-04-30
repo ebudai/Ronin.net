@@ -37,7 +37,7 @@ public class Loop
         Assert.Equal(3, loop?.Header?.Name?.Source.Length);
         
         Assert.Single(loop.Body?.Values);
-        Ronin.Grammar.Assignment assignment = loop.Body.Values[0];
+        var assignment = loop.Body.Values[0] as Ronin.Grammar.Assignment;
         Assert.NotNull(assignment);
     }
 

@@ -9,14 +9,14 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Ordered grouping of instructions to execute when called
 /// </summary>
-internal class Function : Syntax, IParsableSyntax<Function>
+internal class Function : Statement, IParsableSyntax<Function>
 {
     public Identifier Identifier { get; init; }
     public Modifiers Modifiers { get; init; }
     public Reference Returns { get; init; }
     public Scope Body { get; init; }
 
-    public static Function Parse(ref Parser current)
+    public new static Function Parse(ref Parser current)
     {
         Parser parser = current;
 

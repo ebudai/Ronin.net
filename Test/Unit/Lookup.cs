@@ -31,10 +31,10 @@ public class Lookup
         Assert.Single(lookup?.Values);
         var association = lookup.Values[0];
 
-        Ronin.Grammar.Literal key = association.Key;
+        var key = association.Key as Ronin.Grammar.Literal;
         Assert.Equal(1, key?.Source.Length);
 
-        Ronin.Grammar.Literal value = association.Value;
+        var value = association.Value as Ronin.Grammar.Literal;
         Assert.Equal(1, value?.Source.Length);
     }
 
@@ -60,8 +60,8 @@ public class Lookup
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        Ronin.Grammar.Datum datum = statements[0];
-        InlineLookup lookup = datum?.Initializer;
+        var datum = statements[0] as Ronin.Grammar.Datum;
+        var lookup = datum?.Initializer as InlineLookup;
         Assert.NotNull(lookup);
     }
 }

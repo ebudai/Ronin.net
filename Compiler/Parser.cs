@@ -3,7 +3,6 @@
 using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using System.Collections.Concurrent;
 
 namespace Ronin.Compiler;
 
@@ -14,9 +13,12 @@ internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
 
 internal struct Parser
 {
-    public ConcurrentDictionary<Reference, Syntax> Context { get; } = new();
-
     public Parser(in ReadOnlyMemory<Token> tokens) => this.tokens = tokens;
+
+    public ref readonly Token Token => ref tokens.Span[cursor];
+    public ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
+
+    public readonly ReadOnlySpan<Token> this[Range range] => tokens.Span[range];
 
     public Scope Parse()
     {
@@ -51,10 +53,7 @@ internal struct Parser
         return consumed;
     }
 
-    public ref readonly Token Token => ref tokens.Span[cursor];
-    public ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
-
-    public readonly ReadOnlySpan<Token> this[Range range] => tokens.Span[range];
+    
 
     public bool IsNotFinished => Token is not Sentinel;
 

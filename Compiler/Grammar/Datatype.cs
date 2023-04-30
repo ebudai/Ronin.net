@@ -13,13 +13,13 @@ namespace Ronin.Grammar;
 /// <example>
 ///     datatype Car = Vehicle and { var speed => number; var price => money; }
 /// </example>
-internal class Datatype : Syntax, IParsableSyntax<Datatype>
+internal class Datatype : Statement, IParsableSyntax<Datatype>
 {
     public Identifier Identifier { get; init; }
     public Reference Algebra { get; init; }
     public Scope Body { get; init; }
 
-    public static Datatype Parse(ref Parser current)
+    public new static Datatype Parse(ref Parser current)
     {
         Parser parser = current;
 

@@ -27,25 +27,24 @@ internal class Datatype : Semantics
 
         foreach (var statement in declaration.Body.Values)
         {
-            switch (statement.value)
+            switch (statement)
             {
-                case Grammar.Function: Methods.Add(new Function(statement));            break;
-                case Grammar.Datatype: InnerDatatypes.Add(new Datatype(statement));     break;
-                case Grammar.Datum: Data.Add(new Datum(statement));                     break;
+                case Grammar.Function function: Methods.Add(new Function(function));            break;
+                case Grammar.Datatype datatype: InnerDatatypes.Add(new Datatype(datatype));     break;
+                case Grammar.Datum datum: Data.Add(new Datum(datum));                     break;
 
                 case ImportExport: Errors.Add(new DatatypeCannotJoinNamedScope { Statement = statement });                  break;
                 case Assignment: Errors.Add(new DatatypeDefinitionCannotContain<Assignment> { Statement = statement });     break;                
                 case Scope: Errors.Add(new DatatypeDefinitionCannotContain<Scope> { Statement = statement });               break;
-                case Interval: Errors.Add(new DatatypeDefinitionCannotContain<Interval> { Statement = statement });         break;
+                //case Interval: Errors.Add(new DatatypeDefinitionCannotContain<Interval> { Statement = statement });         break;
                 
-                case Value value: Errors.Add(value.value switch
+                case Anonymous value: Errors.Add(value switch
                 {
                     Literal => new DatatypeDefinitionCannotContain<Literal> { Statement = statement },
                     Arguments => new DatatypeDefinitionCannotContain<Arguments> { Statement = statement },
                     InlineList => new DatatypeDefinitionCannotContain<InlineList> { Statement = statement },
                     InlineLookup => new DatatypeDefinitionCannotContain<InlineLookup> { Statement = statement },
                     Grammar.Delegate => new DatatypeDefinitionCannotContain<Grammar.Delegate> { Statement = statement },
-                    Reference => new DatatypeDefinitionCannotContain<Reference> { Statement = statement },
                     _ => new UnknownSyntaxError { Statement = statement }
                 }); break;
 

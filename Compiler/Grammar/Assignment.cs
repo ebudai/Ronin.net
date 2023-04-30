@@ -5,26 +5,26 @@ using Ronin.Compiler;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Sets the current <see cref="Grammar.Value"/> of a <see cref="Datum"/>
+///     Sets the current <see cref="Grammar.Anonymous"/> of a <see cref="Datum"/>
 /// </summary>
 /// 
 /// <example>
 ///     x = 16;
 /// </example>
-internal class Assignment : Syntax, IParsableSyntax<Assignment>
+internal class Assignment : Statement, IParsableSyntax<Assignment>
 {
-    public Datum Reference { get; init; }
-    public Value Value { get; init; }
+    public Reference Reference { get; init; }
+    public Anonymous Value { get; init; }
 
-    public static Assignment Parse(ref Parser current)
+    public new static Assignment Parse(ref Parser current)
     {
         Parser parser = current;
 
-        if (Grammar.Reference.Parse(ref parser) is not Reference reference) return null;
+        if (Reference.Parse(ref parser) is not Reference reference) return null;
 
         if (parser.TryConsume<Assign>() is false) return null;
 
-        if (Value.Parse(ref parser) is not Value value) return null;
+        if (Anonymous.Parse(ref parser) is not Anonymous value) return null;
 
         return new Assignment
         {

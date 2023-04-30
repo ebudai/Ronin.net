@@ -9,14 +9,13 @@ internal class Instruction : Semantics
 {
     public Instruction(Syntax syntax) => Source = syntax;
 
-    public static List<Instruction> From(Value value) => value.value switch
+    public static List<Instruction> From(Anonymous value) => value switch
     {
-        Literal or Grammar.Delegate => new() { new Noop(value) },
+        Literal or Grammar.Delegate => new(),
         InlineList list => From(list.Values),
         InlineLookup lookup => From(lookup.Values),
         Arguments arguments => From(arguments.Values),
-        Reference reference => new() { new UnresolvedInstruction(reference) },
-        //_ => new() { new UnknownSyntaxError { Statement = value } },
+        //_ => new() { new UnknownSyntaxError { Statement = value.value } },
     };
 
     public static List<Instruction> From(List<Value> values)
@@ -24,8 +23,8 @@ internal class Instruction : Semantics
         List<Instruction> instructions = new();
         foreach (var value in values)
         {
-            if (value.value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
-            else instructions.Add(new Noop(value.value));
+
+            //if (value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
         }
         return instructions;
     }
@@ -35,8 +34,7 @@ internal class Instruction : Semantics
         List<Instruction> instructions = new();
         foreach (var association in associations)
         {
-            if (association.Value.value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
-            else instructions.Add(new Noop(association.Value.value));
+            //if (association.Value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
         }
         return instructions;
     }
@@ -45,9 +43,4 @@ internal class Instruction : Semantics
 internal class UnresolvedInstruction : Instruction
 {
     public UnresolvedInstruction(Reference reference) : base(reference) { }
-}
-
-internal class Noop : Instruction
-{
-    public Noop(Syntax syntax) : base(syntax) { }
 }

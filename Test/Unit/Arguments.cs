@@ -24,7 +24,7 @@ public class Arguments
         var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
 
         Assert.Single(arguments?.Values);
-        Ronin.Grammar.Reference reference = arguments.Values[0];
+        var reference = arguments.Values[0] as Ronin.Grammar.Reference;
         Assert.Single(reference?.Components);
         Ronin.Grammar.Name name = reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
@@ -51,14 +51,14 @@ public class Arguments
         Assert.Equal(2, arguments?.Values?.Count);
 
         {
-            Ronin.Grammar.Reference reference = arguments.Values[0];
+            var reference = arguments.Values[0] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Reference reference = arguments.Values[1];
+            var reference = arguments.Values[1] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
@@ -105,17 +105,17 @@ public class Arguments
         Assert.Equal(3, arguments?.Values?.Count);
         
         {
-            Ronin.Grammar.Literal scalar = arguments.Values[0];
+            var scalar = arguments.Values[0] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Literal scalar = arguments.Values[1];
+            var scalar = arguments.Values[1] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Reference reference = arguments.Values[2];
+            var reference = arguments.Values[2] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
@@ -151,33 +151,33 @@ public class Arguments
         Assert.Equal(3, arguments?.Values?.Count);
 
         {
-            Ronin.Grammar.Reference reference = arguments.Values[0];
+            var reference = arguments.Values[0] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
             Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Literal scalar = arguments.Values[1];
+            var scalar = arguments.Values[1] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Compound.Arguments subargs = arguments.Values[2];
+            var subargs = arguments.Values[2] as Ronin.Grammar.Compound.Arguments;
             Assert.Equal(3, subargs?.Values?.Count);
 
             {
-                Ronin.Grammar.Literal scalar = subargs?.Values[0];
+                var scalar = subargs?.Values[0] as Ronin.Grammar.Literal;
                 Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
-                Ronin.Grammar.Literal scalar = subargs?.Values[1];
+                var scalar = subargs?.Values[1] as Ronin.Grammar.Literal;
                 Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
-                Ronin.Grammar.Literal scalar = subargs?.Values[2];
+                var scalar = subargs?.Values[2] as Ronin.Grammar.Literal;
                 Assert.Equal(1, scalar?.Source.Length);
             }
         }

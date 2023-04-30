@@ -7,6 +7,7 @@ internal class SemanticAnalyzer
 {
     public static Module Analyze(Scope scope)
     {
-        return UnresolvedModule.From(scope);
+        //return Module.From(scope);
+        return null;
     }
 }

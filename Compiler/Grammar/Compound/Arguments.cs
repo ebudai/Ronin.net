@@ -5,11 +5,11 @@ using Ronin.Lexicon.Punctuation;
 namespace Ronin.Grammar.Compound;
 
 /// <summary>
-///     Aggregate of <see cref="Value"/>s intended for setting <see cref="Parameters"/>
+///     Aggregate of <see cref="Anonymous"/>s intended for setting <see cref="Parameters"/>
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Value"/>s between <see cref="OpenParenthesis"/> and <see cref="CloseParenthesis"/>
+///     <see cref="Separator"/>-separated <see cref="Anonymous"/>s between <see cref="OpenParenthesis"/> and <see cref="CloseParenthesis"/>
 /// </remarks>
 /// 
 /// <example>

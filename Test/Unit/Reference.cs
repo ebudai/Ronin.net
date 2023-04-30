@@ -35,14 +35,14 @@ public class Reference
         }
 
         {
-            Ronin.Grammar.Literal scalar = reference.Components[1];
+            Anonymous scalar = reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Compound.Arguments arguments = reference.Components[2];
+            var arguments = ((Anonymous)reference.Components[2]) as Ronin.Grammar.Compound.Arguments;
             Assert.Single(arguments?.Values);
-            Ronin.Grammar.Literal scalar = arguments.Values[0];
+            var scalar = arguments.Values[0] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
     }

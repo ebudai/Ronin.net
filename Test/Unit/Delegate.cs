@@ -30,12 +30,11 @@ public class Delegate
         var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
 
         Assert.Single(@delegate?.Data);
-        Ronin.Grammar.Datum datum = @delegate.Data[0];
+        var datum = @delegate.Data[0];
         Assert.Equal(1, datum?.Name?.Source.Length);
 
         Assert.Single(@delegate.Body?.Values);
-        Value value = @delegate.Body?.Values[0];
-        Ronin.Grammar.Reference line = value;
+        var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
         {
@@ -44,7 +43,46 @@ public class Delegate
         }
 
         {
-            Ronin.Grammar.Literal scalar = line.Components[1];
+            Anonymous scalar = line.Components[1];
+            Assert.Equal(1, scalar?.Source.Length);
+        }
+    }
+
+    [Fact(DisplayName = "one parameter typed")]
+    public void OneParameterTyped()
+    {
+        // (dave => money) => { return 3; }
+
+        Token[] tokens =
+        {
+            new Word(),
+            new Returns(),
+            new OpenBrace(),
+            new Word(),
+            new NumberLiteral(),
+            new Terminal(),
+            new CloseBrace(),
+            Sentinel.Instance
+        };
+
+        Parser parser = new(tokens);
+        var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
+
+        Assert.Single(@delegate?.Data);
+        var datum = @delegate.Data[0];
+        Assert.Equal(1, datum?.Name?.Source.Length);
+
+        Assert.Single(@delegate.Body?.Values);
+        var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
+        Assert.Equal(2, line.Components?.Count);
+
+        {
+            Ronin.Grammar.Name name = line.Components[0];
+            Assert.Equal(1, name?.Source.Length);
+        }
+
+        {
+            Anonymous scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -82,8 +120,7 @@ public class Delegate
         Assert.Equal(1, @delegate.Data[2]?.Name?.Source.Length);
 
         Assert.Single(@delegate.Body?.Values);
-        Value value = @delegate.Body?.Values[0];
-        Ronin.Grammar.Reference line = value;
+        var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
         {
@@ -92,7 +129,7 @@ public class Delegate
         }
 
         {
-            Ronin.Grammar.Literal scalar = line.Components[1];
+            Anonymous scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -100,10 +137,13 @@ public class Delegate
     [Fact(DisplayName = "no parameters")]
     public void NoParameters()
     {
-        // { return 3; }
+        // () => { return 3; }
 
         Token[] tokens =
         {
+            new OpenParenthesis(),
+            new CloseParenthesis(),
+            new Returns(),
             new OpenBrace(),
             new Word(),
             new NumberLiteral(),
@@ -115,11 +155,10 @@ public class Delegate
         Parser parser = new(tokens);
         var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
 
-        Assert.Null(@delegate?.Data);
+        Assert.Empty(@delegate?.Data);
 
         Assert.Single(@delegate?.Body?.Values);
-        Value value = @delegate.Body?.Values[0];
-        Ronin.Grammar.Reference line = value;
+        var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
         {
@@ -128,7 +167,7 @@ public class Delegate
         }
 
         {
-            Ronin.Grammar.Literal scalar = line.Components[1];
+            Anonymous scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -136,13 +175,16 @@ public class Delegate
     [Fact(DisplayName = "as value")]
     public void AsValue()
     {
-        // constant x = { return 3; }
+        // constant x = () => { return 3; }
 
         Token[] tokens = 
         {
             new Constant(),
             new Word(),
             new Assign(),
+            new OpenParenthesis(),
+            new CloseParenthesis(),
+            new Returns(),
             new OpenBrace(),
             new Word(),
             new NumberLiteral(),
@@ -155,8 +197,8 @@ public class Delegate
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        Ronin.Grammar.Datum datum = statements[0];
-        Ronin.Grammar.Delegate @delegate = datum?.Initializer;
+        var datum = statements[0] as Ronin.Grammar.Datum;
+        var @delegate = datum?.Initializer as Ronin.Grammar.Delegate;
         Assert.NotNull(@delegate);
     }
 }

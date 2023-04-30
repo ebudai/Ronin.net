@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 ///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
 /// 
-internal class ImportExport : Syntax, IParsableSyntax<ImportExport>
+internal class ImportExport : Statement, IParsableSyntax<ImportExport>
 {
     public Reserved Direction { get; init; }
     public List<Component> Components { get; init; }
@@ -41,7 +41,7 @@ internal class ImportExport : Syntax, IParsableSyntax<ImportExport>
         }
     }
 
-    public static ImportExport Parse(ref Parser current)
+    public new static ImportExport Parse(ref Parser current)
     {
         var direction = current.Token is PartOf or Import ? current.Token as Reserved : null;
         if (direction is null) return null;

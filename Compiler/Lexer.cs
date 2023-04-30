@@ -4,24 +4,27 @@ using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
 
-internal struct Lexer
+public struct Lexer
 {
     public Lexer(in string sourcecode) => this.sourcecode = sourcecode.AsMemory();
 
-    public IEnumerable<Token> Lex()
+    public ReadOnlyMemory<Token> Lex()
     {
+        List<Token> tokens = new(256);
         while (cursor < sourcecode.Length)
         {
             var token = Whitespace.Lex(ref this)
                 ?? Literal.Lex(ref this)
                 ?? Comment.Lex(ref this)
                 ?? Symbol.Lex(ref this)
-                ?? Reserved.Lex(ref this) as Token
-                ?? Word.Lex(ref this);
-            yield return token;
+                ?? Reserved.Lex(ref this)
+                ?? Word.Lex(ref this) as Token;
+            tokens.Add(token);
         }
 
-        yield return Sentinel.Instance;
+        tokens.Add(Sentinel.Instance);
+
+        return tokens.ToArray();
     }
 
     public ReadOnlyMemory<char> Commit(int length)

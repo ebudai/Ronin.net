@@ -5,9 +5,9 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Unknown : Syntax, IParsableSyntax<Unknown>
+internal class Unknown : Statement, IParsableSyntax<Unknown>
 {
-    public static Unknown Parse(ref Parser current)
+    public new static Unknown Parse(ref Parser current)
     {
         Parser parser = current;
 

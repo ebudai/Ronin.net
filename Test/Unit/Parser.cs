@@ -1,5 +1,4 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keyword;
 using Ronin.Lexicon.Punctuation;
@@ -123,33 +122,31 @@ public class Parsing
 
         Assert.Equal(9, statements?.Count);
 
-        Ronin.Grammar.ImportExport partof = statements[0];
+        var partof = statements[0] as Ronin.Grammar.ImportExport;
         Assert.NotNull(partof);
 
-        Ronin.Grammar.Datum datum = statements[1];
+        var datum = statements[1] as Ronin.Grammar.Datum;
         Assert.NotNull(datum);
 
-        Ronin.Grammar.Assignment assignment = statements[2];
+        var assignment = statements[2] as Ronin.Grammar.Assignment;
         Assert.NotNull(assignment);
 
-        Ronin.Grammar.Interval interval = statements[3];
+        var interval = statements[3] as Ronin.Grammar.Interval;
         Assert.NotNull(interval);
 
-        Ronin.Grammar.Function function = statements[4];
+        var function = statements[4] as Ronin.Grammar.Function;
         Assert.NotNull(function);
 
-        Ronin.Grammar.Datatype datatype = statements[5];
+        var datatype = statements[5] as Ronin.Grammar.Datatype;
         Assert.NotNull(datatype);
 
-        Ronin.Grammar.Value scalar_value = statements[6];
-        Ronin.Grammar.Literal scalar = scalar_value;
+        var scalar = statements[6] as Ronin.Grammar.Literal;
         Assert.NotNull(scalar);
 
-        Ronin.Grammar.Value arguments_value = statements[7];
-        Ronin.Grammar.Compound.Arguments arguments = arguments_value;
+        var arguments = statements[7] as Ronin.Grammar.Compound.Arguments;
         Assert.NotNull(arguments);
 
-        Ronin.Grammar.Compound.Scope scope = statements[8];
+        var scope = statements[8] as Ronin.Grammar.Compound.Scope;
         Assert.NotNull(scope);
     }
 }

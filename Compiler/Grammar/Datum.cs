@@ -21,7 +21,7 @@ namespace Ronin.Grammar;
 ///     function do stuff(x => number, y => date) { }
 ///                       ↑↑↑↑↑↑↑↑↑↑↑  ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Datum : Syntax, IParsableSyntax<Datum>
+internal class Datum : Statement, IParsableSyntax<Datum>
 {
     public Reserved Mutability { get; init; }
     public Modifiers Is { get; init; }
@@ -29,7 +29,7 @@ internal class Datum : Syntax, IParsableSyntax<Datum>
     public Reference Datatype { get; init; }
     public Value Initializer { get; init; }
 
-    public static Datum Parse(ref Parser current)
+    public new static Datum Parse(ref Parser current)
     {
         Parser parser = current;
 

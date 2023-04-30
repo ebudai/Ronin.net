@@ -4,20 +4,22 @@ using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
-internal class Interval : Syntax, IParsableSyntax<Interval>
+internal class Interval : Anonymous, IParsableSyntax<Interval>
 {
-    public Value Start { get; init; }
-    public Value End { get; init; }
+    public Component Start { get; init; }
+    public Component End { get; init; }
     
-    public static Interval Parse(ref Parser current)
+    public new static Interval Parse(ref Parser current)
     {
         Parser parser = current;
 
-        var start = Value.Parse(ref parser);
+        var start = Component.Parse(ref parser);
 
         if (parser.TryConsume<Lexicon.Punctuation.Range>() is false) return null;
 
-        var end = Value.Parse(ref parser);
+        var end = Component.Parse(ref parser);
+
+        if (start is null && end is null) return null;
 
         return new Interval
         {
@@ -26,4 +28,6 @@ internal class Interval : Syntax, IParsableSyntax<Interval>
             Source = parser.Commit(ref current)
         };
     }
+
+    public class Component : CompositeSyntax<Component, Literal, Name> { }
 }

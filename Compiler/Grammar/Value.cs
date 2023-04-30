@@ -1,10 +1,8 @@
-﻿// Copyright © 2023 Eric Budai
-
-using Ronin.Grammar.Compound;
+﻿using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
-internal class Value : CompositeSyntax<Value, Literal, Arguments, InlineList, InlineLookup, Delegate, Reference>
+internal class Value : Statement, IParsableSyntax<Value>
 {
-
+    public new static Value Parse(ref Parser current) => Anonymous.Parse(ref current) ?? Reference.Parse(ref current) as Value;
 }

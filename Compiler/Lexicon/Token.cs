@@ -2,7 +2,7 @@
 
 namespace Ronin.Lexicon;
 
-internal abstract class Token
+public abstract class Token
 {
     public override string ToString() => sourcecode.ToString();
 

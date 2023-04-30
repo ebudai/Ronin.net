@@ -24,11 +24,8 @@ public class Interval
         Parser parser = new(tokens);
         var interval = Ronin.Grammar.Interval.Parse(ref parser);
 
-        Ronin.Grammar.Literal start = interval.Start;
-        Assert.Equal(1, start?.Source.Length);
-
-        Ronin.Grammar.Literal end = interval.End;
-        Assert.Equal(1, end?.Source.Length);
+        Assert.Equal(1, interval?.Start?.Source.Length);
+        Assert.Equal(1, interval?.End?.Source.Length);
     }
 
     [Fact(DisplayName = "left unspecified")]
@@ -48,8 +45,7 @@ public class Interval
 
         Assert.Null(interval.Start);
 
-        Ronin.Grammar.Literal end = interval.End;
-        Assert.Equal(1, end?.Source.Length);
+        Assert.Equal(1, interval.End?.Source.Length);
     }
 
     [Fact(DisplayName = "right unspecified")]
@@ -67,8 +63,7 @@ public class Interval
         Parser parser = new(tokens);
         var interval = Ronin.Grammar.Interval.Parse(ref parser);
 
-        Ronin.Grammar.Literal start = interval.Start;
-        Assert.Equal(1, start?.Source.Length);
+        Assert.Equal(1, interval?.Start?.Source.Length);
 
         Assert.Null(interval.End);
     }

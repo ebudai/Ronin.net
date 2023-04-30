@@ -15,30 +15,32 @@ namespace Ronin.Grammar;
 ///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 ///     var lambda = (a, b, c) => { return a + b * 3; };
 ///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
-///     var lambda = { return x; };
-///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑
+///     var lambda = () => { return x; };
+///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Delegate : Syntax, IParsableSyntax<Delegate>
+internal class Delegate : Anonymous, IParsableSyntax<Delegate>
 {
     public List<Datum> Data { get; init; }
     public Scope Body { get; init; }
 
-    public static Delegate Parse(ref Parser current)
+    public new static Delegate Parse(ref Parser current)
     {
         Parser parser = current;
 
         List<Datum> data;
-        var datum = Datum.Parse(ref parser);
-        if (datum is null)
+
+        var parameters = Parameters.Parse(ref parser);        
+        if (parameters is null)
         {
-            var parameters = Parameters.Parse(ref parser);
-            data = parameters?.Values;
-            if (data is not null && parser.TryConsume<Returns>() is false) return null;
+            var datum = Datum.Parse(ref parser);
+            if (datum is null) return null;
+            if (parser.PreviousToken is not Returns) return null;
+            data = new() { datum };
         }
         else
         {
-            data = new List<Datum> { datum };
-            if (parser.PreviousToken is not Returns) return null;
+            data = parameters?.Values;
+            if (data is null || parser.TryConsume<Returns>() is false) return null;
         }
 
         if (Scope.Parse(ref parser) is not Scope body) return null;

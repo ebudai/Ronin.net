@@ -28,15 +28,15 @@ internal class Function : Semantics
 
         foreach (var statement in function.Body.Values)
         {
-            switch (statement.value)
+            switch (statement)
             {
                 case Grammar.Function syntax: InnerFunctions.Add(new Function(syntax));                                   break;
                 case Grammar.Datatype datatype: Datatypes.Add(new Datatype(datatype));                                      break;
                 case Grammar.Datum datum: Data.Add(new Datum(datum));                                                 break;
                 case Assignment assignment: Instructions.Add(new Instruction(assignment));                              break;
-                case Scope scope: Modules.Add(UnresolvedModule.From(scope));                                  break;
-                case Interval: Instructions.Add(new Noop(statement.value));                                break;
-                case Value value: Instructions.AddRange(Instruction.From(value));                             break;
+                case Scope scope: Modules.Add(new Module(scope));                                  break;
+                //case Interval:                                 break;
+                case Anonymous value: Instructions.AddRange(Instruction.From(value));                             break;
                 case ImportExport: Errors.Add(new FunctionCannotJoinNamedScope { Statement = statement });     break;
                 case Unknown: Errors.Add(new UnknownSyntaxError { Statement = statement });               break;
                 default: Errors.Add(new UnknownSyntaxError { Statement = statement });               break;

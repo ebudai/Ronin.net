@@ -1,13 +1,12 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Literal : Syntax, IParsableSyntax<Literal>
+internal class Literal : Anonymous, IParsableSyntax<Literal>
 {
-    public static Literal Parse(ref Parser current)
+    public new static Literal Parse(ref Parser current)
     {
         Parser parser = current;
 

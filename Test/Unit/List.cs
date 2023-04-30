@@ -27,7 +27,7 @@ public class List
         var list = InlineList.Parse(ref parser);
 
         Assert.Single(list?.Values);
-        Ronin.Grammar.Literal scalar = list.Values[0];
+        var scalar = list.Values[0] as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -54,17 +54,17 @@ public class List
         Assert.Equal(3, list?.Values?.Count);
 
         {
-            Ronin.Grammar.Literal scalar = list.Values[0];
+            var scalar = list.Values[0] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Literal scalar = list.Values[1];
+            var scalar = list.Values[1] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Literal scalar = list.Values[2];
+            var scalar = list.Values[2] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -93,8 +93,8 @@ public class List
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        Ronin.Grammar.Datum datum = statements[0];
-        InlineList list = datum?.Initializer;
+        var datum = statements[0] as Ronin.Grammar.Datum;
+        var list = datum?.Initializer as InlineList;
         Assert.NotNull(list);
     }
 }
