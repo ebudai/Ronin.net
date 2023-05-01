@@ -5,6 +5,9 @@ using Ronin.Grammar.Compound;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function"/>, <see cref="Datatype"/> or <see cref="Value"/>
+/// </summary>
 internal class Reference : Value, IParsableSyntax<Reference>
 {
     public List<Component> Components { get; init; }

@@ -5,7 +5,12 @@ using Ronin.Lexicon.Keyword;
 
 namespace Ronin.Grammar;
 
-internal class Modifiers : Syntax, Compiler.IParsableSyntax<Modifiers>
+/// <summary>
+///     Modifies a <see cref="Datatype"/> used to restrict a <see cref="Datum"/> or a <see cref="Function"/>
+/// </summary>
+/// 
+/// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Shared"/>, and <see cref="Optional"/></remarks>
+internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
 {
     public static Modifiers Parse(ref Parser current)
     {

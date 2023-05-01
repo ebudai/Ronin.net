@@ -5,6 +5,9 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Catch-all class for any unparsable <see cref="Token"/>
+/// </summary>
 internal class Unknown : Statement, IParsableSyntax<Unknown>
 {
     public new static Unknown Parse(ref Parser current)

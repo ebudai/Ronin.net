@@ -6,6 +6,17 @@ using Ronin.Lexicon.Keyword;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Represents a loop construct in which the same <see cref="Scope"/> or <see cref="Statement"/>
+///     is executed multiple times
+/// </summary>
+/// 
+/// <example>
+///     for each car in cars 
+///     { 
+///         car name = random; 
+///     }
+/// </example>
 internal class Loop : Syntax, IParsableSyntax<Loop>
 {
     public Datum Header { get; init; }

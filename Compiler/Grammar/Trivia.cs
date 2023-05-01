@@ -5,6 +5,9 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Represents a <see cref="Whitespace"/> or a <see cref="Comment"/>
+/// </summary>
 internal class Trivia : Syntax, IParsableSyntax<Trivia>
 {
     public static Trivia Parse(ref Parser current)
