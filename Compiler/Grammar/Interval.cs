@@ -4,6 +4,18 @@ using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Represents all values between a lowest and highest value
+/// </summary>
+/// 
+/// <example>
+///     var range = 3..a;
+///                 ↑↑↑↑
+///     var another range = 2..7;
+///                         ↑↑↑↑
+///     var last range = low..high;
+///                      ↑↑↑↑↑↑↑↑↑
+/// </example>
 internal class Interval : Anonymous, IParsableSyntax<Interval>
 {
     public Component Start { get; init; }

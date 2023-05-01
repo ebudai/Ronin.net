@@ -5,6 +5,9 @@ using Ronin.Grammar.Compound;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     Represents a <see cref="Value"/> before it has been assigned or bound to a parameter
+/// </summary>
 internal class Anonymous : Value, IParsableSyntax<Anonymous>
 {
     public new static Anonymous Parse(ref Parser current)
@@ -15,6 +18,5 @@ internal class Anonymous : Value, IParsableSyntax<Anonymous>
         ?? Arguments.Parse(ref current)
         ?? InlineList.Parse(ref current)
         ?? Ordinal.Parse(ref current)
-        ?? Parameters.Parse(ref current)
-        /*?? Scope.Parse(ref current)*/ as Anonymous;
+        ?? Parameters.Parse(ref current) as Anonymous;
 }

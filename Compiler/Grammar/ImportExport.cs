@@ -17,7 +17,6 @@ namespace Ronin.Grammar;
 ///     import best package for weather lookups
 ///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
-/// 
 internal class ImportExport : Statement, IParsableSyntax<ImportExport>
 {
     public Reserved Direction { get; init; }

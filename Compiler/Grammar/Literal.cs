@@ -4,6 +4,19 @@ using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     A <see cref="Lexicon.Keyword.Constant"/>, <see cref="Lexicon.Keyword.Compiled"/> value
+///     written-out directly in code
+/// </summary>
+/// 
+/// <example>
+///     var when = 12:33p;
+///                ↑↑↑↑↑↑
+///     constant cash = $75;
+///                     ↑↑↑
+///     let x = 7,000,876 + cash amount;
+///             ↑↑↑↑↑↑↑↑↑
+/// </example>
 internal class Literal : Anonymous, IParsableSyntax<Literal>
 {
     public new static Literal Parse(ref Parser current)

@@ -15,7 +15,7 @@ internal class Instruction : Semantics
         InlineList list => From(list.Values),
         InlineLookup lookup => From(lookup.Values),
         Arguments arguments => From(arguments.Values),
-        //_ => new() { new UnknownSyntaxError { Statement = value.value } },
+        _ => throw new UnhandledSubclassError<Anonymous> { Statement = value },
     };
 
     public static List<Instruction> From(List<Value> values)
@@ -38,9 +38,4 @@ internal class Instruction : Semantics
         }
         return instructions;
     }
-}
-
-internal class UnresolvedInstruction : Instruction
-{
-    public UnresolvedInstruction(Reference reference) : base(reference) { }
 }

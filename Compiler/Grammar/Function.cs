@@ -9,6 +9,13 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Ordered grouping of instructions to execute when called
 /// </summary>
+/// 
+/// <example>
+///     function florb (x => number) things with (fast => maybe, fun => maybe) stuff => whole number 
+///     {
+///         return 8; 
+///     }
+/// </example>
 internal class Function : Statement, IParsableSyntax<Function>
 {
     public Identifier Identifier { get; init; }
@@ -22,7 +29,7 @@ internal class Function : Statement, IParsableSyntax<Function>
 
         if (parser.TryConsume<Lexicon.Keyword.Function>() is false) return null;
 
-        if (Grammar.Identifier.Parse(ref parser) is not Identifier identifier) return null;
+        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         Modifiers modifiers = null;
         Reference returns = null;

@@ -41,7 +41,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, 
     where T1 : Syntax, IParsableSyntax<T1>
     where T2 : Syntax, IParsableSyntax<T2>
 {
-    public static new T Parse(ref Parser current)
+    public new static T Parse(ref Parser current)
     {
         var composite = CompositeSyntax<T, T0, T1>.Parse(ref current);
         if (composite is not null) return composite;
