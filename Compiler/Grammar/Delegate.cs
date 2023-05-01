@@ -39,8 +39,8 @@ internal class Delegate : Anonymous, IParsableSyntax<Delegate>
         }
         else
         {
-            data = parameters?.Values;
-            if (data is null || parser.TryConsume<Returns>() is false) return null;
+            data = parameters.Values;
+            if (parser.TryConsume<Returns>() is false) return null;
         }
 
         if (Scope.Parse(ref parser) is not Scope body) return null;

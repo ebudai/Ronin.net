@@ -19,7 +19,6 @@ internal class Reference : Value, IParsableSyntax<Reference>
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
-        if (components.All(component => component.value is not Name)) return null;
  
         var ordinal = Ordinal.Parse(ref parser);
 

@@ -35,7 +35,6 @@ public struct Lexer
     }
 
     public bool IsEmpty => sourcecode[cursor..].IsEmpty;
-    public bool IsNotEmpty => IsEmpty is false;
     public int Length => sourcecode[cursor..].Length;
 
     public readonly ref readonly char this[int index] => ref sourcecode.Span[cursor..][index];

@@ -20,8 +20,25 @@ public class Interval
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ronin.Grammar.Interval.Parse(ref parser);
+        var interval = Ronin.Grammar.Interval.Parse(ref parser);
 
-        Assert.Null(ordinal);
+        Assert.Null(interval);
+    }
+
+    [Fact(DisplayName = "missing both start and end")]
+    public void MissingStartAndEnd()
+    {
+        // ..
+
+        Token[] tokens =
+        {
+            new Ronin.Lexicon.Punctuation.Range(),
+            Sentinel.Instance
+        };
+
+        Parser parser = new(tokens);
+        var interval = Ronin.Grammar.Interval.Parse(ref parser);
+
+        Assert.Null(interval);
     }
 }

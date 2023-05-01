@@ -36,4 +36,31 @@ public class Keyword
 
         Assert.Null(lexed);
     }
+
+    [Fact(DisplayName = "contains keyword")]
+    public void ContainsKeyword()
+    {
+        string[] words =
+        {
+            "compileding",
+            "constants",
+            "datatypes",
+            "for eaching",
+            "functions",
+            "imports",            
+            "optionals",
+            "part offer",
+            "persistentx",
+            "reactivetion",
+            "sharedding",
+            "varrrrr"
+        };
+
+        foreach (var word in words)
+        {
+            Lexer lexer = new(word);
+            var lexed = Ronin.Lexicon.Reserved.Lex(ref lexer);
+            Assert.Null(lexed);
+        }
+    }
 }

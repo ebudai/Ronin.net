@@ -10,6 +10,8 @@ public class Delegate
     [Fact(DisplayName = "missing returns symbol")]
     public void MissingReturns()
     {
+        // (things, stuff, others) { return 3; }
+
         Token[] tokens =
         {
             new OpenParenthesis(),
@@ -30,6 +32,23 @@ public class Delegate
         Parser parser = new(tokens);
         var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
         
+        Assert.Null(@delegate);
+    }
+
+    [Fact(DisplayName = "no body")]
+    public void NoBody()
+    {
+        // billy => ;
+        Token[] tokens =
+        {
+            new Word(),
+            new Returns(),
+            new Terminal()
+        };
+
+        Parser parser = new(tokens);
+        var @delegate = Ronin.Grammar.Delegate.Parse(ref parser);
+
         Assert.Null(@delegate);
     }
 }

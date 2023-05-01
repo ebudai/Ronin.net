@@ -41,5 +41,5 @@ internal class Interval : Anonymous, IParsableSyntax<Interval>
         };
     }
 
-    public class Component : CompositeSyntax<Component, Literal, Name> { }
+    public class Component : CompositeSyntax<Component, Name, Literal> { }
 }
