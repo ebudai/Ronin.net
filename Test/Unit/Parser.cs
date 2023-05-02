@@ -131,8 +131,8 @@ public class Parsing
         var assignment = statements[2] as Ronin.Grammar.Assignment;
         Assert.NotNull(assignment);
 
-        var interval = statements[3] as Ronin.Grammar.Interval;
-        Assert.NotNull(interval);
+        var reference = statements[3] as Ronin.Grammar.Reference;
+        Assert.NotNull(reference);
 
         var function = statements[4] as Ronin.Grammar.Function;
         Assert.NotNull(function);

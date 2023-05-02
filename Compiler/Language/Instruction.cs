@@ -7,7 +7,7 @@ namespace Ronin.Language;
 [ExcludeFromCodeCoverage]
 internal class Instruction : Semantics
 {
-    public Instruction(Syntax syntax) => Source = syntax;
+    //public Instruction(Syntax syntax) => Source = syntax; //TODO this is not sufficient?
 
     public static List<Instruction> From(Anonymous value) => value switch
     {
@@ -15,7 +15,7 @@ internal class Instruction : Semantics
         InlineList list => From(list.Values),
         InlineLookup lookup => From(lookup.Values),
         Arguments arguments => From(arguments.Values),
-        _ => throw new UnhandledSubclassError<Anonymous> { Statement = value },
+        _ => throw new DeveloperMistakeUnhandledSubclassException<Anonymous> { Statement = value },
     };
 
     public static List<Instruction> From(List<Value> values)
@@ -38,4 +38,9 @@ internal class Instruction : Semantics
         }
         return instructions;
     }
+}
+
+internal class UnresolvedInstruction : Instruction
+{
+    public Reference Reference { get; init; }
 }

@@ -55,13 +55,10 @@ internal class Datatype : Semantics
 }
 
 [ExcludeFromCodeCoverage]
-internal class UnresolvedDatatype : Datatype
-{
-    public UnresolvedDatatype(Reference reference) => Source = reference;
-}
-
-[ExcludeFromCodeCoverage]
 internal class DatatypeCannotJoinNamedScope : Error { }
 
 [ExcludeFromCodeCoverage]
 internal class DatatypeDefinitionCannotContain<T> : Error where T : Syntax { }
+
+[ExcludeFromCodeCoverage]
+internal class DatatypeAlreadyExists : Error { }

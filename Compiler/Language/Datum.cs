@@ -24,11 +24,12 @@ internal class Datum : Semantics
 
         Name = datum.Name;
 
-        Datatype = new UnresolvedDatatype(datum.Datatype);
-
         Initializer = datum.Initializer;
     }
 }
+
+[ExcludeFromCodeCoverage]
+internal class DatumAlreadyExists : Error { }
 
 public enum Mutability { Constant, Variable, Reactive }
 [Flags] public enum Modifiers { Compiled = 1, Optional = 2, Persistent = 4, Shared = 8 }

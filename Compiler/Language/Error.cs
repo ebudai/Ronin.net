@@ -2,7 +2,7 @@
 
 namespace Ronin.Language;
 
-internal class Error : Exception
+internal class Error
 {
     public Statement Statement { get; init; }
     public int Offset { get; init; }
@@ -10,4 +10,8 @@ internal class Error : Exception
 
 internal class UnknownSyntaxError : Error { }
 
-internal class UnhandledSubclassError<T> : Error where T : Syntax { }
+internal class DeveloperMistakeUnhandledSubclassException<T> : Exception where T : Syntax 
+{
+    public Statement Statement { get; init; }
+    public int Offset { get; init; }
+}

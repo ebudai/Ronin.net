@@ -37,8 +37,8 @@ public class Interval
         };
 
         Parser parser = new(tokens);
-        var interval = Ronin.Grammar.Interval.Parse(ref parser);
+        var reference = Ronin.Grammar.Reference.Parse(ref parser);
 
-        Assert.Null(interval);
+        Assert.Null(reference);
     }
 }

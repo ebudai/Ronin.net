@@ -1,6 +1,4 @@
-﻿using Ronin;
-using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 
 namespace Unit;
@@ -22,10 +20,11 @@ public class Interval
         };
         
         Parser parser = new(tokens);
-        var interval = Ronin.Grammar.Interval.Parse(ref parser);
+        var reference = Ronin.Grammar.Reference.Parse(ref parser);
 
-        Assert.Equal(1, interval?.Start?.Source.Length);
-        Assert.Equal(1, interval?.End?.Source.Length);
+        Assert.Equal(3, reference?.Components.Count);
+        Ronin.Grammar.Interval interval = reference.Components[1];
+        Assert.NotNull(interval);
     }
 
     [Fact(DisplayName = "left unspecified")]
@@ -43,9 +42,7 @@ public class Interval
         Parser parser = new(tokens);
         var interval = Ronin.Grammar.Interval.Parse(ref parser);
 
-        Assert.Null(interval.Start);
-
-        Assert.Equal(1, interval.End?.Source.Length);
+        Assert.NotNull(interval);
     }
 
     [Fact(DisplayName = "right unspecified")]
@@ -61,10 +58,10 @@ public class Interval
         };
         
         Parser parser = new(tokens);
-        var interval = Ronin.Grammar.Interval.Parse(ref parser);
+        var reference = Ronin.Grammar.Reference.Parse(ref parser);
 
-        Assert.Equal(1, interval?.Start?.Source.Length);
-
-        Assert.Null(interval.End);
+        Assert.Equal(2, reference?.Components.Count);
+        Ronin.Grammar.Interval interval = reference.Components[1];
+        Assert.NotNull(interval);
     }
 }
