@@ -71,7 +71,7 @@ public class Datatype
         {
             var cash = datatype.Body.Values[0] as Ronin.Grammar.Datum;
             Assert.IsType<Variable>(cash?.Mutability);
-            Assert.Equal(1, cash.Name?.Source.Length);
+            Assert.Single(cash.Name?.Components);
             Assert.Single(cash.Datatype?.Components);
             Ronin.Grammar.Name type = cash.Datatype.Components[0];
             Assert.Equal(1, type?.Source.Length);
@@ -80,7 +80,7 @@ public class Datatype
         {
             var debt = datatype.Body.Values[1] as Ronin.Grammar.Datum;
             Assert.IsType<Variable>(debt?.Mutability);
-            Assert.Equal(1, debt.Name?.Source.Length);
+            Assert.Single(debt.Name?.Components);
             Assert.Single(debt.Datatype?.Components);
             Ronin.Grammar.Name type = debt.Datatype.Components[0];
             Assert.Equal(1, type?.Source.Length);

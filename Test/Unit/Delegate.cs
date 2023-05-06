@@ -31,7 +31,7 @@ public class Delegate
 
         Assert.Single(@delegate?.Data);
         var datum = @delegate.Data[0];
-        Assert.Equal(1, datum?.Name?.Source.Length);
+        Assert.Single(datum?.Name?.Components);
 
         Assert.Single(@delegate.Body?.Values);
         var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
@@ -70,7 +70,7 @@ public class Delegate
 
         Assert.Single(@delegate?.Data);
         var datum = @delegate.Data[0];
-        Assert.Equal(1, datum?.Name?.Source.Length);
+        Assert.Single(datum?.Name?.Components);
 
         Assert.Single(@delegate.Body?.Values);
         var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
@@ -115,9 +115,9 @@ public class Delegate
 
         Assert.Equal(3, @delegate?.Data?.Count);
 
-        Assert.Equal(1, @delegate.Data[0]?.Name?.Source.Length);
-        Assert.Equal(1, @delegate.Data[1]?.Name?.Source.Length);
-        Assert.Equal(1, @delegate.Data[2]?.Name?.Source.Length);
+        Assert.Single(@delegate.Data[0]?.Name?.Components);
+        Assert.Single(@delegate.Data[1]?.Name?.Components);
+        Assert.Single(@delegate.Data[2]?.Name?.Components);
 
         Assert.Single(@delegate.Body?.Values);
         var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;

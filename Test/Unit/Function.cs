@@ -47,7 +47,7 @@ public class Function
             
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
-            Assert.Equal(1, parameter?.Name?.Source.Length);
+            Assert.Single(parameter?.Name?.Components);
 
             Assert.Single(parameter.Datatype?.Components);
             Ronin.Grammar.Name type = parameter.Datatype.Components[0];
@@ -111,7 +111,7 @@ public class Function
             Ronin.Grammar.Compound.Parameters parameters = function.Identifier.Components[1];
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
-            Assert.Equal(1, parameter.Name?.Source.Length);
+            Assert.Single(parameter.Name?.Components);
 
             Assert.Single(parameter.Datatype?.Components);
             Ronin.Grammar.Name type = parameter.Datatype.Components[0];

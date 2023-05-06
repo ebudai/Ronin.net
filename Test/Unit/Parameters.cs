@@ -36,9 +36,10 @@ public class Parameters
 
         Assert.Null(datum.Is);
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
 
-        Ronin.Grammar.Name name = datum?.Datatype?.Components?[0];
+        Assert.Single(datum.Datatype?.Components);
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -75,7 +76,7 @@ public class Parameters
 
             Assert.Null(datum.Is);
 
-            Assert.Equal(1, datum.Name?.Source.Length);
+            Assert.Single(datum.Name?.Components);
         
             Assert.Single(datum.Datatype?.Components);
             Ronin.Grammar.Name name = datum.Datatype.Components[0];

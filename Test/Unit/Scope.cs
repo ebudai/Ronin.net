@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keyword;
 using Ronin.Lexicon.Punctuation;
@@ -35,7 +34,7 @@ public class Scope
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
 
         Assert.Null(datum.Is);
 

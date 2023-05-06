@@ -1,6 +1,4 @@
-﻿using Ronin;
-using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keyword;
 using Ronin.Lexicon.Punctuation;
@@ -34,7 +32,9 @@ public class Loop
         Parser parser = new(tokens);
         var loop = Ronin.Grammar.Loop.Parse(ref parser);
 
-        Assert.Equal(3, loop?.Header?.Name?.Source.Length);
+        Assert.Single(loop?.Header?.Name?.Components);
+        Ronin.Grammar.Name name = loop.Header.Name.Components[0];
+        Assert.Equal(3, name?.Source.Length);
         
         Assert.Single(loop.Body?.Values);
         var assignment = loop.Body.Values[0] as Ronin.Grammar.Assignment;

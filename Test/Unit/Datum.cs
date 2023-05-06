@@ -1,6 +1,4 @@
-﻿using Ronin;
-using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keyword;
 using Ronin.Lexicon.Punctuation;
@@ -33,11 +31,17 @@ public class Datum
 
         Assert.Null(datum.Is);
 
-        Assert.Equal(2, datum.Name?.Source.Length);
+        {
+            Assert.Single(datum.Name?.Components);
+            Ronin.Grammar.Name name = datum.Name.Components[0];
+            Assert.Equal(2, name?.Source.Length);
+        }
 
-        Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        {
+            Assert.Single(datum.Datatype?.Components);
+            Ronin.Grammar.Name name = datum.Datatype.Components[0];
+            Assert.Equal(1, name?.Source.Length);
+        }
 
         Assert.Null(datum.Initializer);
     }
@@ -64,7 +68,7 @@ public class Datum
 
         Assert.Null(datum.Is);
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
         
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
@@ -97,7 +101,7 @@ public class Datum
         Assert.Equal(1, datum.Is?.Source.Length);
         Assert.IsType<Compiled>(datum.Is.Source.Span[0]);
         
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
@@ -130,7 +134,7 @@ public class Datum
         Assert.Equal(1, datum.Is?.Source.Length);
         Assert.IsType<Persistent>(datum.Is.Source.Span[0]);
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
@@ -163,7 +167,7 @@ public class Datum
         Assert.Equal(1, datum.Is?.Source.Length);
         Assert.IsType<Shared>(datum.Is.Source.Span[0]);
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
@@ -195,7 +199,7 @@ public class Datum
         Assert.Equal(1, datum.Is?.Source.Length);
         Assert.IsType<Optional>(datum.Is.Source.Span[0]);
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
         
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
@@ -226,7 +230,7 @@ public class Datum
 
         Assert.Null(datum.Is);
         
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
 
         Assert.Null(datum.Datatype);
 
@@ -260,7 +264,7 @@ public class Datum
 
         Assert.Null(datum.Is);
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Single(datum.Name?.Components);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Name name = datum.Datatype.Components[0];
