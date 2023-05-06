@@ -4,6 +4,7 @@ using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keyword;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -22,6 +23,7 @@ internal class ImportExport : Statement, IParsableSyntax<ImportExport>
     public Reserved Direction { get; init; }
     public List<Component> Components { get; init; }
 
+    [ExcludeFromCodeCoverage]
     public string Name
     {
         get
