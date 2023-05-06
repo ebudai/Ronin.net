@@ -3,9 +3,14 @@
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
+using System.Xml.Linq;
 
 namespace Ronin.Grammar;
 
+internal abstract class Aggregate<T> : Anonymous
+{
+    protected internal List<T> Values;
+}
 /// <summary>
 ///     Parent class for all groupings (<see cref="Arguments"/>, <see cref="Ordinal"/>, <see cref="Parameters"/>, and <see cref="Scope"/>)
 /// </summary>
@@ -29,7 +34,7 @@ namespace Ronin.Grammar;
 /// <typeparam name="TClose">
 ///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Close"/>
 /// </typeparam>
-internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Anonymous, IParsableSyntax<T>
+internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Aggregate<TElement>, IParsableSyntax<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
     where TOpen : Open
     where TElement : Syntax, IParsableSyntax<TElement>
@@ -58,6 +63,4 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Anon
 
         return new T { Values = values, Source = parser.Commit(ref current) };
     }
-
-    protected internal List<TElement> Values;
 }
