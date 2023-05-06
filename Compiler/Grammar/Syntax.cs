@@ -33,7 +33,7 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
 }
 
 internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>, IParsableSyntax<T>
-    where T : CompositeSyntax<T, T0, T1>, IParsableSyntax<T>, new()
+    where T : CompositeSyntax<T, T0, T1, T2>, IParsableSyntax<T>, new()
     where T0 : Syntax, IParsableSyntax<T0>
     where T1 : Syntax, IParsableSyntax<T1>
     where T2 : Syntax, IParsableSyntax<T2>
