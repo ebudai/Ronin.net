@@ -6,7 +6,7 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Catch-all class for any unparsable <see cref="Token"/>
+///     Catch-all class for any unparsable <see cref="Token"/>s
 /// </summary>
 internal class Unknown : Statement, IParsableSyntax<Unknown>
 {
