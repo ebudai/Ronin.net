@@ -1,36 +1,22 @@
 ﻿using Ronin.Grammar;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
-internal class Context
+[ExcludeFromCodeCoverage]
+internal class Context : Semantics
 {
-    public void Add(Module import) => imports.Add(import);
-    public void Add(Datatype datatype) => datatypes.Add(datatype);
-    public void Add(Function function) => functions.Add(function);
-    public void Add(Datum datum) => data.Add(datum);
+    public Dictionary<Identifier, Datatype> Datatypes { get; init; } = new();
+    public Dictionary<Identifier, Function> Functions { get; init; } = new();
+    public Dictionary<Identifier, Datum> Data { get; init; } = new();
 
-    public List<Semantics> Find(Reference reference)
+    public Semantics Find(Identifier identifier)
     {
-        List<Semantics> found = new();
-
-        foreach (var module in imports)
-        {
-            /*foreach (var part in module.Parts)
-            {
-                found.AddRange(part.Context.Find(reference));
-            }*/
-        }
-
-        foreach (var datatype in datatypes)
-        {
-            
-        }
-
-        return found;
+        throw new NotImplementedException();
     }
 
-    private readonly List<Module> imports = new();
-    private readonly List<Datatype> datatypes = new();
-    private readonly List<Function> functions = new();
-    private readonly List<Datum> data = new();
+    public Semantics Find(Reference reference)
+    {
+        throw new NotImplementedException();
+    }
 }

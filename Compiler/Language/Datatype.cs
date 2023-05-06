@@ -1,56 +1,21 @@
 ﻿using Ronin.Grammar;
-using Ronin.Grammar.Compound;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Datatype : Semantics
+internal class Datatype : Context
 {
-    public Identifier Identifier { get; init; }
     public bool IsOptional { get; init; }
 
-    public List<Datatype> InnerDatatypes { get; } = new();
-    public List<Datum> Data { get; } = new();
-    public List<Function> Methods { get; } = new();
-
-    public List<Datatype> BaseDatatypes { get; } = new();
+    public List<Datatype> Bases { get; } = new();
     public List<Datatype> Unions { get; } = new();
 
     public Datatype() { }
 
-    public Datatype(Grammar.Datatype declaration)
+    public static Datatype ForwardDeclare(Grammar.Datatype datatype)
     {
-        Source = declaration;
-
-        Identifier = declaration.Identifier;
-
-        foreach (var statement in declaration.Body.Values)
-        {
-            switch (statement)
-            {
-                case Grammar.Function function: Methods.Add(new Function(function));            break;
-                case Grammar.Datatype datatype: InnerDatatypes.Add(new Datatype(datatype));     break;
-                case Grammar.Datum datum: Data.Add(new Datum(datum));                     break;
-
-                case ImportExport: Errors.Add(new DatatypeCannotJoinNamedScope { Statement = statement });                  break;
-                case Assignment: Errors.Add(new DatatypeDefinitionCannotContain<Assignment> { Statement = statement });     break;                
-                case Scope: Errors.Add(new DatatypeDefinitionCannotContain<Scope> { Statement = statement });               break;
-                //case Interval: Errors.Add(new DatatypeDefinitionCannotContain<Interval> { Statement = statement });         break;
-                
-                case Anonymous value: Errors.Add(value switch
-                {
-                    Literal => new DatatypeDefinitionCannotContain<Literal> { Statement = statement },
-                    Arguments => new DatatypeDefinitionCannotContain<Arguments> { Statement = statement },
-                    InlineList => new DatatypeDefinitionCannotContain<InlineList> { Statement = statement },
-                    InlineLookup => new DatatypeDefinitionCannotContain<InlineLookup> { Statement = statement },
-                    Grammar.Delegate => new DatatypeDefinitionCannotContain<Grammar.Delegate> { Statement = statement },
-                    _ => new UnknownSyntaxError { Statement = statement }
-                }); break;
-
-                default: Errors.Add(new UnknownSyntaxError { Statement = statement }); break;
-            }
-        }
+        throw new NotImplementedException();
     }
 }
 

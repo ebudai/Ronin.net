@@ -1,18 +1,15 @@
-﻿using Ronin.Grammar;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Function : Module
+internal class Function : Context
 {
-    public Identifier Identifier { get; init; }
-
     public Datatype ReturnDatatype { get; init; }
 
     public Function(Grammar.Function function)
     {
-        Identifier = function.Identifier;
+
     }
 }
 

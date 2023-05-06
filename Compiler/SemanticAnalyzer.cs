@@ -1,8 +1,10 @@
 ﻿using Ronin.Grammar.Compound;
 using Ronin.Language;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin;
 
+[ExcludeFromCodeCoverage]
 internal class SemanticAnalyzer
 {
     public static Module Analyze(Scope scope)

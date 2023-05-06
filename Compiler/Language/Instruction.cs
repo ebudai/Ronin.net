@@ -1,5 +1,4 @@
 ﻿using Ronin.Grammar;
-using Ronin.Grammar.Compound;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
@@ -9,7 +8,7 @@ internal class Instruction : Semantics
 {
     //public Instruction(Syntax syntax) => Source = syntax; //TODO this is not sufficient?
 
-    public static List<Instruction> From(Anonymous value) => value switch
+    /*public static List<Instruction> From(Anonymous value) => value switch
     {
         Literal or Grammar.Delegate => new(),
         InlineList list => From(list.Values),
@@ -37,9 +36,10 @@ internal class Instruction : Semantics
             //if (association.Value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
         }
         return instructions;
-    }
+    }*/
 }
 
+[ExcludeFromCodeCoverage]
 internal class UnresolvedInstruction : Instruction
 {
     public Reference Reference { get; init; }
