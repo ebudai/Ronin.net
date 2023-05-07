@@ -17,7 +17,7 @@ namespace Ronin.Grammar.Compound;
 ///     var x = { a = 3, b = 22.3, "special" = values maximum };
 ///             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class InlineLookup : Aggregate<InlineLookup, OpenBrace, InlineLookup.Association, Separator, CloseBrace>
+internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separator, CloseBrace>
 {
     /// <summary>
     ///     key=value pair

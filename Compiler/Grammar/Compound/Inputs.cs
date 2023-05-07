@@ -16,7 +16,7 @@ namespace Ronin.Grammar.Compound;
 ///     var x = pack(a, 8.2, "first name");
 ///                 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Arguments : Aggregate<Arguments, OpenParenthesis, Value, Separator, CloseParenthesis>
+internal class Inputs : Aggregate<Inputs, OpenParenthesis, Value, Separator, CloseParenthesis>
 {
     
 }

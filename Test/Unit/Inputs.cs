@@ -5,7 +5,7 @@ using Ronin.Lexicon.Punctuation;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Arguments
+public class Inputs
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -21,7 +21,7 @@ public class Arguments
         };
 
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
 
         Assert.Single(arguments?.Values);
         var reference = arguments.Values[0] as Ronin.Grammar.Reference;
@@ -46,7 +46,7 @@ public class Arguments
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
 
         Assert.Equal(2, arguments?.Values?.Count);
 
@@ -78,7 +78,7 @@ public class Arguments
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
         Assert.Empty(arguments?.Values);
     }
 
@@ -100,7 +100,7 @@ public class Arguments
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
         
@@ -146,7 +146,7 @@ public class Arguments
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
 
@@ -163,7 +163,7 @@ public class Arguments
         }
 
         {
-            var subargs = arguments.Values[2] as Ronin.Grammar.Compound.Arguments;
+            var subargs = arguments.Values[2] as Ronin.Grammar.Compound.Inputs;
             Assert.Equal(3, subargs?.Values?.Count);
 
             {

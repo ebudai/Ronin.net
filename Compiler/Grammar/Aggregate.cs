@@ -3,7 +3,6 @@
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using System.Xml.Linq;
 
 namespace Ronin.Grammar;
 
@@ -12,7 +11,7 @@ internal abstract class Aggregate<T> : Anonymous
     protected internal List<T> Values;
 }
 /// <summary>
-///     Parent class for all groupings (<see cref="Arguments"/>, <see cref="Ordinal"/>, <see cref="Parameters"/>, and <see cref="Scope"/>)
+///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Ordinal"/>, <see cref="Parameters"/>, and <see cref="Scope"/>)
 /// </summary>
 /// 
 /// <typeparam name="T">

@@ -26,7 +26,7 @@ public class Lookup
         };
 
         Parser parser = new(tokens);
-        var lookup = InlineLookup.Parse(ref parser);
+        var lookup = Ronin.Grammar.Compound.Lookup.Parse(ref parser);
 
         Assert.Single(lookup?.Values);
         var association = lookup.Values[0];
@@ -61,7 +61,7 @@ public class Lookup
 
         Assert.Single(statements);
         var datum = statements[0] as Ronin.Grammar.Datum;
-        var lookup = datum?.Initializer as InlineLookup;
+        var lookup = datum?.Initializer as Ronin.Grammar.Compound.Lookup;
         Assert.NotNull(lookup);
     }
 }

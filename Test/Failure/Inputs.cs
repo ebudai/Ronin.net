@@ -6,7 +6,7 @@ using Ronin.Lexicon.Punctuation;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Arguments
+public class Inputs
 {
     [Fact(DisplayName = "does not start with (")]
     public void NotAnArguments()
@@ -22,7 +22,7 @@ public class Arguments
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
 
         Assert.Null(arguments);
     }
@@ -32,7 +32,7 @@ public class Arguments
     {
         Token[] tokens = { Sentinel.Instance };
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
 
         Assert.Null(arguments);
     }
@@ -56,7 +56,7 @@ public class Arguments
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
         
         Assert.Null(arguments);
     }
@@ -75,7 +75,7 @@ public class Arguments
         };
         
         Parser parser = new(tokens);
-        var arguments = Ronin.Grammar.Compound.Arguments.Parse(ref parser);
+        var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
         
         Assert.Null(arguments);
     }

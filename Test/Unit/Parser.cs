@@ -143,7 +143,7 @@ public class Parsing
         var scalar = statements[6] as Ronin.Grammar.Literal;
         Assert.NotNull(scalar);
 
-        var arguments = statements[7] as Ronin.Grammar.Compound.Arguments;
+        var arguments = statements[7] as Ronin.Grammar.Compound.Inputs;
         Assert.NotNull(arguments);
 
         var scope = statements[8] as Ronin.Grammar.Compound.Scope;

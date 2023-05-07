@@ -22,9 +22,9 @@ public class Lookup
         };
         
         Parser parser = new(tokens);
-        var lookup = InlineLookup.Parse(ref parser);
+        var lookup = Ronin.Grammar.Compound.Lookup.Parse(ref parser);
 
-        Assert.IsNotType<InlineLookup>(lookup);
+        Assert.IsNotType<Ronin.Grammar.Compound.Lookup>(lookup);
     }
 
     [Fact(DisplayName = "missing key")]
@@ -41,9 +41,9 @@ public class Lookup
         };
         
         Parser parser = new(tokens);
-        var lookup = InlineLookup.Parse(ref parser);
+        var lookup = Ronin.Grammar.Compound.Lookup.Parse(ref parser);
 
-        Assert.IsNotType<InlineLookup>(lookup);
+        Assert.IsNotType<Ronin.Grammar.Compound.Lookup>(lookup);
     }
 
     [Fact(DisplayName = "missing value")]
@@ -60,8 +60,8 @@ public class Lookup
         };
         
         Parser parser = new(tokens);
-        var lookup = InlineLookup.Parse(ref parser);
+        var lookup = Ronin.Grammar.Compound.Lookup.Parse(ref parser);
 
-        Assert.IsNotType<InlineLookup>(lookup);
+        Assert.IsNotType<Ronin.Grammar.Compound.Lookup>(lookup);
     }
 }

@@ -40,7 +40,7 @@ public class Reference
         }
 
         {
-            var arguments = ((Anonymous)reference.Components[2]) as Ronin.Grammar.Compound.Arguments;
+            var arguments = ((Anonymous)reference.Components[2]) as Ronin.Grammar.Compound.Inputs;
             Assert.Single(arguments?.Values);
             var scalar = arguments.Values[0] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
