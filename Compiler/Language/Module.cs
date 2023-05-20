@@ -1,32 +1,28 @@
 ﻿using Ronin.Grammar;
 using Ronin.Grammar.Compound;
-using Ronin.Lexicon.Keyword;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Module : Context
+internal class Module : Semantics
 {
-    public static Module Global { get; } = new();
-
-    public Dictionary<string, Module> Children { get; init; } = new();
-    public List<Instruction> Instructions { get; init; } = new();
+    public static ConcurrentDictionary<Name, Module> Exported { get; } = new();
 
     protected Module() { }
 
-    public static Module ForwardDeclare(Scope scope) 
+    public static Module Declare(Scope scope) 
     {
-        const string empty = "";
-        Module module = new();
-        var name = string.Empty;
+        Module module = new() { Source = scope };
+        Name name = null;
+        
         foreach (var statement in scope.Values)
         {
             switch (statement)
             {
-                case ImportExport export:
-                    if (export.Direction is not PartOf) break;
-                    if (name is not empty)
+                case Export export:
+                    if (name is not null)
                     {
                         module.Errors.Add(new ModuleAlreadyNamed { Statement = statement });
                         continue;
@@ -34,69 +30,38 @@ internal class Module : Context
 
                     name = export.Name;
 
-                    if (Global.Children.TryGetValue(name, out var existing))
+                    module = Exported.AddOrUpdate(name, module, (name, existing) =>
                     {
-                        if (ReferenceEquals(existing, module)) continue;
-                        
-                        foreach (var function in module.Functions)
-                        {
-                            var existingSemantics = existing.Find(function.Key);
-                            if (existingSemantics is not null)
-                            {
-                                existing.Errors.Add(new IdentifierAlreadyExists { Statement = statement, Existing = existingSemantics });
-                                continue;
-                            }
-                            existing.Functions.Add(function.Key, function.Value);
-                        }
-                        foreach (var datatype in module.Datatypes)
-                        {
-                            var existingSemantics = existing.Find(datatype.Key);
-                            if (existingSemantics is not null)
-                            {
-                                existing.Errors.Add(new IdentifierAlreadyExists { Statement = statement, Existing = existingSemantics });
-                                continue;
-                            }
-                            existing.Datatypes.Add(datatype.Key, datatype.Value);
-                        }
-                        foreach (var datum in module.Data)
-                        {
-                            var existingSemantics = existing.Find(datum.Key);
-                            if (existingSemantics is not null)
-                            {
-                                existing.Errors.Add(new IdentifierAlreadyExists { Statement = statement, Existing = existingSemantics }); 
-                                continue;
-                            }
-                            existing.Data.Add(datum.Key, datum.Value);
-                        }
-                    }
+                        var errors = existing.Incorporate(module);
+                        existing.Errors.AddRange(errors);
+                        return existing;
+                    });
 
                     break;
                 case Grammar.Function function:
-                    if (module.Functions.ContainsKey(function.Identifier))
+                    if (module.Find(function.Identifier) is not null)
                     {
-                        module.Errors.Add(new FunctionAlreadyExists { Statement = statement });
+                        module.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
                         continue;
                     }
-                    module.Functions.Add(function.Identifier, new Function(function));
+                    module.Functions.Add(function.Identifier, Function.Declare(function));
                     break;
                 case Grammar.Datatype datatype:
-                    if (module.Datatypes.ContainsKey(datatype.Identifier)) {
-                        module.Errors.Add(new DatatypeAlreadyExists { Statement = statement });
+                    if (module.Find(datatype.Identifier) is not null) {
+                        module.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
                         continue;
                     }
-                    module.Datatypes.Add(datatype.Identifier, Datatype.ForwardDeclare(datatype));
+                    module.Datatypes.Add(datatype.Identifier, Datatype.Declare(datatype, module));
                     break;
                 case Grammar.Datum datum:
-                    Identifier identifier = new();
-                    identifier.Components.Add(new() { value = datum.Name });
-                    if (module.Data.ContainsKey(identifier))
+                    if (module.Find(datum.Name) is not null)
                     {
-                        module.Errors.Add(new DatumAlreadyExists { Statement = statement });
+                        module.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
                         continue;
                     }
-                    module.Data.Add(identifier, Datum.ForwardDeclare(datum));
+                    module.Data.Add(datum.Name, Datum.Declare(datum));
                     break;
-                case Scope anonymousScope:
+                /*case Scope anonymousScope:
                     module.Instructions.Add(new Instruction { Source = anonymousScope });
                     break;
                 case Assignment assignment:
@@ -104,7 +69,7 @@ internal class Module : Context
                     break;
                 case Value value:                    
                     module.Instructions.AddRange(GetInstructions(value));
-                    break;
+                    break;*/
                 default: break;
             }
         }
@@ -112,27 +77,23 @@ internal class Module : Context
         return module;
     }
 
-    private void Incorporate<T>(Dictionary<Identifier, T> semantics, Statement statement)
+    private List<Error> Incorporate(Module from)
     {
-        foreach (var semantic in semantics)
+        List<Error> errors = new();
+        foreach (var function in from.Functions)
         {
-            var existing = Find(semantic.Key);
-            if (existing is not null)
-            {
-                Errors.Add(new IdentifierAlreadyExists { Statement = statement, Existing = existing });
-                continue;
-            }
-            switch (semantic.Value)
-            {
-                case Function function: Functions.Add(semantic.Key, function); break;
-                case Datatype datatype: Datatypes.Add(semantic.Key, datatype); break;
-                case Datum datum: Data.Add(semantic.Key, datum); break;
-                //default: Errors.Add(new DeveloperMistakeUnhandledSubclassException<Semantics> { Statement = })
-            }
-            //existing.Functions.Add(function.Key, function.Value);
+            if (Add(function) is Error error) errors.Add(error);
         }
+        foreach (var datatype in from.Datatypes)
+        {
+            if (Add(datatype) is Error error) errors.Add(error);
+        }
+        foreach (var datum in from.Data)
+        {
+            if (Add(datum) is Error error) errors.Add(error);
+        }
+        return errors;
     }
-    private static List<Instruction> GetInstructions(List<Value> values) => values.SelectMany(GetInstructions).ToList();
 
     private static List<Instruction> GetInstructions(Value value)
     {
@@ -140,7 +101,7 @@ internal class Module : Context
 
         List<Instruction> instructions = new();
         
-        if (value is InlineLookup lookup)
+        if (value is Lookup lookup)
         {
             foreach (var association in lookup.Values)
             {
@@ -156,10 +117,28 @@ internal class Module : Context
         return instructions;
     }
 
-    public Semantics Find()
+    public Semantics Find(Identifier identifier)
     {
-        return null;
+        throw new NotImplementedException();
     }
+
+    /*public class Name
+    {
+        public List<string> Names { get; init; } = new();
+
+        public override bool Equals(object obj) => (obj as Name)?.Names.SequenceEqual(Names) ?? false;
+
+        public override int GetHashCode() => hashcode ?? GenerateHashCode();
+
+        private int? hashcode;
+
+        private int GenerateHashCode()
+        {
+            hashcode = 17;
+            foreach (var name in Names) hashcode = HashCode.Combine(hashcode, name.GetHashCode());
+            return hashcode.Value;
+        }
+    }*/
 }
 
 [ExcludeFromCodeCoverage]
@@ -168,5 +147,5 @@ internal class ModuleAlreadyNamed : Error { }
 [ExcludeFromCodeCoverage]
 internal class IdentifierAlreadyExists : Error
 {
-    public Semantics Existing { get; init; }
+    public Semantics Existing { get; set; }
 }

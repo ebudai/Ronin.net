@@ -16,7 +16,7 @@ public class Keyword
     private const string optional = Optional.keyword;
     private const string persistent = Persistent.keyword;
     private const string partof = PartOf.keyword;
-    private const string import = Import.keyword;
+    private const string import = Ronin.Lexicon.Keyword.Import.keyword;
     private const string @foreach = ForEach.keyword;
 
     [Fact(DisplayName = datatype)]
@@ -135,7 +135,7 @@ public class Keyword
         const string sourcecode = "import git://github.com/ebudai/ronin/libsuperpowers.ronin;";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Ronin.Lexicon.Reserved.Lex(ref lexer) as Import;
+        var keyword = Ronin.Lexicon.Reserved.Lex(ref lexer) as Ronin.Lexicon.Keyword.Import;
 
         Assert.Equal(import, keyword?.ToString());
     }

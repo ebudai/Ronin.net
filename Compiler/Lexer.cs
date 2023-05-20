@@ -40,8 +40,8 @@ public struct Lexer
     public readonly ref readonly char this[int index] => ref sourcecode.Span[cursor..][index];
     public readonly ReadOnlyMemory<char> this[Range range] => sourcecode[cursor..][range];
 
-    public bool StartsWith(string text) => sourcecode[cursor..].Span.StartsWith(text);
-    public bool DoesNotStartWith(string text) => StartsWith(text) is not true;
+    public bool StartsWith(in string text) => sourcecode[cursor..].Span.StartsWith(text);
+    public bool DoesNotStartWith(in string text) => StartsWith(text) is not true;
 
     public int IndexOf(char character) => sourcecode.Span[cursor..].IndexOf(character);
 

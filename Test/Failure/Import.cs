@@ -1,28 +1,25 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Hierarchy
+public class Import
 {
     [Fact(DisplayName = "missing identifier")]
     public void MissingIdentifier() 
     {
-        // part of ;
+        // import ;
 
         Token[] tokens =
         {
-            new PartOf(),
+            new Ronin.Lexicon.Keyword.Import(),
             new Terminal()
         };
 
         Parser parser = new(tokens);
-        var hierarchy = ImportExport.Parse(ref parser);
+        var import = Ronin.Grammar.Import.Parse(ref parser);
 
-        Assert.Null(hierarchy);
+        Assert.Null(import);
     }
 }

@@ -3,18 +3,13 @@
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Function : Context
+internal class Function : Semantics
 {
-    public Datatype ReturnDatatype { get; init; }
+    public Datatype Returns { get; init; }
+    public List<Instruction> Instructions { get; init; } = new();
 
-    public Function(Grammar.Function function)
+    public static Function Declare(Grammar.Function function)
     {
-
+        throw new NotImplementedException();
     }
 }
-
-[ExcludeFromCodeCoverage]
-internal class FunctionCannotJoinNamedScope : Error { }
-
-[ExcludeFromCodeCoverage]
-internal class FunctionAlreadyExists : Error { }

@@ -122,7 +122,7 @@ public class Parsing
 
         Assert.Equal(9, statements?.Count);
 
-        var partof = statements[0] as Ronin.Grammar.ImportExport;
+        var partof = statements[0] as Ronin.Grammar.Export;
         Assert.NotNull(partof);
 
         var datum = statements[1] as Ronin.Grammar.Datum;

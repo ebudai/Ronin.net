@@ -11,7 +11,8 @@ namespace Ronin.Grammar;
 internal class Statement : Syntax, IParsableSyntax<Statement>
 {
     public static Statement Parse(ref Parser current)
-        => ImportExport.Parse(ref current)
+        => Export.Parse(ref current)
+        ?? Import.Parse(ref current)
         ?? Function.Parse(ref current)
         ?? Datatype.Parse(ref current)
         ?? Scope.Parse(ref current)

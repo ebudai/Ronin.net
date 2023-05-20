@@ -9,11 +9,10 @@ internal class Datum : Semantics
 {
     public Mutability Mutability { get; init; }
     public Modifiers Is { get; set; }
-    public Identifier Name { get; init; }
     public Datatype Datatype { get; init; }
     public Value Initializer { get; init; }
 
-    public static Datum ForwardDeclare(Grammar.Datum datum) => new()
+    public static Datum Declare(Grammar.Datum datum) => new()
     {
         Mutability = datum.Mutability switch
         {
@@ -21,19 +20,24 @@ internal class Datum : Semantics
             Reactive => Mutability.Reactive,
             _ => Mutability.Constant
         },
-        Name = datum.Name,
+        Is = datum.Mutability switch
+        {
+            Compiled => Modifiers.Compiled,
+            Shared => Modifiers.Shared,
+            Persistent => Modifiers.Persistent,
+            _ => 0
+        },
         Initializer = datum.Initializer,
+        Source = datum,
     };
 }
-
-[ExcludeFromCodeCoverage]
-internal class DatumAlreadyExists : Error { }
 
 public enum Mutability { Constant, Variable, Reactive }
 
 [Flags] 
 public enum Modifiers 
-{ 
+{
+    None        = 0,
     Compiled    = 1 << 0, 
     Persistent  = 1 << 1, 
     Shared      = 1 << 2, 

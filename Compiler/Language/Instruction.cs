@@ -6,6 +6,9 @@ namespace Ronin.Language;
 [ExcludeFromCodeCoverage]
 internal class Instruction : Semantics
 {
+    public Function Function { get; init; }
+    public Result Value { get; init; }
+    public List<Instruction> Inputs { get; init; }
     //public Instruction(Syntax syntax) => Source = syntax; //TODO this is not sufficient?
 
     /*public static List<Instruction> From(Anonymous value) => value switch

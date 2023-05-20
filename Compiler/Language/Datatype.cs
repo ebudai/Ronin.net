@@ -1,10 +1,9 @@
-﻿using Ronin.Grammar;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Datatype : Context
+internal class Datatype : Semantics
 {
     public bool IsOptional { get; init; }
 
@@ -13,17 +12,11 @@ internal class Datatype : Context
 
     public Datatype() { }
 
-    public static Datatype ForwardDeclare(Grammar.Datatype datatype)
+    public static Datatype Declare(Grammar.Datatype grammar, Semantics parent)
     {
-        throw new NotImplementedException();
+        Datatype datatype = new() { Source = grammar, Parent = parent };
+        //datatype.
+
+        return datatype;
     }
 }
-
-[ExcludeFromCodeCoverage]
-internal class DatatypeCannotJoinNamedScope : Error { }
-
-[ExcludeFromCodeCoverage]
-internal class DatatypeDefinitionCannotContain<T> : Error where T : Syntax { }
-
-[ExcludeFromCodeCoverage]
-internal class DatatypeAlreadyExists : Error { }
