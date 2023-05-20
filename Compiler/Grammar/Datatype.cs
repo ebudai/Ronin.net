@@ -23,7 +23,7 @@ internal class Datatype : Statement, IParsableSyntax<Datatype>
     {
         Parser parser = current;
 
-        if (parser.TryConsume<Lexicon.Keyword.Datatype>() is false) return null;
+        if (parser.TryAdvance<Lexicon.Keyword.Datatype>() is false) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 

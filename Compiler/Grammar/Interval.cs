@@ -22,7 +22,7 @@ internal class Interval : Syntax, IParsableSyntax<Interval>
     {
         Parser parser = current;
 
-        if (parser.TryConsume<Lexicon.Punctuation.Range>() is false) return null;
+        if (parser.TryAdvance<Lexicon.Punctuation.Range>() is false) return null;
 
         return new Interval { Source = parser.Commit(ref current) };
     }

@@ -27,7 +27,7 @@ internal class Loop : Syntax, IParsableSyntax<Loop>
     {
         Parser parser = current;
 
-        if (parser.TryConsume<ForEach>() is false) return null;
+        if (parser.TryAdvance<ForEach>() is false) return null;
 
         if (Datum.Parse(ref parser) is not Datum header) return null;
 

@@ -27,7 +27,7 @@ internal class Function : Statement, IParsableSyntax<Function>
     {
         Parser parser = current;
 
-        if (parser.TryConsume<Lexicon.Keyword.Function>() is false) return null;
+        if (parser.TryAdvance<Lexicon.Keyword.Function>() is false) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 

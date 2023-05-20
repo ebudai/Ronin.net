@@ -33,7 +33,7 @@ internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separat
 
             if (Value.Parse(ref parser) is not Value key) return null;
 
-            if (parser.TryConsume<Assign>() is false) return null;
+            if (parser.TryAdvance<Assign>() is false) return null;
 
             if (Value.Parse(ref parser) is not Value value) return null;
 

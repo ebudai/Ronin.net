@@ -46,11 +46,11 @@ internal struct Parser
         return parsed;
     }
 
-    public bool TryConsume<T>() where T : Token
+    public bool TryAdvance<T>() where T : Token
     {
-        var consumed = Token is T;
-        if (consumed) Advance();
-        return consumed;
+        var advanced = Token is T;
+        if (advanced) Advance();
+        return advanced;
     }
 
     

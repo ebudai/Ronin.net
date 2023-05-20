@@ -40,7 +40,7 @@ internal class Delegate : Anonymous, IParsableSyntax<Delegate>
         else
         {
             data = parameters.Values;
-            if (parser.TryConsume<Returns>() is false) return null;
+            if (parser.TryAdvance<Returns>() is false) return null;
         }
 
         if (Scope.Parse(ref parser) is not Scope body) return null;

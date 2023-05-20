@@ -22,7 +22,7 @@ internal class Assignment : Statement, IParsableSyntax<Assignment>
 
         if (Reference.Parse(ref parser) is not Reference reference) return null;
 
-        if (parser.TryConsume<Assign>() is false) return null;
+        if (parser.TryAdvance<Assign>() is false) return null;
 
         if (Anonymous.Parse(ref parser) is not Anonymous value) return null;
 
