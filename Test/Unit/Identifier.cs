@@ -38,7 +38,7 @@ public class Identifier
         {
             Ronin.Grammar.Compound.Parameters parameters = identifier.Components[1];
             Assert.Single(parameters?.Values);
-            Ronin.Grammar.Datum datum = parameters.Values[0];
+            Ronin.Grammar.DatumDeclaration datum = parameters.Values[0];
             Assert.Single(datum?.Name?.Components);
 
             Assert.Single(datum?.Datatype?.Components);

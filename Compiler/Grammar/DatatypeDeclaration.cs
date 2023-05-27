@@ -6,20 +6,20 @@ using Ronin.Grammar.Compound;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Restricts a <see cref="Datum"/> to a particular shape of data
-///     resulting from evaluation of a <see cref="Function"/> or <see cref="Datum"/>
+///     Restricts a <see cref="DatumDeclaration"/> to a particular shape of data
+///     resulting from evaluation of a <see cref="FunctionDeclaration"/> or <see cref="DatumDeclaration"/>
 /// </summary>
 /// 
 /// <example>
 ///     datatype Car = Vehicle and { var speed => number; var price => money; }
 /// </example>
-internal class Datatype : Statement, IParsableSyntax<Datatype>
+internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclaration>
 {
     public Identifier Identifier { get; init; }
     public Reference Algebra { get; init; }
     public Scope Body { get; init; }
 
-    public new static Datatype Parse(ref Parser current)
+    public new static DatatypeDeclaration Parse(ref Parser current)
     {
         Parser parser = current;
 
@@ -36,7 +36,7 @@ internal class Datatype : Statement, IParsableSyntax<Datatype>
 
         var body = Scope.Parse(ref parser);
 
-        return new Datatype
+        return new DatatypeDeclaration
         {
             Identifier = identifier,
             Algebra = algebra,

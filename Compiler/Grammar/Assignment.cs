@@ -5,7 +5,7 @@ using Ronin.Compiler;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Sets the current <see cref="Grammar.Anonymous"/> of a <see cref="Datum"/>
+///     Sets the current <see cref="Anonymous"/> of a <see cref="DatumDeclaration"/>
 /// </summary>
 /// 
 /// <example>

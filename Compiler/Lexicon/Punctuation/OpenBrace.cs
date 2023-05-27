@@ -9,6 +9,11 @@ internal class OpenBrace : Open
     public const char character = '{';
     public const string symbol = "{";
 
+    public OpenBrace()
+    {
+        sourcecode = symbol.AsMemory();
+    }
+
     public static new OpenBrace Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;

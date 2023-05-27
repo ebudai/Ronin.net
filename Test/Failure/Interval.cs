@@ -13,10 +13,10 @@ public class Interval
 
         Token[] tokens =
         {
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal()
+            new Word { sourcecode = "not".AsMemory() },
+            new Word { sourcecode = "an".AsMemory() },
+            new Word { sourcecode = "interval".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);
@@ -32,7 +32,7 @@ public class Interval
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Punctuation.Range(),
+            new Ronin.Lexicon.Punctuation.Range { sourcecode = Ronin.Lexicon.Punctuation.Range.symbol.AsMemory() },
             Sentinel.Instance
         };
 

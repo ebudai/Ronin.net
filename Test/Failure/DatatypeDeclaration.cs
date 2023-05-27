@@ -1,13 +1,12 @@
-﻿using Ronin;
-using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
 using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Datatype
+public class DatatypeDeclaration
 {
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
@@ -16,14 +15,14 @@ public class Datatype
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keyword.Datatype(),
+            new Datatype(),
             new OpenBrace(),
             new CloseBrace(),
-            new Terminal()
+            new Terminal(),
         };
         
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.Datatype.Parse(ref parser);
+        var datatype = Ronin.Grammar.DatatypeDeclaration.Parse(ref parser);
         Assert.Null(datatype);
     }
 }

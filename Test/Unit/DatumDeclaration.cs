@@ -6,7 +6,7 @@ using Ronin.Lexicon.Punctuation;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Datum
+public class DatumDeclaration
 {
     [Fact(DisplayName = "typed")]
     public void Typed()
@@ -15,17 +15,17 @@ public class Datum
 
         Token[] tokens =
         {
-            new Variable(),
-            new Word(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new Terminal(),
+            new Variable { sourcecode = Variable.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Word { sourcecode = "variable".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Word { sourcecode = "number".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Parse(ref parser);
+        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -53,16 +53,16 @@ public class Datum
 
         Token[] tokens =
         {
-            new Reactive(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new Terminal(),
+            new Reactive { sourcecode = Reactive.keyword.AsMemory() },
+            new Word { sourcecode = "x".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Word { sourcecode = "text".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Parse(ref parser);
+        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
@@ -84,17 +84,17 @@ public class Datum
 
         Token[] tokens =
         {
-            new Variable(),
-            new Word(),
-            new Returns(),
-            new Compiled(),
-            new Word(),
-            new Terminal(),
+            new Variable { sourcecode = Variable.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Compiled { sourcecode = Compiled.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Parse(ref parser);
+        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -117,17 +117,17 @@ public class Datum
 
         Token[] tokens =
         {
-            new Constant(),
-            new Word(),
-            new Returns(),
-            new Persistent(),
-            new Word(),
-            new Terminal(),
+            new Constant { sourcecode = Constant.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Persistent { sourcecode = Persistent.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Parse(ref parser);
+        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
 
         Assert.IsType<Constant>(datum?.Mutability);
 
@@ -150,17 +150,17 @@ public class Datum
 
         Token[] tokens = 
         {
-            new Variable(),
-            new Word(),
-            new Returns(),
-            new Shared(),
-            new Word(),
-            new Terminal(),
+            new Variable { sourcecode = Variable.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Shared { sourcecode = Shared.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Parse(ref parser);
+        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -183,16 +183,16 @@ public class Datum
 
         Token[] tokens =
         {
-            new Reactive(),
-            new Word(),
-            new Returns(),
-            new Optional(),
-            new Word(),
+            new Reactive { sourcecode = Reactive.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Optional { sourcecode = Optional.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
             new Terminal()
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Parse(ref parser);
+        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
@@ -215,16 +215,16 @@ public class Datum
 
         Token[] tokens =
         {
-            new Variable(),
-            new Word(),
-            new Assign(),
-            new Word(),
-            new Terminal(),
+            new Variable { sourcecode = Variable.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Parse(ref parser);
+        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -247,18 +247,18 @@ public class Datum
 
         Token[] tokens =
         {
-            new Variable(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new Assign(),
-            new NumberLiteral(),
-            new Terminal(),
+            new Variable { sourcecode = Variable.keyword.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Word { sourcecode = "my".AsMemory() },
+            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new NumberLiteral { sourcecode = "2".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Parse(ref parser);
+        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 

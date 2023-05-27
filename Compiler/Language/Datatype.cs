@@ -12,7 +12,7 @@ internal class Datatype : Semantics
 
     public Datatype() { }
 
-    public static Datatype Declare(Grammar.Datatype grammar, Semantics parent)
+    public static Datatype Declare(Grammar.DatatypeDeclaration grammar, Semantics parent)
     {
         Datatype datatype = new() { Source = grammar, Parent = parent };
         //datatype.

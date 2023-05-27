@@ -7,7 +7,7 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     A unique name for a <see cref="Datatype"/> or a <see cref="Function"/>
+///     A unique name for a <see cref="DatatypeDeclaration"/> or a <see cref="FunctionDeclaration"/>
 ///     which can contain multiple <see cref="Word"/>s and <see cref="Parameters"/>
 /// </summary>
 internal class Identifier : Syntax, IParsableSyntax<Identifier>

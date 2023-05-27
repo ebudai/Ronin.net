@@ -60,7 +60,7 @@ public class Lookup
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        var datum = statements[0] as Ronin.Grammar.Datum;
+        var datum = statements[0] as Ronin.Grammar.DatumDeclaration;
         var lookup = datum?.Initializer as Ronin.Grammar.Compound.Lookup;
         Assert.NotNull(lookup);
     }

@@ -15,10 +15,10 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBrace(),
-            new TextLiteral(),
-            new NumberLiteral(),
-            new CloseBrace()
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new TextLiteral { sourcecode = "\"thing\"".AsMemory() },
+            new NumberLiteral { sourcecode = "4".AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);
@@ -34,10 +34,10 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBrace(),
-            new Assign(),
-            new NumberLiteral(),
-            new CloseBrace()
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new NumberLiteral { sourcecode = "4".AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);
@@ -53,10 +53,10 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBrace(),
-            new NumberLiteral(),
-            new Assign(),
-            new CloseBrace()
+            new OpenBrace{ sourcecode = OpenBrace.symbol.AsMemory() },
+            new NumberLiteral { sourcecode = "3".AsMemory() },
+            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);

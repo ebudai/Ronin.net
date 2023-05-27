@@ -9,11 +9,13 @@ public class Assignment
     [Fact(DisplayName = "no value")]
     public void NoValue()
     {
-        Token[] tokens = 
+        // thing = ;
+
+        Token[] tokens =
         {
-            new Word(),
+            new Word { sourcecode = "thing".AsMemory() },
             new Assign(),
-            new Terminal()
+            new Terminal(),
         };
         
         Parser parser = new(tokens);

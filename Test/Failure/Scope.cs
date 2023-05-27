@@ -15,13 +15,13 @@ public class Scope
 
         Token[] tokens =
         {
-            new OpenBrace(),
-            new TextDelimiter(),
-            new Separator(),
-            new Terminal(),
-            new Separator(),
-            new Word(),
-            new CloseBrace()
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new TextDelimiter { sourcecode = TextDelimiter.symbol.AsMemory() },
+            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new Word { sourcecode = "thing".AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);

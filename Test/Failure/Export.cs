@@ -14,8 +14,8 @@ public class Export
 
         Token[] tokens =
         {
-            new PartOf(),
-            new Terminal()
+            new PartOf { sourcecode = PartOf.keyword.AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
         };
 
         Parser parser = new(tokens);

@@ -16,13 +16,13 @@ public class Delegate
 
         Token[] tokens =
         {
-            new Word(),
-            new Returns(),
-            new OpenBrace(),
-            new Word(),
-            new NumberLiteral(),
-            new Terminal(),
-            new CloseBrace(),
+            new Word { sourcecode = "dave".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new Word { sourcecode = "return".AsMemory() },
+            new NumberLiteral { sourcecode = "3".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
             Sentinel.Instance
         };
 
@@ -37,15 +37,11 @@ public class Delegate
         var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
-        {
-            Ronin.Grammar.Name name = line.Components[0];
-            Assert.Equal(1, name?.Source.Length);
-        }
-
-        {
-            Anonymous scalar = line.Components[1];
-            Assert.Equal(1, scalar?.Source.Length);
-        }
+        Ronin.Grammar.Name name = line.Components[0];
+        Assert.Equal(1, name?.Source.Length);
+        
+        Anonymous scalar = line.Components[1];
+        Assert.Equal(1, scalar?.Source.Length);        
     }
 
     [Fact(DisplayName = "one parameter typed")]
@@ -55,13 +51,15 @@ public class Delegate
 
         Token[] tokens =
         {
-            new Word(),
-            new Returns(),
-            new OpenBrace(),
-            new Word(),
+            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new Word { sourcecode = "dave".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Word { sourcecode = "money".AsMemory() },
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new Word { sourcecode = "money".AsMemory() },
             new NumberLiteral(),
-            new Terminal(),
-            new CloseBrace(),
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
             Sentinel.Instance
         };
 
@@ -101,12 +99,12 @@ public class Delegate
             new Separator(),
             new Word(),
             new CloseParenthesis(),
-            new Returns(),
-            new OpenBrace(),
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
             new Word(),
             new NumberLiteral(),
-            new Terminal(),
-            new CloseBrace(),
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
             Sentinel.Instance
         };
         
@@ -143,12 +141,12 @@ public class Delegate
         {
             new OpenParenthesis(),
             new CloseParenthesis(),
-            new Returns(),
-            new OpenBrace(),
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
             new Word(),
             new NumberLiteral(),
-            new Terminal(),
-            new CloseBrace(),
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
             Sentinel.Instance
         };
         
@@ -184,12 +182,12 @@ public class Delegate
             new Assign(),
             new OpenParenthesis(),
             new CloseParenthesis(),
-            new Returns(),
-            new OpenBrace(),
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
             new Word(),
             new NumberLiteral(),
-            new Terminal(),
-            new CloseBrace(),
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
             Sentinel.Instance
         };
         
@@ -197,7 +195,7 @@ public class Delegate
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        var datum = statements[0] as Ronin.Grammar.Datum;
+        var datum = statements[0] as Ronin.Grammar.DatumDeclaration;
         var @delegate = datum?.Initializer as Ronin.Grammar.Delegate;
         Assert.NotNull(@delegate);
     }

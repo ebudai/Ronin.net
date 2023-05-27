@@ -13,10 +13,10 @@ public class Assignment
         
         Token[] tokens =
         {
-            new Word(),
-            new Assign(),
-            new NumberLiteral(),
-            new Terminal(),
+            new Word { sourcecode = "a".AsMemory() },
+            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new NumberLiteral { sourcecode = "3".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
 
@@ -38,9 +38,9 @@ public class Assignment
 
         Token[] tokens =
         {
-            new Word(),
-            new Assign(),
-            new NumberLiteral(),
+            new Word { sourcecode = "thing".AsMemory() },
+            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new NumberLiteral { sourcecode = "0".AsMemory() },
             Sentinel.Instance
         };
         

@@ -7,7 +7,7 @@ using Ronin.Lexicon.Punctuation;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Instance of a <see cref="Function"/> which can be treated as a <see cref="Datum"/>
+///     Instance of a <see cref="FunctionDeclaration"/> which can be treated as a <see cref="DatumDeclaration"/>
 /// </summary>
 /// 
 /// <example>
@@ -20,19 +20,19 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Delegate : Anonymous, IParsableSyntax<Delegate>
 {
-    public List<Datum> Data { get; init; }
+    public List<DatumDeclaration> Data { get; init; }
     public Scope Body { get; init; }
 
     public new static Delegate Parse(ref Parser current)
     {
         Parser parser = current;
 
-        List<Datum> data;
+        List<DatumDeclaration> data;
 
         var parameters = Parameters.Parse(ref parser);        
         if (parameters is null)
         {
-            var datum = Datum.Parse(ref parser);
+            var datum = DatumDeclaration.Parse(ref parser);
             if (datum is null) return null;
             if (parser.PreviousToken is not Returns) return null;
             data = new() { datum };

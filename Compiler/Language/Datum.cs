@@ -12,7 +12,7 @@ internal class Datum : Semantics
     public Datatype Datatype { get; init; }
     public Value Initializer { get; init; }
 
-    public static Datum Declare(Grammar.Datum datum) => new()
+    public static Datum Declare(Grammar.DatumDeclaration datum) => new()
     {
         Mutability = datum.Mutability switch
         {

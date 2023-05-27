@@ -1,12 +1,12 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keyword;
 using Ronin.Lexicon.Punctuation;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Function
+public class FunctionDeclaration
 {
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
@@ -15,13 +15,13 @@ public class Function
 
         Token[] tokens = 
         {
-            new Ronin.Lexicon.Keyword.Function(),
-            new OpenBrace(),
-            new CloseBrace()
+            new Function { sourcecode = Function.keyword.AsMemory() },
+            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
         };
 
         Parser parser = new(tokens);
-        var function = Ronin.Grammar.Function.Parse(ref parser);
+        var function = Ronin.Grammar.FunctionDeclaration.Parse(ref parser);
         
         Assert.Null(function);
     }

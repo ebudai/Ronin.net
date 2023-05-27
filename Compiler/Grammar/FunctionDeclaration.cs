@@ -16,14 +16,14 @@ namespace Ronin.Grammar;
 ///         return 8; 
 ///     }
 /// </example>
-internal class Function : Statement, IParsableSyntax<Function>
+internal class FunctionDeclaration : Statement, IParsableSyntax<FunctionDeclaration>
 {
     public Identifier Identifier { get; init; }
     public Modifiers Modifiers { get; init; }
     public Reference Returns { get; init; }
     public Scope Body { get; init; }
 
-    public new static Function Parse(ref Parser current)
+    public new static FunctionDeclaration Parse(ref Parser current)
     {
         Parser parser = current;
 
@@ -42,7 +42,7 @@ internal class Function : Statement, IParsableSyntax<Function>
 
         var body = Scope.Parse(ref parser);
 
-        return new Function
+        return new FunctionDeclaration
         {
             Identifier = identifier,
             Modifiers = modifiers,

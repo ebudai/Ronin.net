@@ -13,8 +13,8 @@ public class Import
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keyword.Import(),
-            new Terminal()
+            new Ronin.Lexicon.Keyword.Import { sourcecode = Ronin.Lexicon.Keyword.Import.keyword.AsMemory() },
+            new Terminal{ sourcecode = Terminal.symbol.AsMemory() }
         };
 
         Parser parser = new(tokens);

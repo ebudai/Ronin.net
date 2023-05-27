@@ -15,10 +15,10 @@ public class Inputs
 
         Token[] tokens = 
         {
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal()
+            new Word { sourcecode = "not".AsMemory() },
+            new Word { sourcecode = "an".AsMemory() },
+            new Word { sourcecode = "object".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);
@@ -44,15 +44,15 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
-            new Word(),
-            new Comma(),
-            new OpenParenthesis(),
-            new Word(),
-            new Terminal(),
-            new Word(),
-            new CloseParenthesis(),
-            new CloseParenthesis()
+            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new Word { sourcecode = "test".AsMemory() },
+            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new Word { sourcecode = "thing".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Word { sourcecode = "stuff".AsMemory() },
+            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
+            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);
@@ -68,10 +68,10 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
-            new Word(),
-            new Terminal(),
-            new CloseParenthesis()
+            new OpenParenthesis{ sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new Word { sourcecode = "test".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new CloseParenthesis{ sourcecode = CloseParenthesis.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);

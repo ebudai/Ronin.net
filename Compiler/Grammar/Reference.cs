@@ -6,7 +6,7 @@ using Ronin.Grammar.Compound;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function"/>, <see cref="Datatype"/> or <see cref="Value"/>
+///     Represents a named indirection to a <see cref="DatumDeclaration"/>, <see cref="FunctionDeclaration"/>, <see cref="DatatypeDeclaration"/> or <see cref="Value"/>
 /// </summary>
 internal class Reference : Value, IParsableSyntax<Reference>
 {

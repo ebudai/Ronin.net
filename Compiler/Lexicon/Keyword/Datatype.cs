@@ -7,6 +7,11 @@ namespace Ronin.Lexicon.Keyword;
 internal class Datatype : Reserved
 {
     internal const string keyword = "datatype";
+    
+    public Datatype()
+    {
+        sourcecode = keyword.AsMemory();
+    }
 
     public static new Word Lex(ref Lexer lexer)
     {

@@ -14,7 +14,7 @@ internal class Module : Semantics
 
     public static Module Declare(Scope scope) 
     {
-        Module module = new() { Source = scope };
+        Semantics semantics = new Procedure() { Source = scope };
         Name name = null;
         
         foreach (var statement in scope.Values)
@@ -24,42 +24,42 @@ internal class Module : Semantics
                 case Export export:
                     if (name is not null)
                     {
-                        module.Errors.Add(new ModuleAlreadyNamed { Statement = statement });
+                        semantics.Errors.Add(new ModuleAlreadyNamed { Statement = statement });
                         continue;
                     }
 
                     name = export.Name;
 
-                    module = Exported.AddOrUpdate(name, module, (name, existing) =>
+                    semantics = Exported.AddOrUpdate(name, semantics, (name, existing) =>
                     {
-                        var errors = existing.Incorporate(module);
+                        var errors = existing.Incorporate(semantics);
                         existing.Errors.AddRange(errors);
                         return existing;
                     });
 
                     break;
-                case Grammar.Function function:
-                    if (module.Find(function.Identifier) is not null)
+                case Grammar.FunctionDeclaration function:
+                    if (semantics.Find(function.Identifier) is not null)
                     {
-                        module.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
+                        semantics.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
                         continue;
                     }
-                    module.Functions.Add(function.Identifier, Function.Declare(function));
+                    semantics.Functions.Add(function.Identifier, Function.Declare(function));
                     break;
-                case Grammar.Datatype datatype:
-                    if (module.Find(datatype.Identifier) is not null) {
-                        module.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
+                case Grammar.DatatypeDeclaration datatype:
+                    if (semantics.Find(datatype.Identifier) is not null) {
+                        semantics.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
                         continue;
                     }
-                    module.Datatypes.Add(datatype.Identifier, Datatype.Declare(datatype, module));
+                    semantics.Datatypes.Add(datatype.Identifier, Datatype.Declare(datatype, semantics));
                     break;
-                case Grammar.Datum datum:
-                    if (module.Find(datum.Name) is not null)
+                case Grammar.DatumDeclaration datum:
+                    if (semantics.Find(datum.Name) is not null)
                     {
-                        module.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
+                        semantics.Errors.Add(new IdentifierAlreadyExists { Statement = statement });
                         continue;
                     }
-                    module.Data.Add(datum.Name, Datum.Declare(datum));
+                    semantics.Data.Add(datum.Name, Datum.Declare(datum));
                     break;
                 /*case Scope anonymousScope:
                     module.Instructions.Add(new Instruction { Source = anonymousScope });
@@ -74,10 +74,10 @@ internal class Module : Semantics
             }
         }
 
-        return module;
+        return semantics;
     }
 
-    private List<Error> Incorporate(Module from)
+    private List<Error> Incorporate(Semantics from)
     {
         List<Error> errors = new();
         foreach (var function in from.Functions)
@@ -115,11 +115,6 @@ internal class Module : Semantics
         }
         
         return instructions;
-    }
-
-    public Semantics Find(Identifier identifier)
-    {
-        throw new NotImplementedException();
     }
 
     /*public class Name

@@ -16,10 +16,10 @@ public class Ordinal
 
         Token[] tokens =
         {
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal()
+            new Word { sourcecode = "not".AsMemory() },
+            new Word { sourcecode = "an".AsMemory() },
+            new Word { sourcecode = "ordinal".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);
@@ -45,14 +45,14 @@ public class Ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracket(),
-            new Word(),
-            new Separator(),
-            new Word(),
-            new Terminal(),
-            new Word(),
-            new CloseParenthesis(),
-            new CloseSquareBracket()
+            new OpenSquareBracket { sourcecode = OpenSquareBracket.symbol.AsMemory() },
+            new Word { sourcecode = "test".AsMemory() },
+            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new Word { sourcecode = "thing".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Word { sourcecode = "stuff".AsMemory() },
+            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
+            new CloseSquareBracket { sourcecode = CloseSquareBracket.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);
@@ -68,10 +68,10 @@ public class Ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracket(),
-            new Word(),
-            new Terminal(),
-            new CloseSquareBracket()
+            new OpenSquareBracket { sourcecode = OpenSquareBracket.symbol.AsMemory() },
+            new Word { sourcecode = "test".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new CloseSquareBracket { sourcecode = CloseSquareBracket.symbol.AsMemory() }
         };
         
         Parser parser = new(tokens);

@@ -15,9 +15,9 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new Word(),
-            new Word(),
-            new Terminal(),
+            new Word { sourcecode = "not".AsMemory() },
+            new Word{ sourcecode = "parameters".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
             Sentinel.Instance
         };
         
@@ -44,17 +44,17 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesis(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new Separator(),
-            new OpenSquareBracket(),
-            new Word(),
-            new Terminal(),
-            new Word(),
-            new CloseSquareBracket(),
-            new CloseParenthesis(),
+            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new Word { sourcecode = "test".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Word { sourcecode = "money".AsMemory() },
+            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new OpenSquareBracket { sourcecode = OpenSquareBracket.symbol.AsMemory() },
+            new Word { sourcecode = "thing".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Word { sourcecode = "stuff".AsMemory() },
+            new CloseSquareBracket { sourcecode = CloseSquareBracket.symbol.AsMemory() },
+            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
             Sentinel.Instance
         };
         
@@ -71,11 +71,11 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new Word(),
-            new Returns(),
-            new Word(),
-            new Terminal(),
-            new CloseParenthesis(),
+            new Word { sourcecode = "test".AsMemory() },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new Word{ sourcecode = "text".AsMemory() },
+            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
             Sentinel.Instance
         };
         

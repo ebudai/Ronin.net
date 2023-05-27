@@ -13,12 +13,12 @@ internal class Statement : Syntax, IParsableSyntax<Statement>
     public static Statement Parse(ref Parser current)
         => Export.Parse(ref current)
         ?? Import.Parse(ref current)
-        ?? Function.Parse(ref current)
-        ?? Datatype.Parse(ref current)
+        ?? FunctionDeclaration.Parse(ref current)
+        ?? DatatypeDeclaration.Parse(ref current)
         ?? Scope.Parse(ref current)
         ?? Assignment.Parse(ref current)
         ?? Reference.Parse(ref current)
         ?? Value.Parse(ref current)        
-        ?? Datum.Parse(ref current)
+        ?? DatumDeclaration.Parse(ref current)
         ?? Unknown.Parse(ref current) as Statement;
 }

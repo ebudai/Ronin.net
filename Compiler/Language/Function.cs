@@ -8,7 +8,7 @@ internal class Function : Semantics
     public Datatype Returns { get; init; }
     public List<Instruction> Instructions { get; init; } = new();
 
-    public static Function Declare(Grammar.Function function)
+    public static Function Declare(Grammar.FunctionDeclaration function)
     {
         throw new NotImplementedException();
     }

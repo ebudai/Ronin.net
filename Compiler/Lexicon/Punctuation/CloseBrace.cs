@@ -9,6 +9,11 @@ internal class CloseBrace : Close
     public const char character = '}';
     public const string symbol = "}";
 
+    public CloseBrace()
+    {
+        sourcecode = symbol.AsMemory();
+    }
+
     public static new CloseBrace Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not character) return null;

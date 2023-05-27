@@ -8,7 +8,7 @@ using Ronin.Lexicon.Punctuation;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Function
+public class FunctionDeclaration
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -33,7 +33,7 @@ public class Function
         };
 
         Parser parser = new(tokens);
-        var function = Ronin.Grammar.Function.Parse(ref parser);
+        var function = Ronin.Grammar.FunctionDeclaration.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
 
@@ -98,7 +98,7 @@ public class Function
         };
 
         Parser parser = new(tokens);
-        var function = Ronin.Grammar.Function.Parse(ref parser);
+        var function = Ronin.Grammar.FunctionDeclaration.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);
 

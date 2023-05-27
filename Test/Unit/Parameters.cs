@@ -30,7 +30,7 @@ public class Parameters
 
         Assert.Single(parameters?.Values);
 
-        Ronin.Grammar.Datum datum = parameters.Values[0];
+        Ronin.Grammar.DatumDeclaration datum = parameters.Values[0];
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -70,7 +70,7 @@ public class Parameters
         Assert.Equal(2, parameters?.Values?.Count);
 
         {
-            Ronin.Grammar.Datum datum = parameters.Values[0];
+            Ronin.Grammar.DatumDeclaration datum = parameters.Values[0];
             
             Assert.Null(datum?.Mutability);
 
@@ -84,7 +84,7 @@ public class Parameters
         }
 
         {
-            Ronin.Grammar.Datum datum = parameters.Values[1];
+            Ronin.Grammar.DatumDeclaration datum = parameters.Values[1];
 
             Assert.Null(datum?.Mutability);
 

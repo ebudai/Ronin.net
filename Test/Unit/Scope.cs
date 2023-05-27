@@ -30,7 +30,7 @@ public class Scope
 
         Assert.Single(scope?.Values);
 
-        var datum = scope.Values[0] as Ronin.Grammar.Datum;
+        var datum = scope.Values[0] as Ronin.Grammar.DatumDeclaration;
 
         Assert.IsType<Variable>(datum?.Mutability);
 

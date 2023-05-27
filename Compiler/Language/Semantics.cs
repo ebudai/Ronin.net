@@ -29,5 +29,17 @@ internal abstract class Semantics
         throw new NotImplementedException();
     }
 
+    public Semantics Find(Identifier identifier)
+    {
+        throw new NotImplementedException();
+    }
 
+    public static Semantics Declare<T>(Syntax syntax) where T : Semantics, new()
+    {
+        T semantics = new() { Source = syntax };
+
+
+
+        return semantics;
+    }
 }
