@@ -2,7 +2,7 @@
 
 using Ronin.Compiler;
 
-namespace Ronin.Lexicon;
+namespace Ronin.Lexicon.Punctuation;
 
 internal class Dollar : Symbol
 {
