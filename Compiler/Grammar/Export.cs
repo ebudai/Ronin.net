@@ -6,7 +6,7 @@ using Ronin.Lexicon.Keywords;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Names a <see cref="Scope"/> via 'part of', or exposes one to the current <see cref="Scope"/> via 'import'
+///     Exposes one to the current <see cref="Scope"/> via 'import'
 /// </summary>
 /// 
 /// <example>

@@ -3,7 +3,7 @@
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Names a <see cref="Scope"/> via 'part of', or exposes one to the current <see cref="Scope"/> via 'import'
+///     Names a <see cref="Scope"/> via 'part of'
 /// </summary>
 /// 
 /// <example>
