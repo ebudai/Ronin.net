@@ -1,12 +1,12 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Lexicon.Keyword;
 
 namespace Ronin.Grammar;
 
 /// <summary>
-///     A <see cref="Lexicon.Keyword.Constant"/>, <see cref="Lexicon.Keyword.Compiled"/> value
-///     written-out directly in code
+///     A <see cref="Constant"/>, <see cref="Compiled"/> value written directly in code
 /// </summary>
 /// 
 /// <example>
