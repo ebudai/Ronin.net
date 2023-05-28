@@ -14,6 +14,8 @@ namespace Ronin.Grammar.Compound;
 /// </remarks>
 /// 
 /// <example>
+///     var a = "one";
+///     var b = "the thing";
 ///     var x = { a = 3, b = 22.3, "special" = values maximum };
 ///             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
