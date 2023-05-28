@@ -17,18 +17,18 @@ internal class Symbol : Token
         => Ampersand.Lex(ref lexer)
         ?? Returns.Lex(ref lexer) // needs to be above Equals
         ?? Punctuation.Range.Lex(ref lexer) // needs to be above Period
-        ?? Assign.Lex(ref lexer)
+        ?? Equality.Lex(ref lexer)
         ?? Asterisk.Lex(ref lexer)
         ?? At.Lex(ref lexer)
         ?? Backslash.Lex(ref lexer)
         ?? Backtick.Lex(ref lexer)
-        ?? CharacterDelimiter.Lex(ref lexer)
+        ?? Quote.Lex(ref lexer)
         ?? Chevron.Lex(ref lexer)
         ?? CloseBrace.Lex(ref lexer)
         ?? CloseParenthesis.Lex(ref lexer)
         ?? CloseSquareBracket.Lex(ref lexer)
         ?? Colon.Lex(ref lexer)
-        ?? Separator.Lex(ref lexer)
+        ?? Comma.Lex(ref lexer)
         ?? Dollar.Lex(ref lexer)
         ?? Exclamation.Lex(ref lexer)
         ?? GreaterThan.Lex(ref lexer)
@@ -43,9 +43,9 @@ internal class Symbol : Token
         ?? Plus.Lex(ref lexer)
         ?? Pound.Lex(ref lexer)
         ?? Question.Lex(ref lexer)
-        ?? Terminal.Lex(ref lexer)
+        ?? Semicolon.Lex(ref lexer)
         ?? Slash.Lex(ref lexer)
-        ?? TextDelimiter.Lex(ref lexer)
+        ?? DoubleQuote.Lex(ref lexer)
         ?? Tilde.Lex(ref lexer) as Symbol;
 
     internal static bool IsSymbol(ref Lexer lexer, int i = 0)
@@ -55,18 +55,18 @@ internal class Symbol : Token
         return text.Span.StartsWith(Returns.symbol)
             || text.Span.StartsWith(Punctuation.Range.symbol)
             || text.Span[0] is Ampersand.character
-            or Assign.character
+            or Equality.character
             or Asterisk.character
             or At.character
             or Backslash.character
             or Backtick.character
-            or CharacterDelimiter.character
+            or Quote.character
             or Chevron.character
             or CloseBrace.character
             or CloseParenthesis.character
             or CloseSquareBracket.character
             or Colon.character
-            or Separator.character
+            or Comma.character
             or Dollar.character
             or Exclamation.character
             or GreaterThan.character
@@ -81,9 +81,9 @@ internal class Symbol : Token
             or Plus.character
             or Pound.character
             or Question.character
-            or Terminal.character
+            or Semicolon.character
             or Slash.character
-            or TextDelimiter.character
+            or DoubleQuote.character
             or Tilde.character;
     }
 
