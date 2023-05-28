@@ -16,8 +16,7 @@ internal class Comment : Trivium
 {
     public class SingleLine
     {
-        public const string Start = "//";
-        
+        public const string Start = "//";        
     }
 
     public class Multiline
