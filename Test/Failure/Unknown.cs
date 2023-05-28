@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -17,7 +17,7 @@ public class Unknown
         {
             new Datatype { sourcecode = Datatype.keyword.AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
         

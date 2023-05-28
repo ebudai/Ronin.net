@@ -11,7 +11,7 @@ public class Range
         const string dots = "..";
 
         Lexer lexer = new(dots);
-        var range = Ronin.Lexicon.Punctuation.Range.Lex(ref lexer);
+        var range = Ronin.Lexicon.Symbols.Range.Lex(ref lexer);
 
         Assert.Equal(dots.ToArray(), range?.sourcecode.ToArray());
     }

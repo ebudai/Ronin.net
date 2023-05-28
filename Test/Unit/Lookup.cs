@@ -2,8 +2,8 @@
 using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -17,11 +17,11 @@ public class Lookup
 
         Token[] tokens = 
         {
-            new OpenBrace(),
+            new StartScope(),
             new TextLiteral(),
             new Assign(),
             new NumberLiteral(),
-            new CloseBrace(),
+            new EndScope(),
             Sentinel.Instance
         };
 
@@ -48,11 +48,11 @@ public class Lookup
             new Variable(),
             new Word(),
             new Assign(),
-            new OpenBrace(),
+            new StartScope(),
             new TextLiteral(),
             new Assign(),
             new NumberLiteral(),
-            new CloseBrace(),
+            new EndScope(),
             Sentinel.Instance
         };
 

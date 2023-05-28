@@ -1,8 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -18,11 +18,11 @@ public class Delegate
         {
             new Word { sourcecode = "dave".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word { sourcecode = "return".AsMemory() },
             new NumberLiteral { sourcecode = "3".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
 
@@ -51,15 +51,17 @@ public class Delegate
 
         Token[] tokens =
         {
-            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new StartValues { sourcecode = new[] { StartValues.symbol } },
             new Word { sourcecode = "dave".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word { sourcecode = "money".AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new EndValues { sourcecode = new[] { EndValues.symbol } },
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word { sourcecode = "money".AsMemory() },
             new NumberLiteral(),
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
 
@@ -92,19 +94,19 @@ public class Delegate
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Separator(),
             new Word(),
             new Separator(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word(),
             new NumberLiteral(),
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
         
@@ -139,14 +141,14 @@ public class Delegate
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
-            new CloseParenthesis(),
+            new StartValues(),
+            new EndValues(),
             new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word(),
             new NumberLiteral(),
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
         
@@ -180,14 +182,14 @@ public class Delegate
             new Constant(),
             new Word(),
             new Assign(),
-            new OpenParenthesis(),
-            new CloseParenthesis(),
+            new StartValues(),
+            new EndValues(),
             new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word(),
             new NumberLiteral(),
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
         

@@ -2,8 +2,8 @@
 using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -17,18 +17,18 @@ public class FunctionDeclaration
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keyword.Function(),
+            new Function(),
             new Word(),
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Returns(),
             new Word(),
-            new CloseParenthesis(),
-            new OpenBrace(),
+            new EndValues(),
+            new StartScope(),
             new Word(),
             new NumberLiteral(),
             new Terminal(),
-            new CloseBrace(),
+            new EndScope(),
             Sentinel.Instance
         };
 
@@ -77,23 +77,23 @@ public class FunctionDeclaration
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keyword.Function(),
+            new Function(),
             new Word(),
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Returns(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             new Returns(),
             new Optional(),
             new Word(),
-            new OpenBrace(),
+            new StartScope(),
             new Word(),
             new Word(),
             new Word(),
             new Word(),
             new Terminal(),
-            new CloseBrace(),
+            new EndScope(),
             Sentinel.Instance
         };
 

@@ -1,8 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -16,12 +16,12 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesis(),
+            new StartValues(),
             new Variable(),
             new Word(),
             new Returns(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             Sentinel.Instance
         };
         
@@ -50,7 +50,7 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Returns(),
             new Word(),
@@ -60,7 +60,7 @@ public class Parameters
             new Word(),
             new Returns(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             Sentinel.Instance
         };
         
@@ -103,8 +103,8 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesis(),
-            new CloseParenthesis(),
+            new StartValues(),
+            new EndValues(),
             Sentinel.Instance
         };
 

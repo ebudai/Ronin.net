@@ -1,6 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Compound;
 
@@ -9,7 +9,7 @@ namespace Ronin.Grammar.Compound;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Temporary"/>s between <see cref="OpenSquareBracket"/> and <see cref="CloseSquareBracket"/>
+///     <see cref="Separator"/>-separated <see cref="Temporary"/>s between <see cref="StartOrdinal"/> and <see cref="EndOrdinal"/>
 /// </remarks>
 /// 
 /// <example>
@@ -27,7 +27,7 @@ namespace Ronin.Grammar.Compound;
 ///     var selected value = multi-dimensional list[3, 1, 0];
 ///                                                ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Ordinal : Aggregate<Ordinal, OpenSquareBracket, Value, Separator, CloseSquareBracket>
+internal class Ordinal : Aggregate<Ordinal, StartOrdinal, Value, Separator, EndOrdinal>
 {
     
 }

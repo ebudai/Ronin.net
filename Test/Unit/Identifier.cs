@@ -2,7 +2,7 @@
 using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -17,11 +17,11 @@ public class Identifier
         Token[] tokens =
         {
             new Word(),
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Returns(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             Sentinel.Instance
         };
 

@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -14,9 +15,9 @@ public class Assignment
         Token[] tokens =
         {
             new Word { sourcecode = "a".AsMemory() },
-            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new Assign { sourcecode = new[] { Assign.symbol } },
             new NumberLiteral { sourcecode = "3".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
 
@@ -39,7 +40,7 @@ public class Assignment
         Token[] tokens =
         {
             new Word { sourcecode = "thing".AsMemory() },
-            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new Assign { sourcecode = new[] { Assign.symbol } },
             new NumberLiteral { sourcecode = "0".AsMemory() },
             Sentinel.Instance
         };

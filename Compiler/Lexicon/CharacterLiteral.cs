@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Lexicon;
 
@@ -8,9 +9,9 @@ internal class CharacterLiteral : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
-        if (lexer.IsEmpty || lexer[0] is not CharacterDelimiter.character) return null;
+        if (lexer.IsEmpty || lexer[0] is not CharacterDelimiter.symbol) return null;
 
-        var length = lexer[1..].Span.IndexOf(CharacterDelimiter.character); // find the closing delimiter one
+        var length = lexer[1..].Span.IndexOf(CharacterDelimiter.symbol); // find the closing delimiter one
 
         if (length is not 1 and not 6) return null;
 
@@ -26,7 +27,7 @@ internal class CharacterLiteral : Literal
     }
 
     private static bool IsNotValid(char character)
-        => char.IsNumber(character) is false
+        => char.IsDigit(character) is false
         && character
         is not 'A' and not 'a'
         and not 'B' and not 'b'

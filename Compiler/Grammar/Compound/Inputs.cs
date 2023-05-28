@@ -1,6 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Compound;
 
@@ -9,14 +9,14 @@ namespace Ronin.Grammar.Compound;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Anonymous"/>s between <see cref="OpenParenthesis"/> and <see cref="CloseParenthesis"/>
+///     <see cref="Separator"/>-separated <see cref="Anonymous"/>s between <see cref="StartValues"/> and <see cref="EndValues"/>
 /// </remarks>
 /// 
 /// <example>
 ///     var x = pack(a, 8.2, "first name");
 ///                 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Inputs : Aggregate<Inputs, OpenParenthesis, Value, Separator, CloseParenthesis>
+internal class Inputs : Aggregate<Inputs, StartValues, Value, Separator, EndValues>
 {
     
 }

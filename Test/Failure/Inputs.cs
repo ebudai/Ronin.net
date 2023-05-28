@@ -1,7 +1,7 @@
 ﻿using Ronin;
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -18,7 +18,7 @@ public class Inputs
             new Word { sourcecode = "not".AsMemory() },
             new Word { sourcecode = "an".AsMemory() },
             new Word { sourcecode = "object".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
         
         Parser parser = new(tokens);
@@ -44,15 +44,15 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new StartValues { sourcecode = new[] { StartValues.symbol } },
             new Word { sourcecode = "test".AsMemory() },
-            new Separator { sourcecode = Separator.symbol.AsMemory() },
-            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new Separator { sourcecode = new[] { Separator.symbol } },
+            new StartValues { sourcecode = new[] { StartValues.symbol } },
             new Word { sourcecode = "thing".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             new Word { sourcecode = "stuff".AsMemory() },
-            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
-            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() }
+            new EndValues { sourcecode = new[] { EndValues.symbol } },
+            new EndValues { sourcecode = new[] { EndValues.symbol } },
         };
         
         Parser parser = new(tokens);
@@ -68,10 +68,10 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis{ sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new StartValues { sourcecode = new[] { StartValues.symbol } },
             new Word { sourcecode = "test".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseParenthesis{ sourcecode = CloseParenthesis.symbol.AsMemory() }
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndValues { sourcecode = new[] { EndValues.symbol } },
         };
         
         Parser parser = new(tokens);

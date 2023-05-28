@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -16,7 +17,7 @@ public class Interval
             new Word { sourcecode = "not".AsMemory() },
             new Word { sourcecode = "an".AsMemory() },
             new Word { sourcecode = "interval".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
+            new Terminal { sourcecode = new[] { Terminal.symbol } }
         };
         
         Parser parser = new(tokens);
@@ -32,7 +33,7 @@ public class Interval
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Punctuation.Range { sourcecode = Ronin.Lexicon.Punctuation.Range.symbol.AsMemory() },
+            new Ronin.Lexicon.Symbols.Range { sourcecode = Ronin.Lexicon.Symbols.Range.symbol.AsMemory() },
             Sentinel.Instance
         };
 

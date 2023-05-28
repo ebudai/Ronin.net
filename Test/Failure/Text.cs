@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -27,8 +28,7 @@ public class Text
 
         Assert.Equal(3, tokens.Length);
 
-        var quote = tokens[0] as TextDelimiter;
-        Assert.Equal(TextDelimiter.symbol, quote?.ToString());
+        Assert.IsType<TextDelimiter>(tokens[0]);
 
         var word = tokens[1] as Word;
         Assert.Equal(literal[1..], word?.ToString());

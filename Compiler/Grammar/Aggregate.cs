@@ -3,7 +3,7 @@
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -36,10 +36,10 @@ internal abstract class Aggregate<T> : Anonymous
 /// </typeparam>
 internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Aggregate<TElement>, IParsableSyntax<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
-    where TOpen : Open
+    where TOpen : Symbol
     where TElement : Syntax, IParsableSyntax<TElement>
-    where TSeparator : BreakingSymbol
-    where TClose : Close
+    where TSeparator : Symbol
+    where TClose : Symbol
 {
     public new static T Parse(ref Parser current)
     {

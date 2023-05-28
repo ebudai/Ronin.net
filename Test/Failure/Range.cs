@@ -11,8 +11,8 @@ public class Range
         const string literal = "notARange";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Lexicon.Punctuation.Range.Lex(ref lexer);
+        var lexed = Ronin.Lexicon.Symbols.Range.Lex(ref lexer);
 
-        Assert.IsNotType<Ronin.Lexicon.Punctuation.Range>(lexed);
+        Assert.IsNotType<Ronin.Lexicon.Symbols.Range>(lexed);
     }
 }

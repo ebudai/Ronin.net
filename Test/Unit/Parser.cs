@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -38,51 +38,51 @@ public class Parsing
             // 3..test;
 
             new NumberLiteral(),
-            new Ronin.Lexicon.Punctuation.Range(),
+            new Ronin.Lexicon.Symbols.Range(),
             new Word(),
             new Terminal(),
 
             // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
 
-            new Ronin.Lexicon.Keyword.Function(),
+            new Function(),
             new Word(),
-            new OpenParenthesis(),
+            new StartValues(),
             new Variable(),
             new Word(),
             new Returns(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             new Word(),
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Word(),
             new Word(),
             new Returns(),
             new Word(),
-            new CloseParenthesis(),
-            new OpenBrace(),
+            new EndValues(),
+            new StartScope(),
             new Word(),
             new Word(),
             new Word(),
             new Word(),
-            new Asterisk(),
+            new Ronin.Lexicon.Symbol { sourcecode = new[] { '*' } },
             new Word(),
             new Terminal(),
-            new CloseBrace(),
+            new EndScope(),
 
             // datatype big thing { constant size => whole number; }
 
-            new Ronin.Lexicon.Keyword.Datatype(),
+            new Datatype(),
             new Word(),
             new Word(),
-            new OpenBrace(),
+            new StartScope(),
             new Constant(),
             new Word(),
             new Returns(),
             new Word(),
             new Word(),
             new Terminal(),
-            new CloseBrace(),
+            new EndScope(),
 
             // 7;
 
@@ -91,18 +91,18 @@ public class Parsing
 
             // (a, b, "text");
 
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Separator(),
             new Word(),
             new Separator(),
             new TextLiteral(),
-            new CloseParenthesis(),
+            new EndValues(),
             new Terminal(),
 
             // { var x => moment; florb x now; }
 
-            new OpenBrace(),
+            new StartScope(),
             new Variable(),
             new Word(),
             new Returns(),
@@ -112,7 +112,7 @@ public class Parsing
             new Word(),
             new Word(),
             new Terminal(),
-            new CloseBrace(),
+            new EndScope(),
 
             Sentinel.Instance
         };

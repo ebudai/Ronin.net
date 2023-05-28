@@ -1,7 +1,7 @@
 ﻿using Ronin;
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -15,13 +15,13 @@ public class Scope
 
         Token[] tokens =
         {
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
-            new TextDelimiter { sourcecode = TextDelimiter.symbol.AsMemory() },
-            new Separator { sourcecode = Separator.symbol.AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
+            new TextDelimiter { sourcecode = new[] { TextDelimiter.symbol } },
+            new Separator { sourcecode = new[] { Separator.symbol } },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new Separator { sourcecode = new[] { Separator.symbol } },
             new Word { sourcecode = "thing".AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() }
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
         };
         
         Parser parser = new(tokens);

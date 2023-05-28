@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -15,7 +16,7 @@ public class Export
         Token[] tokens =
         {
             new PartOf { sourcecode = PartOf.keyword.AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
 
         Parser parser = new(tokens);

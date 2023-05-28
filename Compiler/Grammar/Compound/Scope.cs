@@ -1,6 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Compound;
 
@@ -9,7 +9,7 @@ namespace Ronin.Grammar.Compound;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Terminal"/>-separated <see cref="Statement"/>s between <see cref="OpenBrace"/> and <see cref="CloseBrace"/>
+///     <see cref="Terminal"/>-separated <see cref="Statement"/>s between <see cref="StartScope"/> and <see cref="EndScope"/>
 /// </remarks>
 /// 
 /// <example>
@@ -22,7 +22,7 @@ namespace Ronin.Grammar.Compound;
 ///     → }
 ///       ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Scope : Aggregate<Scope, OpenBrace, Statement, Terminal, CloseBrace>
+internal class Scope : Aggregate<Scope, StartScope, Statement, Terminal, EndScope>
 {
 
 }

@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -15,10 +15,10 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new TextLiteral { sourcecode = "\"thing\"".AsMemory() },
             new NumberLiteral { sourcecode = "4".AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() }
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
         };
         
         Parser parser = new(tokens);
@@ -34,10 +34,10 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
-            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
+            new Assign { sourcecode = new[] { Assign.symbol } },
             new NumberLiteral { sourcecode = "4".AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() }
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
         };
         
         Parser parser = new(tokens);
@@ -53,10 +53,10 @@ public class Lookup
 
         Token[] tokens =
         {
-            new OpenBrace{ sourcecode = OpenBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new NumberLiteral { sourcecode = "3".AsMemory() },
-            new Assign { sourcecode = Assign.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() }
+            new Assign { sourcecode = new[] { Assign.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
         };
         
         Parser parser = new(tokens);

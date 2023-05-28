@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -17,8 +17,8 @@ public class DatatypeDeclaration
         {
             new Datatype { sourcecode = Datatype.keyword.AsMemory() },
             new Word { sourcecode = "Test".AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
         
@@ -40,21 +40,21 @@ public class DatatypeDeclaration
             new Datatype { sourcecode = Datatype.keyword.AsMemory() },
             new Word { sourcecode = "Algebra".AsMemory() },
             new Word { sourcecode = "Example".AsMemory() },
-            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new Assign { sourcecode = new[] { Assign.symbol } },
             new Word { sourcecode = "number".AsMemory() },
             new Word { sourcecode = "or".AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Variable { sourcecode = Variable.keyword.AsMemory() },
             new Word { sourcecode = "cash".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word { sourcecode = "money".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             new Variable { sourcecode = Variable.keyword.AsMemory() },
             new Word { sourcecode = "debt".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word { sourcecode = "money".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
 

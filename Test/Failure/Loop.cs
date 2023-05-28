@@ -2,8 +2,8 @@
 using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -19,7 +19,7 @@ public class Loop
         {
             new Word { sourcecode = "not".AsMemory() },
             new Word { sourcecode = "loop".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
 
@@ -41,12 +41,12 @@ public class Loop
             new Word { sourcecode = "in".AsMemory() },
             new Word { sourcecode = "best".AsMemory() },
             new Word { sourcecode = "horses".AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word { sourcecode = "run".AsMemory() },
             new Word { sourcecode = "the".AsMemory() },
             new Word { sourcecode = "horse".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
 
@@ -70,9 +70,9 @@ public class Loop
             new Word { sourcecode = "cars".AsMemory() },
             new Word { sourcecode = "car".AsMemory() },
             new Word { sourcecode = "colour".AsMemory() },
-            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new Assign { sourcecode = new[] { Assign.symbol } },
             new NumberLiteral { sourcecode = "3".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
 

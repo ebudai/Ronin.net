@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -14,9 +14,9 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             Sentinel.Instance
         };
 
@@ -37,11 +37,11 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Separator(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             Sentinel.Instance
         };
         
@@ -72,8 +72,8 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
-            new CloseParenthesis(),
+            new StartValues(),
+            new EndValues(),
             Sentinel.Instance
         };
         
@@ -89,13 +89,13 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new StartValues(),
             new NumberLiteral(),
             new Separator(),
             new NumberLiteral(),
             new Separator(),
             new Word(),
-            new CloseParenthesis(),
+            new EndValues(),
             Sentinel.Instance
         };
         
@@ -129,19 +129,19 @@ public class Inputs
 
         Token[] tokens =
         {
-            new OpenParenthesis(),
+            new StartValues(),
             new Word(),
             new Separator(),
             new NumberLiteral(),
             new Separator(),
-            new OpenParenthesis(),
+            new StartValues(),
             new NumberLiteral(),
             new Separator(),
             new NumberLiteral(),
             new Separator(),
             new NumberLiteral(),
-            new CloseParenthesis(),
-            new CloseParenthesis(),
+            new EndValues(),
+            new EndValues(),
             Sentinel.Instance,
         };
         

@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -16,8 +16,8 @@ public class FunctionDeclaration
         Token[] tokens = 
         {
             new Function { sourcecode = Function.keyword.AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
         };
 
         Parser parser = new(tokens);

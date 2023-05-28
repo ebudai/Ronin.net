@@ -15,7 +15,8 @@ internal class Word : Token
         var length = 0;
         while (length < lexer.Length
             && char.IsWhiteSpace(lexer[length]) is false
-            && Symbol.IsNotSymbol(ref lexer, length)) ++length;
+            && char.IsSymbol(lexer[length]) is false
+            && char.IsPunctuation(lexer[length]) is false) ++length;
 
         if (length is 0) return null;
         return new Word { sourcecode = lexer.Commit(length) };

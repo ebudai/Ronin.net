@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -20,7 +20,7 @@ public class DatumDeclaration
             new Word { sourcecode = "variable".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word { sourcecode = "number".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
         
@@ -57,7 +57,7 @@ public class DatumDeclaration
             new Word { sourcecode = "x".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word { sourcecode = "text".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
         
@@ -89,7 +89,7 @@ public class DatumDeclaration
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Compiled { sourcecode = Compiled.keyword.AsMemory() },
             new Word { sourcecode = "my".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
 
@@ -122,7 +122,7 @@ public class DatumDeclaration
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Persistent { sourcecode = Persistent.keyword.AsMemory() },
             new Word { sourcecode = "my".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
 
@@ -155,7 +155,7 @@ public class DatumDeclaration
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Shared { sourcecode = Shared.keyword.AsMemory() },
             new Word { sourcecode = "my".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
         
@@ -217,9 +217,9 @@ public class DatumDeclaration
         {
             new Variable { sourcecode = Variable.keyword.AsMemory() },
             new Word { sourcecode = "my".AsMemory() },
-            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new Assign { sourcecode = new[] { Assign.symbol } },
             new Word { sourcecode = "my".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
 
@@ -251,9 +251,9 @@ public class DatumDeclaration
             new Word { sourcecode = "my".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word { sourcecode = "my".AsMemory() },
-            new Assign { sourcecode = Assign.symbol.AsMemory() },
+            new Assign { sourcecode = new[] { Assign.symbol } },
             new NumberLiteral { sourcecode = "2".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
         

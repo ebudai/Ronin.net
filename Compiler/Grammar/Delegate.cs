@@ -2,7 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 

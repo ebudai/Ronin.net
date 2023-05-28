@@ -2,8 +2,8 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
-using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Grammar;
 
@@ -23,7 +23,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class DatumDeclaration : Statement, IParsableSyntax<DatumDeclaration>
 {
-    public Reserved Mutability { get; init; }
+    public Keyword Mutability { get; init; }
     public Modifiers Is { get; init; }
     public Identifier Name { get; init; }
     public Reference Datatype { get; init; }
@@ -33,7 +33,7 @@ internal class DatumDeclaration : Statement, IParsableSyntax<DatumDeclaration>
     {
         Parser parser = current;
 
-        var mutator = parser.Token is Variable or Constant or Reactive ? parser.Token as Reserved : null;
+        var mutator = parser.Token is Variable or Constant or Reactive ? parser.Token as Keyword : null;
         if (mutator is not null) parser.Advance();
 
         if (Grammar.Name.Parse(ref parser) is not Name name) return null;

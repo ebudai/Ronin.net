@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -16,8 +16,8 @@ public class DatatypeDeclaration
         Token[] tokens =
         {
             new Datatype(),
-            new OpenBrace(),
-            new CloseBrace(),
+            new StartScope(),
+            new EndScope(),
             new Terminal(),
         };
         

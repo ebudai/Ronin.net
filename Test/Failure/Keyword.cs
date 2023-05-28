@@ -10,7 +10,7 @@ public class Keyword
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Lexicon.Reserved.Lex(ref lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +21,7 @@ public class Keyword
         const string notkeyword = "not a keyword";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Lexicon.Reserved.Lex(ref lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -32,7 +32,7 @@ public class Keyword
         const string notkeyword = "returned ";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Lexicon.Reserved.Lex(ref lexer);
+        var lexed = Ronin.Lexicon.Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -59,7 +59,7 @@ public class Keyword
         foreach (var word in words)
         {
             Lexer lexer = new(word);
-            var lexed = Ronin.Lexicon.Reserved.Lex(ref lexer);
+            var lexed = Ronin.Lexicon.Keyword.Lex(ref lexer);
             Assert.Null(lexed);
         }
     }

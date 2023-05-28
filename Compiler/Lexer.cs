@@ -17,7 +17,7 @@ public struct Lexer
                 ?? Literal.Lex(ref this)
                 ?? Comment.Lex(ref this)
                 ?? Symbol.Lex(ref this)
-                ?? Reserved.Lex(ref this)
+                ?? Keyword.Lex(ref this)
                 ?? Word.Lex(ref this) as Token;
             tokens.Add(token);
         }
@@ -34,16 +34,16 @@ public struct Lexer
         return memory;
     }
 
-    public bool IsEmpty => sourcecode[cursor..].IsEmpty;
-    public int Length => sourcecode[cursor..].Length;
+    public readonly bool IsEmpty => sourcecode[cursor..].IsEmpty;
+    public readonly int Length => sourcecode[cursor..].Length;
 
     public readonly ref readonly char this[int index] => ref sourcecode.Span[cursor..][index];
     public readonly ReadOnlyMemory<char> this[Range range] => sourcecode[cursor..][range];
 
-    public bool StartsWith(in string text) => sourcecode[cursor..].Span.StartsWith(text);
-    public bool DoesNotStartWith(in string text) => StartsWith(text) is not true;
+    public readonly bool StartsWith(in string text) => sourcecode[cursor..].Span.StartsWith(text);
+    public readonly bool DoesNotStartWith(in string text) => StartsWith(text) is not true;
 
-    public int IndexOf(char character) => sourcecode.Span[cursor..].IndexOf(character);
+    public readonly int IndexOf(char character) => sourcecode.Span[cursor..].IndexOf(character);
 
     private int cursor;
     private readonly ReadOnlyMemory<char> sourcecode;

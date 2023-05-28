@@ -2,7 +2,7 @@
 using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -16,9 +16,9 @@ public class Ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracket(),
+            new StartOrdinal(),
             new Word(),
-            new CloseSquareBracket(),
+            new EndOrdinal(),
             Sentinel.Instance
         };
         
@@ -39,11 +39,11 @@ public class Ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracket(),
+            new StartOrdinal(),
             new Word(),
             new Separator(),
             new Word(),
-            new CloseSquareBracket(),
+            new EndOrdinal(),
             Sentinel.Instance
         };
         
@@ -74,8 +74,8 @@ public class Ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracket(),
-            new CloseSquareBracket(),
+            new StartOrdinal(),
+            new EndOrdinal(),
             Sentinel.Instance
         };
         
@@ -92,13 +92,13 @@ public class Ordinal
 
         Token[] tokens = 
         {
-            new OpenSquareBracket(),
+            new StartOrdinal(),
             new NumberLiteral(),
             new Separator(),
             new NumberLiteral(),
             new Separator(),
             new Word(),
-            new CloseSquareBracket(),
+            new EndOrdinal(),
             Sentinel.Instance
         };
         

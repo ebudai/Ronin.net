@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -19,13 +19,13 @@ public class Loop
             new Word(),
             new Word(),
             new Word(),
-            new OpenBrace(),
+            new StartScope(),
             new Word(),
             new Word(),
             new Assign(),
             new NumberLiteral(),
             new Terminal(),
-            new CloseBrace(),
+            new EndScope(),
             Sentinel.Instance
         };
 
@@ -56,12 +56,12 @@ public class Loop
             new Word(),
             new Word(),
             new Word(),
-            new OpenBrace(),
+            new StartScope(),
             new Word(),
-            new Plus(),
-            new Plus(),
+            new Ronin.Lexicon.Symbol(),
+            new Ronin.Lexicon.Symbol(),
             new Terminal(),
-            new CloseBrace(),
+            new EndScope(),
             Sentinel.Instance
         };
 

@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -14,8 +15,8 @@ public class Assignment
         Token[] tokens =
         {
             new Word { sourcecode = "thing".AsMemory() },
-            new Assign(),
-            new Terminal(),
+            new Assign { sourcecode = new[] { Assign.symbol } },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
         
         Parser parser = new(tokens);

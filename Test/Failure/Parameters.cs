@@ -1,7 +1,7 @@
 ﻿using Ronin;
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -16,8 +16,8 @@ public class Parameters
         Token[] tokens = 
         {
             new Word { sourcecode = "not".AsMemory() },
-            new Word{ sourcecode = "parameters".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Word { sourcecode = "parameters".AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
         
@@ -44,17 +44,17 @@ public class Parameters
 
         Token[] tokens = 
         {
-            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new StartValues { sourcecode = new[] { StartValues.symbol } },
             new Word { sourcecode = "test".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word { sourcecode = "money".AsMemory() },
-            new Separator { sourcecode = Separator.symbol.AsMemory() },
-            new OpenSquareBracket { sourcecode = OpenSquareBracket.symbol.AsMemory() },
+            new Separator { sourcecode = new[] { Separator.symbol } },
+            new StartOrdinal { sourcecode = new[] { StartOrdinal.symbol } },
             new Word { sourcecode = "thing".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             new Word { sourcecode = "stuff".AsMemory() },
-            new CloseSquareBracket { sourcecode = CloseSquareBracket.symbol.AsMemory() },
-            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
+            new EndOrdinal { sourcecode = new[] { EndOrdinal.symbol } },
+            new EndValues { sourcecode = new[] { EndValues.symbol } },
             Sentinel.Instance
         };
         
@@ -74,8 +74,8 @@ public class Parameters
             new Word { sourcecode = "test".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word{ sourcecode = "text".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndValues { sourcecode = new[] { EndValues.symbol } },
             Sentinel.Instance
         };
         

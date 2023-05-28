@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -13,8 +14,8 @@ public class Import
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keyword.Import { sourcecode = Ronin.Lexicon.Keyword.Import.keyword.AsMemory() },
-            new Terminal{ sourcecode = Terminal.symbol.AsMemory() }
+            new Ronin.Lexicon.Keywords.Import { sourcecode = Ronin.Lexicon.Keywords.Import.keyword.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
 
         Parser parser = new(tokens);

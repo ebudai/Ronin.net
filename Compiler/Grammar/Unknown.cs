@@ -2,7 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -15,13 +15,13 @@ internal class Unknown : Statement, IParsableSyntax<Unknown>
     {
         Parser parser = current;
 
-        if (parser.Token is Sentinel or Terminal or Separator or Close) return null;
+        if (parser.Token is Sentinel or Terminal or Separator or EndOrdinal or EndScope or EndValues) return null;
 
         do
         {
             parser.Advance();
         }
-        while (parser.Token is not Sentinel and not Terminal and not Separator and not Close);
+        while (parser.Token is not Sentinel and not Terminal and not Separator and not EndOrdinal and not EndScope and not EndValues);
 
         return new Unknown { Source = parser.Commit(ref current) };
     }

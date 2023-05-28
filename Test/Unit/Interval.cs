@@ -14,7 +14,7 @@ public class Interval
         Token[] tokens =
         {
             new NumberLiteral(),
-            new Ronin.Lexicon.Punctuation.Range(),
+            new Ronin.Lexicon.Symbols.Range(),
             new NumberLiteral(),
             Sentinel.Instance
         };
@@ -34,7 +34,7 @@ public class Interval
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Punctuation.Range(),
+            new Ronin.Lexicon.Symbols.Range(),
             new NumberLiteral(),
             Sentinel.Instance
         };
@@ -53,7 +53,7 @@ public class Interval
         Token[] tokens =
         {
             new NumberLiteral(),
-            new Ronin.Lexicon.Punctuation.Range(),
+            new Ronin.Lexicon.Symbols.Range(),
             Sentinel.Instance
         };
         

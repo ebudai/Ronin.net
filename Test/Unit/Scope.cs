@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -15,13 +15,13 @@ public class Scope
 
         Token[] tokens = 
         {
-            new OpenBrace(),
+            new StartScope(),
             new Variable(),
             new Word(),
             new Assign(),
             new NumberLiteral(),
             new Terminal(),
-            new CloseBrace(),
+            new EndScope(),
             Sentinel.Instance
         };
         

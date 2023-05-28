@@ -1,7 +1,7 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -15,7 +15,7 @@ public class Import
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keyword.Import(),
+            new Ronin.Lexicon.Keywords.Import(),
             new Word(),
             new Terminal(),
             Sentinel.Instance
@@ -34,7 +34,7 @@ public class Import
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keyword.Import(),
+            new Ronin.Lexicon.Keywords.Import(),
             new Word(),
             new Word(),
             new Word(),
@@ -55,7 +55,7 @@ public class Import
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keyword.Import(),
+            new Ronin.Lexicon.Keywords.Import(),
             new Word(),
             new Compiled(),
             new Word(),

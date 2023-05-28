@@ -2,7 +2,7 @@
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -19,7 +19,7 @@ public class Ordinal
             new Word { sourcecode = "not".AsMemory() },
             new Word { sourcecode = "an".AsMemory() },
             new Word { sourcecode = "ordinal".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
+            new Terminal { sourcecode = new[] { Terminal.symbol } }
         };
         
         Parser parser = new(tokens);
@@ -45,14 +45,14 @@ public class Ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracket { sourcecode = OpenSquareBracket.symbol.AsMemory() },
+            new StartOrdinal { sourcecode = new[] { StartOrdinal.symbol } },
             new Word { sourcecode = "test".AsMemory() },
-            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new Separator { sourcecode = new[] { Separator.symbol } },
             new Word { sourcecode = "thing".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             new Word { sourcecode = "stuff".AsMemory() },
-            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
-            new CloseSquareBracket { sourcecode = CloseSquareBracket.symbol.AsMemory() }
+            new EndValues { sourcecode = new[] { EndValues.symbol } },
+            new EndOrdinal { sourcecode = new[] { EndOrdinal.symbol } },
         };
         
         Parser parser = new(tokens);
@@ -68,10 +68,10 @@ public class Ordinal
 
         Token[] tokens =
         {
-            new OpenSquareBracket { sourcecode = OpenSquareBracket.symbol.AsMemory() },
+            new StartOrdinal { sourcecode = new[] { StartOrdinal.symbol } },
             new Word { sourcecode = "test".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseSquareBracket { sourcecode = CloseSquareBracket.symbol.AsMemory() }
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndOrdinal { sourcecode = new[] { EndOrdinal.symbol } },
         };
         
         Parser parser = new(tokens);

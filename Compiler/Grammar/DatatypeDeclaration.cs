@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
@@ -23,7 +24,7 @@ internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclarat
     {
         Parser parser = current;
 
-        if (parser.TryAdvance<Lexicon.Keyword.Datatype>() is false) return null;
+        if (parser.TryAdvance<Lexicon.Keywords.Datatype>() is false) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 

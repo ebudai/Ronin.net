@@ -18,7 +18,7 @@ internal class Import : Statement, IParsableSyntax<Import>
 
     public new static Import Parse(ref Parser current)
     {
-        if (current.Token is not Lexicon.Keyword.Import) return null;
+        if (current.Token is not Lexicon.Keywords.Import) return null;
 
         Parser parser = current;
         parser.Advance();

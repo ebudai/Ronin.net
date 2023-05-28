@@ -1,7 +1,8 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -17,7 +18,7 @@ public class Export
         {
             new PartOf(),
             new Word(),
-            new Terminal(),
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
 
@@ -38,7 +39,7 @@ public class Export
             new Word(),
             new Word(),
             new Word(),
-            new Terminal(),
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
                 
@@ -62,7 +63,7 @@ public class Export
             new Word(),
             new Word(),
             new Word(),
-            new Terminal(),
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };
 

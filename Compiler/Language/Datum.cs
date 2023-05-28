@@ -1,5 +1,5 @@
 ﻿using Ronin.Grammar;
-using Ronin.Lexicon.Keyword;
+using Ronin.Lexicon.Keywords;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;

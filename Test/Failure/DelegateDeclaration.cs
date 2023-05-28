@@ -1,6 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
@@ -14,18 +14,18 @@ public class DelegateDeclaration
 
         Token[] tokens =
         {
-            new OpenParenthesis { sourcecode = OpenParenthesis.symbol.AsMemory() },
+            new StartValues { sourcecode = new[] { StartValues.symbol } },
             new Word { sourcecode = "things".AsMemory() },
-            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new Separator { sourcecode = new[] { Separator.symbol } },
             new Word { sourcecode = "stuff".AsMemory() },
-            new Separator { sourcecode = Separator.symbol.AsMemory() },
+            new Separator { sourcecode = new[] { Separator.symbol } },
             new Word { sourcecode = "others".AsMemory() },
-            new CloseParenthesis { sourcecode = CloseParenthesis.symbol.AsMemory() },
-            new OpenBrace { sourcecode = OpenBrace.symbol.AsMemory() },
+            new EndValues { sourcecode = new[] { EndValues.symbol } },
+            new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word { sourcecode = "return".AsMemory() },
             new NumberLiteral { sourcecode = "3".AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() },
-            new CloseBrace { sourcecode = CloseBrace.symbol.AsMemory() },
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
         };
 
@@ -43,7 +43,7 @@ public class DelegateDeclaration
         {
             new Word { sourcecode = "billy".AsMemory() },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Terminal { sourcecode = Terminal.symbol.AsMemory() }
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
 
         Parser parser = new(tokens);

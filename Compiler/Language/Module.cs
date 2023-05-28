@@ -12,7 +12,7 @@ internal class Module : Semantics
 
     protected Module() { }
 
-    public static Module Declare(Scope scope) 
+    public static Semantics Declare(Scope scope) 
     {
         Semantics semantics = new Procedure() { Source = scope };
         Name name = null;
@@ -30,12 +30,12 @@ internal class Module : Semantics
 
                     name = export.Name;
 
-                    semantics = Exported.AddOrUpdate(name, semantics, (name, existing) =>
+                    /*semantics = Exported.AddOrUpdate(name, semantics, (name, existing) =>
                     {
                         var errors = existing.Incorporate(semantics);
                         existing.Errors.AddRange(errors);
                         return existing;
-                    });
+                    });*/
 
                     break;
                 case Grammar.FunctionDeclaration function:

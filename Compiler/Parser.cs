@@ -3,6 +3,7 @@
 using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Compiler;
 
@@ -15,10 +16,10 @@ internal struct Parser
 {
     public Parser(in ReadOnlyMemory<Token> tokens) => this.tokens = tokens;
 
-    public ref readonly Token Token => ref tokens.Span[cursor];
-    public ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
+    public readonly ref readonly Token Token => ref tokens.Span[cursor];
+    public readonly ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
 
-    public readonly ReadOnlySpan<Token> this[Range range] => tokens.Span[range];
+    public readonly ReadOnlySpan<Token> this[System.Range range] => tokens.Span[range];
 
     public Scope Parse()
     {
@@ -55,14 +56,14 @@ internal struct Parser
 
     
 
-    public bool IsNotFinished => Token is not Sentinel;
+    public readonly bool IsNotFinished => Token is not Sentinel;
 
     public void Advance()
     {
         do ++cursor; while (Token is Trivium);
     }
 
-    public Token[] Commit(scoped ref Parser current)
+    public readonly Token[] Commit(scoped ref Parser current)
     {
         var tokens = current[current.cursor..cursor].ToArray();
         current = this;

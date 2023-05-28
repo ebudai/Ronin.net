@@ -1,7 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Grammar.Compound;
-using Ronin.Lexicon.Punctuation;
+using Ronin.Lexicon.Symbols;
 using Ronin.Compiler;
 
 namespace Ronin.Grammar;
@@ -27,7 +27,7 @@ internal class FunctionDeclaration : Statement, IParsableSyntax<FunctionDeclarat
     {
         Parser parser = current;
 
-        if (parser.TryAdvance<Lexicon.Keyword.Function>() is false) return null;
+        if (parser.TryAdvance<Lexicon.Keywords.Function>() is false) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
