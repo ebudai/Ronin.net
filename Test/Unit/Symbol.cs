@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -55,4 +56,26 @@ public class Symbol
 
     [Fact(DisplayName = "assign")]
     public void LexAssign() => LexSymbol<Assign>(Assign.symbol);
+
+    [Fact(DisplayName = "not punctuation")]
+    public void NotPunctuation()
+    {
+        const string plus = "+";
+
+        Lexer lexer = new(plus);
+        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+
+        Assert.IsType<Ronin.Lexicon.Symbol>(lexed);
+    }
+
+    [Fact(DisplayName = "punctuation")]
+    public void Punctuation()
+    {
+        const string plus = ")";
+
+        Lexer lexer = new(plus);
+        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+
+        Assert.IsAssignableFrom<Punctuation>(lexed);
+    }
 }

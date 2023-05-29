@@ -16,4 +16,26 @@ public class Symbol
 
         Assert.IsNotType<Returns>(lexed);
     }
+
+    [Fact(DisplayName = "empty")]
+    public void Blank()
+    {
+        const string blank = "";
+
+        Lexer lexer = new(blank);
+        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+
+        Assert.Null(lexed);
+    }
+
+    [Fact(DisplayName = "not a symbol")]
+    public void NotASymbol()
+    {
+        const string literal = "a";
+
+        Lexer lexer = new(literal);
+        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+
+        Assert.Null(lexed);
+    }
 }
