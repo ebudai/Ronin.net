@@ -16,6 +16,5 @@ internal class Anonymous : Value, IParsableSyntax<Anonymous>
         ?? Lookup.Parse(ref current)        
         ?? Inputs.Parse(ref current)
         ?? List.Parse(ref current)
-        ?? Ordinal.Parse(ref current)
-        ?? Parameters.Parse(ref current) as Anonymous;
+        ?? Ordinal.Parse(ref current) as Anonymous;
 }
