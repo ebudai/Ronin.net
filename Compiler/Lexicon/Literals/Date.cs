@@ -2,9 +2,9 @@
 
 using Ronin.Compiler;
 
-namespace Ronin.Lexicon;
+namespace Ronin.Lexicon.Literals;
 
-internal class DateLiteral : Literal
+internal class Date : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
@@ -21,7 +21,7 @@ internal class DateLiteral : Literal
         if (char.IsDigit(lexer[8]) is not true) return null;
         if (char.IsDigit(lexer[9]) is not true) return null;
 
-        return new DateLiteral { sourcecode = lexer.Commit(Length) };
+        return new Date { sourcecode = lexer.Commit(Length) };
     }
 
     private const int Length = 10;

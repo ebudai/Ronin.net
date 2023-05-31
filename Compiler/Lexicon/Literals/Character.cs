@@ -3,9 +3,9 @@
 using Ronin.Compiler;
 using Ronin.Lexicon.Symbols;
 
-namespace Ronin.Lexicon;
+namespace Ronin.Lexicon.Literals;
 
-internal class CharacterLiteral : Literal
+internal class Character : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
@@ -23,7 +23,7 @@ internal class CharacterLiteral : Literal
             }
         }
 
-        return new CharacterLiteral { sourcecode = lexer.Commit(length + 2) };
+        return new Character { sourcecode = lexer.Commit(length + 2) };
     }
 
     private static bool IsNotValid(char character)

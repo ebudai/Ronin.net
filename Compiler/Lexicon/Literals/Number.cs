@@ -3,9 +3,9 @@
 using Ronin.Compiler;
 using System.Text.RegularExpressions;
 
-namespace Ronin.Lexicon;
+namespace Ronin.Lexicon.Literals;
 
-internal partial class NumberLiteral : Literal
+internal partial class Number : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
@@ -23,10 +23,10 @@ internal partial class NumberLiteral : Literal
         var number = lexer[..length].ToString();
 
         var match = NumbersWithCommas().Match(number);
-        if (match.Success) return new NumberLiteral { sourcecode = lexer.Commit(match.Length) };
+        if (match.Success) return new Number { sourcecode = lexer.Commit(match.Length) };
 
         match = NumbersWithoutCommas().Match(number);
-        return new NumberLiteral { sourcecode = lexer.Commit(match.Length) };
+        return new Number { sourcecode = lexer.Commit(match.Length) };
     }
 
     [GeneratedRegex("[0-9]+([.][0-9]+)?", RegexOptions.Compiled | RegexOptions.Singleline)] 

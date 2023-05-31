@@ -3,9 +3,9 @@
 using Ronin.Compiler;
 using Ronin.Lexicon.Symbols;
 
-namespace Ronin.Lexicon;
+namespace Ronin.Lexicon.Literals;
 
-internal class TextLiteral : Literal
+internal class Text : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
@@ -13,7 +13,7 @@ internal class TextLiteral : Literal
 
         for (var i = 1; i < lexer.Length; ++i)
         {
-            if (lexer[i] is TextDelimiter.symbol && lexer[i - 1] is not '\\') return new TextLiteral { sourcecode = lexer.Commit(i + 1) };
+            if (lexer[i] is TextDelimiter.symbol && lexer[i - 1] is not '\\') return new Text { sourcecode = lexer.Commit(i + 1) };
         }
 
         return null;

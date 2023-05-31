@@ -2,11 +2,11 @@
 
 using Ronin.Compiler;
 
-namespace Ronin.Lexicon;
+namespace Ronin.Lexicon.Literals;
 
-internal class UrlLiteral : Literal
+internal class Url : Literal
 {
-    public static new UrlLiteral Lex(ref Lexer lexer)
+    public static new Url Lex(ref Lexer lexer)
     {
         if (lexer.Length is < 5) return null;
 
@@ -20,7 +20,7 @@ internal class UrlLiteral : Literal
         length += 3;
         while (length < lexer.Length && IsValidUrlCharacter(lexer[length])) ++length;
 
-        return new UrlLiteral { sourcecode = lexer.Commit(length) };
+        return new Url { sourcecode = lexer.Commit(length) };
     }
 
     private static bool IsValidUrlCharacter(char value) => char.IsLetterOrDigit(value) || value is '~' or '*' or '(' or ')' or '.' or '-' or '_' or '/';

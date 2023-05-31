@@ -2,9 +2,9 @@
 
 using Ronin.Compiler;
 
-namespace Ronin.Lexicon;
+namespace Ronin.Lexicon.Literals;
 
-internal class MoneyLiteral : Literal
+internal class Money : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
@@ -29,6 +29,6 @@ internal class MoneyLiteral : Literal
 
         if (lexer[length - 1] is '.') --length;
 
-        return new MoneyLiteral { sourcecode = lexer.Commit(length) };
+        return new Money { sourcecode = lexer.Commit(length) };
     }
 }

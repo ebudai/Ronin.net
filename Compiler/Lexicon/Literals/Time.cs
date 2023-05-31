@@ -2,9 +2,9 @@
 
 using Ronin.Compiler;
 
-namespace Ronin.Lexicon;
+namespace Ronin.Lexicon.Literals;
 
-internal class TimeLiteral : Literal
+internal class Time : Literal
 {
     public static new Token Lex(ref Lexer lexer) => LexTwoDigitWithSpacedSuffixTimeLiteral(ref lexer)
         ?? LexTwoDigitWithUnspacedSuffixTimeLiteral(ref lexer)
@@ -12,7 +12,7 @@ internal class TimeLiteral : Literal
         ?? LexOneDigitWithSpacedSuffixTimeLiteral(ref lexer)
         ?? LexOneDigitWithUnspacedSuffixTimeLiteral(ref lexer) as Token;
 
-    private static TimeLiteral LexTwoDigitWithSpacedSuffixTimeLiteral(ref Lexer lexer)
+    private static Time LexTwoDigitWithSpacedSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 10
         || !char.IsDigit(lexer[0])
         || !char.IsDigit(lexer[1])
@@ -25,9 +25,9 @@ internal class TimeLiteral : Literal
         || !char.IsWhiteSpace(lexer[8])
         || lexer[9] is not 'a' and not 'A' and not 'p' and not 'P'
         ? null
-        : new TimeLiteral { sourcecode = lexer.Commit(10) };
+        : new Time { sourcecode = lexer.Commit(10) };
 
-    private static TimeLiteral LexTwoDigitWithUnspacedSuffixTimeLiteral(ref Lexer lexer)
+    private static Time LexTwoDigitWithUnspacedSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 9
         || !char.IsDigit(lexer[0])
         || !char.IsDigit(lexer[1])
@@ -39,9 +39,9 @@ internal class TimeLiteral : Literal
         || !char.IsDigit(lexer[7])
         || lexer[8] is not 'a' and not 'A' and not 'p' and not 'P'
         ? null
-        : new TimeLiteral { sourcecode = lexer.Commit(9) };
+        : new Time { sourcecode = lexer.Commit(9) };
 
-    private static TimeLiteral LexTwoDigitWithoutSuffixTimeLiteral(ref Lexer lexer)
+    private static Time LexTwoDigitWithoutSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 8
         || !char.IsDigit(lexer[0])
         || !char.IsDigit(lexer[1])
@@ -52,9 +52,9 @@ internal class TimeLiteral : Literal
         || !char.IsDigit(lexer[6])
         || !char.IsDigit(lexer[7])
         ? null
-        : new TimeLiteral { sourcecode = lexer.Commit(8) };
+        : new Time { sourcecode = lexer.Commit(8) };
 
-    private static TimeLiteral LexOneDigitWithSpacedSuffixTimeLiteral(ref Lexer lexer)
+    private static Time LexOneDigitWithSpacedSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 9
         || !char.IsDigit(lexer[0])
         || lexer[1] is not ':'
@@ -66,9 +66,9 @@ internal class TimeLiteral : Literal
         || !char.IsWhiteSpace(lexer[7])
         || lexer[8] is not 'a' and not 'A' and not 'p' and not 'P'
         ? null
-        : new TimeLiteral { sourcecode = lexer.Commit(9) };
+        : new Time { sourcecode = lexer.Commit(9) };
 
-    private static TimeLiteral LexOneDigitWithUnspacedSuffixTimeLiteral(ref Lexer lexer)
+    private static Time LexOneDigitWithUnspacedSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 8
         || !char.IsDigit(lexer[0])
         || lexer[1] is not ':'
@@ -79,5 +79,5 @@ internal class TimeLiteral : Literal
         || !char.IsDigit(lexer[6])
         || lexer[7] is not 'a' and not 'A' and not 'p' and not 'P'
         ? null
-        : new TimeLiteral { sourcecode = lexer.Commit(8) };
+        : new Time { sourcecode = lexer.Commit(8) };
 }
