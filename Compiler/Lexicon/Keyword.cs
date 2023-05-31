@@ -19,5 +19,6 @@ internal class Keyword : Word
         ?? Keywords.Shared.Lex(ref lexer)
         ?? Keywords.Optional.Lex(ref lexer)
         ?? Keywords.Variable.Lex(ref lexer)
+        ?? Keywords.Extends.Lex(ref lexer)
         ?? null;
 }

@@ -8,10 +8,10 @@ internal class Import : Keyword
 {
     internal const string keyword = "import";
 
-    public static new Word Lex(ref Lexer lexer)
+    public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length])) return new Import { sourcecode = lexer.Commit(keyword.Length) };
-        return null;
+        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
+        return new Import { sourcecode = lexer.Commit(keyword.Length) };
     }
 }

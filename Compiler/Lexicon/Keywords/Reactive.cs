@@ -7,12 +7,11 @@ namespace Ronin.Lexicon.Keywords;
 internal class Reactive : Keyword
 {
     internal const string keyword = "reactive";
-
     
-    public static new Word Lex(ref Lexer lexer)
+    public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length])) return new Reactive { sourcecode = lexer.Commit(keyword.Length) };
-        return null;
+        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
+        return new Reactive { sourcecode = lexer.Commit(keyword.Length) };
     }
 }

@@ -7,16 +7,11 @@ namespace Ronin.Lexicon.Keywords;
 internal class Datatype : Keyword
 {
     internal const string keyword = "datatype";
-    
-    public Datatype()
-    {
-        sourcecode = keyword.AsMemory();
-    }
 
-    public static new Word Lex(ref Lexer lexer)
+    public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length])) return new Datatype { sourcecode = lexer.Commit(keyword.Length) };
-        return null;
+        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
+        return new Datatype { sourcecode = lexer.Commit(keyword.Length) };
     }
 }

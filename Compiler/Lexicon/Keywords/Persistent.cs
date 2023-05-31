@@ -8,10 +8,10 @@ internal class Persistent : Keyword
 {
     internal const string keyword = "persistent";
 
-    public static new Word Lex(ref Lexer lexer)
+    public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length])) return new Persistent { sourcecode = lexer.Commit(keyword.Length) };
-        return null;
+        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
+        return new Persistent { sourcecode = lexer.Commit(keyword.Length) };
     }
 }

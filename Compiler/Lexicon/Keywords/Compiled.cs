@@ -8,7 +8,7 @@ internal class Compiled : Keyword
 {
     internal const string keyword = "compiled";
 
-    public static new Word Lex(ref Lexer lexer)
+    public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;

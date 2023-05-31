@@ -4,14 +4,14 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Keywords;
 
-internal class Constant : Keyword
+internal class Extends : Keyword
 {
-    internal const string keyword = "constant";
+    internal const string keyword = "extends";
 
     public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Constant { sourcecode = lexer.Commit(keyword.Length) };
+        return new Extends { sourcecode = lexer.Commit(keyword.Length) };
     }
 }

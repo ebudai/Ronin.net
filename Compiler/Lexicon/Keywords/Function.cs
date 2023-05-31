@@ -8,10 +8,10 @@ internal class Function : Keyword
 {
     internal const string keyword = "function";
 
-    public static new Word Lex(ref Lexer lexer)
+    public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length])) return new Function { sourcecode = lexer.Commit(keyword.Length) };
-        return null;
+        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
+        return new Function { sourcecode = lexer.Commit(keyword.Length) };
     }
 }
