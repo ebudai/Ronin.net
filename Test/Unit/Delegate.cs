@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -20,7 +21,7 @@ public class Delegate
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word { sourcecode = "return".AsMemory() },
-            new NumberLiteral { sourcecode = "3".AsMemory() },
+            new Number { sourcecode = "3".AsMemory() },
             new Terminal { sourcecode = new[] { Terminal.symbol } },
             new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
@@ -58,8 +59,8 @@ public class Delegate
             new EndValues { sourcecode = new[] { EndValues.symbol } },
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new Word { sourcecode = "money".AsMemory() },
-            new NumberLiteral(),
+            new Word { sourcecode = "return".AsMemory() },
+            new Number { sourcecode = "3".AsMemory() },
             new Terminal { sourcecode = new[] { Terminal.symbol } },
             new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
@@ -104,7 +105,7 @@ public class Delegate
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word(),
-            new NumberLiteral(),
+            new Number(),
             new Terminal { sourcecode = new[] { Terminal.symbol } },
             new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
@@ -146,7 +147,7 @@ public class Delegate
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word(),
-            new NumberLiteral(),
+            new Number(),
             new Terminal { sourcecode = new[] { Terminal.symbol } },
             new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance
@@ -187,7 +188,7 @@ public class Delegate
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word(),
-            new NumberLiteral(),
+            new Number(),
             new Terminal { sourcecode = new[] { Terminal.symbol } },
             new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance

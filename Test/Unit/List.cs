@@ -1,8 +1,7 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
-using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -18,7 +17,7 @@ public class List
         Token[] tokens =
         {
             new StartScope(),
-            new NumberLiteral(),
+            new Number(),
             new EndScope(),
             Sentinel.Instance
         };
@@ -39,11 +38,11 @@ public class List
         Token[] tokens =
         {
             new StartScope(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
-            new NumberLiteral(),
+            new Number(),
             new EndScope(),
             Sentinel.Instance
         };
@@ -80,9 +79,9 @@ public class List
             new Word(),
             new Assign(),
             new StartScope(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
             new Word(),
             new EndScope(),

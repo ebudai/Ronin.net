@@ -1,11 +1,11 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class Time
+public class TimeLiteral
 {
     [Fact(DisplayName = "two digits with spaced suffix")]
     public void TwoDigitWithSpacedSuffix()
@@ -13,7 +13,7 @@ public class Time
         const string literal = "11:45:12 p";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as TimeLiteral;
+        var time = Literal.Lex(ref lexer) as Time;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -24,7 +24,7 @@ public class Time
         const string literal = "10:15:02p";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as TimeLiteral;
+        var time = Literal.Lex(ref lexer) as Time;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -35,7 +35,7 @@ public class Time
         const string literal = "12:30:59";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as TimeLiteral;
+        var time = Literal.Lex(ref lexer) as Time;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -46,7 +46,7 @@ public class Time
         const string literal = "9:08:45 p";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as TimeLiteral;
+        var time = Literal.Lex(ref lexer) as Time;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -57,7 +57,7 @@ public class Time
         const string literal = "2:22:18p";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as TimeLiteral;
+        var time = Literal.Lex(ref lexer) as Time;
 
         Assert.Equal(literal, time?.ToString());
     }
@@ -68,7 +68,7 @@ public class Time
         const string literal = "17:22:18 ";
 
         Lexer lexer = new(literal);
-        var time = Literal.Lex(ref lexer) as TimeLiteral;
+        var time = Literal.Lex(ref lexer) as Time;
 
         Assert.Equal(literal.Trim(), time?.ToString());
     }

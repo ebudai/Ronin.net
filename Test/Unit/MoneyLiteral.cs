@@ -1,13 +1,13 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 //todo money should use commas instead of underscores - look at Number.Lex(...)
 
 [Trait("Lexer", null)]
-public class Money
+public class MoneyLiteral
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -15,7 +15,7 @@ public class Money
         const string literal = "$123_456.78_90";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal, money?.ToString());
     }
@@ -26,7 +26,7 @@ public class Money
         const string literal = "$1234.4567;";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -37,7 +37,7 @@ public class Money
         const string literal = "$1234.4567,";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -48,7 +48,7 @@ public class Money
         const string literal = "$1234.4567(";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -59,7 +59,7 @@ public class Money
         const string literal = "$1234.4567)";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -70,7 +70,7 @@ public class Money
         const string literal = "$1234.4567[";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -81,7 +81,7 @@ public class Money
         const string literal = "$1234.4567]";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -92,7 +92,7 @@ public class Money
         const string literal = "$1234.4567{";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -103,7 +103,7 @@ public class Money
         const string literal = "$1234.4567}";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -114,7 +114,7 @@ public class Money
         const string literal = "$1234.4567'";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -125,7 +125,7 @@ public class Money
         const string literal = "$1234.4567\"";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -136,7 +136,7 @@ public class Money
         const string literal = "$1234.4567 ";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal[..^1], money?.ToString());
     }
@@ -147,7 +147,7 @@ public class Money
         const string literal = "$1234";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as MoneyLiteral;
+        var money = Literal.Lex(ref lexer) as Money;
 
         Assert.Equal(literal, money?.ToString());
     }

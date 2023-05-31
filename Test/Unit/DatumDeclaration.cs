@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -252,7 +253,7 @@ public class DatumDeclaration
             new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Word { sourcecode = "my".AsMemory() },
             new Assign { sourcecode = new[] { Assign.symbol } },
-            new NumberLiteral { sourcecode = "2".AsMemory() },
+            new Number { sourcecode = "2".AsMemory() },
             new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };

@@ -1,8 +1,7 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
-using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -18,9 +17,9 @@ public class Lookup
         Token[] tokens = 
         {
             new StartScope(),
-            new TextLiteral(),
+            new Text(),
             new Assign(),
-            new NumberLiteral(),
+            new Number(),
             new EndScope(),
             Sentinel.Instance
         };
@@ -49,9 +48,9 @@ public class Lookup
             new Word(),
             new Assign(),
             new StartScope(),
-            new TextLiteral(),
+            new Text(),
             new Assign(),
-            new NumberLiteral(),
+            new Number(),
             new EndScope(),
             Sentinel.Instance
         };

@@ -2,6 +2,7 @@
 using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -17,9 +18,9 @@ public class Reference
         Token[] tokens =
         {
             new Word(),
-            new NumberLiteral(),
+            new Number(),
             new StartValues(),
-            new TextLiteral(),
+            new Text(),
             new EndValues(),
             Sentinel.Instance
         };

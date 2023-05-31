@@ -2,6 +2,7 @@
 using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -93,9 +94,9 @@ public class Ordinal
         Token[] tokens = 
         {
             new StartOrdinal(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
             new Word(),
             new EndOrdinal(),

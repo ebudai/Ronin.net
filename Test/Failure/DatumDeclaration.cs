@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;
@@ -17,7 +18,7 @@ public class DatumDeclaration
         {
             new Reactive { sourcecode = Reactive.keyword.AsMemory() },
             new Returns(),
-            new NumberLiteral { sourcecode = "44.3".AsMemory() },
+            new Number { sourcecode = "44.3".AsMemory() },
             new Terminal(),
         };
         
@@ -35,7 +36,7 @@ public class DatumDeclaration
         Token[] tokens = 
         {
             new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new NumberLiteral { sourcecode = "555".AsMemory() },
+            new Number { sourcecode = "555".AsMemory() },
             new Terminal ()
         };
         

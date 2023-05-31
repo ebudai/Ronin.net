@@ -3,7 +3,7 @@
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class Range
+public class RangeSymbol
 {
     [Fact(DisplayName = "basic")]
     public void Basic()

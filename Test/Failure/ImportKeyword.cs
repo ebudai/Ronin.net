@@ -1,11 +1,12 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Import
+public class ImportKeyword
 {
     [Fact(DisplayName = "missing identifier")]
     public void MissingIdentifier() 
@@ -14,7 +15,7 @@ public class Import
 
         Token[] tokens =
         {
-            new Ronin.Lexicon.Keywords.Import { sourcecode = Ronin.Lexicon.Keywords.Import.keyword.AsMemory() },
+            new Import { sourcecode = Import.keyword.AsMemory() },
             new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
 

@@ -3,6 +3,7 @@ using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;
@@ -37,7 +38,7 @@ public class Loop
         Token[] tokens =
         {
             new ForEach { sourcecode = ForEach.keyword.AsMemory() },
-            new NumberLiteral { sourcecode = "7".AsMemory() },
+            new Number { sourcecode = "7".AsMemory() },
             new Word { sourcecode = "in".AsMemory() },
             new Word { sourcecode = "best".AsMemory() },
             new Word { sourcecode = "horses".AsMemory() },
@@ -71,7 +72,7 @@ public class Loop
             new Word { sourcecode = "car".AsMemory() },
             new Word { sourcecode = "colour".AsMemory() },
             new Assign { sourcecode = new[] { Assign.symbol } },
-            new NumberLiteral { sourcecode = "3".AsMemory() },
+            new Number { sourcecode = "3".AsMemory() },
             new Terminal { sourcecode = new[] { Terminal.symbol } },
             Sentinel.Instance
         };

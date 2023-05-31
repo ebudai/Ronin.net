@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -25,19 +26,19 @@ public class Parsing
             new Variable(),
             new Word(),
             new Assign(),
-            new NumberLiteral(),
+            new Number(),
             new Terminal(),
 
             // a = 6;
 
             new Word(),
             new Assign(),
-            new NumberLiteral(),
+            new Number(),
             new Terminal(),
 
             // 3..test;
 
-            new NumberLiteral(),
+            new Number(),
             new Ronin.Lexicon.Symbols.Range(),
             new Word(),
             new Terminal(),
@@ -86,7 +87,7 @@ public class Parsing
 
             // 7;
 
-            new NumberLiteral(),
+            new Number(),
             new Terminal(),
 
             // (a, b, "text");
@@ -96,7 +97,7 @@ public class Parsing
             new Separator(),
             new Word(),
             new Separator(),
-            new TextLiteral(),
+            new Text(),
             new EndValues(),
             new Terminal(),
 

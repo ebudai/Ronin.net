@@ -3,6 +3,7 @@ using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -26,7 +27,7 @@ public class FunctionDeclaration
             new EndValues(),
             new StartScope(),
             new Word(),
-            new NumberLiteral(),
+            new Number(),
             new Terminal(),
             new EndScope(),
             Sentinel.Instance

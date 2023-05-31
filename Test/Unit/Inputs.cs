@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Unit;
@@ -90,9 +91,9 @@ public class Inputs
         Token[] tokens =
         {
             new StartValues(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
             new Word(),
             new EndValues(),
@@ -132,14 +133,14 @@ public class Inputs
             new StartValues(),
             new Word(),
             new Separator(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
             new StartValues(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
-            new NumberLiteral(),
+            new Number(),
             new Separator(),
-            new NumberLiteral(),
+            new Number(),
             new EndValues(),
             new EndValues(),
             Sentinel.Instance,

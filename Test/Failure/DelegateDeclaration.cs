@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;
@@ -23,7 +24,7 @@ public class DelegateDeclaration
             new EndValues { sourcecode = new[] { EndValues.symbol } },
             new StartScope { sourcecode = new[] { StartScope.symbol } },
             new Word { sourcecode = "return".AsMemory() },
-            new NumberLiteral { sourcecode = "3".AsMemory() },
+            new Number { sourcecode = "3".AsMemory() },
             new Terminal { sourcecode = new[] { Terminal.symbol } },
             new EndScope { sourcecode = new[] { EndScope.symbol } },
             Sentinel.Instance

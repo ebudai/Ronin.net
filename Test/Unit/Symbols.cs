@@ -5,16 +5,16 @@ using Ronin.Lexicon.Symbols;
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class Symbol
+public class Symbols
 {
-    private static void LexSymbol<T>(char lexed) where T : Ronin.Lexicon.Symbol => LexSymbol<T>(new string(lexed, 1));
+    private static void LexSymbol<T>(char lexed) where T : Symbol => LexSymbol<T>(new string(lexed, 1));
 
-    private static void LexSymbol<T>(string lexed) where T : Ronin.Lexicon.Symbol
+    private static void LexSymbol<T>(string lexed) where T : Symbol
     {
         Lexer lexer = new(lexed);
         Assert.False(lexer.IsEmpty);
         for (var i = 0; i != lexed.Length; ++i) Assert.True(char.IsSymbol(lexed[i]) || char.IsPunctuation(lexed[i]));
-        var symbol = Ronin.Lexicon.Symbol.Lex(ref lexer);
+        var symbol = Symbol.Lex(ref lexer);
 
         Assert.Equal(lexed.ToArray(), symbol?.sourcecode.ToArray());
 
@@ -63,9 +63,9 @@ public class Symbol
         const string plus = "+";
 
         Lexer lexer = new(plus);
-        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+        var lexed = Symbol.Lex(ref lexer);
 
-        Assert.IsType<Ronin.Lexicon.Symbol>(lexed);
+        Assert.IsType<Symbol>(lexed);
     }
 
     [Fact(DisplayName = "punctuation")]
@@ -74,7 +74,7 @@ public class Symbol
         const string plus = ")";
 
         Lexer lexer = new(plus);
-        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+        var lexed = Symbol.Lex(ref lexer);
 
         Assert.IsAssignableFrom<Punctuation>(lexed);
     }

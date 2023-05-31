@@ -1,11 +1,12 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class Text
+public class TextLiteral
 {
     [Fact(DisplayName = "without quotes")]
     public void Fail()
@@ -56,7 +57,7 @@ public class Text
         Lexer lexer = new(literal);
         var lexed = lexer.Lex();
 
-        foreach (var lexeme in lexed.ToArray()) Assert.IsNotType<TextLiteral>(lexeme);
+        foreach (var lexeme in lexed.ToArray()) Assert.IsNotType<Text>(lexeme);
     }
 
     [Fact(DisplayName = "no data")]

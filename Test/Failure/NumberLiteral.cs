@@ -1,11 +1,11 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class Number
+public class NumberLiteral
 {
     [Fact(DisplayName = "doesn't start with a number")]
     public void DoesntStartWithANumber()
@@ -24,7 +24,7 @@ public class Number
         const string literal = "9.";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -35,7 +35,7 @@ public class Number
         const string literal = "9.2v5";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^2], number?.ToString());
     }
@@ -46,7 +46,7 @@ public class Number
         const string literal = "9.2.5";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^2], number?.ToString());
     }
@@ -57,7 +57,7 @@ public class Number
         const string literal = "9,22.33";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..1], number?.ToString());
     }

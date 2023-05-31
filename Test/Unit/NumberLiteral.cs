@@ -1,11 +1,11 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 [Trait("Lexer", null)]
-public class Number
+public class NumberLiteral
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -13,7 +13,7 @@ public class Number
         const string literal = "123,456.7890";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal, number?.ToString());
     }
@@ -24,7 +24,7 @@ public class Number
         const string literal = "1234.4567;";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -35,7 +35,7 @@ public class Number
         const string literal = "1234.4567,";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -46,7 +46,7 @@ public class Number
         const string literal = "1234.4567(";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -57,7 +57,7 @@ public class Number
         const string literal = "1234.4567)";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -68,7 +68,7 @@ public class Number
         const string literal = "1234.4567[";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -79,7 +79,7 @@ public class Number
         const string literal = "1234.4567]";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -90,7 +90,7 @@ public class Number
         const string literal = "1234.4567{";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -101,7 +101,7 @@ public class Number
         const string literal = "1234.4567}";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -112,7 +112,7 @@ public class Number
         const string literal = "1234.4567'";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -123,7 +123,7 @@ public class Number
         const string literal = "1234.4567\"";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }
@@ -134,7 +134,7 @@ public class Number
         const string literal = "1234.4567 ";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as NumberLiteral;
+        var number = Literal.Lex(ref lexer) as Number;
 
         Assert.Equal(literal[..^1], number?.ToString());
     }

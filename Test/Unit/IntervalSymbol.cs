@@ -1,10 +1,11 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Literals;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Interval
+public class IntervalSymbol
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -13,9 +14,9 @@ public class Interval
 
         Token[] tokens =
         {
-            new NumberLiteral(),
+            new Number(),
             new Ronin.Lexicon.Symbols.Range(),
-            new NumberLiteral(),
+            new Number(),
             Sentinel.Instance
         };
         
@@ -35,7 +36,7 @@ public class Interval
         Token[] tokens =
         {
             new Ronin.Lexicon.Symbols.Range(),
-            new NumberLiteral(),
+            new Number(),
             Sentinel.Instance
         };
 
@@ -52,7 +53,7 @@ public class Interval
 
         Token[] tokens =
         {
-            new NumberLiteral(),
+            new Number(),
             new Ronin.Lexicon.Symbols.Range(),
             Sentinel.Instance
         };
