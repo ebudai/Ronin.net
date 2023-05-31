@@ -18,6 +18,7 @@ internal struct Parser
 
     public readonly ref readonly Token Token => ref tokens.Span[cursor];
     public readonly ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
+    public readonly bool IsNotFinished => Token is not Sentinel;
 
     public readonly ReadOnlySpan<Token> this[System.Range range] => tokens.Span[range];
 
@@ -47,20 +48,16 @@ internal struct Parser
         return parsed;
     }
 
+    public void Advance()
+    {
+        do ++cursor; while (Token is Trivium);
+    }
+
     public bool TryAdvance<T>() where T : Token
     {
         var advanced = Token is T;
         if (advanced) Advance();
         return advanced;
-    }
-
-    
-
-    public readonly bool IsNotFinished => Token is not Sentinel;
-
-    public void Advance()
-    {
-        do ++cursor; while (Token is Trivium);
     }
 
     public readonly Token[] Commit(scoped ref Parser current)
