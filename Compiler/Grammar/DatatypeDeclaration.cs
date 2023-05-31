@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
+using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
@@ -16,6 +17,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclaration>
 {
+    public bool IsExtension { get; init; }
     public Identifier Identifier { get; init; }
     public Reference Algebra { get; init; }
     public Scope Body { get; init; }
@@ -24,7 +26,9 @@ internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclarat
     {
         Parser parser = current;
 
-        if (parser.TryAdvance<Lexicon.Keywords.Datatype>() is false) return null;
+        bool isExtension = parser.TryAdvance<Extends>();
+
+        if (parser.TryAdvance<Datatype>() is false) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
@@ -39,6 +43,7 @@ internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclarat
 
         return new DatatypeDeclaration
         {
+            IsExtension = isExtension,
             Identifier = identifier,
             Algebra = algebra,
             Body = body,
