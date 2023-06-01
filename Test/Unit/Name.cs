@@ -20,7 +20,7 @@ public class Name
         };
 
         Parser parser = new(tokens);
-        var name = Ronin.Grammar.Name.Parse(ref parser);
+        var name = Ronin.Grammar.Words.Parse(ref parser);
 
         Assert.Equal(3, name?.Source.Length);
     }

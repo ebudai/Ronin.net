@@ -26,12 +26,12 @@ public class Identifier
         };
 
         Parser parser = new(tokens);
-        var identifier = Ronin.Grammar.Identifier.Parse(ref parser);
+        var identifier = Ronin.Grammar.Name.Parse(ref parser);
 
         Assert.Equal(2, identifier?.Components?.Count);
 
         {
-            Ronin.Grammar.Name name = identifier.Components[0];
+            Ronin.Grammar.Words name = identifier.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -42,7 +42,7 @@ public class Identifier
             Assert.Single(datum?.Name?.Components);
 
             Assert.Single(datum?.Datatype?.Components);
-            Ronin.Grammar.Name name = datum.Datatype.Components[0];
+            Ronin.Grammar.Words name = datum.Datatype.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }        
     }

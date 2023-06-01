@@ -34,13 +34,13 @@ public class DatumDeclaration
 
         {
             Assert.Single(datum.Name?.Components);
-            Ronin.Grammar.Name name = datum.Name.Components[0];
+            Ronin.Grammar.Words name = datum.Name.Components[0];
             Assert.Equal(2, name?.Source.Length);
         }
 
         {
             Assert.Single(datum.Datatype?.Components);
-            Ronin.Grammar.Name name = datum.Datatype.Components[0];
+            Ronin.Grammar.Words name = datum.Datatype.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -72,7 +72,7 @@ public class DatumDeclaration
         Assert.Single(datum.Name?.Components);
         
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
+        Ronin.Grammar.Words name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
         Assert.Null(datum.Initializer);
@@ -105,7 +105,7 @@ public class DatumDeclaration
         Assert.Single(datum.Name?.Components);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
+        Ronin.Grammar.Words name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.Null(datum.Initializer);
@@ -138,7 +138,7 @@ public class DatumDeclaration
         Assert.Single(datum.Name?.Components);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
+        Ronin.Grammar.Words name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.Null(datum.Initializer);
@@ -171,7 +171,7 @@ public class DatumDeclaration
         Assert.Single(datum.Name?.Components);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
+        Ronin.Grammar.Words name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.Null(datum.Initializer);
@@ -203,7 +203,7 @@ public class DatumDeclaration
         Assert.Single(datum.Name?.Components);
         
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
+        Ronin.Grammar.Words name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
         Assert.Null(datum.Initializer);
@@ -237,7 +237,7 @@ public class DatumDeclaration
 
         var reference = datum?.Initializer as Ronin.Grammar.Reference;
         Assert.Single(reference?.Components);
-        Ronin.Grammar.Name name = reference.Components[0];
+        Ronin.Grammar.Words name = reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -268,7 +268,7 @@ public class DatumDeclaration
         Assert.Single(datum.Name?.Components);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Name name = datum.Datatype.Components[0];
+        Ronin.Grammar.Words name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         var scalar = datum.Initializer as Ronin.Grammar.Literal;

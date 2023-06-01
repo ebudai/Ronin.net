@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class FunctionDeclaration : Statement, IParsableSyntax<FunctionDeclaration>
 {
-    public Identifier Identifier { get; init; }
+    public Name Identifier { get; init; }
     public Modifiers Modifiers { get; init; }
     public Reference Returns { get; init; }
     public Definition Definition { get; init; }
@@ -29,7 +29,7 @@ internal class FunctionDeclaration : Statement, IParsableSyntax<FunctionDeclarat
 
         if (parser.TryAdvance<Lexicon.Keywords.Function>() is false) return null;
 
-        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
+        if (Name.Parse(ref parser) is not Name identifier) return null;
 
         Modifiers modifiers = null;
         Reference returns = null;

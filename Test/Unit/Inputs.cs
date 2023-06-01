@@ -27,7 +27,7 @@ public class Inputs
         Assert.Single(arguments?.Values);
         var reference = arguments.Values[0] as Ronin.Grammar.Reference;
         Assert.Single(reference?.Components);
-        Ronin.Grammar.Name name = reference.Components[0];
+        Ronin.Grammar.Words name = reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -54,14 +54,14 @@ public class Inputs
         {
             var reference = arguments.Values[0] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
-            Ronin.Grammar.Name name = reference.Components[0];
+            Ronin.Grammar.Words name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
             var reference = arguments.Values[1] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
-            Ronin.Grammar.Name name = reference.Components[0];
+            Ronin.Grammar.Words name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
     }
@@ -118,7 +118,7 @@ public class Inputs
         {
             var reference = arguments.Values[2] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
-            Ronin.Grammar.Name name = reference.Components[0];
+            Ronin.Grammar.Words name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
     }
@@ -154,7 +154,7 @@ public class Inputs
         {
             var reference = arguments.Values[0] as Ronin.Grammar.Reference;
             Assert.Single(reference?.Components);
-            Ronin.Grammar.Name name = reference.Components[0];
+            Ronin.Grammar.Words name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 

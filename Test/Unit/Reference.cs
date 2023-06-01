@@ -31,7 +31,7 @@ public class Reference
         Assert.Equal(3, reference?.Components?.Count);
 
         {
-            Ronin.Grammar.Name name = reference.Components[0];
+            Ronin.Grammar.Words name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 

@@ -26,7 +26,7 @@ public class Assignment
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components[0];
+        Ronin.Grammar.Words name = assignment.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         var scalar = assignment.Value as Ronin.Grammar.Literal;
@@ -50,7 +50,7 @@ public class Assignment
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Words name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
         var scalar = assignment.Value as Ronin.Grammar.Literal;

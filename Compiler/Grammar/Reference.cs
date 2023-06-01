@@ -32,5 +32,5 @@ internal class Reference : Value, IParsableSyntax<Reference>
         };
     }
 
-    public class Component : CompositeSyntax<Component, Name, Anonymous, Interval> { }
+    public class Component : CompositeSyntax<Component, Words, Anonymous, Interval> { }
 }

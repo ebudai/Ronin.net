@@ -38,7 +38,7 @@ public class Delegate
         var line = @delegate.Definition?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
-        Ronin.Grammar.Name name = line.Components[0];
+        Ronin.Grammar.Words name = line.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
         Anonymous scalar = line.Components[1];
@@ -78,7 +78,7 @@ public class Delegate
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Ronin.Grammar.Name name = line.Components[0];
+            Ronin.Grammar.Words name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -125,7 +125,7 @@ public class Delegate
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Ronin.Grammar.Name name = line.Components[0];
+            Ronin.Grammar.Words name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -163,7 +163,7 @@ public class Delegate
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Ronin.Grammar.Name name = line.Components[0];
+            Ronin.Grammar.Words name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
