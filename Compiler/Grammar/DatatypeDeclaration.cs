@@ -20,7 +20,7 @@ internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclarat
     public bool IsExtension { get; init; }
     public Identifier Identifier { get; init; }
     public Reference Algebra { get; init; }
-    public Scope Body { get; init; }
+    public Definition Definition { get; init; }
 
     public new static DatatypeDeclaration Parse(ref Parser current)
     {
@@ -39,14 +39,14 @@ internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclarat
             algebra = Reference.Parse(ref parser);
         }
 
-        var body = Scope.Parse(ref parser);
+        var definition = Definition.Parse(ref parser);
 
         return new DatatypeDeclaration
         {
             IsExtension = isExtension,
             Identifier = identifier,
             Algebra = algebra,
-            Body = body,
+            Definition = definition,
             Source = parser.Commit(ref current)
         };
     }

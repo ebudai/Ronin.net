@@ -65,10 +65,10 @@ public class DatatypeDeclaration
         Ronin.Grammar.Name algebra = datatype.Algebra.Components[0];
         Assert.Equal(2, algebra?.Source.Length);
         
-        Assert.Equal(2, datatype.Body?.Values.Count);
+        Assert.Equal(2, datatype.Definition?.Values.Count);
 
         {
-            var cash = datatype.Body.Values[0] as Ronin.Grammar.DatumDeclaration;
+            var cash = datatype.Definition.Values[0] as Ronin.Grammar.DatumDeclaration;
             Assert.IsType<Variable>(cash?.Mutability);
             Assert.Single(cash.Name?.Components);
             Assert.Single(cash.Datatype?.Components);
@@ -77,7 +77,7 @@ public class DatatypeDeclaration
         }
 
         {
-            var debt = datatype.Body.Values[1] as Ronin.Grammar.DatumDeclaration;
+            var debt = datatype.Definition.Values[1] as Ronin.Grammar.DatumDeclaration;
             Assert.IsType<Variable>(debt?.Mutability);
             Assert.Single(debt.Name?.Components);
             Assert.Single(debt.Datatype?.Components);

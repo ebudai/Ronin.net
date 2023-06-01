@@ -6,7 +6,7 @@ using Ronin.Lexicon.Symbols;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Scope
+public class Definition
 {
     [Fact(DisplayName = "missing name")]
     public void MissingName()
@@ -25,7 +25,7 @@ public class Scope
         };
         
         Parser parser = new(tokens);
-        var scope = Ronin.Grammar.Compound.Scope.Parse(ref parser);
+        var scope = Ronin.Grammar.Compound.Definition.Parse(ref parser);
 
         Assert.Null(scope);
     }

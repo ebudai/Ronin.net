@@ -34,8 +34,8 @@ public class Delegate
         var datum = @delegate.Data[0];
         Assert.Single(datum?.Name?.Components);
 
-        Assert.Single(@delegate.Body?.Values);
-        var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
+        Assert.Single(@delegate.Definition?.Values);
+        var line = @delegate.Definition?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
         Ronin.Grammar.Name name = line.Components[0];
@@ -73,8 +73,8 @@ public class Delegate
         var datum = @delegate.Data[0];
         Assert.Single(datum?.Name?.Components);
 
-        Assert.Single(@delegate.Body?.Values);
-        var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
+        Assert.Single(@delegate.Definition?.Values);
+        var line = @delegate.Definition?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
         {
@@ -120,8 +120,8 @@ public class Delegate
         Assert.Single(@delegate.Data[1]?.Name?.Components);
         Assert.Single(@delegate.Data[2]?.Name?.Components);
 
-        Assert.Single(@delegate.Body?.Values);
-        var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
+        Assert.Single(@delegate.Definition?.Values);
+        var line = @delegate.Definition?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
         {
@@ -158,8 +158,8 @@ public class Delegate
 
         Assert.Empty(@delegate?.Data);
 
-        Assert.Single(@delegate?.Body?.Values);
-        var line = @delegate.Body?.Values[0] as Ronin.Grammar.Reference;
+        Assert.Single(@delegate?.Definition?.Values);
+        var line = @delegate.Definition?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
         {

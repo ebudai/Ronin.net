@@ -7,7 +7,7 @@ using Ronin.Lexicon.Symbols;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Scope
+public class Definition
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -27,7 +27,7 @@ public class Scope
         };
         
         Parser parser = new(tokens);
-        var scope = Ronin.Grammar.Compound.Scope.Parse(ref parser);
+        var scope = Ronin.Grammar.Compound.Definition.Parse(ref parser);
 
         Assert.Single(scope?.Values);
 

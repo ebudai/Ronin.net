@@ -21,7 +21,7 @@ internal class FunctionDeclaration : Statement, IParsableSyntax<FunctionDeclarat
     public Identifier Identifier { get; init; }
     public Modifiers Modifiers { get; init; }
     public Reference Returns { get; init; }
-    public Scope Body { get; init; }
+    public Definition Definition { get; init; }
 
     public new static FunctionDeclaration Parse(ref Parser current)
     {
@@ -40,14 +40,14 @@ internal class FunctionDeclaration : Statement, IParsableSyntax<FunctionDeclarat
             returns = Reference.Parse(ref parser);
         }
 
-        var body = Scope.Parse(ref parser);
+        var definition = Definition.Parse(ref parser);
 
         return new FunctionDeclaration
         {
             Identifier = identifier,
             Modifiers = modifiers,
             Returns = returns,
-            Body = body,
+            Definition = definition,
             Source = parser.Commit(ref current)
         };
     }

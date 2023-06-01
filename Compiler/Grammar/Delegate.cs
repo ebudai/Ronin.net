@@ -21,7 +21,7 @@ namespace Ronin.Grammar;
 internal class Delegate : Anonymous, IParsableSyntax<Delegate>
 {
     public List<DatumDeclaration> Data { get; init; }
-    public Scope Body { get; init; }
+    public Definition Definition { get; init; }
 
     public new static Delegate Parse(ref Parser current)
     {
@@ -32,8 +32,7 @@ internal class Delegate : Anonymous, IParsableSyntax<Delegate>
         var parameters = Parameters.Parse(ref parser);        
         if (parameters is null)
         {
-            var datum = DatumDeclaration.Parse(ref parser);
-            if (datum is null) return null;
+            if (DatumDeclaration.Parse(ref parser) is not DatumDeclaration datum) return null;
             if (parser.PreviousToken is not Returns) return null;
             data = new() { datum };
         }
@@ -43,12 +42,12 @@ internal class Delegate : Anonymous, IParsableSyntax<Delegate>
             if (parser.TryAdvance<Returns>() is false) return null;
         }
 
-        if (Scope.Parse(ref parser) is not Scope body) return null;
+        if (Definition.Parse(ref parser) is not Definition definition) return null;
 
         return new Delegate
         {
             Data = data,
-            Body = body,
+            Definition = definition,
             Source = parser.Commit(ref current)
         };
     }

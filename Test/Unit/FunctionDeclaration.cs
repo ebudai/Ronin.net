@@ -55,8 +55,8 @@ public class FunctionDeclaration
             Assert.Equal(1, type?.Source.Length);
         }
 
-        Assert.Single(function.Body?.Values);
-        var line = function.Body.Values[0] as Ronin.Grammar.Reference;
+        Assert.Single(function.Definition?.Values);
+        var line = function.Definition.Values[0] as Ronin.Grammar.Reference;
             
         Assert.Equal(2, line?.Components?.Count);
 
@@ -126,8 +126,8 @@ public class FunctionDeclaration
         Ronin.Grammar.Name returns = function.Returns.Components[0];
         Assert.Equal(1, returns?.Source.Length);
 
-        Assert.Single(function.Body?.Values);
-        var line = function.Body.Values[0] as Ronin.Grammar.Reference;
+        Assert.Single(function.Definition?.Values);
+        var line = function.Definition.Values[0] as Ronin.Grammar.Reference;
         Assert.Single(line?.Components);
         Ronin.Grammar.Name @return = line.Components[0];
         Assert.Equal(4, @return?.Source.Length);

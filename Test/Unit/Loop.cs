@@ -37,8 +37,8 @@ public class Loop
         Ronin.Grammar.Name name = loop.Header.Name.Components[0];
         Assert.Equal(3, name?.Source.Length);
         
-        Assert.Single(loop.Body?.Values);
-        var assignment = loop.Body.Values[0] as Ronin.Grammar.Assignment;
+        Assert.Single(loop.Definition?.Values);
+        var assignment = loop.Definition.Values[0] as Ronin.Grammar.Assignment;
         Assert.NotNull(assignment);
     }
 

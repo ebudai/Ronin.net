@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Grammar.Compound;
 
 namespace Ronin.Grammar;
 
@@ -15,10 +14,10 @@ internal class Statement : Syntax, IParsableSyntax<Statement>
         ?? Import.Parse(ref current)
         ?? FunctionDeclaration.Parse(ref current)
         ?? DatatypeDeclaration.Parse(ref current)
-        ?? Scope.Parse(ref current)
         ?? Assignment.Parse(ref current)
         ?? Reference.Parse(ref current)
         ?? Anonymous.Parse(ref current)        
         ?? DatumDeclaration.Parse(ref current)
+        ?? Scope.Parse(ref current)
         ?? Unknown.Parse(ref current) as Statement;
 }

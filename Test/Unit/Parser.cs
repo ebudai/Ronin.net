@@ -66,7 +66,7 @@ public class Parsing
             new Word(),
             new Word(),
             new Word(),
-            new Ronin.Lexicon.Symbol { sourcecode = new[] { '*' } },
+            new Symbol { sourcecode = new[] { '*' } },
             new Word(),
             new Terminal(),
             new EndScope(),
@@ -101,7 +101,7 @@ public class Parsing
             new EndValues(),
             new Terminal(),
 
-            // { var x => moment; florb x now; }
+            // compiled { var x => moment; florb x now; }
 
             new StartScope(),
             new Variable(),
@@ -147,7 +147,7 @@ public class Parsing
         var arguments = statements[7] as Ronin.Grammar.Compound.Inputs;
         Assert.NotNull(arguments);
 
-        var scope = statements[8] as Ronin.Grammar.Compound.Scope;
+        var scope = statements[8] as Ronin.Grammar.Scope;
         Assert.NotNull(scope);
     }
 }

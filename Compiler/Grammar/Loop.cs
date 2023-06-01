@@ -7,7 +7,7 @@ using Ronin.Lexicon.Keywords;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Represents a loop construct in which the same <see cref="Scope"/> or <see cref="Statement"/>
+///     Represents a loop construct in which the same <see cref="Compound.Definition"/> or <see cref="Statement"/>
 ///     is executed multiple times
 /// </summary>
 /// 
@@ -21,7 +21,7 @@ internal class Loop : Syntax, IParsableSyntax<Loop>
 {
     public DatumDeclaration Header { get; init; }
     public Reference List { get; init; }
-    public Scope Body { get; init; }
+    public Definition Definition { get; init; }
 
     public static Loop Parse(ref Parser current)
     {
@@ -33,13 +33,13 @@ internal class Loop : Syntax, IParsableSyntax<Loop>
 
         var list = header.Datatype is null ? null : Reference.Parse(ref parser);
 
-        if (Scope.Parse(ref parser) is not Scope body) return null;
+        if (Definition.Parse(ref parser) is not Definition definition) return null;
 
         return new Loop
         {
             Header = header,
             List = list,
-            Body = body,
+            Definition = definition,
             Source = parser.Commit(ref current)
         };
     }
