@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
@@ -6,7 +7,7 @@ using Ronin.Lexicon.Symbols;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Export
+public class ExportKeyword
 {
     [Fact(DisplayName = "missing identifier")]
     public void MissingIdentifier() 
@@ -20,7 +21,7 @@ public class Export
         };
 
         Parser parser = new(tokens);
-        var export = Ronin.Grammar.Export.Parse(ref parser);
+        var export = Export.Parse(ref parser);
 
         Assert.Null(export);
     }

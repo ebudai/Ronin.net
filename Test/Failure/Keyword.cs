@@ -1,16 +1,17 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
+using Ronin.Lexicon;
+using Ronin.Lexicon.Keywords;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class Keyword
+public class Keywords
 {
     [Fact(DisplayName = "no data")]
     public void Empty()
     {
         Lexer lexer = new(string.Empty);
-        var lexed = Ronin.Lexicon.Keyword.Lex(ref lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -21,7 +22,7 @@ public class Keyword
         const string notkeyword = "not a keyword";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Lexicon.Keyword.Lex(ref lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -32,7 +33,7 @@ public class Keyword
         const string notkeyword = "returned ";
 
         Lexer lexer = new(notkeyword);
-        var lexed = Ronin.Lexicon.Keyword.Lex(ref lexer);
+        var lexed = Keyword.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -42,25 +43,25 @@ public class Keyword
     {
         string[] words =
         {
-            "compileding",
-            "constants",
-            "datatypes",
-            "for eaching",
-            "functions",
-            "imports",            
-            "optionals",
-            "part offer",
-            "persistentx",
-            "reactivetion",
-            "sharedding",
-            "varrrrr",
-            "extendsing",
+            $"{Compiled.keyword}ing",
+            $"{Constant.keyword}s",
+            $"{Datatype.keyword}s",
+            $"{ForEach.keyword}ing",
+            $"{Function.keyword}s",
+            $"{Import.keyword}s",
+            $"{Optional.keyword}s",
+            $"{PartOf.keyword}fer",
+            $"{Persistent.keyword}x",
+            $"{Reactive.keyword}tion",
+            $"{Shared.keyword}ding",
+            $"{Variable.keyword}rrrr",
+            $"{Extends.keyword}ing",
         };
 
         foreach (var word in words)
         {
             Lexer lexer = new(word);
-            var lexed = Ronin.Lexicon.Keyword.Lex(ref lexer);
+            var lexed = Keyword.Lex(ref lexer);
             Assert.Null(lexed);
         }
     }

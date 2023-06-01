@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
@@ -7,7 +8,7 @@ using Ronin.Lexicon.Symbols;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class DatumDeclaration
+public class DatumDeclarations
 {
     [Fact(DisplayName = $"{Reactive.keyword} before name")]
     public void ReturnsBeforeName()
@@ -17,13 +18,13 @@ public class DatumDeclaration
         Token[] tokens = 
         {
             new Reactive { sourcecode = Reactive.keyword.AsMemory() },
-            new Returns(),
+            new Returns { sourcecode = Returns.symbol.AsMemory() },
             new Number { sourcecode = "44.3".AsMemory() },
-            new Terminal(),
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = DatumDeclaration.Parse(ref parser);
         
         Assert.Null(datum);
     }
@@ -37,11 +38,11 @@ public class DatumDeclaration
         {
             new Variable { sourcecode = Variable.keyword.AsMemory() },
             new Number { sourcecode = "555".AsMemory() },
-            new Terminal ()
+            new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = DatumDeclaration.Parse(ref parser);
         
         Assert.Null(datum);
     }

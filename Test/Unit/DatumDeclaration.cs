@@ -7,7 +7,7 @@ using Ronin.Lexicon.Symbols;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class DatumDeclaration
+public class DatumDeclarations
 {
     [Fact(DisplayName = "typed")]
     public void Typed()

@@ -37,7 +37,7 @@ public class Assignment
             new Word { sourcecode = "thing".AsMemory() },
             new EndValues { sourcecode = new[] { EndValues.symbol } },
             new Word { sourcecode = "doing".AsMemory() },
-            new Ronin.Lexicon.Symbol { sourcecode = "?".AsMemory() },
+            new Symbol { sourcecode = "?".AsMemory() },
             new Terminal { sourcecode = new[] { Terminal.symbol } },
         };
 

@@ -1,10 +1,11 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Lexer", null)]
-public class Symbol
+public class Symbols
 {
     [Fact(DisplayName = "wrong arrow")]
     public void NotReturns2()
@@ -12,7 +13,7 @@ public class Symbol
         const string literal = "->";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+        var lexed = Symbol.Lex(ref lexer);
 
         Assert.IsNotType<Returns>(lexed);
     }
@@ -23,7 +24,7 @@ public class Symbol
         const string blank = "";
 
         Lexer lexer = new(blank);
-        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+        var lexed = Symbol.Lex(ref lexer);
 
         Assert.Null(lexed);
     }
@@ -34,7 +35,7 @@ public class Symbol
         const string literal = "a";
 
         Lexer lexer = new(literal);
-        var lexed = Ronin.Lexicon.Symbol.Lex(ref lexer);
+        var lexed = Symbol.Lex(ref lexer);
 
         Assert.Null(lexed);
     }

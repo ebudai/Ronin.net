@@ -1,11 +1,12 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Interval
+public class Intervals
 {
     [Fact(DisplayName = "not an interval")]
     public void NotAnInterval()
@@ -21,7 +22,7 @@ public class Interval
         };
         
         Parser parser = new(tokens);
-        var interval = Ronin.Grammar.Interval.Parse(ref parser);
+        var interval = Interval.Parse(ref parser);
 
         Assert.Null(interval);
     }
@@ -38,7 +39,7 @@ public class Interval
         };
 
         Parser parser = new(tokens);
-        var reference = Ronin.Grammar.Reference.Parse(ref parser);
+        var reference = Reference.Parse(ref parser);
 
         Assert.Null(reference);
     }

@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
@@ -6,7 +7,7 @@ using Ronin.Lexicon.Symbols;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class FunctionDeclaration
+public class FunctionDeclarations
 {
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
@@ -21,7 +22,7 @@ public class FunctionDeclaration
         };
 
         Parser parser = new(tokens);
-        var function = Ronin.Grammar.FunctionDeclaration.Parse(ref parser);
+        var function = FunctionDeclaration.Parse(ref parser);
         
         Assert.Null(function);
     }

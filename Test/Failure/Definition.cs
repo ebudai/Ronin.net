@@ -1,12 +1,13 @@
 ﻿using Ronin;
 using Ronin.Compiler;
+using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Definition
+public class Definitions
 {
     [Fact(DisplayName = "missing name")]
     public void MissingName()
@@ -25,7 +26,7 @@ public class Definition
         };
         
         Parser parser = new(tokens);
-        var scope = Ronin.Grammar.Compound.Definition.Parse(ref parser);
+        var scope = Definition.Parse(ref parser);
 
         Assert.Null(scope);
     }
