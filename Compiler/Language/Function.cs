@@ -1,15 +1,26 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Ronin.Grammar;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Function : Semantics
+internal class Function : Semantic
 {
     public Datatype Returns { get; init; }
-    public List<Instruction> Instructions { get; init; } = new();
+    public Context Definition { get; init; }
+    public List<Instruction> Instructions { get; init; } = new();    
+}
 
-    public static Function Declare(Grammar.FunctionDeclaration function)
+[ExcludeFromCodeCoverage]
+internal class UnresolvedFunction : Function
+{
+    public new Unresolved Returns { get; init; }
+
+    public UnresolvedFunction(FunctionDeclaration function, Context context)
     {
-        throw new NotImplementedException();
+        Context = context;
+        Source = function;
+        Returns = new Unresolved(function.Returns, context, function);
+        Definition = new Context(function.Definition, context, false, Instructions);
     }
 }

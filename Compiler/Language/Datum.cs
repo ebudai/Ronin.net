@@ -5,31 +5,30 @@ using System.Diagnostics.CodeAnalysis;
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Datum : Semantics
+internal class Datum : Semantic
 {
-    public Mutability Mutability { get; init; }
-    public Modifiers Is { get; set; }
-    public Datatype Datatype { get; init; }
-    public Value Initializer { get; init; }
+    public Mutability Mutability { get; }
+    public Modifiers Is { get; }
+    public Datatype Datatype { get; }
+    public Value Initializer { get; }
 
-    public static Datum Declare(Grammar.DatumDeclaration datum) => new()
+    public Datum(DatumDeclaration datum, Context context)// : base(datum)
     {
         Mutability = datum.Mutability switch
         {
             Variable => Mutability.Variable,
             Reactive => Mutability.Reactive,
             _ => Mutability.Constant
-        },
+        };
+
         Is = datum.Mutability switch
         {
             Compiled => Modifiers.Compiled,
             Shared => Modifiers.Shared,
             Persistent => Modifiers.Persistent,
-            _ => 0
-        },
-        Initializer = datum.Initializer,
-        Source = datum,
-    };
+            _ => Modifiers.None,
+        };
+    }
 }
 
 public enum Mutability { Constant, Variable, Reactive }

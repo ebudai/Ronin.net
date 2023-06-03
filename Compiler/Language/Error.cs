@@ -11,7 +11,4 @@ internal class Error
 }
 
 [ExcludeFromCodeCoverage]
-internal class UnknownSyntaxError : Error { }
-
-[ExcludeFromCodeCoverage]
 internal class DeveloperMistakeUnhandledSubclassException<T> : Error { }

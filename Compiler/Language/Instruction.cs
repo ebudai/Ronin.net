@@ -4,46 +4,38 @@ using System.Diagnostics.CodeAnalysis;
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Instruction : Semantics
+internal class Instruction : Semantic
 {
     public Function Function { get; init; }
-    public Result Value { get; init; }
-    public List<Instruction> Inputs { get; init; }
-    //public Instruction(Syntax syntax) => Source = syntax; //TODO this is not sufficient?
+    public Result Result { get; init; }
+    public List<Semantic> Inputs { get; init; } = new();
+}
 
-    /*public static List<Instruction> From(Anonymous value) => value switch
+[ExcludeFromCodeCoverage]
+internal class UnresolvedAssignment : Instruction
+{
+    public Unresolved Reference { get; init; }
+
+    public UnresolvedAssignment(Assignment assignment, Context context)
     {
-        Literal or Grammar.Delegate => new(),
-        InlineList list => From(list.Values),
-        InlineLookup lookup => From(lookup.Values),
-        Arguments arguments => From(arguments.Values),
-        _ => throw new DeveloperMistakeUnhandledSubclassException<Anonymous> { Statement = value },
-    };
-
-    public static List<Instruction> From(List<Value> values)
-    {
-        List<Instruction> instructions = new();
-        foreach (var value in values)
-        {
-
-            //if (value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
-        }
-        return instructions;
+        Context = context;
+        Source = assignment;
+        Reference = new Unresolved(assignment.Reference, context, assignment);
     }
-
-    public static List<Instruction> From(List<InlineLookup.Association> associations)
-    {
-        List<Instruction> instructions = new();
-        foreach (var association in associations)
-        {
-            //if (association.Value is Reference reference) instructions.Add(new UnresolvedInstruction(reference));
-        }
-        return instructions;
-    }*/
 }
 
 [ExcludeFromCodeCoverage]
 internal class UnresolvedInstruction : Instruction
 {
-    public Reference Reference { get; init; }
+    public new Unresolved Function { get; init; }
+
+    public UnresolvedInstruction(Reference reference, Context context)
+    {
+        Context = context;
+        Source = reference;
+        Function = new Unresolved(reference, context, reference);
+    }
 }
+
+[ExcludeFromCodeCoverage]
+internal class InstructionNotAllowedHere : Error { }

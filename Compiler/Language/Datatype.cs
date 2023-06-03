@@ -1,22 +1,30 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Ronin.Grammar;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Datatype : Semantics
+internal class Datatype : Semantic
 {
-    public bool IsOptional { get; init; }
+    public bool IsOptional { get; }
 
     public List<Datatype> Bases { get; } = new();
     public List<Datatype> Unions { get; } = new();
+    public List<Result> Generics { get; } = new();
 
-    public Datatype() { }
+    public Context Definition { get; init; }
+}
 
-    public static Datatype Declare(Grammar.DatatypeDeclaration grammar, Semantics parent)
+internal class UnresolvedDatatype : Datatype
+{
+    public Unresolved Algebra { get; init; }
+    public new List<Unresolved> Generics { get; } = new();
+
+    public UnresolvedDatatype(DatatypeDeclaration datatype, Context context)
     {
-        Datatype datatype = new() { Source = grammar, Parent = parent };
-        //datatype.
-
-        return datatype;
+        Context = context;
+        Source = datatype;
+        Algebra = new Unresolved(datatype.Algebra, context, datatype);
+        Definition = new Context(datatype.Definition, context);
     }
 }
