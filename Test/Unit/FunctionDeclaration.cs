@@ -36,15 +36,15 @@ public class FunctionDeclaration
         Parser parser = new(tokens);
         var function = Ronin.Grammar.FunctionDeclaration.Parse(ref parser);
 
-        Assert.Equal(2, function?.Identifier?.Components.Count);
+        Assert.Equal(2, function?.Name?.Components.Count);
 
         {
-            Ronin.Grammar.Words name = function.Identifier.Components[0];
+            Ronin.Grammar.Words name = function.Name.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Compound.Parameters parameters = function.Identifier.Components[1];
+            Ronin.Grammar.Compound.Parameters parameters = function.Name.Components[1];
             
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
@@ -101,15 +101,15 @@ public class FunctionDeclaration
         Parser parser = new(tokens);
         var function = Ronin.Grammar.FunctionDeclaration.Parse(ref parser);
 
-        Assert.Equal(2, function?.Identifier?.Components?.Count);
+        Assert.Equal(2, function?.Name?.Components?.Count);
 
         {
-            Ronin.Grammar.Words name = function.Identifier.Components[0];
+            Ronin.Grammar.Words name = function.Name.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            Ronin.Grammar.Compound.Parameters parameters = function.Identifier.Components[1];
+            Ronin.Grammar.Compound.Parameters parameters = function.Name.Components[1];
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
             Assert.Single(parameter.Name?.Components);

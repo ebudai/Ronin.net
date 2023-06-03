@@ -25,8 +25,8 @@ public class DatatypeDeclaration
         Parser parser = new(tokens);
         var datatype = Ronin.Grammar.DatatypeDeclaration.Parse(ref parser);
 
-        Assert.Single(datatype?.Identifier?.Components);
-        Ronin.Grammar.Words name = datatype.Identifier.Components[0];
+        Assert.Single(datatype?.Name?.Components);
+        Ronin.Grammar.Words name = datatype.Name.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -61,7 +61,7 @@ public class DatatypeDeclaration
         Parser parser = new(tokens);
         var datatype = Ronin.Grammar.DatatypeDeclaration.Parse(ref parser);
 
-        Assert.Single(datatype?.Identifier?.Components);
+        Assert.Single(datatype?.Name?.Components);
         Ronin.Grammar.Words algebra = datatype.Algebra.Components[0];
         Assert.Equal(2, algebra?.Source.Length);
         

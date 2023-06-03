@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclaration>
 {
     public bool IsExtension { get; init; }
-    public Name Identifier { get; init; }
+    public Name Name { get; init; }
     public Reference Algebra { get; init; }
     public Definition Definition { get; init; }
 
@@ -30,7 +30,7 @@ internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclarat
 
         if (parser.TryAdvance<Datatype>() is false) return null;
 
-        if (Name.Parse(ref parser) is not Name identifier) return null;
+        if (Name.Parse(ref parser) is not Name name) return null;
 
         Reference algebra = null;
         if (parser.Token is Assign)
@@ -44,7 +44,7 @@ internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclarat
         return new DatatypeDeclaration
         {
             IsExtension = isExtension,
-            Identifier = identifier,
+            Name = name,
             Algebra = algebra,
             Definition = definition,
             Source = parser.Commit(ref current)
