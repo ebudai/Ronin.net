@@ -7,7 +7,7 @@ namespace Ronin;
 [ExcludeFromCodeCoverage]
 internal class SemanticAnalyzer
 {
-    public static Module Analyze(Scope scope)
+    public static Context Analyze(Definition scope)
     {
         //return Module.From(scope);
         return null;

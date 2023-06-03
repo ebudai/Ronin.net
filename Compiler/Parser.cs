@@ -20,9 +20,9 @@ internal struct Parser
     public readonly ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
     public readonly bool IsNotFinished => Token is not Sentinel;
 
-    public readonly ReadOnlySpan<Token> this[System.Range range] => tokens.Span[range];
+    public readonly ReadOnlySpan<Token> this[in System.Range range] => tokens.Span[range];
 
-    public Scope Parse()
+    public Definition Parse()
     {
         List<Statement> statements = new();
 
@@ -33,7 +33,7 @@ internal struct Parser
             if (Token is Terminal) Advance();
         }
 
-        return new Scope { Values = statements, Source = tokens };
+        return new Definition { Values = statements, Source = tokens };
     }
 
     public List<T> ParseRepeating<T>() where T : class, IParsableSyntax<T>
