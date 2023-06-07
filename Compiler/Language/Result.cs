@@ -1,7 +1,9 @@
 ﻿using Ronin.Grammar;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
+[ExcludeFromCodeCoverage]
 internal class Result : Semantic
 {
     public static implicit operator Result(Anonymous anonymous) => new() { value = anonymous };

@@ -4,17 +4,16 @@ using System.Diagnostics.CodeAnalysis;
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Datatype : Semantic
+internal class Datatype : Context
 {
     public bool IsOptional { get; }
 
     public List<Datatype> Bases { get; } = new();
     public List<Datatype> Unions { get; } = new();
     public List<Result> Generics { get; } = new();
-
-    public Context Definition { get; init; }
 }
 
+[ExcludeFromCodeCoverage]
 internal class UnresolvedDatatype : Datatype
 {
     public Unresolved Algebra { get; init; }
@@ -25,6 +24,5 @@ internal class UnresolvedDatatype : Datatype
         Context = context;
         Source = datatype;
         Algebra = new Unresolved(datatype.Algebra, context, datatype);
-        Definition = new Context(datatype.Definition, context);
     }
 }

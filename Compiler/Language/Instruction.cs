@@ -39,3 +39,6 @@ internal class UnresolvedInstruction : Instruction
 
 [ExcludeFromCodeCoverage]
 internal class InstructionNotAllowedHere : Error { }
+
+[ExcludeFromCodeCoverage]
+internal class NotAnInstruction : Error { }

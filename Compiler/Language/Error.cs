@@ -11,4 +11,4 @@ internal class Error
 }
 
 [ExcludeFromCodeCoverage]
-internal class DeveloperMistakeUnhandledSubclassException<T> : Error { }
+internal class DeveloperMistakeUnhandledSubclass<T> : Error { }

@@ -4,10 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Function : Semantic
+internal class Function : Context
 {
     public Datatype Returns { get; init; }
-    public Context Definition { get; init; }
     public List<Instruction> Instructions { get; init; } = new();    
 }
 
@@ -21,6 +20,5 @@ internal class UnresolvedFunction : Function
         Context = context;
         Source = function;
         Returns = new Unresolved(function.Returns, context, function);
-        Definition = new Context(function.Definition, context, false, Instructions);
     }
 }
