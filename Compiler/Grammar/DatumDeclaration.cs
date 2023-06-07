@@ -36,7 +36,7 @@ internal class DatumDeclaration : Statement, IParsableSyntax<DatumDeclaration>
         var mutator = parser.Token is Variable or Constant or Reactive ? parser.Token as Keyword : null;
         if (mutator is not null) parser.Advance();
 
-        if (Grammar.Words.Parse(ref parser) is not Words name) return null;
+        if (Words.Parse(ref parser) is not Words name) return null;
 
         Modifiers modifiers = null;
         Reference datatype = null;
@@ -57,7 +57,7 @@ internal class DatumDeclaration : Statement, IParsableSyntax<DatumDeclaration>
         return new DatumDeclaration
         {
             Mutability = mutator,
-            Name = new Name { Components = new() { new Name.Component { value = name } } },
+            Name = new Name(name),
             Is = modifiers,
             Datatype = datatype,
             Initializer = initializer,
