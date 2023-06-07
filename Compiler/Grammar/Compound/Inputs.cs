@@ -16,7 +16,7 @@ namespace Ronin.Grammar.Compound;
 ///     var x = pack(a, 8.2, "first name");
 ///                 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Inputs : Aggregate<Inputs, StartValues, Value, Separator, EndValues>
+internal class Inputs : Aggregate<Inputs, StartValues, Inputs.Input, Separator, EndValues>
 {
-    
+    public class Input : CompositeSyntax<Input, Value, Assignment> { }
 }
