@@ -29,7 +29,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Datatype;
 
-        Assert.Equal(datatype, keyword?.ToString());
+        Assert.Equal(datatype, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = function)]
@@ -40,7 +40,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Function;
 
-        Assert.Equal(function, keyword?.ToString());
+        Assert.Equal(function, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = variable)]
@@ -51,7 +51,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Variable;
 
-        Assert.Equal(variable, keyword?.ToString());
+        Assert.Equal(variable, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = constant)]
@@ -62,7 +62,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Constant;
 
-        Assert.Equal(constant, keyword?.ToString());
+        Assert.Equal(constant, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = reactive)]
@@ -73,7 +73,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Reactive;
 
-        Assert.Equal(reactive, keyword?.ToString());
+        Assert.Equal(reactive, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = compiled)]
@@ -84,7 +84,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Compiled;
 
-        Assert.Equal(compiled, keyword?.ToString());
+        Assert.Equal(compiled, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = shared)]
@@ -95,7 +95,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Shared;
 
-        Assert.Equal(shared, keyword?.ToString());
+        Assert.Equal(shared, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = optional)]
@@ -106,7 +106,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Optional;
 
-        Assert.Equal(optional, keyword?.ToString());
+        Assert.Equal(optional, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = persistent)]
@@ -117,7 +117,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Persistent;
 
-        Assert.Equal(persistent, keyword?.ToString());
+        Assert.Equal(persistent, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = partof)]
@@ -128,7 +128,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as PartOf;
 
-        Assert.Equal(partof, keyword?.ToString());
+        Assert.Equal(partof, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = import)]
@@ -139,7 +139,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Ronin.Lexicon.Keywords.Import;
 
-        Assert.Equal(import, keyword?.ToString());
+        Assert.Equal(import, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = @foreach)]
@@ -150,7 +150,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as ForEach;
 
-        Assert.Equal(@foreach, keyword?.ToString());
+        Assert.Equal(@foreach, keyword?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = extends)]
@@ -161,6 +161,6 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Extends;
 
-        Assert.Equal(extends, keyword?.ToString());
+        Assert.Equal(extends, keyword?.sourcecode.ToArray());
     }
 }

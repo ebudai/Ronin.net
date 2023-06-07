@@ -17,7 +17,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal, money?.ToString());
+        Assert.Equal(literal, money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with terminator")]
@@ -28,7 +28,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with separator")]
@@ -39,7 +39,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with opening parenthesis")]
@@ -50,7 +50,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with closing parenthesis")]
@@ -61,7 +61,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with opening bracket")]
@@ -72,7 +72,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with closing bracket")]
@@ -83,7 +83,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with opening brace")]
@@ -94,7 +94,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with closing brace")]
@@ -105,7 +105,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with single quote")]
@@ -116,7 +116,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with double quote")]
@@ -127,7 +127,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "with space")]
@@ -138,7 +138,7 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal[..^1], money?.ToString());
+        Assert.Equal(literal[..^1], money?.sourcecode.ToArray());
     }
 
     [Fact(DisplayName = "whole value")]
@@ -149,6 +149,6 @@ public class MoneyLiteral
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Money;
 
-        Assert.Equal(literal, money?.ToString());
+        Assert.Equal(literal, money?.sourcecode.ToArray());
     }
 }

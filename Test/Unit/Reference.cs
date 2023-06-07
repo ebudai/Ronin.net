@@ -1,5 +1,4 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
@@ -8,7 +7,7 @@ using Ronin.Lexicon.Symbols;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Reference
+public class References
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -26,7 +25,7 @@ public class Reference
         };
         
         Parser parser = new(tokens);
-        var reference = Ronin.Grammar.Reference.Parse(ref parser);
+        var reference = Reference.Parse(ref parser);
 
         Assert.Equal(3, reference?.Components?.Count);
 
@@ -43,7 +42,8 @@ public class Reference
         {
             var arguments = ((Anonymous)reference.Components[2]) as Ronin.Grammar.Compound.Inputs;
             Assert.Single(arguments?.Values);
-            var scalar = arguments.Values[0] as Ronin.Grammar.Literal;
+            Value value = arguments.Values[0];
+            var scalar = value as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
