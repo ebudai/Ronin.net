@@ -12,7 +12,11 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Name : Syntax, IParsableSyntax<Name>
 {
-    public List<Component> Components { get; init; }
+    public List<Component> Components { get; init; } = new();
+
+    public Name() { }
+
+    public Name(Words words) => Components.Add(new Component { value = words });
 
     public static Name Parse(ref Parser current)
     {
