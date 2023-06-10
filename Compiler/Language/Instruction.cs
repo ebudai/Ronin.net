@@ -12,28 +12,33 @@ internal class Instruction : Semantic
 }
 
 [ExcludeFromCodeCoverage]
-internal class UnresolvedAssignment : Instruction
+internal class UnresolvedInstruction : Instruction
 {
-    public Unresolved Reference { get; init; }
+    public Unresolved UnresolvedFunction { get; init; }
 
-    public UnresolvedAssignment(Assignment assignment, Context context)
+    public new Context Context
     {
-        Context = context;
-        Source = assignment;
-        Reference = new Unresolved(assignment.Reference, context, assignment);
+        get => base.Context;
+        set
+        {
+            base.Context = value;
+            UnresolvedFunction.Context = value;
+        }
+    }
+
+    public UnresolvedInstruction(Reference reference)
+    {
+        Source = reference;
+        UnresolvedFunction = new Unresolved(reference, reference);
     }
 }
 
 [ExcludeFromCodeCoverage]
-internal class UnresolvedInstruction : Instruction
+internal class UnresolvedAssignment : UnresolvedInstruction
 {
-    public new Unresolved Function { get; init; }
-
-    public UnresolvedInstruction(Reference reference, Context context)
+    public UnresolvedAssignment(Assignment assignment) : base(assignment.Reference)
     {
-        Context = context;
-        Source = reference;
-        Function = new Unresolved(reference, context, reference);
+        UnresolvedFunction = new Unresolved(assignment.Reference, assignment);
     }
 }
 

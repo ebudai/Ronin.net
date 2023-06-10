@@ -6,7 +6,7 @@ namespace Ronin.Language;
 [ExcludeFromCodeCoverage]
 internal class Semantic
 {
-    public Context Context { get; init; } = Context.Global;
+    public Context Context { get; set; } = Context.Global;
     public List<Error> Errors { get; } = new();
     public Syntax Source { get; init; }
 }

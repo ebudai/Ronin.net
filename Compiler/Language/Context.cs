@@ -1,6 +1,9 @@
 ﻿using Ronin.Grammar;
 using Ronin.Grammar.Compound;
+using Ronin.Lexicon;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace Ronin.Language;
 
@@ -11,15 +14,14 @@ internal class Context : Semantic
 
     internal static Dictionary<Words, Context> Named { get; } = new();
 
-    internal Context Parent { get; set; }
     internal HashSet<Words> Imports { get; } = new(ReferenceEqualityComparer.Instance);
-    internal Dictionary<Identifier, List<Semantic>> Children { get; } = new();
+    internal Dictionary<Identifier.Part, List<Semantic>> Children { get; } = new();
 
     protected internal Context() { }
 
-    public Context(Definition definition, Context context, bool canBeNamed = false, List<Instruction> instructions = null)
+    public Context(in Definition definition, in Context context, bool canBeNamed = false, in List<Instruction> instructions = null)
     {
-        Parent = context;
+        Context = context;
 
         Words name = null;
 
@@ -61,7 +63,7 @@ internal class Context : Semantic
                     }
                     else
                     {
-                        instructions.Add(new UnresolvedAssignment(assignment, this));
+                        instructions.Add(new UnresolvedAssignment(assignment) { Context = this });
                     }
                     break;
 
@@ -72,7 +74,7 @@ internal class Context : Semantic
                     }
                     else
                     {
-                        instructions.Add(new UnresolvedInstruction(reference, context));
+                        instructions.Add(new UnresolvedInstruction(reference) { Context = this });
                     }
                     break;
 
@@ -89,7 +91,7 @@ internal class Context : Semantic
                             }
                             else
                             {
-                                instructions.Add(new UnresolvedInstruction(instruction, context));
+                                instructions.Add(new UnresolvedInstruction(instruction) { Context = this });
                             }
                         }                        
                     }
@@ -137,17 +139,94 @@ internal class Context : Semantic
         }
     }
 
-    public void Add(Identifier identifier, Semantic semantic)
+    public Context Add(in Identifier identifier, in Semantic semantic)
     {
-        if (Children.TryGetValue(identifier, out var children) is false)
+        if (identifier.Parts.Count is 0)
         {
-            children = new();
-            Children.Add(identifier, children);
+            Errors.Add(new AnonymousIdentifier { Statement = semantic.Source as Statement });
+            return this;
         }
-        children.Add(semantic);
+
+        var parts = CollectionsMarshal.AsSpan(identifier.Parts);
+        return Add(parts, semantic);
     }
 
-    public Semantic Find(ReadOnlySpan<Reference.Component> reference)
+    public List<Semantic> Find(in Reference reference)
+    {
+        var components = CollectionsMarshal.AsSpan(reference.Components);
+        var found = Find(components);
+        if (found is not null) return found;
+        
+        Errors.Add(new DeveloperMistakeUnhandledSubclass<Reference.Component> { Statement = reference });
+        return new();
+    }
+
+    private Context Add(in ReadOnlySpan<Identifier.Part> name, in Semantic semantic)
+    {
+        if (name.IsEmpty) return null;
+
+        if (name.Length is not 1)
+        {
+            Context child = new();
+            Children.Add(name[0], new() { child });
+            return child.Add(name[1..], semantic);
+        }
+
+        if (Children.TryGetValue(name[0], out var list) is false)
+        {
+            list = new();
+            Children.Add(name[0], list);
+        }
+        list.Add(semantic);
+        return this;
+    }
+
+    private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference)
+    {
+        if (reference.IsEmpty) return new() { };
+
+        var isLeaf = reference.Length is 1;
+
+        Words words = reference[0];
+        if (words is not null) 
+        {
+            if (Children.TryGetValue(words, out var children))
+            {
+                if (isLeaf) return children;
+                List<Semantic> found = new(children.Count);
+                foreach (var child in children)
+                {
+                    if (child is Context context) found.AddRange(context.Find(reference[1..]));
+                }
+                return found;
+            }
+        }
+
+        Anonymous anonymous = reference[0];
+        if (anonymous is not null) return Find(reference, anonymous);
+
+        Interval interval = reference[0];
+        if (interval is not null) return Find(reference, interval);
+
+        return null;
+    }
+
+    private List<Semantic> Find(in ReadOnlyMemory<Reference.Component> reference, Words words)
+    {
+        throw new NotImplementedException();
+    }
+
+    private List<Semantic> Find(in ReadOnlyMemory<Reference.Component> reference, in Span<char> name)
+    {
+        throw new NotImplementedException();
+    }
+
+    private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference, Anonymous anonymous)
+    {
+        throw new NotImplementedException();
+    }
+
+    private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference, Interval interval)
     {
         throw new NotImplementedException();
     }
@@ -158,60 +237,25 @@ internal class Context : Semantic
         return export.Name;
     }
 
-    private Identifier GetPartialIdentifier(Name.Component component)
-    {
-        Words words = component;
-        if (words is not null) return new Identifier(words);
-
-        Parameters parameters = component;
-        var data = new Datum[parameters.Values.Count];
-        for (int i = 0, max = data.Length; i != max; ++i) data[i] = new UnresolvedDatum(parameters.Values[i], this);
-        return new Identifier(data);
-    }
-
     private void Declare(FunctionDeclaration function)
     {
-        Context context = this;
-        foreach (var component in function.Name.Components)
-        {
-            var identifier = GetPartialIdentifier(component);
-
-            if (identifier is null)
-            {
-                Errors.Add(new UnknownSyntax { Statement = function });
-                continue;
-            }
-
-            Context subcontext = ReferenceEquals(component, function.Name.Components[^1]) ? new UnresolvedFunction(function, context) : new Context();
-            context.Add(identifier, subcontext);
-            context = subcontext;
-        }
+        UnresolvedFunction unresolved = new(function);
+        Identifier identifier = new(function.Name);
+        unresolved.Context = Add(identifier, unresolved);
     }
 
     private void Declare(DatatypeDeclaration datatype)
     {
-        Context context = this;
-        foreach (var component in datatype.Name.Components)
-        {
-            var identifier = GetPartialIdentifier(component);
-
-            if (identifier is null)
-            {
-                Errors.Add(new UnknownSyntax { Statement = datatype });
-                continue;
-            }
-
-            Context subcontext = ReferenceEquals(component, datatype.Name.Components[^1]) ? new UnresolvedDatatype(datatype, context) : new Context();
-            context.Add(identifier, subcontext);
-            context = subcontext;
-        }
+        UnresolvedDatatype unresolved = new(datatype);
+        Identifier identifier = new(datatype.Name);
+        unresolved.Context = Add(identifier, unresolved);
     }
 
     private void Declare(DatumDeclaration datum)
     {
-        Words name = datum.Name.Components[0];
-        Identifier identifier = new(name);
-        Add(identifier, new UnresolvedDatum(datum, this));
+        UnresolvedDatum unresolved = new(datum);
+        Identifier identifier = new(datum.Name);
+        unresolved.Context = Add(identifier, unresolved);
     }
 
     private void Merge(Context context)

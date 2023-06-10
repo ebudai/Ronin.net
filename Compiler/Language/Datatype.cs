@@ -1,4 +1,5 @@
 ﻿using Ronin.Grammar;
+using Ronin.Lexicon.Symbols;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
@@ -10,19 +11,25 @@ internal class Datatype : Context
 
     public List<Datatype> Bases { get; } = new();
     public List<Datatype> Unions { get; } = new();
-    public List<Result> Generics { get; } = new();
 }
 
 [ExcludeFromCodeCoverage]
 internal class UnresolvedDatatype : Datatype
 {
     public Unresolved Algebra { get; init; }
-    public new List<Unresolved> Generics { get; } = new();
-
-    public UnresolvedDatatype(DatatypeDeclaration datatype, Context context)
+    public new Context Context
     {
-        Context = context;
+        get => base.Context;
+        set
+        {
+            base.Context = value;
+            Algebra.Context = value;
+        }
+    }
+
+    public UnresolvedDatatype(DatatypeDeclaration datatype)
+    {
         Source = datatype;
-        Algebra = new Unresolved(datatype.Algebra, context, datatype);
+        Algebra = new Unresolved(datatype.Algebra, datatype);
     }
 }

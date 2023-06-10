@@ -1,14 +1,15 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Lexicon;
+using System.Diagnostics.Tracing;
 
 namespace Ronin.Compiler;
 
-public struct Lexer
+public ref struct Lexer
 {
-    public Lexer(in string sourcecode) => this.sourcecode = sourcecode.AsMemory();
+    public Lexer(in string sourcecode) => this.sourcecode = ref sourcecode;
 
-    public ReadOnlyMemory<Token> Lex()
+    public List<Token> Lex()
     {
         List<Token> tokens = new(256);
         while (cursor < sourcecode.Length)
@@ -19,32 +20,34 @@ public struct Lexer
                 ?? Symbol.Lex(ref this)
                 ?? Keyword.Lex(ref this)
                 ?? Word.Lex(ref this) as Token;
+            if (tokens.Count is not 0) tokens[^1].Append(token);
             tokens.Add(token);
         }
 
+        if (tokens.Count is not 0) tokens[^1].Append(Sentinel.Instance);
         tokens.Add(Sentinel.Instance);
 
-        return tokens.ToArray();
+        return tokens;
     }
 
-    public ReadOnlyMemory<char> Commit(int length)
+    public ReadOnlyMemory<char> Commit(in int length)
     {
-        var memory = sourcecode.Slice(cursor, length);
+        var memory = sourcecode.AsMemory().Slice(cursor, length);
         cursor += length;
         return memory;
     }
 
-    public readonly bool IsEmpty => sourcecode[cursor..].IsEmpty;
-    public readonly int Length => sourcecode[cursor..].Length;
+    public readonly bool IsEmpty => cursor >= sourcecode.Length;
+    public readonly int Length => sourcecode.Length - cursor;
 
-    public readonly ref readonly char this[int index] => ref sourcecode.Span[cursor..][index];
-    public readonly ReadOnlyMemory<char> this[Range range] => sourcecode[cursor..][range];
+    public readonly char this[in int index] => sourcecode[cursor + index];
+    public readonly ReadOnlySpan<char> this[in Range range] => sourcecode.AsSpan()[cursor..][range];
 
-    public readonly bool StartsWith(in string text) => sourcecode[cursor..].Span.StartsWith(text);
+    public readonly bool StartsWith(in string text) => sourcecode.IndexOf(text, cursor) == cursor;
     public readonly bool DoesNotStartWith(in string text) => StartsWith(text) is not true;
 
-    public readonly int IndexOf(char character) => sourcecode.Span[cursor..].IndexOf(character);
+    public readonly int IndexOf(in char character) => sourcecode.IndexOf(character, cursor);
 
     private int cursor;
-    private readonly ReadOnlyMemory<char> sourcecode;
+    private readonly ref readonly string sourcecode;
 }

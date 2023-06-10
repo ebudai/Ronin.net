@@ -18,8 +18,18 @@ internal class UnresolvedDatum : Datum
 {
     public Unresolved UnresolvedDatatype { get; init; }
     public Unresolved UnresolvedInitializer { get; init; }
+    public new Context Context
+    {
+        get => base.Context;
+        set
+        {
+            base.Context = value;
+            UnresolvedDatatype.Context = value;
+            UnresolvedInitializer.Context = value;
+        }
+    }
 
-    public UnresolvedDatum(DatumDeclaration datum, Context context)
+    public UnresolvedDatum(DatumDeclaration datum)
     {
         Mutability = datum.Mutability switch
         {
@@ -36,11 +46,11 @@ internal class UnresolvedDatum : Datum
             _ => Modifiers.None,
         };
 
-        UnresolvedDatatype = new(datum.Datatype, context, datum);
+        UnresolvedDatatype = new(datum.Datatype, datum);
 
         if (datum.Initializer is Reference initializer)
         {
-            UnresolvedInitializer = new(initializer, context, datum);
+            UnresolvedInitializer = new(initializer, datum);
         }
         else if (datum.Initializer is Anonymous value)
         {
@@ -62,21 +72,4 @@ internal enum Modifiers
     Compiled    = 1 << 0, 
     Persistent  = 1 << 1, 
     Shared      = 1 << 2, 
-}
-
-[ExcludeFromCodeCoverage]
-internal static partial class Extensions
-{
-    public static bool Equals(this Datum[] data, Datum[] other)
-    {
-        for (int i = 0, j = 0; i != data.Length && j != other.Length; ++i, ++j)
-        {
-            if (data[i].Equals(other[j]) is false)
-            {
-                
-            }
-        }
-
-        return true;
-    }
 }

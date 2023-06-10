@@ -13,12 +13,20 @@ internal class Function : Context
 [ExcludeFromCodeCoverage]
 internal class UnresolvedFunction : Function
 {
-    public new Unresolved Returns { get; init; }
-
-    public UnresolvedFunction(FunctionDeclaration function, Context context)
+    public Unresolved UnresolvedReturns { get; init; }
+    public new Context Context
     {
-        Context = context;
+        get => base.Context;
+        set
+        {
+            base.Context = value;
+            UnresolvedReturns.Context = value;
+        }
+    }
+
+    public UnresolvedFunction(FunctionDeclaration function)
+    {
         Source = function;
-        Returns = new Unresolved(function.Returns, context, function);
+        UnresolvedReturns = new Unresolved(function.Returns, function);
     }
 }

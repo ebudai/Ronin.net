@@ -4,6 +4,7 @@ using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using System.Runtime.InteropServices;
 
 namespace Ronin.Compiler;
 
@@ -12,15 +13,15 @@ internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
     public static abstract T Parse(ref Parser current);
 }
 
-internal struct Parser
+internal ref struct Parser
 {
-    public Parser(in ReadOnlyMemory<Token> tokens) => this.tokens = tokens;
+    public Parser(in List<Token> tokens) => this.tokens = CollectionsMarshal.AsSpan(tokens);
 
-    public readonly ref readonly Token Token => ref tokens.Span[cursor];
-    public readonly ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
+    public readonly ref readonly Token Token => ref tokens[cursor];
+    public readonly ref readonly Token PreviousToken => ref tokens[cursor - 1];
     public readonly bool IsNotFinished => Token is not Sentinel;
 
-    public readonly ReadOnlySpan<Token> this[in System.Range range] => tokens.Span[range];
+    public readonly ReadOnlySpan<Token> this[in System.Range range] => tokens[range];
 
     public Definition Parse()
     {
@@ -33,7 +34,7 @@ internal struct Parser
             if (Token is Terminal) Advance();
         }
 
-        return new Definition { Values = statements, Source = tokens };
+        return new Definition { Values = statements, Source = tokens.ToArray() }; //TODO bad!!
     }
 
     public List<T> ParseRepeating<T>() where T : class, IParsableSyntax<T>
@@ -67,6 +68,6 @@ internal struct Parser
         return tokens;
     }
 
-    private readonly ReadOnlyMemory<Token> tokens;
+    private readonly ReadOnlySpan<Token> tokens;
     private int cursor;
 }
