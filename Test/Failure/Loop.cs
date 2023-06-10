@@ -1,26 +1,22 @@
-﻿using Ronin;
-using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Loop
+public class Loop : ParsingTests
 {
-    [Fact(DisplayName = $"doesn't start with {ForEach.keyword}")]
+    [Fact(DisplayName = $"doesn't start with {Ronin.Lexicon.Keywords.ForEach.keyword}")]
     public void NotALoop()
     {
         // not loop;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "not".AsMemory() },
-            new Word { sourcecode = "loop".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Word("not"),
+            Word("loop"),
+            Terminal(),
             Sentinel.Instance
         };
 
@@ -35,19 +31,19 @@ public class Loop
     {
         // for each 7 in best horses { run the horse; }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new ForEach { sourcecode = ForEach.keyword.AsMemory() },
-            new Number { sourcecode = "7".AsMemory() },
-            new Word { sourcecode = "in".AsMemory() },
-            new Word { sourcecode = "best".AsMemory() },
-            new Word { sourcecode = "horses".AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new Word { sourcecode = "run".AsMemory() },
-            new Word { sourcecode = "the".AsMemory() },
-            new Word { sourcecode = "horse".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            ForEach(),
+            Number(7),
+            Word("in"),
+            Word("best"),
+            Word("horses"),
+            StartScope(),
+            Word("run"),
+            Word("the"),
+            Word("horse"),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
 
@@ -62,18 +58,18 @@ public class Loop
     {
         // for each car in fast cars car colour = 3;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new ForEach { sourcecode = ForEach.keyword.AsMemory() },
-            new Word { sourcecode = "car".AsMemory() },
-            new Word { sourcecode = "in".AsMemory() },
-            new Word { sourcecode = "fast".AsMemory() },
-            new Word { sourcecode = "cars".AsMemory() },
-            new Word { sourcecode = "car".AsMemory() },
-            new Word { sourcecode = "colour".AsMemory() },
-            new Assign { sourcecode = new[] { Assign.symbol } },
-            new Number { sourcecode = "3".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            ForEach(),
+            Word("car"),
+            Word("in"),
+            Word("fast"),
+            Word("cars"),
+            Word("car"),
+            Word("colour"),
+            Assign(),
+            Number(3),
+            Terminal(),
             Sentinel.Instance
         };
 

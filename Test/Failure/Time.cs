@@ -104,7 +104,7 @@ public class Time
         var lexed = Literal.Lex(ref lexer);
 
         Assert.NotNull(lexed);
-        Assert.Equal(literal[..^2].ToArray(), lexed.sourcecode.ToArray());
+        Assert.Equal(literal[..^2].ToArray(), lexed.Memory.ToArray());
     }
 
     [Fact(DisplayName = "bad form 9")]
@@ -116,7 +116,7 @@ public class Time
         var lexed = Literal.Lex(ref lexer);
 
         Assert.NotNull(lexed);
-        Assert.Equal(literal[..^2].ToArray(), lexed.sourcecode.ToArray());
+        Assert.Equal(literal[..^2].ToArray(), lexed.Memory.ToArray());
     }
 
     [Fact(DisplayName = "bad form 10")]

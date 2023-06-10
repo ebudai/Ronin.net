@@ -1,21 +1,21 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Trivia
+public class Trivia : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // ;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Ronin.Lexicon.Whitespace(),
-            new Terminal(),
+            Whitespace(),
+            Terminal(),
             Sentinel.Instance
         };
         

@@ -3,22 +3,23 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Inputs
+public class Inputs : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // (stuff)
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new Word(),
-            new EndValues(),
+            StartValues(),
+            Word("stuff"),
+            EndValues(),
             Sentinel.Instance
         };
 
@@ -38,13 +39,13 @@ public class Inputs
     {
         // (test, stuff)
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new Word(),
-            new Separator(),
-            new Word(),
-            new EndValues(),
+            StartValues(),
+            Word("test"),
+            Separator(),
+            Word("stuff"),
+            EndValues(),
             Sentinel.Instance
         };
         
@@ -75,10 +76,10 @@ public class Inputs
     {
         // ()
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new EndValues(),
+            StartValues(),
+            EndValues(),
             Sentinel.Instance
         };
         
@@ -92,15 +93,15 @@ public class Inputs
     {
         // (1, 2, thing)
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new Word(),
-            new EndValues(),
+            StartValues(),
+            Number(1),
+            Separator(),
+            Number(2),
+            Separator(),
+            Word("thing"),
+            EndValues(),
             Sentinel.Instance
         };
         
@@ -135,21 +136,21 @@ public class Inputs
     {
         // (a, 3, (1, 2, 3))
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new Word(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new StartValues(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new EndValues(),
-            new EndValues(),
+            StartValues(),
+            Word("a"),
+            Separator(),
+            Number(3),
+            Separator(),
+            StartValues(),
+            Number(1),
+            Separator(),
+            Number(2),
+            Separator(),
+            Number(3),
+            EndValues(),
+            EndValues(),
             Sentinel.Instance,
         };
         

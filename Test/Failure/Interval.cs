@@ -2,23 +2,24 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Intervals
+public class Intervals : ParsingTests
 {
     [Fact(DisplayName = "not an interval")]
     public void NotAnInterval()
     {
         // not an interval;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "not".AsMemory() },
-            new Word { sourcecode = "an".AsMemory() },
-            new Word { sourcecode = "interval".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } }
+            Word("not"),
+            Word("an"),
+            Word("interval"),
+            Terminal()
         };
         
         Parser parser = new(tokens);
@@ -32,9 +33,9 @@ public class Intervals
     {
         // ..
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Ronin.Lexicon.Symbols.Range { sourcecode = Ronin.Lexicon.Symbols.Range.symbol.AsMemory() },
+            Range(),
             Sentinel.Instance
         };
 

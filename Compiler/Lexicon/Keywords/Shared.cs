@@ -12,6 +12,6 @@ internal class Shared : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Shared { sourcecode = lexer.Commit(keyword.Length) };
+        return new Shared { Memory = lexer.Commit(keyword.Length) };
     }
 }

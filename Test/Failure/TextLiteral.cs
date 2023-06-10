@@ -32,7 +32,7 @@ public class TextLiteral
         Assert.IsType<TextDelimiter>(tokens[0]);
 
         var word = tokens[1] as Word;
-        Assert.Equal(literal[1..], word?.sourcecode.ToArray());
+        Assert.Equal(literal[1..], word?.Memory.ToArray());
     }
 
     [Fact(DisplayName = "lone double quote")]
@@ -46,7 +46,7 @@ public class TextLiteral
         Assert.Equal(2, lexed.Length);
 
         var quote = lexed[0] as TextDelimiter;
-        Assert.Equal(literal, quote?.sourcecode.ToArray());
+        Assert.Equal(literal, quote?.Memory.ToArray());
     }
 
     [Fact(DisplayName = "tricky unterminated")]

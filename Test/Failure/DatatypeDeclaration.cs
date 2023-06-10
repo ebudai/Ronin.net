@@ -1,25 +1,24 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class DatatypeDeclarations
+public class DatatypeDeclarations : ParsingTests
 {
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
         // datatype { };
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Datatype { sourcecode = Datatype.keyword.AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Datatype(),
+            StartScope(),
+            EndScope(),
+            Terminal(),
         };
         
         Parser parser = new(tokens);

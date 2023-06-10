@@ -1,24 +1,24 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Export
+public class Export : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // part of things;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new PartOf(),
-            new Word(),
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            PartOf(),
+            Word("things"),
+            Terminal(),
             Sentinel.Instance
         };
 
@@ -33,13 +33,13 @@ public class Export
     {
         // part of standard funstuff websockets;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new PartOf(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            PartOf(),
+            Word("standard"),
+            Word("funstuff"),
+            Word("websockets"),
+            Terminal(),
             Sentinel.Instance
         };
                 
@@ -54,16 +54,16 @@ public class Export
     {
         // part of thing compiled to whatever secret stuff;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new PartOf(),
-            new Word(),
-            new Compiled(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            PartOf(),
+            Word("thing"),
+            Compiled(),
+            Word("to"),
+            Word("whatever"),
+            Word("secret"),
+            Word("stuff"),
+            Terminal(),
             Sentinel.Instance
         };
 

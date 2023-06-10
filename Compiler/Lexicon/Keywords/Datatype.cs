@@ -12,6 +12,6 @@ internal class Datatype : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Datatype { sourcecode = lexer.Commit(keyword.Length) };
+        return new Datatype { Memory = lexer.Commit(keyword.Length) };
     }
 }

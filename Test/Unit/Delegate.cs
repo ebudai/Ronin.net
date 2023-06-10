@@ -4,26 +4,27 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Delegate
+public class Delegate : ParsingTests
 {
     [Fact(DisplayName = "one parameter")]
     public void OneParameter()
     {
         // dave => { return 3; }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "dave".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new Word { sourcecode = "return".AsMemory() },
-            new Number { sourcecode = "3".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            Word("dave"),
+            Returns(),
+            StartScope(),
+            Word("return"),
+            Number(3),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
 
@@ -50,19 +51,19 @@ public class Delegate
     {
         // (dave => money) => { return 3; }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues { sourcecode = new[] { StartValues.symbol } },
-            new Word { sourcecode = "dave".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Word { sourcecode = "money".AsMemory() },
-            new EndValues { sourcecode = new[] { EndValues.symbol } },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new Word { sourcecode = "return".AsMemory() },
-            new Number { sourcecode = "3".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            StartValues(),
+            Word("dave"),
+            Returns(),
+            Word("money"),
+            EndValues(),
+            Returns(),
+            StartScope(),
+            Word("return"),
+            Number(3),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
 
@@ -93,21 +94,21 @@ public class Delegate
     {
         // (dave, billy, wanda) => { return 3; }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new Word(),
-            new Separator(),
-            new Word(),
-            new Separator(),
-            new Word(),
-            new EndValues(),
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new Word(),
-            new Number(),
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            StartValues(),
+            Word("dave"),
+            Separator(),
+            Word("billy"),
+            Separator(),
+            Word("wanda"),
+            EndValues(),
+            Returns(),
+            StartScope(),
+            Word("return"),
+            Number(3),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
         
@@ -140,16 +141,16 @@ public class Delegate
     {
         // () => { return 3; }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new EndValues(),
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new Word(),
-            new Number(),
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            StartValues(),
+            EndValues(),
+            Returns(),
+            StartScope(),
+            Word("return"),
+            Number(3),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
         
@@ -178,19 +179,19 @@ public class Delegate
     {
         // constant x = () => { return 3; }
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Constant(),
-            new Word(),
-            new Assign(),
-            new StartValues(),
-            new EndValues(),
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new Word(),
-            new Number(),
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            Constant(),
+            Word("x"),
+            Assign(),
+            StartValues(),
+            EndValues(),
+            Returns(),
+            StartScope(),
+            Word("return"),
+            Number(3),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
         

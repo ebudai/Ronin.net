@@ -12,6 +12,6 @@ internal class Optional : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Optional { sourcecode = lexer.Commit(keyword.Length) };
+        return new Optional { Memory = lexer.Commit(keyword.Length) };
     } 
 }

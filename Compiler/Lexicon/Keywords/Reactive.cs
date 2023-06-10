@@ -12,6 +12,6 @@ internal class Reactive : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Reactive { sourcecode = lexer.Commit(keyword.Length) };
+        return new Reactive { Memory = lexer.Commit(keyword.Length) };
     }
 }

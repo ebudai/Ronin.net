@@ -1,23 +1,24 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Inputs
+public class Inputs : ParsingTests
 {
     [Fact(DisplayName = "does not start with (")]
     public void NotAnArguments()
     {
         // not an object;
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "not".AsMemory() },
-            new Word { sourcecode = "an".AsMemory() },
-            new Word { sourcecode = "object".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Word("not"),
+            Word("an"),
+            Word("object"),
+            Terminal(),
         };
         
         Parser parser = new(tokens);
@@ -29,7 +30,7 @@ public class Inputs
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        Token[] tokens = { Sentinel.Instance };
+        List<Token> tokens = new() { Sentinel.Instance };
         Parser parser = new(tokens);
         var arguments = Ronin.Grammar.Compound.Inputs.Parse(ref parser);
 
@@ -41,17 +42,17 @@ public class Inputs
     {
         // (test, (thing;stuff))
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues { sourcecode = new[] { StartValues.symbol } },
-            new Word { sourcecode = "test".AsMemory() },
-            new Separator { sourcecode = new[] { Separator.symbol } },
-            new StartValues { sourcecode = new[] { StartValues.symbol } },
-            new Word { sourcecode = "thing".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new Word { sourcecode = "stuff".AsMemory() },
-            new EndValues { sourcecode = new[] { EndValues.symbol } },
-            new EndValues { sourcecode = new[] { EndValues.symbol } },
+            StartValues(),
+            Word("test"),
+            Separator(),
+            StartValues(),
+            Word("thing"),
+            Terminal(),
+            Word("stuff"),
+            EndValues(),
+            EndValues(),
         };
         
         Parser parser = new(tokens);
@@ -65,12 +66,12 @@ public class Inputs
     {
         // (test;)
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartValues { sourcecode = new[] { StartValues.symbol } },
-            new Word { sourcecode = "test".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndValues { sourcecode = new[] { EndValues.symbol } },
+            StartValues(),
+            Word("test"),
+            Terminal(),
+            EndValues(),
         };
         
         Parser parser = new(tokens);

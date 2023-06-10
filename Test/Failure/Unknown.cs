@@ -1,23 +1,22 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Unknown
+public class Unknown: ParsingTests
 {
     [Fact(DisplayName = "unknown")]
     public void UnknownSyntaxTest()
     {
         // datatype => ;
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Datatype { sourcecode = Datatype.keyword.AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Datatype(),
+            Returns(),
+            Terminal(),
             Sentinel.Instance
         };
         

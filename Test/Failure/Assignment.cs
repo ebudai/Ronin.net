@@ -1,22 +1,22 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Assignment
+public class Assignment : ParsingTests
 {
     [Fact(DisplayName = "no value")]
     public void NoValue()
     {
         // thing = ;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "thing".AsMemory() },
-            new Assign { sourcecode = new[] { Assign.symbol } },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Word("thing"),
+            Assign(),
+            Terminal(),
         };
         
         Parser parser = new(tokens);
@@ -30,15 +30,15 @@ public class Assignment
     {
         // what (thing) doing ?;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "what".AsMemory() },
-            new StartValues { sourcecode = new[] { StartValues.symbol } },
-            new Word { sourcecode = "thing".AsMemory() },
-            new EndValues { sourcecode = new[] { EndValues.symbol } },
-            new Word { sourcecode = "doing".AsMemory() },
-            new Symbol { sourcecode = "?".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Word("what"),
+            StartValues(),
+            Word("thing"),
+            EndValues(),
+            Word("doing"),
+            Symbol("?"),
+            Terminal(),
         };
 
         Parser parser = new(tokens);
@@ -50,7 +50,7 @@ public class Assignment
     [Fact(DisplayName = "empty")]
     public void Blank()
     {
-        Token[] tokens = { Sentinel.Instance };
+        List<Token> tokens = new() { Sentinel.Instance };
 
         Parser parser = new(tokens);
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);

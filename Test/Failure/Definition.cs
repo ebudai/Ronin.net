@@ -1,28 +1,27 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Definitions
+public class Definitions : ParsingTests
 {
     [Fact(DisplayName = "missing name")]
     public void MissingName()
     {
         // { ",;,thing }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new TextDelimiter { sourcecode = new[] { TextDelimiter.symbol } },
-            new Separator { sourcecode = new[] { Separator.symbol } },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new Separator { sourcecode = new[] { Separator.symbol } },
-            new Word { sourcecode = "thing".AsMemory() },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            StartScope(),
+            TextDelimiter(),
+            Separator(),
+            Terminal(),
+            Separator(),
+            Word("thing"),
+            EndScope(),
         };
         
         Parser parser = new(tokens);

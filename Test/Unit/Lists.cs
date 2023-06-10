@@ -3,22 +3,23 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class List
+public class Lists : ParsingTests
 {
     [Fact(DisplayName = "single")]
     public void Single()
     {
         // { 3 }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartScope(),
-            new Number(),
-            new EndScope(),
+            StartScope(),
+            Number(3),
+            EndScope(),
             Sentinel.Instance
         };
 
@@ -35,15 +36,15 @@ public class List
     {
         // { 3, 4, 5 }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartScope(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new EndScope(),
+            StartScope(),
+            Number(3),
+            Separator(),
+            Number(4),
+            Separator(),
+            Number(5),
+            EndScope(),
             Sentinel.Instance
         };
 
@@ -73,18 +74,18 @@ public class List
     {
         // var x = { 5, 2, test }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Variable(),
-            new Word(),
-            new Assign(),
-            new StartScope(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new Word(),
-            new EndScope(),
+            Variable(),
+            Word("x"),
+            Assign(),
+            StartScope(),
+            Number(5),
+            Separator(),
+            Number(2),
+            Separator(),
+            Word("test"),
+            EndScope(),
             Sentinel.Instance
         };
 

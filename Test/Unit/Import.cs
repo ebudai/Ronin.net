@@ -1,23 +1,22 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Import
+public class Import : ParsingTests  
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        // part of things;
+        // import things;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Ronin.Lexicon.Keywords.Import(),
-            new Word(),
-            new Terminal(),
+            Import(),
+            Word("things"),
+            Terminal(),
             Sentinel.Instance
         };
 
@@ -30,15 +29,15 @@ public class Import
     [Fact(DisplayName = "with some hierarchy")]
     public void WithExport()
     {
-        // part of standard funstuff websockets;
+        // import standard funstuff websockets;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Ronin.Lexicon.Keywords.Import(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal(),
+            Import(),
+            Word("standard"),
+            Word("funstuff"),
+            Word("websockets"),
+            Terminal(),
             Sentinel.Instance
         };
                 
@@ -51,18 +50,18 @@ public class Import
     [Fact(DisplayName = "keywords are just text")]
     public void WithKeywords()
     {
-        // part of thing compiled to whatever secret stuff;
+        // import thing compiled to whatever secret stuff;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Ronin.Lexicon.Keywords.Import(),
-            new Word(),
-            new Compiled(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal(),
+            Import(),
+            Word("thing"),
+            Compiled(),
+            Word("to"),
+            Word("whatever"),
+            Word("secret"),
+            Word("stuff"),
+            Terminal(),
             Sentinel.Instance
         };
 

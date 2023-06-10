@@ -13,7 +13,7 @@ internal class Text : Literal
 
         for (var i = 1; i < lexer.Length; ++i)
         {
-            if (lexer[i] is TextDelimiter.symbol && lexer[i - 1] is not '\\') return new Text { sourcecode = lexer.Commit(i + 1) };
+            if (lexer[i] is TextDelimiter.symbol && lexer[i - 1] is not '\\') return new Text { Memory = lexer.Commit(i + 1) };
         }
 
         return null;

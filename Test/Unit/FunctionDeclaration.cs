@@ -1,35 +1,33 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class FunctionDeclaration
+public class FunctionDeclaration : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // function test(x => number) { return 7; }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Function(),
-            new Word(),
-            new StartValues(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new EndValues(),
-            new StartScope(),
-            new Word(),
-            new Number(),
-            new Terminal(),
-            new EndScope(),
+            Function(),
+            Word("test"),
+            StartValues(),
+            Word("x"),
+            Returns(),
+            Word("number"),
+            EndValues(),
+            StartScope(),
+            Word("return"),
+            Number(7),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
 
@@ -72,29 +70,29 @@ public class FunctionDeclaration
     }
 
     [Fact(DisplayName = "specifies return datatype")]
-    public void Returns()
+    public void ReturnsSymbol()
     {
         // function test(x => text) => optional number { return x as number; }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Function(),
-            new Word(),
-            new StartValues(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new EndValues(),
-            new Returns(),
-            new Optional(),
-            new Word(),
-            new StartScope(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal(),
-            new EndScope(),
+            Function(),
+            Word("test"),
+            StartValues(),
+            Word("x"),
+            Returns(),
+            Word("text"),
+            EndValues(),
+            Returns(),
+            Optional(),
+            Word("number"),
+            StartScope(),
+            Word("return"),
+            Word("x"),
+            Word("as"),
+            Word("number"),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
 

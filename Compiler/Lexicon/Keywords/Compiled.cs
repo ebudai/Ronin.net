@@ -12,6 +12,6 @@ internal class Compiled : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Compiled { sourcecode = lexer.Commit(keyword.Length) };
+        return new Compiled { Memory = lexer.Commit(keyword.Length) };
     }
 }

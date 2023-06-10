@@ -1,24 +1,24 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class DatatypeDeclaration
+public class DatatypeDeclaration : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // datatype Test { }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Datatype { sourcecode = Datatype.keyword.AsMemory() },
-            new Word { sourcecode = "Test".AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            Datatype(),
+            Word("Test"),
+            StartScope(),
+            EndScope(),
             Sentinel.Instance
         };
         
@@ -35,26 +35,26 @@ public class DatatypeDeclaration
     {
         // datatype Algebra Example = number or { var cash => money; var debt => money; }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Datatype { sourcecode = Datatype.keyword.AsMemory() },
-            new Word { sourcecode = "Algebra".AsMemory() },
-            new Word { sourcecode = "Example".AsMemory() },
-            new Assign { sourcecode = new[] { Assign.symbol } },
-            new Word { sourcecode = "number".AsMemory() },
-            new Word { sourcecode = "or".AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new Word { sourcecode = "cash".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Word { sourcecode = "money".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new Word { sourcecode = "debt".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Word { sourcecode = "money".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            Datatype(),
+            Word("Algebra"),
+            Word("Example"),
+            Assign(),
+            Word("number"),
+            Word("or"),
+            StartScope(),
+            Variable(),
+            Word("cash"),
+            Returns(),
+            Word("money"),
+            Terminal(),
+            Variable(),
+            Word("debt"),
+            Returns(),
+            Word("money"),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
 

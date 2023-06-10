@@ -1,28 +1,27 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Definition
+public class Definition : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // { var test = 56; }
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartScope(),
-            new Variable(),
-            new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
-            new EndScope(),
+            StartScope(),
+            Variable(),
+            Word("test"),
+            Assign(),
+            Number(56),
+            Terminal(),
+            EndScope(),
             Sentinel.Instance
         };
         

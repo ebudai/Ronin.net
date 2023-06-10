@@ -1,25 +1,24 @@
-﻿using Ronin;
-using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Ordinal
+public class Ordinal : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // [test]
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartOrdinal(),
-            new Word(),
-            new EndOrdinal(),
+            StartOrdinal(),
+            Word("test"),
+            EndOrdinal(),
             Sentinel.Instance
         };
         
@@ -38,13 +37,13 @@ public class Ordinal
     {
         // [test, stuff]
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartOrdinal(),
-            new Word(),
-            new Separator(),
-            new Word(),
-            new EndOrdinal(),
+            StartOrdinal(),
+            Word("test"),
+            Separator(),
+            Word("stuff"),
+            EndOrdinal(),
             Sentinel.Instance
         };
         
@@ -73,10 +72,10 @@ public class Ordinal
     {
         // []
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartOrdinal(),
-            new EndOrdinal(),
+            StartOrdinal(),
+            EndOrdinal(),
             Sentinel.Instance
         };
         
@@ -91,14 +90,14 @@ public class Ordinal
     {
         // [1, 2, thing]
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartOrdinal(),
-            new Number(),
-            new Separator(),
-            new Number(),
-            new Separator(),
-            new Word(),
+            StartOrdinal(),
+            Number(1),
+            Separator(),
+            Number(2),
+            Separator(),
+                new Word(),
             new EndOrdinal(),
             Sentinel.Instance
         };

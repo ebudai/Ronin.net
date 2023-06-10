@@ -12,6 +12,6 @@ internal class Persistent : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Persistent { sourcecode = lexer.Commit(keyword.Length) };
+        return new Persistent { Memory = lexer.Commit(keyword.Length) };
     }
 }

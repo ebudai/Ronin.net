@@ -12,6 +12,6 @@ internal class Constant : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Constant { sourcecode = lexer.Commit(keyword.Length) };
+        return new Constant { Memory = lexer.Commit(keyword.Length) };
     }
 }

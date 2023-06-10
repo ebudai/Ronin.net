@@ -1,24 +1,23 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class FunctionDeclarations
+public class FunctionDeclarations : ParsingTests
 {
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
     {
         // function { }
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Function { sourcecode = Function.keyword.AsMemory() },
-            new StartScope { sourcecode = new[] { StartScope.symbol } },
-            new EndScope { sourcecode = new[] { EndScope.symbol } },
+            Function(),
+            StartScope(),
+            EndScope(),
         };
 
         Parser parser = new(tokens);

@@ -11,6 +11,6 @@ internal class Returns : Punctuation
     public static new Returns Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
-        return new Returns { sourcecode = lexer.Commit(symbol.Length) };
+        return new Returns { Memory = lexer.Commit(symbol.Length) };
     }
 }

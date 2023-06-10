@@ -3,117 +3,118 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Parsing
+public class Parsing : ParsingTests
 {
     [Fact(DisplayName = "parse")]
     public void Parse()
     {
-        Token[] tokens =
+        List<Token> tokens = new()
         {
             // part of testing apparatus;
 
-            new PartOf(),
-            new Word(),
-            new Word(),
-            new Terminal(),
+            PartOf(),
+            Word("testing"),
+            Word("apparatus"),
+            Terminal(),
 
             // var a = 3;
 
-            new Variable(),
-            new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
+            Variable(),
+            Word("a"),
+            Assign(),
+            Number(3),
+            Terminal(),
 
             // a = 6;
 
-            new Word(),
-            new Assign(),
-            new Number(),
-            new Terminal(),
+            Word("a"),
+            Assign(),
+            Number(6),
+            Terminal(),
 
             // 3..test;
 
-            new Number(),
-            new Ronin.Lexicon.Symbols.Range(),
-            new Word(),
-            new Terminal(),
+            Number(3),
+            Range(),
+            Word("test"),
+            Terminal(),
 
             // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
 
-            new Function(),
-            new Word(),
-            new StartValues(),
-            new Variable(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new EndValues(),
-            new Word(),
-            new StartValues(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new EndValues(),
-            new StartScope(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Symbol { sourcecode = new[] { '*' } },
-            new Word(),
-            new Terminal(),
-            new EndScope(),
+            Function(),
+            Word("x"),
+            StartValues(),
+            Variable(),
+            Word("a"),
+            Returns(),
+            Word("number"),
+            EndValues(),
+            Word("y"),
+            StartValues(),
+            Word("cash"),
+            Word("on"),
+            Word("hand"),
+            Returns(),
+            Word("money"),
+            EndValues(),
+            StartScope(),
+            Word("return"),
+            Word("cash"),
+            Word("on"),
+            Word("hand"),
+            Symbol("*"),
+            Word("a"),
+            Terminal(),
+            EndScope(),
 
             // datatype big thing { constant size => whole number; }
 
-            new Datatype(),
-            new Word(),
-            new Word(),
-            new StartScope(),
-            new Constant(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new Word(),
-            new Terminal(),
-            new EndScope(),
+            Datatype(),
+            Word("big"),
+            Word("thing"),
+            StartScope(),
+            Constant(),
+            Word("size"),
+            Returns(),
+            Word("whole"),
+            Word("number"),
+            Terminal(),
+            EndScope(),
 
             // 7;
 
-            new Number(),
-            new Terminal(),
+            Number(7),
+            Terminal(),
 
             // (a, b, "text");
 
-            new StartValues(),
-            new Word(),
-            new Separator(),
-            new Word(),
-            new Separator(),
-            new Text(),
-            new EndValues(),
-            new Terminal(),
+            StartValues(),
+            Word("a"),
+            Separator(),
+            Word("b"),
+            Separator(),
+            Text("text"),
+            EndValues(),
+            Terminal(),
 
             // compiled { var x => moment; florb x now; }
 
-            new StartScope(),
-            new Variable(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new Terminal(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Terminal(),
-            new EndScope(),
+            StartScope(),
+            Variable(),
+            Word("x"),
+            Returns(),
+            Word("moment"),
+            Terminal(),
+            Word("florb"),
+            Word("x"),
+            Word("now"),
+            Terminal(),
+            EndScope(),
 
             Sentinel.Instance
         };

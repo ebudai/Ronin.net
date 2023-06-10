@@ -2,23 +2,24 @@
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Assignment
+public class Assignment : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // a = 3;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "a".AsMemory() },
-            new Assign { sourcecode = new[] { Assign.symbol } },
-            new Number { sourcecode = "3".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Word("a"),
+            Assign(),
+            Number(3),
+            Terminal(),
             Sentinel.Instance
         };
 
@@ -38,11 +39,11 @@ public class Assignment
     {
         // thing = 0
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "thing".AsMemory() },
-            new Assign { sourcecode = new[] { Assign.symbol } },
-            new Number { sourcecode = "0".AsMemory() },
+            Word("thing"),
+            Assign(),
+            Number(0),
             Sentinel.Instance
         };
         

@@ -1,25 +1,24 @@
-﻿using Ronin;
-using Ronin.Compiler;
-using Ronin.Grammar.Compound;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Ordinal
+public class Ordinal : ParsingTests
 {
     [Fact(DisplayName = "does not start with [")]
     public void NotAnOrdinal()
     {
         // not an ordinal;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "not".AsMemory() },
-            new Word { sourcecode = "an".AsMemory() },
-            new Word { sourcecode = "ordinal".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } }
+            Word("not"),
+            Word("an"),
+            Word("ordinal"),
+            Terminal()
         };
         
         Parser parser = new(tokens);
@@ -31,7 +30,7 @@ public class Ordinal
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        Token[] tokens = { Sentinel.Instance };
+        List<Token> tokens = new() { Sentinel.Instance };
         Parser parser = new(tokens);
         var arguments = Ronin.Grammar.Compound.Ordinal.Parse(ref parser);
 
@@ -43,16 +42,16 @@ public class Ordinal
     {
         // [test, (thing;stuff)]
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartOrdinal { sourcecode = new[] { StartOrdinal.symbol } },
-            new Word { sourcecode = "test".AsMemory() },
-            new Separator { sourcecode = new[] { Separator.symbol } },
-            new Word { sourcecode = "thing".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new Word { sourcecode = "stuff".AsMemory() },
-            new EndValues { sourcecode = new[] { EndValues.symbol } },
-            new EndOrdinal { sourcecode = new[] { EndOrdinal.symbol } },
+            StartOrdinal(),
+            Word("test"),
+            Separator(),
+            Word("thing"),
+            Terminal(),
+            Word("stuff"),
+            EndValues(),
+            EndOrdinal(),
         };
         
         Parser parser = new(tokens);
@@ -66,12 +65,12 @@ public class Ordinal
     {
         // [test;]
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new StartOrdinal { sourcecode = new[] { StartOrdinal.symbol } },
-            new Word { sourcecode = "test".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndOrdinal { sourcecode = new[] { EndOrdinal.symbol } },
+            StartOrdinal(),
+            Word("test"),
+            Terminal(),
+            EndOrdinal(),
         };
         
         Parser parser = new(tokens);

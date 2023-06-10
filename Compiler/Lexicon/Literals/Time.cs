@@ -25,7 +25,7 @@ internal class Time : Literal
         || !char.IsWhiteSpace(lexer[8])
         || lexer[9] is not 'a' and not 'A' and not 'p' and not 'P'
         ? null
-        : new Time { sourcecode = lexer.Commit(10) };
+        : new Time { Memory = lexer.Commit(10) };
 
     private static Time LexTwoDigitWithUnspacedSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 9
@@ -39,7 +39,7 @@ internal class Time : Literal
         || !char.IsDigit(lexer[7])
         || lexer[8] is not 'a' and not 'A' and not 'p' and not 'P'
         ? null
-        : new Time { sourcecode = lexer.Commit(9) };
+        : new Time { Memory = lexer.Commit(9) };
 
     private static Time LexTwoDigitWithoutSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 8
@@ -52,7 +52,7 @@ internal class Time : Literal
         || !char.IsDigit(lexer[6])
         || !char.IsDigit(lexer[7])
         ? null
-        : new Time { sourcecode = lexer.Commit(8) };
+        : new Time { Memory = lexer.Commit(8) };
 
     private static Time LexOneDigitWithSpacedSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 9
@@ -66,7 +66,7 @@ internal class Time : Literal
         || !char.IsWhiteSpace(lexer[7])
         || lexer[8] is not 'a' and not 'A' and not 'p' and not 'P'
         ? null
-        : new Time { sourcecode = lexer.Commit(9) };
+        : new Time { Memory = lexer.Commit(9) };
 
     private static Time LexOneDigitWithUnspacedSuffixTimeLiteral(ref Lexer lexer)
         => lexer.Length is < 8
@@ -79,5 +79,5 @@ internal class Time : Literal
         || !char.IsDigit(lexer[6])
         || lexer[7] is not 'a' and not 'A' and not 'p' and not 'P'
         ? null
-        : new Time { sourcecode = lexer.Commit(8) };
+        : new Time { Memory = lexer.Commit(8) };
 }

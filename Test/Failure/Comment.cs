@@ -29,7 +29,7 @@ public class Comment
         var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
         Assert.False(comment?.Terminated);
-        Assert.Equal(badcomment, comment?.sourcecode.ToString());
+        Assert.Equal(badcomment, comment?.Memory.ToString());
     }
 
     [Fact(DisplayName = "unbalanced nested multiline end")]
@@ -41,6 +41,6 @@ public class Comment
         var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
         Assert.True(comment?.Terminated);
-        Assert.Equal("/*unbalanced */", comment?.sourcecode.ToString());
+        Assert.Equal("/*unbalanced */", comment?.Memory.ToString());
     }
 }

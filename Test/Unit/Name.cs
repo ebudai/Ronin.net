@@ -1,21 +1,22 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Name
+public class Name : ParsingTests
 {
     [Fact(DisplayName = "symbols")]
     public void Symbols()
     {
         // name + things
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Word(),
-            new Ronin.Lexicon.Symbol(),
-            new Word(),
+            Word("name"),
+            Symbol("+"),
+            Word("things"),
             Sentinel.Instance
         };
 

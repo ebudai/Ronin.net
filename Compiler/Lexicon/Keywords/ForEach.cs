@@ -12,6 +12,6 @@ internal class ForEach : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new ForEach { sourcecode = lexer.Commit(keyword.Length) };
+        return new ForEach { Memory = lexer.Commit(keyword.Length) };
     }
 }

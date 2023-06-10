@@ -1,27 +1,27 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Parameters
+public class Parameters : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // (var test => money)
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new Variable(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new EndValues(),
+            StartValues(),
+            Variable(),
+            Word("test"),
+            Returns(),
+            Word("money"),
+            EndValues(),
             Sentinel.Instance
         };
         
@@ -48,19 +48,19 @@ public class Parameters
     {
         // (test => number, stuff in things => text)
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new Separator(),
-            new Word(),
-            new Word(),
-            new Word(),
-            new Returns(),
-            new Word(),
-            new EndValues(),
+            StartValues(),
+            Word("test"),
+            Returns(),
+            Word("number"),
+            Separator(),
+            Word("stuff"),
+            Word("in"),
+            Word("things"),
+            Returns(),
+            Word("text"),
+            EndValues(),
             Sentinel.Instance
         };
         
@@ -101,10 +101,10 @@ public class Parameters
     {
         // ()
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartValues(),
-            new EndValues(),
+            StartValues(),
+            EndValues(),
             Sentinel.Instance
         };
 

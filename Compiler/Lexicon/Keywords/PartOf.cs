@@ -12,6 +12,6 @@ internal class PartOf : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new PartOf { sourcecode = lexer.Commit(keyword.Length) };
+        return new PartOf { Memory = lexer.Commit(keyword.Length) };
     }
 }

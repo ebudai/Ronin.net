@@ -3,25 +3,26 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class DatumDeclarations
+public class DatumDeclarations : ParsingTests
 {
     [Fact(DisplayName = "typed")]
     public void Typed()
     {
         // var my variable => number;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Word { sourcecode = "variable".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Word { sourcecode = "number".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Variable(),
+            Word("my"),
+            Word("variable"),
+            Returns(),
+            Word("number"),
+            Terminal(),
             Sentinel.Instance
         };
         
@@ -47,18 +48,18 @@ public class DatumDeclarations
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{Reactive.keyword}")]
+    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Reactive.keyword}")]
     public void ReactiveDatatype()
     {
         // reactive x => text;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Reactive { sourcecode = Reactive.keyword.AsMemory() },
-            new Word { sourcecode = "x".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Word { sourcecode = "text".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Reactive(),
+            Word("x"),
+            Returns(),
+            Word("text"),
+            Terminal(),
             Sentinel.Instance
         };
         
@@ -78,19 +79,19 @@ public class DatumDeclarations
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{Compiled.keyword}")]
+    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Compiled.keyword}")]
     public void CompiledDatatype()
     {
         // var x => compiled text;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Compiled { sourcecode = Compiled.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Variable(),
+            Word("x"),
+            Returns(),
+            Compiled(),
+            Word("text"),
+            Terminal(),
             Sentinel.Instance
         };
 
@@ -111,19 +112,19 @@ public class DatumDeclarations
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{Persistent.keyword}")]
+    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Persistent.keyword}")]
     public void PersistentDatatype()
     {
         // constant x => persistent text;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Constant { sourcecode = Constant.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Persistent { sourcecode = Persistent.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Constant(),
+            Word("x"),
+            Returns(),
+            Persistent(),
+            Word("text"),
+            Terminal(),
             Sentinel.Instance
         };
 
@@ -144,19 +145,19 @@ public class DatumDeclarations
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{Shared.keyword}")]
+    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Shared.keyword}")]
     public void SharedDatatype()
     {
         // var x => shared text;
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Shared { sourcecode = Shared.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Variable(),
+            Word("x"),
+            Returns(),
+            Shared(),
+            Word("text"),
+            Terminal(),
             Sentinel.Instance
         };
         
@@ -177,19 +178,19 @@ public class DatumDeclarations
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{Optional.keyword}")]
+    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Optional.keyword}")]
     public void OptionalDatatype()
     {
         // reactive x => optional text;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Reactive { sourcecode = Reactive.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Optional { sourcecode = Optional.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Terminal()
+            Reactive(),
+            Word("x"),
+            Returns(),
+            Optional(),
+            Word("text"),
+            Terminal()
         };
 
         Parser parser = new(tokens);
@@ -214,13 +215,13 @@ public class DatumDeclarations
     {
         // var x = things;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Assign { sourcecode = new[] { Assign.symbol } },
-            new Word { sourcecode = "my".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Variable(),
+            Word("x"),
+            Assign(),
+            Word("things"),
+            Terminal(),
             Sentinel.Instance
         };
 
@@ -246,15 +247,15 @@ public class DatumDeclarations
     {
         // var thing => number = 2;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Word { sourcecode = "my".AsMemory() },
-            new Assign { sourcecode = new[] { Assign.symbol } },
-            new Number { sourcecode = "2".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Variable(),
+            Word("thing"),
+            Returns(),
+            Word("number"),
+            Assign(),
+            Number(2),
+            Terminal(),
             Sentinel.Instance
         };
         

@@ -1,26 +1,25 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class References
+public class References : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // thing 7 ("stuff")
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Word(),
-            new Number(),
-            new StartValues(),
-            new Text(),
-            new EndValues(),
+            Word("thing"),
+            Number(7),
+            StartValues(),
+            Text("stuff"),
+            EndValues(),
             Sentinel.Instance
         };
         

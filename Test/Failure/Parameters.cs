@@ -1,23 +1,23 @@
-﻿using Ronin;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Parameters
+public class Parameters : ParsingTests
 {
     [Fact(DisplayName = "does not start with (")]
     public void NotParameters()
     {
         // not parameters;
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "not".AsMemory() },
-            new Word { sourcecode = "parameters".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Word("not"),
+            Word("parameters"),
+            Terminal(),
             Sentinel.Instance
         };
         
@@ -30,7 +30,7 @@ public class Parameters
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        Token[] tokens = { Sentinel.Instance };
+        List<Token> tokens = new() { Sentinel.Instance };
         Parser parser = new(tokens);
         var parameters = Ronin.Grammar.Compound.Parameters.Parse(ref parser);
 
@@ -42,19 +42,19 @@ public class Parameters
     {
         // (test => money, [thing;stuff])
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartValues { sourcecode = new[] { StartValues.symbol } },
-            new Word { sourcecode = "test".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Word { sourcecode = "money".AsMemory() },
-            new Separator { sourcecode = new[] { Separator.symbol } },
-            new StartOrdinal { sourcecode = new[] { StartOrdinal.symbol } },
-            new Word { sourcecode = "thing".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new Word { sourcecode = "stuff".AsMemory() },
-            new EndOrdinal { sourcecode = new[] { EndOrdinal.symbol } },
-            new EndValues { sourcecode = new[] { EndValues.symbol } },
+            StartValues(),
+            Word("test"),
+            Returns(),
+            Word("money"),
+            Separator(),
+            StartOrdinal(),
+            Word("thing"),
+            Terminal(),
+            Word("stuff"),
+            EndOrdinal(),
+            EndValues(),
             Sentinel.Instance
         };
         
@@ -69,13 +69,13 @@ public class Parameters
     {
         // (test => text;)
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Word { sourcecode = "test".AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Word{ sourcecode = "text".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
-            new EndValues { sourcecode = new[] { EndValues.symbol } },
+            Word("test"),
+            Returns(),
+            Word("text"),
+            Terminal(),
+            EndValues(),
             Sentinel.Instance
         };
         

@@ -11,6 +11,6 @@ internal class Whitespace : Trivium
         var length = 0;
         while (length < lexer.Length && char.IsWhiteSpace(lexer[length])) ++length;
         if (length is 0) return null;
-        return new Whitespace { sourcecode = lexer.Commit(length) };
+        return new Whitespace { Memory = lexer.Commit(length) };
     }
 }

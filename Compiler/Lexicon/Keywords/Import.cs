@@ -12,6 +12,6 @@ internal class Import : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Import { sourcecode = lexer.Commit(keyword.Length) };
+        return new Import { Memory = lexer.Commit(keyword.Length) };
     }
 }

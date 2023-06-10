@@ -11,6 +11,6 @@ internal class EndValues : Punctuation
     public static new EndValues Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not symbol) return null;
-        return new() { sourcecode = lexer.Commit(1) };
+        return new() { Memory = lexer.Commit(1) };
     }
 }

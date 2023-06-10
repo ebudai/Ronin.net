@@ -12,6 +12,6 @@ internal class Extends : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Extends { sourcecode = lexer.Commit(keyword.Length) };
+        return new Extends { Memory = lexer.Commit(keyword.Length) };
     }
 }

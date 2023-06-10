@@ -10,7 +10,7 @@ internal class Word : Token
     {
         if (lexer.IsEmpty) return null;
 
-        if (char.IsNumber(lexer[0])) return null;
+        if (char.IsDigit(lexer[0])) return null;
 
         var length = 0;
         while (length < lexer.Length
@@ -19,6 +19,6 @@ internal class Word : Token
             && char.IsPunctuation(lexer[length]) is false) ++length;
 
         if (length is 0) return null;
-        return new Word { sourcecode = lexer.Commit(length) };
+        return new Word { Memory = lexer.Commit(length) };
     }
 }

@@ -16,7 +16,7 @@ public class Symbols
         for (var i = 0; i != lexed.Length; ++i) Assert.True(char.IsSymbol(lexed[i]) || char.IsPunctuation(lexed[i]));
         var symbol = Symbol.Lex(ref lexer);
 
-        Assert.Equal(lexed.ToArray(), symbol?.sourcecode.ToArray());
+        Assert.Equal(lexed.ToArray(), symbol?.Memory.ToArray());
 
         Assert.IsType<T>(symbol);
     }

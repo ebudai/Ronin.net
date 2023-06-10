@@ -1,22 +1,21 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class ImportKeyword
+public class ImportKeyword : ParsingTests
 {
     [Fact(DisplayName = "missing identifier")]
     public void MissingIdentifier() 
     {
         // import ;
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Import { sourcecode = Import.keyword.AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Import(),
+            Terminal(),
         };
 
         Parser parser = new(tokens);

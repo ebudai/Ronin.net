@@ -17,7 +17,7 @@ public class Comment
         Lexer lexer = new(literal);
         var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray()[..^4], comment?.sourcecode.ToArray());
+        Assert.Equal(literal.ToArray()[..^4], comment?.Memory.ToArray());
     }
 
     [Fact(DisplayName = "single-line at end of file")]
@@ -28,7 +28,7 @@ public class Comment
         Lexer lexer = new(literal);
         var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray(), comment?.sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), comment?.Memory.ToArray());
     }
 
     [Fact(DisplayName = "multiline")]
@@ -44,7 +44,7 @@ public class Comment
         Lexer lexer = new(literal);
         var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
-        Assert.Equal(literal[..^2].ToArray(), comment?.sourcecode.ToArray());
+        Assert.Equal(literal[..^2].ToArray(), comment?.Memory.ToArray());
     }
 
     [Fact(DisplayName = "multiline nested")]
@@ -55,6 +55,6 @@ public class Comment
         Lexer lexer = new(literal);
         var comment = Ronin.Lexicon.Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray(), comment?.sourcecode.ToArray());
+        Assert.Equal(literal.ToArray(), comment?.Memory.ToArray());
     }
 }

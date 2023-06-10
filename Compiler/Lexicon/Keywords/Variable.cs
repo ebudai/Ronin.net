@@ -12,6 +12,6 @@ internal class Variable : Keyword
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Variable { sourcecode = lexer.Commit(keyword.Length) };
+        return new Variable { Memory = lexer.Commit(keyword.Length) };
     }
 }

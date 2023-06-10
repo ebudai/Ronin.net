@@ -13,6 +13,6 @@ public class RangeSymbol
         Lexer lexer = new(dots);
         var range = Ronin.Lexicon.Symbols.Range.Lex(ref lexer);
 
-        Assert.Equal(dots.ToArray(), range?.sourcecode.ToArray());
+        Assert.Equal(dots.ToArray(), range?.Memory.ToArray());
     }
 }

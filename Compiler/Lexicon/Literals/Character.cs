@@ -11,7 +11,7 @@ internal class Character : Literal
     {
         if (lexer.IsEmpty || lexer[0] is not CharacterDelimiter.symbol) return null;
 
-        var length = lexer[1..].Span.IndexOf(CharacterDelimiter.symbol); // find the closing delimiter one
+        var length = lexer[1..].IndexOf(CharacterDelimiter.symbol); // find the closing delimiter one
 
         if (length is not 1 and not 6) return null;
 
@@ -23,7 +23,7 @@ internal class Character : Literal
             }
         }
 
-        return new Character { sourcecode = lexer.Commit(length + 2) };
+        return new Character { Memory = lexer.Commit(length + 2) };
     }
 
     private static bool IsNotValid(char character)

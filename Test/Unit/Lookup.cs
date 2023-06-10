@@ -3,24 +3,25 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Lookup
+public class Lookup : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
         // { "dave" = 3 }
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new StartScope(),
-            new Text(),
-            new Assign(),
-            new Number(),
-            new EndScope(),
+            StartScope(),
+            Text("dave"),
+            Assign(),
+            Number(3),
+            EndScope(),
             Sentinel.Instance
         };
 
@@ -42,16 +43,16 @@ public class Lookup
     {
         // var x = { "stuff" = 4 }
 
-        Token[] tokens =
+        List<Token> tokens = new()
         {
-            new Variable(),
-            new Word(),
-            new Assign(),
-            new StartScope(),
-            new Text(),
-            new Assign(),
-            new Number(),
-            new EndScope(),
+            Variable(),
+            Word("x"),
+            Assign(),
+            StartScope(),
+            Text("stuff"),
+            Assign(),
+            Number(4),
+            EndScope(),
             Sentinel.Instance
         };
 

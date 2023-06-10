@@ -11,6 +11,6 @@ internal class Range : Punctuation
     public static new Range Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || symbol.StartsWith(lexer[0]) is false) return null;
-        return new() { sourcecode = lexer.Commit(symbol.Length) };
+        return new() { Memory = lexer.Commit(symbol.Length) };
     }
 }

@@ -4,23 +4,24 @@ using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
+using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class DatumDeclarations
+public class DatumDeclarations : ParsingTests
 {
-    [Fact(DisplayName = $"{Reactive.keyword} before name")]
+    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Reactive.keyword} before name")]
     public void ReturnsBeforeName()
     {
         // reactive => 44.3;
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Reactive { sourcecode = Reactive.keyword.AsMemory() },
-            new Returns { sourcecode = Returns.symbol.AsMemory() },
-            new Number { sourcecode = "44.3".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Reactive(),
+            Returns(),
+            Number(44.3),
+            Terminal(),
         };
         
         Parser parser = new(tokens);
@@ -34,11 +35,11 @@ public class DatumDeclarations
     {
         // var 555;
 
-        Token[] tokens = 
+        List<Token> tokens = new()
         {
-            new Variable { sourcecode = Variable.keyword.AsMemory() },
-            new Number { sourcecode = "555".AsMemory() },
-            new Terminal { sourcecode = new[] { Terminal.symbol } },
+            Variable(),
+            Number(555),
+            Terminal(),
         };
         
         Parser parser = new(tokens);
