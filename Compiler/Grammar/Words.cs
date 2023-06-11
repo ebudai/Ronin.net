@@ -20,6 +20,7 @@ internal class Words : Syntax, IParsableSyntax<Words>
         {
             if (parser.Token is not Word and not Symbol or Punctuation) break;
             parser.Advance();
+            if (parser.PreviousToken is Whitespace or Sentinel) break;
         }
 
         if (current.Token == parser.Token) return null;

@@ -25,4 +25,27 @@ public class Name : ParsingTests
 
         Assert.Equal(3, name?.Source.Length);
     }
+
+    [Fact(DisplayName = "words")]
+    public void Words()
+    {
+        // name all the things
+
+        List<Token> tokens = new()
+        {
+            Word("name"),
+            Whitespace(),
+            Word("all"),
+            Whitespace(),
+            Word("the"),
+            Whitespace(),
+            Word("things"),
+            Sentinel.Instance
+        };
+
+        Parser parser = new(tokens);
+        var name = Ronin.Grammar.Name.Parse(ref parser);
+
+        Assert.Equal(4, name?.Components.Count);
+    }
 }
