@@ -23,7 +23,7 @@ internal class Loop : Syntax, IParsableSyntax<Loop>
     public Reference List { get; init; }
     public Definition Definition { get; init; }
 
-    public static Loop Parse(ref Parser current)
+    public static Loop Parse(scoped ref Parser current)
     {
         Parser parser = current;
 

@@ -12,7 +12,7 @@ namespace Ronin.Grammar;
 /// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Shared"/>, and <see cref="Optional"/></remarks>
 internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
 {
-    public static Modifiers Parse(ref Parser current)
+    public static Modifiers Parse(scoped ref Parser current)
     {
         Parser parser = current;
         

@@ -18,7 +18,7 @@ internal class Name : Syntax, IParsableSyntax<Name>
 
     public Name(Words words) => Components.Add(new Component { value = words });
 
-    public static Name Parse(ref Parser current)
+    public static Name Parse(scoped ref Parser current)
     {
         Parser parser = current;
 

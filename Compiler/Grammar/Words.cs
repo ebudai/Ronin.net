@@ -10,7 +10,7 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Words : Syntax, IParsableSyntax<Words>
 {
-    public static Words Parse(ref Parser current)
+    public static Words Parse(scoped ref Parser current)
     {
         if (current.Token is Keyword or Punctuation) return null;
 

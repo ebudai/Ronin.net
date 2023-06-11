@@ -9,7 +9,7 @@ internal class Scope : Statement, IParsableSyntax<Scope>
     public bool IsCompiled { get; init; }
     public Definition Definition { get; init; }
 
-    public static new Scope Parse(ref Parser current)
+    public static new Scope Parse(scoped ref Parser current)
     {
         Parser parser = current;
 

@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Interval : Syntax, IParsableSyntax<Interval>
 {
-    public static Interval Parse(ref Parser current)
+    public static Interval Parse(scoped ref Parser current)
     {
         Parser parser = current;
 

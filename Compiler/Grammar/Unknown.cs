@@ -11,7 +11,7 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Unknown : Statement, IParsableSyntax<Unknown>
 {
-    public new static Unknown Parse(ref Parser current)
+    public new static Unknown Parse(scoped ref Parser current)
     {
         Parser parser = current;
 

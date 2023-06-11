@@ -23,7 +23,7 @@ internal class Delegate : Anonymous, IParsableSyntax<Delegate>
     public List<DatumDeclaration> Data { get; init; }
     public Definition Definition { get; init; }
 
-    public new static Delegate Parse(ref Parser current)
+    public new static Delegate Parse(scoped ref Parser current)
     {
         Parser parser = current;
 
