@@ -8,7 +8,7 @@ internal class Range : Punctuation
 {
     internal const string symbol = "..";
 
-    public static new Range Lex(ref Lexer lexer)
+    public static new Range Lex(scoped ref Lexer lexer)
     {
         if (lexer.IsEmpty || symbol.StartsWith(lexer[0]) is false) return null;
         return new() { Memory = lexer.Commit(symbol.Length) };

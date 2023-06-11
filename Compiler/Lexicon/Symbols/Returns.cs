@@ -8,7 +8,7 @@ internal class Returns : Punctuation
 {
     internal const string symbol = "=>";
 
-    public static new Returns Lex(ref Lexer lexer)
+    public static new Returns Lex(scoped ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
         return new Returns { Memory = lexer.Commit(symbol.Length) };

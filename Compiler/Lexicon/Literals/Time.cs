@@ -6,7 +6,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Time : Literal
 {
-    public static new Token Lex(ref Lexer lexer) => LexTwoDigitWithSpacedSuffixTimeLiteral(ref lexer)
+    public static new Token Lex(scoped ref Lexer lexer) => LexTwoDigitWithSpacedSuffixTimeLiteral(ref lexer)
         ?? LexTwoDigitWithUnspacedSuffixTimeLiteral(ref lexer)
         ?? LexTwoDigitWithoutSuffixTimeLiteral(ref lexer)
         ?? LexOneDigitWithSpacedSuffixTimeLiteral(ref lexer)

@@ -6,7 +6,7 @@ namespace Ronin.Lexicon;
 
 internal class Word : Token
 {
-    public static Word Lex(ref Lexer lexer)
+    public static Word Lex(scoped ref Lexer lexer)
     {
         if (lexer.IsEmpty) return null;
 

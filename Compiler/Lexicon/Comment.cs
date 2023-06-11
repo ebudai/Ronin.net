@@ -27,7 +27,7 @@ internal class Comment : Trivium
 
     public bool Terminated { get; private init; } = true;
 
-    public static Comment Lex(ref Lexer lexer)
+    public static Comment Lex(scoped ref Lexer lexer)
     {
         if (lexer.StartsWith(SingleLine.Start))
         {

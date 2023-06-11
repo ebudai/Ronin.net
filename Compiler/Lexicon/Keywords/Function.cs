@@ -8,7 +8,7 @@ internal class Function : Keyword
 {
     internal const string keyword = "function";
 
-    public static new Keyword Lex(ref Lexer lexer)
+    public static new Keyword Lex(scoped ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;

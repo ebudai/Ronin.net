@@ -7,7 +7,7 @@ namespace Ronin.Lexicon;
 
 internal class Symbol : Token
 {
-    public static Symbol Lex(ref Lexer lexer)
+    public static Symbol Lex(scoped ref Lexer lexer)
     {
         if (Punctuation.Lex(ref lexer) is Symbol symbol) return symbol;
 
@@ -20,7 +20,7 @@ internal class Symbol : Token
 
 internal class Punctuation : Symbol 
 {
-    public static new Punctuation Lex(ref Lexer lexer)
+    public static new Punctuation Lex(scoped ref Lexer lexer)
         => Symbols.Range.Lex(ref lexer)
         ?? Returns.Lex(ref lexer)
         ?? Assign.Lex(ref lexer)
