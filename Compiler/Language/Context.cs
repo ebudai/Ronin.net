@@ -17,7 +17,7 @@ internal class Context : Semantic
 
     protected internal Context() { }
 
-    public Context(in Definition definition, in Context context, bool canBeNamed = false, in List<Instruction> instructions = null)
+    public Context(Definition definition, Context context, bool canBeNamed = false, List<Instruction> instructions = null)
     {
         Context = context;
 

@@ -101,7 +101,7 @@ public class DatumDeclarations : ParsingTests
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Equal(1, datum.Is?.Source.Length);
-        Assert.IsType<Compiled>(datum.Is.Source.Span[0]);
+        Assert.IsType<Compiled>(parser[datum.Is.Source.Start]);
         
         Assert.Single(datum.Name?.Components);
 
@@ -134,7 +134,7 @@ public class DatumDeclarations : ParsingTests
         Assert.IsType<Constant>(datum?.Mutability);
 
         Assert.Equal(1, datum.Is?.Source.Length);
-        Assert.IsType<Persistent>(datum.Is.Source.Span[0]);
+        Assert.IsType<Persistent>(parser[datum.Is.Source.Start]);
 
         Assert.Single(datum.Name?.Components);
 
@@ -167,7 +167,7 @@ public class DatumDeclarations : ParsingTests
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Equal(1, datum.Is?.Source.Length);
-        Assert.IsType<Shared>(datum.Is.Source.Span[0]);
+        Assert.IsType<Shared>(parser[datum.Is.Source.Start]);
 
         Assert.Single(datum.Name?.Components);
 
@@ -199,7 +199,7 @@ public class DatumDeclarations : ParsingTests
         Assert.IsType<Reactive>(datum?.Mutability);
 
         Assert.Equal(1, datum.Is?.Source.Length);
-        Assert.IsType<Optional>(datum.Is.Source.Span[0]);
+        Assert.IsType<Optional>(parser[datum.Is.Source.Start]);
 
         Assert.Single(datum.Name?.Components);
         

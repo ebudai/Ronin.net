@@ -17,7 +17,7 @@ internal class Assignment : Statement, IParsableSyntax<Assignment>
     public Reference Reference { get; init; }
     public Value Value { get; init; }
 
-    public new static Assignment Parse(scoped ref Parser current)
+    public new static Assignment Parse(ref Parser current)
     {
         Parser parser = current;
 

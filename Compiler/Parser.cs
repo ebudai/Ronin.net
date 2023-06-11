@@ -4,6 +4,7 @@ using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Ronin.Compiler;
@@ -17,11 +18,13 @@ internal ref struct Parser
 {
     public Parser(in List<Token> tokens) => this.tokens = CollectionsMarshal.AsSpan(tokens);
 
+    public readonly ref readonly Token this[in Index index] => ref tokens[index];
+    public readonly ReadOnlySpan<Token> this[in System.Range range] => tokens[range];
+
     public readonly ref readonly Token Token => ref tokens[cursor];
     public readonly ref readonly Token PreviousToken => ref tokens[cursor - 1];
+    
     public readonly bool IsNotFinished => Token is not Sentinel;
-
-    public readonly ReadOnlySpan<Token> this[in System.Range range] => tokens[range];
 
     public Definition Parse()
     {
@@ -34,7 +37,7 @@ internal ref struct Parser
             if (Token is Terminal) Advance();
         }
 
-        return new Definition { Values = statements, Source = tokens.ToArray() }; //TODO bad!!
+        return new Definition { Values = statements, Source = (0, tokens.Length - 1) };
     }
 
     public List<T> ParseRepeating<T>() where T : class, IParsableSyntax<T>
@@ -61,11 +64,11 @@ internal ref struct Parser
         return advanced;
     }
 
-    public readonly Token[] Commit(scoped ref Parser current)
+    public readonly (int, int) Commit(ref Parser current)
     {
-        var tokens = current[current.cursor..cursor].ToArray();
+        var cursors = (current.cursor, cursor - current.cursor);
         current = this;
-        return tokens;
+        return cursors;
     }
 
     private readonly ReadOnlySpan<Token> tokens;

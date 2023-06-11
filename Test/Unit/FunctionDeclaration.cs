@@ -118,7 +118,7 @@ public class FunctionDeclaration : ParsingTests
         }
 
         Assert.Equal(1, function.Modifiers?.Source.Length);
-        Assert.IsType<Optional>(function.Modifiers.Source.Span[0]);
+        Assert.IsType<Optional>(parser[function.Modifiers.Source.Start]);
         
         Assert.Single(function.Returns?.Components);
         Ronin.Grammar.Words returns = function.Returns.Components[0];

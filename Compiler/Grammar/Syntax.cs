@@ -1,13 +1,12 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
 internal abstract class Syntax
 {
-    protected internal ReadOnlyMemory<Token> Source { get; init; }
+    protected internal (int Start, int Length) Source { get; init; }
 }
 
 internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
@@ -15,7 +14,7 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
     where T0 : Syntax, IParsableSyntax<T0>
     where T1 : Syntax, IParsableSyntax<T1>
 {
-    public static T Parse(scoped ref Parser current)
+    public static T Parse(ref Parser current)
     {
         Parser parser = current;
 
@@ -38,7 +37,7 @@ internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, 
     where T1 : Syntax, IParsableSyntax<T1>
     where T2 : Syntax, IParsableSyntax<T2>
 {
-    public new static T Parse(scoped ref Parser current)
+    public new static T Parse(ref Parser current)
     {
         var composite = CompositeSyntax<T, T0, T1>.Parse(ref current);
         if (composite is not null) return composite;
