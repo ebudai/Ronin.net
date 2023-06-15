@@ -19,7 +19,6 @@ internal class Reference : Value, IParsableSyntax<Reference>
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
-        if (components.Count is 1 && components[0].value is Interval) return null;
         if (components.All(component => component.value is Anonymous)) return null;        
 
         var ordinal = Ordinal.Parse(ref parser);
@@ -32,5 +31,5 @@ internal class Reference : Value, IParsableSyntax<Reference>
         };
     }
 
-    public class Component : CompositeSyntax<Component, Words, Anonymous, Interval> { }
+    public class Component : CompositeSyntax<Component, Words, Anonymous> { }
 }

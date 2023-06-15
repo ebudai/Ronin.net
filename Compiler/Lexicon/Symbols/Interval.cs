@@ -4,11 +4,11 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Symbols;
 
-internal class Range : Punctuation
+internal class Interval : Symbol
 {
     internal const string symbol = "..";
 
-    public static new Range Lex(scoped ref Lexer lexer)
+    public static new Interval Lex(scoped ref Lexer lexer)
     {
         if (lexer.IsEmpty || symbol.StartsWith(lexer[0]) is false) return null;
         return new() { Memory = lexer.Commit(symbol.Length) };

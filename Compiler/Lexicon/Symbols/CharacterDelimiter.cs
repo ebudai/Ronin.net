@@ -4,7 +4,7 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Symbols;
 
-internal class CharacterDelimiter : Punctuation
+internal class CharacterDelimiter : Symbol
 {
     internal const char symbol = '\'';
 

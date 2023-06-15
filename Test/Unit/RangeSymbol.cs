@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon.Symbols;
 
 namespace Unit;
 
@@ -11,7 +12,7 @@ public class RangeSymbol
         const string dots = "..";
 
         Lexer lexer = new(dots);
-        var range = Ronin.Lexicon.Symbols.Range.Lex(ref lexer);
+        var range = Interval.Lex(ref lexer);
 
         Assert.Equal(dots.ToArray(), range?.Memory.ToArray());
     }

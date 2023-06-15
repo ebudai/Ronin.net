@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
@@ -21,10 +22,8 @@ public class IntervalSymbol : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var reference = Ronin.Grammar.Reference.Parse(ref parser);
+        var interval = Value.Parse(ref parser);
 
-        Assert.Equal(3, reference?.Components.Count);
-        Ronin.Grammar.Interval interval = reference.Components[1];
         Assert.NotNull(interval);
     }
 
@@ -41,9 +40,9 @@ public class IntervalSymbol : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var interval = Ronin.Grammar.Interval.Parse(ref parser);
+        var reference = Reference.Parse(ref parser);
 
-        Assert.NotNull(interval);
+        Assert.Equal(2, reference?.Components.Count);
     }
 
     [Fact(DisplayName = "right unspecified")]
@@ -59,10 +58,8 @@ public class IntervalSymbol : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var reference = Ronin.Grammar.Reference.Parse(ref parser);
+        var reference = Reference.Parse(ref parser);
 
         Assert.Equal(2, reference?.Components.Count);
-        Ronin.Grammar.Interval interval = reference.Components[1];
-        Assert.NotNull(interval);
     }
 }

@@ -124,10 +124,10 @@ public class ParsingTests
         return textDelimiter;
     }
 
-    internal static Ronin.Lexicon.Symbols.Range Range()
+    internal static Ronin.Lexicon.Symbols.Interval Range()
     {
-        Ronin.Lexicon.Symbols.Range range = new();
-        range.SetMemory(Ronin.Lexicon.Symbols.Range.symbol.ToCharArray());
+        Ronin.Lexicon.Symbols.Interval range = new();
+        range.SetMemory(Ronin.Lexicon.Symbols.Interval.symbol.ToCharArray());
         return range;
     }
 

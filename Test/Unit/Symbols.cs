@@ -14,11 +14,9 @@ public class Symbols
         Lexer lexer = new(lexed);
         Assert.False(lexer.IsEmpty);
         for (var i = 0; i != lexed.Length; ++i) Assert.True(char.IsSymbol(lexed[i]) || char.IsPunctuation(lexed[i]));
-        var symbol = Symbol.Lex(ref lexer);
+        var symbol = Symbol.Lex(ref lexer) as T;
 
         Assert.Equal(lexed.ToArray(), symbol?.Memory.ToArray());
-
-        Assert.IsType<T>(symbol);
     }
 
     [Fact(DisplayName = "terminal")]
