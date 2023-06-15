@@ -6,6 +6,8 @@ namespace Ronin.Language;
 [ExcludeFromCodeCoverage]
 internal class Error
 {
+    public static readonly List<Error> None = new();
+
     public Statement Statement { get; set; }
     public int Offset { get; init; }
 }

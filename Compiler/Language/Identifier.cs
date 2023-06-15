@@ -9,7 +9,7 @@ internal class Identifier
 {
     public List<Part> Parts { get; init; } = new();
 
-    public Identifier(Name name)
+    public Identifier(Name name, Context context)
     {
         foreach (var component in name.Components)
         {
@@ -24,7 +24,8 @@ internal class Identifier
             if (parameters is not null)
             {
                 var data = new Datum[parameters.Values.Count];
-
+                for (int i = 0, max = data.Length; i != max; ++i) data[i] = new Datum(parameters.Values[i], context);
+                Parts.Add(data);
             }
         }
     }
@@ -32,18 +33,19 @@ internal class Identifier
     public class Part
     {
         public Part(Words words) => value = words;
-        public Part(Datum datum) => value = new[] { datum };
+        public Part(Result result) => value = result;
+        public Part(Results results) => value = results;
         public Part(Datum[] data) => value = data;
-        public Part(Result result) => value = new[] { result };
-        public Part(Result[] results) => value = results;
 
         public static implicit operator Part(Words words) => new(words);
+        public static implicit operator Part(Result result) => new(result);
+        public static implicit operator Part(Results results) => new(results);
         public static implicit operator Part(Datum[] data) => new(data);
-        public static implicit operator Part(Result[] results) => new(results);
 
         public static implicit operator Words(Part identifier) => identifier.value as Words;
+        public static implicit operator Result(Part identifier) => identifier.value as Result;
+        public static implicit operator Results(Part identifier) => identifier.value as Results;
         public static implicit operator Datum[](Part identifier) => identifier.value as Datum[];
-        public static implicit operator Result[](Part identifier) => identifier.value as Result[];
 
         private readonly object value;
     }    

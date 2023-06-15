@@ -8,29 +8,16 @@ namespace Ronin.Language;
 internal class Datum : Semantic
 {
     public Mutability Mutability { get; init; }
-    public Modifiers Is { get; init; }
+    public bool IsCompiled { get; set; }
+    public bool IsShared { get; set; }
+    public bool IsPersistent { get; set; }
+    public Modifiers Modifiers { get; init; }
     public Datatype Datatype { get; }
     public Result Initializer { get; init; }
-}
+    public bool Initialized { get; set; }
 
-[ExcludeFromCodeCoverage]
-internal class UnresolvedDatum : Datum
-{
-    public Unresolved UnresolvedDatatype { get; init; }
-    public Unresolved UnresolvedInitializer { get; init; }
-    public new Context Context
-    {
-        get => base.Context;
-        set
-        {
-            base.Context = value;
-            UnresolvedDatatype.Context = value;
-            UnresolvedInitializer.Context = value;
-        }
-    }
-
-    public UnresolvedDatum(DatumDeclaration datum)
-    {
+    public Datum(DatumDeclaration datum, Context context) : base(datum)
+    {        
         Mutability = datum.Mutability switch
         {
             Variable => Mutability.Variable,
@@ -38,38 +25,32 @@ internal class UnresolvedDatum : Datum
             _ => Mutability.Constant
         };
 
-        Is = datum.Mutability switch
-        {
-            Compiled => Modifiers.Compiled,
-            Shared => Modifiers.Shared,
-            Persistent => Modifiers.Persistent,
-            _ => Modifiers.None,
-        };
+        IsCompiled = datum.Modifiers.IsCompiled;
+        IsShared = datum.Modifiers.IsShared;
+        IsPersistent = datum.Modifiers.IsPersistent;
 
-        UnresolvedDatatype = new(datum.Datatype, datum);
+        Datatype = new UnresolvedDatatype(datum.Datatype, context) { IsOptional = datum.Modifiers.IsOptional };
 
-        if (datum.Initializer is Reference initializer)
-        {
-            UnresolvedInitializer = new(initializer, datum);
-        }
-        else if (datum.Initializer is Anonymous value)
-        {
-            Initializer = value;
-        }
-        else
-        {
-            Errors.Add(new DeveloperMistakeUnhandledSubclass<Value> { Statement = datum });
-        }
+        Initializer = new Result(datum.Initializer, context);
+    }
+
+    protected internal Datum(Reference reference) : base(reference) { }
+}
+
+[ExcludeFromCodeCoverage]
+internal class UnresolvedDatum : Datum
+{
+    public Reference Reference { get; }
+    public Context Context { get; }
+
+    public UnresolvedDatum(Reference reference, Context context) : base(reference)
+    {
+        Reference = reference;
+        Context = context;
     }
 }
 
 internal enum Mutability { Constant, Variable, Reactive }
 
-[Flags]
-internal enum Modifiers 
-{
-    None        = 0,
-    Compiled    = 1 << 0, 
-    Persistent  = 1 << 1, 
-    Shared      = 1 << 2, 
-}
+[ExcludeFromCodeCoverage]
+internal class DatumIsAlreadyCompiled : Error { }

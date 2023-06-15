@@ -6,41 +6,46 @@ namespace Ronin.Language;
 [ExcludeFromCodeCoverage]
 internal class Instruction : Semantic
 {
-    public Function Function { get; init; }
     public Result Result { get; init; }
-    public List<Semantic> Inputs { get; init; } = new();
+    public List<Result> Inputs { get; init; } = new();
+
+    public Instruction(Syntax syntax) : base(syntax) { }
 }
 
 [ExcludeFromCodeCoverage]
-internal class UnresolvedInstruction : Instruction
+internal class FunctionCall : Instruction
 {
-    public Unresolved UnresolvedFunction { get; init; }
+    public Function Function { get; init; }
+    public Context Context { get; init; }
 
-    public new Context Context
+    public FunctionCall(Reference reference, Context context) : base(reference)
     {
-        get => base.Context;
-        set
-        {
-            base.Context = value;
-            UnresolvedFunction.Context = value;
-        }
-    }
-
-    public UnresolvedInstruction(Reference reference)
-    {
-        Source = reference;
-        UnresolvedFunction = new Unresolved(reference, reference);
+        Context = context;
     }
 }
 
 [ExcludeFromCodeCoverage]
-internal class UnresolvedAssignment : UnresolvedInstruction
+internal class AssignmentInstruction : Instruction
 {
-    public UnresolvedAssignment(Assignment assignment) : base(assignment.Reference)
+    public UnresolvedDatum Datum { get; }
+
+    public AssignmentInstruction(Assignment assignment, Context context) : base(assignment)
     {
-        UnresolvedFunction = new Unresolved(assignment.Reference, assignment);
+        Datum = new(assignment.Reference, context);
     }
 }
+
+[ExcludeFromCodeCoverage]
+internal class InitializeDatum : Instruction
+{
+    public Datum Datum { get; }
+
+    public InitializeDatum(Datum datum) : base(datum.Source)
+    {
+        Datum = datum;
+    }
+}
+
 
 [ExcludeFromCodeCoverage]
 internal class InstructionNotAllowedHere : Error { }

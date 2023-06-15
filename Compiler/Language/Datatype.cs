@@ -1,35 +1,39 @@
 ﻿using Ronin.Grammar;
-using Ronin.Lexicon.Symbols;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Datatype : Context
+internal class Datatype : Semantic
 {
-    public bool IsOptional { get; }
+    public bool IsOptional { get; set; }
 
     public List<Datatype> Bases { get; } = new();
-    public List<Datatype> Unions { get; } = new();
+    public Context Definition { get; }
+
+    public Datatype(DatatypeDeclaration datatype, Context context) : base(datatype)
+    {
+        Bases.Add(new UnresolvedDatatype(datatype.Algebra, context));
+        Definition = new(datatype.Definition, context);
+    }
+
+    public class Constructed
+    {
+        public List<Result> Parameters { get; init; } = new();
+    }
+
+    protected internal Datatype(Reference reference) : base(reference) { }
 }
 
 [ExcludeFromCodeCoverage]
 internal class UnresolvedDatatype : Datatype
 {
-    public Unresolved Algebra { get; init; }
-    public new Context Context
-    {
-        get => base.Context;
-        set
-        {
-            base.Context = value;
-            Algebra.Context = value;
-        }
-    }
+    public Reference Reference { get; init; }
+    public Context Context { get; init; }
 
-    public UnresolvedDatatype(DatatypeDeclaration datatype)
+    public UnresolvedDatatype(Reference reference, Context context) : base(reference)
     {
-        Source = datatype;
-        Algebra = new Unresolved(datatype.Algebra, datatype);
+        Reference = reference;
+        Context = context;
     }
 }

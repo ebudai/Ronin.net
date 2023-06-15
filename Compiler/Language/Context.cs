@@ -6,122 +6,41 @@ using System.Runtime.InteropServices;
 namespace Ronin.Language;
 
 [ExcludeFromCodeCoverage]
-internal class Context : Semantic
+internal class Context
 {
-    public static Context Global { get; } = new();
+    public static Context Global { get; } = new(null);
+    public static Dictionary<Words, Context> Named { get; } = new();
 
-    internal static Dictionary<Words, Context> Named { get; } = new();
+    public HashSet<Words> Imports { get; } = new(ReferenceEqualityComparer.Instance);
+    public Context Parent { get; }
+    public Dictionary<Identifier.Part, List<Context>> Children { get; } = new();
+    public Dictionary<Identifier.Part, List<Semantic>> Contents { get; } = new();
+    public List<Instruction> Instructions { get; } = new();
 
-    internal HashSet<Words> Imports { get; } = new(ReferenceEqualityComparer.Instance);
-    internal Dictionary<Identifier.Part, List<Semantic>> Children { get; } = new();
+    private Context(Context parent) => Parent = parent;
 
-    protected internal Context() { }
-
-    public Context(Definition definition, Context context, bool canBeNamed = false, List<Instruction> instructions = null)
+    public Context(Definition definition, Context parent, bool canBeNamed = false)
     {
-        Context = context;
+        Parent = parent;
 
         Words name = null;
 
         foreach (var statement in definition.Values)
         {
-            switch (statement)
+            var errors = statement switch
             {
-                case Export export:
-                    if (canBeNamed is false)
-                    {
-                        Errors.Add(new CannotJoinNamedContext { Statement = export });
-                    }
-                    else if (name is not null)
-                    {
-                        Errors.Add(new ContextAlreadyNamed { Statement = export });
-                    }
-                    else
-                    {
-                        name = Export(export);
-                    }
-                    break;
-
-                case Import import:
-                    if (Imports.Add(import.Name) is false) Errors.Add(new ModuleAlreadyImported { Statement = import });
-                    break;
-
-                case FunctionDeclaration function:
-                    Declare(function);
-                    break;
-
-                case DatatypeDeclaration datatype:
-                    Declare(datatype);
-                    break;
-
-                case Assignment assignment:
-                    if (instructions is null)
-                    {
-                        Errors.Add(new InstructionNotAllowedHere { Statement = statement });
-                    }
-                    else
-                    {
-                        instructions.Add(new UnresolvedAssignment(assignment) { Context = this });
-                    }
-                    break;
-
-                case Reference reference:
-                    if (instructions is null)
-                    {
-                        Errors.Add(new InstructionNotAllowedHere { Statement = statement });
-                    }
-                    else
-                    {
-                        instructions.Add(new UnresolvedInstruction(reference) { Context = this });
-                    }
-                    break;
-
-                case Anonymous anonymous:
-                    // this could be a function call with useless brackets
-                    if (anonymous is Inputs and { Values: [var input] })
-                    {
-                        Value value = input;
-                        if (value is Reference instruction)
-                        {
-                            if (instructions is null)
-                            {
-                                Errors.Add(new InstructionNotAllowedHere { Statement = statement });
-                            }
-                            else
-                            {
-                                instructions.Add(new UnresolvedInstruction(instruction) { Context = this });
-                            }
-                        }                        
-                    }
-                    else
-                    {
-                        Errors.Add(new NotAnInstruction { Statement = statement });
-                    }
-                    break;
-
-                case DatumDeclaration datum:
-                    Declare(datum);
-                    break;
-
-                case Scope scope:
-                    if (instructions is null)
-                    {
-                        Errors.Add(new InstructionNotAllowedHere { Statement = statement });
-                    }
-                    else
-                    {
-                        _ = new Context(scope.Definition, this, true, instructions);
-                    }
-                    break;
-
-                case Unknown:
-                    Errors.Add(new UnknownSyntax { Statement = statement });
-                    break;
-
-                default:
-                    Errors.Add(new DeveloperMistakeUnhandledSubclass<Statement> { Statement = statement });
-                    break;
-            }
+                Export export => Join(export, ref name, canBeNamed),
+                Import import => Use(import),
+                FunctionDeclaration function => Declare(function),
+                DatatypeDeclaration datatype => Declare(datatype),
+                Assignment assigment => Assign(assigment),
+                Reference reference => Call(reference),
+                Anonymous value => Call(value),
+                DatumDeclaration datum => Declare(datum),
+                Scope scope => Call(scope),
+                Unknown unknown => new() { new UnknownSyntax { Statement = statement } },
+                _ => new() { new DeveloperMistakeUnhandledSubclass<Statement> { Statement = statement } }
+            };            
         }
 
         if (name is not null)
@@ -137,65 +56,147 @@ internal class Context : Semantic
         }
     }
 
-    public Context Add(in Identifier identifier, in Semantic semantic)
+    public List<Error> Add(Identifier identifier, Semantic semantic)
     {
         if (identifier.Parts.Count is 0)
         {
-            Errors.Add(new AnonymousIdentifier { Statement = semantic.Source as Statement });
-            return this;
+            return new() { new AnonymousIdentifier { Statement = semantic.Source as Statement } };
         }
-
+        
         var parts = CollectionsMarshal.AsSpan(identifier.Parts);
-        return Add(parts, semantic);
+        return Add(parts, semantic);        
     }
 
-    public List<Semantic> Find(in Reference reference)
+    public List<Semantic> Find(Reference reference)
     {
         var components = CollectionsMarshal.AsSpan(reference.Components);
-        var found = Find(components);
-        if (found is not null) return found;
-        
-        Errors.Add(new DeveloperMistakeUnhandledSubclass<Reference.Component> { Statement = reference });
-        return new();
+        var found = Find(components) ?? new();
+        if (found.Count is 0 && Parent is not null)
+        {
+            found.AddRange(Parent.Find(reference));
+        }
+        return found;
     }
 
-    private Context Add(in ReadOnlySpan<Identifier.Part> name, in Semantic semantic)
+    private List<Error> Add(in ReadOnlySpan<Identifier.Part> name, Semantic semantic)
     {
-        if (name.IsEmpty) return null;
+        if (name.IsEmpty) return Error.None;
 
-        if (name.Length is not 1)
+        if (name.Length is 1)
         {
-            Context child = new();
-            Children.Add(name[0], new() { child });
-            return child.Add(name[1..], semantic);
+            if (Contents.TryGetValue(name[0], out var contents) is false)
+            {
+                contents = new();
+                Contents.Add(name[0], contents);
+            }
+            contents.Add(semantic);
+            return Error.None;
         }
 
-        if (Children.TryGetValue(name[0], out var list) is false)
+        if (Children.TryGetValue(name[0], out var children) is false)
         {
-            list = new();
-            Children.Add(name[0], list);
+            children = new();
+            Children.Add(name[0], children);
+        }        
+        
+        Context child = new(this);
+        children.Add(child);
+        return child.Add(name[1..], semantic);        
+    }
+
+    private List<Error> Join(Export export, ref Words name, bool canBeNamed)
+    {
+        if (canBeNamed is false)
+        {
+            return new() { new CannotJoinNamedContext { Statement = export } };
         }
-        list.Add(semantic);
-        return this;
+
+        if (name is not null)
+        {
+            return new() { new ContextAlreadyNamed { Statement = export } };
+        }
+
+        if (Named.TryAdd(export.Name, this) is false) Named[export.Name].Merge(this);
+        name = export.Name;
+        return Error.None;
+    }
+
+    private List<Error> Use(Import import) => Imports.Add(import.Name) ? Error.None : new() { new ModuleAlreadyImported { Statement = import } };
+
+    private List<Error> Declare(FunctionDeclaration declaration)
+    {
+        Identifier identifier = new(declaration.Name, this);
+        Function function = new(declaration, this);
+        return Add(identifier, function);
+    }
+
+    private List<Error> Declare(DatatypeDeclaration declaration)
+    {
+        Identifier identifier = new(declaration.Name, this);
+        Datatype datatype = new(declaration, this);
+        return Add(identifier, datatype);
+    }
+
+    private List<Error> Declare(DatumDeclaration declaration)
+    {
+        Identifier identifier = new(declaration.Name, this);
+        Datum unresolved = new(declaration, this);
+        Instructions.Add(new InitializeDatum(unresolved));
+        return Add(identifier, unresolved);
+    }
+
+    private List<Error> Assign(Assignment assignment)
+    {
+        Instructions.Add(new AssignmentInstruction(assignment, this));
+        return Error.None;
+    }
+
+    private List<Error> Call(Reference reference)
+    {
+        Instructions.Add(new FunctionCall(reference, this));
+        return Error.None;
+    }
+
+    private List<Error> Call(Value value)
+    {
+        if (value is Inputs inputs and { Values.Count: 1 })
+        {
+            Value possibleFunctionCall = inputs.Values[0];
+            if (possibleFunctionCall is Reference reference)
+            {
+                Instructions.Add(new FunctionCall(reference, this));
+                return Error.None;
+            }
+        }
+
+        return new() { new ValuesCannotBeStatements { Statement = value } };
+    }
+
+    private List<Error> Call(Scope scope)
+    {
+        List<Error> errors = new();
+        Context context = new(scope.Definition, this, canBeNamed: true);
+        if (scope.IsCompiled) errors.AddRange(context.Compile());
+        Instructions.AddRange(context.Instructions);
+        return errors;
     }
 
     private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference)
     {
-        if (reference.IsEmpty) return new() { };
-
-        var isLeaf = reference.Length is 1;
+        if (reference.IsEmpty) return new();
 
         Words words = reference[0];
-        if (words is not null) 
+        if (words is not null)
         {
+            if (reference.Length is 1)
+            {
+                return Contents.TryGetValue(words, out var contents) ? contents : new();
+            }
+            
             if (Children.TryGetValue(words, out var children))
             {
-                if (isLeaf) return children;
                 List<Semantic> found = new(children.Count);
-                foreach (var child in children)
-                {
-                    if (child is Context context) found.AddRange(context.Find(reference[1..]));
-                }
+                foreach (var child in children) found.AddRange(child.Find(reference[1..]));
                 return found;
             }
         }
@@ -203,57 +204,56 @@ internal class Context : Semantic
         Anonymous anonymous = reference[0];
         if (anonymous is not null) return Find(reference, anonymous);
 
-        Interval interval = reference[0];
-        if (interval is not null) return Find(reference, interval);
-
-        return null;
+        return new();
     }
 
-    private List<Semantic> Find(in ReadOnlyMemory<Reference.Component> reference, Words words)
+    private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference, Anonymous anonymous) => anonymous switch
     {
-        throw new NotImplementedException();
+        Literal literal => Find(reference, literal),
+        Inputs inputs => Find(reference, inputs),
+        _ => new(),
+    };
+
+    private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference, Literal literal)
+    {
+        if (reference.IsEmpty) return new();
+
+        Result result = new(literal, null);
+
+        if (reference.Length is 1)
+        {            
+            return Contents.TryGetValue(result, out var contents) ? contents : new();
+        }
+
+        if (Children.TryGetValue(result, out var children))
+        {
+            List<Semantic> found = new(children.Count);
+            foreach (var child in children) found.AddRange(child.Find(reference[1..]));
+            return found;
+        }
+
+        return new();
     }
 
-    private List<Semantic> Find(in ReadOnlyMemory<Reference.Component> reference, in Span<char> name)
+    private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference, Inputs inputs)
     {
-        throw new NotImplementedException();
-    }
+        if (reference.IsEmpty) return new();
 
-    private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference, Anonymous anonymous)
-    {
-        throw new NotImplementedException();
-    }
+        Results results = new(inputs, null);
 
-    private List<Semantic> Find(in ReadOnlySpan<Reference.Component> reference, Interval interval)
-    {
-        throw new NotImplementedException();
-    }
+        if (reference.Length is 1)
+        {
+            return Contents.TryGetValue(results, out var contents) ? contents : new();
+        }
 
-    private Words Export(Export export)
-    {
-        if (Named.TryAdd(export.Name, this) is false) Named[export.Name].Merge(this);
-        return export.Name;
-    }
+        if (Children.TryGetValue(results, out var children))
+        {
+            List<Semantic> found = new(children.Count);
+            foreach (var child in children) found.AddRange(child.Find(reference[1..]));
+            return found;
+        }
 
-    private void Declare(FunctionDeclaration function)
-    {
-        UnresolvedFunction unresolved = new(function);
-        Identifier identifier = new(function.Name);
-        unresolved.Context = Add(identifier, unresolved);
-    }
-
-    private void Declare(DatatypeDeclaration datatype)
-    {
-        UnresolvedDatatype unresolved = new(datatype);
-        Identifier identifier = new(datatype.Name);
-        unresolved.Context = Add(identifier, unresolved);
-    }
-
-    private void Declare(DatumDeclaration datum)
-    {
-        UnresolvedDatum unresolved = new(datum);
-        Identifier identifier = new(datum.Name);
-        unresolved.Context = Add(identifier, unresolved);
+        return new();
     }
 
     private void Merge(Context context)
@@ -267,6 +267,27 @@ internal class Context : Semantic
             }
             children.AddRange(subcontexts);
         }
+    }
+
+    private List<Error> Compile()
+    {
+        List<Error> errors = new();
+        foreach (var entry in Contents)
+        {
+            foreach (var semantic in entry.Value)
+            {
+                if (semantic is Datum datum)
+                {
+                    if (datum.IsCompiled)
+                    {
+                        errors.Add(new DatumIsAlreadyCompiled { Statement = datum.Source as Statement });
+                        continue;
+                    }
+                    datum.IsCompiled = true;
+                }
+            }
+        }
+        return errors;
     }
 }
 
