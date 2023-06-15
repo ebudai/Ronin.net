@@ -9,6 +9,6 @@ public abstract class Token : ReadOnlySequenceSegment<char>
     public void Append(in Token token)
     {
         Next = token;
-        RunningIndex = token.RunningIndex + 1;
+        token.RunningIndex = RunningIndex + 1;
     }
 }
