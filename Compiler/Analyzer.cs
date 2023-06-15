@@ -7,12 +7,10 @@ namespace Ronin;
 [ExcludeFromCodeCoverage]
 internal class Analyzer
 {
-    public Context Define(Definition scope) => new(scope, Context.Global, canBeNamed: true, instructions: main);
+    public Context Define(Definition scope) => new(scope, Context.Global, canBeNamed: true);
 
     public void Resolve()
     {
 
     }
-
-    private readonly List<Instruction> main = new();
 }
