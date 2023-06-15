@@ -34,7 +34,7 @@ public class Parameters : ParsingTests
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Null(datum.Is);
+        Assert.Null(datum.Modifiers);
 
         Assert.Single(datum.Name?.Components);
 
@@ -74,7 +74,7 @@ public class Parameters : ParsingTests
             
             Assert.Null(datum?.Mutability);
 
-            Assert.Null(datum.Is);
+            Assert.Null(datum.Modifiers);
 
             Assert.Single(datum.Name?.Components);
         
@@ -88,7 +88,7 @@ public class Parameters : ParsingTests
 
             Assert.Null(datum?.Mutability);
 
-            Assert.Null(datum.Is);
+            Assert.Null(datum.Modifiers);
 
             Assert.Single(datum.Datatype?.Components);
             Ronin.Grammar.Words name = datum.Datatype.Components[0];

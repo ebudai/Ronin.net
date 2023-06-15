@@ -24,7 +24,7 @@ namespace Ronin.Grammar;
 internal class DatumDeclaration : Statement, IParsableSyntax<DatumDeclaration>
 {
     public Keyword Mutability { get; init; }
-    public Modifiers Is { get; init; }
+    public Modifiers Modifiers { get; init; }
     public Name Name { get; init; }
     public Reference Datatype { get; init; }
     public Value Initializer { get; init; }
@@ -58,7 +58,7 @@ internal class DatumDeclaration : Statement, IParsableSyntax<DatumDeclaration>
         {
             Mutability = mutator,
             Name = new Name(name),
-            Is = modifiers,
+            Modifiers = modifiers,
             Datatype = datatype,
             Initializer = initializer,
             Source = parser.Commit(ref current)

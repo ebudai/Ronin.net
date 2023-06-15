@@ -36,7 +36,7 @@ public class Definition : ParsingTests
 
         Assert.Single(datum.Name?.Components);
 
-        Assert.Null(datum.Is);
+        Assert.Null(datum.Modifiers);
 
         var scalar = datum.Initializer as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
