@@ -4,7 +4,6 @@ using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Ronin.Compiler;
@@ -64,7 +63,7 @@ internal ref struct Parser
         return advanced;
     }
 
-    public readonly (int, int) Commit(ref Parser current)
+    public readonly (int start, int length) Commit(ref Parser current)
     {
         var cursors = (current.cursor, cursor - current.cursor);
         current = this;
