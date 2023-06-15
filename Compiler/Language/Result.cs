@@ -31,6 +31,22 @@ internal class Result : Semantic
         return null;
     }
 
+    public override bool Equals(object obj)
+    {
+        if (obj is not Result result) return false;
+        return value switch
+        {
+            Literal literal => result.value is Literal other && literal.Source.Equals(other.Source),
+            Lambda lambda => result.value is Lambda other && lambda.Source == other.Source,
+            Associations associations => result.value is Associations other && associations.Source == other.Source,
+            Results results => result.value is Results other && results.Source == other.Source,
+            UnresolvedDatum datum => result.value is UnresolvedDatum other && datum.Source == other.Source,
+            _ => false
+        };
+    }
+
+    public override int GetHashCode() => value.GetHashCode();
+
     private readonly object value;
 }
 

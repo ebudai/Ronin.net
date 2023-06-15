@@ -25,11 +25,11 @@ internal class Datum : Semantic
             _ => Mutability.Constant
         };
 
-        IsCompiled = datum.Modifiers.IsCompiled;
-        IsShared = datum.Modifiers.IsShared;
-        IsPersistent = datum.Modifiers.IsPersistent;
+        IsCompiled = datum.Modifiers.Is<Compiled>();
+        IsShared = datum.Modifiers.Is<Shared>();
+        IsPersistent = datum.Modifiers.Is<Persistent>();
 
-        Datatype = new UnresolvedDatatype(datum.Datatype, context) { IsOptional = datum.Modifiers.IsOptional };
+        Datatype = new UnresolvedDatatype(datum.Datatype, context) { IsOptional = datum.Modifiers.Is<Optional>() };
 
         Initializer = new Result(datum.Initializer, context);
     }

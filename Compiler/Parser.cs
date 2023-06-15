@@ -4,7 +4,7 @@ using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace Ronin.Compiler;
 
@@ -13,15 +13,18 @@ internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
     public static abstract T Parse(ref Parser current);
 }
 
-internal ref struct Parser
+internal struct Parser
 {
-    public Parser(in List<Token> tokens) => this.tokens = CollectionsMarshal.AsSpan(tokens);
+    public Parser(List<Token> tokens)
+    {
+        this.tokens = new ReadOnlyMemory<Token>(GetItems(tokens), 0, GetSize(tokens));
 
-    public readonly ref readonly Token this[in Index index] => ref tokens[index];
-    public readonly ReadOnlySpan<Token> this[in System.Range range] => tokens[range];
+        static Token[] GetItems(List<Token> tokens) => typeof(List<Token>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(tokens) as Token[];
+        static int GetSize(List<Token> tokens) => (int)typeof(List<Token>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(tokens);
+    }
 
-    public readonly ref readonly Token Token => ref tokens[cursor];
-    public readonly ref readonly Token PreviousToken => ref tokens[cursor - 1];
+    public readonly ref readonly Token Token => ref tokens.Span[cursor];
+    public readonly ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
     
     public readonly bool IsNotFinished => Token is not Sentinel;
 
@@ -36,7 +39,7 @@ internal ref struct Parser
             if (Token is Terminal) Advance();
         }
 
-        return new Definition { Values = statements, Source = (0, tokens.Length - 1) };
+        return new Definition { Values = statements, Source = tokens };
     }
 
     public List<T> ParseRepeating<T>() where T : class, IParsableSyntax<T>
@@ -63,13 +66,13 @@ internal ref struct Parser
         return advanced;
     }
 
-    public readonly (int start, int length) Commit(ref Parser current)
+    public readonly ReadOnlyMemory<Token> Commit(ref Parser current)
     {
-        var cursors = (current.cursor, cursor - current.cursor);
+        var tokens = this.tokens[current.cursor..cursor];
         current = this;
-        return cursors;
+        return tokens;
     }
 
-    private readonly ReadOnlySpan<Token> tokens;
+    private readonly ReadOnlyMemory<Token> tokens;
     private int cursor;
 }

@@ -72,7 +72,7 @@ public class FunctionDeclaration : ParsingTests
     [Fact(DisplayName = "specifies return datatype")]
     public void ReturnsSymbol()
     {
-        // function test(x => text) => optional number { return x as number; }
+        // function test(x => text) => number { return x as number; }
 
         List<Token> tokens = new()
         {
@@ -84,7 +84,6 @@ public class FunctionDeclaration : ParsingTests
             Word("text"),
             EndValues(),
             Returns(),
-            Optional(),
             Word("number"),
             StartScope(),
             Word("return"),
@@ -117,15 +116,12 @@ public class FunctionDeclaration : ParsingTests
             Assert.Equal(1, type?.Source.Length);
         }
 
-        Assert.Equal(1, function.Modifiers?.Source.Length);
-        Assert.IsType<Optional>(parser[function.Modifiers.Source.Start]);
-        
         Assert.Single(function.Returns?.Components);
         Ronin.Grammar.Words returns = function.Returns.Components[0];
         Assert.Equal(1, returns?.Source.Length);
 
         Assert.Single(function.Definition?.Values);
-        var line = function.Definition.Values[0] as Ronin.Grammar.Reference;
+        var line = function.Definition.Values[0] as Reference;
         Assert.Single(line?.Components);
         Ronin.Grammar.Words @return = line.Components[0];
         Assert.Equal(4, @return?.Source.Length);

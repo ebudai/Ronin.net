@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Grammar;
@@ -12,10 +13,14 @@ namespace Ronin.Grammar;
 /// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Shared"/>, and <see cref="Optional"/></remarks>
 internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
 {
-    public bool IsCompiled { get; set; }
-    public bool IsPersistent { get; set; }
-    public bool IsShared { get; set; }
-    public bool IsOptional { get; set; }
+    public bool Is<T>() where T : Keyword
+    {
+        foreach (var token in Source.Span)
+        {
+            if (token is T) return true;
+        }
+        return false;
+    }
 
     public static Modifiers Parse(scoped ref Parser current)
     {

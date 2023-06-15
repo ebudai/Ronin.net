@@ -24,7 +24,7 @@ internal class Program
 
         ConcurrentBag<Definition> scopes = new();
         Parse(folder, scopes);
-        var semantics = Analyze(scopes);
+        var main = Analyze(scopes);
         //bool isDebug = args.Length is > 1 && args[1] is debug;
         
         
@@ -52,7 +52,7 @@ internal class Program
             }
 
             var file = info as FileInfo;
-            ThreadPool.UnsafeQueueUserWorkItem(static state => state.scopes.Add(Parse(state.file)), (file, scopes), preferLocal: false);
+            ThreadPool.UnsafeQueueUserWorkItem(static state => state.scopes.Add(Parse(state.file)), (file, scopes), preferLocal: true);
         }
     }
 
