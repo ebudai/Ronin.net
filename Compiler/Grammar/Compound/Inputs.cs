@@ -9,7 +9,7 @@ namespace Ronin.Grammar.Compound;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Anonymous"/>s between <see cref="StartValues"/> and <see cref="EndValues"/>
+///     <see cref="Separator"/>-separated <see cref="Anonymous"/> values between <see cref="StartValues"/> and <see cref="EndValues"/>
 /// </remarks>
 /// 
 /// <example>

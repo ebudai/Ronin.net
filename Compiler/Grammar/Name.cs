@@ -2,13 +2,12 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
-using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
 /// <summary>
 ///     A unique name for a <see cref="DatatypeDeclaration"/> or a <see cref="FunctionDeclaration"/>
-///     which can contain multiple <see cref="Word"/>s and <see cref="Parameters"/>
+///     which can contain multiple <see cref="Words"/> and <see cref="Parameters"/>
 /// </summary>
 internal class Name : Syntax, IParsableSyntax<Name>
 {
