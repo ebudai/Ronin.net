@@ -40,7 +40,7 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Aggr
     where TSeparator : Symbol
     where TClose : Symbol
 {
-    public new static T Parse(scoped ref Parser current)
+    public new static T Parse(ref Parser current)
     {
         if (current.Token is not TOpen) return null;
 

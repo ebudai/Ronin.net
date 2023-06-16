@@ -6,7 +6,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Date : Literal
 {
-    public static new Token Lex(scoped ref Lexer lexer)
+    public static new Token Lex(ref Lexer lexer)
     {
         if (lexer.Length is < Length) return null;
 

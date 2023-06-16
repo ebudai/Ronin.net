@@ -6,7 +6,7 @@ namespace Ronin.Lexicon;
 
 internal class Whitespace : Trivium
 {
-    internal static Whitespace Lex(scoped ref Lexer lexer)
+    internal static Whitespace Lex(ref Lexer lexer)
     {
         var length = 0;
         while (length < lexer.Length && char.IsWhiteSpace(lexer[length])) ++length;

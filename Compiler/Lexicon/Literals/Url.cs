@@ -6,7 +6,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Url : Literal
 {
-    public static new Url Lex(scoped ref Lexer lexer)
+    public static new Url Lex(ref Lexer lexer)
     {
         if (lexer.Length is < 5) return null;
 

@@ -7,7 +7,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal partial class Number : Literal
 {
-    public static new Token Lex(scoped ref Lexer lexer)
+    public static new Token Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || char.IsDigit(lexer[0]) is false) return null;
 

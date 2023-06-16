@@ -10,7 +10,7 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Trivia : Syntax, IParsableSyntax<Trivia>
 {
-    public static Trivia Parse(scoped ref Parser current)
+    public static Trivia Parse(ref Parser current)
     {
         Parser parser = current;
         if (parser.TryAdvance<Trivium>() is false) return null;

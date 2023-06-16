@@ -16,7 +16,7 @@ internal class Import : Statement, IParsableSyntax<Import>
 {
     public Words Name { get; init; }
 
-    public new static Import Parse(scoped ref Parser current)
+    public new static Import Parse(ref Parser current)
     {
         if (current.Token is not Lexicon.Keywords.Import) return null;
 

@@ -8,7 +8,7 @@ internal class Assign : Punctuation
 {
     internal const char symbol = '=';
 
-    public static new Assign Lex(scoped ref Lexer lexer)
+    public static new Assign Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not symbol) return null;
         return new() { Memory = lexer.Commit(1) };

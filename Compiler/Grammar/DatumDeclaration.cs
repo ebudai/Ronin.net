@@ -29,7 +29,7 @@ internal class DatumDeclaration : Statement, IParsableSyntax<DatumDeclaration>
     public Reference Datatype { get; init; }
     public Value Initializer { get; init; }
 
-    public new static DatumDeclaration Parse(scoped ref Parser current)
+    public new static DatumDeclaration Parse(ref Parser current)
     {
         Parser parser = current;
 

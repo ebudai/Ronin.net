@@ -23,7 +23,7 @@ internal class FunctionDeclaration : Statement, IParsableSyntax<FunctionDeclarat
     public Reference Returns { get; init; }
     public Definition Definition { get; init; }
 
-    public new static FunctionDeclaration Parse(scoped ref Parser current)
+    public new static FunctionDeclaration Parse(ref Parser current)
     {
         Parser parser = current;
 

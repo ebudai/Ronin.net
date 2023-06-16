@@ -19,7 +19,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Literal : Anonymous, IParsableSyntax<Literal>
 {
-    public new static Literal Parse(scoped ref Parser current)
+    public new static Literal Parse(ref Parser current)
     {
         Parser parser = current;
 

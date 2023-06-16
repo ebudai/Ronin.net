@@ -19,7 +19,7 @@ internal class Export : Statement, IParsableSyntax<Export>
 {
     public Words Name { get; init; }
 
-    public new static Export Parse(scoped ref Parser current)
+    public new static Export Parse(ref Parser current)
     {
         if (current.Token is not PartOf) return null;
 

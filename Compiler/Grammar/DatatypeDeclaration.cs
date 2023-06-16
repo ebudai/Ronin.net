@@ -22,7 +22,7 @@ internal class DatatypeDeclaration : Statement, IParsableSyntax<DatatypeDeclarat
     public Reference Algebra { get; init; }
     public Definition Definition { get; init; }
 
-    public new static DatatypeDeclaration Parse(scoped ref Parser current)
+    public new static DatatypeDeclaration Parse(ref Parser current)
     {
         Parser parser = current;
 

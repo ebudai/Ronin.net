@@ -7,7 +7,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Money : Literal
 {
-    public static new Token Lex(scoped ref Lexer lexer)
+    public static new Token Lex(ref Lexer lexer)
     {
         if (lexer.Length is < 2
             || CharUnicodeInfo.GetUnicodeCategory(lexer[0]) is not UnicodeCategory.CurrencySymbol

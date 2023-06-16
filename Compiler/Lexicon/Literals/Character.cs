@@ -7,7 +7,7 @@ namespace Ronin.Lexicon.Literals;
 
 internal class Character : Literal
 {
-    public static new Token Lex(scoped ref Lexer lexer)
+    public static new Token Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not CharacterDelimiter.symbol) return null;
 

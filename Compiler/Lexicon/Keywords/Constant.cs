@@ -8,7 +8,7 @@ internal class Constant : Keyword
 {
     internal const string keyword = "constant";
 
-    public static new Keyword Lex(scoped ref Lexer lexer)
+    public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;

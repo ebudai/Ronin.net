@@ -6,7 +6,7 @@ namespace Ronin.Lexicon;
 
 internal class Keyword : Word
 {
-    public static new Word Lex(scoped ref Lexer lexer)
+    public static new Word Lex(ref Lexer lexer)
         => Keywords.Compiled.Lex(ref lexer)
         ?? Keywords.Constant.Lex(ref lexer)
         ?? Keywords.Datatype.Lex(ref lexer)

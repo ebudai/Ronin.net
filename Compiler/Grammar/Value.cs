@@ -7,7 +7,7 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Value : Statement, IParsableSyntax<Value>
 {
-    public new static Value Parse(scoped ref Parser current) 
+    public new static Value Parse(ref Parser current) 
         => Anonymous.Parse(ref current) 
         ?? Reference.Parse(ref current) as Value;
 }

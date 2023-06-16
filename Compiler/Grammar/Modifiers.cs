@@ -22,7 +22,7 @@ internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
         return false;
     }
 
-    public static Modifiers Parse(scoped ref Parser current)
+    public static Modifiers Parse(ref Parser current)
     {
         Parser parser = current;
         

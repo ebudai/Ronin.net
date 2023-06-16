@@ -13,7 +13,7 @@ internal class Reference : Value, IParsableSyntax<Reference>
     public List<Component> Components { get; init; }
     public Ordinal Ordinal { get; init; }
 
-    public new static Reference Parse(scoped ref Parser current)
+    public new static Reference Parse(ref Parser current)
     {
         Parser parser = current;
 
