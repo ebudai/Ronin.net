@@ -38,9 +38,9 @@ internal class Context
                 Anonymous value => Call(value),
                 DatumDeclaration datum => Declare(datum),
                 Scope scope => Call(scope),
-                Unknown unknown => new() { new UnknownSyntax { Statement = statement } },
-                _ => new() { new DeveloperMistakeUnhandledSubclass<Statement> { Statement = statement } }
-            };            
+                Unknown unknown => Error.UnknownSyntax(statement),
+                _ => Error.UnhandledSubclass<Statement>(statement)
+            };
         }
 
         if (name is not null)
@@ -56,12 +56,9 @@ internal class Context
         }
     }
 
-    public List<Error> Add(Identifier identifier, Semantic semantic)
+    public List<Error> Add(Identifier identifier, Semantic semantic, Statement statement)
     {
-        if (identifier.Parts.Count is 0)
-        {
-            return new() { new AnonymousIdentifier { Statement = semantic.Source as Statement } };
-        }
+        if (identifier.Parts.Count is 0) return Error.AnonymousIdentifier(statement);
         
         var parts = CollectionsMarshal.AsSpan(identifier.Parts);
         return Add(parts, semantic);        
@@ -106,35 +103,29 @@ internal class Context
 
     private List<Error> Join(Export export, ref Words name, bool canBeNamed)
     {
-        if (canBeNamed is false)
-        {
-            return new() { new CannotJoinNamedContext { Statement = export } };
-        }
-
-        if (name is not null)
-        {
-            return new() { new ContextAlreadyNamed { Statement = export } };
-        }
+        if (canBeNamed is false) return Error.CannotJoinNamedContext(export);
+        if (name is not null) return Error.ContextAlreadyNamed(export);
 
         if (Named.TryAdd(export.Name, this) is false) Named[export.Name].Merge(this);
+
         name = export.Name;
         return Error.None;
     }
 
-    private List<Error> Use(Import import) => Imports.Add(import.Name) ? Error.None : new() { new ModuleAlreadyImported { Statement = import } };
+    private List<Error> Use(Import import) => Imports.Add(import.Name) ? Error.None : Error.ModuleAlreadyImported(import);
 
     private List<Error> Declare(FunctionDeclaration declaration)
     {
         Identifier identifier = new(declaration.Name, this);
         Function function = new(declaration, this);
-        return Add(identifier, function);
+        return Add(identifier, function, declaration);
     }
 
     private List<Error> Declare(DatatypeDeclaration declaration)
     {
         Identifier identifier = new(declaration.Name, this);
         Datatype datatype = new(declaration, this);
-        return Add(identifier, datatype);
+        return Add(identifier, datatype, declaration);
     }
 
     private List<Error> Declare(DatumDeclaration declaration)
@@ -142,7 +133,7 @@ internal class Context
         Identifier identifier = new(declaration.Name, this);
         Datum unresolved = new(declaration, this);
         Instructions.Add(new InitializeDatum(unresolved));
-        return Add(identifier, unresolved);
+        return Add(identifier, unresolved, declaration);
     }
 
     private List<Error> Assign(Assignment assignment)
@@ -169,7 +160,7 @@ internal class Context
             }
         }
 
-        return new() { new ValuesCannotBeStatements { Statement = value } };
+        return Error.ValuesCannotBeStatements(value);
     }
 
     private List<Error> Call(Scope scope)
@@ -271,24 +262,25 @@ internal class Context
 
     private List<Error> Compile()
     {
-        List<Error> errors = new();
-        foreach (var entry in Contents)
+        foreach (var semantics in Contents.Values)
         {
-            foreach (var semantic in entry.Value)
+            foreach (var semantic in semantics)
             {
-                if (semantic is Datum datum)
-                {
-                    if (datum.IsCompiled)
-                    {
-                        errors.Add(new DatumIsAlreadyCompiled { Statement = datum.Source as Statement });
-                        continue;
-                    }
-                    datum.IsCompiled = true;
-                }
+                if (semantic is Datum datum) datum.IsCompiled = true;
             }
         }
-        return errors;
+        return Error.None;
     }
+}
+
+internal partial class Error
+{
+    public static List<Error> ContextAlreadyNamed(Statement statement) => new() { new ContextAlreadyNamed { Statement = statement } };
+    public static List<Error> EmptyContextName(Statement statement) => new() { new EmptyContextName { Statement = statement } };
+    public static List<Error> CannotJoinNamedContext(Statement statement) => new() { new CannotJoinNamedContext { Statement = statement } };
+    public static List<Error> ModuleAlreadyImported(Statement statement) => new() { new ModuleAlreadyImported { Statement = statement } };
+    public static List<Error> ValuesCannotBeStatements(Statement statement) => new() { new ValuesCannotBeStatements { Statement = statement } };
+    public static List<Error> UnknownSyntax(Statement statement) => new() { new UnknownSyntax { Statement = statement } };
 }
 
 [ExcludeFromCodeCoverage]

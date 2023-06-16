@@ -51,6 +51,12 @@ internal class Identifier
     }    
 }
 
+internal partial class Error
+{
+    public static List<Error> IdentifierAlreadyExists(Statement statement) => new() { new IdentifierAlreadyExists { Statement = statement } };
+    public static List<Error> AnonymousIdentifier(Statement statement) => new() { new AnonymousIdentifier { Statement = statement } };
+}
+
 [ExcludeFromCodeCoverage]
 internal class IdentifierAlreadyExists : Error { }
 

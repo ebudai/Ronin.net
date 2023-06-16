@@ -19,16 +19,22 @@ internal class Reference : Value, IParsableSyntax<Reference>
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
-        if (components.All(component => component.value is Anonymous)) return null;        
-
-        var ordinal = Ordinal.Parse(ref parser);
-
-        return new Reference
+        foreach (var component in components)
         {
-            Components = components,
-            Ordinal = ordinal,
-            Source = parser.Commit(ref current)
-        };
+            if (component.value is not Anonymous)
+            {
+                var ordinal = Ordinal.Parse(ref parser);
+
+                return new Reference
+                {
+                    Components = components,
+                    Ordinal = ordinal,
+                    Source = parser.Commit(ref current)
+                };
+            }
+        }
+
+        return null;
     }
 
     public class Component : CompositeSyntax<Component, Words, Anonymous> { }

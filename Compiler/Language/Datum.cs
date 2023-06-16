@@ -51,6 +51,3 @@ internal class UnresolvedDatum : Datum
 }
 
 internal enum Mutability { Constant, Variable, Reactive }
-
-[ExcludeFromCodeCoverage]
-internal class DatumIsAlreadyCompiled : Error { }

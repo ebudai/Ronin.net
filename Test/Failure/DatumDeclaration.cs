@@ -1,9 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 using Test;
 
 namespace Failure;
@@ -11,7 +8,7 @@ namespace Failure;
 [Trait("Parser", null)]
 public class DatumDeclarations : ParsingTests
 {
-    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Reactive.keyword} before name")]
+    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Reactive.keyword} is the name")]
     public void ReturnsBeforeName()
     {
         // reactive => 44.3;
