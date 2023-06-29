@@ -6,6 +6,10 @@ namespace Ronin.Lexicon;
 
 internal class Word : Token
 {
+    protected internal Word() { }
+
+    public Word(string name) => Memory = name.ToCharArray();
+
     public static Word Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty) return null;

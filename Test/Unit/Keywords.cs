@@ -7,7 +7,7 @@ namespace Unit;
 [Trait("Lexer", null)]
 public class Keywords
 {
-    private const string datatype = Datatype.keyword;
+    private const string datatype = Ronin.Lexicon.Keywords.Datatype.keyword;
     private const string function = Function.keyword;
     private const string variable = Variable.keyword;
     private const string constant = Constant.keyword;
@@ -27,7 +27,7 @@ public class Keywords
         const string sourcecode = $"{datatype} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Datatype;
+        var keyword = Keyword.Lex(ref lexer) as Ronin.Lexicon.Keywords.Datatype;
 
         Assert.Equal(datatype, keyword?.Memory.ToArray());
     }

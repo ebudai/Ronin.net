@@ -55,6 +55,24 @@ public class Symbols
     [Fact(DisplayName = "assign")]
     public void LexAssign() => LexSymbol<Assign>(Assign.symbol);
 
+    [Fact(DisplayName = "add assign")]
+    public void LexAddAssign() => LexSymbol<AddAssign>(AddAssign.symbol);
+
+    [Fact(DisplayName = "and assign")]
+    public void LexAndAssign() => LexSymbol<AndAssign>(AndAssign.symbol);
+
+    [Fact(DisplayName = "and assign")]
+    public void LexDivideAssign() => LexSymbol<DivideAssign>(DivideAssign.symbol);
+
+    [Fact(DisplayName = "multiply assign")]
+    public void LexMultiplyAssign() => LexSymbol<MultiplyAssign>(MultiplyAssign.symbol);
+
+    [Fact(DisplayName = "or assign")]
+    public void LexOrAssign() => LexSymbol<OrAssign>(OrAssign.symbol);
+
+    [Fact(DisplayName = "subtract assign")]
+    public void LexSubtractAssign() => LexSymbol<SubtractAssign>(SubtractAssign.symbol);
+
     [Fact(DisplayName = "not punctuation")]
     public void NotPunctuation()
     {

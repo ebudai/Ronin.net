@@ -1,12 +1,13 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Sets the current <see cref="Grammar.Value"/> of a <see cref="DatumDeclaration"/>
+///     Sets the current <see cref="Grammar.Value"/> of a <see cref="Grammar.Reference"/>
 /// </summary>
 /// 
 /// <example>
@@ -15,6 +16,7 @@ namespace Ronin.Grammar;
 internal class Assignment : Statement, IParsableSyntax<Assignment>
 {
     public Reference Reference { get; init; }
+    public Punctuation Type { get; init; }
     public Value Value { get; init; }
 
     public new static Assignment Parse(ref Parser current)
@@ -23,13 +25,24 @@ internal class Assignment : Statement, IParsableSyntax<Assignment>
 
         if (Reference.Parse(ref parser) is not Reference reference) return null;
 
-        if (parser.TryAdvance<Assign>() is false) return null;
+        if (parser.Token 
+            is not Assign
+            and not AddAssign
+            and not AndAssign
+            and not DivideAssign
+            and not MultiplyAssign
+            and not OrAssign
+            and not SubtractAssign) return null;
+         
+        var type = parser.Token as Punctuation;
+        parser.Advance();
 
         if (Value.Parse(ref parser) is not Value value) return null;
 
         return new Assignment
         {
             Reference = reference,
+            Type = type,
             Value = value,
             Source = parser.Commit(ref current),
         };

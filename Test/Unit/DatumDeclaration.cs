@@ -8,7 +8,7 @@ using Test;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class DatumDeclarations : ParsingTests
+public class DatumDeclarationTests : ParsingTests
 {
     [Fact(DisplayName = "typed")]
     public void Typed()

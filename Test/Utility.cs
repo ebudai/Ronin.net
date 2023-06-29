@@ -1,4 +1,5 @@
-﻿using Ronin.Lexicon;
+﻿using Ronin.Grammar;
+using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
@@ -58,6 +59,48 @@ public class ParsingTests
     {
         Assign assign = new();
         assign.SetMemory(new[] { Ronin.Lexicon.Symbols.Assign.symbol });
+        return assign;
+    }
+
+    internal static AddAssign AddAssign()
+    {
+        AddAssign assign = new();
+        assign.SetMemory(Ronin.Lexicon.Symbols.AddAssign.symbol.ToCharArray());
+        return assign;
+    }
+
+    internal static AndAssign AndAssign()
+    {
+        AndAssign assign = new();
+        assign.SetMemory(Ronin.Lexicon.Symbols.AndAssign.symbol.ToCharArray());
+        return assign;
+    }
+
+    internal static DivideAssign DivideAssign()
+    {
+        DivideAssign assign = new();
+        assign.SetMemory(Ronin.Lexicon.Symbols.DivideAssign.symbol.ToCharArray());
+        return assign;
+    }
+
+    internal static MultiplyAssign MultiplyAssign()
+    {
+        MultiplyAssign assign = new();
+        assign.SetMemory(Ronin.Lexicon.Symbols.MultiplyAssign.symbol.ToCharArray());
+        return assign;
+    }
+
+    internal static OrAssign OrAssign()
+    {
+        OrAssign assign = new();
+        assign.SetMemory(Ronin.Lexicon.Symbols.OrAssign.symbol.ToCharArray());
+        return assign;
+    }
+
+    internal static SubtractAssign SubtractAssign()
+    {
+        SubtractAssign assign = new();
+        assign.SetMemory(Ronin.Lexicon.Symbols.SubtractAssign.symbol.ToCharArray());
         return assign;
     }
 
@@ -124,10 +167,10 @@ public class ParsingTests
         return textDelimiter;
     }
 
-    internal static Ronin.Lexicon.Symbols.Interval Range()
+    internal static Interval Range()
     {
-        Ronin.Lexicon.Symbols.Interval range = new();
-        range.SetMemory(Ronin.Lexicon.Symbols.Interval.symbol.ToCharArray());
+        Interval range = new();
+        range.SetMemory(Interval.symbol.ToCharArray());
         return range;
     }
 
@@ -215,9 +258,9 @@ public class ParsingTests
         return @foreach;
     }
 
-    internal static Import Import()
+    internal static Ronin.Lexicon.Keywords.Import Import()
     {
-        Import import = new();
+        Ronin.Lexicon.Keywords.Import import = new();
         import.SetMemory(Ronin.Lexicon.Keywords.Import.keyword.ToCharArray());
         return import;
     }
@@ -227,5 +270,19 @@ public class ParsingTests
         Whitespace whitespace = new();
         whitespace.SetMemory(new[] { ' ' });
         return whitespace;
+    }
+}
+
+public class AnalysisTests
+{
+    internal static Name Name(string name)
+    {
+        Word word = new();
+        word.SetMemory(name.ToArray());
+        Words words = new() { Source = new[] { word } };
+        return new Name()
+        {
+            Components = new() { new Name.Component { value = words } }
+        };
     }
 }
