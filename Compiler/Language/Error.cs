@@ -1,9 +1,7 @@
 ﻿using Ronin.Grammar;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
-[ExcludeFromCodeCoverage]
 internal partial class Error
 {
     public static readonly List<Error> None = new();
@@ -13,5 +11,4 @@ internal partial class Error
     public int Offset { get; init; }
 }
 
-[ExcludeFromCodeCoverage]
 internal class DeveloperMistakeUnhandledSubclass<T> : Error { }

@@ -1,20 +1,18 @@
 ﻿using Ronin.Grammar;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
-[ExcludeFromCodeCoverage]
 internal class Function : Semantic
 {
-    public Datatype Returns { get; }
-    public Context Definition { get; }
+    public Datatype Returns { get; init; }
+    public Context Definition { get; init; }
     
     protected internal Function() : base(null) { }
 
     public Function(FunctionDeclaration function, Context context) : base(function)
     {
         Returns = new UnresolvedDatatype(function.Returns, context);
-        Definition = new(function.Definition, context);
+        Definition = context.Define(function.Definition);
     }
 
     public class Constructed
@@ -23,7 +21,6 @@ internal class Function : Semantic
     }
 }
 
-[ExcludeFromCodeCoverage]
 internal class UnresolvedFunction : Function
 {
     public Reference Reference { get; init; }

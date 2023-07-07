@@ -1,9 +1,7 @@
 ﻿using Ronin.Grammar;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
-[ExcludeFromCodeCoverage]
 internal class Instruction : Semantic
 {
     public Result Result { get; init; }
@@ -12,7 +10,6 @@ internal class Instruction : Semantic
     public Instruction(Syntax syntax) : base(syntax) { }
 }
 
-[ExcludeFromCodeCoverage]
 internal class FunctionCall : Instruction
 {
     public Function Function { get; init; }
@@ -24,18 +21,16 @@ internal class FunctionCall : Instruction
     }
 }
 
-[ExcludeFromCodeCoverage]
-internal class AssignmentInstruction : Instruction
+internal class SetValue : Instruction
 {
     public UnresolvedDatum Datum { get; }
 
-    public AssignmentInstruction(Assignment assignment, Context context) : base(assignment)
+    public SetValue(Assignment assignment, Context context) : base(assignment)
     {
         Datum = new(assignment.Reference, context);
     }
 }
 
-[ExcludeFromCodeCoverage]
 internal class InitializeDatum : Instruction
 {
     public Datum Datum { get; }
@@ -46,9 +41,11 @@ internal class InitializeDatum : Instruction
     }
 }
 
+internal partial class Errors
+{
+    public static List<Error> InstructionNotAllowedHere(Statement statement) => new() { new InstructionNotAllowedHere { Statement = statement } };
+    public static List<Error> NotAnInstruction(Statement statement) => new() { new NotAnInstruction { Statement = statement } };
+}
 
-[ExcludeFromCodeCoverage]
 internal class InstructionNotAllowedHere : Error { }
-
-[ExcludeFromCodeCoverage]
 internal class NotAnInstruction : Error { }

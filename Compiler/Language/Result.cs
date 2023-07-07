@@ -1,10 +1,8 @@
 ﻿using Ronin.Grammar;
 using Ronin.Grammar.Compound;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
-[ExcludeFromCodeCoverage]
 internal class Result : Semantic
 {
     public Result(Value value, Context context) : base(value) => this.value = value switch
@@ -25,9 +23,9 @@ internal class Result : Semantic
     public static implicit operator Results(Result result) => result.value as Results;
     public static implicit operator UnresolvedDatum(Result result) => result.value as UnresolvedDatum;
 
-    private object Fail(Statement statement)
+    private Semantic Fail(Statement statement)
     {
-        Errors.Add(new DeveloperMistakeUnhandledSubclass<Value> { Statement = statement });
+        Errors.AddRange(Error.UnhandledSubclass<Value>(statement));
         return null;
     }
 
@@ -50,7 +48,6 @@ internal class Result : Semantic
     private readonly object value;
 }
 
-[ExcludeFromCodeCoverage]
 internal class NamedResult : Result
 {
     public Datum Datum { get; }
@@ -61,7 +58,6 @@ internal class NamedResult : Result
     }
 }
 
-[ExcludeFromCodeCoverage]
 internal class Results : Semantic
 {
     public List<Result> Values { get; } = new();

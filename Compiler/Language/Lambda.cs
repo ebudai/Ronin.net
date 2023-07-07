@@ -1,8 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace Ronin.Language;
 
-namespace Ronin.Language;
-
-[ExcludeFromCodeCoverage]
 internal class Lambda : Semantic
 {
     public List<Datum> Data { get; } = new();
@@ -11,6 +8,6 @@ internal class Lambda : Semantic
     public Lambda(Grammar.Delegate @delegate, Context context) : base(@delegate.Definition)
     {
         foreach (var datum in @delegate.Data) Data.Add(new Datum(datum, context));
-        Definition = new(@delegate.Definition, context, false);
+        Definition = context.Define(@delegate.Definition);
     }
 }

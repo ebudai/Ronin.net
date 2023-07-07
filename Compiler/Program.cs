@@ -4,9 +4,7 @@ using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Language;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 
-[ExcludeFromCodeCoverage] //remove later
 internal class Program
 {
     private const string debug = nameof(debug);

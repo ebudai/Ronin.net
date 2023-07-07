@@ -3,13 +3,15 @@ using Test;
 
 namespace Unit;
 
-[Trait("Analyzer", "Declaration")]
+[Trait("Analyzer", "declare")]
 public class Datatype : AnalysisTests
 {
     [Fact(DisplayName = "declaration")]
     public void Declaration()
     {
         const string name = "thingy";
+
+        // datatype thingy { }
 
         Ronin.Grammar.DatatypeDeclaration declaration = new()
         {

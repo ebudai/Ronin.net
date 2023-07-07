@@ -8,7 +8,7 @@ namespace Unit;
 public class Keywords
 {
     private const string datatype = Ronin.Lexicon.Keywords.Datatype.keyword;
-    private const string function = Function.keyword;
+    private const string function = Ronin.Lexicon.Keywords.Function.keyword;
     private const string variable = Variable.keyword;
     private const string constant = Constant.keyword;
     private const string reactive = Reactive.keyword;
@@ -38,7 +38,7 @@ public class Keywords
         const string sourcecode = $"{function} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Function;
+        var keyword = Keyword.Lex(ref lexer) as Ronin.Lexicon.Keywords.Function;
 
         Assert.Equal(function, keyword?.Memory.ToArray());
     }

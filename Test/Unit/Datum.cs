@@ -1,8 +1,6 @@
-﻿using Xunit;
+﻿namespace Unit;
 
-namespace Unit;
-
-[Trait("Analyzer", "Declaration")]
+[Trait("Analyzer", "declare")]
 public class Datum
 {
     [Fact(DisplayName = "declaration")]

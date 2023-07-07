@@ -42,7 +42,7 @@ internal struct Parser
         return new Definition { Values = statements, Source = tokens };
     }
 
-    public List<T> ParseRepeating<T>() where T : class, IParsableSyntax<T>
+    public List<T> ParseRepeating<T>() where T : IParsableSyntax<T>
     {
         List<T> parsed = new();
         while (IsNotFinished)

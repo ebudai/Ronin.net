@@ -1,16 +1,13 @@
 ﻿using Ronin.Grammar;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
-[ExcludeFromCodeCoverage]
 internal class Semantic
 {
-    public Syntax Source { get; }
+    public Syntax Source { get; init; }
     public List<Error> Errors { get; } = new();
 
-    public Semantic(Syntax source)
-    {
-        Source = source;
-    }
+    public Semantic() { }
+
+    public Semantic(Syntax source) => Source = source;
 }

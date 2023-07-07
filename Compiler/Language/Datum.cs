@@ -1,10 +1,8 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon.Keywords;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
-[ExcludeFromCodeCoverage]
 internal class Datum : Semantic
 {
     public Mutability Mutability { get; init; }
@@ -12,7 +10,7 @@ internal class Datum : Semantic
     public bool IsShared { get; set; }
     public bool IsPersistent { get; set; }
     public Modifiers Modifiers { get; init; }
-    public Datatype Datatype { get; }
+    public Datatype Datatype { get; init; }
     public Result Initializer { get; init; }
     public bool Initialized { get; set; }
 
@@ -37,7 +35,6 @@ internal class Datum : Semantic
     protected internal Datum(Reference reference) : base(reference) { }
 }
 
-[ExcludeFromCodeCoverage]
 internal class UnresolvedDatum : Datum
 {
     public Reference Reference { get; }
