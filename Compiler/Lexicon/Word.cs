@@ -6,7 +6,7 @@ namespace Ronin.Lexicon;
 
 internal class Word : Token
 {
-    protected internal Word() { }
+    public Word() { }
 
     public Word(string name) => Memory = name.ToCharArray();
 

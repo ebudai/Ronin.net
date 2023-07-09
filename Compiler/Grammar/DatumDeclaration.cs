@@ -58,7 +58,7 @@ internal class DatumDeclaration : Statement, IParsableSyntax<DatumDeclaration>
         {
             Mutability = mutator,
             Name = new Name(name),
-            Modifiers = modifiers,
+            Modifiers = modifiers ?? new(),
             Datatype = datatype,
             Initializer = initializer,
             Source = parser.Commit(ref current)

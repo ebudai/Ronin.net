@@ -1,14 +1,12 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 using Test;
 
 namespace Unit;
 
 [Trait("Parser", null)]
-public class DatumDeclarationTests : ParsingTests
+public class DatumDeclaration : ParsingTests
 {
     [Fact(DisplayName = "typed")]
     public void Typed()
@@ -31,7 +29,10 @@ public class DatumDeclarationTests : ParsingTests
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Null(datum.Modifiers);
+        Assert.False(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Optional>());
+        Assert.False(datum.Modifiers.Is<Persistent>());
 
         {
             Assert.Single(datum.Name?.Components);
@@ -68,7 +69,10 @@ public class DatumDeclarationTests : ParsingTests
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
-        Assert.Null(datum.Modifiers);
+        Assert.False(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Optional>());
+        Assert.False(datum.Modifiers.Is<Persistent>());
 
         Assert.Single(datum.Name?.Components);
         
@@ -230,8 +234,11 @@ public class DatumDeclarationTests : ParsingTests
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Null(datum.Modifiers);
-        
+        Assert.False(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Optional>());
+        Assert.False(datum.Modifiers.Is<Persistent>());
+
         Assert.Single(datum.Name?.Components);
 
         Assert.Null(datum.Datatype);
@@ -264,7 +271,10 @@ public class DatumDeclarationTests : ParsingTests
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Null(datum.Modifiers);
+        Assert.False(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Optional>());
+        Assert.False(datum.Modifiers.Is<Persistent>());
 
         Assert.Single(datum.Name?.Components);
 

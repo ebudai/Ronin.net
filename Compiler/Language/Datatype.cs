@@ -18,13 +18,7 @@ internal class Datatype : Semantic
             Reference = declaration.Algebra,
             Context = context
         };
-        Definition = new();
-        Definition.Define(declaration.Definition);
-    }
-
-    public class Constructed
-    {
-        public List<Result> Parameters { get; init; } = new();
+        Definition = context.Define(declaration.Definition);
     }
 
     static Datatype()

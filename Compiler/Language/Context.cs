@@ -75,7 +75,7 @@ internal class Context : Semantic
 
     private void Add(Identifier identifier, Semantic semantic, int depth = 0)
     {
-        if (identifier.Parts.Count >= depth) return;
+        if (identifier.Parts.Count < depth) return;
 
         var name = identifier.Parts[depth];
 

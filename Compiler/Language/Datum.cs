@@ -9,10 +9,10 @@ internal class Datum : Semantic
     public bool IsCompiled { get; set; }
     public bool IsShared { get; set; }
     public bool IsPersistent { get; set; }
-    public Modifiers Modifiers { get; init; }
     public Datatype Datatype { get; init; }
     public Result Initializer { get; init; }
-    public bool Initialized { get; set; }
+
+    public Datum() { }
 
     public Datum(DatumDeclaration datum, Context context) : base(datum)
     {        
@@ -31,8 +31,6 @@ internal class Datum : Semantic
 
         Initializer = new Result(datum.Initializer, context);
     }
-
-    protected internal Datum(Reference reference) : base(reference) { }
 }
 
 internal class UnresolvedDatum : Datum
@@ -40,7 +38,7 @@ internal class UnresolvedDatum : Datum
     public Reference Reference { get; }
     public Context Context { get; }
 
-    public UnresolvedDatum(Reference reference, Context context) : base(reference)
+    public UnresolvedDatum(Reference reference, Context context)
     {
         Reference = reference;
         Context = context;

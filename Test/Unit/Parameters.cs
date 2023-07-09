@@ -34,7 +34,10 @@ public class Parameters : ParsingTests
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Null(datum.Modifiers);
+        Assert.False(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Optional>());
+        Assert.False(datum.Modifiers.Is<Persistent>());
 
         Assert.Single(datum.Name?.Components);
 
@@ -74,7 +77,10 @@ public class Parameters : ParsingTests
             
             Assert.Null(datum?.Mutability);
 
-            Assert.Null(datum.Modifiers);
+            Assert.False(datum.Modifiers.Is<Compiled>());
+            Assert.False(datum.Modifiers.Is<Shared>());
+            Assert.False(datum.Modifiers.Is<Optional>());
+            Assert.False(datum.Modifiers.Is<Persistent>());
 
             Assert.Single(datum.Name?.Components);
         
@@ -88,7 +94,10 @@ public class Parameters : ParsingTests
 
             Assert.Null(datum?.Mutability);
 
-            Assert.Null(datum.Modifiers);
+            Assert.False(datum.Modifiers.Is<Compiled>());
+            Assert.False(datum.Modifiers.Is<Shared>());
+            Assert.False(datum.Modifiers.Is<Optional>());
+            Assert.False(datum.Modifiers.Is<Persistent>());
 
             Assert.Single(datum.Datatype?.Components);
             Ronin.Grammar.Words name = datum.Datatype.Components[0];
