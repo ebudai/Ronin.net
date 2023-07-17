@@ -1,0 +1,54 @@
+# 1 Terms and Definitions
+
+- **anonymous**
+  - one of ***literal***, ***delegate***, ***lookup***, ***input***s, ***list***, or ***ordinal***
+- **association**
+  - pair of ***value***s with one pointing to the other
+- **application**
+  - collection of ***module***s, including exactly one ***main module***
+- **assignment**
+  - ***statement*** which sets the ***value*** of a ***datum***
+- **compilation**
+  - process which transforms ***compilation units*** into modules
+- **compilation unit**
+  - a single text file of Ronin source code
+- **context**
+  - hierarchical structure of containers of ***datatype***s, ***function***s, and ***data*** used during the resolution phase of compilation
+- **datatype**
+  - ***definition*** which can be composed with other ***datatype***s via intersection and union
+- **datum** or **data**
+  - value(s) held in memory which conform(s) to a particular ***datatype*** definition
+- **declaration**
+  - naming and instantiation of a ***datum***, ***function***, or ***datatype***
+- **definition**
+  - aggregate of ***statement***s used for the ***initialization*** of a ***datatype*** or as the ***instruction***s and local data of a ***function***
+- **delegate**
+  - ***datum*** of ***datatype*** ***function***
+- **function**
+  - ***definition*** which can be resolved to an anonymous ***datum***   
+- **initialization**
+  - ***function*** which is executed whenever a ***datum*** conforming to a particular ***datatype*** is instantiated to set its initial values
+- **input**
+  - ***value*** or ***assignment***
+- **instruction**
+  - ***function*** or ***assignment***
+- **lexicon**
+  - the set of all possible tokens  
+- **literal**
+  - ***constant*** ***data*** specified inline in the ***source code***
+- **list**
+  - aggregate of ***value***  
+- **lookup**
+  - aggregate of ***association***s, used to map keys to values
+- **main module**
+  - root ***module*** which acts as the entry point for ***application*** execution
+- **module**
+  - self-contained package in the form of a binary file included in an ***application***
+- **ordinal**
+  - aggregate of ***value*** used to extract a ***value*** from a ***list*** or ***lookup***
+- **statement**
+  - ***instruction***, importing or joinging a ***module***, or an anonymous ***scope***
+- **token**
+  - a constrained, ordered set of unicode characters of a particular type
+- **value**
+  - ***anonymous*** or ***reference***  
