@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace Ronin.Lexicon.Literals;
 
-internal class Money : Literal
+internal class Currency : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
@@ -30,6 +30,6 @@ internal class Money : Literal
 
         if (lexer[length - 1] is '.') --length;
 
-        return new Money { Memory = lexer.Commit(length) };
+        return new Currency { Memory = lexer.Commit(length) };
     }
 }
