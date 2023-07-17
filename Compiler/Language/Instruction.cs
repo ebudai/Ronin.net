@@ -44,8 +44,6 @@ internal class InitializeDatum : Instruction
 internal partial class Errors
 {
     public static List<Error> InstructionNotAllowedHere(Statement statement) => new() { new InstructionNotAllowedHere { Statement = statement } };
-    public static List<Error> NotAnInstruction(Statement statement) => new() { new NotAnInstruction { Statement = statement } };
 }
 
 internal class InstructionNotAllowedHere : Error { }
-internal class NotAnInstruction : Error { }

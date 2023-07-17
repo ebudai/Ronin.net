@@ -11,7 +11,7 @@ internal class Datatype : Semantic
 
     public Datatype() { }    
 
-    public Datatype(DatatypeDeclaration declaration, Context context)
+    public Datatype(DatatypeDeclaration declaration, Context context) : base(declaration)
     {
         Algebra = new UnresolvedAlgebra
         {

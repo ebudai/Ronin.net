@@ -4,7 +4,7 @@ namespace Ronin.Language;
 
 internal class Semantic
 {
-    public Syntax Source { get; init; }
+    public Syntax Source { get; }
     public List<Error> Errors { get; } = new();
 
     public Semantic() { }

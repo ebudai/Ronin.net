@@ -130,7 +130,7 @@ internal class Context : Semantic
 
     private List<Error> Declare(DatumDeclaration declaration)
     {
-        Identifier identifier = new(declaration.Name, this);
+        Identifier identifier = new(new Name(declaration.Name), this);
         Datum unresolved = new(declaration, this);
         Instructions.Add(new InitializeDatum(unresolved));
         return Add(identifier, unresolved, declaration);
@@ -200,12 +200,12 @@ internal class Context : Semantic
 
     private List<Semantic> Find(Reference reference, Anonymous anonymous, int depth) => anonymous switch
     {
-        Literal literal => Find(reference, literal, depth),
+        Inline literal => Find(reference, literal, depth),
         Inputs inputs => Find(reference, inputs, depth),
         _ => new(),
     };
 
-    private List<Semantic> Find(Reference reference, Literal literal, int depth)
+    private List<Semantic> Find(Reference reference, Inline literal, int depth)
     {
         if (reference.Components.Count >= depth) return new();
 

@@ -9,7 +9,8 @@ internal class Parameter : Semantic
 
     public Parameter(DatumDeclaration datum, Context context) : base(datum)
     {
-        foreach (var component in datum.Name.Components)
+        Name name = new(datum.Name);
+        foreach (var component in name.Components)
         {
             Words words = component;
             if (words is null)

@@ -7,7 +7,7 @@ internal class Result : Semantic
 {
     public Result(Value value, Context context) : base(value) => this.value = value switch
     {
-        Literal literal => literal,
+        Inline literal => literal,
         Grammar.Delegate @delegate => new Lambda(@delegate, context),
         Lookup lookup => new Associations(lookup, context),
         Inputs inputs => new Results(inputs, context),
@@ -17,7 +17,7 @@ internal class Result : Semantic
         _ => Fail(value)
     };
 
-    public static implicit operator Literal(Result result) => result.value as Literal;
+    public static implicit operator Inline(Result result) => result.value as Inline;
     public static implicit operator Lambda(Result result) => result.value as Lambda;
     public static implicit operator Associations(Result result) => result.value as Associations;
     public static implicit operator Results(Result result) => result.value as Results;
@@ -34,7 +34,7 @@ internal class Result : Semantic
         if (obj is not Result result) return false;
         return value switch
         {
-            Literal literal => result.value is Literal other && literal.Source.Equals(other.Source),
+            Inline literal => result.value is Inline other && literal.Source.Equals(other.Source),
             Lambda lambda => result.value is Lambda other && lambda.Source == other.Source,
             Associations associations => result.value is Associations other && associations.Source == other.Source,
             Results results => result.value is Results other && results.Source == other.Source,
