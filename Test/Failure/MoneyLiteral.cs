@@ -15,7 +15,7 @@ public class MoneyLiteral
         Lexer lexer = new(number);
         var lexed = Literal.Lex(ref lexer);
 
-        Assert.IsNotType<Money>(lexed);
+        Assert.IsNotType<Currency>(lexed);
     }
 
     [Fact(DisplayName = "doesn't continue with a number")]
@@ -35,7 +35,7 @@ public class MoneyLiteral
         const string literal = "$9.";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as Money;
+        var money = Literal.Lex(ref lexer) as Currency;
 
         Assert.Equal(literal[..^1], money?.Memory.ToArray());
     }
@@ -46,7 +46,7 @@ public class MoneyLiteral
         const string literal = "$9.2v5";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as Money;
+        var money = Literal.Lex(ref lexer) as Currency;
 
         Assert.Equal(literal[..^2], money?.Memory.ToArray());
     }
@@ -66,7 +66,7 @@ public class MoneyLiteral
         const string literal = "$9.25.4";
 
         Lexer lexer = new(literal);
-        var money = Literal.Lex(ref lexer) as Money;
+        var money = Literal.Lex(ref lexer) as Currency;
 
         Assert.Equal(literal[..^2], money?.Memory.ToArray());
     }

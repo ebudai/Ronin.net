@@ -24,7 +24,7 @@ public class NumberLiteral
         const string literal = "9.";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -35,7 +35,7 @@ public class NumberLiteral
         const string literal = "9.2v5";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^2], number?.Memory.ToArray());
     }
@@ -46,7 +46,7 @@ public class NumberLiteral
         const string literal = "9.2.5";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^2], number?.Memory.ToArray());
     }
@@ -57,7 +57,7 @@ public class NumberLiteral
         const string literal = "9,22.33";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..1], number?.Memory.ToArray());
     }
