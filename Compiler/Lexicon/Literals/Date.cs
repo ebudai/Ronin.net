@@ -26,3 +26,5 @@ internal class Date : Literal
 
     private const int Length = 10;
 }
+
+//TODO allow year to be one or more digits
