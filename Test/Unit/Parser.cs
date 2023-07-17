@@ -142,7 +142,7 @@ public class Parsing : ParsingTests
         var datatype = statements[5] as Ronin.Grammar.DatatypeDeclaration;
         Assert.NotNull(datatype);
 
-        var scalar = statements[6] as Ronin.Grammar.Literal;
+        var scalar = statements[6] as Ronin.Grammar.Inline;
         Assert.NotNull(scalar);
 
         var arguments = statements[7] as Ronin.Grammar.Compound.Inputs;

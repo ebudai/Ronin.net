@@ -11,7 +11,7 @@ namespace Ronin.Grammar;
 internal class Anonymous : Value, IParsableSyntax<Anonymous>
 {
     public new static Anonymous Parse(ref Parser current)
-        => Literal.Parse(ref current)
+        => Inline.Parse(ref current)
         ?? Delegate.Parse(ref current)
         ?? Lookup.Parse(ref current)        
         ?? Inputs.Parse(ref current)

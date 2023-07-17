@@ -11,8 +11,8 @@ internal class Literal : Token
         => Character.Lex(ref lexer)
         ?? Date.Lex(ref lexer)
         ?? Time.Lex(ref lexer)
-        ?? Money.Lex(ref lexer)
-        ?? Number.Lex(ref lexer)
+        ?? Currency.Lex(ref lexer)
+        ?? Numeric.Lex(ref lexer)
         ?? Text.Lex(ref lexer)
         ?? Url.Lex(ref lexer);
 }

@@ -108,12 +108,12 @@ public class Ordinal : ParsingTests
         Assert.Equal(3, arguments?.Values?.Count);
 
         {
-            var scalar = arguments.Values[0] as Ronin.Grammar.Literal;
+            var scalar = arguments.Values[0] as Ronin.Grammar.Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = arguments.Values[1] as Ronin.Grammar.Literal;
+            var scalar = arguments.Values[1] as Ronin.Grammar.Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 

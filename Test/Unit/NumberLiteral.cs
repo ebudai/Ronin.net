@@ -13,7 +13,7 @@ public class NumberLiteral
         const string literal = "123,456.7890";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal, number?.Memory.ToArray());
     }
@@ -24,7 +24,7 @@ public class NumberLiteral
         const string literal = "1234.4567;";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -35,7 +35,7 @@ public class NumberLiteral
         const string literal = "1234.4567,";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -46,7 +46,7 @@ public class NumberLiteral
         const string literal = "1234.4567(";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -57,7 +57,7 @@ public class NumberLiteral
         const string literal = "1234.4567)";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -68,7 +68,7 @@ public class NumberLiteral
         const string literal = "1234.4567[";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -79,7 +79,7 @@ public class NumberLiteral
         const string literal = "1234.4567]";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -90,7 +90,7 @@ public class NumberLiteral
         const string literal = "1234.4567{";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -101,7 +101,7 @@ public class NumberLiteral
         const string literal = "1234.4567}";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -112,7 +112,7 @@ public class NumberLiteral
         const string literal = "1234.4567'";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -123,7 +123,7 @@ public class NumberLiteral
         const string literal = "1234.4567\"";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }
@@ -134,7 +134,7 @@ public class NumberLiteral
         const string literal = "1234.4567 ";
 
         Lexer lexer = new(literal);
-        var number = Literal.Lex(ref lexer) as Number;
+        var number = Literal.Lex(ref lexer) as Numeric;
 
         Assert.Equal(literal[..^1], number?.Memory.ToArray());
     }

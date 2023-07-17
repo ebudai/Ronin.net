@@ -29,7 +29,7 @@ public class Assignment : ParsingTests
         Ronin.Grammar.Words name = assignment.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
-        var scalar = assignment.Value as Ronin.Grammar.Literal;
+        var scalar = assignment.Value as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -55,7 +55,7 @@ public class Assignment : ParsingTests
 
         Assert.IsType<Assign>(assignment.Type);
 
-        var scalar = assignment.Value as Ronin.Grammar.Literal;
+        var scalar = assignment.Value as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -81,7 +81,7 @@ public class Assignment : ParsingTests
 
         Assert.IsType<AddAssign>(assignment.Type);
 
-        var scalar = assignment.Value as Ronin.Grammar.Literal;
+        var scalar = assignment.Value as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -133,7 +133,7 @@ public class Assignment : ParsingTests
 
         Assert.IsType<DivideAssign>(assignment.Type);
 
-        var scalar = assignment.Value as Ronin.Grammar.Literal;
+        var scalar = assignment.Value as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -159,7 +159,7 @@ public class Assignment : ParsingTests
 
         Assert.IsType<MultiplyAssign>(assignment.Type);
 
-        var scalar = assignment.Value as Ronin.Grammar.Literal;
+        var scalar = assignment.Value as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -211,7 +211,7 @@ public class Assignment : ParsingTests
 
         Assert.IsType<SubtractAssign>(assignment.Type);
 
-        var scalar = assignment.Value as Ronin.Grammar.Literal;
+        var scalar = assignment.Value as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

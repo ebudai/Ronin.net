@@ -42,7 +42,7 @@ public class References : ParsingTests
             var arguments = ((Anonymous)reference.Components[2]) as Ronin.Grammar.Compound.Inputs;
             Assert.Single(arguments?.Values);
             Value value = arguments.Values[0];
-            var scalar = value as Ronin.Grammar.Literal;
+            var scalar = value as Ronin.Grammar.Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
