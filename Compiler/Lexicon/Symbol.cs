@@ -9,8 +9,8 @@ internal class Symbol : Token
 {
     public static Symbol Lex(ref Lexer lexer)
     {
-        if (Punctuation.Lex(ref lexer) is Punctuation punctuation) return punctuation;
         if (Interval.Lex(ref lexer) is Interval interval) return interval;
+        if (Punctuation.Lex(ref lexer) is Punctuation punctuation) return punctuation;
         if (CharacterDelimiter.Lex(ref lexer) is CharacterDelimiter character) return character;
 
         if (lexer.IsEmpty) return null;

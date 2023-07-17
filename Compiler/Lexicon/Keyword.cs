@@ -10,6 +10,7 @@ internal class Keyword : Word
         => Keywords.Compiled.Lex(ref lexer)
         ?? Keywords.Constant.Lex(ref lexer)
         ?? Keywords.Datatype.Lex(ref lexer)
+        ?? Keywords.Extends.Lex(ref lexer)
         ?? Keywords.ForEach.Lex(ref lexer)
         ?? Keywords.Function.Lex(ref lexer)
         ?? Keywords.Import.Lex(ref lexer)
@@ -18,7 +19,6 @@ internal class Keyword : Word
         ?? Keywords.Persistent.Lex(ref lexer)
         ?? Keywords.Shared.Lex(ref lexer)
         ?? Keywords.Optional.Lex(ref lexer)
-        ?? Keywords.Variable.Lex(ref lexer)
-        ?? Keywords.Extends.Lex(ref lexer)
+        ?? Keywords.Variable.Lex(ref lexer)        
         ?? null;
 }
