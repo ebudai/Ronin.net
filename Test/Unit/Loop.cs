@@ -34,9 +34,7 @@ public class Loop : ParsingTests
         Parser parser = new(tokens);
         var loop = Ronin.Grammar.Loop.Parse(ref parser);
 
-        Assert.Single(loop?.Header?.Name?.Components);
-        Ronin.Grammar.Words name = loop.Header.Name.Components[0];
-        Assert.Equal(3, name?.Source.Length);
+        Assert.Equal(3, loop.Header.Name?.Source.Length);
         
         Assert.Single(loop.Definition?.Values);
         var assignment = loop.Definition.Values[0] as Ronin.Grammar.Assignment;

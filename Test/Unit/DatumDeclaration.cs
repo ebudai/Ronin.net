@@ -33,19 +33,10 @@ public class DatumDeclaration : ParsingTests
         Assert.False(datum.Modifiers.Is<Shared>());
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
-
-        {
-            Assert.Single(datum.Name?.Components);
-            Ronin.Grammar.Words name = datum.Name.Components[0];
-            Assert.Equal(2, name?.Source.Length);
-        }
-
-        {
-            Assert.Single(datum.Datatype?.Components);
-            Ronin.Grammar.Words name = datum.Datatype.Components[0];
-            Assert.Equal(1, name?.Source.Length);
-        }
-
+        Assert.Equal(2, datum.Name?.Source.Length);
+        Assert.Single(datum.Datatype?.Components);
+        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Assert.Equal(1, name?.Source.Length);
         Assert.Null(datum.Initializer);
     }
 
@@ -74,7 +65,7 @@ public class DatumDeclaration : ParsingTests
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
         
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Words name = datum.Datatype.Components[0];
@@ -107,7 +98,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Compiled>());
         
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Words name = datum.Datatype.Components[0];
@@ -140,7 +131,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Persistent>());
 
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Words name = datum.Datatype.Components[0];
@@ -173,7 +164,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Shared>());
 
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Words name = datum.Datatype.Components[0];
@@ -205,7 +196,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Optional>());
 
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
         
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Words name = datum.Datatype.Components[0];
@@ -239,7 +230,7 @@ public class DatumDeclaration : ParsingTests
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Null(datum.Datatype);
 
@@ -276,13 +267,13 @@ public class DatumDeclaration : ParsingTests
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Words name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
-        var scalar = datum.Initializer as Ronin.Grammar.Literal;
+        var scalar = datum.Initializer as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

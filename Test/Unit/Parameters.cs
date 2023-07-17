@@ -39,7 +39,7 @@ public class Parameters : ParsingTests
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
         Ronin.Grammar.Words name = datum.Datatype.Components[0];
@@ -82,7 +82,7 @@ public class Parameters : ParsingTests
             Assert.False(datum.Modifiers.Is<Optional>());
             Assert.False(datum.Modifiers.Is<Persistent>());
 
-            Assert.Single(datum.Name?.Components);
+            Assert.Equal(1, datum.Name?.Source.Length);
         
             Assert.Single(datum.Datatype?.Components);
             Ronin.Grammar.Words name = datum.Datatype.Components[0];

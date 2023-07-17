@@ -34,14 +34,14 @@ public class Definition : ParsingTests
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Single(datum.Name?.Components);
+        Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Shared>());
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
-        var scalar = datum.Initializer as Ronin.Grammar.Literal;
+        var scalar = datum.Initializer as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

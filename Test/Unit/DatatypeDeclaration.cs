@@ -70,7 +70,7 @@ public class DatatypeDeclaration : ParsingTests
         {
             var cash = datatype.Definition.Values[0] as Ronin.Grammar.DatumDeclaration;
             Assert.IsType<Variable>(cash?.Mutability);
-            Assert.Single(cash.Name?.Components);
+            Assert.Equal(1, cash.Name?.Source.Length);
             Assert.Single(cash.Datatype?.Components);
             Ronin.Grammar.Words type = cash.Datatype.Components[0];
             Assert.Equal(1, type?.Source.Length);
@@ -79,7 +79,7 @@ public class DatatypeDeclaration : ParsingTests
         {
             var debt = datatype.Definition.Values[1] as Ronin.Grammar.DatumDeclaration;
             Assert.IsType<Variable>(debt?.Mutability);
-            Assert.Single(debt.Name?.Components);
+            Assert.Equal(1, debt.Name?.Source.Length);
             Assert.Single(debt.Datatype?.Components);
             Ronin.Grammar.Words type = debt.Datatype.Components[0];
             Assert.Equal(1, type?.Source.Length);

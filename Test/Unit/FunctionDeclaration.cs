@@ -46,7 +46,7 @@ public class FunctionDeclaration : ParsingTests
             
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
-            Assert.Single(parameter?.Name?.Components);
+            Assert.Equal(1, parameter?.Name?.Source.Length);
 
             Assert.Single(parameter.Datatype?.Components);
             Ronin.Grammar.Words type = parameter.Datatype.Components[0];
@@ -109,7 +109,7 @@ public class FunctionDeclaration : ParsingTests
             Ronin.Grammar.Compound.Parameters parameters = function.Name.Components[1];
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
-            Assert.Single(parameter.Name?.Components);
+            Assert.Equal(1, parameter.Name?.Source.Length);
 
             Assert.Single(parameter.Datatype?.Components);
             Ronin.Grammar.Words type = parameter.Datatype.Components[0];
