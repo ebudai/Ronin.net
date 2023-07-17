@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Ronin.Lexicon.Literals;
 
-internal partial class Number : Literal
+internal partial class Numeric : Literal
 {
     public static new Token Lex(ref Lexer lexer)
     {
@@ -23,10 +23,10 @@ internal partial class Number : Literal
         var number = lexer[..length].ToString();
 
         var match = NumbersWithCommas().Match(number);
-        if (match.Success) return new Number { Memory = lexer.Commit(match.Length) };
+        if (match.Success) return new Numeric { Memory = lexer.Commit(match.Length) };
 
         match = NumbersWithoutCommas().Match(number);
-        return new Number { Memory = lexer.Commit(match.Length) };
+        return new Numeric { Memory = lexer.Commit(match.Length) };
     }
 
     [GeneratedRegex("[0-9]+([.][0-9]+)?", RegexOptions.Compiled | RegexOptions.Singleline)] 
