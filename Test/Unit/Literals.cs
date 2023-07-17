@@ -15,7 +15,7 @@ public class Literals
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(ref lexer) as Date;
 
-        Assert.Equal(literal.ToArray(), lexed?.Memory.ToArray());
+        Assert.Equal(literal.ToArray(), lexed?.Memory.ToString());
     }
 
     [Fact(DisplayName = "basic char")]
@@ -26,7 +26,7 @@ public class Literals
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(ref lexer) as Character;
 
-        Assert.Equal(literal, lexed?.Memory.ToArray());
+        Assert.Equal(literal, lexed?.Memory.ToString());
     }
 
     [Fact(DisplayName = "unicode")]
@@ -37,7 +37,7 @@ public class Literals
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(ref lexer) as Character;
 
-        Assert.Equal(literal, lexed?.Memory.ToArray());
+        Assert.Equal(literal, lexed?.Memory.ToString());
     }
 
     [Fact(DisplayName = "basic text")]
@@ -48,7 +48,7 @@ public class Literals
         Lexer lexer = new(literal);
         var text = Literal.Lex(ref lexer) as Text;
 
-        Assert.Equal(literal, text?.Memory.ToArray());
+        Assert.Equal(literal, text?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with escaped quotes")]
@@ -59,7 +59,7 @@ public class Literals
         Lexer lexer = new(literal);
         var text = Literal.Lex(ref lexer) as Text;
 
-        Assert.Equal(literal, text?.Memory.ToArray());
+        Assert.Equal(literal, text?.Memory.ToString());
     }
 
     [Fact(DisplayName = "multiline")]
@@ -70,7 +70,7 @@ public class Literals
         Lexer lexer = new(literal);
         var text = Literal.Lex(ref lexer) as Text;
 
-        Assert.Equal(literal, text?.Memory.ToArray());
+        Assert.Equal(literal, text?.Memory.ToString());
     }
 
     [Fact(DisplayName = "value")]
@@ -81,7 +81,7 @@ public class Literals
         Lexer lexer = new(literal);
         var text = Literal.Lex(ref lexer) as Text;
 
-        Assert.Equal(literal, text?.Memory.ToArray());
+        Assert.Equal(literal, text?.Memory.ToString());
     }
 
     [Fact(DisplayName = "basic url")]
@@ -92,17 +92,28 @@ public class Literals
         Lexer lexer = new(literal);
         var url = Literal.Lex(ref lexer) as Url;
 
-        Assert.Equal(literal, url?.Memory.ToArray());
+        Assert.Equal(literal, url?.Memory.ToString());
     }
 
-    [Fact(DisplayName = "terminated url")]
-    public void TerminatedURL()
+    [Fact(DisplayName = "terminated url eof")]
+    public void TerminatedUrlEof()
     {
         const string literal = "http://test.com;";
 
         Lexer lexer = new(literal);
         var url = Literal.Lex(ref lexer) as Url;
 
-        Assert.Equal(literal[..^1], url?.Memory.ToArray());
+        Assert.Equal(literal[..^1], url?.Memory.ToString());
+    }
+
+    [Fact(DisplayName = "terminated url")]
+    public void TerminatedUrl()
+    {
+        const string literal = "http://test.com; ";
+
+        Lexer lexer = new(literal);
+        var url = Literal.Lex(ref lexer) as Url;
+
+        Assert.Equal(literal[..^2], url?.Memory.ToString());
     }
 }
