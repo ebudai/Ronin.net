@@ -17,9 +17,9 @@ namespace Ronin.Grammar;
 ///     let x = 7,000,876 + cash amount;
 ///             ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Literal : Anonymous, IParsableSyntax<Literal>
+internal class Inline : Anonymous, IParsableSyntax<Inline>
 {
-    public new static Literal Parse(ref Parser current)
+    public new static Inline Parse(ref Parser current)
     {
         Parser parser = current;
 
@@ -31,6 +31,6 @@ internal class Literal : Anonymous, IParsableSyntax<Literal>
 
         if (parser.Token == current.Token) return null;
 
-        return new Literal { Source = parser.Commit(ref current) };
+        return new Inline { Source = parser.Commit(ref current) };
     }
 }
