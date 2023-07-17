@@ -3,6 +3,7 @@
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon.Symbols;
 using Ronin.Compiler;
+using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Grammar;
 
@@ -27,7 +28,7 @@ internal class FunctionDeclaration : Statement, IParsableSyntax<FunctionDeclarat
     {
         Parser parser = current;
 
-        if (parser.TryAdvance<Lexicon.Keywords.Function>() is false) return null;
+        if (parser.TryAdvance<Function>() is false) return null;
 
         if (Name.Parse(ref parser) is not Name name) return null;
 

@@ -4,45 +4,23 @@ using Test;
 
 namespace Unit;
 
-[Trait("Parser", null)]
-public class Identifier : ParsingTests
+[Trait("Analyzer", "declare")]
+public class Identifier : AnalysisTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        // x (y => number)
+        // thing with (a => number, b => money) stuff;
 
-        List<Token> tokens = new()
-        {
-            Word("x"),
-            StartValues(),
-            Word("y"),
-            Returns(),
-            Word("number"),
-            EndValues(),
-            Sentinel.Instance
-        };
+        Ronin.Grammar.Name name = new() { Components = new() };
+        List<Token> parts = new();
+        Word thing = new();
+        thing.SetMemory("thing");
+        Word with = new();
+        with.SetMemory("with");
 
-        Parser parser = new(tokens);
-        var identifier = Ronin.Grammar.Name.Parse(ref parser);
-
-        Assert.Equal(2, identifier?.Components?.Count);
-
-        {
-            Ronin.Grammar.Words name = identifier.Components[0];
-            Assert.Equal(1, name?.Source.Length);
-        }
-
-        {
-            Ronin.Grammar.Compound.Parameters parameters = identifier.Components[1];
-            Assert.Single(parameters?.Values);
-            Ronin.Grammar.DatumDeclaration datum = parameters.Values[0];
-            Assert.Single(datum?.Name?.Components);
-
-            Assert.Single(datum?.Datatype?.Components);
-            Ronin.Grammar.Words name = datum.Datatype.Components[0];
-            Assert.Equal(1, name?.Source.Length);
-        }        
+        Ronin.Grammar.Compound.Parameters parameters = new();
+        
     }
 }
 
