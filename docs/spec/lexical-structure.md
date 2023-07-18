@@ -26,7 +26,6 @@ Specific ***word***s which have pre-defined meaning by the compiler.  They are a
 - `function`
 - `hidden`
 - `import`
-- `in`
 - `let`
 - `optional`
 - `part of`
