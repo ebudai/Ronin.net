@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Ronin;
 
 [ExcludeFromCodeCoverage]
-internal class Analyzer
+internal class Semantics
 {
     public Context Define(Definition scope) => Context.Global.Define(scope, canBeNamed: true);
 
