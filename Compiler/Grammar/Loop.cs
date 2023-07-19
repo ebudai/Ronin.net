@@ -19,7 +19,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Loop : Syntax, IParsableSyntax<Loop>
 {
-    public DatumDeclaration Header { get; init; }
+    public Datum.Declaration Header { get; init; }
     public Reference List { get; init; }
     public Definition Definition { get; init; }
 
@@ -29,7 +29,7 @@ internal class Loop : Syntax, IParsableSyntax<Loop>
 
         if (parser.TryAdvance<ForEach>() is false) return null;
 
-        if (DatumDeclaration.Parse(ref parser) is not DatumDeclaration header) return null;
+        if (Datum.Declaration.Parse(ref parser) is not Datum.Declaration header) return null;
 
         var list = header.Datatype is null ? null : Reference.Parse(ref parser);
 

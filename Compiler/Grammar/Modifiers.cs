@@ -7,7 +7,7 @@ using Ronin.Lexicon.Keywords;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Modifies a <see cref="DatatypeDeclaration"/> used to restrict a <see cref="DatumDeclaration"/> or a <see cref="FunctionDeclaration"/>
+///     Modifies a <see cref="DatatypeDeclaration"/> used to restrict a <see cref="Datum"/> or a <see cref="FunctionDeclaration"/>
 /// </summary>
 /// 
 /// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Shared"/>, and <see cref="Optional"/></remarks>

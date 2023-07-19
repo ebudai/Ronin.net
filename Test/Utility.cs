@@ -195,16 +195,16 @@ public class ParsingTests
         return variable;
     }
 
-    internal static Function Function()
+    internal static Ronin.Lexicon.Keywords.Function Function()
     {
-        Function function = new();
+        Ronin.Lexicon.Keywords.Function function = new();
         function.SetMemory(Ronin.Lexicon.Keywords.Function.keyword);
         return function;
     }
 
-    internal static Datatype Datatype()
+    internal static Ronin.Lexicon.Keywords.Datatype Datatype()
     {
-        Datatype datatype = new();
+        Ronin.Lexicon.Keywords.Datatype datatype = new();
         datatype.SetMemory(Ronin.Lexicon.Keywords.Datatype.keyword);
         return datatype;
     }
@@ -275,21 +275,21 @@ public class ParsingTests
 
 public class AnalysisTests
 {
-    internal static Name Name(string name)
+    internal static Identifier Name(string name)
     {
         Word word = new();
         word.SetMemory(name);
-        Words words = new() { Source = new[] { word } };
-        return new Name()
+        Name words = new() { Source = new[] { word } };
+        return new Identifier()
         {
-            Components = new() { new Name.Component { value = words } }
+            Components = new() { new Identifier.Component { value = words } }
         };
     }
 
-    internal static Words Words(string name)
+    internal static Name Words(string name)
     {
         List<Word> words = new();
         foreach (var word in name.Split(new[] { ' ' })) words.Add(new(word));
-        return new Words { Source = words.ToArray() };
+        return new Name { Source = words.ToArray() };
     }
 }

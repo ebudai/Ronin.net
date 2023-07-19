@@ -3,7 +3,7 @@ using Ronin.Grammar.Compound;
 
 namespace Ronin.Language;
 
-internal class Context : Semantic
+/*internal class Context : Semantic
 {
     public static Context Global { get; } = new();
     public static Dictionary<Words, Context> Named { get; } = new();
@@ -34,7 +34,7 @@ internal class Context : Semantic
                 Assignment assigment => context.Assign(assigment),
                 Reference reference => context.Call(reference),
                 Anonymous value => context.Call(value),
-                DatumDeclaration datum => context.Declare(datum),
+                Grammar.Datum datum => context.Declare(datum),
                 Scope scope => context.Call(scope),
                 Unknown unknown => Error.UnknownSyntax(statement),
                 _ => Error.UnhandledSubclass<Statement>(statement)
@@ -114,21 +114,21 @@ internal class Context : Semantic
 
     private List<Error> Use(Import import) => Imports.Add(import.Name) ? Error.None : Error.ModuleAlreadyImported(import);
 
-    private List<Error> Declare(FunctionDeclaration declaration)
+    private List<Error> Declare(Function.Declaration declaration)
     {
         Identifier identifier = new(declaration.Name, this);
         Function function = new(declaration, this);
         return Add(identifier, function, declaration);
     }
 
-    private List<Error> Declare(DatatypeDeclaration declaration)
+    private List<Error> Declare(Datatype.Declaration declaration)
     {
         Identifier identifier = new(declaration.Name, this);
         Datatype datatype = new(declaration, this);
         return Add(identifier, datatype, declaration);
     }
 
-    private List<Error> Declare(DatumDeclaration declaration)
+    private List<Error> Declare(Grammar.Datum declaration)
     {
         Identifier identifier = new(new Name(declaration.Name), this);
         Datum unresolved = new(declaration, this);
@@ -288,4 +288,4 @@ internal class EmptyContextName : Error { }
 internal class CannotJoinNamedContext : Error { }
 internal class ModuleAlreadyImported : Error { }
 internal class ValuesCannotBeStatements : Error { }
-internal class UnknownSyntax : Error { }
+internal class UnknownSyntax : Error { }*/

@@ -2,16 +2,16 @@
 
 namespace Ronin.Language;
 
-internal class Datatype : Semantic
+/*internal class Datatype2 : Semantic
 {
     public bool IsOptional { get; set; }
 
     public Algebra Algebra { get; init; }
     public Context Definition { get; init; }
 
-    public Datatype() { }    
+    public Datatype2() { }    
 
-    public Datatype(DatatypeDeclaration declaration, Context context) : base(declaration)
+    public Datatype2(Datatype.Declaration declaration, Context context) : base(declaration)
     {
         Algebra = new UnresolvedAlgebra
         {
@@ -21,10 +21,10 @@ internal class Datatype : Semantic
         Definition = context.Define(declaration.Definition);
     }
 
-    static Datatype()
+    static Datatype2()
     {
 
-        /*Context fundamental = new() { Parent = Context.Global };
+        *//*Context fundamental = new() { Parent = Context.Global };
         Words me = new() { Source = new[] { new Word("me") } };
 
         Fundamental<char> character = new("character") { Definition = fundamental };
@@ -40,7 +40,7 @@ internal class Datatype : Semantic
         Fundamental<decimal> money = new("money");
         Fundamental<Uri> url = new("url");
         Fundamental<ulong> bits = new("bits");
-        Fundamental<bool> maybe = new("maybe");*/
+        Fundamental<bool> maybe = new("maybe");*//*
     }
 }
 
@@ -66,19 +66,19 @@ internal class UnresolvedAlgebra : Algebra
 {
     public Reference Reference { get; init; }
     public Context Context { get; init; }
-}
+}*/
 
 internal class Fundamental<T> : Datatype
 {
     public Type Type { get; } = typeof(T);
 
-    public Fundamental(string name)
+    public Fundamental(string name) : base(null)
     {
-        base.Definition = Definition;
+        /*base.Definition = Definition;
         Identifier identifier = new(name);
         var errors = Context.Global.Add(identifier, this, null);
-        Errors.AddRange(errors);
+        Errors.AddRange(errors);*/
     }
 
-    private static readonly new Context Definition = new() { Parent = Context.Global };
+    //private static readonly new Context Definition = new() { Parent = Context.Global };
 }

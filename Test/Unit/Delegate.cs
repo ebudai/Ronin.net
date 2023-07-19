@@ -36,7 +36,7 @@ public class Delegate : ParsingTests
         var line = @delegate.Definition?.Values[0] as Ronin.Grammar.Reference;
         Assert.Equal(2, line.Components?.Count);
 
-        Ronin.Grammar.Words name = line.Components[0];
+        Ronin.Grammar.Name name = line.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
         Anonymous scalar = line.Components[1];
@@ -76,7 +76,7 @@ public class Delegate : ParsingTests
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Ronin.Grammar.Words name = line.Components[0];
+            Ronin.Grammar.Name name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -123,7 +123,7 @@ public class Delegate : ParsingTests
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Ronin.Grammar.Words name = line.Components[0];
+            Ronin.Grammar.Name name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -161,7 +161,7 @@ public class Delegate : ParsingTests
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Ronin.Grammar.Words name = line.Components[0];
+            Ronin.Grammar.Name name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -196,7 +196,7 @@ public class Delegate : ParsingTests
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        var datum = statements[0] as Ronin.Grammar.DatumDeclaration;
+        var datum = statements[0] as Ronin.Grammar.Datum.Declaration;
         var @delegate = datum?.Initializer as Ronin.Grammar.Delegate;
         Assert.NotNull(@delegate);
     }

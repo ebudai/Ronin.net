@@ -4,7 +4,7 @@ using Test;
 
 namespace Unit;
 
-[Trait("Analyzer", "declare")]
+/*[Trait("Analyzer", "declare")]
 public class Function : AnalysisTests
 {
     [Fact(DisplayName = "declare")]
@@ -27,14 +27,14 @@ public class Function : AnalysisTests
     [Fact(DisplayName = "member function")]
     public void Member()
     {
-        Ronin.Grammar.DatatypeDeclaration declaration = new()
+        Ronin.Grammar.Datatype.Declaration declaration = new()
         {
             Name = Name("thingy"),
             Definition = new()
             {
                 Values = new() 
                 { 
-                    new Ronin.Grammar.FunctionDeclaration
+                    new Ronin.Grammar.Function.Declaration
                     {
                         Name = Name("method"),
                         Definition = new()
@@ -43,7 +43,7 @@ public class Function : AnalysisTests
             }
         };
 
-        Ronin.Language.Datatype type = new(declaration, Context.Global);
+        Ronin.Grammar.Datatype type = new(declaration);
 
         var childrenGetter = typeof(Context).GetProperty("Contents", BindingFlags.Instance | BindingFlags.NonPublic);
         var children = childrenGetter.GetValue(type.Definition) as Dictionary<Ronin.Language.Identifier.Part, List<Semantic>>;
@@ -51,7 +51,7 @@ public class Function : AnalysisTests
         var semantics = children.ElementAt(0).Value;
         Assert.Single(semantics);
         var function = semantics[0] as Ronin.Language.Function;
-        Assert.IsType<UnresolvedDatatype>(function?.Returns);
+        Assert.IsType<Ronin.Grammar.Datatype.Unresolved>(function?.Returns);
         Assert.True(function.Definition.IsEmpty);
     }
-}
+}*/

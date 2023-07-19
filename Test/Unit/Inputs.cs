@@ -30,7 +30,7 @@ public class Inputs : ParsingTests
         Value value = arguments.Values[0];
         var reference = value as Reference;
         Assert.Single(reference?.Components);
-        Ronin.Grammar.Words name = reference.Components[0];
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -58,7 +58,7 @@ public class Inputs : ParsingTests
             Value value = arguments.Values[0];
             var reference = value as Reference;
             Assert.Single(reference?.Components);
-            Ronin.Grammar.Words name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -66,7 +66,7 @@ public class Inputs : ParsingTests
             Value value = arguments.Values[1];
             var reference = value as Reference;
             Assert.Single(reference?.Components);
-            Ronin.Grammar.Words name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
     }
@@ -126,7 +126,7 @@ public class Inputs : ParsingTests
             Value value = arguments.Values[2];
             var reference = value as Reference;
             Assert.Single(reference?.Components);
-            Ronin.Grammar.Words name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
     }
@@ -163,7 +163,7 @@ public class Inputs : ParsingTests
             Value value = arguments.Values[0];
             var reference = value as Reference;
             Assert.Single(reference?.Components);
-            Ronin.Grammar.Words name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 

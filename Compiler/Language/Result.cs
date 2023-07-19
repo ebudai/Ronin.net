@@ -3,7 +3,7 @@ using Ronin.Grammar.Compound;
 
 namespace Ronin.Language;
 
-internal class Result : Semantic
+/*internal class Result : Semantic
 {
     public Result(Value value, Context context) : base(value) => this.value = value switch
     {
@@ -93,4 +93,4 @@ internal class Results : Semantic
     {
         foreach (var value in ordinal.Values) Values.Add(new Result(value, context));
     }
-}
+}*/

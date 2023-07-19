@@ -21,7 +21,7 @@ public class Name : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var name = Ronin.Grammar.Words.Parse(ref parser);
+        var name = Ronin.Grammar.Name.Parse(ref parser);
 
         Assert.Equal(3, name?.Source.Length);
     }
@@ -44,7 +44,7 @@ public class Name : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var name = Ronin.Grammar.Name.Parse(ref parser);
+        var name = Ronin.Grammar.Identifier.Parse(ref parser);
 
         Assert.Equal(4, name?.Components.Count);
     }

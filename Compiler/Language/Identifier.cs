@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Ronin.Language;
 
-internal partial class Identifier
+/*internal partial class Identifier
 {
     public List<Part> Parts { get; init; } = new();
 
@@ -72,4 +72,4 @@ internal partial class Error
 
 internal class IdentifierAlreadyExists : Error { }
 internal class AnonymousIdentifier : Error { }
-internal class DataNameCannotIncludeParameters : Error { }
+internal class DataNameCannotIncludeParameters : Error { }*/

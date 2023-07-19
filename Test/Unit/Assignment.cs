@@ -26,7 +26,7 @@ public class Assignment : ParsingTests
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Words name = assignment.Reference.Components[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         var scalar = assignment.Value as Ronin.Grammar.Inline;
@@ -50,7 +50,7 @@ public class Assignment : ParsingTests
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Words name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.IsType<Assign>(assignment.Type);
@@ -76,7 +76,7 @@ public class Assignment : ParsingTests
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Words name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.IsType<AddAssign>(assignment.Type);
@@ -102,7 +102,7 @@ public class Assignment : ParsingTests
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Words name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.IsType<AndAssign>(assignment.Type);
@@ -128,7 +128,7 @@ public class Assignment : ParsingTests
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Words name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.IsType<DivideAssign>(assignment.Type);
@@ -154,7 +154,7 @@ public class Assignment : ParsingTests
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Words name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.IsType<MultiplyAssign>(assignment.Type);
@@ -180,7 +180,7 @@ public class Assignment : ParsingTests
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Words name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.IsType<OrAssign>(assignment.Type);
@@ -206,7 +206,7 @@ public class Assignment : ParsingTests
         var assignment = Ronin.Grammar.Assignment.Parse(ref parser);
 
         Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Words name = assignment.Reference.Components?[0];
+        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.IsType<SubtractAssign>(assignment.Type);

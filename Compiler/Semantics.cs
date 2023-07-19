@@ -7,7 +7,7 @@ namespace Ronin;
 [ExcludeFromCodeCoverage]
 internal class Semantics
 {
-    public Context Define(Definition scope) => Context.Global.Define(scope, canBeNamed: true);
+    //public Context Define(Definition scope) => Context.Global.Define(scope, canBeNamed: true);
 
     public void Resolve()
     {

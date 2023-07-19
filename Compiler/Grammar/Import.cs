@@ -14,7 +14,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Import : Statement, IParsableSyntax<Import>
 {
-    public Words Name { get; init; }
+    public Name Name { get; init; }
 
     public new static Import Parse(ref Parser current)
     {
@@ -23,7 +23,7 @@ internal class Import : Statement, IParsableSyntax<Import>
         Parser parser = current;
         parser.Advance();
 
-        if (Words.Parse(ref parser) is not Words name) return null;
+        if (Name.Parse(ref parser) is not Name name) return null;
 
         return new Import
         {

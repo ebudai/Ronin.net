@@ -7,7 +7,7 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Instance of a <see cref="FunctionDeclaration"/> which can be treated as a <see cref="DatumDeclaration"/>
+///     Instance of a <see cref="FunctionDeclaration"/> which can be treated as a <see cref="Datum"/>
 /// </summary>
 /// 
 /// <example>
@@ -20,19 +20,19 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Delegate : Anonymous, IParsableSyntax<Delegate>
 {
-    public List<DatumDeclaration> Data { get; init; }
+    public List<Datum.Declaration> Data { get; init; }
     public Definition Definition { get; init; }
 
     public new static Delegate Parse(ref Parser current)
     {
         Parser parser = current;
 
-        List<DatumDeclaration> data;
+        List<Datum.Declaration> data;
 
         var parameters = Parameters.Parse(ref parser);        
         if (parameters is null)
         {
-            if (DatumDeclaration.Parse(ref parser) is not DatumDeclaration datum) return null;
+            if (Datum.Declaration.Parse(ref parser) is not Datum.Declaration datum) return null;
             if (parser.PreviousToken is not Returns) return null;
             data = new() { datum };
         }

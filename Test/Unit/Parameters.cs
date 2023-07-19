@@ -1,7 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Symbols;
 using Test;
 
 namespace Unit;
@@ -30,7 +29,7 @@ public class Parameters : ParsingTests
 
         Assert.Single(parameters?.Values);
 
-        Ronin.Grammar.DatumDeclaration datum = parameters.Values[0];
+        Ronin.Grammar.Datum.Declaration datum = parameters.Values[0];
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -42,7 +41,7 @@ public class Parameters : ParsingTests
         Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -73,7 +72,7 @@ public class Parameters : ParsingTests
         Assert.Equal(2, parameters?.Values?.Count);
 
         {
-            Ronin.Grammar.DatumDeclaration datum = parameters.Values[0];
+            Ronin.Grammar.Datum.Declaration datum = parameters.Values[0];
             
             Assert.Null(datum?.Mutability);
 
@@ -85,12 +84,12 @@ public class Parameters : ParsingTests
             Assert.Equal(1, datum.Name?.Source.Length);
         
             Assert.Single(datum.Datatype?.Components);
-            Ronin.Grammar.Words name = datum.Datatype.Components[0];
+            Ronin.Grammar.Name name = datum.Datatype.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            Ronin.Grammar.DatumDeclaration datum = parameters.Values[1];
+            Ronin.Grammar.Datum.Declaration datum = parameters.Values[1];
 
             Assert.Null(datum?.Mutability);
 
@@ -100,7 +99,7 @@ public class Parameters : ParsingTests
             Assert.False(datum.Modifiers.Is<Persistent>());
 
             Assert.Single(datum.Datatype?.Components);
-            Ronin.Grammar.Words name = datum.Datatype.Components[0];
+            Ronin.Grammar.Name name = datum.Datatype.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
     }

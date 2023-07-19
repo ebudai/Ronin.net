@@ -31,3 +31,23 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
 
     protected internal Syntax value;
 }
+
+internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>, IParsableSyntax<T>
+    where T : CompositeSyntax<T, T0, T1, T2>, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
+{
+    public static new T Parse(ref Parser current)
+    {
+        Parser parser = current;
+
+        var syntax = T0.Parse(ref parser) ?? T1.Parse(ref parser) as Syntax;
+
+        if (syntax is null) return null;
+
+        return new T { value = syntax, Source = parser.Commit(ref current) };
+    }
+
+    public static implicit operator T2(CompositeSyntax<T, T0, T1, T2> value) => value.value as T2;
+}

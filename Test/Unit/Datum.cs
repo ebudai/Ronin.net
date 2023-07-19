@@ -5,7 +5,7 @@ using Test;
 
 namespace Unit;
 
-[Trait("Analyzer", "declare")]
+/*[Trait("Analyzer", "declare")]
 public class Datum : AnalysisTests
 {
     [Fact(DisplayName = "variable")]
@@ -19,7 +19,7 @@ public class Datum : AnalysisTests
         literal.SetMemory(threedollars);
         Value initializer = new Inline { Source = new[] { literal } };
 
-        Ronin.Grammar.DatumDeclaration declaration = new()
+        Ronin.Grammar.Datum declaration = new()
         {
             Mutability = new Variable(),
             Modifiers = new(),
@@ -49,7 +49,7 @@ public class Datum : AnalysisTests
 
         //Value initializer = new Reference { Components =  };
 
-        Ronin.Grammar.DatumDeclaration declaration = new()
+        Ronin.Grammar.Datum declaration = new()
         {
             Mutability = new Reactive(),
             Modifiers = new(),
@@ -75,7 +75,7 @@ public class Datum : AnalysisTests
 
         //Value initializer = new Reference { Components =  };
 
-        Ronin.Grammar.DatumDeclaration declaration = new()
+        Ronin.Grammar.Datum.Declaration declaration = new()
         {
             Mutability = new Constant(),
             Modifiers = new(),
@@ -83,7 +83,7 @@ public class Datum : AnalysisTests
             //Initializer = initializer
         };
 
-        Ronin.Language.Datum datum = new(declaration, Context.Global);
+        Ronin.Grammar.Datum datum = new(declaration);
 
         Assert.Equal(Mutability.Constant, datum?.Mutability);
 
@@ -94,3 +94,4 @@ public class Datum : AnalysisTests
         Assert.IsType<UnresolvedDatatype>(datum.Datatype);
     }
 }
+*/

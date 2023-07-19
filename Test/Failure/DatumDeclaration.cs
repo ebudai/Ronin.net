@@ -22,7 +22,7 @@ public class DatumDeclarations : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = DatumDeclaration.Parse(ref parser);
+        var datum = Datum.Declaration.Parse(ref parser);
         
         Assert.Null(datum);
     }
@@ -40,7 +40,7 @@ public class DatumDeclarations : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = DatumDeclaration.Parse(ref parser);
+        var datum = Datum.Declaration.Parse(ref parser);
         
         Assert.Null(datum);
     }

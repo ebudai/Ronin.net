@@ -22,7 +22,7 @@ public class DatatypeDeclarations : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datatype = DatatypeDeclaration.Parse(ref parser);
+        var datatype = Ronin.Grammar.Datatype.Declaration.Parse(ref parser);
         Assert.Null(datatype);
     }
 }

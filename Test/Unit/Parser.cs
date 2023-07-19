@@ -127,7 +127,7 @@ public class Parsing : ParsingTests
         var partof = statements[0] as Ronin.Grammar.Export;
         Assert.NotNull(partof);
 
-        var datum = statements[1] as Ronin.Grammar.DatumDeclaration;
+        var datum = statements[1] as Ronin.Grammar.Datum.Declaration;
         Assert.NotNull(datum);
 
         var assignment = statements[2] as Ronin.Grammar.Assignment;
@@ -136,10 +136,10 @@ public class Parsing : ParsingTests
         var reference = statements[3] as Ronin.Grammar.Reference;
         Assert.NotNull(reference);
 
-        var function = statements[4] as Ronin.Grammar.FunctionDeclaration;
+        var function = statements[4] as Ronin.Grammar.Function.Declaration;
         Assert.NotNull(function);
 
-        var datatype = statements[5] as Ronin.Grammar.DatatypeDeclaration;
+        var datatype = statements[5] as Ronin.Grammar.Datatype.Declaration;
         Assert.NotNull(datatype);
 
         var scalar = statements[6] as Ronin.Grammar.Inline;

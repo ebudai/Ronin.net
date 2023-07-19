@@ -29,7 +29,7 @@ public class References : ParsingTests
         Assert.Equal(3, reference?.Components?.Count);
 
         {
-            Ronin.Grammar.Words name = reference.Components[0];
+            Ronin.Grammar.Name name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 

@@ -23,10 +23,10 @@ public class DatatypeDeclaration : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.DatatypeDeclaration.Parse(ref parser);
+        var datatype = Ronin.Grammar.Datatype.Declaration.Parse(ref parser);
 
         Assert.Single(datatype?.Name?.Components);
-        Ronin.Grammar.Words name = datatype.Name.Components[0];
+        Ronin.Grammar.Name name = datatype.Name.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -59,29 +59,29 @@ public class DatatypeDeclaration : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.DatatypeDeclaration.Parse(ref parser);
+        var datatype = Ronin.Grammar.Datatype.Declaration.Parse(ref parser);
 
         Assert.Single(datatype?.Name?.Components);
-        Ronin.Grammar.Words algebra = datatype.Algebra.Components[0];
+        Ronin.Grammar.Name algebra = datatype.Algebra.Components[0];
         Assert.Equal(2, algebra?.Source.Length);
         
         Assert.Equal(2, datatype.Definition?.Values.Count);
 
         {
-            var cash = datatype.Definition.Values[0] as Ronin.Grammar.DatumDeclaration;
+            var cash = datatype.Definition.Values[0] as Ronin.Grammar.Datum.Declaration;
             Assert.IsType<Variable>(cash?.Mutability);
             Assert.Equal(1, cash.Name?.Source.Length);
             Assert.Single(cash.Datatype?.Components);
-            Ronin.Grammar.Words type = cash.Datatype.Components[0];
+            Ronin.Grammar.Name type = cash.Datatype.Components[0];
             Assert.Equal(1, type?.Source.Length);
         }
 
         {
-            var debt = datatype.Definition.Values[1] as Ronin.Grammar.DatumDeclaration;
+            var debt = datatype.Definition.Values[1] as Ronin.Grammar.Datum.Declaration;
             Assert.IsType<Variable>(debt?.Mutability);
             Assert.Equal(1, debt.Name?.Source.Length);
             Assert.Single(debt.Datatype?.Components);
-            Ronin.Grammar.Words type = debt.Datatype.Components[0];
+            Ronin.Grammar.Name type = debt.Datatype.Components[0];
             Assert.Equal(1, type?.Source.Length);
         }        
     }

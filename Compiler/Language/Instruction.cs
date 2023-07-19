@@ -2,7 +2,7 @@
 
 namespace Ronin.Language;
 
-internal class Instruction : Semantic
+/*internal class Instruction : Semantic
 {
     public Result Result { get; init; }
     public List<Result> Inputs { get; init; } = new();
@@ -46,4 +46,4 @@ internal partial class Errors
     public static List<Error> InstructionNotAllowedHere(Statement statement) => new() { new InstructionNotAllowedHere { Statement = statement } };
 }
 
-internal class InstructionNotAllowedHere : Error { }
+internal class InstructionNotAllowedHere : Error { }*/

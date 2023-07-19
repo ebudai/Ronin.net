@@ -24,13 +24,13 @@ internal class Program
 
         ConcurrentBag<Definition> scopes = new();
         Parse(folder, scopes);
-        var main = Analyze(scopes);
+        //var main = Analyze(scopes);
         //bool isDebug = args.Length is > 1 && args[1] is debug;
         
         
     }
     
-    private static Context Analyze(ConcurrentBag<Definition> scopes)
+    /*private static Context Analyze(ConcurrentBag<Definition> scopes)
     {
         foreach (var scope in scopes)
         {
@@ -38,7 +38,7 @@ internal class Program
         }
 
         return null;
-    }
+    }*/
 
     private static void Parse(DirectoryInfo folder, ConcurrentBag<Definition> scopes)
     {

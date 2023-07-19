@@ -23,7 +23,7 @@ public class Modifiers : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());
         Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Persistent>());
@@ -47,7 +47,7 @@ public class Modifiers : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Persistent>());
         Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());
@@ -71,7 +71,7 @@ public class Modifiers : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Shared>());
         Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());
@@ -95,7 +95,7 @@ public class Modifiers : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Optional>());
         Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());

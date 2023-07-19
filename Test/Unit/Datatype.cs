@@ -3,7 +3,7 @@ using Test;
 
 namespace Unit;
 
-[Trait("Analyzer", "declare")]
+/*[Trait("Analyzer", "declare")]
 public class Datatype : AnalysisTests
 {
     [Fact(DisplayName = "declaration")]
@@ -25,4 +25,4 @@ public class Datatype : AnalysisTests
         Assert.False(datatype.IsOptional);
         Assert.True(datatype.Definition.IsEmpty);
     }
-}
+}*/

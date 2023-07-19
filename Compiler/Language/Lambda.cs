@@ -1,6 +1,6 @@
 ﻿namespace Ronin.Language;
 
-internal class Lambda : Semantic
+/*internal class Lambda : Semantic
 {
     public List<Datum> Data { get; } = new();
     public Context Definition { get; }
@@ -11,3 +11,4 @@ internal class Lambda : Semantic
         Definition = context.Define(@delegate.Definition);
     }
 }
+*/

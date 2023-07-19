@@ -25,7 +25,7 @@ public class DatumDeclaration : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -35,7 +35,7 @@ public class DatumDeclaration : ParsingTests
         Assert.False(datum.Modifiers.Is<Persistent>());
         Assert.Equal(2, datum.Name?.Source.Length);
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
         Assert.Null(datum.Initializer);
     }
@@ -56,7 +56,7 @@ public class DatumDeclaration : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
@@ -68,7 +68,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Name?.Source.Length);
         
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
         Assert.Null(datum.Initializer);
@@ -91,7 +91,7 @@ public class DatumDeclaration : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -101,7 +101,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.Null(datum.Initializer);
@@ -124,7 +124,7 @@ public class DatumDeclaration : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.IsType<Constant>(datum?.Mutability);
 
@@ -134,7 +134,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.Null(datum.Initializer);
@@ -157,7 +157,7 @@ public class DatumDeclaration : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -167,7 +167,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         Assert.Null(datum.Initializer);
@@ -189,7 +189,7 @@ public class DatumDeclaration : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.IsType<Reactive>(datum?.Mutability);
 
@@ -199,7 +199,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Name?.Source.Length);
         
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
         Assert.Null(datum.Initializer);
@@ -221,7 +221,7 @@ public class DatumDeclaration : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -236,7 +236,7 @@ public class DatumDeclaration : ParsingTests
 
         var reference = datum?.Initializer as Ronin.Grammar.Reference;
         Assert.Single(reference?.Components);
-        Ronin.Grammar.Words name = reference.Components[0];
+        Ronin.Grammar.Name name = reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -258,7 +258,7 @@ public class DatumDeclaration : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.DatumDeclaration.Parse(ref parser);
+        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -270,7 +270,7 @@ public class DatumDeclaration : ParsingTests
         Assert.Equal(1, datum.Name?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Ronin.Grammar.Words name = datum.Datatype.Components[0];
+        Ronin.Grammar.Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
 
         var scalar = datum.Initializer as Ronin.Grammar.Inline;

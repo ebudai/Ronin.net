@@ -12,7 +12,7 @@ public class Identifier : AnalysisTests
     {
         // thing with (a => number, b => money) stuff;
 
-        Ronin.Grammar.Name name = new() { Components = new() };
+        Ronin.Grammar.Identifier name = new() { Components = new() };
         List<Token> parts = new();
         Word thing = new();
         thing.SetMemory("thing");

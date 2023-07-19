@@ -30,7 +30,7 @@ public class Definition : ParsingTests
 
         Assert.Single(scope?.Values);
 
-        var datum = scope.Values[0] as Ronin.Grammar.DatumDeclaration;
+        var datum = scope.Values[0] as Ronin.Grammar.Datum.Declaration;
 
         Assert.IsType<Variable>(datum?.Mutability);
 

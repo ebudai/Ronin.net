@@ -2,7 +2,7 @@
 
 namespace Ronin.Language;
 
-internal class Function : Semantic
+/*internal class Function : Semantic
 {
     public Datatype Returns { get; init; }
     public Context Definition { get; init; }
@@ -12,4 +12,4 @@ internal class Function : Semantic
         Returns = new UnresolvedDatatype(function.Returns, context);
         Definition = context.Define(function.Definition);
     }
-}
+}*/

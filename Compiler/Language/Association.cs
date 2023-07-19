@@ -2,7 +2,7 @@
 
 namespace Ronin.Language;
 
-internal class Association
+/*internal class Association
 {
     public Result From { get; init; }
     public Result To { get; init; }
@@ -23,4 +23,4 @@ internal class Associations : Semantic
             });
         }
     }
-}
+}*/
