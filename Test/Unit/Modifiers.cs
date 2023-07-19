@@ -1,5 +1,7 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
+using Ronin.Lexicon.Keywords;
 using Test;
 
 namespace Unit;
@@ -7,99 +9,99 @@ namespace Unit;
 [Trait("Parser", null)]
 public class Modifiers : ParsingTests
 {
-    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Compiled.keyword}")]
+    [Fact(DisplayName = $"{Compiled.keyword}")]
     public void IsCompiled()
     {
         // var x => compiled money;
 
         List<Token> tokens = new()
         {
-            Variable(),
+            Keyword.Variable(),
             Word("x"),
             Returns(),
-            Compiled(),
+            Keyword.Compiled(),
             Word("money"),
             Terminal(),
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Declaration.Parse(ref parser);
 
-        Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Persistent>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Shared>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Optional>());
+        Assert.True(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Persistent>());
+        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Optional>());
     }
 
-    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Persistent.keyword}")]
+    [Fact(DisplayName = $"{Persistent.keyword}")]
     public void IsPersistent()
     {
         // var x => persistent money;
 
         List<Token> tokens = new()
         {
-            Variable(),
+            Keyword.Variable(),
             Word("x"),
             Returns(),
-            Persistent(),
+            Keyword.Persistent(),
             Word("money"),
             Terminal(),
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Declaration.Parse(ref parser);
 
-        Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Persistent>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Shared>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Optional>());
+        Assert.True(datum.Modifiers.Is<Persistent>());
+        Assert.False(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Optional>());
     }
 
-    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Shared.keyword}")]
+    [Fact(DisplayName = $"{Shared.keyword}")]
     public void IsShared()
     {
         // var x => shared money;
 
         List<Token> tokens = new()
         {
-            Variable(),
+            Keyword.Variable(),
             Word("x"),
             Returns(),
-            Shared(),
+            Keyword.Shared(),
             Word("money"),
             Terminal(),
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Declaration.Parse(ref parser);
 
-        Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Shared>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Persistent>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Optional>());
+        Assert.True(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Persistent>());
+        Assert.False(datum.Modifiers.Is<Optional>());
     }
 
-    [Fact(DisplayName = $"{Ronin.Lexicon.Keywords.Optional.keyword}")]
+    [Fact(DisplayName = $"{Optional.keyword}")]
     public void IsOptional()
     {
         // var x => shared money;
 
         List<Token> tokens = new()
         {
-            Variable(),
+            Keyword.Variable(),
             Word("x"),
             Returns(),
-            Optional(),
+            Keyword.Optional(),
             Word("money"),
             Terminal(),
         };
 
         Parser parser = new(tokens);
-        var datum = Ronin.Grammar.Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Declaration.Parse(ref parser);
 
-        Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Optional>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Persistent>());
-        Assert.False(datum.Modifiers.Is<Ronin.Lexicon.Keywords.Shared>());
+        Assert.True(datum.Modifiers.Is<Optional>());
+        Assert.False(datum.Modifiers.Is<Compiled>());
+        Assert.False(datum.Modifiers.Is<Persistent>());
+        Assert.False(datum.Modifiers.Is<Shared>());
     }
 }

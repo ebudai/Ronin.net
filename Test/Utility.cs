@@ -181,88 +181,91 @@ public class ParsingTests
         return returns;
     }
 
-    internal static PartOf PartOf()
+    internal static class Keyword
     {
-        PartOf export = new();
-        export.SetMemory(Ronin.Lexicon.Keywords.PartOf.keyword);
-        return export;
-    }
+        internal static Ronin.Lexicon.Keywords.Function Function()
+        {
+            Ronin.Lexicon.Keywords.Function function = new();
+            function.SetMemory(Ronin.Lexicon.Keywords.Function.keyword);
+            return function;
+        }
 
-    internal static Variable Variable()
-    {
-        Variable variable = new();
-        variable.SetMemory(Ronin.Lexicon.Keywords.Variable.keyword);
-        return variable;
-    }
+        internal static Ronin.Lexicon.Keywords.Datatype Datatype()
+        {
+            Ronin.Lexicon.Keywords.Datatype datatype = new();
+            datatype.SetMemory(Ronin.Lexicon.Keywords.Datatype.keyword);
+            return datatype;
+        }
 
-    internal static Ronin.Lexicon.Keywords.Function Function()
-    {
-        Ronin.Lexicon.Keywords.Function function = new();
-        function.SetMemory(Ronin.Lexicon.Keywords.Function.keyword);
-        return function;
-    }
+        internal static PartOf PartOf()
+        {
+            PartOf export = new();
+            export.SetMemory(Ronin.Lexicon.Keywords.PartOf.keyword);
+            return export;
+        }
 
-    internal static Ronin.Lexicon.Keywords.Datatype Datatype()
-    {
-        Ronin.Lexicon.Keywords.Datatype datatype = new();
-        datatype.SetMemory(Ronin.Lexicon.Keywords.Datatype.keyword);
-        return datatype;
-    }
+        internal static Variable Variable()
+        {
+            Variable variable = new();
+            variable.SetMemory(Ronin.Lexicon.Keywords.Variable.keyword);
+            return variable;
+        }
 
-    internal static Constant Constant()
-    {
-        Constant constant = new();
-        constant.SetMemory(Ronin.Lexicon.Keywords.Constant.keyword);
-        return constant;
-    }
+        internal static Constant Constant()
+        {
+            Constant constant = new();
+            constant.SetMemory(Ronin.Lexicon.Keywords.Constant.keyword);
+            return constant;
+        }
 
-    internal static Reactive Reactive()
-    {
-        Reactive reactive = new();
-        reactive.SetMemory(Ronin.Lexicon.Keywords.Reactive.keyword);
-        return reactive;
-    }
+        internal static Reactive Reactive()
+        {
+            Reactive reactive = new();
+            reactive.SetMemory(Ronin.Lexicon.Keywords.Reactive.keyword);
+            return reactive;
+        }
 
-    internal static Compiled Compiled()
-    {
-        Compiled compiled = new();
-        compiled.SetMemory(Ronin.Lexicon.Keywords.Compiled.keyword);
-        return compiled;
-    }
+        internal static Compiled Compiled()
+        {
+            Compiled compiled = new();
+            compiled.SetMemory(Ronin.Lexicon.Keywords.Compiled.keyword);
+            return compiled;
+        }
 
-    internal static Persistent Persistent()
-    {
-        Persistent persistent = new();
-        persistent.SetMemory(Ronin.Lexicon.Keywords.Persistent.keyword);
-        return persistent;
-    }
+        internal static Persistent Persistent()
+        {
+            Persistent persistent = new();
+            persistent.SetMemory(Ronin.Lexicon.Keywords.Persistent.keyword);
+            return persistent;
+        }
 
-    internal static Shared Shared()
-    {
-        Shared shared = new();
-        shared.SetMemory(Ronin.Lexicon.Keywords.Shared.keyword);
-        return shared;
-    }
+        internal static Shared Shared()
+        {
+            Shared shared = new();
+            shared.SetMemory(Ronin.Lexicon.Keywords.Shared.keyword);
+            return shared;
+        }
 
-    internal static Optional Optional()
-    {
-        Optional optional = new();
-        optional.SetMemory(Ronin.Lexicon.Keywords.Optional.keyword);
-        return optional;
-    }
+        internal static Optional Optional()
+        {
+            Optional optional = new();
+            optional.SetMemory(Ronin.Lexicon.Keywords.Optional.keyword);
+            return optional;
+        }
 
-    internal static ForEach ForEach()
-    {
-        ForEach @foreach = new();
-        @foreach.SetMemory(Ronin.Lexicon.Keywords.ForEach.keyword);
-        return @foreach;
-    }
+        internal static ForEach ForEach()
+        {
+            ForEach @foreach = new();
+            @foreach.SetMemory(Ronin.Lexicon.Keywords.ForEach.keyword);
+            return @foreach;
+        }
 
-    internal static Ronin.Lexicon.Keywords.Import Import()
-    {
-        Ronin.Lexicon.Keywords.Import import = new();
-        import.SetMemory(Ronin.Lexicon.Keywords.Import.keyword);
-        return import;
+        internal static Ronin.Lexicon.Keywords.Import Import()
+        {
+            Ronin.Lexicon.Keywords.Import import = new();
+            import.SetMemory(Ronin.Lexicon.Keywords.Import.keyword);
+            return import;
+        }
     }
 
     internal static Whitespace Whitespace()

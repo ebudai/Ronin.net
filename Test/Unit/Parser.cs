@@ -1,9 +1,13 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
+using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
 using Ronin.Lexicon.Symbols;
 using Test;
+using Datatype = Ronin.Grammar.Datatype;
+using Function = Ronin.Grammar.Function;
 
 namespace Unit;
 
@@ -17,14 +21,14 @@ public class Parsing : ParsingTests
         {
             // part of testing apparatus;
 
-            PartOf(),
+            Keyword.PartOf(),
             Word("testing"),
             Word("apparatus"),
             Terminal(),
 
             // var a = 3;
 
-            Variable(),
+            Keyword.Variable(),
             Word("a"),
             Assign(),
             Number(3),
@@ -46,10 +50,10 @@ public class Parsing : ParsingTests
 
             // function x (var a => number) y (cash on hand => money) { return cash on hand * a; }
 
-            Function(),
+            Keyword.Function(),
             Word("x"),
             StartValues(),
-            Variable(),
+            Keyword.Variable(),
             Word("a"),
             Returns(),
             Word("number"),
@@ -74,11 +78,11 @@ public class Parsing : ParsingTests
 
             // datatype big thing { constant size => whole number; }
 
-            Datatype(),
+            Keyword.Datatype(),
             Word("big"),
             Word("thing"),
             StartScope(),
-            Constant(),
+            Keyword.Constant(),
             Word("size"),
             Returns(),
             Word("whole"),
@@ -105,7 +109,7 @@ public class Parsing : ParsingTests
             // compiled { var x => moment; florb x now; }
 
             StartScope(),
-            Variable(),
+            Keyword.Variable(),
             Word("x"),
             Returns(),
             Word("moment"),
@@ -124,31 +128,31 @@ public class Parsing : ParsingTests
 
         Assert.Equal(9, statements?.Count);
 
-        var partof = statements[0] as Ronin.Grammar.Export;
+        var partof = statements[0] as Export;
         Assert.NotNull(partof);
 
-        var datum = statements[1] as Ronin.Grammar.Datum.Declaration;
+        var datum = statements[1] as Datum.Declaration;
         Assert.NotNull(datum);
 
-        var assignment = statements[2] as Ronin.Grammar.Assignment;
+        var assignment = statements[2] as Assignment;
         Assert.NotNull(assignment);
 
-        var reference = statements[3] as Ronin.Grammar.Reference;
+        var reference = statements[3] as Reference;
         Assert.NotNull(reference);
 
-        var function = statements[4] as Ronin.Grammar.Function.Declaration;
+        var function = statements[4] as Function.Declaration;
         Assert.NotNull(function);
 
-        var datatype = statements[5] as Ronin.Grammar.Datatype.Declaration;
+        var datatype = statements[5] as Datatype.Declaration;
         Assert.NotNull(datatype);
 
-        var scalar = statements[6] as Ronin.Grammar.Inline;
+        var scalar = statements[6] as Inline;
         Assert.NotNull(scalar);
 
-        var arguments = statements[7] as Ronin.Grammar.Compound.Inputs;
+        var arguments = statements[7] as Inputs;
         Assert.NotNull(arguments);
 
-        var scope = statements[8] as Ronin.Grammar.Scope;
+        var scope = statements[8] as Scope;
         Assert.NotNull(scope);
     }
 }

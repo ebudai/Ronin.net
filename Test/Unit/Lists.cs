@@ -1,8 +1,7 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
+using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
-using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 using Test;
 
 namespace Unit;
@@ -24,10 +23,10 @@ public class Lists : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var list = Ronin.Grammar.Compound.List.Parse(ref parser);
+        var list = List.Parse(ref parser);
 
         Assert.Single(list?.Values);
-        var scalar = list.Values[0] as Ronin.Grammar.Inline;
+        var scalar = list.Values[0] as Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -49,22 +48,22 @@ public class Lists : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var list = Ronin.Grammar.Compound.List.Parse(ref parser);
+        var list = List.Parse(ref parser);
 
         Assert.Equal(3, list?.Values?.Count);
 
         {
-            var scalar = list.Values[0] as Ronin.Grammar.Inline;
+            var scalar = list.Values[0] as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = list.Values[1] as Ronin.Grammar.Inline;
+            var scalar = list.Values[1] as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = list.Values[2] as Ronin.Grammar.Inline;
+            var scalar = list.Values[2] as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -76,7 +75,7 @@ public class Lists : ParsingTests
 
         List<Token> tokens = new()
         {
-            Variable(),
+            Keyword.Variable(),
             Word("x"),
             Assign(),
             StartScope(),
@@ -93,8 +92,8 @@ public class Lists : ParsingTests
         var statements = parser.Parse().Values;
 
         Assert.Single(statements);
-        var datum = statements[0] as Ronin.Grammar.Datum.Declaration;
-        var list = datum?.Initializer as Ronin.Grammar.Compound.List;
+        var datum = statements[0] as Datum.Declaration;
+        var list = datum?.Initializer as List;
         Assert.NotNull(list);
     }
 }

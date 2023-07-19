@@ -7,8 +7,8 @@ namespace Unit;
 [Trait("Lexer", null)]
 public class Keywords
 {
-    private const string datatype = Ronin.Lexicon.Keywords.Datatype.keyword;
-    private const string function = Ronin.Lexicon.Keywords.Function.keyword;
+    private const string datatype = Datatype.keyword;
+    private const string function = Function.keyword;
     private const string variable = Variable.keyword;
     private const string constant = Constant.keyword;
     private const string reactive = Reactive.keyword;
@@ -17,7 +17,7 @@ public class Keywords
     private const string optional = Optional.keyword;
     private const string persistent = Persistent.keyword;
     private const string partof = PartOf.keyword;
-    private const string import = Ronin.Lexicon.Keywords.Import.keyword;
+    private const string import = Import.keyword;
     private const string @foreach = ForEach.keyword;
     private const string extends = Extends.keyword;
 
@@ -27,7 +27,7 @@ public class Keywords
         const string sourcecode = $"{datatype} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Ronin.Lexicon.Keywords.Datatype;
+        var keyword = Keyword.Lex(ref lexer) as Datatype;
 
         Assert.Equal(datatype, keyword?.Memory.ToArray());
     }
@@ -38,7 +38,7 @@ public class Keywords
         const string sourcecode = $"{function} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Ronin.Lexicon.Keywords.Function;
+        var keyword = Keyword.Lex(ref lexer) as Function;
 
         Assert.Equal(function, keyword?.Memory.ToArray());
     }
@@ -137,7 +137,7 @@ public class Keywords
         const string sourcecode = "import git://github.com/ebudai/ronin/libsuperpowers.ronin;";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Ronin.Lexicon.Keywords.Import;
+        var keyword = Keyword.Lex(ref lexer) as Import;
 
         Assert.Equal(import, keyword?.Memory.ToArray());
     }
