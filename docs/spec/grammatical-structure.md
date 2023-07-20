@@ -40,17 +40,17 @@ Sequence of one or more ***word***s or ***symbol***s that are not ***punctuation
 
 ## 3.3 Scope
 
-Scopes may not be preceeded by an ***assignment***
+Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded by `compiled`.
 
 ### 3.3.1 Anonymous
 
-*modifier** *body*
-- modifier is one or more of `hidden`, `compiled`
+*body*
+- may also be preceeded by `hidden`
 - body is a ***definition***
 
 ### 3.3.2 Conditional
 
-`compiled`? `if` *condition* *body*
+`if` *condition* *body*
 - condition is a ***refrence***
 - body is a ***definition***
 

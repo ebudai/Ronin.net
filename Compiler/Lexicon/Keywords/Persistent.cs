@@ -4,7 +4,7 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Keywords;
 
-internal class Persistent : Keyword
+internal class Persistent : Modifier
 {
     internal const string keyword = "persistent";
 

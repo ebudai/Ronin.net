@@ -3,14 +3,13 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using Ronin.Lexicon.Keywords;
 
 namespace Ronin.Grammar;
 
 internal class Datum
 {
     public Keyword Mutability { get; init; }
-    public Modifiers Modifiers { get; init; }
+    public Modifiers Modifiers { get; init; } = new();
     public Datatype Datatype { get; init; }
     public Value Initializer { get; init; }
 
@@ -27,7 +26,7 @@ internal class Datum
             Reference = declaration.Datatype 
         };
 
-        Initializer = declaration.Initializer as Anonymous ?? new Value.Unresolved(declaration.Initializer) as Value;
+        Initializer = declaration.Initializer;
     }
 
     /// <summary>
@@ -46,7 +45,7 @@ internal class Datum
     /// </example>
     public class Declaration : Statement, IParsableSyntax<Declaration>
     {
-        public Keyword Mutability { get; init; }
+        public Mutability Mutability { get; init; }
         public Name Name { get; init; }
         public Modifiers Modifiers { get; init; }
         public Reference Datatype { get; init; }
@@ -56,7 +55,7 @@ internal class Datum
         {
             Parser parser = current;
 
-            var mutator = parser.Token is Variable or Constant or Reactive ? parser.Token as Keyword : null;
+            var mutator = parser.Token as Mutability;
             if (mutator is not null) parser.Advance();
 
             if (Name.Parse(ref parser) is not Name name) return null;

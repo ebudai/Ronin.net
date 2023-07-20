@@ -28,7 +28,7 @@ internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
         
         while (parser.IsNotFinished)
         {
-            if (parser.Token is not Compiled and not Persistent and not Shared and not Optional) break;
+            if (parser.Token is not Modifier) break;
             parser.Advance();
         }
 

@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 ///     var lambda = () => { return x; };
 ///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Delegate : Anonymous, IParsableSyntax<Delegate>
+internal class Delegate : AnonymousValue, IParsableSyntax<Delegate>
 {
     public List<Datum.Declaration> Data { get; init; }
     public Definition Definition { get; init; }

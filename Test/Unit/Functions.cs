@@ -34,15 +34,15 @@ public class Functions : ParsingTests
         Parser parser = new(tokens);
         var function = Function.Declaration.Parse(ref parser);
 
-        Assert.Equal(2, function?.Name?.Components.Count);
+        Assert.Equal(2, function?.Identifier?.Components.Count);
 
         {
-            Name name = function.Name.Components[0];
+            Name name = function.Identifier.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            Parameters parameters = function.Name.Components[1];
+            Parameters parameters = function.Identifier.Components[1];
             
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
@@ -64,7 +64,7 @@ public class Functions : ParsingTests
         }
 
         {
-            Anonymous scalar = line.Components[1];
+            AnonymousValue scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -98,15 +98,15 @@ public class Functions : ParsingTests
         Parser parser = new(tokens);
         var function = Function.Declaration.Parse(ref parser);
 
-        Assert.Equal(2, function?.Name?.Components?.Count);
+        Assert.Equal(2, function?.Identifier?.Components?.Count);
 
         {
-            Name name = function.Name.Components[0];
+            Name name = function.Identifier.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            Parameters parameters = function.Name.Components[1];
+            Parameters parameters = function.Identifier.Components[1];
             Assert.Single(parameters?.Values);
             var parameter = parameters.Values[0];
             Assert.Equal(1, parameter.Name?.Source.Length);

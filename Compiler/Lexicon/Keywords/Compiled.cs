@@ -4,7 +4,7 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Keywords;
 
-internal class Compiled : Keyword
+internal class Compiled : Modifier
 {
     internal const string keyword = "compiled";
 

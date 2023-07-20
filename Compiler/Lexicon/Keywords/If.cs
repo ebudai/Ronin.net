@@ -4,14 +4,14 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Keywords;
 
-internal class Variable : Mutability
+internal class If : Keyword
 {
-    internal const string keyword = "var";
+    internal const string keyword = "if";
 
     public static new Keyword Lex(ref Lexer lexer)
     {
         if (lexer.DoesNotStartWith(keyword)) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Variable { Memory = lexer.Commit(keyword.Length) };
+        return new If { Memory = lexer.Commit(keyword.Length) };
     }
 }

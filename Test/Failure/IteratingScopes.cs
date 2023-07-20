@@ -6,7 +6,7 @@ using Test;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Loops : ParsingTests
+public class IteratingScopes : ParsingTests
 {
     [Fact(DisplayName = $"doesn't start with {Ronin.Lexicon.Keywords.ForEach.keyword}")]
     public void NotALoop()
@@ -22,7 +22,7 @@ public class Loops : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = Loop.Parse(ref parser);
+        var loop = Scope.Parse(ref parser);
 
         Assert.Null(loop);
     }
@@ -49,7 +49,7 @@ public class Loops : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = Loop.Parse(ref parser);
+        var loop = Scope.Parse(ref parser);
 
         Assert.Null(loop);
     }
@@ -75,7 +75,7 @@ public class Loops : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = Loop.Parse(ref parser);
+        var loop = Scope.Parse(ref parser);
 
         Assert.Null(loop);
     }

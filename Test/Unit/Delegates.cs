@@ -41,7 +41,7 @@ public class Delegates : ParsingTests
         Name name = line.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
-        Anonymous scalar = line.Components[1];
+        AnonymousValue scalar = line.Components[1];
         Assert.Equal(1, scalar?.Source.Length);        
     }
 
@@ -83,7 +83,7 @@ public class Delegates : ParsingTests
         }
 
         {
-            Anonymous scalar = line.Components[1];
+            AnonymousValue scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -130,7 +130,7 @@ public class Delegates : ParsingTests
         }
 
         {
-            Anonymous scalar = line.Components[1];
+            AnonymousValue scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -168,7 +168,7 @@ public class Delegates : ParsingTests
         }
 
         {
-            Anonymous scalar = line.Components[1];
+            AnonymousValue scalar = line.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }

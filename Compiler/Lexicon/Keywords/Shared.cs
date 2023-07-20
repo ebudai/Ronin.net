@@ -4,7 +4,7 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Keywords;
 
-internal class Shared : Keyword
+internal class Shared : Modifier
 {
     internal const string keyword = "shared";
 

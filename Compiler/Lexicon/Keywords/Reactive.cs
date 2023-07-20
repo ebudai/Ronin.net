@@ -4,7 +4,7 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Keywords;
 
-internal class Reactive : Keyword
+internal class Reactive : Modifier
 {
     internal const string keyword = "reactive";
     

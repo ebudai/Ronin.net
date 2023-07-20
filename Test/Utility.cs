@@ -225,6 +225,13 @@ public class ParsingTests
             return reactive;
         }
 
+        internal static Let Let()
+        {
+            Let let = new();
+            let.SetMemory(Ronin.Lexicon.Keywords.Let.keyword);
+            return let;
+        }
+
         internal static Compiled Compiled()
         {
             Compiled compiled = new();

@@ -9,7 +9,7 @@ namespace Ronin.Grammar;
 
 internal class Datatype
 {
-    public Modifiers Modifiers { get; init; }
+    public Modifiers Modifiers { get; init; } = new();
     public Algebra Algebra { get; init; }
     public Definition Definition { get; init; }
 

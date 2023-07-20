@@ -5,11 +5,11 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar.Compound;
 
 /// <summary>
-///     List of <see cref="Anonymous"/>s specified directly in code
+///     List of <see cref="AnonymousValue"/>s specified directly in code
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-delimited list of <see cref="Anonymous"/>s between <see cref="StartScope"/> and <see cref="EndScope"/>
+///     <see cref="Separator"/>-delimited list of <see cref="AnonymousValue"/>s between <see cref="StartScope"/> and <see cref="EndScope"/>
 /// </remarks>
 /// 
 /// <example>

@@ -4,7 +4,7 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Keywords;
 
-internal class Optional : Keyword
+internal class Optional : Modifier
 {
     internal const string keyword = "optional";
 

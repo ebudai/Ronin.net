@@ -24,7 +24,7 @@ internal class Function
     /// </example>
     public class Declaration : Statement, IParsableSyntax<Declaration>
     {
-        public Identifier Name { get; init; }
+        public Identifier Identifier { get; init; }
         public Modifiers Modifiers { get; init; }
         public Reference Returns { get; init; }
         public Definition Definition { get; init; }
@@ -35,7 +35,7 @@ internal class Function
 
             if (parser.TryAdvance<Lexicon.Keywords.Function>() is false) return null;
 
-            if (Identifier.Parse(ref parser) is not Identifier name) return null;
+            if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
             Modifiers modifiers = null;
             Reference returns = null;
@@ -50,7 +50,7 @@ internal class Function
 
             return new Declaration
             {
-                Name = name,
+                Identifier = identifier,
                 Modifiers = modifiers,
                 Returns = returns,
                 Definition = definition,

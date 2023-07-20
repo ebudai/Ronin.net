@@ -8,13 +8,13 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Represents a <see cref="Value"/> before it has been assigned or bound to a parameter
 /// </summary>
-internal class Anonymous : Value, IParsableSyntax<Anonymous>
+internal class AnonymousValue : Value, IParsableSyntax<AnonymousValue>
 {
-    public new static Anonymous Parse(ref Parser current)
+    public new static AnonymousValue Parse(ref Parser current)
         => Inline.Parse(ref current)
         ?? Delegate.Parse(ref current)
         ?? Lookup.Parse(ref current)        
         ?? Inputs.Parse(ref current)
         ?? List.Parse(ref current)
-        ?? Ordinal.Parse(ref current) as Anonymous;
+        ?? Ordinal.Parse(ref current) as AnonymousValue;
 }

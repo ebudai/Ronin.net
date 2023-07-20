@@ -1,25 +1,34 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Compound;
-using Ronin.Lexicon.Keywords;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
 internal class Scope : Statement, IParsableSyntax<Scope>
 {
-    public bool IsCompiled { get; init; }
+    public Modifiers Modifiers { get; init; }
+    public Keyword Control { get; init; }
+    public Reference Condition { get; init; }    
     public Definition Definition { get; init; }
 
     public static new Scope Parse(ref Parser current)
     {
         Parser parser = current;
 
-        var isCompiled = parser.TryAdvance<Compiled>();
+        var modifiers = Modifiers.Parse(ref parser);
+
+        var control = parser.Token as Keyword;
+        if (control is not null) parser.Advance();
+
+        if (Reference.Parse(ref parser) is not Reference reference) return null;
 
         if (Definition.Parse(ref parser) is not Definition definition) return null;
 
         return new Scope
         {
-            IsCompiled = isCompiled,
+            Modifiers = modifiers,
+            Control = control,
+            Condition = reference,
             Definition = definition,
             Source = parser.Commit(ref current)
         };

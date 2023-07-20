@@ -21,7 +21,7 @@ internal class Reference : Value, IParsableSyntax<Reference>
         if (components.Count is 0) return null;
         foreach (var component in components)
         {
-            if (component.value is not Anonymous)
+            if (component.value is not AnonymousValue)
             {
                 var ordinal = Ordinal.Parse(ref parser);
 
@@ -37,5 +37,5 @@ internal class Reference : Value, IParsableSyntax<Reference>
         return null;
     }
 
-    public class Component : CompositeSyntax<Component, Name, Anonymous> { }
+    public class Component : CompositeSyntax<Component, Name, AnonymousValue> { }
 }

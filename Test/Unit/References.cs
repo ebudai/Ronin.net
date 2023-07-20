@@ -35,12 +35,12 @@ public class References : ParsingTests
         }
 
         {
-            Anonymous scalar = reference.Components[1];
+            AnonymousValue scalar = reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Anonymous anonymous = reference.Components[2];
+            AnonymousValue anonymous = reference.Components[2];
             var arguments = anonymous as Inputs;
             Assert.Single(arguments?.Values);
             Value value = arguments.Values[0];

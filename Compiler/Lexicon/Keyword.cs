@@ -19,6 +19,9 @@ internal class Keyword : Word
         ?? Keywords.Persistent.Lex(ref lexer)
         ?? Keywords.Shared.Lex(ref lexer)
         ?? Keywords.Optional.Lex(ref lexer)
-        ?? Keywords.Variable.Lex(ref lexer)        
-        ?? null;
+        ?? Keywords.Variable.Lex(ref lexer);
 }
+
+internal class Modifier : Keyword { }
+
+internal class Mutability : Keyword { }

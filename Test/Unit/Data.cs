@@ -44,13 +44,14 @@ public class Data : ParsingTests
     [Fact(DisplayName = $"{Reactive.keyword}")]
     public void ReactiveDatatype()
     {
-        // reactive x => text;
+        // let x => reactive text;
 
         List<Token> tokens = new()
         {
-            Keyword.Reactive(),
+            Keyword.Let(),
             Word("x"),
             Returns(),
+            Keyword.Reactive(),
             Word("text"),
             Terminal(),
             Sentinel.Instance
@@ -59,12 +60,10 @@ public class Data : ParsingTests
         Parser parser = new(tokens);
         var datum = Datum.Declaration.Parse(ref parser);
 
-        Assert.IsType<Reactive>(datum?.Mutability);
+        Assert.IsType<Let>(datum?.Mutability);
 
-        Assert.False(datum.Modifiers.Is<Compiled>());
-        Assert.False(datum.Modifiers.Is<Shared>());
-        Assert.False(datum.Modifiers.Is<Optional>());
-        Assert.False(datum.Modifiers.Is<Persistent>());
+        Assert.True(datum.Modifiers.Is<Reactive>());
+        Assert.Single(datum.Modifiers.Source.ToArray());
 
         Assert.Equal(1, datum.Name?.Source.Length);
         
@@ -177,11 +176,11 @@ public class Data : ParsingTests
     [Fact(DisplayName = $"{Optional.keyword}")]
     public void OptionalDatatype()
     {
-        // reactive x => optional text;
+        // let x => optional text;
 
         List<Token> tokens = new()
         {
-            Keyword.Reactive(),
+            Keyword.Let(),
             Word("x"),
             Returns(),
             Keyword.Optional(),
@@ -192,7 +191,7 @@ public class Data : ParsingTests
         Parser parser = new(tokens);
         var datum = Datum.Declaration.Parse(ref parser);
 
-        Assert.IsType<Reactive>(datum?.Mutability);
+        Assert.IsType<Let>(datum?.Mutability);
 
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Optional>());

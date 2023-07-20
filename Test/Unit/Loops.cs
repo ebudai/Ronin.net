@@ -30,11 +30,12 @@ public class Loops : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = Loop.Parse(ref parser);
+        var loop = Scope.Parse(ref parser);
 
-        Assert.Equal(3, loop.Header.Name?.Source.Length);
-        
+        Assert.NotNull(loop?.Condition);
+
         Assert.Single(loop.Definition?.Values);
+
         var assignment = loop.Definition.Values[0] as Assignment;
         Assert.NotNull(assignment);
     }
@@ -64,8 +65,8 @@ public class Loops : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = Loop.Parse(ref parser);
+        var loop = Scope.Parse(ref parser);
 
-        Assert.NotNull(loop?.Header?.Datatype);
+        Assert.NotNull(loop?.Condition);
     }
 }

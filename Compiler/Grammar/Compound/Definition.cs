@@ -24,8 +24,7 @@ namespace Ronin.Grammar.Compound;
 /// </example>
 internal class Definition : Aggregate<Definition, StartScope, Statement, Terminal, EndScope>
 {
-    public Dictionary<Identifier, Datatype> Datatypes { get; } = new();
-    public Dictionary<Identifier, Datum> Data { get; } = new();
-    public Dictionary<Identifier, Function> Functions { get; } = new();
-    public List<Statement> Instructions { get; } = new();
+    public Dictionary<Identifier.Component, Datatype> Datatypes { get; } = new();
+    public Dictionary<Identifier.Component, Datum> Data { get; } = new();
+    public Dictionary<Identifier.Component, Function> Functions { get; } = new();
 }

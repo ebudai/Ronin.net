@@ -3,18 +3,11 @@
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Base class representing any <see cref="Anonymous"/> or <see cref="Reference"/>d value
+///     Base class representing any <see cref="AnonymousValue"/> or <see cref="Reference"/>d value
 /// </summary>
 internal class Value : Statement, IParsableSyntax<Value>
 {
     public new static Value Parse(ref Parser current) 
-        => Anonymous.Parse(ref current) 
+        => AnonymousValue.Parse(ref current) 
         ?? Reference.Parse(ref current) as Value;
-
-    public class Unresolved : Value
-    {
-        public Reference Reference { get; init; }
-
-        public Unresolved(Value value) => Reference = value as Reference;
-    }
 }

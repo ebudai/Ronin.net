@@ -6,7 +6,7 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal abstract class Aggregate<T> : Anonymous
+internal abstract class Aggregate<T> : AnonymousValue
 {
     protected internal List<T> Values = new();
 }

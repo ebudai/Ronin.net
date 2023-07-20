@@ -4,7 +4,7 @@ using Ronin.Compiler;
 
 namespace Ronin.Lexicon.Keywords;
 
-internal class Constant : Keyword
+internal class Constant : Mutability
 {
     internal const string keyword = "constant";
 
