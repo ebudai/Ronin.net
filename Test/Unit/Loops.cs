@@ -6,7 +6,7 @@ using Test;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Loops : ParsingTests
+public class IteratingScopes : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -30,9 +30,9 @@ public class Loops : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = Scope.Parse(ref parser);
+        var loop = IteratingScope.Parse(ref parser);
 
-        Assert.NotNull(loop?.Condition);
+        Assert.NotNull(loop?.Iterator);
 
         Assert.Single(loop.Definition?.Values);
 
@@ -65,8 +65,8 @@ public class Loops : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = Scope.Parse(ref parser);
+        var loop = IteratingScope.Parse(ref parser);
 
-        Assert.NotNull(loop?.Condition);
+        Assert.NotNull(loop?.Iterator);
     }
 }
