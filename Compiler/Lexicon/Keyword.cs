@@ -19,7 +19,11 @@ internal class Keyword : Word
         ?? Keywords.Persistent.Lex(ref lexer)
         ?? Keywords.Shared.Lex(ref lexer)
         ?? Keywords.Optional.Lex(ref lexer)
-        ?? Keywords.Variable.Lex(ref lexer);
+        ?? Keywords.Variable.Lex(ref lexer)
+        ?? Keywords.If.Lex(ref lexer)
+        ?? Keywords.Let.Lex(ref lexer)
+        ?? Keywords.While.Lex(ref lexer)
+        ?? Keywords.Hidden.Lex(ref lexer);
 }
 
 internal class Modifier : Keyword { }

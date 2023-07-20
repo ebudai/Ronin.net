@@ -20,6 +20,10 @@ public class Keywords
     private const string import = Import.keyword;
     private const string @foreach = ForEach.keyword;
     private const string extends = Extends.keyword;
+    private const string @if = If.keyword;
+    private const string let = Let.keyword;
+    private const string @while = While.keyword;
+    private const string hidden = Hidden.keyword;
 
     [Fact(DisplayName = datatype)]
     public void DatatypeKeyword()
@@ -162,5 +166,49 @@ public class Keywords
         var keyword = Keyword.Lex(ref lexer) as Extends;
 
         Assert.Equal(extends, keyword?.Memory.ToArray());
+    }
+
+    [Fact(DisplayName = @if)]
+    public void IfKeyword()
+    {
+        const string sourcecode = "if x > 3 { return something; }";
+
+        Lexer lexer = new(sourcecode);
+        var keyword = Keyword.Lex(ref lexer) as If;
+
+        Assert.Equal(@if, keyword?.Memory.ToArray());
+    }
+
+    [Fact(DisplayName = let)]
+    public void LetKeyword()
+    {
+        const string sourcecode = "let x = 3;";
+
+        Lexer lexer = new(sourcecode);
+        var keyword = Keyword.Lex(ref lexer) as Let;
+
+        Assert.Equal(let, keyword?.Memory.ToArray());
+    }
+
+    [Fact(DisplayName = @while)]
+    public void WhileKeyword()
+    {
+        const string sourcecode = "while x < 3 { y += 3; }";
+
+        Lexer lexer = new(sourcecode);
+        var keyword = Keyword.Lex(ref lexer) as While;
+
+        Assert.Equal(@while, keyword?.Memory.ToArray());
+    }
+
+    [Fact(DisplayName = hidden)]
+    public void HiddenKeyword()
+    {
+        const string sourcecode = "hidden var x => number;";
+
+        Lexer lexer = new(sourcecode);
+        var keyword = Keyword.Lex(ref lexer) as Hidden;
+
+        Assert.Equal(hidden, keyword?.Memory.ToArray());
     }
 }

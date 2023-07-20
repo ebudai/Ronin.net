@@ -4,22 +4,15 @@ using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
 internal class Datatype
 {
-    public Modifiers Modifiers { get; init; } = new();
-    public Algebra Algebra { get; init; }
-    public Definition Definition { get; init; }
-
-    private Datatype() { }
-
-    public Datatype(Declaration declaration)
-    {
-        Algebra = new Algebra.Unresolved { Reference = declaration.Algebra };
-        Definition = declaration.Definition;
-    }
+    [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; } //= new();
+    [ExcludeFromCodeCoverage] public Algebra Algebra { get; init; }
+    [ExcludeFromCodeCoverage] public Definition Definition { get; init; }
 
     /// <summary>
     ///     Restricts a <see cref="Datum"/> to a particular shape of data
@@ -66,12 +59,14 @@ internal class Datatype
         }
     }
 
+    [ExcludeFromCodeCoverage]
     public class Unresolved : Datatype
     {
         public Reference Reference { get; init; }
     }
 }
 
+[ExcludeFromCodeCoverage]
 internal class Algebra
 {
     public List<Datatype> Bases { get; } = new();

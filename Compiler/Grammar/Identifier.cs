@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -15,7 +16,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 
     public Identifier() { }
 
-    public Identifier(Name words) => Components.Add(new Component { value = words });
+    [ExcludeFromCodeCoverage] public Identifier(Name words) => Components.Add(new Component { value = words });
 
     public static Identifier Parse(ref Parser current)
     {

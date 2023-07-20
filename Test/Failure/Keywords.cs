@@ -56,6 +56,10 @@ public class Keywords
             $"{Shared.keyword}ding",
             $"{Variable.keyword}rrrr",
             $"{Extends.keyword}ing",
+            $"{Hidden.keyword}ning",
+            $"{If.keyword}ffff",
+            $"{Let.keyword}s party",
+            $"{While.keyword}y coyote",
         };
 
         foreach (var word in words)

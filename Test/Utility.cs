@@ -267,6 +267,20 @@ public class ParsingTests
             return @foreach;
         }
 
+        internal static If If()
+        {
+            If @if = new();
+            @if.SetMemory(Ronin.Lexicon.Keywords.If.keyword);
+            return @if;
+        }
+
+        internal static While While()
+        {
+            While @while = new();
+            @while.SetMemory(Ronin.Lexicon.Keywords.While.keyword);
+            return @while;
+        }
+
         internal static Ronin.Lexicon.Keywords.Import Import()
         {
             Ronin.Lexicon.Keywords.Import import = new();

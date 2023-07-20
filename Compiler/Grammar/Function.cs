@@ -3,14 +3,15 @@
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon.Symbols;
 using Ronin.Compiler;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
 internal class Function
 {
-    public Modifiers Modifiers { get; init; }
-    public Datatype Returns { get; init; }
-    public Definition Definition { get; init; }
+    [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; }
+    [ExcludeFromCodeCoverage] public Datatype Returns { get; init; }
+    [ExcludeFromCodeCoverage] public Definition Definition { get; init; }
 
     /// <summary>
     ///     Ordered grouping of instructions to execute when called

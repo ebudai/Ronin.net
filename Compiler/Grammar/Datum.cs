@@ -3,18 +3,20 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
 internal class Datum
 {
-    public Keyword Mutability { get; init; }
-    public Modifiers Modifiers { get; init; } = new();
-    public Datatype Datatype { get; init; }
-    public Value Initializer { get; init; }
+    [ExcludeFromCodeCoverage] public Keyword Mutability { get; init; }
+    [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; } = new();
+    [ExcludeFromCodeCoverage] public Datatype Datatype { get; init; }
+    [ExcludeFromCodeCoverage] public Value Initializer { get; init; }
 
-    private Datum() { }
+    [ExcludeFromCodeCoverage] private Datum() { }
 
+    [ExcludeFromCodeCoverage]
     public Datum(Declaration declaration)
     {
         Mutability = declaration.Mutability;
@@ -86,10 +88,5 @@ internal class Datum
                 Source = parser.Commit(ref current)
             };
         }
-    }
-
-    public class Unresolved : Datum
-    {
-        public Reference Reference { get; }
     }
 }

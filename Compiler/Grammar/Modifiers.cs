@@ -7,13 +7,13 @@ using Ronin.Lexicon.Keywords;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Modifies a <see cref="DatatypeDeclaration"/> used to restrict a <see cref="Datum"/> or a <see cref="FunctionDeclaration"/>
+///     Modifies a <see cref="Datatype"/> or used to restrict a <see cref="Datum"/> or a <see cref="Function"/>
 /// </summary>
 /// 
 /// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Shared"/>, and <see cref="Optional"/></remarks>
 internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
 {
-    public bool Is<T>() where T : Keyword
+    public bool Is<T>() where T : Modifier
     {
         foreach (var token in Source.Span)
         {
