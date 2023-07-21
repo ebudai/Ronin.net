@@ -23,7 +23,7 @@ internal class Datatype
     /// </example>
     public class Declaration : Scope, IParsableSyntax<Declaration>
     {
-        public Identifier Name { get; init; }
+        public Identifier Identifier { get; init; }
         public Reference Algebra { get; init; }
 
         public new static Declaration Parse(ref Parser current)
@@ -48,7 +48,7 @@ internal class Datatype
             return new Declaration
             {
                 Modifiers = modifiers,
-                Name = name,
+                Identifier = name,
                 Algebra = algebra,
                 Definition = definition,
                 Source = parser.Commit(ref current)

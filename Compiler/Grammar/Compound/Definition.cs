@@ -32,9 +32,9 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
     public Dictionary<Identifier.Component, Function> Functions { get; init; } = new();
     public List<Module> Imports { get; init; } = new();
 
-    public List<Error> Add(Function function) { return null; }
-    public List<Error> Add(Datatype datatype) { return null; }
-    public List<Error> Add(Datum datum) { return null; }
+    public List<Error> Add(Identifier identifier, Function function) { return null; }
+    public List<Error> Add(Identifier identifier, Datatype datatype) { return null; }
+    public List<Error> Add(Name name, Datum datum) { return null; }
     
     public object Find(Identifier identifier) { return null; }
 }

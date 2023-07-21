@@ -25,8 +25,8 @@ public class Datatypes : ParsingTests
         Parser parser = new(tokens);
         var datatype = Datatype.Declaration.Parse(ref parser);
 
-        Assert.Single(datatype?.Name?.Components);
-        Identifier.Component name = datatype.Name.Components[0];
+        Assert.Single(datatype?.Identifier?.Components);
+        Identifier.Component name = datatype.Identifier.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -61,7 +61,7 @@ public class Datatypes : ParsingTests
         Parser parser = new(tokens);
         var datatype = Datatype.Declaration.Parse(ref parser);
 
-        Assert.Single(datatype?.Name?.Components);
+        Assert.Single(datatype?.Identifier?.Components);
         Name algebra = datatype.Algebra.Components[0];
         Assert.Equal(2, algebra?.Source.Length);
         
