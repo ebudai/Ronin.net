@@ -4,7 +4,6 @@ using Ronin.Grammar;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Symbols;
-using System.Reflection;
 
 namespace Ronin.Compiler;
 
@@ -15,13 +14,7 @@ internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
 
 internal struct Parser
 {
-    public Parser(List<Token> tokens)
-    {
-        this.tokens = new ReadOnlyMemory<Token>(GetItems(tokens), 0, GetSize(tokens));
-
-        static Token[] GetItems(List<Token> tokens) => typeof(List<Token>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(tokens) as Token[];
-        static int GetSize(List<Token> tokens) => (int)typeof(List<Token>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(tokens);
-    }
+    public Parser(List<Token> tokens) => this.tokens = tokens.AsMemory();
 
     public readonly ref readonly Token Token => ref tokens.Span[cursor];
     public readonly ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];

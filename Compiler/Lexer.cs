@@ -4,7 +4,7 @@ using Ronin.Lexicon;
 
 namespace Ronin.Compiler;
 
-public ref struct Lexer
+internal ref struct Lexer
 {
     public Lexer(in string sourcecode) => this.sourcecode = ref sourcecode;
 
