@@ -5,7 +5,7 @@ using Ronin.Lexicon.Symbols;
 namespace Ronin.Grammar.Compound;
 
 /// <summary>
-///     Body of conditionals, loops, <see cref="DatatypeDeclaration"/>s and <see cref="FunctionDeclaration"/>s.
+///     Body of <see cref="Scope"/>s, <see cref="Datatype.Declaration"/>s and <see cref="Function.Declaration"/>s.
 /// </summary>
 /// 
 /// <remarks>
@@ -24,7 +24,9 @@ namespace Ronin.Grammar.Compound;
 /// </example>
 internal class Definition : Aggregate<Definition, StartScope, Statement, Terminal, EndScope>
 {
+    public Definition Parent { get; set; }
     public Dictionary<Identifier.Component, Datatype> Datatypes { get; } = new();
     public Dictionary<Identifier.Component, Datum> Data { get; } = new();
-    public Dictionary<Identifier.Component, Function> Functions { get; } = new();
+    public Dictionary<Identifier.Component, Function> Functions { get; } = new();    
+    public Dictionary<Identifier.Component, Scope> Children { get; } = new();
 }

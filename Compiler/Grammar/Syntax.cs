@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -30,4 +31,16 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
     public static implicit operator T1(CompositeSyntax<T, T0, T1> value) => value.value as T1;
 
     protected internal Syntax value;
+}
+
+[ExcludeFromCodeCoverage]
+internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>
+    where T : CompositeSyntax<T, T0, T1, T2>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+    where T2 : Syntax, IParsableSyntax<T2>
+{
+    public static new T Parse(ref Parser current) => CompositeSyntax<T, T0, T1>.Parse(ref current) ?? T2.Parse(ref current) as T;
+
+    public static implicit operator T2(CompositeSyntax<T, T0, T1, T2> value) => value.value as T2;
 }
