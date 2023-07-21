@@ -1,5 +1,6 @@
 ﻿using Ronin.Grammar;
 using Ronin.Language;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Compiler;
@@ -7,27 +8,34 @@ namespace Ronin.Compiler;
 [ExcludeFromCodeCoverage]
 internal ref struct Analyzer
 {
-    public List<Error> Analyze(Scope module)
+    public static List<Error> Analyze(Scope scope)
     {
         Name name = null;
         List<Error> errors = new();
-        foreach (var statement in module.Definition.Values)
+        foreach (var statement in scope.Definition.Values)
         {
             errors.AddRange(statement switch
             {
-                Export export => Analyze(module, export, ref name),
-                Import import => Analyze(module, import),
-                Function.Declaration declaration => Analyze(module, declaration),
-                Datatype.Declaration declaration => Analyze(module, declaration),
-                Datum.Declaration declaration => Analyze(module, declaration),
-                Assignment assignment => Analyze(module, assignment),
-                Reference instruction => Analyze(module, instruction),
-                AnonymousValue value => Analyze(module, value),
-                Scope scope => Analyze(module, scope),
+                Export export => Analyze(scope, export, ref name),
+                Import import => Analyze(scope, import),
+                Function.Declaration declaration => Analyze(scope, declaration),
+                Datatype.Declaration declaration => Analyze(scope, declaration),
+                Datum.Declaration declaration => Analyze(scope, declaration),
+                Assignment assignment => Analyze(scope, assignment),
+                Reference instruction => Analyze(scope, instruction),
+                AnonymousValue value => Analyze(scope, value),
+                Scope inner => Analyze(scope, inner),
                 Unknown unknown => Error.UnknownSyntax(statement),
                 _ => Error.UnhandledSubclass<Statement>(statement)
             });
         }
+        
+        if (name is not null)
+        {
+            Module module = new() { Definition = scope.Definition };
+            errors.AddRange(Module.Main.Add(name, module));
+        }
+
         return errors;
     }
 
@@ -42,42 +50,73 @@ internal ref struct Analyzer
         return Error.None;
     }
 
-    private List<Error> Analyze(Scope scope, Import import)
+    private static List<Error> Analyze(Scope scope, Import import)
+    {
+        scope.Definition.Imports.Add(new Module.Unresolved { Import = import });
+        return Error.None;
+    }
+
+    private static List<Error> Analyze(Scope scope, Function.Declaration declaration)
+    {
+        var errors = Analyze(scope, declaration.Definition);
+        
+        Function function = new()
+        {
+            Modifiers = declaration.Modifiers,
+            Returns = new Datatype.Unresolved { Reference = declaration.Returns },
+            Definition = declaration.Definition
+        };
+
+        scope.Definition.Add(function);
+
+        return errors;
+    }
+
+    private static List<Error> Analyze(Scope scope, Datatype.Declaration declaration)
+    {
+        var errors = Analyze(scope, declaration.Definition);
+
+        Datatype datatype = new()
+        {
+            Modifiers = declaration.Modifiers,
+            Algebra = new Algebra.Unresolved { Reference = declaration.Algebra },
+            Definition = declaration.Definition
+        };
+
+        scope.Definition.Add(datatype);
+
+        return errors;
+    }
+
+    private static List<Error> Analyze(Scope scope, Datum.Declaration declaration) 
+    {
+        Datum datum = new()
+        {
+            Mutability = declaration.Mutability,
+            Modifiers = declaration.Modifiers,
+            Datatype = new Datatype.Unresolved { Reference = declaration.Datatype },
+            Initializer = declaration.Initializer
+        };
+
+        return Error.None;
+    }
+
+    private static List<Error> Analyze(Scope scope, Assignment assignment)
     {
         return null;
     }
 
-    private List<Error> Analyze(Scope scope, Function.Declaration declaration)
+    private static List<Error> Analyze(Scope scope, Reference instruction)
     {
         return null;
     }
 
-    private List<Error> Analyze(Scope scope, Datatype.Declaration declaration)
+    private static List<Error> Analyze(Scope scope, AnonymousValue value)
     {
         return null;
     }
 
-    private List<Error> Analyze(Scope scope, Datum.Declaration declaration) 
-    {
-        return null;
-    }
-
-    private List<Error> Analyze(Scope scope, Assignment assignment)
-    {
-        return null;
-    }
-
-    private List<Error> Analyze(Scope scope, Reference instruction)
-    {
-        return null;
-    }
-
-    private List<Error> Analyze(Scope scope, AnonymousValue value)
-    {
-        return null;
-    }
-
-    private List<Error> Analyze(Scope module, Scope scope)
+    private static List<Error> Analyze(Scope module, Scope scope)
     {
         scope.Definition.Parent = module.Definition;
         return Analyze(scope);

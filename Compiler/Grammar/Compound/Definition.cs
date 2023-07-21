@@ -1,5 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using Ronin.Compiler;
+using Ronin.Language;
 using Ronin.Lexicon.Symbols;
 
 namespace Ronin.Grammar.Compound;
@@ -25,8 +27,14 @@ namespace Ronin.Grammar.Compound;
 internal class Definition : Aggregate<Definition, StartScope, Statement, Terminal, EndScope>
 {
     public Definition Parent { get; set; }
-    public Dictionary<Identifier.Component, Datatype> Datatypes { get; } = new();
-    public Dictionary<Identifier.Component, Datum> Data { get; } = new();
-    public Dictionary<Identifier.Component, Function> Functions { get; } = new();    
-    public Dictionary<Identifier.Component, Scope> Children { get; } = new();
+    public Dictionary<Identifier.Component, Datatype> Datatypes { get; init; } = new();
+    public Dictionary<Identifier.Component, Datum> Data { get; init; } = new();
+    public Dictionary<Identifier.Component, Function> Functions { get; init; } = new();
+    public List<Module> Imports { get; init; } = new();
+
+    public List<Error> Add(Function function) { return null; }
+    public List<Error> Add(Datatype datatype) { return null; }
+    public List<Error> Add(Datum datum) { return null; }
+    
+    public object Find(Identifier identifier) { return null; }
 }

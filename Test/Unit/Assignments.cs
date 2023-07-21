@@ -26,12 +26,14 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolved = assignment?.Destination as Datum.Unresolved;
+        
+        Assert.Single(unresolved?.Reference.Components);
+        Name name = unresolved.Reference.Components[0];
+        Assert.Single(name?.Source.ToArray());
 
         var scalar = assignment.Value as Inline;
-        Assert.Equal(1, scalar?.Source.Length);
+        Assert.Single(scalar?.Source.ToArray());
     }
 
     [Fact(DisplayName = "no whitespace")]
@@ -50,14 +52,16 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolved = assignment?.Destination as Datum.Unresolved;
+
+        Assert.Single(unresolved?.Reference.Components);
+        Name name = unresolved.Reference.Components?[0];
+        Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<Assign>(assignment.Type);
 
         var scalar = assignment.Value as Inline;
-        Assert.Equal(1, scalar?.Source.Length);
+        Assert.Single(scalar?.Source.ToArray());
     }
 
     [Fact(DisplayName = "add assign")]
@@ -76,14 +80,16 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolved = assignment?.Destination as Datum.Unresolved;
+
+        Assert.Single(unresolved?.Reference.Components);
+        Name name = unresolved.Reference.Components?[0];
+        Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<AddAssign>(assignment.Type);
 
         var scalar = assignment.Value as Inline;
-        Assert.Equal(1, scalar?.Source.Length);
+        Assert.Single(scalar?.Source.ToArray());
     }
 
     [Fact(DisplayName = "and assign")]
@@ -102,14 +108,16 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolvedDatum = assignment?.Destination as Datum.Unresolved;
+
+        Assert.Single(unresolvedDatum?.Reference.Components);
+        Name name = unresolvedDatum.Reference.Components?[0];
+        Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<AndAssign>(assignment.Type);
 
-        var reference = assignment.Value as Reference;
-        Assert.Equal(1, reference?.Source.Length);
+        var unresolvedValue = assignment.Value as Value.Unresolved;
+        Assert.Single(unresolvedValue?.Reference?.Source.ToArray());
     }
 
     [Fact(DisplayName = "divide assign")]
@@ -128,14 +136,16 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolved = assignment?.Destination as Datum.Unresolved;
+
+        Assert.Single(unresolved?.Reference.Components);
+        Name name = unresolved.Reference.Components?[0];
+        Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<DivideAssign>(assignment.Type);
 
         var scalar = assignment.Value as Inline;
-        Assert.Equal(1, scalar?.Source.Length);
+        Assert.Single(scalar?.Source.ToArray());
     }
 
     [Fact(DisplayName = "multiply assign")]
@@ -154,14 +164,16 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolved = assignment?.Destination as Datum.Unresolved;
+
+        Assert.Single(unresolved?.Reference.Components);
+        Name name = unresolved.Reference.Components?[0];
+        Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<MultiplyAssign>(assignment.Type);
 
         var scalar = assignment.Value as Inline;
-        Assert.Equal(1, scalar?.Source.Length);
+        Assert.Single(scalar?.Source.ToArray());
     }
 
     [Fact(DisplayName = "or assign")]
@@ -180,14 +192,16 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolvedDatum = assignment?.Destination as Datum.Unresolved;
+
+        Assert.Single(unresolvedDatum?.Reference.Components);
+        Name name = unresolvedDatum.Reference.Components?[0];
+        Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<OrAssign>(assignment.Type);
 
-        var reference = assignment.Value as Reference;
-        Assert.Equal(1, reference?.Source.Length);
+        var unresolvedValue = assignment.Value as Value.Unresolved;
+        Assert.Single(unresolvedValue?.Reference?.Source.ToArray());
     }
 
     [Fact(DisplayName = "subtract assign")]
@@ -206,13 +220,15 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Assignment.Parse(ref parser);
 
-        Assert.Single(assignment?.Reference?.Components);
-        Ronin.Grammar.Name name = assignment.Reference.Components?[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolved = assignment?.Destination as Datum.Unresolved;
+
+        Assert.Single(unresolved?.Reference.Components);
+        Name name = unresolved.Reference.Components?[0];
+        Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<SubtractAssign>(assignment.Type);
 
         var scalar = assignment.Value as Inline;
-        Assert.Equal(1, scalar?.Source.Length);
+        Assert.Single(scalar?.Source.ToArray());
     }
 }

@@ -19,6 +19,7 @@ public class Lookups : ParsingTests
             Text("thing"),
             Number(4),
             EndScope(),
+            Sentinel.Instance
         };
         
         Parser parser = new(tokens);
@@ -38,6 +39,7 @@ public class Lookups : ParsingTests
             Assign(),
             Number(4),
             EndScope(),
+            Sentinel.Instance
         };
         
         Parser parser = new(tokens);

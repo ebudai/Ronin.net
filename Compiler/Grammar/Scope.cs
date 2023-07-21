@@ -7,7 +7,7 @@ namespace Ronin.Grammar;
 internal class Scope : Statement, IParsableSyntax<Scope>
 {
     public Modifiers Modifiers { get; init; }
-    public Definition Definition { get; init; }    
+    public Definition Definition { get; set; }    
 
     public static new Scope Parse(ref Parser current)
         => AnonymousScope.Parse(ref current)
@@ -37,7 +37,7 @@ internal class AnonymousScope : Scope, IParsableSyntax<AnonymousScope>
 
 internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
 {
-    public Reference Condition { get; init; }
+    public Value Condition { get; init; }
 
     public static new ConditionalScope Parse(ref Parser current)
     {
@@ -47,7 +47,7 @@ internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
 
         if (parser.TryAdvance<If>() is false) return null;
 
-        if (Reference.Parse(ref parser) is not Reference condition) return null;
+        if (Value.Parse(ref parser) is not Value condition) return null;
 
         if (Definition.Parse(ref parser) is not Definition definition) return null;
 
@@ -63,7 +63,7 @@ internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
 
 internal class RepeatingScope : Scope, IParsableSyntax<RepeatingScope>
 {
-    public Reference Condition { get; init; }
+    public Value Condition { get; init; }
 
     public static new RepeatingScope Parse(ref Parser current)
     {
@@ -73,7 +73,7 @@ internal class RepeatingScope : Scope, IParsableSyntax<RepeatingScope>
 
         if (parser.TryAdvance<While>() is false) return null;
 
-        if (Reference.Parse(ref parser) is not Reference condition) return null;
+        if (Value.Parse(ref parser) is not Value condition) return null;
 
         if (Definition.Parse(ref parser) is not Definition definition) return null;
 

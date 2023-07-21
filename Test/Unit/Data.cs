@@ -37,7 +37,7 @@ public class Data : ParsingTests
         Assert.Equal(2, datum.Name?.Source.Length);
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(name?.Source.ToArray());
         Assert.Null(datum.Initializer);
     }
 
@@ -69,7 +69,7 @@ public class Data : ParsingTests
         
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(name?.Source.ToArray());
         
         Assert.Null(datum.Initializer);
     }
@@ -102,7 +102,7 @@ public class Data : ParsingTests
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
     }
@@ -135,7 +135,7 @@ public class Data : ParsingTests
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
     }
@@ -168,7 +168,7 @@ public class Data : ParsingTests
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
     }
@@ -200,7 +200,7 @@ public class Data : ParsingTests
         
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(name?.Source.ToArray());
         
         Assert.Null(datum.Initializer);
     }
@@ -234,10 +234,10 @@ public class Data : ParsingTests
 
         Assert.Null(datum.Datatype);
 
-        var reference = datum?.Initializer as Reference;
-        Assert.Single(reference?.Components);
-        Name name = reference.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolved = datum?.Initializer as Value.Unresolved;
+        Assert.Single(unresolved?.Reference.Components);
+        Name name = unresolved.Reference.Components[0];
+        Assert.Single(name?.Source.ToArray());
     }
 
     [Fact(DisplayName = "typed and initialized via literal")]
@@ -271,7 +271,7 @@ public class Data : ParsingTests
 
         Assert.Single(datum.Datatype?.Components);
         Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(name?.Source.ToArray());
 
         var scalar = datum.Initializer as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);

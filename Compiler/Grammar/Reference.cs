@@ -6,9 +6,9 @@ using Ronin.Grammar.Compound;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Represents a named indirection to a <see cref="Datum"/>, <see cref="FunctionDeclaration"/>, <see cref="DatatypeDeclaration"/> or <see cref="Value"/>
+///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function.Declaration"/>, <see cref="Datatype.Declaration"/> or <see cref="Value"/>
 /// </summary>
-internal class Reference : Value, IParsableSyntax<Reference>
+internal class Reference : Statement, IParsableSyntax<Reference>
 {
     public List<Component> Components { get; init; }
     public Indexer Ordinal { get; init; }

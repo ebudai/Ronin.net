@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Grammar.Compound;
-using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Symbols;
 using System.Diagnostics.CodeAnalysis;
 
@@ -10,30 +9,28 @@ namespace Ronin.Grammar;
 
 internal class Datatype
 {
-    [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; } //= new();
+    [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; }
     [ExcludeFromCodeCoverage] public Algebra Algebra { get; init; }
     [ExcludeFromCodeCoverage] public Definition Definition { get; init; }
 
     /// <summary>
     ///     Restricts a <see cref="Datum"/> to a particular shape of data
-    ///     resulting from evaluation of a <see cref="FunctionDeclaration"/> or <see cref="Datum"/>
+    ///     resulting from evaluation of a <see cref="Function.Declaration"/> or <see cref="Datum"/>
     /// </summary>
     /// 
     /// <example>
     ///     datatype Car = Vehicle and { var speed => number; var price => money; }
     /// </example>
-    public class Declaration : Statement, IParsableSyntax<Declaration>
+    public class Declaration : Scope, IParsableSyntax<Declaration>
     {
-        public bool Extends { get; init; }
         public Identifier Name { get; init; }
         public Reference Algebra { get; init; }
-        public Definition Definition { get; init; }
 
         public new static Declaration Parse(ref Parser current)
         {
             Parser parser = current;
 
-            bool isExtension = parser.TryAdvance<Extends>();
+            var modifiers = Modifiers.Parse(ref parser);
 
             if (parser.TryAdvance<Lexicon.Keywords.Datatype>() is false) return null;
 
@@ -50,7 +47,7 @@ internal class Datatype
 
             return new Declaration
             {
-                Extends = isExtension,
+                Modifiers = modifiers,
                 Name = name,
                 Algebra = algebra,
                 Definition = definition,

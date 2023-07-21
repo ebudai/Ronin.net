@@ -14,23 +14,6 @@ internal class Datum
     [ExcludeFromCodeCoverage] public Datatype Datatype { get; init; }
     [ExcludeFromCodeCoverage] public Value Initializer { get; init; }
 
-    [ExcludeFromCodeCoverage] private Datum() { }
-
-    [ExcludeFromCodeCoverage]
-    public Datum(Declaration declaration)
-    {
-        Mutability = declaration.Mutability;
-        Modifiers = declaration.Modifiers;
-
-        Datatype = new Datatype.Unresolved 
-        {
-            Modifiers = declaration.Modifiers,
-            Reference = declaration.Datatype 
-        };
-
-        Initializer = declaration.Initializer;
-    }
-
     /// <summary>
     ///     A singular piece of data residing in memory, and declared in a <see cref="Scope"/>
     /// </summary>
@@ -88,5 +71,10 @@ internal class Datum
                 Source = parser.Commit(ref current)
             };
         }
+    }
+
+    public class Unresolved : Datum
+    {
+        public Reference Reference { get; set; }
     }
 }

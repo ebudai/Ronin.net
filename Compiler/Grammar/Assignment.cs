@@ -15,7 +15,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Assignment : Statement, IParsableSyntax<Assignment>
 {
-    public Reference Reference { get; init; }
+    public Datum Destination { get; init; }
     public Punctuation Type { get; init; }
     public Value Value { get; init; }
 
@@ -41,7 +41,7 @@ internal class Assignment : Statement, IParsableSyntax<Assignment>
 
         return new Assignment
         {
-            Reference = reference,
+            Destination = new Datum.Unresolved { Reference = reference },
             Type = type,
             Value = value,
             Source = parser.Commit(ref current),

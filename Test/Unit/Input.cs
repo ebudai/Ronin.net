@@ -27,10 +27,10 @@ public class Input : ParsingTests
 
         Assert.Single(arguments?.Values);
         Value value = arguments.Values[0];
-        var reference = value as Reference;
-        Assert.Single(reference?.Components);
-        Name name = reference.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        var unresolved = value as Value.Unresolved;
+        Assert.Single(unresolved?.Reference?.Components);
+        Name name = unresolved.Reference.Components[0];
+        Assert.Single(name?.Source.ToArray());
     }
 
     [Fact(DisplayName = "multiple")]
@@ -55,18 +55,18 @@ public class Input : ParsingTests
 
         {
             Value value = arguments.Values[0];
-            var reference = value as Reference;
-            Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            var unresolved = value as Value.Unresolved;
+            Assert.Single(unresolved?.Reference?.Components);
+            Name name = unresolved.Reference.Components[0];
+            Assert.Single(name?.Source.ToArray());
         }
 
         {
             Value value = arguments.Values[1];
-            var reference = value as Reference;
-            Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            var unresolved = value as Value.Unresolved;
+            Assert.Single(unresolved?.Reference?.Components);
+            Name name = unresolved.Reference.Components[0];
+            Assert.Single(name?.Source.ToArray());
         }
     }
 
@@ -123,10 +123,10 @@ public class Input : ParsingTests
 
         {
             Value value = arguments.Values[2];
-            var reference = value as Reference;
-            Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            var unresolved = value as Value.Unresolved;
+            Assert.Single(unresolved?.Reference?.Components);
+            Name name = unresolved.Reference.Components[0];
+            Assert.Single(name?.Source.ToArray());
         }
     }
 
@@ -160,10 +160,10 @@ public class Input : ParsingTests
 
         {
             Value value = arguments.Values[0];
-            var reference = value as Reference;
-            Assert.Single(reference?.Components);
-            Name name = reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            var unresolved = value as Value.Unresolved;
+            Assert.Single(unresolved?.Reference?.Components);
+            Name name = unresolved.Reference.Components[0];
+            Assert.Single(name?.Source.ToArray());
         }
 
         {

@@ -7,8 +7,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     A unique name for a <see cref="DatatypeDeclaration"/> or a <see cref="FunctionDeclaration"/>
-///     which can contain multiple <see cref="Name"/> and <see cref="Parameters"/>
+///     A unique name for a <see cref="Datatype.Declaration"/> or a <see cref="Function.Declaration"/>
+///     which can contain multiple <see cref="Name"/>s and <see cref="Parameters"/>
 /// </summary>
 internal class Identifier : Syntax, IParsableSyntax<Identifier>
 {
@@ -16,7 +16,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 
     public Identifier() { }
 
-    [ExcludeFromCodeCoverage] public Identifier(Name words) => Components.Add(new Component { value = words });
+    [ExcludeFromCodeCoverage] public Identifier(Name name) => Components.Add(new Component { value = name });
 
     public static Identifier Parse(ref Parser current)
     {

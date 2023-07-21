@@ -23,12 +23,10 @@ internal class Function
     ///         return 8; 
     ///     }
     /// </example>
-    public class Declaration : Statement, IParsableSyntax<Declaration>
+    public class Declaration : Scope, IParsableSyntax<Declaration>
     {
         public Identifier Identifier { get; init; }
-        public Modifiers Modifiers { get; init; }
         public Reference Returns { get; init; }
-        public Definition Definition { get; init; }
 
         public new static Declaration Parse(ref Parser current)
         {
