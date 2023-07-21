@@ -8,7 +8,7 @@ using Test;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Ordinals : ParsingTests
+public class Indexers : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -17,17 +17,17 @@ public class Ordinals : ParsingTests
 
         List<Token> tokens = new()
         {
-            StartOrdinal(),
+            StartIndexer(),
             Word("test"),
-            EndOrdinal(),
+            EndIndexer(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var indexer = Indexer.Parse(ref parser);
 
-        Assert.Single(ordinal?.Values);
-        var reference = ordinal.Values[0] as Reference;
+        Assert.Single(indexer?.Values);
+        var reference = indexer.Values[0] as Reference;
         Assert.Single(reference?.Components);
         Name name = reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
@@ -40,28 +40,28 @@ public class Ordinals : ParsingTests
 
         List<Token> tokens = new()
         {
-            StartOrdinal(),
+            StartIndexer(),
             Word("test"),
             Separator(),
             Word("stuff"),
-            EndOrdinal(),
+            EndIndexer(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var indexer = Indexer.Parse(ref parser);
 
-        Assert.Equal(2, ordinal?.Values?.Count);
+        Assert.Equal(2, indexer?.Values?.Count);
 
         {            
-            var test = ordinal.Values[0] as Reference;
+            var test = indexer.Values[0] as Reference;
             Assert.Single(test?.Components);
             Name name = test.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            var stuff = ordinal.Values[1] as Reference;
+            var stuff = indexer.Values[1] as Reference;
             Assert.Single(stuff?.Components);
             Name name = stuff.Components[0];
             Assert.Equal(1, name?.Source.Length);
@@ -75,15 +75,15 @@ public class Ordinals : ParsingTests
 
         List<Token> tokens = new()
         {
-            StartOrdinal(),
-            EndOrdinal(),
+            StartIndexer(),
+            EndIndexer(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var indexer = Indexer.Parse(ref parser);
 
-        Assert.Empty(ordinal?.Values);
+        Assert.Empty(indexer?.Values);
     }
 
     [Fact(DisplayName = "multidimensional named")]
@@ -93,18 +93,18 @@ public class Ordinals : ParsingTests
 
         List<Token> tokens = new()
         {
-            StartOrdinal(),
+            StartIndexer(),
             Number(1),
             Separator(),
             Number(2),
             Separator(),
             Word("thing"),
-            EndOrdinal(),
+            EndIndexer(),
             Sentinel.Instance
         };
         
         Parser parser = new(tokens);
-        var arguments = Ordinal.Parse(ref parser);
+        var arguments = Indexer.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Values?.Count);
 

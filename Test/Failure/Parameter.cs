@@ -50,11 +50,11 @@ public class Parameter : ParsingTests
             Returns(),
             Word("money"),
             Separator(),
-            StartOrdinal(),
+            StartIndexer(),
             Word("thing"),
             Terminal(),
             Word("stuff"),
-            EndOrdinal(),
+            EndIndexer(),
             EndValues(),
             Sentinel.Instance
         };

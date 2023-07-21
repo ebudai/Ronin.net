@@ -11,7 +11,7 @@ internal abstract class Aggregate<T> : AnonymousValue
     protected internal List<T> Values = new();
 }
 /// <summary>
-///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Ordinal"/>, <see cref="Parameters"/>, and <see cref="Definition"/>)
+///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Indexer"/>, <see cref="Parameters"/>, and <see cref="Definition"/>)
 /// </summary>
 /// 
 /// <typeparam name="T">

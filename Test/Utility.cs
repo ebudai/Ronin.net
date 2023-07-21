@@ -132,18 +132,18 @@ public class ParsingTests
         return endValues;
     }
 
-    internal static StartOrdinal StartOrdinal()
+    internal static StartIndexer StartIndexer()
     {
-        StartOrdinal startOrdinal = new();
-        startOrdinal.SetMemory(Ronin.Lexicon.Symbols.StartOrdinal.symbol.ToString());
-        return startOrdinal;
+        StartIndexer startIndexer = new();
+        startIndexer.SetMemory(Ronin.Lexicon.Symbols.StartIndexer.symbol.ToString());
+        return startIndexer;
     }
 
-    internal static EndOrdinal EndOrdinal()
+    internal static EndIndexer EndIndexer()
     {
-        EndOrdinal endOrdinal = new();
-        endOrdinal.SetMemory(Ronin.Lexicon.Symbols.EndOrdinal.symbol.ToString());
-        return endOrdinal;
+        EndIndexer endIndexer = new();
+        endIndexer.SetMemory(Ronin.Lexicon.Symbols.EndIndexer.symbol.ToString());
+        return endIndexer;
     }
 
     internal static StartScope StartScope()

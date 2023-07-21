@@ -9,7 +9,7 @@ namespace Ronin.Grammar.Compound;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Temporary"/>s between <see cref="StartOrdinal"/> and <see cref="EndOrdinal"/>
+///     <see cref="Separator"/>-separated <see cref="Temporary"/>s between <see cref="StartIndexer"/> and <see cref="EndIndexer"/>
 /// </remarks>
 /// 
 /// <example>
@@ -27,7 +27,7 @@ namespace Ronin.Grammar.Compound;
 ///     var selected value = multi-dimensional list[3, 1, 0];
 ///                                                ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Ordinal : Aggregate<Ordinal, StartOrdinal, Value, Separator, EndOrdinal>
+internal class Indexer : Aggregate<Indexer, StartIndexer, Value, Separator, EndIndexer>
 {
     
 }

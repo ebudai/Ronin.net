@@ -1,31 +1,30 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar.Compound;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 using Test;
 
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Ordinals : ParsingTests
+public class Indexers : ParsingTests
 {
     [Fact(DisplayName = "does not start with [")]
-    public void NotAnOrdinal()
+    public void NotAnIndexer()
     {
-        // not an ordinal;
+        // not an indexer;
 
         List<Token> tokens = new()
         {
             Word("not"),
             Word("an"),
-            Word("ordinal"),
+            Word("indexer"),
             Terminal()
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var indexer = Indexer.Parse(ref parser);
 
-        Assert.Null(ordinal);
+        Assert.Null(indexer);
     }
 
     [Fact(DisplayName = "blank")]
@@ -33,7 +32,7 @@ public class Ordinals : ParsingTests
     {
         List<Token> tokens = new() { Sentinel.Instance };
         Parser parser = new(tokens);
-        var arguments = Ordinal.Parse(ref parser);
+        var arguments = Indexer.Parse(ref parser);
 
         Assert.Null(arguments);
     }
@@ -45,20 +44,20 @@ public class Ordinals : ParsingTests
 
         List<Token> tokens = new()
         {
-            StartOrdinal(),
+            StartIndexer(),
             Word("test"),
             Separator(),
             Word("thing"),
             Terminal(),
             Word("stuff"),
             EndValues(),
-            EndOrdinal(),
+            EndIndexer(),
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var indexer = Indexer.Parse(ref parser);
 
-        Assert.Null(ordinal);
+        Assert.Null(indexer);
     }
 
     [Fact(DisplayName = "terminated incorrectly")]
@@ -68,15 +67,15 @@ public class Ordinals : ParsingTests
 
         List<Token> tokens = new()
         {
-            StartOrdinal(),
+            StartIndexer(),
             Word("test"),
             Terminal(),
-            EndOrdinal(),
+            EndIndexer(),
         };
         
         Parser parser = new(tokens);
-        var ordinal = Ordinal.Parse(ref parser);
+        var indexer = Indexer.Parse(ref parser);
 
-        Assert.Null(ordinal);
+        Assert.Null(indexer);
     }
 }

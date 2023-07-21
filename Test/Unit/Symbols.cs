@@ -31,8 +31,8 @@ public class Symbols
     [Fact(DisplayName = "start values")]
     public void LexOpenParenthesis() => LexSymbol<StartValues>(StartValues.symbol);
 
-    [Fact(DisplayName = "start ordinal")]
-    public void LexOpenSquareBracket() => LexSymbol<StartOrdinal>(StartOrdinal.symbol);
+    [Fact(DisplayName = "start indexer")]
+    public void LexOpenSquareBracket() => LexSymbol<StartIndexer>(StartIndexer.symbol);
 
     [Fact(DisplayName = "end scope")]
     public void LexCloseBrace() => LexSymbol<EndScope>(EndScope.symbol);
@@ -40,8 +40,8 @@ public class Symbols
     [Fact(DisplayName = "end values")]
     public void LexCloseParenthesis() => LexSymbol<EndValues>(EndValues.symbol);
 
-    [Fact(DisplayName = "end ordinal")]
-    public void LexCloseSquareBracket() => LexSymbol<EndOrdinal>(EndOrdinal.symbol);
+    [Fact(DisplayName = "end indexer")]
+    public void LexCloseSquareBracket() => LexSymbol<EndIndexer>(EndIndexer.symbol);
 
     [Fact(DisplayName = "character delimiter")]
     public void LexSingleQuote() => LexSymbol<CharacterDelimiter>(CharacterDelimiter.symbol);
