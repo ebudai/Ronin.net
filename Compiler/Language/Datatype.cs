@@ -1,4 +1,5 @@
 ﻿using Ronin.Grammar;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
@@ -68,11 +69,12 @@ internal class UnresolvedAlgebra : Algebra
     public Context Context { get; init; }
 }*/
 
+[ExcludeFromCodeCoverage]
 internal class Fundamental<T> : Datatype
 {
     public Type Type { get; } = typeof(T);
 
-    public Fundamental(string name) : base(null)
+    public Fundamental(string name)
     {
         /*base.Definition = Definition;
         Identifier identifier = new(name);

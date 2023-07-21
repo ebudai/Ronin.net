@@ -1,5 +1,8 @@
-﻿namespace Ronin.Language.Fundamental;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace Ronin.Language.Fundamental;
+
+[ExcludeFromCodeCoverage]
 internal class Character : Fundamental<char>
 {
     private const string sourcecode = """

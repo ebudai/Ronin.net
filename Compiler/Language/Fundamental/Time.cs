@@ -1,5 +1,8 @@
-﻿namespace Ronin.Language.Fundamental;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace Ronin.Language.Fundamental;
+
+[ExcludeFromCodeCoverage]
 internal class Time : Fundamental<TimeOnly>
 {
     private const string sourcecode = """

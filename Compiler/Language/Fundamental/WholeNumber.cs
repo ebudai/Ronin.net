@@ -1,6 +1,9 @@
-﻿namespace Ronin.Language.Fundamental;
+﻿using System.Diagnostics.CodeAnalysis;
 
-internal class Whole : Fundamental<long>
+namespace Ronin.Language.Fundamental;
+
+[ExcludeFromCodeCoverage]
+internal class WholeNumber : Fundamental<long>
 {
     private const string sourcecode = """
         datatype whole number =
@@ -40,5 +43,5 @@ internal class Whole : Fundamental<long>
         }
         """;
 
-    public Whole() : base("whole number") { }
+    public WholeNumber() : base("whole number") { }
 }

@@ -1,7 +1,9 @@
 ﻿using Ronin.Grammar;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Language;
 
+[ExcludeFromCodeCoverage]
 internal class Semantic
 {
     public Syntax Source { get; }
