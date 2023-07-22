@@ -88,7 +88,7 @@ internal ref struct Analyzer
             Definition = declaration.Definition
         };
 
-        definition.Add(declaration.Identifier, function);
+        definition.Add(declaration, function);
 
         return errors;
     }

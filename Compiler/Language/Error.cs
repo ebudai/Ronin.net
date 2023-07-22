@@ -12,10 +12,10 @@ internal partial class Error
     public static List<Error> ExportedScopeMustBeAnonymous(Statement statement) => Errors<ExportedScopeMustBeAnonymous>(statement);
     public static List<Error> ExportedScopeMustBeUnmodified(Statement statement) => Errors<ExportedScopeMustBeUnmodified>(statement);
     public static List<Error> ScopeAlreadyNamed(Statement statement) => Errors<ScopeAlreadyNamed>(statement);
+    public static List<Error> Redefinition(Statement statement) => Errors<Redefinition>(statement);
     public static List<Error> UnknownSyntax(Statement statement) => Errors<UnknownSyntax>(statement);
     
     public Statement Statement { get; set; }
-    public int Offset { get; init; }
 
     private static List<Error> Errors<T>(Statement statement) where T : Error, new() => new() { new T { Statement = statement } };
 }
@@ -25,3 +25,4 @@ internal partial class Error
 [ExcludeFromCodeCoverage] internal class ExportedScopeMustBeAnonymous : Error { }
 [ExcludeFromCodeCoverage] internal class ExportedScopeMustBeUnmodified : Error { }
 [ExcludeFromCodeCoverage] internal class ScopeAlreadyNamed : Error { }
+[ExcludeFromCodeCoverage] internal class Redefinition : Error { }

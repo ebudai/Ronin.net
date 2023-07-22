@@ -9,7 +9,7 @@ internal class Module
     public static Module Main = null;
 
     public Definition Definition { get; init; }
-    public Dictionary<Identifier.Component, Module> Children { get; } = new();
+    
 
     public List<Error> Add(Name name, Module module)
     {
