@@ -1,7 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Symbols;
 using Test;
 
 namespace Unit;

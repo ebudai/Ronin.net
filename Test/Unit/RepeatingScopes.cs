@@ -59,6 +59,6 @@ public class RepeatingScopes : ParsingTests
         var conditional = ConditionalScope.Parse(ref parser);
 
         Assert.NotNull(conditional?.Modifiers);
-        Assert.True(conditional.Modifiers.Is<Ronin.Lexicon.Keywords.Compiled>());        
+        Assert.True(conditional.Modifiers.Is<Compiled>());        
     }
 }

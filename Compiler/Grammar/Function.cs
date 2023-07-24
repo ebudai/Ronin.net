@@ -1,8 +1,8 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Lexicon.Symbols;
 using Ronin.Compiler;
 using System.Diagnostics.CodeAnalysis;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -31,7 +31,7 @@ internal class Function
         {
             Parser parser = current;
 
-            if (parser.TryAdvance<Lexicon.Keywords.Function>() is false) return null;
+            if (parser.TryAdvance<Lexicon.Function>() is false) return null;
 
             if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 

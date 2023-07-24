@@ -7,23 +7,23 @@ namespace Ronin.Lexicon;
 internal class Keyword : Word
 {
     public static new Word Lex(ref Lexer lexer)
-        => Keywords.Compiled.Lex(ref lexer)
-        ?? Keywords.Constant.Lex(ref lexer)
-        ?? Keywords.Datatype.Lex(ref lexer)
-        ?? Keywords.Extends.Lex(ref lexer)
-        ?? Keywords.ForEach.Lex(ref lexer)
-        ?? Keywords.Function.Lex(ref lexer)
-        ?? Keywords.Import.Lex(ref lexer)
-        ?? Keywords.Reactive.Lex(ref lexer)
-        ?? Keywords.PartOf.Lex(ref lexer)
-        ?? Keywords.Persistent.Lex(ref lexer)
-        ?? Keywords.Shared.Lex(ref lexer)
-        ?? Keywords.Optional.Lex(ref lexer)
-        ?? Keywords.Variable.Lex(ref lexer)
-        ?? Keywords.If.Lex(ref lexer)
-        ?? Keywords.Let.Lex(ref lexer)
-        ?? Keywords.While.Lex(ref lexer)
-        ?? Keywords.Hidden.Lex(ref lexer);
+        => Compiled.Lex(ref lexer)
+        ?? Constant.Lex(ref lexer)
+        ?? Datatype.Lex(ref lexer)
+        ?? Extends.Lex(ref lexer)
+        ?? ForEach.Lex(ref lexer)
+        ?? Function.Lex(ref lexer)
+        ?? Import.Lex(ref lexer)
+        ?? Reactive.Lex(ref lexer)
+        ?? PartOf.Lex(ref lexer)
+        ?? Persistent.Lex(ref lexer)
+        ?? Shared.Lex(ref lexer)
+        ?? Optional.Lex(ref lexer)
+        ?? Variable.Lex(ref lexer)
+        ?? If.Lex(ref lexer)
+        ?? Let.Lex(ref lexer)
+        ?? While.Lex(ref lexer)
+        ?? Hidden.Lex(ref lexer);
 }
 
 internal class Modifier : Keyword { }

@@ -2,7 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Language;
-using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon;
 using System.Runtime.InteropServices;
 using System.Transactions;
 

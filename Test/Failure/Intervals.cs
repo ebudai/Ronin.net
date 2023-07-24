@@ -1,5 +1,5 @@
 ﻿using Ronin.Compiler;
-using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon;
 
 namespace Failure;
 

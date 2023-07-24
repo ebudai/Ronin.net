@@ -21,7 +21,4 @@
       <_Parameter1>Ronin.Test2</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Language\Error\" />
-  </ItemGroup>
 </Project>

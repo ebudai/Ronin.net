@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
@@ -22,7 +21,7 @@ public class Datatypes : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datatype = Datatype.Declaration.Parse(ref parser);
+        var datatype = Ronin.Grammar.Datatype.Declaration.Parse(ref parser);
         Assert.Null(datatype);
     }
 }

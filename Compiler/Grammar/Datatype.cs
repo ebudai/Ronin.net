@@ -1,7 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Lexicon.Symbols;
+using Ronin.Lexicon;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
@@ -31,7 +31,7 @@ internal class Datatype
 
             var modifiers = Modifiers.Parse(ref parser);
 
-            if (parser.TryAdvance<Lexicon.Keywords.Datatype>() is false) return null;
+            if (parser.TryAdvance<Lexicon.Datatype>() is false) return null;
 
             if (Identifier.Parse(ref parser) is not Identifier name) return null;
 

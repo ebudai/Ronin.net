@@ -1,8 +1,6 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Keywords;
 using Ronin.Lexicon.Literals;
-using Ronin.Lexicon.Symbols;
 
 namespace Test;
 
@@ -58,112 +56,112 @@ public class ParsingTests
     internal static Assign Assign()
     {
         Assign assign = new();
-        assign.SetMemory(Ronin.Lexicon.Symbols.Assign.symbol.ToString());
+        assign.SetMemory(Ronin.Lexicon.Assign.symbol.ToString());
         return assign;
     }
 
     internal static AddAssign AddAssign()
     {
         AddAssign assign = new();
-        assign.SetMemory(Ronin.Lexicon.Symbols.AddAssign.symbol);
+        assign.SetMemory(Ronin.Lexicon.AddAssign.symbol);
         return assign;
     }
 
     internal static AndAssign AndAssign()
     {
         AndAssign assign = new();
-        assign.SetMemory(Ronin.Lexicon.Symbols.AndAssign.symbol);
+        assign.SetMemory(Ronin.Lexicon.AndAssign.symbol);
         return assign;
     }
 
     internal static DivideAssign DivideAssign()
     {
         DivideAssign assign = new();
-        assign.SetMemory(Ronin.Lexicon.Symbols.DivideAssign.symbol);
+        assign.SetMemory(Ronin.Lexicon.DivideAssign.symbol);
         return assign;
     }
 
     internal static MultiplyAssign MultiplyAssign()
     {
         MultiplyAssign assign = new();
-        assign.SetMemory(Ronin.Lexicon.Symbols.MultiplyAssign.symbol);
+        assign.SetMemory(Ronin.Lexicon.MultiplyAssign.symbol);
         return assign;
     }
 
     internal static OrAssign OrAssign()
     {
         OrAssign assign = new();
-        assign.SetMemory(Ronin.Lexicon.Symbols.OrAssign.symbol);
+        assign.SetMemory(Ronin.Lexicon.OrAssign.symbol);
         return assign;
     }
 
     internal static SubtractAssign SubtractAssign()
     {
         SubtractAssign assign = new();
-        assign.SetMemory(Ronin.Lexicon.Symbols.SubtractAssign.symbol);
+        assign.SetMemory(Ronin.Lexicon.SubtractAssign.symbol);
         return assign;
     }
 
     internal static Terminal Terminal()
     {
         Terminal terminal = new();
-        terminal.SetMemory(Ronin.Lexicon.Symbols.Terminal.symbol.ToString());
+        terminal.SetMemory(Ronin.Lexicon.Terminal.symbol.ToString());
         return terminal;
     }
 
     internal static Separator Separator()
     {
         Separator separator = new();
-        separator.SetMemory(Ronin.Lexicon.Symbols.Separator.symbol.ToString());
+        separator.SetMemory(Ronin.Lexicon.Separator.symbol.ToString());
         return separator;
     }
 
     internal static StartValues StartValues()
     {
         StartValues startValues = new();
-        startValues.SetMemory(Ronin.Lexicon.Symbols.StartValues.symbol.ToString());
+        startValues.SetMemory(Ronin.Lexicon.StartValues.symbol.ToString());
         return startValues;
     }
 
     internal static EndValues EndValues()
     {
         EndValues endValues = new();
-        endValues.SetMemory(Ronin.Lexicon.Symbols.EndValues.symbol.ToString());
+        endValues.SetMemory(Ronin.Lexicon.EndValues.symbol.ToString());
         return endValues;
     }
 
     internal static StartIndexer StartIndexer()
     {
         StartIndexer startIndexer = new();
-        startIndexer.SetMemory(Ronin.Lexicon.Symbols.StartIndexer.symbol.ToString());
+        startIndexer.SetMemory(Ronin.Lexicon.StartIndexer.symbol.ToString());
         return startIndexer;
     }
 
     internal static EndIndexer EndIndexer()
     {
         EndIndexer endIndexer = new();
-        endIndexer.SetMemory(Ronin.Lexicon.Symbols.EndIndexer.symbol.ToString());
+        endIndexer.SetMemory(Ronin.Lexicon.EndIndexer.symbol.ToString());
         return endIndexer;
     }
 
     internal static StartScope StartScope()
     {
         StartScope startScope = new();
-        startScope.SetMemory(Ronin.Lexicon.Symbols.StartScope.symbol.ToString());
+        startScope.SetMemory(Ronin.Lexicon.StartScope.symbol.ToString());
         return startScope;
     }
 
     internal static EndScope EndScope()
     {
         EndScope endScope = new();
-        endScope.SetMemory(Ronin.Lexicon.Symbols.EndScope.symbol.ToString());
+        endScope.SetMemory(Ronin.Lexicon.EndScope.symbol.ToString());
         return endScope;
     }
 
     internal static TextDelimiter TextDelimiter()
     {
         TextDelimiter textDelimiter = new();
-        textDelimiter.SetMemory(Ronin.Lexicon.Symbols.TextDelimiter.symbol.ToString());
+        textDelimiter.SetMemory(Ronin.Lexicon.TextDelimiter.symbol.ToString());
         return textDelimiter;
     }
 
@@ -177,114 +175,114 @@ public class ParsingTests
     internal static Returns Returns()
     {
         Returns returns = new();
-        returns.SetMemory(Ronin.Lexicon.Symbols.Returns.symbol);
+        returns.SetMemory(Ronin.Lexicon.Returns.symbol);
         return returns;
     }
 
     internal static class Keyword
     {
-        internal static Ronin.Lexicon.Keywords.Function Function()
+        internal static Ronin.Lexicon.Function Function()
         {
-            Ronin.Lexicon.Keywords.Function function = new();
-            function.SetMemory(Ronin.Lexicon.Keywords.Function.keyword);
+            Ronin.Lexicon.Function function = new();
+            function.SetMemory(Ronin.Lexicon.Function.keyword);
             return function;
         }
 
-        internal static Ronin.Lexicon.Keywords.Datatype Datatype()
+        internal static Ronin.Lexicon.Datatype Datatype()
         {
-            Ronin.Lexicon.Keywords.Datatype datatype = new();
-            datatype.SetMemory(Ronin.Lexicon.Keywords.Datatype.keyword);
+            Ronin.Lexicon.Datatype datatype = new();
+            datatype.SetMemory(Ronin.Lexicon.Datatype.keyword);
             return datatype;
         }
 
         internal static PartOf PartOf()
         {
             PartOf export = new();
-            export.SetMemory(Ronin.Lexicon.Keywords.PartOf.keyword);
+            export.SetMemory(Ronin.Lexicon.PartOf.keyword);
             return export;
         }
 
         internal static Variable Variable()
         {
             Variable variable = new();
-            variable.SetMemory(Ronin.Lexicon.Keywords.Variable.keyword);
+            variable.SetMemory(Ronin.Lexicon.Variable.keyword);
             return variable;
         }
 
         internal static Constant Constant()
         {
             Constant constant = new();
-            constant.SetMemory(Ronin.Lexicon.Keywords.Constant.keyword);
+            constant.SetMemory(Ronin.Lexicon.Constant.keyword);
             return constant;
         }
 
         internal static Reactive Reactive()
         {
             Reactive reactive = new();
-            reactive.SetMemory(Ronin.Lexicon.Keywords.Reactive.keyword);
+            reactive.SetMemory(Ronin.Lexicon.Reactive.keyword);
             return reactive;
         }
 
         internal static Let Let()
         {
             Let let = new();
-            let.SetMemory(Ronin.Lexicon.Keywords.Let.keyword);
+            let.SetMemory(Ronin.Lexicon.Let.keyword);
             return let;
         }
 
         internal static Compiled Compiled()
         {
             Compiled compiled = new();
-            compiled.SetMemory(Ronin.Lexicon.Keywords.Compiled.keyword);
+            compiled.SetMemory(Ronin.Lexicon.Compiled.keyword);
             return compiled;
         }
 
         internal static Persistent Persistent()
         {
             Persistent persistent = new();
-            persistent.SetMemory(Ronin.Lexicon.Keywords.Persistent.keyword);
+            persistent.SetMemory(Ronin.Lexicon.Persistent.keyword);
             return persistent;
         }
 
         internal static Shared Shared()
         {
             Shared shared = new();
-            shared.SetMemory(Ronin.Lexicon.Keywords.Shared.keyword);
+            shared.SetMemory(Ronin.Lexicon.Shared.keyword);
             return shared;
         }
 
         internal static Optional Optional()
         {
             Optional optional = new();
-            optional.SetMemory(Ronin.Lexicon.Keywords.Optional.keyword);
+            optional.SetMemory(Ronin.Lexicon.Optional.keyword);
             return optional;
         }
 
         internal static ForEach ForEach()
         {
             ForEach @foreach = new();
-            @foreach.SetMemory(Ronin.Lexicon.Keywords.ForEach.keyword);
+            @foreach.SetMemory(Ronin.Lexicon.ForEach.keyword);
             return @foreach;
         }
 
         internal static If If()
         {
             If @if = new();
-            @if.SetMemory(Ronin.Lexicon.Keywords.If.keyword);
+            @if.SetMemory(Ronin.Lexicon.If.keyword);
             return @if;
         }
 
         internal static While While()
         {
             While @while = new();
-            @while.SetMemory(Ronin.Lexicon.Keywords.While.keyword);
+            @while.SetMemory(Ronin.Lexicon.While.keyword);
             return @while;
         }
 
-        internal static Ronin.Lexicon.Keywords.Import Import()
+        internal static Ronin.Lexicon.Import Import()
         {
-            Ronin.Lexicon.Keywords.Import import = new();
-            import.SetMemory(Ronin.Lexicon.Keywords.Import.keyword);
+            Ronin.Lexicon.Import import = new();
+            import.SetMemory(Ronin.Lexicon.Import.keyword);
             return import;
         }
     }

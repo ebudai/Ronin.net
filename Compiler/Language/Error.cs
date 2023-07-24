@@ -1,5 +1,4 @@
 ﻿using Ronin.Grammar;
-using Ronin.Lexicon;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -12,7 +11,7 @@ internal class Error
 
     public Dictionary<string, object> Data { get; } = new();
     public string Reason { get; }
-    public ReadOnlyMemory<Token> Tokens { get; protected init; }
+    public ReadOnlyMemory<Lexicon.Token> Tokens { get; protected init; }
 
     public Error(string reason) => Reason = reason;
 
@@ -50,21 +49,21 @@ internal class Error
         return error;
     }
 
-    public static Error Redefinition(Function function, ReadOnlyMemory<Token> tokens)
+    public static Error Redefinition(Function function, ReadOnlyMemory<Lexicon.Token> tokens)
     {
         Error error = new("redefinition") { Tokens = tokens };
         error.IsAbout(function);
         return error;
     }
 
-    public static Error Redefinition(Datatype datatype, ReadOnlyMemory<Token> tokens)
+    public static Error Redefinition(Datatype datatype, ReadOnlyMemory<Lexicon.Token> tokens)
     {
         Error error = new("redefinition") { Tokens = tokens };
         error.IsAbout(datatype);
         return error;
     }
 
-    public static Error Redefinition(Datum datum, ReadOnlyMemory<Token> tokens)
+    public static Error Redefinition(Datum datum, ReadOnlyMemory<Lexicon.Token> tokens)
     {
         Error error = new("redefinition") { Tokens = tokens };
         error.IsAbout(datum);

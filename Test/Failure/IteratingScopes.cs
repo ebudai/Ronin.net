@@ -8,7 +8,7 @@ namespace Failure;
 [Trait("Parser", null)]
 public class IteratingScopes : ParsingTests
 {
-    [Fact(DisplayName = $"doesn't start with {Ronin.Lexicon.Keywords.ForEach.keyword}")]
+    [Fact(DisplayName = $"doesn't start with {ForEach.keyword}")]
     public void NotALoop()
     {
         // not loop;

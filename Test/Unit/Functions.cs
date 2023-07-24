@@ -31,7 +31,7 @@ public class Functions : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var function = Function.Declaration.Parse(ref parser);
+        var function = Ronin.Grammar.Function.Declaration.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
 
@@ -95,7 +95,7 @@ public class Functions : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var function = Function.Declaration.Parse(ref parser);
+        var function = Ronin.Grammar.Function.Declaration.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);
 

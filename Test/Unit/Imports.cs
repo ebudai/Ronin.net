@@ -3,6 +3,8 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
+using Import = Ronin.Grammar.Import;
+
 namespace Unit;
 
 [Trait("Parser", null)]
