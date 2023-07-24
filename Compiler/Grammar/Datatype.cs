@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Grammar.Compound;
 using Ronin.Lexicon.Symbols;
 using System.Diagnostics.CodeAnalysis;
 

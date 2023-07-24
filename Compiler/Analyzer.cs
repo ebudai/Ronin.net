@@ -1,5 +1,4 @@
 ﻿using Ronin.Grammar;
-using Ronin.Grammar.Compound;
 using Ronin.Language;
 using System.Diagnostics.CodeAnalysis;
 
@@ -17,15 +16,15 @@ internal ref struct Analyzer
         {
             errors.AddRange(statement switch
             {
-                Export export => Analyze(scope, export, ref name),
-                Import import => Analyze(scope.Definition, import),
-                Function.Declaration declaration => Analyze(scope.Definition, declaration),
-                Datatype.Declaration declaration => Analyze(scope.Definition, declaration),
-                Datum.Declaration declaration => Analyze(scope.Definition, declaration),
+                Export export => Export(scope, export, ref name),
+                Import import => Import(scope.Definition, import),
+                Function.Declaration declaration => Define(scope.Definition, declaration),
+                Datatype.Declaration declaration => Define(scope.Definition, declaration),
+                Datum.Declaration declaration => Define(scope.Definition, declaration),
                 Scope inner => Analyze(scope.Definition, inner),
                 Assignment or Reference or AnonymousValue => Error.None,
                 Unknown unknown => Error.UnknownSyntax(unknown),
-                _ => Error.UnhandledSubclass<Statement>(statement)
+                _ => Error.UnhandledSubclass<Statement>(statement.GetType())
             });
         }
         
@@ -38,7 +37,7 @@ internal ref struct Analyzer
         return errors;
     }
 
-    private static List<Error> Analyze(Definition parent, Definition definition)
+    private static List<Error> Define(Definition parent, Definition definition)
     {
         definition.Parent = parent;
         List<Error> errors = new();
@@ -46,40 +45,40 @@ internal ref struct Analyzer
         {
             errors.AddRange(statement switch
             {
-                Export export => Error.ExportedScopeMustBeAnonymous(export),
-                Import import => Analyze(definition, import),
-                Function.Declaration declaration => Analyze(definition, declaration),
-                Datatype.Declaration declaration => Analyze(definition, declaration),
-                Datum.Declaration declaration => Analyze(definition, declaration),
+                Export export => Error.CannotBePartOf(definition, export),
+                Import import => Import(definition, import),
+                Function.Declaration declaration => Define(definition, declaration),
+                Datatype.Declaration declaration => Define(definition, declaration),
+                Datum.Declaration declaration => Define(definition, declaration),
                 Scope inner => Analyze(definition, inner),
                 Assignment or Reference or AnonymousValue => Error.None,
                 Unknown unknown => Error.UnknownSyntax(unknown),
-                _ => Error.UnhandledSubclass<Statement>(statement)
+                _ => Error.UnhandledSubclass<Statement>(statement.GetType())
             });
         }
         return errors;
     }
 
-    private static List<Error> Analyze(Scope scope, Export export, ref Name name)
+    private static List<Error> Export(Scope scope, Export export, ref Name name)
     {
-        if (scope is not AnonymousScope) return Error.ExportedScopeMustBeAnonymous(export);
-        if (scope.Modifiers.Source.IsEmpty is false) return Error.ExportedScopeMustBeUnmodified(scope);
-        if (name is not null) return Error.ScopeAlreadyNamed(export);
+        if (scope is not AnonymousScope) return Error.CannotBePartOf(scope.Definition, export);
+        if (scope.Modifiers.Source.IsEmpty is false) return Error.CannotBePartOf(scope.Definition, scope.Modifiers);
+        if (name is not null) return Error.CannotBePartOf(scope.Definition, export.Name);
         
         name = export.Name;
 
         return Error.None;
     }
 
-    private static List<Error> Analyze(Definition definition, Import import)
+    private static List<Error> Import(Definition definition, Import import)
     {
         definition.Imports.Add(new Module.Unresolved { Import = import });
         return Error.None;
     }
 
-    private static List<Error> Analyze(Definition definition, Function.Declaration declaration)
+    private static List<Error> Define(Definition definition, Function.Declaration declaration)
     {
-        var errors = Analyze(definition, declaration.Definition);
+        var errors = Define(definition, declaration.Definition);
         
         Function function = new()
         {
@@ -93,9 +92,9 @@ internal ref struct Analyzer
         return errors;
     }
 
-    private static List<Error> Analyze(Definition definition, Datatype.Declaration declaration)
+    private static List<Error> Define(Definition definition, Datatype.Declaration declaration)
     {
-        var errors = Analyze(definition, declaration.Definition);
+        var errors = Define(definition, declaration.Definition);
 
         Datatype datatype = new()
         {
@@ -104,12 +103,12 @@ internal ref struct Analyzer
             Definition = declaration.Definition
         };
 
-        definition.Add(declaration.Identifier, datatype);
+        definition.Add(declaration, datatype);
 
         return errors;
     }
 
-    private static List<Error> Analyze(Definition definition, Datum.Declaration declaration) 
+    private static List<Error> Define(Definition definition, Datum.Declaration declaration) 
     {
         Datum datum = new()
         {
@@ -119,7 +118,7 @@ internal ref struct Analyzer
             Initializer = declaration.Initializer
         };
 
-        definition.Add(declaration.Name, datum);
+        definition.Add(declaration, datum);
 
         return Error.None;
     }

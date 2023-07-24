@@ -1,6 +1,5 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Grammar.Compound;
 using Ronin.Lexicon.Symbols;
 using Ronin.Compiler;
 using System.Diagnostics.CodeAnalysis;
@@ -12,7 +11,7 @@ internal class Function
     [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; }
     [ExcludeFromCodeCoverage] public Datatype Returns { get; init; }
     [ExcludeFromCodeCoverage] public Definition Definition { get; init; }
-
+    
     /// <summary>
     ///     Ordered grouping of instructions to execute when called
     /// </summary>

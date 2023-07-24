@@ -3,7 +3,7 @@
 using Ronin.Compiler;
 using Ronin.Lexicon.Symbols;
 
-namespace Ronin.Grammar.Compound;
+namespace Ronin.Grammar;
 
 /// <summary>
 ///     Aggregate of key=value pairs used to specify associations directly in code.

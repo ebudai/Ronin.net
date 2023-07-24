@@ -2,7 +2,7 @@
 
 using Ronin.Lexicon.Symbols;
 
-namespace Ronin.Grammar.Compound;
+namespace Ronin.Grammar;
 
 /// <summary>
 ///     Aggregate of <see cref="Parameter"/> used to declare variables to enter into a <see cref="FunctionDeclaration"/>
@@ -16,7 +16,7 @@ namespace Ronin.Grammar.Compound;
 ///     function thing (x => number, y => money) with stuff { return 8; }
 ///                    ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration, Separator, EndValues> 
+internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration, Separator, EndValues>
 {
-    
+
 }

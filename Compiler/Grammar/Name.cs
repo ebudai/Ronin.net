@@ -6,7 +6,7 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     The part of an <see cref="Identifier"/> or <see cref="Reference"/> which is not being used for <see cref="Compound.Parameters"/> and <see cref="Compound.Inputs"/>
+///     The part of an <see cref="Identifier"/> or <see cref="Reference"/> which is not being used for <see cref="Grammar.Parameters"/> and <see cref="Grammar.Inputs"/>
 /// </summary>
 internal class Name : Syntax, IParsableSyntax<Name>
 {

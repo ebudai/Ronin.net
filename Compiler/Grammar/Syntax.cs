@@ -8,6 +8,15 @@ namespace Ronin.Grammar;
 
 internal abstract class Syntax
 {
+    public override bool Equals(object obj) => obj is Syntax syntax && Source.Span.SequenceEqual(syntax.Source.Span);
+
+    public override int GetHashCode()
+    {
+        HashCode hashcode = new();
+        foreach (var token in Source.Span) hashcode.Add(token);
+        return hashcode.ToHashCode();
+    }
+
     protected internal ReadOnlyMemory<Token> Source { get; init; }
 }
 

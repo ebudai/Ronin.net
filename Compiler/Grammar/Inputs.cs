@@ -2,7 +2,7 @@
 
 using Ronin.Lexicon.Symbols;
 
-namespace Ronin.Grammar.Compound;
+namespace Ronin.Grammar;
 
 /// <summary>
 ///     Aggregate of <see cref="AnonymousValue"/>s intended for setting <see cref="Parameters"/>

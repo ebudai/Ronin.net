@@ -1,4 +1,4 @@
-﻿using Ronin.Grammar.Compound;
+﻿using Ronin.Grammar;
 
 namespace Ronin.Language;
 

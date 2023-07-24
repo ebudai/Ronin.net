@@ -2,7 +2,7 @@
 
 using Ronin.Lexicon.Symbols;
 
-namespace Ronin.Grammar.Compound;
+namespace Ronin.Grammar;
 
 /// <summary>
 ///     Aggregate of <see cref="Temporary"/>s intended for selecting an element from, or delcaring, a List or Lookup
@@ -29,5 +29,5 @@ namespace Ronin.Grammar.Compound;
 /// </example>
 internal class Indexer : Aggregate<Indexer, StartIndexer, Value, Separator, EndIndexer>
 {
-    
+
 }
