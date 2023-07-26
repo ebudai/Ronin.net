@@ -1,10 +1,8 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Language;
 using Ronin.Lexicon;
 using System.Runtime.InteropServices;
-using System.Transactions;
 
 namespace Ronin.Grammar;
 
@@ -21,46 +19,32 @@ namespace Ronin.Grammar;
 ///   → {
 ///   →     var volume => number; 
 ///   →     var base => number; 
-///   →     var treble => number; 
+///   →     var treble => number;
 ///   →     var brand => text;
 ///   → }
 ///     ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
 internal class Definition : Aggregate<Definition, StartScope, Statement, Terminal, EndScope>
 {
+    public List<Statement> Statements => Values;
+
     public Definition Parent { get; set; }
-    public Dictionary<Identifier.Component, Datatype> Datatypes { get; init; } = new();
-    public Dictionary<Identifier.Component, Function> Functions { get; init; } = new();
-    public Dictionary<Identifier.Component, Datum> Data { get; init; } = new();    
     public List<Module> Imports { get; init; } = new();
+    public Dictionary<Identifier.Component, Member> Elements { get; init; } = new();
     public Dictionary<Identifier.Component, Definition> Children { get; } = new();
 
-    public List<Error> Add(Function.Declaration declaration, Function function)
+    public void Add(Identifier identifier, Member element, List<Error> errors)
     {
-        var components = CollectionsMarshal.AsSpan(declaration.Identifier.Components);
-        return Add(components, function);
-    }
-
-    public List<Error> Add(Datatype.Declaration declaration, Datatype datatype)
-    {
-        var components = CollectionsMarshal.AsSpan(declaration.Identifier.Components);
-        return Add(components, datatype);
-    }
-
-    public List<Error> Add(Datum.Declaration declaration, Datum datum) 
-    {
-        Identifier identifier = declaration.Name;
         var components = CollectionsMarshal.AsSpan(identifier.Components);
-        return Add(components, datum);
-    }
-
-    // finds an existing identifier in the same or parent scope
-    public Identifier Existing(Identifier identifier)
-    {
-        Identifier existing = new();
-        var components = Find(CollectionsMarshal.AsSpan(identifier.Components));
-        existing?.Components.AddRange(components);
-        return existing;
+        List<Token> existing = new();
+        Parent?.Existing(components, existing);
+        if (existing.Count is not 0)
+        {
+            errors.Add(Error.Redefinition(element, existing.AsMemory()));
+            return;
+        }
+        
+        Add(components, element, errors);
     }
 
     public List<object> Find(Reference reference)
@@ -68,56 +52,79 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         throw new NotImplementedException();
     }
 
-    private List<Error> Add(ReadOnlySpan<Identifier.Component> components, Function function)
+    public void Join(Definition definition, List<Error> errors)
+    {
+        foreach (var statement in Statements) definition.Statements.Add(statement);
+
+        foreach (var (identifier, element) in Elements)
+        {
+            definition.Add(new Identifier { Components = new() { identifier } }, element, errors);
+        }
+        foreach (var (identifier, child) in Children)
+        {
+            if (definition.Children.TryGetValue(identifier, out var existing))
+            {
+                child.Join(existing, errors);
+            }
+            else
+            {
+                definition.Children.Add(identifier, child);
+            }
+        }
+    }
+
+    protected Module Find(ReadOnlyMemory<Token> words)
+    {
+        Identifier.Component name = new() { value = new Name { Source = new[] { words.Span[0] } } };
+
+        if (Children.TryGetValue(name, out var module) is false) return null;
+
+        return words.Length is 1 ? module as Module : module.Find(words[1..]);
+    }
+
+    private void Existing(ReadOnlySpan<Identifier.Component> identifier, List<Token> existing)
+    {
+        Query(identifier, existing);
+        if (existing.Count is 0) Parent?.Existing(identifier, existing);
+    }
+
+    private void Add(ReadOnlySpan<Identifier.Component> components, Member member, List<Error> errors)
     {
         if (components.Length is 1)
         {
-            if (Functions.TryAdd(components[0], function)) return Error.None;
+            if (Elements.TryAdd(components[0], member) is false) errors.Add(Error.Redefinition(member, components[0].Source));
+            return;
         }
 
-        throw new NotImplementedException();
+        if (Children.TryGetValue(components[0], out var child) is false)
+        {
+            child = new Definition { Parent = this };
+            Children.Add(components[0], child);
+        }
+
+        child.Add(components[1..], member, errors);
     }
 
-    private List<Error> Add(ReadOnlySpan<Identifier.Component> components, Datatype datatype)
+    private void Query(ReadOnlySpan<Identifier.Component> identifier, List<Token> components)
     {
-        throw new NotImplementedException();
-    }
-
-    private List<Error> Add(ReadOnlySpan<Identifier.Component> components, Datum datum)
-    {
-        throw new NotImplementedException();
-    }
-
-    private List<Identifier.Component> Find(ReadOnlySpan<Identifier.Component> identifier)
-    {
-        if (identifier.IsEmpty) return new();
-        
         if (identifier.Length is 1)
         {
-            foreach (var component in Datatypes.Keys)
-            {
-                if (component.Equals(identifier[0])) return new() { component };
-            }
-
-            foreach (var component in Functions.Keys)
-            {
-                if (component.Equals(identifier[0])) return new() { component };
-            }
-
-            foreach (var component in Data.Keys)
-            {
-                if (component.Equals(identifier[0])) return new() { component };
-            }
-
-            return new();
+            var name = Elements.Entry(identifier[0]).Key;
+            if (name is not null) components.AddRange(name.Source);
         }
-
-        if (Children.TryGetValue(identifier[0], out var child))
+        else
         {
-            List<Identifier.Component> components = new(identifier.Length) { Children.GetKey(identifier[0]) };
-            components.AddRange(child.Find(identifier[1..]));
-        }
+            var (name, child) = Children.Entry(identifier[0]);
+            if (child is not null)
+            {
+                components.AddRange(name.Source);
+                child.Query(identifier[1..], components);
+            }
+        }        
+    }
 
-        return new();
+    public class Member
+    {
+        public Modifiers Modifiers { get; init; } = new();
     }
 }

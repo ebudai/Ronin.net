@@ -1,84 +1,95 @@
 ﻿using Ronin.Grammar;
-using Ronin.Language;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Compiler;
 
-[ExcludeFromCodeCoverage]
-internal ref struct Analyzer
+internal static class Analyzer
 {
-    public static List<Error> Analyze(Definition parent, Scope scope)
+    public static void Analyze(Definition parent, Scope scope, List<Error> errors)
     {
         scope.Definition.Parent = parent;
+        
         Name name = null;
-        List<Error> errors = new();
+        
         foreach (var statement in scope.Definition.Values)
         {
-            errors.AddRange(statement switch
+            if (statement is Export export)
             {
-                Export export => Export(scope, export, ref name),
-                Import import => Import(scope.Definition, import),
-                Function.Declaration declaration => Define(scope.Definition, declaration),
-                Datatype.Declaration declaration => Define(scope.Definition, declaration),
-                Datum.Declaration declaration => Define(scope.Definition, declaration),
-                Scope inner => Analyze(scope.Definition, inner),
-                Assignment or Reference or AnonymousValue => Error.None,
-                Unknown unknown => Error.UnknownSyntax(unknown),
-                _ => Error.UnhandledSubclass<Statement>(statement.GetType())
-            });
+                Export(scope, export, ref name, errors);
+            }
+            else
+            {
+                Define(parent, scope.Definition, errors);
+            }
         }
         
         if (name is not null)
         {
-            Module module = new() { Definition = scope.Definition };
-            errors.AddRange(Module.Main.Add(name, module));
-        }
+            var module = Module.Main.Find(name);
 
-        return errors;
+            if (module is not null)
+            {
+                scope.Definition.Join(module, errors);         
+            }
+            else
+            {
+                Module.Main.Add(name, scope.Definition, errors);
+            }
+        }
     }
 
-    private static List<Error> Define(Definition parent, Definition definition)
+    public static void Define(Definition parent, Definition definition, List<Error> errors)
     {
         definition.Parent = parent;
-        List<Error> errors = new();
-        foreach (var statement in definition.Values)
-        {
-            errors.AddRange(statement switch
-            {
-                Export export => Error.CannotBePartOf(definition, export),
-                Import import => Import(definition, import),
-                Function.Declaration declaration => Define(definition, declaration),
-                Datatype.Declaration declaration => Define(definition, declaration),
-                Datum.Declaration declaration => Define(definition, declaration),
-                Scope inner => Analyze(definition, inner),
-                Assignment or Reference or AnonymousValue => Error.None,
-                Unknown unknown => Error.UnknownSyntax(unknown),
-                _ => Error.UnhandledSubclass<Statement>(statement.GetType())
-            });
-        }
-        return errors;
-    }
-
-    private static List<Error> Export(Scope scope, Export export, ref Name name)
-    {
-        if (scope is not AnonymousScope) return Error.CannotBePartOf(scope.Definition, export);
-        if (scope.Modifiers.Source.IsEmpty is false) return Error.CannotBePartOf(scope.Definition, scope.Modifiers);
-        if (name is not null) return Error.CannotBePartOf(scope.Definition, export.Name);
         
-        name = export.Name;
-
-        return Error.None;
+        foreach (var statement in definition.Statements)
+        {
+            switch (statement)
+            {
+                case Export export: errors.Add(Error.ScopeMustBeAnonymous(definition, export)); break;
+                case Import import: Import(definition, import); break;
+                case Function.Declaration function: Define(definition, function, errors); break;
+                case Datatype.Declaration datatype: Define(definition, datatype, errors); break;
+                case Datum.Declaration datum: Define(definition, datum, errors); break;
+                case Scope inner: Analyze(definition, inner, errors); break;
+                case Unknown unknown: errors.Add(Error.UnknownSyntax(unknown)); break;
+                default: break;
+            }
+        }
     }
 
-    private static List<Error> Import(Definition definition, Import import)
+    private static void Export(Scope scope, Export export, ref Name name, List<Error> errors)
+    {
+        bool error = false;
+
+        if (scope is not AnonymousScope)
+        {
+            errors.Add(Error.ScopeMustBeAnonymous(scope.Definition, export));
+            error = true;
+        }
+
+        if (scope.Modifiers.Source.IsEmpty is false)
+        {
+            errors.Add(Error.ScopeMustBeUnmodified(scope.Definition, scope.Modifiers));
+            error = true;
+        }
+
+        if (name is not null)
+        {
+            errors.Add(Error.ScopeIsAlreadyPartOfAModule(scope.Definition, export.Name));
+            error = true;
+        }
+        
+        if (error is false) name = export.Name;
+    }
+
+    private static void Import(Definition definition, Import import)
     {
         definition.Imports.Add(new Module.Unresolved { Import = import });
-        return Error.None;
     }
 
-    private static List<Error> Define(Definition definition, Function.Declaration declaration)
+    private static void Define(Definition definition, Function.Declaration declaration, List<Error> errors)
     {
-        var errors = Define(definition, declaration.Definition);
+        Define(definition, declaration.Definition, errors);
         
         Function function = new()
         {
@@ -87,14 +98,12 @@ internal ref struct Analyzer
             Definition = declaration.Definition
         };
 
-        definition.Add(declaration, function);
-
-        return errors;
+        definition.Add(declaration.Identifier, function, errors);
     }
 
-    private static List<Error> Define(Definition definition, Datatype.Declaration declaration)
+    private static void Define(Definition definition, Datatype.Declaration declaration, List<Error> errors)
     {
-        var errors = Define(definition, declaration.Definition);
+        Define(definition, declaration.Definition, errors);
 
         Datatype datatype = new()
         {
@@ -103,12 +112,10 @@ internal ref struct Analyzer
             Definition = declaration.Definition
         };
 
-        definition.Add(declaration, datatype);
-
-        return errors;
+        definition.Add(declaration.Identifier, datatype, errors);
     }
 
-    private static List<Error> Define(Definition definition, Datum.Declaration declaration) 
+    private static void Define(Definition definition, Datum.Declaration declaration, List<Error> errors) 
     {
         Datum datum = new()
         {
@@ -118,8 +125,6 @@ internal ref struct Analyzer
             Initializer = declaration.Initializer
         };
 
-        definition.Add(declaration, datum);
-
-        return Error.None;
+        definition.Add(declaration.Name, datum, errors);
     }
 }

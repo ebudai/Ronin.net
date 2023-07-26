@@ -1,16 +1,14 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using System.Diagnostics.CodeAnalysis;
 using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Function
+internal class Function : Definition.Member
 {
-    [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; }
-    [ExcludeFromCodeCoverage] public Datatype Returns { get; init; }
-    [ExcludeFromCodeCoverage] public Definition Definition { get; init; }
+    public Datatype Returns { get; init; }
+    public Definition Definition { get; init; }
     
     /// <summary>
     ///     Ordered grouping of instructions to execute when called

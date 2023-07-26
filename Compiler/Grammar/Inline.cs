@@ -25,7 +25,7 @@ internal class Inline : AnonymousValue, IParsableSyntax<Inline>
 
         while (parser.IsNotFinished)
         {            
-            if (parser.Token is not Lexicon.Literal) break;
+            if (parser.Token is not Literal) break;
             parser.Advance();
         }
 

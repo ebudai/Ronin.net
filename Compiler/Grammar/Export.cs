@@ -17,19 +17,21 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Export : Statement, IParsableSyntax<Export>
 {
+    public Keyword Keyword { get; init; }
     public Name Name { get; init; }
 
     public new static Export Parse(ref Parser current)
     {
-        if (current.Token is not PartOf) return null;
-
         Parser parser = current;
+
+        if (parser.Token is not PartOf keyword) return null;
         parser.Advance();
 
         if (Name.Parse(ref parser) is not Name name) return null;
 
         return new Export 
         {
+            Keyword = keyword,
             Name = name,
             Source = parser.Commit(ref current) 
         };

@@ -6,11 +6,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
-internal class Datatype
+internal class Datatype : Definition.Member
 {
-    [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; }
-    [ExcludeFromCodeCoverage] public Algebra Algebra { get; init; }
-    [ExcludeFromCodeCoverage] public Definition Definition { get; init; }
+    public Algebra Algebra { get; init; }
+    public Definition Definition { get; init; }
 
     /// <summary>
     ///     Restricts a <see cref="Datum"/> to a particular shape of data
@@ -55,18 +54,16 @@ internal class Datatype
         }
     }
 
-    [ExcludeFromCodeCoverage]
     public class Unresolved : Datatype
     {
         public Reference Reference { get; init; }
     }
 }
 
-[ExcludeFromCodeCoverage]
 internal class Algebra
 {
-    public List<Datatype> Bases { get; } = new();
-    public List<Datatype> Unions { get; } = new();
+    [ExcludeFromCodeCoverage] public List<Datatype> Bases { get; } = new();
+    [ExcludeFromCodeCoverage] public List<Datatype> Unions { get; } = new();
 
     public class Unresolved : Algebra
     {

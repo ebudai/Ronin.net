@@ -3,6 +3,8 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
+using Datatype = Ronin.Grammar.Datatype;
+
 namespace Unit;
 
 [Trait("Parser", null)]
@@ -274,5 +276,67 @@ public class Data : ParsingTests
 
         var scalar = datum.Initializer as Ronin.Grammar.Inline;
         Assert.Equal(1, scalar?.Source.Length);
+    }
+
+    [Trait("Analyzer", "declaration")]
+    public class Declaration : AnalysisTests
+    {
+        [Fact(DisplayName = "basic")]
+        public void Basic()
+        {
+            const string home = nameof(home);
+            const string Building = nameof(Building);
+            const string test = nameof(test);
+
+            // var home => shared Building = (2, "test", $7);
+
+            Module module = new()
+            {
+                Values = new List<Statement>
+                {
+                    new Datum.Declaration
+                    {
+                        Mutability = new Variable(),
+                        Name = new() { Source = new[] { Word(home) } },
+                        Modifiers = new() { Source = new[] { new Shared() } },
+                        Datatype = new Reference
+                        {
+                            Components = new List<Reference.Component>
+                            {
+                                new() { value = Name(Building) }
+                            }
+                        },
+                        Initializer = new Inputs
+                        {
+                            Values = new List<Inputs.Input>
+                            {
+                                new() { value = new Inline { Source = new[] { Number(2) } } },
+                                new() { value = new Inline { Source = new[] { Text(test) } } },
+                                new() { value = new Inline { Source = new[] { Currency(7) } } }
+                            }
+                        }
+                    }
+                }
+            };
+
+            List<Error> errors = new();
+            Analyzer.Define(Module.Main, module, errors);
+            Assert.Empty(errors);
+
+            Assert.Single(module.Elements);
+
+            var entry = module.Elements.First();
+            var identifier = entry.Key;
+            var datum = entry.Value as Datum;
+
+            Assert.IsType<Variable>(datum.Mutability);
+
+            Assert.Single(identifier.value.Source.ToArray());
+            Assert.Equal(home, identifier.value.Source.Span[0].Memory.ToArray());
+
+            Assert.IsType<Datatype.Unresolved>(datum.Datatype);
+
+            //Assert.Equal(datum.Initializer.)
+        }
     }
 }

@@ -10,12 +10,17 @@ internal static class Utility
         static int GetSize(List<T> tokens) => (int)typeof(List<T>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(tokens);
     }
 
-    public static TKey GetKey<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key)
+    public static KeyValuePair<TKey, TValue> Entry<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key)
     {
         foreach (var entry in dictionary)
         {
-            if (entry.Key.Equals(key)) return entry.Key;
+            if (entry.Key.Equals(key)) return entry;
         }
         return default;
+    }
+
+    public static void AddRange<T>(this List<T> list, ReadOnlyMemory<T> items)
+    {
+        foreach (var item in items.Span) list.Add(item);
     }
 }

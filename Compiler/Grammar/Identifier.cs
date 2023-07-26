@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -13,7 +12,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 {
     public List<Component> Components { get; init; } = new();
 
-    [ExcludeFromCodeCoverage] public static implicit operator Identifier(Name name) => new() { Components = new() { new Component { value = name } } };
+    public static implicit operator Identifier(Name name) => new() { Components = new() { new Component { value = name } } };
 
     public static Identifier Parse(ref Parser current)
     {

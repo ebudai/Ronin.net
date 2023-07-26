@@ -53,6 +53,13 @@ public class ParsingTests
         return number;
     }
 
+    internal static Currency Currency(double value)
+    {
+        Currency currency = new();
+        currency.SetMemory(value.ToString());
+        return currency;
+    }
+
     internal static Assign Assign()
     {
         Assign assign = new();
@@ -311,7 +318,12 @@ public class AnalysisTests
     internal static Name Words(string name)
     {
         List<Word> words = new();
-        foreach (var word in name.Split(new[] { ' ' })) words.Add(new(word));
+        foreach (var part in name.Split(new[] { ' ' }))
+        {
+            Word word = new();
+            word.SetMemory(part);
+            words.Add(word);
+        }
         return new Name { Source = words.ToArray() };
     }
 }

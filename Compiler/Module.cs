@@ -1,18 +1,19 @@
 ﻿using Ronin.Grammar;
-using Ronin.Language;
 
 namespace Ronin.Compiler;
 
-internal class Module : AnonymousScope
+internal class Module : Definition
 {
-    public static Module Main = null;
-    
-    public List<Error> Add(Name name, Module module)
+    public static Module Main = new();
+
+    public Module Find(Name name) => Find(name.Source);
+
+    public void Add(Name name, Definition definition, List<Error> errors)
     {
-        throw new NotImplementedException();
+        
     }
 
-    public class Unresolved : Module
+    public new class Unresolved : Module
     {
         public Import Import { get; init; }
     }

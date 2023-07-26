@@ -1,16 +1,12 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Lexicon;
 
 internal class Word : Token
 {
     public Word() { }
-
-    [ExcludeFromCodeCoverage]
-    public Word(string name) => Memory = name.ToCharArray();
 
     public static Word Lex(ref Lexer lexer)
     {

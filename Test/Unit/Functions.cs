@@ -3,6 +3,9 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
+using Datatype = Ronin.Grammar.Datatype;
+using Function = Ronin.Grammar.Function;
+
 namespace Unit;
 
 [Trait("Parser", null)]
@@ -11,7 +14,11 @@ public class Functions : ParsingTests
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        // function test(x => number) { return 7; }
+        /*
+         *      
+         *      function test(x => number) { return 7; }
+         *      
+         */
 
         List<Token> tokens = new()
         {
@@ -31,7 +38,7 @@ public class Functions : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var function = Ronin.Grammar.Function.Declaration.Parse(ref parser);
+        var function = Function.Declaration.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
 
@@ -95,7 +102,7 @@ public class Functions : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var function = Ronin.Grammar.Function.Declaration.Parse(ref parser);
+        var function = Function.Declaration.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);
 
@@ -124,5 +131,73 @@ public class Functions : ParsingTests
         Assert.Single(line?.Components);
         Name @return = line.Components[0];
         Assert.Equal(4, @return?.Source.Length);
+    }
+
+    [Trait("Analyzer", "declaration")]
+    public class Declaration : AnalysisTests
+    {
+        [Fact(DisplayName = "basic")]
+        public void Basic()
+        {
+            const string run = nameof(run);
+            const string home = nameof(home);
+            const string whole = nameof(whole);
+            const string number = nameof(number);
+            const string @return = nameof(@return);
+
+            // function run home => whole number { return 72; }
+
+            Module module = new()
+            {
+                Values = new List<Statement>
+                {
+                    new Function.Declaration
+                    {
+                        Identifier = new Name { Source = new[] { Word(run), Word(home) } },
+                        Returns = new Reference
+                        {
+                            Components = new List<Reference.Component>
+                            {
+                                new() { value = new Name { Source = new[] { Word(whole), Word(number) } } },
+                            }
+                        },
+                        Definition = new()
+                        {
+                            Values = new List<Statement>
+                            {
+                                new Reference
+                                {
+                                    Components = new List<Reference.Component>
+                                    {
+                                        new() { value = new Name { Source = new[] { Word(@return) } } },
+                                        new() { value = new Inline { Source = new[] { Number(72) } } },
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            List<Error> errors = new();
+            Analyzer.Define(Module.Main, module, errors);
+            Assert.Empty(errors);
+
+            Assert.Single(module.Elements);
+
+            var entry = module.Elements.First();
+            var identifier = entry.Key;
+            var function = entry.Value as Function;
+
+            Assert.Equal(2, identifier.value.Source.Length);
+            Assert.Equal(run, identifier.value.Source.Span[0].Memory.ToArray());
+            Assert.Equal(home, identifier.value.Source.Span[1].Memory.ToArray());
+
+            Assert.Null(function.Modifiers);
+
+            Assert.IsType<Datatype.Unresolved>(function.Returns);
+
+
+        }
     }
 }

@@ -2,16 +2,14 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
-internal class Datum
+internal class Datum : Definition.Member
 {
-    [ExcludeFromCodeCoverage] public Keyword Mutability { get; init; }
-    [ExcludeFromCodeCoverage] public Modifiers Modifiers { get; init; } = new();
-    [ExcludeFromCodeCoverage] public Datatype Datatype { get; init; }
-    [ExcludeFromCodeCoverage] public Value Initializer { get; init; }
+    public Keyword Mutability { get; init; }
+    public Datatype Datatype { get; init; }
+    public Value Initializer { get; init; }
 
     /// <summary>
     ///     A singular piece of data residing in memory, and declared in a <see cref="Scope"/>

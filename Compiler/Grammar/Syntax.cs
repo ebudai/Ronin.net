@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -42,7 +41,6 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
     protected internal Syntax value;
 }
 
-[ExcludeFromCodeCoverage]
 internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>
     where T : CompositeSyntax<T, T0, T1, T2>, new()
     where T0 : Syntax, IParsableSyntax<T0>
