@@ -180,7 +180,7 @@ public class Functions : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Definition, module, errors);
+            Analyzer.Define(Global.Scope, module, errors);
             Assert.Empty(errors);
 
             Assert.Single(module.Members);

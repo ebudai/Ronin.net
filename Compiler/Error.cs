@@ -24,21 +24,21 @@ internal class Error
 
     public static Error ScopeMustBeAnonymous(Definition scope, Export export)
     {
-        Error error = new("scope must be anonymous") { Tokens = export.Source[..1] };
+        Error error = new("scope must be anonymous") { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
-    public static Error ScopeMustBeUnmodified(Definition scope, Modifiers modifiers)
+    public static Error ScopeMustBeUnmodified(Definition scope, Export export)
     {
-        Error error = new("scope must be unmodified") { Tokens = modifiers.Source };
+        Error error = new("scope must be unmodified") { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
-    public static Error ScopeIsAlreadyPartOfAModule(Definition scope, Name name)
+    public static Error ScopeIsAlreadyPartOfAModule(Definition scope, Export export)
     {
-        Error error = new("scope is already a part of a module") { Tokens = name.Source };
+        Error error = new("scope is already a part of a module") { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }

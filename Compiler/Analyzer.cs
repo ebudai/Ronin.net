@@ -44,7 +44,7 @@ internal static class Analyzer
         
         if (name is not null)
         {
-            Global.Definition.Add(name, scope.Definition, errors);
+            Global.Scope.Add(name, scope.Definition, errors);
         }
     }
 
@@ -60,13 +60,13 @@ internal static class Analyzer
 
         if (scope.Modifiers.Source.IsEmpty is false)
         {
-            errors.Add(Error.ScopeMustBeUnmodified(scope.Definition, scope.Modifiers));
+            errors.Add(Error.ScopeMustBeUnmodified(scope.Definition, export));
             error = true;
         }
 
         if (name is not null)
         {
-            errors.Add(Error.ScopeIsAlreadyPartOfAModule(scope.Definition, export.Name));
+            errors.Add(Error.ScopeIsAlreadyPartOfAModule(scope.Definition, export));
             error = true;
         }
         

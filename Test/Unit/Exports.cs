@@ -105,12 +105,12 @@ public class Exports : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Definition, module, errors);
+            Analyzer.Define(Global.Scope, module, errors);
             Assert.Empty(errors);
 
-            Assert.Single(Global.Definition.Children);
+            Assert.Single(Global.Scope.Children);
 
-            Name name = Global.Definition.Children.First().Key;
+            Name name = Global.Scope.Children.First().Key;
 
             Assert.Equal(3, name.Source.Length);
             Assert.Equal(thing, name.Source.Span[0].Memory.ToArray());

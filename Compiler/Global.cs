@@ -4,5 +4,7 @@ namespace Ronin.Compiler;
 
 internal class Global
 {
-    public static readonly Definition Definition = new();
+    public static Definition Scope => scope.Definition;
+
+    private static readonly Scope scope = new AnonymousScope { Definition = new() };
 }
