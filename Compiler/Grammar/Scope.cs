@@ -5,7 +5,7 @@ namespace Ronin.Grammar;
 
 internal class Scope : Statement, IParsableSyntax<Scope>
 {
-    public Modifiers Modifiers { get; init; }
+    public Modifiers Modifiers { get; init; } = new();
     public Definition Definition { get; set; }
 
     public static new Scope Parse(ref Parser current)

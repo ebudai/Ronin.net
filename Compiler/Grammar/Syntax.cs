@@ -41,7 +41,7 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
     protected internal Syntax value;
 }
 
-internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>
+/*internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, T1>
     where T : CompositeSyntax<T, T0, T1, T2>, new()
     where T0 : Syntax, IParsableSyntax<T0>
     where T1 : Syntax, IParsableSyntax<T1>
@@ -50,4 +50,4 @@ internal abstract class CompositeSyntax<T, T0, T1, T2> : CompositeSyntax<T, T0, 
     public static new T Parse(ref Parser current) => CompositeSyntax<T, T0, T1>.Parse(ref current) ?? T2.Parse(ref current) as T;
 
     public static implicit operator T2(CompositeSyntax<T, T0, T1, T2> value) => value.value as T2;
-}
+}*/

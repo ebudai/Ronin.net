@@ -193,7 +193,7 @@ public class Functions : ParsingTests
             Assert.Equal(run, identifier.value.Source.Span[0].Memory.ToArray());
             Assert.Equal(home, identifier.value.Source.Span[1].Memory.ToArray());
 
-            Assert.Null(function.Modifiers);
+            Assert.Empty(function.Modifiers.Source.ToArray());
 
             Assert.IsType<Datatype.Unresolved>(function.Returns);
         }

@@ -78,7 +78,44 @@ public class Exports : ParsingTests
         [Fact(DisplayName = "basic")]
         public void Basic()
         {
+            const string thing = nameof(thing);
+            const string with = nameof(with);
+            const string stuff = nameof(stuff);
 
+            /*
+             
+             {
+                part of thing with stuff;
+             }
+             
+             */
+
+            AnonymousScope module = new()
+            {
+                Definition = new()
+                {
+                    Values = new List<Statement>
+                    {
+                        new Export
+                        {
+                            Name = new() { Source = new[] { Word(thing), Word(with), Word(stuff) } }
+                        }
+                    }
+                }            
+            };
+
+            List<Error> errors = new();
+            Analyzer.Define(Global.Definition, module, errors);
+            Assert.Empty(errors);
+
+            Assert.Single(Global.Definition.Children);
+
+            Name name = Global.Definition.Children.First().Key;
+
+            Assert.Equal(3, name.Source.Length);
+            Assert.Equal(thing, name.Source.Span[0].Memory.ToArray());
+            Assert.Equal(with, name.Source.Span[1].Memory.ToArray());
+            Assert.Equal(stuff, name.Source.Span[2].Memory.ToArray());
         }
     }
 }
