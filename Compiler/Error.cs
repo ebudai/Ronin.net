@@ -43,10 +43,10 @@ internal class Error
         return error;
     }
 
-    public static Error Redefinition(Definition.Member element, ReadOnlyMemory<Lexicon.Token> tokens)
+    public static Error Redefinition(Definition.Member member, Identifier identifier)
     {
-        Error error = new("redefinition") { Tokens = tokens };
-        error.IsAbout(element);
+        Error error = new("redefinition") { Tokens = identifier.Source };
+        error.IsAbout(member);
         return error;
     }
 

@@ -102,7 +102,7 @@ public class Datatypes : ParsingTests
 
             // datatype Big = text or { var x => number; }
 
-            Module module = new()
+            Definition module = new()
             {
                 Values = new List<Statement>
                 {
@@ -140,12 +140,12 @@ public class Datatypes : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Module.Main, module, errors);
+            Analyzer.Define(Global.Definition, module, errors);
             Assert.Empty(errors);
 
-            Assert.Single(module.Elements);
+            Assert.Single(module.Members);
 
-            var entry = module.Elements.First();
+            var entry = module.Members.First();
             var identifier = entry.Key;
             var datatype = entry.Value as Datatype;
 
@@ -159,9 +159,9 @@ public class Datatypes : ParsingTests
             Assert.Single(algebra.Reference.Components[1].value.Source.ToArray());
             Assert.Equal(or, algebra.Reference.Components[1].value.Source.Span[0].Memory.ToArray());
 
-            Assert.Single(datatype.Definition.Elements);
+            Assert.Single(datatype.Definition.Members);
 
-            var datumentry = datatype.Definition.Elements.First();
+            var datumentry = datatype.Definition.Members.First();
             var name = datumentry.Key;
             var datum = datumentry.Value as Datum;
 

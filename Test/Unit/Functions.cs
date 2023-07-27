@@ -147,7 +147,7 @@ public class Functions : ParsingTests
 
             // function run home => whole number { return 72; }
 
-            Module module = new()
+            Definition module = new()
             {
                 Values = new List<Statement>
                 {
@@ -180,12 +180,12 @@ public class Functions : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Module.Main, module, errors);
+            Analyzer.Define(Global.Definition, module, errors);
             Assert.Empty(errors);
 
-            Assert.Single(module.Elements);
+            Assert.Single(module.Members);
 
-            var entry = module.Elements.First();
+            var entry = module.Members.First();
             var identifier = entry.Key;
             var function = entry.Value as Function;
 
@@ -196,8 +196,6 @@ public class Functions : ParsingTests
             Assert.Null(function.Modifiers);
 
             Assert.IsType<Datatype.Unresolved>(function.Returns);
-
-
         }
     }
 }

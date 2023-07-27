@@ -290,7 +290,7 @@ public class Data : ParsingTests
 
             // var home => shared Building = (2, "test", $7);
 
-            Module module = new()
+            Definition module = new()
             {
                 Values = new List<Statement>
                 {
@@ -320,12 +320,12 @@ public class Data : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Module.Main, module, errors);
+            Analyzer.Define(Global.Definition, module, errors);
             Assert.Empty(errors);
 
-            Assert.Single(module.Elements);
+            Assert.Single(module.Members);
 
-            var entry = module.Elements.First();
+            var entry = module.Members.First();
             var identifier = entry.Key;
             var datum = entry.Value as Datum;
 

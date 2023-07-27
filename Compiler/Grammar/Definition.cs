@@ -2,7 +2,9 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using static Ronin.Grammar.Definition;
 
 namespace Ronin.Grammar;
 
@@ -29,22 +31,42 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
     public List<Statement> Statements => Values;
 
     public Definition Parent { get; set; }
-    public List<Module> Imports { get; init; } = new();
-    public Dictionary<Identifier.Component, Member> Elements { get; init; } = new();
+    public List<Definition> Imports { get; init; } = new();
+    public Dictionary<Identifier.Component, Member> Members { get; init; } = new();
     public Dictionary<Identifier.Component, Definition> Children { get; } = new();
 
-    public void Add(Identifier identifier, Member element, List<Error> errors)
+    public void Add(Identifier identifier, Member member, List<Error> errors)
     {
         var components = CollectionsMarshal.AsSpan(identifier.Components);
-        List<Token> existing = new();
-        Parent?.Existing(components, existing);
+        var existing = Existing(components);
         if (existing.Count is not 0)
         {
-            errors.Add(Error.Redefinition(element, existing.AsMemory()));
-            return;
+            errors.Add(Error.Redefinition(member, new Identifier { Components = existing }));
         }
-        
-        Add(components, element, errors);
+        else
+        {
+            Add(components, member, errors);
+        }        
+    }
+
+    public void Add(Name name, Definition definition, List<Error> errors)
+    {
+        var module = Find(name);
+        if (module is not null)
+        {
+            definition.Join(module, errors);
+        }
+        else
+        {
+            Identifier identifier = name;
+            Children.Add(identifier.Components[0], definition);
+        }
+    }
+
+    public Definition Find(Name name)
+    {
+        Identifier identifier = name;
+        return Find(identifier.Components.AsMemory());
     }
 
     public List<object> Find(Reference reference)
@@ -56,7 +78,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
     {
         foreach (var statement in Statements) definition.Statements.Add(statement);
 
-        foreach (var (identifier, element) in Elements)
+        foreach (var (identifier, element) in Members)
         {
             definition.Add(new Identifier { Components = new() { identifier } }, element, errors);
         }
@@ -73,16 +95,21 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         }
     }
 
-    protected Module Find(ReadOnlyMemory<Token> words)
+    private Definition Find(ReadOnlyMemory<Identifier.Component> words)
     {
-        Identifier.Component name = new() { value = new Name { Source = new[] { words.Span[0] } } };
+        if (Children.TryGetValue(words.Span[0], out var module) is false) return null;
 
-        if (Children.TryGetValue(name, out var module) is false) return null;
-
-        return words.Length is 1 ? module as Module : module.Find(words[1..]);
+        return words.Length is 1 ? module : module.Find(words[1..]);
     }
 
-    private void Existing(ReadOnlySpan<Identifier.Component> identifier, List<Token> existing)
+    private List<Identifier.Component> Existing(ReadOnlySpan<Identifier.Component> identifier)
+    {
+        List<Identifier.Component> components = new();
+        Existing(identifier, components);
+        return components;
+    }
+
+    private void Existing(ReadOnlySpan<Identifier.Component> identifier, List<Identifier.Component> existing)
     {
         Query(identifier, existing);
         if (existing.Count is 0) Parent?.Existing(identifier, existing);
@@ -92,7 +119,12 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
     {
         if (components.Length is 1)
         {
-            if (Elements.TryAdd(components[0], member) is false) errors.Add(Error.Redefinition(member, components[0].Source));
+            if (Members.TryAdd(components[0], member) is false)
+            {
+                Identifier identifier = new();
+                identifier.Components.Add(components[0]);
+                errors.Add(Error.Redefinition(member, identifier));
+            }
             return;
         }
 
@@ -105,20 +137,20 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         child.Add(components[1..], member, errors);
     }
 
-    private void Query(ReadOnlySpan<Identifier.Component> identifier, List<Token> components)
+    private void Query(ReadOnlySpan<Identifier.Component> identifier, List<Identifier.Component> result)
     {
         if (identifier.Length is 1)
         {
-            var name = Elements.Entry(identifier[0]).Key;
-            if (name is not null) components.AddRange(name.Source);
+            var name = Members.Entry(identifier[0]).Key;
+            if (name is not null) result.Add(name);
         }
         else
         {
             var (name, child) = Children.Entry(identifier[0]);
             if (child is not null)
             {
-                components.AddRange(name.Source);
-                child.Query(identifier[1..], components);
+                result.Add(name);
+                child.Query(identifier[1..], result);
             }
         }        
     }
@@ -126,5 +158,10 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
     public class Member
     {
         public Modifiers Modifiers { get; init; } = new();
+    }
+
+    public new class Unresolved : Definition
+    {
+        public Import Import { get; init; }
     }
 }

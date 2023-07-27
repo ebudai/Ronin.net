@@ -4,7 +4,27 @@ namespace Ronin.Compiler;
 
 internal static class Analyzer
 {
-    public static void Analyze(Definition parent, Scope scope, List<Error> errors)
+    public static void Define(Definition parent, Definition definition, List<Error> errors)
+    {
+        definition.Parent = parent;
+
+        foreach (var statement in definition.Statements)
+        {
+            switch (statement)
+            {
+                case Export export: errors.Add(Error.ScopeMustBeAnonymous(definition, export)); break;
+                case Import import: Import(definition, import); break;
+                case Function.Declaration function: Define(definition, function, errors); break;
+                case Datatype.Declaration datatype: Define(definition, datatype, errors); break;
+                case Datum.Declaration datum: Define(definition, datum, errors); break;
+                case Scope inner: Define(definition, inner, errors); break;
+                case Unknown unknown: errors.Add(Error.UnknownSyntax(unknown)); break;
+                default: break;
+            }
+        }
+    }
+
+    public static void Define(Definition parent, Scope scope, List<Error> errors)
     {
         scope.Definition.Parent = parent;
         
@@ -24,36 +44,7 @@ internal static class Analyzer
         
         if (name is not null)
         {
-            var module = Module.Main.Find(name);
-
-            if (module is not null)
-            {
-                scope.Definition.Join(module, errors);         
-            }
-            else
-            {
-                Module.Main.Add(name, scope.Definition, errors);
-            }
-        }
-    }
-
-    public static void Define(Definition parent, Definition definition, List<Error> errors)
-    {
-        definition.Parent = parent;
-        
-        foreach (var statement in definition.Statements)
-        {
-            switch (statement)
-            {
-                case Export export: errors.Add(Error.ScopeMustBeAnonymous(definition, export)); break;
-                case Import import: Import(definition, import); break;
-                case Function.Declaration function: Define(definition, function, errors); break;
-                case Datatype.Declaration datatype: Define(definition, datatype, errors); break;
-                case Datum.Declaration datum: Define(definition, datum, errors); break;
-                case Scope inner: Analyze(definition, inner, errors); break;
-                case Unknown unknown: errors.Add(Error.UnknownSyntax(unknown)); break;
-                default: break;
-            }
+            Global.Definition.Add(name, scope.Definition, errors);
         }
     }
 
@@ -84,7 +75,7 @@ internal static class Analyzer
 
     private static void Import(Definition definition, Import import)
     {
-        definition.Imports.Add(new Module.Unresolved { Import = import });
+        definition.Imports.Add(new Definition.Unresolved { Import = import });
     }
 
     private static void Define(Definition definition, Function.Declaration declaration, List<Error> errors)

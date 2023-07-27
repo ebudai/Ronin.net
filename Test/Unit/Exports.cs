@@ -71,4 +71,14 @@ public class Exports : ParsingTests
 
         Assert.Equal(6, export.Name?.Source.Length);
     }
+
+    [Trait("Analyzer", "declaration")]
+    public class Declaration
+    {
+        [Fact(DisplayName = "basic")]
+        public void Basic()
+        {
+
+        }
+    }
 }
