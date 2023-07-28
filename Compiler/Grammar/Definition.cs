@@ -45,7 +45,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         else
         {
             Add(components, member, errors);
-        }        
+        }
     }
 
     public void Add(Name name, Definition definition, List<Error> errors)

@@ -82,13 +82,7 @@ public class Exports : ParsingTests
             const string with = nameof(with);
             const string stuff = nameof(stuff);
 
-            /*
-             
-             {
-                part of thing with stuff;
-             }
-             
-             */
+            // { part of thing with stuff; }
 
             AnonymousScope module = new()
             {

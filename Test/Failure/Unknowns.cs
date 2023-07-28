@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Function = Ronin.Grammar.Function;
 
 namespace Failure;
 
@@ -28,5 +29,36 @@ public class Unknowns : ParsingTests
         Assert.IsType<Unknown>(statements[0]);
     }
 
-    
+    [Trait(nameof(Analyzer), "declaration")]
+    public class Declaration : AnalysisTests
+    {
+        [Fact(DisplayName = "inside definition")]
+        public void InsideDefinition()
+        {
+            Definition module = new()
+            {
+                Values = new List<Statement>
+                {
+                    new Function.Declaration
+                    {
+                        Identifier = Words("unknown function"),
+                        Definition = new()
+                        {
+                            Values = new List<Statement>
+                            {
+                                new Unknown()
+                            }
+                        }
+                    }
+                }
+            };
+
+            List<Error> errors = new();
+            Analyzer.Define(Global.Scope, module, errors);
+            Assert.Single(errors);
+
+            var error = errors[0];
+            Assert.Equal(Error.Message.UnknownSyntax, error.Reason);
+        }
+    }
 }
