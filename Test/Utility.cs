@@ -302,9 +302,9 @@ public class ParsingTests
     }
 }
 
-public class AnalysisTests
+public class AnalysisTests : ParsingTests
 {
-    internal static Identifier Name(string name)
+    internal static Identifier Identifier(string name)
     {
         Word word = new();
         word.SetMemory(name);

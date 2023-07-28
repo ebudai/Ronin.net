@@ -73,4 +73,48 @@ public class Imports : ParsingTests
 
         Assert.Equal(6, import.Name?.Source.Length);
     }
+
+    [Trait("Analyzer", "declaration")]
+    public class Declaration
+    {
+        [Fact(DisplayName = $"basic")]
+        public void Basic()
+        {
+            const string thing = nameof(thing);
+            const string with = nameof(with);
+            const string stuff = nameof(stuff);
+
+            /*
+             
+             {
+                import thing with stuff;
+             }
+             
+             */
+
+            AnonymousScope module = new()
+            {
+                Definition = new()
+                {
+                    Values = new List<Statement>
+                    {
+                        new Import
+                        {
+                            Name = new() { Source = new[] { Word(thing), Word(with), Word(stuff) } }
+                        }
+                    }
+                }
+            };
+
+            List<Error> errors = new();
+            Analyzer.Define(Global.Scope, module, errors);
+            Assert.Empty(errors);
+
+            Assert.Single(module.Definition.Imports);
+            Assert.Empty(Global.Scope.Imports);
+
+            var import = module.Definition.Imports.First();
+            Assert.IsType<Definition.Unresolved>(import);
+        }
+    }
 }

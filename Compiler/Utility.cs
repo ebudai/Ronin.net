@@ -18,9 +18,4 @@ internal static class Utility
         }
         return default;
     }
-
-    public static void AddRange<T>(this List<T> list, ReadOnlyMemory<T> items)
-    {
-        foreach (var item in items.Span) list.Add(item);
-    }
 }

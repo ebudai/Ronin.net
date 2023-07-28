@@ -5,6 +5,16 @@ namespace Ronin.Compiler;
 
 internal class Error
 {
+    public class Message
+    {
+        public const string DeveloperMistake = "developer mistake";
+        public const string ScopeMustBeAnonymous = "scope must be anonymous";
+        public const string ScopeMustBeUnmodified = "scope must be unmodified";
+        public const string ScopeIsAlreadyPartOfModule = "scope is already a part of a module";
+        public const string Redefinition = "redefinition";
+        public const string UnknownSyntax = "unknown syntax";
+    }
+
     public Dictionary<string, object> Data { get; } = new();
     public string Reason { get; }
     public ReadOnlyMemory<Lexicon.Token> Tokens { get; protected init; }
@@ -15,7 +25,7 @@ internal class Error
 
     public static Error UnhandledSubclass<T>(Type type)
     {
-        Error error = new("developer mistake");
+        Error error = new(Message.DeveloperMistake);
         Type parent = typeof(T);
         error.IsAbout(parent);
         error.IsAbout(type);
@@ -24,35 +34,35 @@ internal class Error
 
     public static Error ScopeMustBeAnonymous(Definition scope, Export export)
     {
-        Error error = new("scope must be anonymous") { Tokens = new[] { export.Keyword } };
+        Error error = new(Message.ScopeMustBeAnonymous) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
     public static Error ScopeMustBeUnmodified(Definition scope, Export export)
     {
-        Error error = new("scope must be unmodified") { Tokens = new[] { export.Keyword } };
+        Error error = new(Message.ScopeMustBeUnmodified) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
     public static Error ScopeIsAlreadyPartOfAModule(Definition scope, Export export)
     {
-        Error error = new("scope is already a part of a module") { Tokens = new[] { export.Keyword } };
+        Error error = new(Message.ScopeIsAlreadyPartOfModule) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
     public static Error Redefinition(Definition.Member member, Identifier identifier)
     {
-        Error error = new("redefinition") { Tokens = identifier.Source };
+        Error error = new(Message.Redefinition) { Tokens = identifier.Source };
         error.IsAbout(member);
         return error;
     }
 
     public static Error UnknownSyntax(Unknown unknown)
     {
-        Error error = new("unknown syntax") { Tokens = unknown.Source };
+        Error error = new(Message.UnknownSyntax) { Tokens = unknown.Source };
         error.IsAbout(unknown);
         return error;
     }

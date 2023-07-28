@@ -2,6 +2,7 @@
 
 namespace Ronin.Compiler;
 
+//TODO make this nonstatic
 internal static class Analyzer
 {
     public static void Define(Definition parent, Definition definition, List<Error> errors)

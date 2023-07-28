@@ -2,9 +2,8 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using static Ronin.Grammar.Definition;
 
 namespace Ronin.Grammar;
 
@@ -69,6 +68,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         return Find(identifier.Components.AsMemory());
     }
 
+    [ExcludeFromCodeCoverage]
     public List<object> Find(Reference reference)
     {
         throw new NotImplementedException();

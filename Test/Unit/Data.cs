@@ -303,7 +303,7 @@ public class Data : ParsingTests
                         {
                             Components = new List<Reference.Component>
                             {
-                                new() { value = Name(Building) }
+                                new() { value = Identifier(Building) }
                             }
                         },
                         Initializer = new Inputs

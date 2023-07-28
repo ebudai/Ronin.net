@@ -6,10 +6,10 @@ using Test;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Unknowns: ParsingTests
+public class Unknowns : ParsingTests
 {
     [Fact(DisplayName = "unknown")]
-    public void UnknownSyntaxTest()
+    public void UnknownSyntax()
     {
         // datatype => ;
 
@@ -27,4 +27,6 @@ public class Unknowns: ParsingTests
         Assert.Single(statements);
         Assert.IsType<Unknown>(statements[0]);
     }
+
+    
 }

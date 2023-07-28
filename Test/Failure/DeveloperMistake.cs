@@ -7,10 +7,10 @@ namespace Failure;
 [Trait("General", null)]
 public class DeveloperMistake : ParsingTests
 {
-    class Subclass : Statement { }
+    class UnhandledSubclass : Statement { }
 
     [Fact(DisplayName = "unhandled subclass")]
-    public void UnhandledSubclass()
+    public void Unhandled()
     {
         const string thing = nameof(thing);
         const string with = nameof(with);

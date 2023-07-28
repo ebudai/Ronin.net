@@ -58,7 +58,6 @@ public class ConditionalScopes : ParsingTests
         Parser parser = new(tokens);
         var conditional = ConditionalScope.Parse(ref parser);
 
-        Assert.NotNull(conditional?.Modifiers);
-        Assert.True(conditional.Modifiers.Is<Compiled>());        
+        Assert.True(conditional.Modifiers.Is<Compiled>());
     }
 }
