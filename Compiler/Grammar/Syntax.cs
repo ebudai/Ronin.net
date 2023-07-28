@@ -29,6 +29,10 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
     public static implicit operator T0(CompositeSyntax<T, T0, T1> value) => value.value as T0;
     public static implicit operator T1(CompositeSyntax<T, T0, T1> value) => value.value as T1;
 
+    public override bool Equals(object obj) => obj is CompositeSyntax<T, T0, T1> composite && composite.value.Source.Span.SequenceEqual(value.Source.Span);
+
+    public override int GetHashCode() => value.GetHashCode();
+
     protected internal Syntax value;
 }
 

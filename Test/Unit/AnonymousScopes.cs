@@ -52,7 +52,7 @@ public class AnonymousScopes : ParsingTests
         Assert.NotNull(anonymous.Definition);
     }
 
-    [Trait("Analyzer", "delclaration")]
+    [Trait("Analyzer", "declaration")]
     public class Delcaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]

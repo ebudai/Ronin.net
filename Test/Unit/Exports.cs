@@ -78,7 +78,7 @@ public class Exports : ParsingTests
         [Fact(DisplayName = "basic")]
         public void Basic()
         {
-            const string thing = nameof(thing);
+            const string things = nameof(things);
             const string with = nameof(with);
             const string stuff = nameof(stuff);
 
@@ -92,7 +92,7 @@ public class Exports : ParsingTests
                     {
                         new Export
                         {
-                            Name = new() { Source = new[] { Word(thing), Word(with), Word(stuff) } }
+                            Name = new() { Source = new[] { Word(things), Word(with), Word(stuff) } }
                         }
                     }
                 }            
@@ -107,7 +107,7 @@ public class Exports : ParsingTests
             Name name = Global.Scope.Children.First().Key;
 
             Assert.Equal(3, name.Source.Length);
-            Assert.Equal(thing, name.Source.Span[0].Memory.ToArray());
+            Assert.Equal(things, name.Source.Span[0].Memory.ToArray());
             Assert.Equal(with, name.Source.Span[1].Memory.ToArray());
             Assert.Equal(stuff, name.Source.Span[2].Memory.ToArray());
         }
