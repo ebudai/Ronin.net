@@ -17,8 +17,8 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Export : Statement, IParsableSyntax<Export>
 {
-    public PartOf Keyword { get; } = new();
-    public Name Name { get; init; }
+    public required PartOf Keyword { get; init; }
+    public required Name Name { get; init; }
 
     public new static Export Parse(ref Parser current)
     {
@@ -31,6 +31,7 @@ internal class Export : Statement, IParsableSyntax<Export>
 
         return new Export 
         {
+            Keyword = keyword,
             Name = name,
             Source = parser.Commit(ref current) 
         };

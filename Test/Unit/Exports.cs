@@ -1,8 +1,9 @@
-﻿using Microsoft.VisualBasic;
-using Ronin.Compiler;
+﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+
+using Function = Ronin.Grammar.Function;
 
 namespace Unit;
 
@@ -93,6 +94,7 @@ public class Exports : ParsingTests
                     {
                         new Export
                         {
+                            Keyword = new PartOf(),
                             Name = new() { Source = new[] { Word(widgets), Word(with), Word(stuff) } }
                         }
                     }
@@ -119,9 +121,21 @@ public class Exports : ParsingTests
         {
             const string what = nameof(what);
             const string the = nameof(the);
+            const string correct = nameof(correct);
+            const string horse = nameof(horse);
+            const string battery = nameof(battery);
+            const string cash = nameof(cash);
+            const string money = nameof(money);
+            const string whole = nameof(whole);
+            const string number = nameof(number);
+            const string @return = nameof(@return);
 
             // { part of what the what; var what what; }
-            // { part of what the what; var the the; }
+            // {
+            //      part of what the what;
+            //      var the the;
+            //      function correct horse battery(cash => money) => whole number { return 72; }
+            // }
 
             AnonymousScope module = new()
             {
@@ -135,7 +149,7 @@ public class Exports : ParsingTests
                             {
                                 Values = new List<Statement>
                                 {
-                                    new Export { Name = new() { Source = new[] { Word(what), Word(the), Word(what) } } },
+                                    new Export { Keyword = new PartOf(), Name = new() { Source = new[] { Word(what), Word(the), Word(what) } } },
                                     new Datum.Declaration { Name = new() { Source = new[] { Word(what), Word(what) } } }
                                 }
                             }
@@ -146,8 +160,60 @@ public class Exports : ParsingTests
                             {
                                 Values = new List<Statement>
                                 {
-                                    new Export { Name = new() { Source = new[] { Word(what), Word(the), Word(what) } } },
-                                    new Datum.Declaration { Name = new() { Source = new[] { Word(the), Word(the) } } }
+                                    new Export { Keyword = new PartOf(), Name = new() { Source = new[] { Word(what), Word(the), Word(what) } } },
+                                    new Datum.Declaration { Name = new() { Source = new[] { Word(the), Word(the) } } },
+                                    new Function.Declaration
+                                    {
+                                        Identifier = new()
+                                        {
+                                            Components = new List<Identifier.Component>
+                                            {
+                                                new() { value = new Name { Source = new[] { Word(correct), Word(horse), Word(battery) } } },
+                                                new()
+                                                {
+                                                    value = new Parameters
+                                                    {
+                                                        Values = new List<Datum.Declaration>
+                                                        {
+                                                            new()
+                                                            {
+                                                                Datatype = new Reference
+                                                                {
+                                                                    Components = new List<Reference.Component> { new() { value = new Name { Source = new[] { Word(money) } } } },
+                                                                    Source = new[] { Word(money) }
+                                                                },
+                                                                Mutability = new Variable(),
+                                                                Name = new() { Source = new[] { Word(cash) } },
+                                                                Source = new Token[] { Word(cash), Returns(), Word(money) }
+                                                            }
+                                                        },
+                                                        Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        Returns = new Reference
+                                        {
+                                            Components = new List<Reference.Component>
+                                            {
+                                                new() { value = new Name { Source = new[] { Word(whole), Word(number) } } },
+                                            }
+                                        },
+                                        Definition = new()
+                                        {
+                                            Values = new List<Statement>
+                                            {
+                                                new Reference
+                                                {
+                                                    Components = new List<Reference.Component>
+                                                    {
+                                                        new() { value = new Name { Source = new[] { Word(@return) } } },
+                                                        new() { value = new Inline { Source = new[] { Number(72) } } },
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -161,6 +227,11 @@ public class Exports : ParsingTests
             Assert.Empty(errors);
 
             Assert.Single(Global.Scope.Children);
+
+            var child = Global.Scope.Children.First().Value;
+
+            Assert.Single(child.Children);
+            Assert.Equal(2, child.Members.Count);
         }
     }
 }

@@ -157,11 +157,11 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
 
     public class Member
     {
-        public Modifiers Modifiers { get; init; } = new();
+        public Modifiers Modifiers { get; init; }
     }
 
     public new class Unresolved : Definition
     {
-        public Import Import { get; init; }
+        public required Import Import { get; init; }
     }
 }
