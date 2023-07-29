@@ -12,7 +12,11 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 {
     public List<Component> Components { get; init; } = new();
 
-    public static implicit operator Identifier(Name name) => new() { Components = new() { new Component { value = name } } };
+    public static implicit operator Identifier(Name name) => new()
+    {
+        Components = new() { new Component { value = name, Source = name.Source } },
+        Source = name.Source,
+    };
 
     public static Identifier Parse(ref Parser current)
     {

@@ -8,6 +8,15 @@ namespace Ronin.Grammar;
 internal abstract class Syntax
 {
     protected internal ReadOnlyMemory<Token> Source { get; init; }
+
+    public override bool Equals(object obj) => (obj as Syntax)?.Source.Span.SequenceEqual(Source.Span) ?? false;
+
+    public override int GetHashCode()
+    {
+        HashCode hashcode = new();
+        foreach (var token in Source.Span) hashcode.Add(token);
+        return hashcode.ToHashCode();
+    }
 }
 
 internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
@@ -28,10 +37,6 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
 
     public static implicit operator T0(CompositeSyntax<T, T0, T1> value) => value.value as T0;
     public static implicit operator T1(CompositeSyntax<T, T0, T1> value) => value.value as T1;
-
-    public override bool Equals(object obj) => obj is CompositeSyntax<T, T0, T1> composite && composite.value.Source.Span.SequenceEqual(value.Source.Span);
-
-    public override int GetHashCode() => value.GetHashCode();
 
     protected internal Syntax value;
 }

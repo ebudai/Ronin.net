@@ -1,4 +1,5 @@
-﻿using Ronin.Compiler;
+﻿using Microsoft.VisualBasic;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
@@ -78,7 +79,7 @@ public class Exports : ParsingTests
         [Fact(DisplayName = "basic")]
         public void Basic()
         {
-            const string things = nameof(things);
+            const string widgets = nameof(widgets);
             const string with = nameof(with);
             const string stuff = nameof(stuff);
 
@@ -92,12 +93,13 @@ public class Exports : ParsingTests
                     {
                         new Export
                         {
-                            Name = new() { Source = new[] { Word(things), Word(with), Word(stuff) } }
+                            Name = new() { Source = new[] { Word(widgets), Word(with), Word(stuff) } }
                         }
                     }
-                }            
+                }
             };
 
+            Global.Scope.Children.Clear();
             List<Error> errors = new();
             Analyzer.Define(Global.Scope, module, errors);
             Assert.Empty(errors);
@@ -107,9 +109,58 @@ public class Exports : ParsingTests
             Name name = Global.Scope.Children.First().Key;
 
             Assert.Equal(3, name.Source.Length);
-            Assert.Equal(things, name.Source.Span[0].Memory.ToArray());
+            Assert.Equal(widgets, name.Source.Span[0].Memory.ToArray());
             Assert.Equal(with, name.Source.Span[1].Memory.ToArray());
             Assert.Equal(stuff, name.Source.Span[2].Memory.ToArray());
+        }
+
+        [Fact(DisplayName = "join existing")]
+        public void JoinExisting()
+        {
+            const string what = nameof(what);
+            const string the = nameof(the);
+
+            // { part of what the what; var what what; }
+            // { part of what the what; var the the; }
+
+            AnonymousScope module = new()
+            {
+                Definition = new()
+                {
+                    Values = new List<Statement>
+                    {
+                        new AnonymousScope
+                        {
+                            Definition = new()
+                            {
+                                Values = new List<Statement>
+                                {
+                                    new Export { Name = new() { Source = new[] { Word(what), Word(the), Word(what) } } },
+                                    new Datum.Declaration { Name = new() { Source = new[] { Word(what), Word(what) } } }
+                                }
+                            }
+                        },
+                        new AnonymousScope
+                        {
+                            Definition = new()
+                            {
+                                Values = new List<Statement>
+                                {
+                                    new Export { Name = new() { Source = new[] { Word(what), Word(the), Word(what) } } },
+                                    new Datum.Declaration { Name = new() { Source = new[] { Word(the), Word(the) } } }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            Global.Scope.Children.Clear();
+            List<Error> errors = new();
+            Analyzer.Define(Global.Scope, module, errors);
+            Assert.Empty(errors);
+
+            Assert.Single(Global.Scope.Children);
         }
     }
 }

@@ -11,17 +11,12 @@ internal static class Analyzer
 
         foreach (var statement in definition.Statements)
         {
-            switch (statement)
+            if (statement is Export export)
             {
-                case Export export: errors.Add(Error.ScopeMustBeAnonymous(definition, export)); break;
-                case Import import: Import(definition, import); break;
-                case Function.Declaration function: Define(definition, function, errors); break;
-                case Datatype.Declaration datatype: Define(definition, datatype, errors); break;
-                case Datum.Declaration datum: Define(definition, datum, errors); break;
-                case Scope inner: Define(definition, inner, errors); break;
-                case Unknown unknown: errors.Add(Error.UnknownSyntax(unknown)); break;
-                default: break;
+                errors.Add(Error.ScopeMustBeAnonymous(definition, export));
+                continue;
             }
+            Define(definition, statement, errors);
         }
     }
 
@@ -36,16 +31,28 @@ internal static class Analyzer
             if (statement is Export export)
             {
                 Export(scope, export, ref name, errors);
+                continue;
             }
-            else
-            {
-                Define(parent, scope.Definition, errors);
-            }
+            Define(scope.Definition, statement, errors);
         }
         
         if (name is not null)
         {
             Global.Scope.Add(name, scope.Definition, errors);
+        }
+    }
+
+    private static void Define(Definition definition, Statement statement, List<Error> errors)
+    {
+        switch (statement)
+        {
+            case Import import: Import(definition, import); break;
+            case Function.Declaration function: Define(definition, function, errors); break;
+            case Datatype.Declaration datatype: Define(definition, datatype, errors); break;
+            case Datum.Declaration datum: Define(definition, datum, errors); break;
+            case Scope inner: Define(definition, inner, errors); break;
+            case Unknown unknown: errors.Add(Error.UnknownSyntax(unknown)); break;
+            default: break;
         }
     }
 
