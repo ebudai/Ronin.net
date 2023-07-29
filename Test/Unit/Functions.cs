@@ -144,8 +144,10 @@ public class Functions : ParsingTests
             const string whole = nameof(whole);
             const string number = nameof(number);
             const string @return = nameof(@return);
+            const string cash = nameof(cash);
+            const string money = nameof(money);
 
-            // function run home => whole number { return 72; }
+            // function run home(cash => money) => whole number { return 72; }
 
             Definition module = new()
             {
@@ -153,7 +155,34 @@ public class Functions : ParsingTests
                 {
                     new Function.Declaration
                     {
-                        Identifier = new Name { Source = new[] { Word(run), Word(home) } },
+                        Identifier = new()
+                        {
+                            Components = new List<Identifier.Component>
+                            {
+                                new() { value = new Name { Source = new[] { Word(run), Word(home) } } },
+                                new()
+                                {
+                                    value = new Parameters
+                                    {
+                                        Values = new List<Datum.Declaration>
+                                        {
+                                            new()
+                                            {
+                                                Datatype = new Reference
+                                                {
+                                                    Components = new List<Reference.Component> { new() { value = new Name { Source = new[] { Word(money) } } } },
+                                                    Source = new[] { Word(money) }
+                                                },
+                                                Mutability = new Variable(),
+                                                Name = new() { Source = new[] { Word(cash) } },
+                                                Source = new Token[] { Word(cash), Returns(), Word(money) }
+                                            }
+                                        },
+                                        Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
+                                    }
+                                }
+                            }
+                        },
                         Returns = new Reference
                         {
                             Components = new List<Reference.Component>
@@ -183,15 +212,18 @@ public class Functions : ParsingTests
             Analyzer.Define(Global.Scope, module, errors);
             Assert.Empty(errors);
 
-            Assert.Single(module.Members);
+            Assert.Single(module.Children);
+            var child = module.Children.First().Value;
 
-            var entry = module.Members.First();
+            Assert.Single(child.Members);
+
+            var entry = child.Members.First();
             var identifier = entry.Key;
             var function = entry.Value as Function;
 
-            Assert.Equal(2, identifier.value.Source.Length);
-            Assert.Equal(run, identifier.value.Source.Span[0].Memory.ToArray());
-            Assert.Equal(home, identifier.value.Source.Span[1].Memory.ToArray());
+            Assert.Equal(5, identifier.value.Source.Length);
+            Assert.Equal(cash, identifier.value.Source.Span[1].Memory.ToArray());
+            Assert.Equal(money, identifier.value.Source.Span[3].Memory.ToArray());
 
             Assert.Empty(function.Modifiers.Source.ToArray());
 
