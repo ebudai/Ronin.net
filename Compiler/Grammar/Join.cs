@@ -15,12 +15,12 @@ namespace Ronin.Grammar;
 ///     import best package for weather lookups
 ///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
-internal class Export : Statement, IParsableSyntax<Export>
+internal class Join : Statement, IParsableSyntax<Join>
 {
     public required PartOf Keyword { get; init; }
     public required Name Name { get; init; }
 
-    public new static Export Parse(ref Parser current)
+    public new static Join Parse(ref Parser current)
     {
         Parser parser = current;
 
@@ -29,7 +29,7 @@ internal class Export : Statement, IParsableSyntax<Export>
 
         if (Name.Parse(ref parser) is not Name name) return null;
 
-        return new Export 
+        return new Join 
         {
             Keyword = keyword,
             Name = name,

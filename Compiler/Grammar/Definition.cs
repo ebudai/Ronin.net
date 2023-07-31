@@ -50,7 +50,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
 
     public void Add(Name name, Definition definition, List<Error> errors)
     {
-        var module = Find(name);
+        var module = GetModule(name);
         if (module is not null)
         {
             definition.Join(module, errors);
@@ -62,10 +62,11 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         }
     }
 
-    public Definition Find(Name name)
+    public Definition GetModule(Name name)
     {
         Identifier identifier = name;
-        return Find(identifier.Components.AsMemory());
+        var components = CollectionsMarshal.AsSpan(identifier.Components);
+        return GetModule(components);
     }
 
     [ExcludeFromCodeCoverage]
@@ -95,11 +96,11 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         }
     }
 
-    private Definition Find(ReadOnlyMemory<Identifier.Component> words)
+    private Definition GetModule(ReadOnlySpan<Identifier.Component> words)
     {
-        if (Children.TryGetValue(words.Span[0], out var module) is false) return null;
+        if (Children.TryGetValue(words[0], out var module) is false) return null;
 
-        return words.Length is 1 ? module : module.Find(words[1..]);
+        return words.Length is 1 ? module : module.GetModule(words[1..]);
     }
 
     private List<Identifier.Component> Existing(ReadOnlySpan<Identifier.Component> identifier)

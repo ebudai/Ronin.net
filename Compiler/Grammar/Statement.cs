@@ -10,7 +10,7 @@ namespace Ronin.Grammar;
 internal class Statement : Syntax, IParsableSyntax<Statement>
 {
     public static Statement Parse(ref Parser current)
-        => Export.Parse(ref current)
+        => Join.Parse(ref current)
         ?? Import.Parse(ref current)
         ?? Function.Declaration.Parse(ref current)
         ?? Datatype.Declaration.Parse(ref current)

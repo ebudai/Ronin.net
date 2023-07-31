@@ -22,21 +22,21 @@ internal class Error
 
     public void IsAbout(object data, [CallerArgumentExpression(nameof(data))] string name = "") => Data.Add(name, data);
 
-    public static Error ScopeMustBeAnonymous(Definition scope, Export export)
+    public static Error ScopeMustBeAnonymous(Definition scope, Join export)
     {
         Error error = new(Message.ScopeMustBeAnonymous) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
-    public static Error ScopeMustBeUnmodified(Definition scope, Export export)
+    public static Error ScopeMustBeUnmodified(Definition scope, Join export)
     {
         Error error = new(Message.ScopeMustBeUnmodified) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
-    public static Error ScopeIsAlreadyPartOfAModule(Definition scope, Export export)
+    public static Error ScopeIsAlreadyPartOfAModule(Definition scope, Join export)
     {
         Error error = new(Message.ScopeIsAlreadyPartOfModule) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
