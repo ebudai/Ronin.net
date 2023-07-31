@@ -38,7 +38,8 @@
     - [§3.7.1](grammatical-structure.md#371-export) Export
     - [§3.7.2](grammatical-structure.md#372-import) Import
     - [§3.7.3](grammatical-structure.md#373-assignment) Assignment
-  - [§3.8](grammatical-structure.md#38-unknown) Unknown syntax
+  - [§3.8](grammatical-structure.md#38-alias) Alias
+  - [§3.9](grammatical-structure.md#39-unknown) Unknown syntax
 - [§4](semantic-structure.md#4-semantic-structure) Semantic Structure
   - [§4.1](semantic-structure.md#41-datum) Datum
     - [§4.1.1](semantic-structure.md#411-mutability) Mutability
