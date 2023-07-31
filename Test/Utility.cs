@@ -315,10 +315,12 @@ public class AnalysisTests : ParsingTests
         };
     }
 
-    internal static Name Words(string name)
+    internal static Name Words(string name) => Words(name.Split(new[] { ' ' }));
+
+    internal static Name Words(params string[] names)
     {
         List<Word> words = new();
-        foreach (var part in name.Split(new[] { ' ' }))
+        foreach (var part in names)
         {
             Word word = new();
             word.SetMemory(part);

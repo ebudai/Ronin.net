@@ -125,7 +125,7 @@ public class Parsing : ParsingTests
 
         Assert.Equal(9, statements?.Count);
 
-        var partof = statements[0] as Export;
+        var partof = statements[0] as Join;
         Assert.NotNull(partof);
 
         var datum = statements[1] as Datum.Declaration;

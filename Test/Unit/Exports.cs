@@ -24,7 +24,7 @@ public class Exports : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var export = Export.Parse(ref parser);
+        var export = Join.Parse(ref parser);
 
         Assert.Equal(1, export.Name?.Source.Length);     
     }
@@ -45,7 +45,7 @@ public class Exports : ParsingTests
         };
                 
         Parser parser = new(tokens);
-        var export = Export.Parse(ref parser);
+        var export = Join.Parse(ref parser);
 
         Assert.Equal(3, export.Name?.Source.Length);
     }
@@ -69,13 +69,13 @@ public class Exports : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var export = Export.Parse(ref parser);
+        var export = Join.Parse(ref parser);
 
         Assert.Equal(6, export.Name?.Source.Length);
     }
 
     [Trait("Analyzer", "declaration")]
-    public class Declaration
+    public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]
         public void Basic()
@@ -92,16 +92,18 @@ public class Exports : ParsingTests
                 {
                     Values = new List<Statement>
                     {
-                        new Export
+                        new Join
                         {
                             Keyword = new PartOf(),
-                            Name = new() { Source = new[] { Word(widgets), Word(with), Word(stuff) } }
+                            Name = Words(widgets, with, stuff)
                         }
                     }
                 }
             };
 
             Global.Scope.Children.Clear();
+            Global.Scope.Members.Clear();
+
             List<Error> errors = new();
             Analyzer.Define(Global.Scope, module, errors);
             Assert.Empty(errors);
@@ -130,7 +132,12 @@ public class Exports : ParsingTests
             const string number = nameof(number);
             const string @return = nameof(@return);
 
-            // { part of what the what; var what what; }
+            // {
+            //      part of what the what;
+            //      var what what;
+            //      function correct horse battery(horse => number) => whole number { return 24; }
+            // }
+            //
             // {
             //      part of what the what;
             //      var the the;
@@ -149,26 +156,15 @@ public class Exports : ParsingTests
                             {
                                 Values = new List<Statement>
                                 {
-                                    new Export { Keyword = new PartOf(), Name = new() { Source = new[] { Word(what), Word(the), Word(what) } } },
-                                    new Datum.Declaration { Name = new() { Source = new[] { Word(what), Word(what) } } }
-                                }
-                            }
-                        },
-                        new AnonymousScope
-                        {
-                            Definition = new()
-                            {
-                                Values = new List<Statement>
-                                {
-                                    new Export { Keyword = new PartOf(), Name = new() { Source = new[] { Word(what), Word(the), Word(what) } } },
-                                    new Datum.Declaration { Name = new() { Source = new[] { Word(the), Word(the) } } },
+                                    new Join { Keyword = new PartOf(), Name = Words(what, the, what) },
+                                    new Datum.Declaration { Name = Words(what, what) },
                                     new Function.Declaration
                                     {
                                         Identifier = new()
                                         {
                                             Components = new List<Identifier.Component>
                                             {
-                                                new() { value = new Name { Source = new[] { Word(correct), Word(horse), Word(battery) } } },
+                                                new() { value = Words(correct, horse, battery) },
                                                 new()
                                                 {
                                                     value = new Parameters
@@ -179,7 +175,70 @@ public class Exports : ParsingTests
                                                             {
                                                                 Datatype = new Reference
                                                                 {
-                                                                    Components = new List<Reference.Component> { new() { value = new Name { Source = new[] { Word(money) } } } },
+                                                                    Components = new List<Reference.Component> { new() { value = Words(number) } },
+                                                                    Source = new[] { Word(money) }
+                                                                },
+                                                                Mutability = new Variable(),
+                                                                Name = new() { Source = new[] { Word(horse) } },
+                                                                Source = new Token[] { Word(horse), Returns(), Word(number) }
+                                                            }
+                                                        },
+                                                        Source = new Token[] { StartValues(), Word(horse), Returns(), Word(number), EndValues() }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        Returns = new Reference
+                                        {
+                                            Components = new List<Reference.Component>
+                                            {
+                                                new() { value = Words(whole, number) },
+                                            }
+                                        },
+                                        Definition = new()
+                                        {
+                                            Values = new List<Statement>
+                                            {
+                                                new Reference
+                                                {
+                                                    Components = new List<Reference.Component>
+                                                    {
+                                                        new() { value = Words(@return) },
+                                                        new() { value = new Inline { Source = new[] { Number(24) } } },
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        new AnonymousScope
+                        {
+                            Definition = new()
+                            {
+                                Values = new List<Statement>
+                                {
+                                    new Join { Keyword = new PartOf(), Name = Words(what, the, what) },
+                                    new Datum.Declaration { Name = Words(the, the) },
+                                    new Function.Declaration
+                                    {
+                                        Identifier = new()
+                                        {
+                                            Components = new List<Identifier.Component>
+                                            {
+                                                new() { value = Words(correct, horse, battery) },
+                                                new()
+                                                {
+                                                    value = new Parameters
+                                                    {
+                                                        Values = new List<Datum.Declaration>
+                                                        {
+                                                            new()
+                                                            {
+                                                                Datatype = new Reference
+                                                                {
+                                                                    Components = new List<Reference.Component> { new() { value = Words(money) } },
                                                                     Source = new[] { Word(money) }
                                                                 },
                                                                 Mutability = new Variable(),
@@ -231,7 +290,7 @@ public class Exports : ParsingTests
             var child = Global.Scope.Children.First().Value;
 
             Assert.Single(child.Children);
-            Assert.Equal(2, child.Members.Count);
+            Assert.Equal(3, child.Members.Count);
         }
     }
 }
