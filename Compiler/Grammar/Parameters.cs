@@ -5,7 +5,7 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Aggregate of <see cref="Parameter"/> used to declare variables to enter into a <see cref="FunctionDeclaration"/>
+///     Aggregate of <see cref="Datum.Declaration"/> used to declare variables to enter into a <see cref="Function.Declaration"/>
 /// </summary>
 /// 
 /// <remarks>
@@ -18,5 +18,5 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration, Separator, EndValues>
 {
-
+    public Datum[] Data { get; set; }
 }
