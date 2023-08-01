@@ -6,7 +6,7 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Sets the current <see cref="Grammar.Value"/> of a <see cref="Grammar.Reference"/>
+///     Sets the current <see cref="Grammar.Value"/> of a <see cref="Datum"/>
 /// </summary>
 /// 
 /// <example>
@@ -32,7 +32,7 @@ internal class Assignment : Statement, IParsableSyntax<Assignment>
             and not MultiplyAssign
             and not OrAssign
             and not SubtractAssign) return null;
-         
+
         var type = parser.Token as Punctuation;
         parser.Advance();
 

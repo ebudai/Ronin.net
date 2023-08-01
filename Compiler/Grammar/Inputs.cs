@@ -5,11 +5,11 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Aggregate of <see cref="AnonymousValue"/>s intended for setting <see cref="Parameters"/>
+///     Aggregate of <see cref="Input"/>s intended for setting <see cref="Parameters"/>
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="AnonymousValue"/> values between <see cref="StartValues"/> and <see cref="EndValues"/>
+///     <see cref="Separator"/>-separated <see cref="Input"/> values between <see cref="StartValues"/> and <see cref="EndValues"/>
 /// </remarks>
 /// 
 /// <example>
