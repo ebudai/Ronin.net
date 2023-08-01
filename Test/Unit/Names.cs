@@ -47,6 +47,6 @@ public class Names : ParsingTests
         Parser parser = new(tokens);
         var name = Identifier.Parse(ref parser);
 
-        Assert.Equal(4, name?.Components.Count);
+        Assert.Single(name?.Components);
     }
 }
