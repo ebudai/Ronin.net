@@ -14,31 +14,31 @@
   - [§4.1](grammatical-structure.md#41-mutability) Mutability
   - [§4.2](grammatical-structure.md#42-modifier) Modifier
   - [§4.3](grammatical-structure.md#43-name) Name
-  - [§4.3](grammatical-structure.md#43-identifier) Identifier
-  - [§4.4](grammatical-structure.md#44-declarations) Declarations
-    - [§4.4.1](grammatical-structure.md#441-datum) Datum
-    - [§4.4.2](grammatical-structure.md#442-function) Function
-    - [§4.4.3](grammatical-structure.md#443-datatype) Datatype
-  - [§4.5](grammatical-structure.md#45-scopes) Scopes
-    - [§4.5.5](grammatical-structure.md#451-anonymous) Anonymous
-    - [§4.5.6](grammatical-structure.md#452-conditional) Conditional
-    - [§4.5.7](grammatical-structure.md#453-repeating) Repeating
-    - [§4.5.8](grammatical-structure.md#454-iterating) Iterating
-  - [§4.6](grammatical-structure.md#46-aggregates) Aggregates
-    - [§4.6.1](grammatical-structure.md#461-definition) Definition
-    - [§4.6.2](grammatical-structure.md#462-inputs) Inputs
-    - [§4.6.3](grammatical-structure.md#463-list) List
-    - [§4.6.4](grammatical-structure.md#464-lookup) Lookup
-    - [§4.6.5](grammatical-structure.md#465-indexer) Indexer
-    - [§4.6.6](grammatical-structure.md#465-parameters) Parameters
-  - [§4.7](grammatical-structure.md#47-reference) References
-  - [§4.8](grammatical-structure.md#48-anonymous-value) Anonymous values
-    - [§4.8.1](grammatical-structure.md#481-inline-value) Inline value
-    - [§4.8.2](grammatical-structure.md#482-delegate) Delegate
-  - [§4.9](grammatical-structure.md#49-statements) Statements
-    - [§4.9.1](grammatical-structure.md#491-export) Export
-    - [§4.9.2](grammatical-structure.md#492-import) Import
-    - [§4.9.3](grammatical-structure.md#493-assignment) Assignment
-  - [§4.10](grammatical-structure.md#410-alias) Alias
-  - [§4.11](grammatical-structure.md#411-unknown) Unknown syntax
+  - [§4.4](grammatical-structure.md#44-identifier) Identifier
+  - [§4.5](grammatical-structure.md#45-declarations) Declarations
+    - [§4.5.1](grammatical-structure.md#451-datum) Datum
+    - [§4.5.2](grammatical-structure.md#452-function) Function
+    - [§4.5.3](grammatical-structure.md#453-datatype) Datatype
+  - [§4.6](grammatical-structure.md#45-scopes) Scopes
+    - [§4.6.5](grammatical-structure.md#461-anonymous) Anonymous
+    - [§4.6.6](grammatical-structure.md#462-conditional) Conditional
+    - [§4.6.7](grammatical-structure.md#463-repeating) Repeating
+    - [§4.6.8](grammatical-structure.md#464-iterating) Iterating
+  - [§4.7](grammatical-structure.md#47-aggregates) Aggregates
+    - [§4.7.1](grammatical-structure.md#471-definition) Definition
+    - [§4.7.2](grammatical-structure.md#472-inputs) Inputs
+    - [§4.7.3](grammatical-structure.md#473-list) List
+    - [§4.7.4](grammatical-structure.md#474-lookup) Lookup
+    - [§4.7.5](grammatical-structure.md#475-indexer) Indexer
+    - [§4.7.6](grammatical-structure.md#475-parameters) Parameters
+  - [§4.8](grammatical-structure.md#48-reference) References
+  - [§4.9](grammatical-structure.md#49-anonymous-value) Anonymous values
+    - [§4.9.1](grammatical-structure.md#491-inline-value) Inline value
+    - [§4.9.2](grammatical-structure.md#492-delegate) Delegate
+  - [§4.10](grammatical-structure.md#410-statements) Statements
+    - [§4.10.1](grammatical-structure.md#4101-export) Export
+    - [§4.10.2](grammatical-structure.md#4102-import) Import
+    - [§4.10.3](grammatical-structure.md#4103-assignment) Assignment
+  - [§4.11](grammatical-structure.md#411-alias) Alias
+  - [§4.12](grammatical-structure.md#412-unknown) Unknown syntax
 - [§5](grammatical-analyss.md#5-grammatical-analysis) Grammatical Analysis

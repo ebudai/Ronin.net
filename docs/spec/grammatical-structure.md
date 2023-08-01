@@ -10,15 +10,13 @@ Sequence of one or more ***word***s or ***symbol***s which are not ***punctuatio
 Sequence of one or more ***name***s or ***parameters***.
 ## 4.4 Declaration
 ### 4.4.1 Datum
-(`var` | `constant` | `let`)? *identifier* (`=>` *modifiers** *datatype*)? (`=` *initializer*)?
+***mutability***? *identifier* (`=>` ***modifier**** *datatype*)? (`=` *initializer*)?
 - identifier is ***words***
-- modifiers is `compiled` | `optional` | `shared` | `persistent`
 - datatype is a ***reference***
 - initializer is a ***value***
 ### 4.4.2 Function
-*modifiers** `function` *identifier* (`=>` `optional`? *datatype*)? (*body*|`;`)
+***modifier**** `function` ***identifier*** (`=>` ***modifier**** *datatype*)? (*body*|`;`)
 - modifiers is `export` | `shared`
-- identifier is a ***name***
 - datatype is a ***reference***
 - body is a ***definition***
 ### 4.4.3 Datatype
