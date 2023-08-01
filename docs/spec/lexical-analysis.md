@@ -1,6 +1,6 @@
-# 2 Lexical Analysis
+# 3 Lexical Analysis
 
-The *lexer* transforms an ordered sequence of characters into an ordered sequence of ***token***s.  Every character in the lexer's input must be represented in one and only one token of its output.  The lexer may not produce errors.
+The *lexer* transforms an ordered sequence of unicode characters into an ordered sequence of ***token***s.  Every character in the lexer's input must be represented in one and only one token of its output.  The lexer may not produce errors.
 
 To produce the required transformation, the lexer iterates through every character in the input sequence, appending it to a buffer.  When the buffer satisfies all requirements for a type of token, a token of that type is created with representation set to the contents of the buffer and then appended to the lexer's output.  Once completed, the buffer is cleared and the process repeated until there are no more characters to consider.
 

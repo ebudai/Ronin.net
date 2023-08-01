@@ -2,11 +2,11 @@
 
 ### Syntax
 
-```c
+```
 part of banking
 
 import standard math trig;
-import git://github.com/ebudai/coollib@v1.2;
+import git://github.com/ebudai/coollib.git@v1.2;
 import /data/banks.sqlite as banks;
 
 /**
