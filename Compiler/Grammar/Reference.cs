@@ -10,7 +10,7 @@ namespace Ronin.Grammar;
 internal class Reference : Statement, IParsableSyntax<Reference>
 {
     public List<Component> Components { get; init; }
-    public Indexer Ordinal { get; init; }
+    public Indexer Indexer { get; init; }
 
     public new static Reference Parse(ref Parser current)
     {
@@ -22,12 +22,12 @@ internal class Reference : Statement, IParsableSyntax<Reference>
         {
             if (component.value is not AnonymousValue)
             {
-                var ordinal = Indexer.Parse(ref parser);
+                var indexer = Indexer.Parse(ref parser);
 
                 return new Reference
                 {
                     Components = components,
-                    Ordinal = ordinal,
+                    Indexer = indexer,
                     Source = parser.Commit(ref current)
                 };
             }
