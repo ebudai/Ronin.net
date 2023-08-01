@@ -5,30 +5,30 @@ using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
+/// <summary>
+///     A singular item of data residing in memory
+/// </summary>
+/// 
+/// <example>
+///     datatype Building
+///     {
+///         var floors => number;
+///         ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+///     }
+///     
+///     function do stuff(x => number, y => date) { }
+///                       ↑↑↑↑↑↑↑↑↑↑↑  ↑↑↑↑↑↑↑↑↑
+/// </example>
 internal class Datum : Definition.Member
 {
     public Keyword Mutability { get; init; }
     public Datatype Datatype { get; init; }
     public Value Initializer { get; init; }
-
-    /// <summary>
-    ///     A singular piece of data residing in memory, and declared in a <see cref="Scope"/>
-    /// </summary>
-    /// 
-    /// <example>
-    ///     datatype Building
-    ///     {
-    ///         var floors => number;
-    ///         ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
-    ///     }
-    ///     
-    ///     function do stuff(x => number, y => date) { }
-    ///                       ↑↑↑↑↑↑↑↑↑↑↑  ↑↑↑↑↑↑↑↑↑
-    /// </example>
+    
     public class Declaration : Statement, IParsableSyntax<Declaration>
     {
         public Mutability Mutability { get; init; }
-        public required Name Name { get; init; }
+        public Name Name { get; init; }
         public Modifiers Modifiers { get; init; }
         public Reference Datatype { get; init; }
         public Value Initializer { get; init; }
@@ -44,19 +44,13 @@ internal class Datum : Definition.Member
 
             Modifiers modifiers = null;
             Reference datatype = null;
-            if (parser.Token is Returns)
+            if (parser.TryAdvance<Returns>())
             {
-                parser.Advance();
                 modifiers = Modifiers.Parse(ref parser);
                 datatype = Reference.Parse(ref parser);
             }
 
-            Value initializer = null;
-            if (parser.Token is Assign)
-            {
-                parser.Advance();
-                initializer = Value.Parse(ref parser);
-            }
+            var initializer = parser.TryAdvance<Assign>() ? Value.Parse(ref parser) : null;
 
             return new Declaration
             {
