@@ -14,10 +14,5 @@ public abstract class Token : ReadOnlySequenceSegment<char>
 
     public override bool Equals(object obj) => (obj as Token)?.Memory.Span.SequenceEqual(Memory.Span) ?? false;
 
-    public override int GetHashCode()
-    {
-        HashCode hashcode = new();
-        foreach (var character in Memory.Span) hashcode.Add(character);
-        return hashcode.ToHashCode();
-    }
+    public override int GetHashCode() => Memory.Span.ToHashCode();
 }

@@ -37,15 +37,15 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
     public void Add(Identifier identifier, Member member, List<Error> errors)
     {
         var components = CollectionsMarshal.AsSpan(identifier.Components);
+
         var existing = Existing(components);
         if (existing.Count is not 0)
         {
             errors.Add(Error.Redefinition(member, new Identifier { Components = existing }));
+            return;
         }
-        else
-        {
-            Add(components, member, errors);
-        }
+        
+        Add(components, member, errors);
     }
 
     public void Add(Name name, Definition definition, List<Error> errors)
