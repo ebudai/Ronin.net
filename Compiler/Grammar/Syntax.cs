@@ -11,12 +11,7 @@ internal abstract class Syntax
 
     public override bool Equals(object obj) => (obj as Syntax)?.Source.Span.SequenceEqual(Source.Span) ?? false;
 
-    public override int GetHashCode()
-    {
-        HashCode hashcode = new();
-        foreach (var token in Source.Span) hashcode.Add(token);
-        return hashcode.ToHashCode();
-    }
+    public override int GetHashCode() => Source.Span.ToHashCode();
 }
 
 internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
@@ -34,6 +29,10 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
 
         return new T { value = syntax, Source = parser.Commit(ref current) };
     }
+
+    public override bool Equals(object obj) => (obj as CompositeSyntax<T, T0, T1>)?.value.Equals(value) ?? false;
+
+    public override int GetHashCode() => value.GetHashCode();
 
     public static implicit operator T0(CompositeSyntax<T, T0, T1> value) => value.value as T0;
     public static implicit operator T1(CompositeSyntax<T, T0, T1> value) => value.value as T1;

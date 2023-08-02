@@ -24,7 +24,7 @@ internal class Datum : Definition.Member
     public Keyword Mutability { get; init; }
     public Datatype Datatype { get; init; }
     public Value Initializer { get; init; }
-    
+
     public class Declaration : Statement, IParsableSyntax<Declaration>
     {
         public Mutability Mutability { get; init; }
@@ -32,6 +32,20 @@ internal class Datum : Definition.Member
         public Modifiers Modifiers { get; init; }
         public Reference Datatype { get; init; }
         public Value Initializer { get; init; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is not Declaration declaration) return false;
+            return declaration.Name.Equals(Name) && declaration.Datatype.Equals(Datatype);
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hashcode = new();
+            hashcode.Add(Name);
+            hashcode.Add(Datatype);
+            return hashcode.ToHashCode();
+        }
 
         public new static Declaration Parse(ref Parser current)
         {

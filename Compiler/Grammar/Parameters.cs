@@ -19,4 +19,8 @@ namespace Ronin.Grammar;
 internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration, Separator, EndValues>
 {
     public Datum[] Data { get; set; }
+
+    public override bool Equals(object obj) => (obj as Parameters)?.Values.SequenceEqual(Values) ?? false;
+
+    public override int GetHashCode() => Values.ToHashCode();
 }

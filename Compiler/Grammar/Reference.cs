@@ -36,5 +36,13 @@ internal class Reference : Statement, IParsableSyntax<Reference>
         return null;
     }
 
+    public override bool Equals(object obj)
+    {
+        if (obj is not Reference reference) return false;
+        return reference.Components.SequenceEqual(Components) && reference.Indexer.Equals(Indexer);
+    }
+
+    public override int GetHashCode() => Components.ToHashCode(Indexer);
+
     public class Component : CompositeSyntax<Component, Name, AnonymousValue> { }
 }
