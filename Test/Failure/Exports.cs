@@ -21,7 +21,7 @@ public class Exports : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var export = Join.Parse(ref parser);
+        var export = Export.Parse(ref parser);
 
         Assert.Null(export);
     }
@@ -39,7 +39,7 @@ public class Exports : ParsingTests
                     new Function.Declaration
                     {
                         Identifier = Identifier("x"),
-                        Definition = new() { Values = new() { new Join { Keyword = new PartOf(), Name = new() } } }
+                        Definition = new() { Values = new() { new Export { Keyword = new PartOf(), Name = new() } } }
                     }
                 }
             };
@@ -63,7 +63,7 @@ public class Exports : ParsingTests
                     new ConditionalScope
                     {
                         Condition = new Value.Unresolved { Reference = new() { } },
-                        Definition = new() { Values = new() { new Join { Keyword = new PartOf(), Name = new() } } }
+                        Definition = new() { Values = new() { new Export { Keyword = new PartOf(), Name = new() } } }
                     }
                 }
             };
@@ -87,7 +87,7 @@ public class Exports : ParsingTests
                     new AnonymousScope
                     {
                         Modifiers = new() { Source = new[] { new Compiled() } },
-                        Definition = new() { Values = new() { new Join { Keyword = new PartOf(), Name = new() } } }
+                        Definition = new() { Values = new() { new Export { Keyword = new PartOf(), Name = new() } } }
                     }
                 }
             };
@@ -114,8 +114,8 @@ public class Exports : ParsingTests
                         {
                             Values = new()
                             {
-                                new Join { Keyword = new PartOf(), Name = Words("test exporting twice") },
-                                new Join { Keyword = new PartOf(), Name = Words("test exporting twice failure") },
+                                new Export { Keyword = new PartOf(), Name = Words("test exporting twice") },
+                                new Export { Keyword = new PartOf(), Name = Words("test exporting twice failure") },
                             }
                         }
                     }

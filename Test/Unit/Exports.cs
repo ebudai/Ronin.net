@@ -24,7 +24,7 @@ public class Exports : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var export = Join.Parse(ref parser);
+        var export = Export.Parse(ref parser);
 
         Assert.Equal(1, export.Name?.Source.Length);     
     }
@@ -45,7 +45,7 @@ public class Exports : ParsingTests
         };
                 
         Parser parser = new(tokens);
-        var export = Join.Parse(ref parser);
+        var export = Export.Parse(ref parser);
 
         Assert.Equal(3, export.Name?.Source.Length);
     }
@@ -69,7 +69,7 @@ public class Exports : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var export = Join.Parse(ref parser);
+        var export = Export.Parse(ref parser);
 
         Assert.Equal(6, export.Name?.Source.Length);
     }
@@ -92,7 +92,7 @@ public class Exports : ParsingTests
                 {
                     Values = new List<Statement>
                     {
-                        new Join
+                        new Export
                         {
                             Keyword = new PartOf(),
                             Name = Words(widgets, with, stuff)
@@ -109,13 +109,7 @@ public class Exports : ParsingTests
             Assert.Empty(errors);
 
             Assert.Single(Global.Scope.Children);
-
-            Name name = Global.Scope.Children.First().Key;
-
-            Assert.Equal(3, name.Source.Length);
-            Assert.Equal(widgets, name.Source.Span[0].Memory.ToArray());
-            Assert.Equal(with, name.Source.Span[1].Memory.ToArray());
-            Assert.Equal(stuff, name.Source.Span[2].Memory.ToArray());
+            Assert.Equal(module.Definition, Global.Scope.Children.First().Value);
         }
 
         [Fact(DisplayName = "join existing")]
@@ -156,7 +150,7 @@ public class Exports : ParsingTests
                             {
                                 Values = new List<Statement>
                                 {
-                                    new Join { Keyword = new PartOf(), Name = Words(what, the, what) },
+                                    new Export { Keyword = new PartOf(), Name = Words(what, the, what) },
                                     new Datum.Declaration { Name = Words(what, what) },
                                     new Function.Declaration
                                     {
@@ -176,7 +170,7 @@ public class Exports : ParsingTests
                                                                 Datatype = new Reference
                                                                 {
                                                                     Components = new List<Reference.Component> { new() { value = Words(number) } },
-                                                                    Source = new[] { Word(money) }
+                                                                    Source = new[] { Word(number) }
                                                                 },
                                                                 Mutability = new Variable(),
                                                                 Name = new() { Source = new[] { Word(horse) } },
@@ -219,7 +213,7 @@ public class Exports : ParsingTests
                             {
                                 Values = new List<Statement>
                                 {
-                                    new Join { Keyword = new PartOf(), Name = Words(what, the, what) },
+                                    new Export { Keyword = new PartOf(), Name = Words(what, the, what) },
                                     new Datum.Declaration { Name = Words(the, the) },
                                     new Function.Declaration
                                     {
@@ -286,11 +280,7 @@ public class Exports : ParsingTests
             Assert.Empty(errors);
 
             Assert.Single(Global.Scope.Children);
-
-            var child = Global.Scope.Children.First().Value;
-
-            Assert.Single(child.Children);
-            Assert.Equal(3, child.Members.Count);
+            Assert.Equal(module.Definition, Global.Scope.Children.First().Value);
         }
     }
 }

@@ -11,7 +11,7 @@ internal static class Analyzer
 
         foreach (var statement in definition.Statements)
         {
-            if (statement is Join export)
+            if (statement is Export export)
             {
                 errors.Add(Error.ScopeMustBeAnonymous(definition, export));
                 continue;
@@ -28,7 +28,7 @@ internal static class Analyzer
         
         foreach (var statement in scope.Definition.Values)
         {
-            if (statement is Join export)
+            if (statement is Export export)
             {
                 Export(scope, export, ref name, errors);
                 continue;
@@ -56,7 +56,7 @@ internal static class Analyzer
         }
     }
 
-    private static void Export(Scope scope, Join export, ref Name name, List<Error> errors)
+    private static void Export(Scope scope, Export export, ref Name name, List<Error> errors)
     {
         bool error = false;
 
