@@ -12,7 +12,12 @@ public abstract class Token : ReadOnlySequenceSegment<char>
         token.RunningIndex = RunningIndex + 1;
     }
 
-    public override bool Equals(object obj) => (obj as Token)?.Memory.Span.SequenceEqual(Memory.Span) ?? false;
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj is not Token token) return false;
+        return token.Memory.Span.SequenceEqual(Memory.Span);
+    }
 
     public override int GetHashCode() => Memory.Span.ToHashCode();
 }

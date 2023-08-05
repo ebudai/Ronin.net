@@ -86,5 +86,7 @@ An expression of programmer intent.  All are completed with either ***punctuatio
 `alias` *name* `=` *original*
 - name is ***words***
 - original is ***words***
+## 4.11 Trivium
+(***whitespace*** | ***comment***)+
 ## 4.11 Unknown
 Any sequence of tokens which does not match any other syntax

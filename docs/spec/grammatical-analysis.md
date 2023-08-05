@@ -8,7 +8,7 @@ The parser uses the following order of syntax element types in its attempt to sa
 
 1. ***trivium***
 1. ***alias***
-1. ***join***
+1. ***export***
 1. ***import***
 1. ***function declaration***
 1. ***datatype declaration***

@@ -40,5 +40,6 @@
     - [§4.10.2](grammatical-structure.md#4102-import) Import
     - [§4.10.3](grammatical-structure.md#4103-assignment) Assignment
   - [§4.11](grammatical-structure.md#411-alias) Alias
-  - [§4.12](grammatical-structure.md#412-unknown) Unknown syntax
+  - [§4.12](grammatical-structure.md#412-trivium) Trivium
+  - [§4.13](grammatical-structure.md#413-unknown) Unknown syntax
 - [§5](grammatical-analyss.md#5-grammatical-analysis) Grammatical Analysis

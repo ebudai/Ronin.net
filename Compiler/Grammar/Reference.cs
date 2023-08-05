@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -36,6 +37,7 @@ internal class Reference : Statement, IParsableSyntax<Reference>
         return null;
     }
 
+    [ExcludeFromCodeCoverage]
     public override bool Equals(object obj)
     {
         if (obj is not Reference reference) return false;
