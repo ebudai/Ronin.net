@@ -12,11 +12,12 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 {
     public List<Component> Components { get; init; } = new();
 
-    public static implicit operator Identifier(Name name) => new()
+    public Identifier() { }
+    
+    public Identifier(params Component[] components)
     {
-        Components = new() { new Component { value = name, Source = name.Source } },
-        Source = name.Source,
-    };
+        foreach (var component in components) Components.Add(component);
+    }
 
     public static Identifier Parse(ref Parser current)
     {
@@ -25,8 +26,16 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
 
-        return new Identifier { Components = components, Source = parser.Commit(ref current) };
+        return new Identifier 
+        { 
+            Components = components, 
+            Source = parser.Commit(ref current) 
+        };
     }
 
-    public class Component : CompositeSyntax<Component, Name, Parameters> { }
+    public class Component : CompositeSyntax<Component, Name, Parameters>
+    {
+        public static implicit operator Component(Name name) => new() { value = name };
+        public static implicit operator Component(Parameters parameters) => new() { value = parameters };
+    }
 }

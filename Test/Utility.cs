@@ -328,4 +328,14 @@ public class AnalysisTests : ParsingTests
         }
         return new Name { Source = words.ToArray() };
     }
+
+    internal static Identifier Identify()
+    {
+        throw new NotImplementedException();
+    }
+
+    internal static Ronin.Grammar.Function.Declaration DeclareFunction()
+    {
+        throw new NotImplementedException();
+    }
 }

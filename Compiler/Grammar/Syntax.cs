@@ -27,7 +27,11 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
 
         if (syntax is null) return null;
 
-        return new T { value = syntax, Source = parser.Commit(ref current) };
+        return new T 
+        { 
+            value = syntax, 
+            Source = parser.Commit(ref current) 
+        };
     }
 
     public override bool Equals(object obj) => (obj as CompositeSyntax<T, T0, T1>)?.value.Equals(value) ?? false;

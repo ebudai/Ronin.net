@@ -57,14 +57,14 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         }
         else
         {
-            Identifier identifier = name;
+            Identifier identifier = new(name);
             Children.Add(identifier.Components[0], definition);
         }
     }
 
     public Definition GetModule(Name name)
     {
-        Identifier identifier = name;
+        Identifier identifier = new(name);
         var components = CollectionsMarshal.AsSpan(identifier.Components);
         return GetModule(components);
     }
@@ -90,7 +90,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
                 child.Join(existing, errors);
                 continue;
             }
-            definition.Children.Add(identifier, child);            
+            definition.Children.Add(identifier, child);
         }
     }
 

@@ -124,6 +124,6 @@ internal static class Analyzer
             Initializer = declaration.Initializer
         };
 
-        definition.Add(declaration.Name, datum, errors);
+        definition.Add(new Identifier(declaration.Name), datum, errors);
     }
 }

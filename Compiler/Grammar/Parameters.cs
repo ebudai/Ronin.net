@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Lexicon;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -18,7 +19,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration, Separator, EndValues>
 {
-    public Datum[] Data { get; set; }
+    [ExcludeFromCodeCoverage] public Datum[] Data { get; set; }
 
     public override bool Equals(object obj) => (obj as Parameters)?.Values.SequenceEqual(Values) ?? false;
 

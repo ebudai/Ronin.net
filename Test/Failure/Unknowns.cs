@@ -41,7 +41,7 @@ public class Unknowns : ParsingTests
                 {
                     new Function.Declaration
                     {
-                        Identifier = Words("unknown function"),
+                        Identifier = new(Words("unknown function")),
                         Definition = new()
                         {
                             Values = new List<Statement>

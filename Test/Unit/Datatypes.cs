@@ -108,7 +108,7 @@ public class Datatypes : ParsingTests
                 {
                     new Datatype.Declaration
                     {
-                        Identifier = new Name { Source = new[] { Word(Big) } },
+                        Identifier = new(Words(Big)),
                         Algebra = new Reference
                         {
                             Components = new List<Reference.Component>
