@@ -120,7 +120,6 @@ public class Exports : ParsingTests
             const string correct = nameof(correct);
             const string horse = nameof(horse);
             const string battery = nameof(battery);
-            const string cash = nameof(cash);
             const string money = nameof(money);
             const string whole = nameof(whole);
             const string number = nameof(number);
@@ -135,7 +134,7 @@ public class Exports : ParsingTests
             // {
             //      part of what the what;
             //      var the the;
-            //      function correct horse battery(cash => money) => whole number { return 72; }
+            //      function correct horse battery(horse => money) => whole number { return 72; }
             // }
 
             AnonymousScope module = new()
@@ -180,7 +179,8 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                Refer(Words(@return), new Inline { Source = new[] { Number(24) } })
+                                                Refer(Words(@return), 
+                                                new Inline { Source = new[] { Number(24) } })
                                             }
                                         }
                                     }
@@ -210,11 +210,11 @@ public class Exports : ParsingTests
                                                         {
                                                             Datatype = Refer(Words(money)),
                                                             Mutability = new Variable(),
-                                                            Name = Words(cash),
-                                                            Source = new Token[] { Word(cash), Returns(), Word(money) }
+                                                            Name = Words(horse),
+                                                            Source = new Token[] { Word(horse), Returns(), Word(money) }
                                                         }
                                                     },
-                                                    Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
+                                                    Source = new Token[] { StartValues(), Word(horse), Returns(), Word(money), EndValues() }
                                                 }
                                             }
                                         },
@@ -223,7 +223,8 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                Refer(Words(@return), new Inline { Source = new[] { Number(72) } })
+                                                Refer(Words(@return), 
+                                                new Inline { Source = new[] { Number(72) } })
                                             }
                                         }
                                     }
