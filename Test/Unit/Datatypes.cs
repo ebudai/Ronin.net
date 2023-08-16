@@ -109,14 +109,7 @@ public class Datatypes : ParsingTests
                     new Datatype.Declaration
                     {
                         Identifier = new(Words(Big)),
-                        Algebra = new Reference
-                        {
-                            Components = new List<Reference.Component>
-                            {
-                                new() { value = new Name { Source = new[] { Word(text) } } },
-                                new() { value = new Name { Source = new[] { Word(or) } } },
-                            }
-                        },
+                        Algebra = Refer(Words(text, or)),
                         Definition = new()
                         {
                             Values = new List<Statement>
@@ -124,14 +117,8 @@ public class Datatypes : ParsingTests
                                 new Datum.Declaration
                                 {
                                     Mutability = new Variable(),
-                                    Name = new() { Source = new[] { Word(x) } },
-                                    Datatype = new Reference
-                                    {
-                                        Components = new List<Reference.Component>
-                                        {
-                                            new() { value = new Name { Source = new[] { Word(number) } } },
-                                        }
-                                    }
+                                    Name = Words(x),
+                                    Datatype = Refer(Words(number))
                                 }
                             }
                         }
@@ -153,11 +140,10 @@ public class Datatypes : ParsingTests
             Assert.Equal(Big, identifier.value.Source.Span[0].Memory.ToArray());
 
             var algebra = datatype.Algebra as Algebra.Unresolved;
-            Assert.Equal(2, algebra?.Reference.Components.Count);
-            Assert.Single(algebra.Reference.Components[0].value.Source.ToArray());
+            Assert.Single(algebra?.Reference.Components);
+            Assert.Equal(2, algebra.Reference.Components[0].value.Source.Length);
             Assert.Equal(text, algebra.Reference.Components[0].value.Source.Span[0].Memory.ToArray());
-            Assert.Single(algebra.Reference.Components[1].value.Source.ToArray());
-            Assert.Equal(or, algebra.Reference.Components[1].value.Source.Span[0].Memory.ToArray());
+            Assert.Equal(or, algebra.Reference.Components[0].value.Source.Span[1].Memory.ToArray());
 
             Assert.Single(datatype.Definition.Members);
 

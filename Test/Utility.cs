@@ -329,6 +329,8 @@ public class AnalysisTests : ParsingTests
         return new Name { Source = words.ToArray() };
     }
 
+    internal static Reference Refer(params Reference.Component[] components) => new() { Components = components.ToList() };
+    
     internal static Identifier Identify()
     {
         throw new NotImplementedException();

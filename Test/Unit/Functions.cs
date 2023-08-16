@@ -159,49 +159,29 @@ public class Functions : ParsingTests
                         {
                             Components = new List<Identifier.Component>
                             {
-                                new() { value = new Name { Source = new[] { Word(run), Word(home) } } },
-                                new()
+                                Words(run, home),
+                                new Parameters
                                 {
-                                    value = new Parameters
+                                    Values = new List<Datum.Declaration>
                                     {
-                                        Values = new List<Datum.Declaration>
+                                        new()
                                         {
-                                            new()
-                                            {
-                                                Datatype = new Reference
-                                                {
-                                                    Components = new List<Reference.Component> { new() { value = new Name { Source = new[] { Word(money) } } } },
-                                                    Source = new[] { Word(money) }
-                                                },
-                                                Mutability = new Variable(),
-                                                Name = new() { Source = new[] { Word(cash) } },
-                                                Source = new Token[] { Word(cash), Returns(), Word(money) }
-                                            }
-                                        },
-                                        Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
-                                    }
+                                            Datatype = Refer(Words(money)),
+                                            Mutability = new Variable(),
+                                            Name = Words(cash),
+                                            Source = new Token[] { Word(cash), Returns(), Word(money) }
+                                        }
+                                    },
+                                    Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
                                 }
                             }
                         },
-                        Returns = new Reference
-                        {
-                            Components = new List<Reference.Component>
-                            {
-                                new() { value = new Name { Source = new[] { Word(whole), Word(number) } } },
-                            }
-                        },
+                        Returns = Refer(Words(whole, number)),
                         Definition = new()
                         {
                             Values = new List<Statement>
                             {
-                                new Reference
-                                {
-                                    Components = new List<Reference.Component>
-                                    {
-                                        new() { value = new Name { Source = new[] { Word(@return) } } },
-                                        new() { value = new Inline { Source = new[] { Number(72) } } },
-                                    }
-                                }
+                                Refer(Words(@return), new Inline { Source = new[] { Number(72) } })
                             }
                         }
                     }

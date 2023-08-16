@@ -58,6 +58,8 @@ public class AnonymousScopes : ParsingTests
         [Fact(DisplayName = "basic")]
         public void Basic()
         {
+            const string x = nameof(x);
+
             // { var x = 3; }
 
             Definition module = new()
@@ -73,7 +75,7 @@ public class AnonymousScopes : ParsingTests
                                 new Datum.Declaration
                                 {
                                     Mutability = new Variable(),
-                                    Name = Words("x"),
+                                    Name = Words(x),
                                     Initializer = new Inline { Source = new[] { Number(3) } }
                                 }
                             }
@@ -97,6 +99,8 @@ public class AnonymousScopes : ParsingTests
         [Fact(DisplayName = "inner scope")]
         public void Inner()
         {
+            const string x = nameof(x);
+
             // { { var x = 3; } }
 
             Definition module = new()
@@ -118,7 +122,7 @@ public class AnonymousScopes : ParsingTests
                                             new Datum.Declaration
                                             {
                                                 Mutability = new Variable(),
-                                                Name = Words("x"),
+                                                Name = Words(x),
                                                 Initializer = new Inline { Source = new[] { Number(3) } }
                                             }
                                         }

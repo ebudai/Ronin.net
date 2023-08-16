@@ -297,15 +297,9 @@ public class Data : ParsingTests
                     new Datum.Declaration
                     {
                         Mutability = new Variable(),
-                        Name = new() { Source = new[] { Word(home) } },
+                        Name = Words(home),
                         Modifiers = new() { Source = new[] { new Shared() } },
-                        Datatype = new Reference
-                        {
-                            Components = new List<Reference.Component>
-                            {
-                                new() { value = Identifier(Building) }
-                            }
-                        },
+                        Datatype = Refer(Words(Building)),
                         Initializer = new Inputs
                         {
                             Values = new List<Inputs.Input>
@@ -335,8 +329,6 @@ public class Data : ParsingTests
             Assert.Equal(home, identifier.value.Source.Span[0].Memory.ToArray());
 
             Assert.IsType<Datatype.Unresolved>(datum.Datatype);
-
-            //Assert.Equal(datum.Initializer.)
         }
     }
 }
