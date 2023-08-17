@@ -1,10 +1,6 @@
-﻿using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
-using Unit;
-using Datatype = Ronin.Grammar.Datatype;
-using Function = Ronin.Grammar.Function;
 
 namespace Failure;
 
