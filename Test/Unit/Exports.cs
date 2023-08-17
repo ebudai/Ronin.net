@@ -124,17 +124,20 @@ public class Exports : ParsingTests
             const string whole = nameof(whole);
             const string number = nameof(number);
             const string @return = nameof(@return);
+            const string Bag = nameof(Bag);
 
             // {
             //      part of what the what;
             //      var what what;
             //      function correct horse battery(horse => number) => whole number { return 24; }
+            //      function (correct => number) horse battery => number { return 8.2; }
             // }
             //
             // {
             //      part of what the what;
             //      var the the;
             //      function correct horse battery(horse => money) => whole number { return 72; }
+            //      function (correct => Bag(15)) horse battery => number { return 12; }
             // }
 
             AnonymousScope module = new()
@@ -164,8 +167,8 @@ public class Exports : ParsingTests
                                                     {
                                                         new()
                                                         {
-                                                            Datatype = Refer(Words(number)),
-                                                            Mutability = new Variable(),
+                                                            Datatype = Reference(number),
+                                                            Mutability = new Constant(),
                                                             Name = Words(horse),
                                                             Source = new Token[] { Word(horse), Returns(), Word(number) }
                                                         }
@@ -174,13 +177,45 @@ public class Exports : ParsingTests
                                                 }
                                             }
                                         },
-                                        Returns = Refer(Words(whole, number)),
+                                        Returns = Reference(whole, number),
                                         Definition = new()
                                         {
                                             Values = new List<Statement>
                                             {
-                                                Refer(Words(@return), 
-                                                new Inline { Source = new[] { Number(24) } })
+                                                Reference(@return), 
+                                                new Inline { Source = new Token[] { Number(24) } }
+                                            }
+                                        }
+                                    },
+                                    new Function.Declaration
+                                    {
+                                        Identifier = new()
+                                        {
+                                            Components = new List<Identifier.Component>
+                                            {
+                                                new Parameters
+                                                {
+                                                    Values = new List<Datum.Declaration>
+                                                    {
+                                                        new()
+                                                        {
+                                                            Datatype = Reference(Words(Bag), new Inline { Source = new Token[] { StartValues(), Number(15), EndValues() } } ),
+                                                            Mutability = new Constant(),
+                                                            Name = Words(correct),
+                                                            Source = new Token[] { Word(correct), Returns(), Word(number) }
+                                                        }
+                                                    }
+                                                },
+                                                Words(horse, battery)
+                                            }
+                                        },
+                                        Returns = Reference(number),
+                                        Definition = new()
+                                        {
+                                            Values = new List<Statement>
+                                            {
+                                                Reference(@return),
+                                                new Inline { Source = new Token[] { Number(8.2) } }
                                             }
                                         }
                                     }
@@ -208,7 +243,7 @@ public class Exports : ParsingTests
                                                     {
                                                         new()
                                                         {
-                                                            Datatype = Refer(Words(money)),
+                                                            Datatype = Reference(money),
                                                             Mutability = new Variable(),
                                                             Name = Words(horse),
                                                             Source = new Token[] { Word(horse), Returns(), Word(money) }
@@ -218,13 +253,45 @@ public class Exports : ParsingTests
                                                 }
                                             }
                                         },
-                                        Returns = Refer(Words(whole, number)),
+                                        Returns = Reference(whole, number),
                                         Definition = new()
                                         {
                                             Values = new List<Statement>
                                             {
-                                                Refer(Words(@return), 
-                                                new Inline { Source = new[] { Number(72) } })
+                                                Reference(@return), 
+                                                new Inline { Source = new[] { Number(72) } }
+                                            }
+                                        }
+                                    },
+                                    new Function.Declaration
+                                    {
+                                        Identifier = new()
+                                        {
+                                            Components = new List<Identifier.Component>
+                                            {
+                                                new Parameters
+                                                {
+                                                    Values = new List<Datum.Declaration>
+                                                    {
+                                                        new()
+                                                        {
+                                                            Datatype = Reference(money),
+                                                            Mutability = new Constant(),
+                                                            Name = Words(correct),
+                                                            Source = new Token[] { Word(correct), Returns(), Word(money) }
+                                                        }
+                                                    }
+                                                },
+                                                Words(horse, battery)
+                                            }
+                                        },
+                                        Returns = Reference(number),
+                                        Definition = new()
+                                        {
+                                            Values = new List<Statement>
+                                            {
+                                                Reference(@return),
+                                                new Inline { Source = new Token[] { Number(12) } }
                                             }
                                         }
                                     }

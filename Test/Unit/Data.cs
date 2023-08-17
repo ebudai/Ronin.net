@@ -299,7 +299,7 @@ public class Data : ParsingTests
                         Mutability = new Variable(),
                         Name = Words(home),
                         Modifiers = new() { Source = new[] { new Shared() } },
-                        Datatype = Refer(Words(Building)),
+                        Datatype = Reference(Building),
                         Initializer = new Inputs
                         {
                             Values = new List<Inputs.Input>

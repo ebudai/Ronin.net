@@ -109,7 +109,7 @@ public class Datatypes : ParsingTests
                     new Datatype.Declaration
                     {
                         Identifier = new(Words(Big)),
-                        Algebra = Refer(Words(text, or)),
+                        Algebra = Reference(text, or),
                         Definition = new()
                         {
                             Values = new List<Statement>
@@ -118,7 +118,7 @@ public class Datatypes : ParsingTests
                                 {
                                     Mutability = new Variable(),
                                     Name = Words(x),
-                                    Datatype = Refer(Words(number))
+                                    Datatype = Reference(number)
                                 }
                             }
                         }

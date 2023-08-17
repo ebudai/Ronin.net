@@ -166,8 +166,8 @@ public class Functions : ParsingTests
                                     {
                                         new()
                                         {
-                                            Datatype = Refer(Words(money)),
-                                            Mutability = new Variable(),
+                                            Datatype = Reference(money),
+                                            Mutability = new Constant(),
                                             Name = Words(cash),
                                             Source = new Token[] { Word(cash), Returns(), Word(money) }
                                         }
@@ -176,12 +176,13 @@ public class Functions : ParsingTests
                                 }
                             }
                         },
-                        Returns = Refer(Words(whole, number)),
+                        Returns = Reference(whole, number),
                         Definition = new()
                         {
                             Values = new List<Statement>
                             {
-                                Refer(Words(@return), new Inline { Source = new[] { Number(72) } })
+                                Reference(@return),
+                                new Inline { Source = new[] { Number(72) } }
                             }
                         }
                     }

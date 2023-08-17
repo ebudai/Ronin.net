@@ -122,6 +122,8 @@ public class Exports : ParsingTests
                 }
             };
 
+            Global.Scope.Children.Clear();
+
             List<Error> errors = new();
             Analyzer.Define(Global.Scope, module, errors);
             Assert.Single(errors);
