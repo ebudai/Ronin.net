@@ -33,16 +33,11 @@ internal class Datum : Definition.Member
         public Reference Datatype { get; init; }
         public Value Initializer { get; init; }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is not Declaration declaration) return false;
-            return declaration.Name.Equals(Name) && declaration.Datatype.Equals(Datatype);
-        }
+        public override bool Equals(object obj) => (obj as Declaration)?.Datatype.Equals(Datatype) ?? false;
 
         public override int GetHashCode()
         {
             HashCode hashcode = new();
-            hashcode.Add(Name);
             hashcode.Add(Datatype);
             return hashcode.ToHashCode();
         }
