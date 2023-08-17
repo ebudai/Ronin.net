@@ -88,9 +88,11 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
             if (definition.Children.TryGetValue(identifier, out var existing))
             {
                 child.Join(existing, errors);
-                continue;
             }
-            definition.Children.Add(identifier, child);
+            else
+            {
+                definition.Children.Add(identifier, child);
+            }            
         }
     }
 
@@ -142,7 +144,6 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         {
             var name = Members.Entry(identifier[0]).Key;
             if (name is not null) result.Add(name);
-            return;
         }
         else
         {
