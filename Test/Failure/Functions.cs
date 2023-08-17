@@ -56,8 +56,7 @@ public class Functions : ParsingTests
             List<Error> errors = new();
             Analyzer.Define(Global.Scope, module, errors);
             Assert.Single(errors);
-            var error = errors[0];
-            Assert.Equal(Error.Message.Redefinition, error.Reason);
+            Assert.Equal(Error.Message.Redefinition, errors[0].Reason);
         }
     }
 }

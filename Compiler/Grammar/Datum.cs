@@ -35,12 +35,7 @@ internal class Datum : Definition.Member
 
         public override bool Equals(object obj) => (obj as Declaration)?.Datatype.Equals(Datatype) ?? false;
 
-        public override int GetHashCode()
-        {
-            HashCode hashcode = new();
-            hashcode.Add(Datatype);
-            return hashcode.ToHashCode();
-        }
+        public override int GetHashCode() => Datatype.GetHashCode();
 
         public new static Declaration Parse(ref Parser current)
         {
