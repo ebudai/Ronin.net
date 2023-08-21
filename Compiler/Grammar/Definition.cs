@@ -45,7 +45,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
             errors.Add(Error.Redefinition(member, existing));
             return;
         }
-        
+
         Add(name, member, errors);
     }
 
@@ -92,12 +92,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
     {
         if (components.Length is 1)
         {
-            if (Members.TryAdd(components[0], member) is false)
-            {
-                Identifier identifier = new();
-                identifier.Components.Add(components[0]);
-                errors.Add(Error.Redefinition(member, identifier));
-            }
+            Members.Add(components[0], member);
             return;
         }
 
