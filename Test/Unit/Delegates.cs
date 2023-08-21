@@ -32,13 +32,13 @@ public class Delegates : ParsingTests
 
         Assert.Single(@delegate?.Data);
         var datum = @delegate.Data[0];
-        Assert.Equal(1, datum?.Name?.Source.Length);
+        Assert.Equal(1, datum?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition?.Values);
         var line = @delegate.Definition?.Values[0] as Reference;
         Assert.Equal(2, line.Components?.Count);
 
-        Name name = line.Components[0];
+        Identifier name = line.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
         AnonymousValue scalar = line.Components[1];
@@ -71,14 +71,14 @@ public class Delegates : ParsingTests
 
         Assert.Single(@delegate?.Data);
         var datum = @delegate.Data[0];
-        Assert.Equal(1, datum?.Name?.Source.Length);
+        Assert.Equal(1, datum?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition?.Values);
         var line = @delegate.Definition?.Values[0] as Reference;
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Identifier name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -116,16 +116,16 @@ public class Delegates : ParsingTests
 
         Assert.Equal(3, @delegate?.Data?.Count);
 
-        Assert.Equal(1, @delegate.Data[0]?.Name?.Source.Length);
-        Assert.Equal(1, @delegate.Data[1]?.Name?.Source.Length);
-        Assert.Equal(1, @delegate.Data[2]?.Name?.Source.Length);
+        Assert.Equal(1, @delegate.Data[0]?.Identifier?.Source.Length);
+        Assert.Equal(1, @delegate.Data[1]?.Identifier?.Source.Length);
+        Assert.Equal(1, @delegate.Data[2]?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition?.Values);
         var line = @delegate.Definition?.Values[0] as Reference;
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Identifier name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -163,7 +163,7 @@ public class Delegates : ParsingTests
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Identifier name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 

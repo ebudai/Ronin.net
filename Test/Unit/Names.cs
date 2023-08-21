@@ -22,7 +22,7 @@ public class Names : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var name = Name.Parse(ref parser);
+        var name = Identifier.Parse(ref parser);
 
         Assert.Equal(3, name?.Source.Length);
     }
@@ -47,6 +47,6 @@ public class Names : ParsingTests
         Parser parser = new(tokens);
         var name = Identifier.Parse(ref parser);
 
-        Assert.Single(name?.Components);
+        Assert.Equal(4, name?.Components.Count);
     }
 }

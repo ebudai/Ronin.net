@@ -26,7 +26,7 @@ public class Exports : ParsingTests
         Parser parser = new(tokens);
         var export = Export.Parse(ref parser);
 
-        Assert.Equal(1, export.Name?.Source.Length);     
+        Assert.Equal(1, export.Identifier?.Source.Length);     
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -47,7 +47,7 @@ public class Exports : ParsingTests
         Parser parser = new(tokens);
         var export = Export.Parse(ref parser);
 
-        Assert.Equal(3, export.Name?.Source.Length);
+        Assert.Equal(3, export.Identifier?.Source.Length);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -71,7 +71,7 @@ public class Exports : ParsingTests
         Parser parser = new(tokens);
         var export = Export.Parse(ref parser);
 
-        Assert.Equal(6, export.Name?.Source.Length);
+        Assert.Equal(6, export.Identifier?.Source.Length);
     }
 
     [Trait("Analyzer", "declaration")]
@@ -95,7 +95,7 @@ public class Exports : ParsingTests
                         new Export
                         {
                             Keyword = new PartOf(),
-                            Name = Words(widgets, with, stuff)
+                            Identifier = Words(widgets, with, stuff)
                         }
                     }
                 }
@@ -152,15 +152,17 @@ public class Exports : ParsingTests
                             {
                                 Values = new List<Statement>
                                 {
-                                    new Export { Keyword = new PartOf(), Name = Words(what, the, what) },
-                                    new Datum.Declaration { Name = Words(what, what) },
+                                    new Export { Keyword = new PartOf(), Identifier = Words(what, the, what) },
+                                    new Datum.Declaration { Identifier = Words(what, what) },
                                     new Function.Declaration
                                     {
                                         Identifier = new()
                                         {
                                             Components = new List<Identifier.Component>
                                             {
-                                                Words(correct, horse, battery),
+                                                Name(correct),
+                                                Name(horse),
+                                                Name(battery),
                                                 new Parameters
                                                 {
                                                     Values = new List<Datum.Declaration>
@@ -169,7 +171,7 @@ public class Exports : ParsingTests
                                                         {
                                                             Datatype = Reference(number),
                                                             Mutability = new Constant(),
-                                                            Name = Words(horse),
+                                                            Identifier = Words(horse),
                                                             Source = new Token[] { Word(horse), Returns(), Word(number) }
                                                         }
                                                     },
@@ -201,12 +203,13 @@ public class Exports : ParsingTests
                                                         {
                                                             Datatype = Reference(Words(Bag), new Inline { Source = new Token[] { StartValues(), Number(15), EndValues() } } ),
                                                             Mutability = new Constant(),
-                                                            Name = Words(correct),
+                                                            Identifier = Words(correct),
                                                             Source = new Token[] { Word(correct), Returns(), Word(number) }
                                                         }
                                                     }
                                                 },
-                                                Words(horse, battery)
+                                                Name(horse),
+                                                Name(battery)
                                             }
                                         },
                                         Returns = Reference(number),
@@ -228,15 +231,17 @@ public class Exports : ParsingTests
                             {
                                 Values = new List<Statement>
                                 {
-                                    new Export { Keyword = new PartOf(), Name = Words(what, the, what) },
-                                    new Datum.Declaration { Name = Words(the, the) },
+                                    new Export { Keyword = new PartOf(), Identifier = Words(what, the, what) },
+                                    new Datum.Declaration { Identifier = Words(the, the) },
                                     new Function.Declaration
                                     {
                                         Identifier = new()
                                         {
                                             Components = new List<Identifier.Component>
                                             {
-                                                Words(correct, horse, battery),
+                                                Name(correct),
+                                                Name(horse),
+                                                Name(battery),
                                                 new Parameters
                                                 {
                                                     Values = new List<Datum.Declaration>
@@ -245,7 +250,7 @@ public class Exports : ParsingTests
                                                         {
                                                             Datatype = Reference(money),
                                                             Mutability = new Variable(),
-                                                            Name = Words(horse),
+                                                            Identifier = Words(horse),
                                                             Source = new Token[] { Word(horse), Returns(), Word(money) }
                                                         }
                                                     },
@@ -277,12 +282,13 @@ public class Exports : ParsingTests
                                                         {
                                                             Datatype = Reference(money),
                                                             Mutability = new Constant(),
-                                                            Name = Words(correct),
+                                                            Identifier = Words(correct),
                                                             Source = new Token[] { Word(correct), Returns(), Word(money) }
                                                         }
                                                     }
                                                 },
-                                                Words(horse, battery)
+                                                Name(horse),
+                                                Name(battery)
                                             }
                                         },
                                         Returns = Reference(number),

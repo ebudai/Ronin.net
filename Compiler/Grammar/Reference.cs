@@ -46,9 +46,9 @@ internal class Reference : Statement, IParsableSyntax<Reference>
 
     public override int GetHashCode() => Components.ToHashCode(Indexer);
 
-    public class Component : CompositeSyntax<Component, Name, AnonymousValue> 
+    public class Component : CompositeSyntax<Component, Identifier, AnonymousValue> 
     {
-        public static implicit operator Component(Name name) => new() { value = name };
+        public static implicit operator Component(Identifier name) => new() { value = name };
         public static implicit operator Component(AnonymousValue value) => new() { value = value };
     }
 }

@@ -6,18 +6,11 @@ namespace Ronin.Grammar;
 
 /// <summary>
 ///     A unique name for a <see cref="Datatype.Declaration"/> or a <see cref="Function.Declaration"/>
-///     which can contain multiple <see cref="Name"/>s and <see cref="Parameters"/>
+///     which can contain multiple <see cref="Identifier"/>s and <see cref="Parameters"/>
 /// </summary>
 internal class Identifier : Syntax, IParsableSyntax<Identifier>
 {
     public List<Component> Components { get; init; } = new();
-
-    public Identifier() { }
-    
-    public Identifier(params Component[] components)
-    {
-        foreach (var component in components) Components.Add(component);
-    }
 
     public static Identifier Parse(ref Parser current)
     {

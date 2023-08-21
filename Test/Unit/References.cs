@@ -29,7 +29,7 @@ public class References : ParsingTests
         Assert.Equal(3, reference?.Components?.Count);
 
         {
-            Name name = reference.Components[0];
+            Identifier name = reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 

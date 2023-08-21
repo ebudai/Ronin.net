@@ -75,7 +75,7 @@ public class AnonymousScopes : ParsingTests
                                 new Datum.Declaration
                                 {
                                     Mutability = new Variable(),
-                                    Name = Words(x),
+                                    Identifier = Words(x),
                                     Initializer = new Inline { Source = new[] { Number(3) } }
                                 }
                             }
@@ -122,7 +122,7 @@ public class AnonymousScopes : ParsingTests
                                             new Datum.Declaration
                                             {
                                                 Mutability = new Variable(),
-                                                Name = Words(x),
+                                                Identifier = Words(x),
                                                 Initializer = new Inline { Source = new[] { Number(3) } }
                                             }
                                         }

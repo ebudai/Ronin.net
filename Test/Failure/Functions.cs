@@ -42,12 +42,12 @@ public class Functions : ParsingTests
                 {
                     new Function.Declaration
                     {
-                        Identifier = new(Words(name)),
+                        Identifier = Words(name),
                         Definition = new() { Values = new() }
                     },
                     new Function.Declaration
                     {
-                        Identifier = new(Words(name)),
+                        Identifier = Words(name),
                         Definition = new() { Values = new() }
                     }
                 }

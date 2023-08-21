@@ -308,16 +308,23 @@ public class AnalysisTests : ParsingTests
     {
         Word word = new();
         word.SetMemory(name);
-        Name words = new() { Source = new[] { word } };
+        Identifier words = new() { Source = new[] { word } };
         return new Identifier()
         {
             Components = new() { new Identifier.Component { value = words } }
         };
     }
 
-    internal static Name Words(string name) => Words(name.Split(new[] { ' ' }));
+    internal static Name Name(string name)
+    {
+        Word word = new();
+        word.SetMemory(name);
+        return new() { Source = new[] { word } };
+    }
 
-    internal static Name Words(params string[] names)
+    internal static Identifier Words(string name) => Words(name.Split(new[] { ' ' }));
+
+    internal static Identifier Words(params string[] names)
     {
         List<Word> words = new();
         foreach (var part in names)
@@ -326,20 +333,30 @@ public class AnalysisTests : ParsingTests
             word.SetMemory(part);
             words.Add(word);
         }
-        return new Name { Source = words.ToArray() };
+        List<Identifier.Component> components = new();
+        foreach (var word in words)
+        {
+            components.Add(new Name { Source = new[] { word } });
+        }
+        return new Identifier
+        {
+            Components = components,
+            Source = words.ToArray()
+        };
     }
 
-    internal static Reference Reference(params string[] components) => Reference(Words(components));
+    internal static Reference Reference(params string[] words)
+    {
+        List<Reference.Component> components = new();
+        foreach (var word in words)
+        {
+            Word token = new();
+            token.SetMemory(word);
+            Identifier name = new() { Source = new[] { token } };
+            components.Add(name);
+        }
+        return Reference(components.ToArray());
+    }
 
     internal static Reference Reference(params Reference.Component[] components) => new() { Components = components.ToList() };
-    
-    internal static Identifier Identify()
-    {
-        throw new NotImplementedException();
-    }
-
-    internal static Ronin.Grammar.Function.Declaration DeclareFunction()
-    {
-        throw new NotImplementedException();
-    }
 }

@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 internal class Export : Statement, IParsableSyntax<Export>
 {
     public required PartOf Keyword { get; init; }
-    public required Name Name { get; init; }
+    public required Identifier Identifier { get; init; }
 
     public new static Export Parse(ref Parser current)
     {
@@ -27,12 +27,12 @@ internal class Export : Statement, IParsableSyntax<Export>
         if (parser.Token is not PartOf keyword) return null;
         parser.Advance();
 
-        if (Name.Parse(ref parser) is not Name name) return null;
+        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         return new Export 
         {
             Keyword = keyword,
-            Name = name,
+            Identifier = identifier,
             Source = parser.Commit(ref current) 
         };
     }

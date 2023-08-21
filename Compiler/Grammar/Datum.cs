@@ -28,7 +28,7 @@ internal class Datum : Definition.Member
     public class Declaration : Statement, IParsableSyntax<Declaration>
     {
         public Mutability Mutability { get; init; }
-        public Name Name { get; init; }
+        public Identifier Identifier { get; init; }
         public Modifiers Modifiers { get; init; }
         public Reference Datatype { get; init; }
         public Value Initializer { get; init; }
@@ -44,7 +44,7 @@ internal class Datum : Definition.Member
             var mutability = parser.Token as Mutability;
             if (mutability is not null) parser.Advance();
 
-            if (Name.Parse(ref parser) is not Name name) return null;
+            if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
             Modifiers modifiers = null;
             Reference datatype = null;
@@ -59,7 +59,7 @@ internal class Datum : Definition.Member
             return new Declaration
             {
                 Mutability = mutability,
-                Name = name,
+                Identifier = identifier,
                 Modifiers = modifiers ?? new(),
                 Datatype = datatype,
                 Initializer = initializer,

@@ -64,7 +64,7 @@ public class Datatypes : ParsingTests
         var datatype = Datatype.Declaration.Parse(ref parser);
 
         Assert.Single(datatype?.Identifier?.Components);
-        Name algebra = datatype.Algebra.Components[0];
+        Identifier algebra = datatype.Algebra.Components[0];
         Assert.Equal(2, algebra?.Source.Length);
 
         Assert.Equal(2, datatype.Definition?.Values.Count);
@@ -72,18 +72,18 @@ public class Datatypes : ParsingTests
         {
             var cash = datatype.Definition.Values[0] as Datum.Declaration;
             Assert.IsType<Variable>(cash?.Mutability);
-            Assert.Equal(1, cash.Name?.Source.Length);
+            Assert.Equal(1, cash.Identifier?.Source.Length);
             Assert.Single(cash.Datatype?.Components);
-            Name type = cash.Datatype.Components[0];
+            Identifier type = cash.Datatype.Components[0];
             Assert.Equal(1, type?.Source.Length);
         }
 
         {
             var debt = datatype.Definition.Values[1] as Datum.Declaration;
             Assert.IsType<Variable>(debt?.Mutability);
-            Assert.Equal(1, debt.Name?.Source.Length);
+            Assert.Equal(1, debt.Identifier?.Source.Length);
             Assert.Single(debt.Datatype?.Components);
-            Name type = debt.Datatype.Components[0];
+            Identifier type = debt.Datatype.Components[0];
             Assert.Equal(1, type?.Source.Length);
         }
     }
@@ -108,7 +108,7 @@ public class Datatypes : ParsingTests
                 {
                     new Datatype.Declaration
                     {
-                        Identifier = new(Words(Big)),
+                        Identifier = Words(Big),
                         Algebra = Reference(text, or),
                         Definition = new()
                         {
@@ -117,7 +117,7 @@ public class Datatypes : ParsingTests
                                 new Datum.Declaration
                                 {
                                     Mutability = new Variable(),
-                                    Name = Words(x),
+                                    Identifier = Words(x),
                                     Datatype = Reference(number)
                                 }
                             }
@@ -140,10 +140,11 @@ public class Datatypes : ParsingTests
             Assert.Equal(Big, identifier.value.Source.Span[0].Memory.ToArray());
 
             var algebra = datatype.Algebra as Algebra.Unresolved;
-            Assert.Single(algebra?.Reference.Components);
-            Assert.Equal(2, algebra.Reference.Components[0].value.Source.Length);
+            Assert.Equal(2, algebra?.Reference.Components.Count);
+            Assert.Equal(1, algebra.Reference.Components[0].value.Source.Length);
             Assert.Equal(text, algebra.Reference.Components[0].value.Source.Span[0].Memory.ToArray());
-            Assert.Equal(or, algebra.Reference.Components[0].value.Source.Span[1].Memory.ToArray());
+            Assert.Equal(1, algebra.Reference.Components[1].value.Source.Length);
+            Assert.Equal(or, algebra.Reference.Components[1].value.Source.Span[0].Memory.ToArray());
 
             Assert.Single(datatype.Definition.Members);
 
@@ -157,7 +158,7 @@ public class Datatypes : ParsingTests
             Assert.IsType<Variable>(datum?.Mutability);
             var unresolved = datum.Datatype as Datatype.Unresolved;
             Assert.Single(unresolved?.Reference.Components);
-            var unresolvedname = unresolved.Reference.Components[0].value as Name;
+            var unresolvedname = unresolved.Reference.Components[0].value as Identifier;
             Assert.Single(unresolvedname.Source.ToArray());
             Assert.Equal(number, unresolvedname.Source.Span[0].Memory.ToArray());
         }

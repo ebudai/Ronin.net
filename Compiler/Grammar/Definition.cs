@@ -36,37 +36,23 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
 
     public void Add(Identifier identifier, Member member, List<Error> errors)
     {
-        var components = CollectionsMarshal.AsSpan(identifier.Components);
+        var name = CollectionsMarshal.AsSpan(identifier.Components);
 
-        var existing = Existing(components);
-        if (existing.Count is not 0)
+        Identifier existing = new();
+        FindExisting(name, existing);
+        if (existing.Components.Count is not 0)
         {
-            errors.Add(Error.Redefinition(member, new Identifier { Components = existing }));
+            errors.Add(Error.Redefinition(member, existing));
             return;
         }
         
-        Add(components, member, errors);
+        Add(name, member, errors);
     }
 
-    public void Add(Name name, Definition definition, List<Error> errors)
+    public Definition GetModule(Identifier identifier)
     {
-        var module = GetModule(name);
-        if (module is not null)
-        {
-            definition.Join(module, errors);
-        }
-        else
-        {
-            Identifier identifier = new(name);
-            Children.Add(identifier.Components[0], definition);
-        }
-    }
-
-    public Definition GetModule(Name name)
-    {
-        Identifier identifier = new(name);
-        var components = CollectionsMarshal.AsSpan(identifier.Components);
-        return GetModule(components);
+        var name = CollectionsMarshal.AsSpan(identifier.Components);
+        return GetModule(name);
     }
 
     [ExcludeFromCodeCoverage]
@@ -77,12 +63,18 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
 
     public void Join(Definition definition, List<Error> errors)
     {
-        foreach (var statement in Statements) definition.Statements.Add(statement);
-
-        foreach (var (identifier, element) in Members)
+        foreach (var statement in Statements)
         {
-            definition.Add(new Identifier { Components = new() { identifier } }, element, errors);
+            definition.Statements.Add(statement);
         }
+
+        foreach (var (name, element) in Members)
+        {
+            Identifier identifier = new();
+            identifier.Components.Add(name);
+            definition.Add(identifier, element, errors);
+        }
+
         foreach (var (identifier, child) in Children)
         {
             if (definition.Children.TryGetValue(identifier, out var existing))
@@ -94,26 +86,6 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
                 definition.Children.Add(identifier, child);
             }            
         }
-    }
-
-    private Definition GetModule(ReadOnlySpan<Identifier.Component> words)
-    {
-        if (Children.TryGetValue(words[0], out var module) is false) return null;
-
-        return words.Length is 1 ? module : module.GetModule(words[1..]);
-    }
-
-    private List<Identifier.Component> Existing(ReadOnlySpan<Identifier.Component> identifier)
-    {
-        List<Identifier.Component> components = new();
-        Existing(identifier, components);
-        return components;
-    }
-
-    private void Existing(ReadOnlySpan<Identifier.Component> identifier, List<Identifier.Component> existing)
-    {
-        Query(identifier, existing);
-        if (existing.Count is 0) Parent?.Existing(identifier, existing);
     }
 
     private void Add(ReadOnlySpan<Identifier.Component> components, Member member, List<Error> errors)
@@ -138,7 +110,13 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         child.Add(components[1..], member, errors);
     }
 
-    private void Query(ReadOnlySpan<Identifier.Component> identifier, List<Identifier.Component> result)
+    private void FindExisting(ReadOnlySpan<Identifier.Component> identifier, Identifier existing)
+    {
+        FindExisting(identifier, existing.Components);
+        if (existing.Components.Count is 0) Parent?.FindExisting(identifier, existing);
+    }    
+
+    private void FindExisting(ReadOnlySpan<Identifier.Component> identifier, List<Identifier.Component> result)
     {
         if (identifier.Length is 1)
         {
@@ -151,9 +129,20 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
             if (child is not null)
             {
                 result.Add(name);
-                child.Query(identifier[1..], result);
+                child.FindExisting(identifier[1..], result);
             }
         }        
+    }
+
+    private Definition GetModule(ReadOnlySpan<Identifier.Component> name)
+    {
+        if (Children.TryGetValue(name[0], out var module) is false)
+        {
+            module = new();
+            Children.Add(name[0], module);
+        }
+
+        return name.Length is 1 ? module : module.GetModule(name[1..]);
     }
 
     public class Member

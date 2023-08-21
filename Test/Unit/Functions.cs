@@ -42,37 +42,28 @@ public class Functions : ParsingTests
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
 
-        {
-            Name name = function.Identifier.Components[0];
-            Assert.Equal(1, name?.Source.Length);
-        }
+        Assert.Equal(1, function.Identifier.Components[0].Source.Length);
+        
+        Parameters parameters = function.Identifier.Components[1];
 
-        {
-            Parameters parameters = function.Identifier.Components[1];
-            
-            Assert.Single(parameters?.Values);
-            var parameter = parameters.Values[0];
-            Assert.Equal(1, parameter?.Name?.Source.Length);
+        Assert.Single(parameters?.Values);
+        var parameter = parameters.Values[0];
+        Assert.Equal(1, parameter?.Identifier?.Source.Length);
 
-            Assert.Single(parameter.Datatype?.Components);
-            Name type = parameter.Datatype.Components[0];
-            Assert.Equal(1, type?.Source.Length);
-        }
-
+        Assert.Single(parameter.Datatype?.Components);
+        Identifier type = parameter.Datatype.Components[0];
+        Assert.Equal(1, type?.Source.Length);
+        
         Assert.Single(function.Definition?.Values);
         var line = function.Definition.Values[0] as Reference;
             
         Assert.Equal(2, line?.Components?.Count);
 
-        {
-            Name @return = line.Components[0];
-            Assert.Equal(1, @return?.Source.Length);
-        }
+        Identifier @return = line.Components[0];
+        Assert.Equal(1, @return?.Source.Length);
 
-        {
-            AnonymousValue scalar = line.Components[1];
-            Assert.Equal(1, scalar?.Source.Length);
-        }
+        AnonymousValue scalar = line.Components[1];
+        Assert.Equal(1, scalar?.Source.Length);
     }
 
     [Fact(DisplayName = "specifies return datatype")]
@@ -106,30 +97,25 @@ public class Functions : ParsingTests
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);
 
-        {
-            Name name = function.Identifier.Components[0];
-            Assert.Equal(1, name?.Source.Length);
-        }
+        Assert.Equal(1, function.Identifier.Components[0].Source.Length);
 
-        {
-            Parameters parameters = function.Identifier.Components[1];
-            Assert.Single(parameters?.Values);
-            var parameter = parameters.Values[0];
-            Assert.Equal(1, parameter.Name?.Source.Length);
+        Parameters parameters = function.Identifier.Components[1];
+        Assert.Single(parameters?.Values);
+        var parameter = parameters.Values[0];
+        Assert.Equal(1, parameter.Identifier?.Source.Length);
 
-            Assert.Single(parameter.Datatype?.Components);
-            Name type = parameter.Datatype.Components[0];
-            Assert.Equal(1, type?.Source.Length);
-        }
+        Assert.Single(parameter.Datatype?.Components);
+        Identifier type = parameter.Datatype.Components[0];
+        Assert.Equal(1, type?.Source.Length);        
 
         Assert.Single(function.Returns?.Components);
-        Name returns = function.Returns.Components[0];
+        Identifier returns = function.Returns.Components[0];
         Assert.Equal(1, returns?.Source.Length);
 
         Assert.Single(function.Definition?.Values);
         var line = function.Definition.Values[0] as Reference;
         Assert.Single(line?.Components);
-        Name @return = line.Components[0];
+        Identifier @return = line.Components[0];
         Assert.Equal(4, @return?.Source.Length);
     }
 
@@ -159,7 +145,8 @@ public class Functions : ParsingTests
                         {
                             Components = new List<Identifier.Component>
                             {
-                                Words(run, home),
+                                Name(run),
+                                Name(home),
                                 new Parameters
                                 {
                                     Values = new List<Datum.Declaration>
@@ -168,7 +155,7 @@ public class Functions : ParsingTests
                                         {
                                             Datatype = Reference(money),
                                             Mutability = new Constant(),
-                                            Name = Words(cash),
+                                            Identifier = Words(cash),
                                             Source = new Token[] { Word(cash), Returns(), Word(money) }
                                         }
                                     },
@@ -195,6 +182,9 @@ public class Functions : ParsingTests
 
             Assert.Single(module.Children);
             var child = module.Children.First().Value;
+
+            Assert.Single(child.Children);
+            child = child.Children.First().Value;
 
             Assert.Single(child.Members);
 

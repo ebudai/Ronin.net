@@ -34,7 +34,7 @@ public class Definitions : ParsingTests
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Shared>());

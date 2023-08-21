@@ -24,7 +24,7 @@ internal static class Analyzer
     {
         scope.Definition.Parent = parent;
         
-        Name name = null;
+        Identifier name = null;
         
         foreach (var statement in scope.Definition.Values)
         {
@@ -38,7 +38,8 @@ internal static class Analyzer
         
         if (name is not null)
         {
-            Global.Scope.Add(name, scope.Definition, errors);
+            var module = Global.Scope.GetModule(name);
+            scope.Definition.Join(module, errors);
         }
     }
 
@@ -56,7 +57,7 @@ internal static class Analyzer
         }
     }
 
-    private static void Export(Scope scope, Export export, ref Name name, List<Error> errors)
+    private static void Export(Scope scope, Export export, ref Identifier identifier, List<Error> errors)
     {
         bool error = false;
 
@@ -72,13 +73,13 @@ internal static class Analyzer
             error = true;
         }
 
-        if (name is not null)
+        if (identifier is not null)
         {
             errors.Add(Error.ScopeIsAlreadyPartOfAModule(scope.Definition, export));
             error = true;
         }
         
-        if (error is false) name = export.Name;
+        if (error is false) identifier = export.Identifier;
     }
 
     private static void Import(Definition definition, Import import)
@@ -124,6 +125,6 @@ internal static class Analyzer
             Initializer = declaration.Initializer
         };
 
-        definition.Add(new Identifier(declaration.Name), datum, errors);
+        definition.Add(declaration.Identifier, datum, errors);
     }
 }

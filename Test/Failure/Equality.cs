@@ -37,7 +37,7 @@ public class Equality : AnalysisTests
     [Fact(DisplayName = nameof(Identifier))]
     public void Identifiers()
     {
-        Identifier name = new(Words("x"));
+        Identifier name = Words("x");
         int x = default;
 
         Assert.False(name.Components[0].Equals(x));

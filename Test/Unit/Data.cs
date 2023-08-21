@@ -35,9 +35,9 @@ public class Data : ParsingTests
         Assert.False(datum.Modifiers.Is<Shared>());
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
-        Assert.Equal(2, datum.Name?.Source.Length);
+        Assert.Equal(2, datum.Identifier?.Source.Length);
         Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
+        Identifier name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
         Assert.Null(datum.Initializer);
     }
@@ -66,10 +66,10 @@ public class Data : ParsingTests
         Assert.True(datum.Modifiers.Is<Reactive>());
         Assert.Single(datum.Modifiers.Source.ToArray());
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Equal(1, datum.Identifier?.Source.Length);
         
         Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
+        Identifier name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
         
         Assert.Null(datum.Initializer);
@@ -99,10 +99,10 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Compiled>());
         
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
+        Identifier name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -132,10 +132,10 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Persistent>());
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
+        Identifier name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -165,10 +165,10 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Shared>());
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
+        Identifier name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -197,10 +197,10 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Modifiers?.Source.Length);
         Assert.True(datum.Modifiers.Is<Optional>());
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Equal(1, datum.Identifier?.Source.Length);
         
         Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
+        Identifier name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
         
         Assert.Null(datum.Initializer);
@@ -231,13 +231,13 @@ public class Data : ParsingTests
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Null(datum.Datatype);
 
         var unresolved = datum?.Initializer as Value.Unresolved;
         Assert.Single(unresolved?.Reference.Components);
-        Name name = unresolved.Reference.Components[0];
+        Identifier name = unresolved.Reference.Components[0];
         Assert.Single(name?.Source.ToArray());
     }
 
@@ -268,10 +268,10 @@ public class Data : ParsingTests
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
-        Assert.Equal(1, datum.Name?.Source.Length);
+        Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
+        Identifier name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         var scalar = datum.Initializer as Ronin.Grammar.Inline;
@@ -297,7 +297,7 @@ public class Data : ParsingTests
                     new Datum.Declaration
                     {
                         Mutability = new Variable(),
-                        Name = Words(home),
+                        Identifier = Words(home),
                         Modifiers = new() { Source = new[] { new Shared() } },
                         Datatype = Reference(Building),
                         Initializer = new Inputs
