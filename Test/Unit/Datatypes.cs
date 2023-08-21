@@ -7,7 +7,7 @@ using Datatype = Ronin.Grammar.Datatype;
 
 namespace Unit;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Datatypes : ParsingTests
 {
     [Fact(DisplayName = "basic")]
@@ -88,7 +88,7 @@ public class Datatypes : ParsingTests
         }
     }
 
-    [Trait("Analyzer", "declaration")]
+    [Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]

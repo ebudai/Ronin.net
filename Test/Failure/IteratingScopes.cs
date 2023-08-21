@@ -5,7 +5,7 @@ using Test;
 
 namespace Failure;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class IteratingScopes : ParsingTests
 {
     [Fact(DisplayName = $"doesn't start with {ForEach.keyword}")]

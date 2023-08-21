@@ -52,8 +52,8 @@ public class AnonymousScopes : ParsingTests
         Assert.NotNull(anonymous.Definition);
     }
 
-    [Trait("Analyzer", "declaration")]
-    public class Delcaration : AnalysisTests
+    [Trait(nameof(Analyzer), nameof(Declaration))]
+    public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]
         public void Basic()

@@ -28,7 +28,7 @@ public class Functions : ParsingTests
         Assert.Null(function);
     }
 
-    [Trait(nameof(Analyzer), "declaration")]
+    [Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "redefinition")]

@@ -2,11 +2,12 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+
 using Function = Ronin.Grammar.Function;
 
 namespace Failure;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Unknowns : ParsingTests
 {
     [Fact(DisplayName = "unknown")]
@@ -29,7 +30,7 @@ public class Unknowns : ParsingTests
         Assert.IsType<Unknown>(statements[0]);
     }
 
-    [Trait(nameof(Analyzer), "declaration")]
+    [Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "inside definition")]

@@ -2,11 +2,12 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+
 using Function = Ronin.Grammar.Function;
 
 namespace Failure;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Exports : ParsingTests
 {
     [Fact(DisplayName = "missing identifier")]
@@ -26,7 +27,7 @@ public class Exports : ParsingTests
         Assert.Null(export);
     }
 
-    [Trait("Analyzer", "declaration")]
+    [Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "function scope is part of a module")]

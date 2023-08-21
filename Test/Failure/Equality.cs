@@ -1,10 +1,13 @@
-﻿using Ronin.Grammar;
+﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
+using Function = Ronin.Grammar.Function;
+
 namespace Failure;
 
-[Trait("Analyzer", "declaration")]
+[Trait(nameof(Analyzer), nameof(Function.Declaration))]
 public class Equality : AnalysisTests
 {
     [Fact(DisplayName = nameof(Data))]

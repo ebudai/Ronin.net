@@ -8,7 +8,7 @@ using Function = Ronin.Grammar.Function;
 
 namespace Unit;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Functions : ParsingTests
 {
     [Fact(DisplayName = "basic")]
@@ -119,7 +119,7 @@ public class Functions : ParsingTests
         Assert.Equal(4, @return?.Source.Length);
     }
 
-    [Trait("Analyzer", "declaration")]
+    [Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]
