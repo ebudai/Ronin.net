@@ -28,7 +28,7 @@ public class Input : ParsingTests
         Value value = arguments.Values[0];
         var unresolved = value as Value.Unresolved;
         Assert.Single(unresolved?.Reference?.Components);
-        Identifier name = unresolved.Reference.Components[0];
+        Name name = unresolved.Reference.Components[0];
         Assert.Single(name?.Source.ToArray());
     }
 
@@ -56,7 +56,7 @@ public class Input : ParsingTests
             Value value = arguments.Values[0];
             var unresolved = value as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
-            Identifier name = unresolved.Reference.Components[0];
+            Name name = unresolved.Reference.Components[0];
             Assert.Single(name?.Source.ToArray());
         }
 
@@ -64,7 +64,7 @@ public class Input : ParsingTests
             Value value = arguments.Values[1];
             var unresolved = value as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
-            Identifier name = unresolved.Reference.Components[0];
+            Name name = unresolved.Reference.Components[0];
             Assert.Single(name?.Source.ToArray());
         }
     }
@@ -124,7 +124,7 @@ public class Input : ParsingTests
             Value value = arguments.Values[2];
             var unresolved = value as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
-            Identifier name = unresolved.Reference.Components[0];
+            Name name = unresolved.Reference.Components[0];
             Assert.Single(name?.Source.ToArray());
         }
     }
@@ -161,7 +161,7 @@ public class Input : ParsingTests
             Value value = arguments.Values[0];
             var unresolved = value as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
-            Identifier name = unresolved.Reference.Components[0];
+            Name name = unresolved.Reference.Components[0];
             Assert.Single(name?.Source.ToArray());
         }
 

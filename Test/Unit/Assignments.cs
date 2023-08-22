@@ -28,7 +28,7 @@ public class Assignments : ParsingTests
         var unresolved = assignment?.Destination as Datum.Unresolved;
         
         Assert.Single(unresolved?.Reference.Components);
-        Identifier name = unresolved.Reference.Components[0];
+        Name name = unresolved.Reference.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         var scalar = assignment.Value as Inline;
@@ -54,7 +54,7 @@ public class Assignments : ParsingTests
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
         Assert.Single(unresolved?.Reference.Components);
-        Identifier name = unresolved.Reference.Components?[0];
+        Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<Assign>(assignment.Type);
@@ -82,7 +82,7 @@ public class Assignments : ParsingTests
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
         Assert.Single(unresolved?.Reference.Components);
-        Identifier name = unresolved.Reference.Components?[0];
+        Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<AddAssign>(assignment.Type);
@@ -110,7 +110,7 @@ public class Assignments : ParsingTests
         var unresolvedDatum = assignment?.Destination as Datum.Unresolved;
 
         Assert.Single(unresolvedDatum?.Reference.Components);
-        Identifier name = unresolvedDatum.Reference.Components?[0];
+        Name name = unresolvedDatum.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<AndAssign>(assignment.Type);
@@ -138,7 +138,7 @@ public class Assignments : ParsingTests
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
         Assert.Single(unresolved?.Reference.Components);
-        Identifier name = unresolved.Reference.Components?[0];
+        Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<DivideAssign>(assignment.Type);
@@ -166,7 +166,7 @@ public class Assignments : ParsingTests
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
         Assert.Single(unresolved?.Reference.Components);
-        Identifier name = unresolved.Reference.Components?[0];
+        Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<MultiplyAssign>(assignment.Type);
@@ -194,7 +194,7 @@ public class Assignments : ParsingTests
         var unresolvedDatum = assignment?.Destination as Datum.Unresolved;
 
         Assert.Single(unresolvedDatum?.Reference.Components);
-        Identifier name = unresolvedDatum.Reference.Components?[0];
+        Name name = unresolvedDatum.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<OrAssign>(assignment.Type);
@@ -222,7 +222,7 @@ public class Assignments : ParsingTests
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
         Assert.Single(unresolved?.Reference.Components);
-        Identifier name = unresolved.Reference.Components?[0];
+        Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.IsType<SubtractAssign>(assignment.Type);

@@ -201,7 +201,7 @@ public class Exports : ParsingTests
                                                     {
                                                         new()
                                                         {
-                                                            Datatype = Reference(Words(Bag), new Inline { Source = new Token[] { StartValues(), Number(15), EndValues() } } ),
+                                                            Datatype = Reference(new Name { Source = new[] { Word(Bag) } }, new Inline { Source = new Token[] { StartValues(), Number(15), EndValues() } } ),
                                                             Mutability = new Constant(),
                                                             Identifier = Words(correct),
                                                             Source = new Token[] { Word(correct), Returns(), Word(number) }

@@ -41,7 +41,7 @@ public class Parameter : ParsingTests
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Identifier name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -84,7 +84,7 @@ public class Parameter : ParsingTests
             Assert.Equal(1, datum.Identifier?.Source.Length);
         
             Assert.Single(datum.Datatype?.Components);
-            Identifier name = datum.Datatype.Components[0];
+            Name name = datum.Datatype.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -99,7 +99,7 @@ public class Parameter : ParsingTests
             Assert.False(datum.Modifiers.Is<Persistent>());
 
             Assert.Single(datum.Datatype?.Components);
-            Identifier name = datum.Datatype.Components[0];
+            Name name = datum.Datatype.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
     }

@@ -51,7 +51,7 @@ public class Functions : ParsingTests
         Assert.Equal(1, parameter?.Identifier?.Source.Length);
 
         Assert.Single(parameter.Datatype?.Components);
-        Identifier type = parameter.Datatype.Components[0];
+        Name type = parameter.Datatype.Components[0];
         Assert.Equal(1, type?.Source.Length);
         
         Assert.Single(function.Definition?.Values);
@@ -59,7 +59,7 @@ public class Functions : ParsingTests
             
         Assert.Equal(2, line?.Components?.Count);
 
-        Identifier @return = line.Components[0];
+        Name @return = line.Components[0];
         Assert.Equal(1, @return?.Source.Length);
 
         AnonymousValue scalar = line.Components[1];
@@ -105,17 +105,17 @@ public class Functions : ParsingTests
         Assert.Equal(1, parameter.Identifier?.Source.Length);
 
         Assert.Single(parameter.Datatype?.Components);
-        Identifier type = parameter.Datatype.Components[0];
+        Name type = parameter.Datatype.Components[0];
         Assert.Equal(1, type?.Source.Length);        
 
         Assert.Single(function.Returns?.Components);
-        Identifier returns = function.Returns.Components[0];
+        Name returns = function.Returns.Components[0];
         Assert.Equal(1, returns?.Source.Length);
 
         Assert.Single(function.Definition?.Values);
         var line = function.Definition.Values[0] as Reference;
         Assert.Single(line?.Components);
-        Identifier @return = line.Components[0];
+        Name @return = line.Components[0];
         Assert.Equal(4, @return?.Source.Length);
     }
 

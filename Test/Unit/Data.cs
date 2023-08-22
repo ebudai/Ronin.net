@@ -37,7 +37,7 @@ public class Data : ParsingTests
         Assert.False(datum.Modifiers.Is<Persistent>());
         Assert.Equal(2, datum.Identifier?.Source.Length);
         Assert.Single(datum.Datatype?.Components);
-        Identifier name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
         Assert.Null(datum.Initializer);
     }
@@ -69,7 +69,7 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Identifier?.Source.Length);
         
         Assert.Single(datum.Datatype?.Components);
-        Identifier name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
         
         Assert.Null(datum.Initializer);
@@ -102,7 +102,7 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Identifier name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -135,7 +135,7 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Identifier name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -168,7 +168,7 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Identifier name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -200,7 +200,7 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Identifier?.Source.Length);
         
         Assert.Single(datum.Datatype?.Components);
-        Identifier name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
         
         Assert.Null(datum.Initializer);
@@ -237,7 +237,7 @@ public class Data : ParsingTests
 
         var unresolved = datum?.Initializer as Value.Unresolved;
         Assert.Single(unresolved?.Reference.Components);
-        Identifier name = unresolved.Reference.Components[0];
+        Name name = unresolved.Reference.Components[0];
         Assert.Single(name?.Source.ToArray());
     }
 
@@ -271,7 +271,7 @@ public class Data : ParsingTests
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.Single(datum.Datatype?.Components);
-        Identifier name = datum.Datatype.Components[0];
+        Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
         var scalar = datum.Initializer as Ronin.Grammar.Inline;

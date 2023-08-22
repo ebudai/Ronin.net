@@ -43,6 +43,11 @@ internal static class Analyzer
         }
     }
 
+    public static void Resolve()
+    {
+
+    }
+
     private static void Define(Definition definition, Statement statement, List<Error> errors)
     {
         switch (statement)

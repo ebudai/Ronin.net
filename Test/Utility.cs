@@ -352,7 +352,7 @@ public class AnalysisTests : ParsingTests
         {
             Word token = new();
             token.SetMemory(word);
-            Identifier name = new() { Source = new[] { token } };
+            Name name = new() { Source = new[] { token } };
             components.Add(name);
         }
         return Reference(components.ToArray());

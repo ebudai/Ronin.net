@@ -38,7 +38,7 @@ public class Delegates : ParsingTests
         var line = @delegate.Definition?.Values[0] as Reference;
         Assert.Equal(2, line.Components?.Count);
 
-        Identifier name = line.Components[0];
+        Name name = line.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
         AnonymousValue scalar = line.Components[1];
@@ -78,7 +78,7 @@ public class Delegates : ParsingTests
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Identifier name = line.Components[0];
+            Name name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -125,7 +125,7 @@ public class Delegates : ParsingTests
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Identifier name = line.Components[0];
+            Name name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
@@ -163,7 +163,7 @@ public class Delegates : ParsingTests
         Assert.Equal(2, line.Components?.Count);
 
         {
-            Identifier name = line.Components[0];
+            Name name = line.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 

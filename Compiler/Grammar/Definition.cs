@@ -55,10 +55,12 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         return GetModule(name);
     }
 
-    [ExcludeFromCodeCoverage]
-    public List<object> Find(Reference reference)
+    public List<Member> Find(Reference reference)
     {
-        throw new NotImplementedException();
+        List<Member> found = new();
+        var components = CollectionsMarshal.AsSpan(reference.Components);
+        Find(components, found);
+        return found;
     }
 
     public void Join(Definition definition, List<Error> errors)
@@ -138,6 +140,21 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         }
 
         return name.Length is 1 ? module : module.GetModule(name[1..]);
+    }
+
+    private void Find(ReadOnlySpan<Reference.Component> name, List<Member> found)
+    {
+        /*if (name.Length is 1)
+        {
+            if (Members.TryGetValue(name[0], out var member))
+            {
+                found.Add(member);
+            }
+        }
+        else if (Children.TryGetValue(name[0], out var child))
+        {
+            child.Find(name[1..], found);
+        }*/
     }
 
     public class Member
