@@ -8,7 +8,7 @@ namespace Ronin.Grammar;
 
 internal class Datatype : Definition.Member
 {
-    public Algebra Algebra { get; init; }
+    public Algebra Algebra { get; set; }
     public Definition Definition { get; init; }
 
     /// <summary>
@@ -58,6 +58,11 @@ internal class Datatype : Definition.Member
     {
         public Reference Reference { get; init; }
     }
+
+    public class Overloaded : Datatype
+    {
+        public List<Definition.Member> Overloads { get; init; }
+    }
 }
 
 internal class Algebra
@@ -68,5 +73,10 @@ internal class Algebra
     public class Unresolved : Algebra
     {
         public Reference Reference { get; init; }
+    }
+
+    public class Overloaded : Algebra
+    {
+        public List<Definition.Member> Overloads { get; init; }
     }
 }
