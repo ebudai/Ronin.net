@@ -43,9 +43,82 @@ internal static class Analyzer
         }
     }
 
-    public static void Resolve()
+    public static void Resolve(Definition definition, List<Error> errors)
     {
+        for (int i = 0, max = definition.Imports.Count; i != max; ++i)
+        {
+            if (definition.Imports[i] is not Definition.Unresolved unresolved) continue;
 
+            var module = Global.Scope.GetModule(unresolved.Import.Name);
+            if (module is null)
+            {
+                errors.Add(Error.UnresolvedImport(unresolved.Import));
+                continue;
+            }
+            definition.Imports[i] = module;
+        }
+
+        foreach (var (name, member) in definition.Members)
+        {
+            if (member is Datatype.Unresolved datatype)
+            {
+                var resolved = definition.Find(datatype.Reference);
+                if (resolved.Count is 0)
+                {
+                    errors.Add(Error.CouldNotResolve(member, datatype.Reference));
+                    continue;
+                }
+
+                if (datatype.Algebra is Algebra.Unresolved unresolved)
+                {
+                    var algebra = definition.Find(unresolved.Reference);
+                    datatype.Algebra = new Algebra.Overloaded { Overloads = algebra };
+                }
+
+                definition.Members[name] = new Datatype.Overloaded
+                {
+                    Overloads = resolved,
+                    Algebra = datatype.Algebra,
+                    Definition = datatype.Definition,
+                    Modifiers = datatype.Modifiers
+                };
+            }
+            else if (member is Datum.Unresolved datum)
+            {
+                var resolved = definition.Find(datum.Reference);
+                if (resolved.Count is 0)
+                {
+                    errors.Add(Error.CouldNotResolve(member, datum.Reference));
+                    continue;
+                }
+                definition.Members[name] = resolved[0];
+            }
+        }
+
+        foreach (var child in definition.Children.Values)
+        {
+            Resolve(child, errors);
+        }
+
+        foreach (var statement in definition.Statements)
+        {
+            if (statement is Function.Call call and { Function: Function.Unresolved function })
+            {
+                var resolved = definition.Find(function.Reference);
+                if (resolved.Count is 0)
+                {
+                    errors.Add(Error.CouldNotResolve(function, function.Reference));
+                    continue;
+                }
+                call.Function = new Function.Overloaded
+                {
+                    Overloads = resolved,
+                    Definition = function.Definition,
+                    Modifiers = function.Modifiers,
+                    Returns = function.Returns
+                };
+            }
+        }
     }
 
     private static void Define(Definition definition, Statement statement, List<Error> errors)
@@ -132,4 +205,6 @@ internal static class Analyzer
 
         definition.Add(declaration.Identifier, datum, errors);
     }
+
+    
 }

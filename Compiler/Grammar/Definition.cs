@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Ronin.Grammar;
@@ -144,17 +143,35 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
 
     private void Find(ReadOnlySpan<Reference.Component> name, List<Member> found)
     {
-        /*if (name.Length is 1)
+        if (name.Length is 1)
         {
-            if (Members.TryGetValue(name[0], out var member))
+            var member = GetMember(name[0]);
+            if (member is not null)
             {
                 found.Add(member);
             }
+            return;
         }
-        else if (Children.TryGetValue(name[0], out var child))
+        
+        GetChild(name[0])?.Find(name[1..], found);
+    }
+
+    private Member GetMember(Reference.Component name)
+    {
+        foreach (var entry in Members)
         {
-            child.Find(name[1..], found);
-        }*/
+            if (entry.Key.Equals(name)) return entry.Value;
+        }
+        return null;
+    }
+
+    private Definition GetChild(Reference.Component name)
+    {
+        foreach (var entry in Children)
+        {
+            if (entry.Key.Equals(name)) return entry.Value;
+        }
+        return null;
     }
 
     public class Member

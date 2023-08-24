@@ -1,4 +1,5 @@
 ﻿using Ronin.Grammar;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 
 namespace Ronin.Compiler;
@@ -12,6 +13,8 @@ internal class Error
         public const string ScopeIsAlreadyPartOfModule = "scope is already a part of a module";
         public const string Redefinition = "redefinition";
         public const string UnknownSyntax = "unknown syntax";
+        public const string CouldNotResolve = "could not resolve";
+        public const string UnresolvedImport = "unresolved import";
     }
 
     public Dictionary<string, object> Data { get; } = new();
@@ -54,6 +57,20 @@ internal class Error
     {
         Error error = new(Message.UnknownSyntax) { Tokens = unknown.Source };
         error.IsAbout(unknown);
+        return error;
+    }
+
+    public static Error CouldNotResolve(Definition.Member member, Reference reference)
+    {
+        Error error = new(Message.CouldNotResolve) { Tokens = reference.Source };
+        error.IsAbout(member);
+        return error;
+    }
+
+    public static Error UnresolvedImport(Import import)
+    {
+        Error error = new(Message.UnresolvedImport) { Tokens = import.Source };
+        error.IsAbout(import);
         return error;
     }
 }
