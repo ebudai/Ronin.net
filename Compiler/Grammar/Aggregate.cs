@@ -18,26 +18,26 @@ internal abstract class Aggregate<T> : AnonymousValue
 /// </typeparam>
 /// 
 /// <typeparam name="TOpen">
-///     <see cref="Symbol"/> used to denote the start of the grouping - must be subclass of <see cref="Open"/>
+///     <see cref="Symbol"/> used to denote the start of the grouping - must be subclass of <see cref="Punctuation"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TElement">
-///     class to be grouped - must be implementation of <see cref="IParsableSyntax{TElement}"/>
+///     class to be grouped - must be implementation of <see cref="IParsableSyntax{TElement}"/> and subclass of <see cref="Syntax"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TSeparator">
-///     <see cref="Symbol"/> used to separate each <typeparamref name="TElement"/>
+///     <see cref="Symbol"/> used to separate each <typeparamref name="TElement"/> - must be subclass of <see cref="Punctuation"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TClose">
-///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Close"/>
+///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Punctuation"/>
 /// </typeparam>
 internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Aggregate<TElement>, IParsableSyntax<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
-    where TOpen : Symbol
+    where TOpen : Punctuation
     where TElement : Syntax, IParsableSyntax<TElement>
-    where TSeparator : Symbol
-    where TClose : Symbol
+    where TSeparator : Punctuation
+    where TClose : Punctuation
 {
     public new static T Parse(ref Parser current)
     {
