@@ -8,12 +8,12 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function.Declaration"/>, <see cref="Datatype.Declaration"/> or <see cref="Value"/>
 /// </summary>
-internal class Reference : Statement, IParsableSyntax<Reference>
+internal class Reference : Syntax, IParsableSyntax<Reference>
 {
     public List<Component> Components { get; init; }
     public Indexer Indexer { get; init; }
 
-    public new static Reference Parse(ref Parser current)
+    public static Reference Parse(ref Parser current)
     {
         Parser parser = current;
 

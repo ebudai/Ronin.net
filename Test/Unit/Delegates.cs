@@ -4,6 +4,7 @@ using Ronin.Lexicon;
 using Test;
 
 using Delegate = Ronin.Grammar.Delegate;
+using Function = Ronin.Grammar.Function;
 
 namespace Unit;
 
@@ -35,13 +36,14 @@ public class Delegates : ParsingTests
         Assert.Equal(1, datum?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition?.Values);
-        var line = @delegate.Definition?.Values[0] as Reference;
-        Assert.Equal(2, line.Components?.Count);
+        var line = @delegate.Definition?.Values[0] as Function.Call;
+        var unresolved = line?.Function as Function.Unresolved;
+        Assert.Equal(2, unresolved.Reference.Components?.Count);
 
-        Name name = line.Components[0];
+        Name name = unresolved.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
-        AnonymousValue scalar = line.Components[1];
+        AnonymousValue scalar = unresolved.Reference.Components[1];
         Assert.Equal(1, scalar?.Source.Length);        
     }
 
@@ -74,16 +76,17 @@ public class Delegates : ParsingTests
         Assert.Equal(1, datum?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition?.Values);
-        var line = @delegate.Definition?.Values[0] as Reference;
-        Assert.Equal(2, line.Components?.Count);
+        var line = @delegate.Definition?.Values[0] as Function.Call;
+        var unresolved = line?.Function as Function.Unresolved;
+        Assert.Equal(2, unresolved.Reference.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Name name = unresolved.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            AnonymousValue scalar = line.Components[1];
+            AnonymousValue scalar = unresolved.Reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -121,16 +124,17 @@ public class Delegates : ParsingTests
         Assert.Equal(1, @delegate.Data[2]?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition?.Values);
-        var line = @delegate.Definition?.Values[0] as Reference;
-        Assert.Equal(2, line.Components?.Count);
+        var line = @delegate.Definition?.Values[0] as Function.Call;
+        var unresolved = line?.Function as Function.Unresolved;
+        Assert.Equal(2, unresolved.Reference.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Name name = unresolved.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            AnonymousValue scalar = line.Components[1];
+            AnonymousValue scalar = unresolved.Reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -159,16 +163,17 @@ public class Delegates : ParsingTests
         Assert.Empty(@delegate?.Data);
 
         Assert.Single(@delegate?.Definition?.Values);
-        var line = @delegate.Definition?.Values[0] as Reference;
-        Assert.Equal(2, line.Components?.Count);
+        var line = @delegate.Definition?.Values[0] as Function.Call;
+        var unresolved = line?.Function as Function.Unresolved;
+        Assert.Equal(2, unresolved.Reference.Components?.Count);
 
         {
-            Name name = line.Components[0];
+            Name name = unresolved.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            AnonymousValue scalar = line.Components[1];
+            AnonymousValue scalar = unresolved.Reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }

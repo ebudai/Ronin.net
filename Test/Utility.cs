@@ -1,6 +1,7 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
+using Function = Ronin.Grammar.Function;
 
 namespace Test;
 
@@ -359,4 +360,25 @@ public class AnalysisTests : ParsingTests
     }
 
     internal static Reference Reference(params Reference.Component[] components) => new() { Components = components.ToList() };
+
+    internal static Function.Call FunctionCall(params string[] words)
+    {
+        List<Reference.Component> components = new();
+        foreach (var word in words)
+        {
+            Word token = new();
+            token.SetMemory(word);
+            Name name = new() { Source = new[] { token } };
+            components.Add(name);
+        }
+        return FunctionCall(components.ToArray());
+    }
+
+    internal static Function.Call FunctionCall(params Reference.Component[] components) => new() 
+    {
+        Function = new Function.Unresolved 
+        { 
+            Reference = new() { Components = components.ToList() } 
+        } 
+    };
 }

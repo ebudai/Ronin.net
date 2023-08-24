@@ -15,7 +15,7 @@ internal class Statement : Syntax, IParsableSyntax<Statement>
         ?? Function.Declaration.Parse(ref current)
         ?? Datatype.Declaration.Parse(ref current)
         ?? Assignment.Parse(ref current)
-        ?? Reference.Parse(ref current)
+        ?? Function.Call.Parse(ref current)
         ?? AnonymousValue.Parse(ref current)        
         ?? Datum.Declaration.Parse(ref current)
         ?? Scope.Parse(ref current)

@@ -14,11 +14,7 @@ public class Functions : ParsingTests
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        /*
-         *      
-         *      function test(x => number) { return 7; }
-         *      
-         */
+        // function test(x => number) { return 7; }
 
         List<Token> tokens = new()
         {
@@ -55,14 +51,14 @@ public class Functions : ParsingTests
         Assert.Equal(1, type?.Source.Length);
         
         Assert.Single(function.Definition?.Values);
-        var line = function.Definition.Values[0] as Reference;
-            
-        Assert.Equal(2, line?.Components?.Count);
+        var line = function.Definition.Values[0] as Function.Call;
+        var unresolved = line?.Function as Function.Unresolved;
+        Assert.Equal(2, unresolved?.Reference.Components.Count);
 
-        Name @return = line.Components[0];
+        Name @return = unresolved.Reference.Components[0];
         Assert.Equal(1, @return?.Source.Length);
 
-        AnonymousValue scalar = line.Components[1];
+        AnonymousValue scalar = unresolved.Reference.Components[1];
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -113,9 +109,10 @@ public class Functions : ParsingTests
         Assert.Equal(1, returns?.Source.Length);
 
         Assert.Single(function.Definition?.Values);
-        var line = function.Definition.Values[0] as Reference;
-        Assert.Single(line?.Components);
-        Name @return = line.Components[0];
+        var line = function.Definition.Values[0] as Function.Call;
+        var unresolved = line?.Function as Function.Unresolved;
+        Assert.Single(unresolved?.Reference.Components);
+        Name @return = unresolved.Reference.Components[0];
         Assert.Equal(4, @return?.Source.Length);
     }
 
@@ -133,7 +130,7 @@ public class Functions : ParsingTests
             const string cash = nameof(cash);
             const string money = nameof(money);
 
-            // function run home(cash => money) => whole number { return 72; }
+            // function run home (cash => money) => whole number { return 72; }
 
             Definition module = new()
             {
@@ -168,7 +165,7 @@ public class Functions : ParsingTests
                         {
                             Values = new List<Statement>
                             {
-                                Reference(@return),
+                                FunctionCall(@return),
                                 new Inline { Source = new[] { Number(72) } }
                             }
                         }

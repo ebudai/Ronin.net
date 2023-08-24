@@ -184,7 +184,7 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                Reference(@return), 
+                                                FunctionCall(@return), 
                                                 new Inline { Source = new Token[] { Number(24) } }
                                             }
                                         }
@@ -217,7 +217,7 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                Reference(@return),
+                                                FunctionCall(@return),
                                                 new Inline { Source = new Token[] { Number(8.2) } }
                                             }
                                         }
@@ -263,7 +263,7 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                Reference(@return), 
+                                                FunctionCall(@return), 
                                                 new Inline { Source = new[] { Number(72) } }
                                             }
                                         }
@@ -296,7 +296,7 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                Reference(@return),
+                                                FunctionCall(@return),
                                                 new Inline { Source = new Token[] { Number(12) } }
                                             }
                                         }
