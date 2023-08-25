@@ -184,8 +184,7 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                FunctionCall(@return), 
-                                                new Inline { Source = new Token[] { Number(24) } }
+                                                FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(24) } })
                                             }
                                         }
                                     },
@@ -217,8 +216,7 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                FunctionCall(@return),
-                                                new Inline { Source = new Token[] { Number(8.2) } }
+                                                FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(8.2) } })
                                             }
                                         }
                                     }
@@ -263,8 +261,7 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                FunctionCall(@return), 
-                                                new Inline { Source = new[] { Number(72) } }
+                                                FunctionCall(Name(@return),  new Inline { Source = new[] { Number(72) } })
                                             }
                                         }
                                     },
@@ -296,8 +293,7 @@ public class Exports : ParsingTests
                                         {
                                             Values = new List<Statement>
                                             {
-                                                FunctionCall(@return),
-                                                new Inline { Source = new Token[] { Number(12) } }
+                                                FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(12) } })
                                             }
                                         }
                                     }
