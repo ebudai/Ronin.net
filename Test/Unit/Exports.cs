@@ -177,7 +177,8 @@ public class Exports : ParsingTests
                                                     },
                                                     Source = new Token[] { StartValues(), Word(horse), Returns(), Word(number), EndValues() }
                                                 }
-                                            }
+                                            },
+                                            Source = new Token[] { Word(correct), Word(horse), Word(battery), StartValues(), Word(horse), Returns(), Word(number), EndValues() }
                                         },
                                         Returns = Reference(whole, number),
                                         Definition = new()
@@ -203,13 +204,14 @@ public class Exports : ParsingTests
                                                             Datatype = Reference(new Name { Source = new[] { Word(Bag) } }, new Inline { Source = new Token[] { StartValues(), Number(15), EndValues() } } ),
                                                             Mutability = new Constant(),
                                                             Identifier = Words(correct),
-                                                            Source = new Token[] { Word(correct), Returns(), Word(number) }
+                                                            Source = new Token[] { StartValues(), Word(correct), Returns(), Word(number), EndValues() }
                                                         }
                                                     }
                                                 },
                                                 Name(horse),
                                                 Name(battery)
-                                            }
+                                            },
+                                            Source = new Token[] { StartValues(), Word(correct), Returns(), Word(Bag), StartValues(), Number(15), EndValues(), EndValues(), Word(horse), Word(battery) }
                                         },
                                         Returns = Reference(number),
                                         Definition = new()
@@ -254,14 +256,15 @@ public class Exports : ParsingTests
                                                     },
                                                     Source = new Token[] { StartValues(), Word(horse), Returns(), Word(money), EndValues() }
                                                 }
-                                            }
+                                            },
+                                            Source = new Token[] { Word(correct), Word(horse), Word(battery), StartValues(), Word(horse), Returns(), Word(money), EndValues() }
                                         },
                                         Returns = Reference(whole, number),
                                         Definition = new()
                                         {
                                             Values = new List<Statement>
                                             {
-                                                FunctionCall(Name(@return),  new Inline { Source = new[] { Number(72) } })
+                                                FunctionCall(Name(@return), new Inline { Source = new[] { Number(72) } })
                                             }
                                         }
                                     },
@@ -280,13 +283,14 @@ public class Exports : ParsingTests
                                                             Datatype = Reference(money),
                                                             Mutability = new Constant(),
                                                             Identifier = Words(correct),
-                                                            Source = new Token[] { Word(correct), Returns(), Word(money) }
+                                                            Source = new Token[] { StartValues(), Word(correct), Returns(), Word(money), EndValues() }
                                                         }
                                                     }
                                                 },
                                                 Name(horse),
                                                 Name(battery)
-                                            }
+                                            },
+                                            Source = new Token[] { StartValues(), Word(correct), Returns(), Word(money), EndValues(), Word(horse), Word(battery) }
                                         },
                                         Returns = Reference(number),
                                         Definition = new()
