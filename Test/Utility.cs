@@ -305,16 +305,24 @@ public class ParsingTests
 
 public class AnalysisTests : ParsingTests
 {
-    internal static Identifier Identifier(string name)
+    internal static Identifier Identifier(params string[] names)
     {
-        Word word = new();
-        word.SetMemory(name);
-        Identifier words = new() { Source = new[] { word } };
-        return new Identifier()
+        List<Word> words = new();
+        foreach (var name in names)
         {
-            Components = new() { new Identifier.Component { value = words } }
+            Word word = new();
+            word.SetMemory(name);
+            words.Add(word);
+        }
+        
+        return new Identifier
+        { 
+            Components = names.Select(name => new Identifier.Component { value = Name(name) }).ToList(),
+            Source = words.ToArray() 
         };
     }
+
+    internal static Identifier Identifier(params Identifier.Component[] components) => new() { Components = components.ToList() };
 
     internal static Name Name(string name)
     {
