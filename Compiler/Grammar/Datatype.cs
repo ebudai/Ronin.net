@@ -67,8 +67,8 @@ internal class Datatype : Definition.Member
 
 internal class Algebra
 {
-    [ExcludeFromCodeCoverage] public List<Datatype> Bases { get; } = new();
-    [ExcludeFromCodeCoverage] public List<Datatype> Unions { get; } = new();
+    public List<Datatype> Bases { get; } = new();
+    public List<Datatype> Unions { get; } = new();
 
     public class Unresolved : Algebra
     {

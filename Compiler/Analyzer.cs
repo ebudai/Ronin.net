@@ -205,6 +205,4 @@ internal static class Analyzer
 
         definition.Add(declaration.Identifier, datum, errors);
     }
-
-    
 }

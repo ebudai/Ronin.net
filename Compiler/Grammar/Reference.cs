@@ -37,7 +37,6 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
         return null;
     }
 
-    [ExcludeFromCodeCoverage]
     public override bool Equals(object obj)
     {
         if (obj is not Reference reference) return false;
