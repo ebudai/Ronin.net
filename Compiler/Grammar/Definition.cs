@@ -145,33 +145,35 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
     {
         if (name.Length is 1)
         {
-            var member = GetMember(name[0]);
-            if (member is not null)
-            {
-                found.Add(member);
-            }
+            var members = GetMembers(name[0]);
+            found.AddRange(members);
             return;
         }
         
-        GetChild(name[0])?.Find(name[1..], found);
+        foreach (var child in GetChildren(name[0]))
+        {
+            child.Find(name[1..], found);
+        }
     }
 
-    private Member GetMember(Reference.Component name)
+    private List<Member> GetMembers(Reference.Component name)
     {
+        List<Member> members = new(Members.Count);
         foreach (var entry in Members)
         {
-            if (entry.Key.Equals(name)) return entry.Value;
+            if (entry.Key.Equals(name)) members.Add(entry.Value);
         }
-        return null;
+        return members;
     }
 
-    private Definition GetChild(Reference.Component name)
+    private List<Definition> GetChildren(Reference.Component name)
     {
+        List<Definition> children = new(Children.Count);
         foreach (var entry in Children)
         {
-            if (entry.Key.Equals(name)) return entry.Value;
+            if (entry.Key.Equals(name)) children.Add(entry.Value);
         }
-        return null;
+        return children;
     }
 
     public class Member

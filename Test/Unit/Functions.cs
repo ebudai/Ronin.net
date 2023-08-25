@@ -198,4 +198,43 @@ public class Functions : ParsingTests
             Assert.IsType<Datatype.Unresolved>(function.Returns);
         }
     }
+
+    [Trait(nameof(Analyzer), nameof(Resolution))]
+    public class Resolution : AnalysisTests
+    {
+        [Fact(DisplayName = "overloaded")]
+        public void Overloaded()
+        {
+            const string test = nameof(test);
+            const string x = nameof(x);
+
+            // function test(x => number) { }
+            // function test(x => money) { }
+
+            List<Error> errors = new();
+
+            {
+                Parameters param = new();
+                Identifier id = Identifier(x);
+                param.Data.Add(id, new Datum { Datatype = new() });
+                Global.Scope.Add(Identifier(Name(test), param), new Function(), errors);
+            }
+
+            {
+                Parameters param = new();
+                Identifier id = Identifier(x);
+                param.Data.Add(id, new Datum { Datatype = new() });
+                Global.Scope.Add(Identifier(Name(test), param), new Function(), errors);
+            }
+
+            Analyzer.Resolve(Global.Scope, errors);
+
+            Reference.Component parameter = new() { value = new Inline { Source = new[]{ Number(3) } }, Source = new[] { Number(3) } };
+            var reference = Reference(Name(test), parameter);
+
+            var found = Global.Scope.Find(reference);
+
+            Assert.Equal(2, found.Count);
+        }
+    }
 }

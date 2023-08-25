@@ -34,7 +34,7 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
         };
     }
 
-    public override bool Equals(object obj) => (obj as CompositeSyntax<T, T0, T1>)?.value.Equals(value) ?? false;
+    public override bool Equals(object obj) => value?.Equals(obj) ?? false;
 
     public override int GetHashCode() => value.GetHashCode();
 

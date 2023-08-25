@@ -19,7 +19,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration, Separator, EndValues>
 {
-    [ExcludeFromCodeCoverage] public Datum[] Data { get; set; }
+    public Dictionary<Identifier, Datum> Data { get; } = new();
 
     public override bool Equals(object obj) => (obj as Parameters)?.Values.SequenceEqual(Values) ?? false;
 

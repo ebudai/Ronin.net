@@ -29,7 +29,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 
     public class Component : CompositeSyntax<Component, Name, Parameters>
     {
-        /*public override bool Equals(object obj)
+        public override bool Equals(object obj)
         {
             if (obj is Component component)
             {
@@ -38,17 +38,13 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 
             if (obj is not Reference.Component reference) return false;
             
-            if (value is Name)
-            {
-                Name name = reference;
-                return name?.Equals(value) ?? false;
-            }
+            if (value is Name) return reference?.Equals(value) ?? false;
 
             var parameters = value as Parameters;
             var mandatory = 0;
-            foreach (var parameter in parameters.Values)
+            foreach (var parameter in parameters.Data.Values)
             {
-                if (parameter.Modifiers.Is<Optional>()) continue;
+                if (parameter.Modifiers?.Is<Optional>() ?? false) continue;
                 if (parameter.Initializer is not null) continue;
                 ++mandatory;
             }
@@ -56,10 +52,10 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
             AnonymousValue anonymous = reference;
             if (anonymous is null) return false;
             var inputcount = anonymous is Inputs inputs ? inputs.Values.Count : 1;
-            return inputcount >= mandatory && inputcount <= parameters.Values.Count;
+            return inputcount >= mandatory && inputcount <= parameters.Data.Count;
         }
 
-        public override int GetHashCode() => base.GetHashCode();*/
+        public override int GetHashCode() => base.GetHashCode();
 
         public static implicit operator Component(Name name) => new() { value = name };
         public static implicit operator Component(Parameters parameters) => new() { value = parameters };
