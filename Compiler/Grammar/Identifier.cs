@@ -38,7 +38,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 
             if (obj is not Reference.Component reference) return false;
             
-            if (value is Name) return reference?.Equals(value) ?? false;
+            if (value is Name) return reference.Equals(value);
 
             var parameters = value as Parameters;
             var mandatory = 0;
@@ -57,7 +57,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
 
         public override int GetHashCode() => base.GetHashCode();
 
-        public static implicit operator Component(Name name) => new() { value = name };
-        public static implicit operator Component(Parameters parameters) => new() { value = parameters };
+        public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
+        public static implicit operator Component(Parameters parameters) => new() { value = parameters, Source = parameters.Source };
     }
 }
