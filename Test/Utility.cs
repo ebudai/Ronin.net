@@ -322,7 +322,15 @@ public class AnalysisTests : ParsingTests
         };
     }
 
-    internal static Identifier Identifier(params Identifier.Component[] components) => new() { Components = components.ToList() };
+    internal static Identifier Identifier(params Identifier.Component[] components)
+    {
+        List<Token> tokens = new();
+        foreach (var component in components)
+        {
+            foreach (var token in component.Source.Span) tokens.Add(token);
+        }
+        return new() { Components = components.ToList(), Source = tokens.ToArray() };
+    }
 
     internal static Name Name(string name)
     {

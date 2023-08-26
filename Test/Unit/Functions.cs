@@ -210,6 +210,7 @@ public class Functions : ParsingTests
 
             // function test(x => number) { }
             // function test(x => money) { }
+            // test 3;
 
             List<Error> errors = new();
 
@@ -227,14 +228,16 @@ public class Functions : ParsingTests
                 Global.Scope.Add(Identifier(Name(test), param), new Function(), errors);
             }
 
-            Analyzer.Resolve(Global.Scope, errors);
-
-            Reference.Component parameter = new() { value = new Inline { Source = new[]{ Number(3) } }, Source = new[] { Number(3) } };
+            Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
             var reference = Reference(Name(test), parameter);
 
-            var found = Global.Scope.Find(reference);
+            Function.Call call = new() { Function = new Function.Unresolved { Reference = reference } };
+            Global.Scope.Statements.Add(call);
 
-            Assert.Equal(2, found.Count);
+            Analyzer.Resolve(Global.Scope, errors);
+
+            var overloaded = call.Function as Function.Overloaded;
+            Assert.Equal(2, overloaded?.Overloads.Count);
         }
     }
 }

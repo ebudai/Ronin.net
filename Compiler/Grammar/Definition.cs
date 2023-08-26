@@ -39,7 +39,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
 
         Identifier existing = new();
         FindExisting(name, existing);
-        if (existing.Components.Count is not 0)
+        if (existing.Components.Count == identifier.Components.Count)
         {
             errors.Add(Error.Redefinition(member, existing));
             return;
