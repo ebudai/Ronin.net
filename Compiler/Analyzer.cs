@@ -1,4 +1,6 @@
 ﻿using Ronin.Grammar;
+using static Ronin.Grammar.Definition;
+using System.Xml.Linq;
 
 namespace Ronin.Compiler;
 
@@ -47,7 +49,7 @@ internal static class Analyzer
     {
         for (int i = 0, max = definition.Imports.Count; i != max; ++i)
         {
-            if (definition.Imports[i] is not Definition.Unresolved unresolved) continue;
+            if (definition.Imports[i] is not Unresolved unresolved) continue;
 
             var module = Global.Scope.GetModule(unresolved.Import.Name);
             if (module is null)
@@ -62,36 +64,35 @@ internal static class Analyzer
         {
             if (member is Datatype.Unresolved datatype)
             {
-                var resolved = definition.Find(datatype.Reference);
-                if (resolved.Count is 0)
-                {
-                    errors.Add(Error.CouldNotResolve(member, datatype.Reference));
-                    continue;
-                }
-
-                if (datatype.Algebra is Algebra.Unresolved unresolved)
-                {
-                    var algebra = definition.Find(unresolved.Reference);
-                    datatype.Algebra = new Algebra.Overloaded { Overloads = algebra };
-                }
-
+                var overloads = GetOverloads(definition, member, datatype, errors);
                 definition.Members[name] = new Datatype.Overloaded
                 {
-                    Overloads = resolved,
+                    Overloads = overloads,
                     Algebra = datatype.Algebra,
                     Definition = datatype.Definition,
                     Modifiers = datatype.Modifiers
                 };
             }
-            else if (member is Datum.Unresolved datum)
+            else if (member is Datum.Unresolved unresolved)
             {
-                var resolved = definition.Find(datum.Reference);
+                var resolved = definition.Find(unresolved.Reference);
                 if (resolved.Count is 0)
                 {
-                    errors.Add(Error.CouldNotResolve(member, datum.Reference));
+                    errors.Add(Error.CouldNotResolve(member, unresolved.Reference));
                     continue;
                 }
                 definition.Members[name] = resolved[0];
+            }
+            else if (member is Datum datum and { Datatype: Datatype.Unresolved unresolvedDatatype })
+            {
+                var overloads = GetOverloads(definition, datum, unresolvedDatatype, errors);
+                datum.Datatype = new Datatype.Overloaded
+                {
+                    Overloads = overloads,
+                    Algebra = unresolvedDatatype.Algebra,
+                    Definition = unresolvedDatatype.Definition,
+                    Modifiers = unresolvedDatatype.Modifiers
+                };
             }
         }
 
@@ -119,6 +120,24 @@ internal static class Analyzer
                 };
             }
         }
+    }
+
+    private static List<Member> GetOverloads(Definition definition, Member member, Datatype.Unresolved datatype, List<Error> errors)
+    {
+        var overloads = definition.Find(datatype.Reference);
+        if (overloads.Count is 0)
+        {
+            errors.Add(Error.CouldNotResolve(member, datatype.Reference));
+            return overloads;
+        }
+
+        if (datatype.Algebra is Algebra.Unresolved unresolved)
+        {
+            var algebra = definition.Find(unresolved.Reference);
+            datatype.Algebra = new Algebra.Overloaded { Overloads = algebra };
+        }
+
+        return overloads;
     }
 
     private static void Define(Definition definition, Statement statement, List<Error> errors)

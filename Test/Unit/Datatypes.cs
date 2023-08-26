@@ -163,4 +163,53 @@ public class Datatypes : ParsingTests
             Assert.Equal(number, unresolvedname.Source.Span[0].Memory.ToArray());
         }
     }
+
+    [Trait(nameof(Analyzer), nameof(Resolution))]
+    public class Resolution : AnalysisTests
+    {
+        [Fact(DisplayName = "overloaded")]
+        public void Overloaded()
+        {
+            const string Car = nameof(Car);
+            const string car = nameof(car);
+            const string x = nameof(x);
+
+            // datatype Car(x => number) { }
+            // datatype Car(x => money) { }
+            // var car => Car(3);
+
+            List<Error> errors = new();
+
+            {
+                Parameters param = new();
+                Identifier id = Identifier(x);
+                param.Data.Add(id, new Datum { Datatype = new() });
+                Global.Scope.Add(Identifier(Name(Car), param), new Datatype(), errors);
+            }
+
+            {
+                Parameters param = new();
+                Identifier id = Identifier(x);
+                param.Data.Add(id, new Datum { Datatype = new() });
+                Global.Scope.Add(Identifier(Name(Car), param), new Datatype(), errors);
+            }
+
+            Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
+            var datatype = Reference(Name(Car), parameter);
+
+            Datum datum = new() 
+            {
+                Datatype = new Datatype.Unresolved { Reference = datatype } 
+            };
+
+            Global.Scope.Add(Identifier(car), datum, errors);
+            Assert.Empty(errors);
+
+            Analyzer.Resolve(Global.Scope, errors);
+            Assert.Empty(errors);
+
+            var overloaded = datum.Datatype as Datatype.Overloaded;
+            Assert.Equal(2, overloaded?.Overloads.Count);
+        }
+    }
 }

@@ -22,7 +22,7 @@ namespace Ronin.Grammar;
 internal class Datum : Definition.Member
 {
     public Keyword Mutability { get; init; }
-    public Datatype Datatype { get; init; }
+    public Datatype Datatype { get; set; }
     public Value Initializer { get; init; }
 
     public class Declaration : Statement, IParsableSyntax<Declaration>
@@ -33,7 +33,7 @@ internal class Datum : Definition.Member
         public Reference Datatype { get; init; }
         public Value Initializer { get; init; }
 
-        public override bool Equals(object obj) => (obj as Declaration)?.Datatype.Equals(Datatype) ?? false;
+        public override bool Equals(object obj) => Datatype?.Equals(obj) ?? false;
 
         public override int GetHashCode() => Datatype.GetHashCode();
 

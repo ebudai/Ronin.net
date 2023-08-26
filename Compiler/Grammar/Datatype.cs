@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -35,11 +34,7 @@ internal class Datatype : Definition.Member
             if (Identifier.Parse(ref parser) is not Identifier name) return null;
 
             Reference algebra = null;
-            if (parser.Token is Assign)
-            {
-                parser.Advance();
-                algebra = Reference.Parse(ref parser);
-            }
+            if (parser.TryAdvance<Assign>()) algebra = Reference.Parse(ref parser);
 
             var definition = Definition.Parse(ref parser);
 
