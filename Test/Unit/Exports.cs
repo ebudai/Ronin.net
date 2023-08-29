@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -109,7 +110,11 @@ public class Exports : ParsingTests
             Assert.Empty(errors);
 
             Assert.Single(Global.Scope.Children);
-            Assert.Equal(module.Definition, Global.Scope.Children.First().Value);
+            var child = Global.Scope.Children.First().Value;
+            Assert.Single(child.Children);
+            child = child.Children.First().Value;
+            Assert.Single(child.Children);
+            Assert.Equal(module.Definition, child.Children.First().Value);
         }
 
         [Fact(DisplayName = "join existing")]
@@ -140,7 +145,7 @@ public class Exports : ParsingTests
             //      function (correct => Bag(15)) horse battery => number { return 12; }
             // }
 
-            AnonymousScope module = new()
+            AnonymousScope scope = new()
             {
                 Definition = new()
                 {
@@ -310,11 +315,16 @@ public class Exports : ParsingTests
 
             Global.Scope.Children.Clear();
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Scope, scope, errors);
             Assert.Empty(errors);
 
             Assert.Single(Global.Scope.Children);
-            Assert.Equal(module.Definition, Global.Scope.Children.First().Value);
+            var child = Global.Scope.Children.First().Value;
+            Assert.Single(child.Children);
+            child = child.Children.First().Value;
+            Assert.Single(child.Children);
+            var module = child.Children.First().Value as Module;
+            Assert.Equal(2, module.Contexts.Count);
         }
     }
 }

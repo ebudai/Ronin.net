@@ -1,22 +1,25 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
 namespace Unit;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class AnonymousScopes : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
+        const string @return = nameof(@return);
+
         // { return 2; }
 
         List<Token> tokens = new()
         {
             StartScope(),
-            Word("return"),
+            Word(@return),
             Number(2),
             Terminal(),
             EndScope(),
@@ -62,7 +65,7 @@ public class AnonymousScopes : ParsingTests
 
             // { var x = 3; }
 
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {
@@ -88,8 +91,8 @@ public class AnonymousScopes : ParsingTests
             Analyzer.Define(Global.Scope, module, errors);
             Assert.Empty(errors);
 
-            Assert.Single(module.Statements);
-            var scope = module.Statements[0] as AnonymousScope;
+            Assert.Single(module);
+            var scope = module.Values[0] as AnonymousScope;
             Assert.NotNull(scope);
             Assert.Single(scope.Definition.Members);
             var datum = scope.Definition.Members.First().Value;
@@ -103,7 +106,7 @@ public class AnonymousScopes : ParsingTests
 
             // { { var x = 3; } }
 
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {
@@ -138,11 +141,11 @@ public class AnonymousScopes : ParsingTests
             Analyzer.Define(Global.Scope, module, errors);
             Assert.Empty(errors);
 
-            Assert.Single(module.Statements);
-            var scope = module.Statements[0] as AnonymousScope;
+            Assert.Single(module);
+            var scope = module.Values[0] as AnonymousScope;
             Assert.NotNull(scope);
-            Assert.Single(scope.Definition.Statements);
-            var inner = scope.Definition.Statements[0] as AnonymousScope;
+            Assert.Single(scope.Definition);
+            var inner = scope.Definition.Values[0] as AnonymousScope;
             Assert.NotNull(inner);
             Assert.Single(inner.Definition.Members);
             var datum = inner.Definition.Members.First().Value;
