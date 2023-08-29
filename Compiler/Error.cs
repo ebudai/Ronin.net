@@ -1,4 +1,5 @@
 ﻿using Ronin.Grammar;
+using Ronin.Hierarchy;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 
@@ -25,28 +26,28 @@ internal class Error
 
     public void IsAbout(object data, [CallerArgumentExpression(nameof(data))] string name = "") => Data.Add(name, data);
 
-    public static Error ScopeMustBeAnonymous(Definition scope, Export export)
+    public static Error ScopeMustBeAnonymous(Context scope, Export export)
     {
         Error error = new(Message.ScopeMustBeAnonymous) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
-    public static Error ScopeMustBeUnmodified(Definition scope, Export export)
+    public static Error ScopeMustBeUnmodified(Context scope, Export export)
     {
         Error error = new(Message.ScopeMustBeUnmodified) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
-    public static Error ScopeIsAlreadyPartOfAModule(Definition scope, Export export)
+    public static Error ScopeIsAlreadyPartOfAModule(Context scope, Export export)
     {
         Error error = new(Message.ScopeIsAlreadyPartOfModule) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
-    public static Error Redefinition(Definition.Member member, Identifier identifier)
+    public static Error Redefinition(Identifier identifier, Context.Member member)
     {
         Error error = new(Message.Redefinition) { Tokens = identifier.Source };
         error.IsAbout(member);
@@ -60,7 +61,7 @@ internal class Error
         return error;
     }
 
-    public static Error CouldNotResolve(Definition.Member member, Reference reference)
+    public static Error CouldNotResolve<T>(T member, Reference reference) where T : Syntax
     {
         Error error = new(Message.CouldNotResolve) { Tokens = reference.Source };
         error.IsAbout(member);

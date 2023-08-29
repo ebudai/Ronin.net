@@ -21,7 +21,7 @@ internal class Program
             return;
         }
 
-        ConcurrentBag<Definition> scopes = new();
+        ConcurrentBag<Context> scopes = new();
         Parse(folder, scopes);
         //var main = Analyze(scopes);
         //bool isDebug = args.Length is > 1 && args[1] is debug;
@@ -39,7 +39,7 @@ internal class Program
         return null;
     }*/
 
-    private static void Parse(DirectoryInfo folder, ConcurrentBag<Definition> scopes)
+    private static void Parse(DirectoryInfo folder, ConcurrentBag<Context> scopes)
     {
         var infos = folder.EnumerateFileSystemInfos();
         foreach (var info in infos)
@@ -55,7 +55,7 @@ internal class Program
         }
     }
 
-    private static Definition Parse(FileInfo file)
+    private static Context Parse(FileInfo file)
     {
         string sourcecode = File.ReadAllText(file.FullName);
         Lexer lexer = new(sourcecode);

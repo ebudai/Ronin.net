@@ -19,7 +19,7 @@ internal struct Parser
     
     public readonly bool IsNotFinished => Token is not Sentinel;
 
-    public Definition Parse()
+    public Context Parse()
     {
         List<Statement> statements = new();
 
@@ -30,7 +30,7 @@ internal struct Parser
             if (Token is Terminal) Advance();
         }
 
-        return new Definition { Values = statements, Source = tokens };
+        return new Context { Values = statements, Source = tokens };
     }
 
     public List<T> ParseRepeating<T>() where T : IParsableSyntax<T>
