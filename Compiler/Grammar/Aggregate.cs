@@ -2,15 +2,21 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Collections;
 
 namespace Ronin.Grammar;
 
-internal abstract class Aggregate<T> : AnonymousValue
+internal abstract class Aggregate<T> : AnonymousValue, IEnumerable<T>
 {
     protected internal List<T> Values = new();
+
+    public IEnumerator<T> GetEnumerator() => Values.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
 }
+
 /// <summary>
-///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Indexer"/>, <see cref="Parameters"/>, and <see cref="Definition"/>)
+///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Indexer"/>, <see cref="Parameters"/>, and <see cref="Context"/>)
 /// </summary>
 /// 
 /// <typeparam name="T">
