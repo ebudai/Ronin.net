@@ -32,8 +32,10 @@ internal static partial class Analyzer
                     datum.Datatype = Resolve(unresolved, definition, errors);
                 }
             }
-
-            var member = definition.Members[name];
+        }
+        
+        foreach (var (name, member) in definition.Members)
+        {
             if (member is Datatype.Unresolved datatype)
             {
                 definition.Members[name] = Resolve(datatype, definition, errors);
