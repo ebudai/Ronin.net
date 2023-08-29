@@ -21,7 +21,7 @@ internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration
 {
     public Dictionary<Identifier, Datum> Data { get; } = new();
 
-    public override bool Equals(object obj) => (obj as Parameters)?.Values.SequenceEqual(Values) ?? false;
+    public override bool Equals(object obj) => (obj as Parameters)?.SequenceEqual(this) ?? false;
 
     public override int GetHashCode() => Values.ToHashCode();
 }
