@@ -47,7 +47,7 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
 
     public class Component : CompositeSyntax<Component, Name, AnonymousValue> 
     {
-        public static implicit operator Component(Name name) => new() { value = name };
-        public static implicit operator Component(AnonymousValue value) => new() { value = value };
+        public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
+        public static implicit operator Component(AnonymousValue value) => new() { value = value, Source = value.Source };
     }
 }

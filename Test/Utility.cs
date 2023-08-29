@@ -375,7 +375,7 @@ public class AnalysisTests : ParsingTests
         return Reference(components.ToArray());
     }
 
-    internal static Reference Reference(params Reference.Component[] components) => new() { Components = components.ToList() };
+    internal static Reference Reference(params Reference.Component[] components) => new() { Components = components.ToList(), Source = components.SelectMany(component => component.value.Source.Span.ToArray()).ToList().AsMemory() };
 
     internal static Function.Call FunctionCall(params string[] words)
     {
