@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -33,7 +34,7 @@ public class Exports : ParsingTests
         [Fact(DisplayName = "function scope is part of a module")]
         public void FunctionScopeJoinsModule()
         {
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {
@@ -57,7 +58,7 @@ public class Exports : ParsingTests
         [Fact(DisplayName = "part of conditional scope")]
         public void PartOfConditionalScope()
         {
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {
@@ -81,7 +82,7 @@ public class Exports : ParsingTests
         [Fact(DisplayName = "part of modified scope")]
         public void PartOfModifiedScope()
         {
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {
@@ -105,7 +106,7 @@ public class Exports : ParsingTests
         [Fact(DisplayName = "part of twice")]
         public void PartOfTwice()
         {
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {

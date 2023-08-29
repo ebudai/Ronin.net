@@ -20,7 +20,7 @@ namespace Ronin.Grammar;
 internal class Delegate : AnonymousValue, IParsableSyntax<Delegate>
 {
     public List<Datum.Declaration> Data { get; init; }
-    public Definition Definition { get; init; }
+    public Context Definition { get; init; }
 
     public new static Delegate Parse(ref Parser current)
     {
@@ -41,7 +41,7 @@ internal class Delegate : AnonymousValue, IParsableSyntax<Delegate>
             if (parser.TryAdvance<Returns>() is false) return null;
         }
 
-        if (Definition.Parse(ref parser) is not Definition definition) return null;
+        if (Context.Parse(ref parser) is not Context definition) return null;
 
         return new Delegate
         {

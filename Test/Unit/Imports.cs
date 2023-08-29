@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -114,7 +115,7 @@ public class Imports : ParsingTests
             Assert.Empty(Global.Scope.Imports);
 
             var import = module.Definition.Imports.First();
-            Assert.IsType<Definition.Unresolved>(import);
+            Assert.IsType<Context.Unresolved>(import);
         }
     }
 }

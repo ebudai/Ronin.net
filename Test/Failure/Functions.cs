@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -36,7 +37,7 @@ public class Functions : ParsingTests
         {
             const string name = "best ever";
 
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {

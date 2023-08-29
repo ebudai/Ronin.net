@@ -19,7 +19,7 @@ namespace Ronin.Grammar;
 ///     function do stuff(x => number, y => date) { }
 ///                       ↑↑↑↑↑↑↑↑↑↑↑  ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Datum : Definition.Member
+internal class Datum : Context.Member
 {
     public Keyword Mutability { get; init; }
     public Datatype Datatype { get; set; }
@@ -54,7 +54,8 @@ internal class Datum : Definition.Member
                 datatype = Reference.Parse(ref parser);
             }
 
-            var initializer = parser.TryAdvance<Assign>() ? Value.Parse(ref parser) : null;
+            Value initializer = null;
+            if (parser.TryAdvance<Assign>()) initializer = Value.Parse(ref parser);
 
             return new Declaration
             {

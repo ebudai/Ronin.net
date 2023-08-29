@@ -1,14 +1,15 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Datatype : Definition.Member
+internal class Datatype : Context.Member
 {
     public Algebra Algebra { get; set; }
-    public Definition Definition { get; init; }
+    public Context Definition { get; init; }
 
     /// <summary>
     ///     Restricts a <see cref="Datum"/> to a particular shape of data
@@ -36,7 +37,7 @@ internal class Datatype : Definition.Member
             Reference algebra = null;
             if (parser.TryAdvance<Assign>()) algebra = Reference.Parse(ref parser);
 
-            var definition = Definition.Parse(ref parser);
+            var definition = Context.Parse(ref parser);
 
             return new Declaration
             {
@@ -56,11 +57,11 @@ internal class Datatype : Definition.Member
 
     public class Overloaded : Datatype
     {
-        public List<Definition.Member> Overloads { get; init; }
+        public List<Resolution> Overloads { get; init; }
     }
 }
 
-internal class Algebra
+internal class Algebra : Syntax
 {
     public List<Datatype> Bases { get; } = new();
     public List<Datatype> Unions { get; } = new();
@@ -72,6 +73,6 @@ internal class Algebra
 
     public class Overloaded : Algebra
     {
-        public List<Definition.Member> Overloads { get; init; }
+        public List<Resolution> Overloads { get; init; }
     }
 }

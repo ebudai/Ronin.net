@@ -6,7 +6,7 @@ namespace Ronin.Grammar;
 internal class Scope : Statement, IParsableSyntax<Scope>
 {
     public Modifiers Modifiers { get; init; } = new();
-    public Definition Definition { get; set; }
+    public Context Definition { get; set; }
 
     public static new Scope Parse(ref Parser current)
         => AnonymousScope.Parse(ref current)
@@ -23,7 +23,7 @@ internal class AnonymousScope : Scope, IParsableSyntax<AnonymousScope>
 
         var modifiers = Modifiers.Parse(ref parser);
 
-        if (Definition.Parse(ref parser) is not Definition definition) return null;
+        if (Context.Parse(ref parser) is not Context definition) return null;
 
         return new AnonymousScope
         {
@@ -48,7 +48,7 @@ internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
 
         if (Value.Parse(ref parser) is not Value condition) return null;
 
-        if (Definition.Parse(ref parser) is not Definition definition) return null;
+        if (Context.Parse(ref parser) is not Context definition) return null;
 
         return new ConditionalScope
         {
@@ -74,7 +74,7 @@ internal class RepeatingScope : Scope, IParsableSyntax<RepeatingScope>
 
         if (Value.Parse(ref parser) is not Value condition) return null;
 
-        if (Definition.Parse(ref parser) is not Definition definition) return null;
+        if (Context.Parse(ref parser) is not Context definition) return null;
 
         return new RepeatingScope
         {
@@ -100,7 +100,7 @@ internal class IteratingScope : Scope, IParsableSyntax<IteratingScope>
 
         if (Datum.Declaration.Parse(ref parser) is not Datum.Declaration datum) return null;
 
-        if (Definition.Parse(ref parser) is not Definition definition) return null;
+        if (Context.Parse(ref parser) is not Context definition) return null;
 
         return new IteratingScope
         {

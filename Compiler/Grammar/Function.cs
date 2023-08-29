@@ -1,14 +1,15 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
-internal class Function : Definition.Member
+internal class Function : Context.Member
 {
     public Datatype Returns { get; init; }
-    public Definition Definition { get; init; }
+    public Context Definition { get; init; }
     
     /// <summary>
     ///     Ordered grouping of instructions to execute when called
@@ -42,7 +43,7 @@ internal class Function : Definition.Member
                 returns = Reference.Parse(ref parser);
             }
 
-            var definition = Definition.Parse(ref parser);
+            var definition = Context.Parse(ref parser);
 
             return new Declaration
             {
@@ -81,6 +82,6 @@ internal class Function : Definition.Member
 
     public class Overloaded : Function
     {
-        public List<Definition.Member> Overloads { get; init; }
+        public List<Resolution> Overloads { get; init; }
     }
 }

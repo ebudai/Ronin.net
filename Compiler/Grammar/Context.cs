@@ -1,8 +1,8 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
-using System.Runtime.InteropServices;
 
 namespace Ronin.Grammar;
 
@@ -24,16 +24,66 @@ namespace Ronin.Grammar;
 ///   → }
 ///     ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Definition : Aggregate<Definition, StartScope, Statement, Terminal, EndScope>
+internal class Context : Aggregate<Context, StartScope, Statement, Terminal, EndScope>
 {
-    public List<Statement> Statements => Values;
-
-    public Definition Parent { get; set; }
-    public List<Definition> Imports { get; init; } = new();
+    public Context Parent { get; set; }
+    public List<Context> Imports { get; init; } = new();
     public Dictionary<Identifier.Component, Member> Members { get; init; } = new();
-    public Dictionary<Identifier.Component, Definition> Children { get; } = new();
+    public Dictionary<Identifier.Component, Context> Children { get; } = new();
 
-    public void Add(Identifier identifier, Member member, List<Error> errors)
+    public Error Add(Identifier identifier, Member member)
+    {
+        var existing = Existing(identifier);
+        if (existing is not null) return Error.Redefinition(existing, member);
+
+        Context context = this;
+
+        for (int i = 0, max = identifier.Components.Count - 1; i < max; ++i)
+        {
+            if (context.Children.TryGetValue(identifier.Components[i], out var child) is false)
+            {
+                child = new Context { Parent = context };
+                context.Children.Add(identifier.Components[i], child);
+            }
+            context = child;
+        }
+
+        context.Members.Add(identifier.Components[^1], member);
+
+        return null;
+    }
+
+    public virtual Identifier Existing(Identifier identifier)
+    {
+        List<Identifier.Component> components = new(identifier.Components.Count);
+        Context context = this;
+        Identifier.Component component;
+        for (int i = 0, max = identifier.Components.Count - 1; i < max; ++i)
+        {
+            (component, context) = context.Children.Entry(identifier.Components[i]);
+            if (component is null)
+            {
+                // failure case
+                foreach (var import in Imports)
+                {
+                    var existing = import.Existing(identifier);
+                    if (existing is not null) return existing;
+                }
+                return Parent?.Existing(identifier);
+            }
+            components.Add(component);
+        }
+        component = context.Members.Entry(identifier.Components[^1]).Key;
+        components.Add(component);
+        return component is null ? null : new Identifier { Components = components };
+    }
+
+    public virtual List<Resolution> Resolve(Reference reference)
+    {
+        throw new NotImplementedException();
+    }
+
+    /*public void Add(Identifier identifier, Member member, List<Error> errors)
     {
         var name = CollectionsMarshal.AsSpan(identifier.Components);
 
@@ -41,11 +91,11 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         FindExisting(name, existing);
         if (existing.Components.Count == identifier.Components.Count)
         {
-            errors.Add(Error.Redefinition(member, existing));
+            errors.Add(Error.Redefinition(existing, member));
             return;
         }
 
-        Add(name, member, errors);
+        Add(name, member);
     }
 
     public Definition GetModule(Identifier identifier)
@@ -89,7 +139,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
         }
     }
 
-    private void Add(ReadOnlySpan<Identifier.Component> components, Member member, List<Error> errors)
+    private void Add(ReadOnlySpan<Identifier.Component> components, Member member)
     {
         if (components.Length is 1)
         {
@@ -103,7 +153,7 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
             Children.Add(components[0], child);
         }
 
-        child.Add(components[1..], member, errors);
+        child.Add(components[1..], member);
     }
 
     private void FindExisting(ReadOnlySpan<Identifier.Component> identifier, Identifier existing)
@@ -174,14 +224,14 @@ internal class Definition : Aggregate<Definition, StartScope, Statement, Termina
             if (entry.Key.Equals(name)) children.Add(entry.Value);
         }
         return children;
-    }
+    }*/
 
-    public class Member
+    public class Member : Syntax
     {
         public Modifiers Modifiers { get; init; }
     }
 
-    public new class Unresolved : Definition
+    public new class Unresolved : Context
     {
         public required Import Import { get; init; }
     }

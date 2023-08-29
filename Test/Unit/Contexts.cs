@@ -6,7 +6,7 @@ using Test;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Definitions : ParsingTests
+public class Contexts : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -26,7 +26,7 @@ public class Definitions : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var scope = Definition.Parse(ref parser);
+        var scope = Context.Parse(ref parser);
 
         Assert.Single(scope?.Values);
 

@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -290,7 +291,7 @@ public class Data : ParsingTests
 
             // var home => shared Building = (2, "test", $7);
 
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {

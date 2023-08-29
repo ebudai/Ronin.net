@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -132,7 +133,7 @@ public class Functions : ParsingTests
 
             // function run home (cash => money) => whole number { return 72; }
 
-            Definition module = new()
+            Context module = new()
             {
                 Values = new List<Statement>
                 {
@@ -218,21 +219,21 @@ public class Functions : ParsingTests
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Scope.Add(Identifier(Name(test), param), new Function(), errors);
+                Global.Scope.Add(Identifier(Name(test), param), new Function());
             }
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Scope.Add(Identifier(Name(test), param), new Function(), errors);
+                Global.Scope.Add(Identifier(Name(test), param), new Function());
             }
 
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
             var reference = Reference(Name(test), parameter);
 
             Function.Call call = new() { Function = new Function.Unresolved { Reference = reference } };
-            Global.Scope.Statements.Add(call);
+            Global.Scope.Values.Add(call);
 
             Analyzer.Resolve(Global.Scope, errors);
 
