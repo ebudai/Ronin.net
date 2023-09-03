@@ -43,16 +43,16 @@ public class Functions : ParsingTests
         
         Parameters parameters = function.Identifier.Components[1];
 
-        Assert.Single(parameters?.Values);
-        var parameter = parameters.Values[0];
+        Assert.Single(parameters);
+        var parameter = parameters[0];
         Assert.Equal(1, parameter?.Identifier?.Source.Length);
 
         Assert.Single(parameter.Datatype?.Components);
         Name type = parameter.Datatype.Components[0];
         Assert.Equal(1, type?.Source.Length);
         
-        Assert.Single(function.Definition?.Values);
-        var line = function.Definition.Values[0] as Function.Call;
+        Assert.Single(function.Definition);
+        var line = function.Definition[0] as Function.Call;
         var unresolved = line?.Function as Function.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
@@ -97,8 +97,8 @@ public class Functions : ParsingTests
         Assert.Equal(1, function.Identifier.Components[0].Source.Length);
 
         Parameters parameters = function.Identifier.Components[1];
-        Assert.Single(parameters?.Values);
-        var parameter = parameters.Values[0];
+        Assert.Single(parameters);
+        var parameter = parameters[0];
         Assert.Equal(1, parameter.Identifier?.Source.Length);
 
         Assert.Single(parameter.Datatype?.Components);
@@ -109,8 +109,8 @@ public class Functions : ParsingTests
         Name returns = function.Returns.Components[0];
         Assert.Equal(1, returns?.Source.Length);
 
-        Assert.Single(function.Definition?.Values);
-        var line = function.Definition.Values[0] as Function.Call;
+        Assert.Single(function.Definition);
+        var line = function.Definition[0] as Function.Call;
         var unresolved = line?.Function as Function.Unresolved;
         Assert.Single(unresolved?.Reference.Components);
         Name @return = unresolved.Reference.Components[0];
@@ -135,41 +135,32 @@ public class Functions : ParsingTests
 
             Context module = new()
             {
-                Values = new List<Statement>
+                new Function.Declaration
                 {
-                    new Function.Declaration
+                    Identifier = new()
                     {
-                        Identifier = new()
+                        Components = new List<Identifier.Component>
                         {
-                            Components = new List<Identifier.Component>
+                            Name(run),
+                            Name(home),
+                            new Parameters
                             {
-                                Name(run),
-                                Name(home),
-                                new Parameters
+                                new()
                                 {
-                                    Values = new List<Datum.Declaration>
-                                    {
-                                        new()
-                                        {
-                                            Datatype = Reference(money),
-                                            Mutability = new Constant(),
-                                            Identifier = Words(cash),
-                                            Source = new Token[] { Word(cash), Returns(), Word(money) }
-                                        }
-                                    },
-                                    Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
-                                }
-                            }
-                        },
-                        Returns = Reference(whole, number),
-                        Definition = new()
-                        {
-                            Values = new List<Statement>
-                            {
-                                FunctionCall(@return),
-                                new Inline { Source = new[] { Number(72) } }
+                                    Datatype = Reference(money),
+                                    Mutability = new Constant(),
+                                    Identifier = Words(cash),
+                                    Source = new Token[] { Word(cash), Returns(), Word(money) }
+                                },
+                                //Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
                             }
                         }
+                    },
+                    Returns = Reference(whole, number),
+                    Definition = new()
+                    {
+                        FunctionCall(@return),
+                        new Inline { Source = new[] { Number(72) } }
                     }
                 }
             };
@@ -233,7 +224,7 @@ public class Functions : ParsingTests
             var reference = Reference(Name(test), parameter);
 
             Function.Call call = new() { Function = new Function.Unresolved { Reference = reference } };
-            Global.Scope.Values.Add(call);
+            Global.Scope.Add(call);
 
             Analyzer.Resolve(Global.Scope, errors);
 

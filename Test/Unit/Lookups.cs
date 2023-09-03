@@ -26,8 +26,8 @@ public class Lookups : ParsingTests
         Parser parser = new(tokens);
         var lookup = Lookup.Parse(ref parser);
 
-        Assert.Single(lookup?.Values);
-        var association = lookup.Values[0];
+        Assert.Single(lookup);
+        var association = lookup[0];
 
         var key = association.Key as Inline;
         Assert.Equal(1, key?.Source.Length);
@@ -55,7 +55,7 @@ public class Lookups : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var statements = parser.Parse().Values;
+        var statements = parser.Parse().ToList();
 
         Assert.Single(statements);
         var datum = statements[0] as Datum.Declaration;

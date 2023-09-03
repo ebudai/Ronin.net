@@ -27,9 +27,9 @@ public class Parameter : ParsingTests
         Parser parser = new(tokens);
         var parameters = Parameters.Parse(ref parser);
 
-        Assert.Single(parameters?.Values);
+        Assert.Single(parameters);
 
-        Datum.Declaration datum = parameters.Values[0];
+        Datum.Declaration datum = parameters[0];
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -69,10 +69,10 @@ public class Parameter : ParsingTests
         Parser parser = new(tokens);
         var parameters = Parameters.Parse(ref parser);
 
-        Assert.Equal(2, parameters?.Values?.Count);
+        Assert.Equal(2, parameters?.Count);
 
         {
-            Datum.Declaration datum = parameters.Values[0];
+            Datum.Declaration datum = parameters[0];
             
             Assert.Null(datum?.Mutability);
 
@@ -89,7 +89,7 @@ public class Parameter : ParsingTests
         }
 
         {
-            Datum.Declaration datum = parameters.Values[1];
+            Datum.Declaration datum = parameters[1];
 
             Assert.Null(datum?.Mutability);
 
@@ -119,6 +119,6 @@ public class Parameter : ParsingTests
         Parser parser = new(tokens);
         var arguments = Parameters.Parse(ref parser);
 
-        Assert.Empty(arguments?.Values);
+        Assert.Empty(arguments);
     }
 }

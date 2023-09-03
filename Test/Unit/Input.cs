@@ -24,8 +24,8 @@ public class Input : ParsingTests
         Parser parser = new(tokens);
         var arguments = Inputs.Parse(ref parser);
 
-        Assert.Single(arguments?.Values);
-        Value value = arguments.Values[0];
+        Assert.Single(arguments);
+        Value value = arguments[0];
         var unresolved = value as Value.Unresolved;
         Assert.Single(unresolved?.Reference?.Components);
         Name name = unresolved.Reference.Components[0];
@@ -50,10 +50,10 @@ public class Input : ParsingTests
         Parser parser = new(tokens);
         var arguments = Inputs.Parse(ref parser);
 
-        Assert.Equal(2, arguments?.Values?.Count);
+        Assert.Equal(2, arguments?.Count);
 
         {
-            Value value = arguments.Values[0];
+            Value value = arguments[0];
             var unresolved = value as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
             Name name = unresolved.Reference.Components[0];
@@ -61,7 +61,7 @@ public class Input : ParsingTests
         }
 
         {
-            Value value = arguments.Values[1];
+            Value value = arguments[1];
             var unresolved = value as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
             Name name = unresolved.Reference.Components[0];
@@ -83,7 +83,7 @@ public class Input : ParsingTests
         
         Parser parser = new(tokens);
         var arguments = Inputs.Parse(ref parser);
-        Assert.Empty(arguments?.Values);
+        Assert.Empty(arguments);
     }
 
     [Fact(DisplayName = "named")]
@@ -106,22 +106,22 @@ public class Input : ParsingTests
         Parser parser = new(tokens);
         var arguments = Inputs.Parse(ref parser);
 
-        Assert.Equal(3, arguments?.Values?.Count);
+        Assert.Equal(3, arguments?.Count);
         
         {
-            Value value = arguments.Values[0];
+            Value value = arguments[0];
             var scalar = value as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Value value = arguments.Values[1];
+            Value value = arguments[1];
             var scalar = value as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Value value = arguments.Values[2];
+            Value value = arguments[2];
             var unresolved = value as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
             Name name = unresolved.Reference.Components[0];
@@ -155,10 +155,10 @@ public class Input : ParsingTests
         Parser parser = new(tokens);
         var arguments = Inputs.Parse(ref parser);
 
-        Assert.Equal(3, arguments?.Values?.Count);
+        Assert.Equal(3, arguments?.Count);
 
         {
-            Value value = arguments.Values[0];
+            Value value = arguments[0];
             var unresolved = value as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
             Name name = unresolved.Reference.Components[0];
@@ -166,30 +166,30 @@ public class Input : ParsingTests
         }
 
         {
-            Value value = arguments.Values[1];
+            Value value = arguments[1];
             var scalar = value as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Value value = arguments.Values[2];
+            Value value = arguments[2];
             var subargs = value as Inputs;
-            Assert.Equal(3, subargs?.Values?.Count);
+            Assert.Equal(3, subargs?.Count);
 
             {
-                Value subvalue = subargs?.Values[0];
+                Value subvalue = subargs[0];
                 var scalar = subvalue as Inline;
                 Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
-                Value subvalue = subargs?.Values[1];
+                Value subvalue = subargs[1];
                 var scalar = subvalue as Inline;
                 Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
-                Value subvalue = subargs?.Values[2];
+                Value subvalue = subargs[2];
                 var scalar = subvalue as Inline;
                 Assert.Equal(1, scalar?.Source.Length);
             }

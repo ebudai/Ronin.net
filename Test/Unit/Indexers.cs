@@ -24,8 +24,8 @@ public class Indexers : ParsingTests
         Parser parser = new(tokens);
         var indexer = Indexer.Parse(ref parser);
 
-        Assert.Single(indexer?.Values);
-        var unresolved = indexer.Values[0] as Value.Unresolved;
+        Assert.Single(indexer);
+        var unresolved = indexer[0] as Value.Unresolved;
         Assert.Single(unresolved?.Reference?.Components);
         Name name = unresolved.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
@@ -49,17 +49,17 @@ public class Indexers : ParsingTests
         Parser parser = new(tokens);
         var indexer = Indexer.Parse(ref parser);
 
-        Assert.Equal(2, indexer?.Values?.Count);
+        Assert.Equal(2, indexer?.Count);
 
         {            
-            var test = indexer.Values[0] as Value.Unresolved;
+            var test = indexer[0] as Value.Unresolved;
             Assert.Single(test?.Reference?.Components);
             Name name = test.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            var stuff = indexer.Values[1] as Value.Unresolved;
+            var stuff = indexer[1] as Value.Unresolved;
             Assert.Single(stuff?.Reference?.Components);
             Name name = stuff.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
@@ -81,7 +81,7 @@ public class Indexers : ParsingTests
         Parser parser = new(tokens);
         var indexer = Indexer.Parse(ref parser);
 
-        Assert.Empty(indexer?.Values);
+        Assert.Empty(indexer);
     }
 
     [Fact(DisplayName = "multidimensional named")]
@@ -104,20 +104,20 @@ public class Indexers : ParsingTests
         Parser parser = new(tokens);
         var arguments = Indexer.Parse(ref parser);
 
-        Assert.Equal(3, arguments?.Values?.Count);
+        Assert.Equal(3, arguments?.Count);
 
         {
-            var scalar = arguments.Values[0] as Inline;
+            var scalar = arguments[0] as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = arguments.Values[1] as Inline;
+            var scalar = arguments[1] as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var unresolved = arguments.Values[2] as Value.Unresolved;
+            var unresolved = arguments[2] as Value.Unresolved;
             Assert.Single(unresolved?.Reference?.Components);
             Name name = unresolved.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);

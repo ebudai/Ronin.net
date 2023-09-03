@@ -6,15 +6,6 @@ using System.Collections;
 
 namespace Ronin.Grammar;
 
-internal abstract class Aggregate<T> : AnonymousValue, IEnumerable<T>
-{
-    protected internal List<T> Values = new();
-
-    public IEnumerator<T> GetEnumerator() => Values.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
-}
-
 /// <summary>
 ///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Indexer"/>, <see cref="Parameters"/>, and <see cref="Context"/>)
 /// </summary>
@@ -38,7 +29,7 @@ internal abstract class Aggregate<T> : AnonymousValue, IEnumerable<T>
 /// <typeparam name="TClose">
 ///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Punctuation"/>
 /// </typeparam>
-internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Aggregate<TElement>, IParsableSyntax<T>
+internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : AnonymousValue, IEnumerable<TElement>, IList<TElement>, IParsableSyntax<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
     where TOpen : Punctuation
     where TElement : Syntax, IParsableSyntax<TElement>
@@ -65,6 +56,46 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Aggr
             if (parser.Token is TSeparator) parser.Advance();
         }
 
-        return new T { Values = values, Source = parser.Commit(ref current) };
+        var parsed = new T { Source = parser.Commit(ref current) };
+        parsed.AddRange(values);
+        return parsed;
     }
+
+    public IEnumerator<TElement> GetEnumerator() => Values.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
+
+    public int Count => Values.Count;
+
+    public bool IsReadOnly => false;
+
+    public TElement this[int index]
+    {
+        get => Values[index];
+        set => Values[index] = value;
+    }
+
+    public int IndexOf(TElement item) => Values.IndexOf(item);
+
+    public void Insert(int index, TElement item) => Values.Insert(index, item);
+
+    public void RemoveAt(int index) => Values.RemoveAt(index);
+
+    public void Add(TElement item) => Values.Add(item);
+
+    public void AddRange(IEnumerable<TElement> items) => Values.AddRange(items);
+
+    public void Clear() => Values.Clear();
+
+    public bool Contains(TElement item) => Values.Contains(item);
+
+    public void CopyTo(TElement[] array, int arrayIndex) => Values.CopyTo(array, arrayIndex);
+
+    public bool Remove(TElement item) => Values.Remove(item);
+
+    public override bool Equals(object obj) => (obj as IEnumerable<TElement>)?.SequenceEqual(Values) ?? false;
+
+    public override int GetHashCode() => Values.GetHashCode();
+
+    private readonly List<TElement> Values = new();
 }

@@ -39,18 +39,15 @@ public class Functions : ParsingTests
 
             Context module = new()
             {
-                Values = new List<Statement>
+                new Function.Declaration
                 {
-                    new Function.Declaration
-                    {
-                        Identifier = Words(name),
-                        Definition = new() { Values = new() }
-                    },
-                    new Function.Declaration
-                    {
-                        Identifier = Words(name),
-                        Definition = new() { Values = new() }
-                    }
+                    Identifier = Words(name),
+                    Definition = new()
+                },
+                new Function.Declaration
+                {
+                    Identifier = Words(name),
+                    Definition = new()
                 }
             };
 

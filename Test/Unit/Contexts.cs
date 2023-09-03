@@ -28,9 +28,9 @@ public class Contexts : ParsingTests
         Parser parser = new(tokens);
         var scope = Context.Parse(ref parser);
 
-        Assert.Single(scope?.Values);
+        Assert.Single(scope);
 
-        var datum = scope.Values[0] as Datum.Declaration;
+        var datum = scope[0] as Datum.Declaration;
 
         Assert.IsType<Variable>(datum?.Mutability);
 

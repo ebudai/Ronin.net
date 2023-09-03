@@ -1,4 +1,5 @@
-﻿using Ronin.Compiler;
+﻿using Newtonsoft.Json.Linq;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Hierarchy;
 using Ronin.Lexicon;
@@ -25,7 +26,7 @@ public class Unknowns : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var statements = parser.Parse().Values;
+        var statements = parser.Parse().ToList();
         
         Assert.Single(statements);
         Assert.IsType<Unknown>(statements[0]);
@@ -37,23 +38,13 @@ public class Unknowns : ParsingTests
         [Fact(DisplayName = "inside definition")]
         public void InsideDefinition()
         {
-            Context module = new()
+            var function = new Function.Declaration
             {
-                Values = new List<Statement>
-                {
-                    new Function.Declaration
-                    {
-                        Identifier = Words("unknown function"),
-                        Definition = new()
-                        {
-                            Values = new List<Statement>
-                            {
-                                new Unknown()
-                            }
-                        }
-                    }
-                }
+                Identifier = Words("unknown function"),
+                Definition = new() { new Unknown() }
             };
+
+            Context module = new() { function };
 
             List<Error> errors = new();
             Analyzer.Define(Global.Scope, module, errors);

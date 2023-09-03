@@ -97,12 +97,9 @@ public class Imports : ParsingTests
             {
                 Definition = new()
                 {
-                    Values = new List<Statement>
+                    new Import
                     {
-                        new Import
-                        {
-                            Name = new() { Source = new[] { Word(thing), Word(with), Word(stuff) } }
-                        }
+                        Name = new() { Source = new[] { Word(thing), Word(with), Word(stuff) } }
                     }
                 }
             };

@@ -67,13 +67,48 @@ public class AnonymousScopes : ParsingTests
 
             Context module = new()
             {
-                Values = new List<Statement>
+                new AnonymousScope
                 {
-                    new AnonymousScope
+                    Definition = new()
                     {
-                        Definition = new()
+                        new Datum.Declaration
                         {
-                            Values = new()
+                            Mutability = new Variable(),
+                            Identifier = Words(x),
+                            Initializer = new Inline { Source = new[] { Number(3) } }
+                        }
+                    }
+                }
+            };
+
+            List<Error> errors = new();
+            Analyzer.Define(Global.Scope, module, errors);
+            Assert.Empty(errors);
+
+            Assert.Single(module);
+            var scope = module[0] as AnonymousScope;
+            Assert.NotNull(scope);
+            Assert.Single(scope.Definition.Members);
+            var datum = scope.Definition.Members.First().Value;
+            Assert.IsAssignableFrom<Datum>(datum);
+        }
+
+        [Fact(DisplayName = "inner scope")]
+        public void Inner()
+        {
+            const string x = nameof(x);
+
+            // { { var x = 3; } }
+
+            Context module = new()
+            {
+                new AnonymousScope
+                {
+                    Definition = new()
+                    {
+                        new AnonymousScope
+                        {
+                            Definition = new()
                             {
                                 new Datum.Declaration
                                 {
@@ -92,60 +127,10 @@ public class AnonymousScopes : ParsingTests
             Assert.Empty(errors);
 
             Assert.Single(module);
-            var scope = module.Values[0] as AnonymousScope;
-            Assert.NotNull(scope);
-            Assert.Single(scope.Definition.Members);
-            var datum = scope.Definition.Members.First().Value;
-            Assert.IsAssignableFrom<Datum>(datum);
-        }
-
-        [Fact(DisplayName = "inner scope")]
-        public void Inner()
-        {
-            const string x = nameof(x);
-
-            // { { var x = 3; } }
-
-            Context module = new()
-            {
-                Values = new List<Statement>
-                {
-                    new AnonymousScope
-                    {
-                        Definition = new()
-                        {
-                            Values = new()
-                            {
-                                new AnonymousScope
-                                {
-                                    Definition = new()
-                                    {
-                                        Values = new()
-                                        {
-                                            new Datum.Declaration
-                                            {
-                                                Mutability = new Variable(),
-                                                Identifier = Words(x),
-                                                Initializer = new Inline { Source = new[] { Number(3) } }
-                                            }
-                                        }
-                                    }
-                                 }
-                            }
-                        }
-                    }
-                }
-            };
-
-            List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
-            Assert.Empty(errors);
-
-            Assert.Single(module);
-            var scope = module.Values[0] as AnonymousScope;
+            var scope = module[0] as AnonymousScope;
             Assert.NotNull(scope);
             Assert.Single(scope.Definition);
-            var inner = scope.Definition.Values[0] as AnonymousScope;
+            var inner = scope.Definition[0] as AnonymousScope;
             Assert.NotNull(inner);
             Assert.Single(inner.Definition.Members);
             var datum = inner.Definition.Members.First().Value;

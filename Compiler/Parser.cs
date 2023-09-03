@@ -30,7 +30,9 @@ internal struct Parser
             if (Token is Terminal) Advance();
         }
 
-        return new Context { Values = statements, Source = tokens };
+        Context context = new() { Source = tokens };
+        context.AddRange(statements);
+        return context;
     }
 
     public List<T> ParseRepeating<T>() where T : IParsableSyntax<T>

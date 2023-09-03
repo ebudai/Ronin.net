@@ -41,8 +41,8 @@ public class References : ParsingTests
         {
             AnonymousValue anonymous = reference.Components[2];
             var arguments = anonymous as Inputs;
-            Assert.Single(arguments?.Values);
-            Value value = arguments.Values[0];
+            Assert.Single(arguments);
+            Value value = arguments[0];
             var scalar = value as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }

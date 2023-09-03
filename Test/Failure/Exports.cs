@@ -36,13 +36,10 @@ public class Exports : ParsingTests
         {
             Context module = new()
             {
-                Values = new List<Statement>
+                new Function.Declaration
                 {
-                    new Function.Declaration
-                    {
-                        Identifier = Identifier("x"),
-                        Definition = new() { Values = new() { new Export { Keyword = new PartOf(), Identifier = new() } } }
-                    }
+                    Identifier = Identifier("x"),
+                    Definition = new() { new Export { Keyword = new PartOf(), Identifier = new() } }
                 }
             };
 
@@ -60,13 +57,10 @@ public class Exports : ParsingTests
         {
             Context module = new()
             {
-                Values = new List<Statement>
+                new ConditionalScope
                 {
-                    new ConditionalScope
-                    {
-                        Condition = new Value.Unresolved { Reference = new() { } },
-                        Definition = new() { Values = new() { new Export { Keyword = new PartOf(), Identifier = new() } } }
-                    }
+                    Condition = new Value.Unresolved { Reference = new() { } },
+                    Definition = new() { new Export { Keyword = new PartOf(), Identifier = new() } }
                 }
             };
 
@@ -84,13 +78,10 @@ public class Exports : ParsingTests
         {
             Context module = new()
             {
-                Values = new List<Statement>
+                new AnonymousScope
                 {
-                    new AnonymousScope
-                    {
-                        Modifiers = new() { Source = new[] { new Compiled() } },
-                        Definition = new() { Values = new() { new Export { Keyword = new PartOf(), Identifier = new() } } }
-                    }
+                    Modifiers = new() { Source = new[] { new Compiled() } },
+                    Definition = new() { new Export { Keyword = new PartOf(), Identifier = new() } }
                 }
             };
 
@@ -108,19 +99,10 @@ public class Exports : ParsingTests
         {
             Context module = new()
             {
-                Values = new List<Statement>
+                new AnonymousScope
                 {
-                    new AnonymousScope
-                    {
-                        Definition = new()
-                        {
-                            Values = new()
-                            {
-                                new Export { Keyword = new PartOf(), Identifier = Words("test exporting twice") },
-                                new Export { Keyword = new PartOf(), Identifier = Words("test exporting twice failure") },
-                            }
-                        }
-                    }
+                    Definition = new()
+                    { new Export { Keyword = new PartOf(), Identifier = Words("test exporting twice") }, new Export { Keyword = new PartOf(), Identifier = Words("test exporting twice failure") }, }
                 }
             };
 

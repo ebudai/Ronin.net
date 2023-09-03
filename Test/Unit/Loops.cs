@@ -34,9 +34,9 @@ public class IteratingScopes : ParsingTests
 
         Assert.NotNull(loop?.Iterator);
 
-        Assert.Single(loop.Definition?.Values);
+        Assert.Single(loop.Definition);
 
-        var assignment = loop.Definition.Values[0] as Assignment;
+        var assignment = loop.Definition[0] as Assignment;
         Assert.NotNull(assignment);
     }
 

@@ -293,23 +293,17 @@ public class Data : ParsingTests
 
             Context module = new()
             {
-                Values = new List<Statement>
+                new Datum.Declaration
                 {
-                    new Datum.Declaration
+                    Mutability = new Variable(),
+                    Identifier = Words(home),
+                    Modifiers = new() { Source = new[] { new Shared() } },
+                    Datatype = Reference(Building),
+                    Initializer = new Inputs
                     {
-                        Mutability = new Variable(),
-                        Identifier = Words(home),
-                        Modifiers = new() { Source = new[] { new Shared() } },
-                        Datatype = Reference(Building),
-                        Initializer = new Inputs
-                        {
-                            Values = new List<Inputs.Input>
-                            {
-                                new() { value = new Inline { Source = new[] { Number(2) } } },
-                                new() { value = new Inline { Source = new[] { Text(test) } } },
-                                new() { value = new Inline { Source = new[] { Currency(7) } } }
-                            }
-                        }
+                        new() { value = new Inline { Source = new[] { Number(2) } } },
+                        new() { value = new Inline { Source = new[] { Text(test) } } },
+                        new() { value = new Inline { Source = new[] { Currency(7) } } }
                     }
                 }
             };

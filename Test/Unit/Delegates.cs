@@ -35,8 +35,8 @@ public class Delegates : ParsingTests
         var datum = @delegate.Data[0];
         Assert.Equal(1, datum?.Identifier?.Source.Length);
 
-        Assert.Single(@delegate.Definition?.Values);
-        var line = @delegate.Definition?.Values[0] as Function.Call;
+        Assert.Single(@delegate.Definition);
+        var line = @delegate.Definition[0] as Function.Call;
         var unresolved = line?.Function as Function.Unresolved;
         Assert.Equal(2, unresolved.Reference.Components?.Count);
 
@@ -75,8 +75,8 @@ public class Delegates : ParsingTests
         var datum = @delegate.Data[0];
         Assert.Equal(1, datum?.Identifier?.Source.Length);
 
-        Assert.Single(@delegate.Definition?.Values);
-        var line = @delegate.Definition?.Values[0] as Function.Call;
+        Assert.Single(@delegate.Definition);
+        var line = @delegate.Definition[0] as Function.Call;
         var unresolved = line?.Function as Function.Unresolved;
         Assert.Equal(2, unresolved.Reference.Components?.Count);
 
@@ -123,8 +123,8 @@ public class Delegates : ParsingTests
         Assert.Equal(1, @delegate.Data[1]?.Identifier?.Source.Length);
         Assert.Equal(1, @delegate.Data[2]?.Identifier?.Source.Length);
 
-        Assert.Single(@delegate.Definition?.Values);
-        var line = @delegate.Definition?.Values[0] as Function.Call;
+        Assert.Single(@delegate.Definition);
+        var line = @delegate.Definition[0] as Function.Call;
         var unresolved = line?.Function as Function.Unresolved;
         Assert.Equal(2, unresolved.Reference.Components?.Count);
 
@@ -162,8 +162,8 @@ public class Delegates : ParsingTests
 
         Assert.Empty(@delegate?.Data);
 
-        Assert.Single(@delegate?.Definition?.Values);
-        var line = @delegate.Definition?.Values[0] as Function.Call;
+        Assert.Single(@delegate?.Definition);
+        var line = @delegate.Definition[0] as Function.Call;
         var unresolved = line?.Function as Function.Unresolved;
         Assert.Equal(2, unresolved.Reference.Components?.Count);
 
@@ -200,7 +200,7 @@ public class Delegates : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var statements = parser.Parse().Values;
+        var statements = parser.Parse().ToList();
 
         Assert.Single(statements);
         var datum = statements[0] as Datum.Declaration;

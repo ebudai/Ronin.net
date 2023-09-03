@@ -68,10 +68,10 @@ public class Datatypes : ParsingTests
         Name algebra = datatype.Algebra.Components[0];
         Assert.Equal(2, algebra?.Source.Length);
 
-        Assert.Equal(2, datatype.Definition?.Values.Count);
+        Assert.Equal(2, datatype.Definition.Count);
 
         {
-            var cash = datatype.Definition.Values[0] as Datum.Declaration;
+            var cash = datatype.Definition[0] as Datum.Declaration;
             Assert.IsType<Variable>(cash?.Mutability);
             Assert.Equal(1, cash.Identifier?.Source.Length);
             Assert.Single(cash.Datatype?.Components);
@@ -80,7 +80,7 @@ public class Datatypes : ParsingTests
         }
 
         {
-            var debt = datatype.Definition.Values[1] as Datum.Declaration;
+            var debt = datatype.Definition[1] as Datum.Declaration;
             Assert.IsType<Variable>(debt?.Mutability);
             Assert.Equal(1, debt.Identifier?.Source.Length);
             Assert.Single(debt.Datatype?.Components);
@@ -105,23 +105,17 @@ public class Datatypes : ParsingTests
 
             Context module = new()
             {
-                Values = new List<Statement>
+                new Datatype.Declaration
                 {
-                    new Datatype.Declaration
+                    Identifier = Words(Big),
+                    Algebra = Reference(text, or),
+                    Definition = new()
                     {
-                        Identifier = Words(Big),
-                        Algebra = Reference(text, or),
-                        Definition = new()
+                        new Datum.Declaration
                         {
-                            Values = new List<Statement>
-                            {
-                                new Datum.Declaration
-                                {
-                                    Mutability = new Variable(),
-                                    Identifier = Words(x),
-                                    Datatype = Reference(number)
-                                }
-                            }
+                            Mutability = new Variable(),
+                            Identifier = Words(x),
+                            Datatype = Reference(number)
                         }
                     }
                 }

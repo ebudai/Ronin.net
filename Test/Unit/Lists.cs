@@ -24,8 +24,8 @@ public class Lists : ParsingTests
         Parser parser = new(tokens);
         var list = List.Parse(ref parser);
 
-        Assert.Single(list?.Values);
-        var scalar = list.Values[0] as Inline;
+        Assert.Single(list);
+        var scalar = list[0] as Inline;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -49,20 +49,20 @@ public class Lists : ParsingTests
         Parser parser = new(tokens);
         var list = List.Parse(ref parser);
 
-        Assert.Equal(3, list?.Values?.Count);
+        Assert.Equal(3, list?.Count);
 
         {
-            var scalar = list.Values[0] as Inline;
+            var scalar = list[0] as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = list.Values[1] as Inline;
+            var scalar = list[1] as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = list.Values[2] as Inline;
+            var scalar = list[2] as Inline;
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -88,7 +88,7 @@ public class Lists : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var statements = parser.Parse().Values;
+        var statements = parser.Parse().ToList();
 
         Assert.Single(statements);
         var datum = statements[0] as Datum.Declaration;

@@ -37,7 +37,7 @@ internal class Delegate : AnonymousValue, IParsableSyntax<Delegate>
         }
         else
         {
-            data = parameters.Values;
+            data = parameters.ToList();
             if (parser.TryAdvance<Returns>() is false) return null;
         }
 

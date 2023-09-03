@@ -91,13 +91,10 @@ public class Exports : ParsingTests
             {
                 Definition = new()
                 {
-                    Values = new List<Statement>
+                    new Export
                     {
-                        new Export
-                        {
-                            Keyword = new PartOf(),
-                            Identifier = Words(widgets, with, stuff)
-                        }
+                        Keyword = new PartOf(),
+                        Identifier = Words(widgets, with, stuff)
                     }
                 }
             };
@@ -149,163 +146,130 @@ public class Exports : ParsingTests
             {
                 Definition = new()
                 {
-                    Values = new List<Statement>
+                    new AnonymousScope
                     {
-                        new AnonymousScope
+                        Definition = new()
                         {
-                            Definition = new()
+                            new Export { Keyword = new PartOf(), Identifier = Words(what, the, what) },
+                            new Datum.Declaration { Identifier = Words(what, what) },
+                            new Function.Declaration
                             {
-                                Values = new List<Statement>
+                                Identifier = new()
                                 {
-                                    new Export { Keyword = new PartOf(), Identifier = Words(what, the, what) },
-                                    new Datum.Declaration { Identifier = Words(what, what) },
-                                    new Function.Declaration
+                                    Components = new List<Identifier.Component>
                                     {
-                                        Identifier = new()
+                                        Name(correct),
+                                        Name(horse),
+                                        Name(battery),
+                                        new Parameters
                                         {
-                                            Components = new List<Identifier.Component>
+                                            new()
                                             {
-                                                Name(correct),
-                                                Name(horse),
-                                                Name(battery),
-                                                new Parameters
-                                                {
-                                                    Values = new List<Datum.Declaration>
-                                                    {
-                                                        new()
-                                                        {
-                                                            Datatype = Reference(number),
-                                                            Mutability = new Constant(),
-                                                            Identifier = Words(horse),
-                                                            Source = new Token[] { Word(horse), Returns(), Word(number) }
-                                                        }
-                                                    },
-                                                    Source = new Token[] { StartValues(), Word(horse), Returns(), Word(number), EndValues() }
-                                                }
+                                                Datatype = Reference(number),
+                                                Mutability = new Constant(),
+                                                Identifier = Words(horse),
+                                                Source = new Token[] { Word(horse), Returns(), Word(number) }
                                             },
-                                            Source = new Token[] { Word(correct), Word(horse), Word(battery), StartValues(), Word(horse), Returns(), Word(number), EndValues() }
-                                        },
-                                        Returns = Reference(whole, number),
-                                        Definition = new()
-                                        {
-                                            Values = new List<Statement>
-                                            {
-                                                FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(24) } })
-                                            }
+                                            //Source = new Token[] { StartValues(), Word(horse), Returns(), Word(number), EndValues() }
                                         }
                                     },
-                                    new Function.Declaration
+                                    Source = new Token[] { Word(correct), Word(horse), Word(battery), StartValues(), Word(horse), Returns(), Word(number), EndValues() }
+                                },
+                                Returns = Reference(whole, number),
+                                Definition = new()
+                                {
+                                    FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(24) } })
+                                }
+                            },
+                            new Function.Declaration
+                            {
+                                Identifier = new()
+                                {
+                                    Components = new List<Identifier.Component>
                                     {
-                                        Identifier = new()
+                                        new Parameters
                                         {
-                                            Components = new List<Identifier.Component>
+                                            new()
                                             {
-                                                new Parameters
-                                                {
-                                                    Values = new List<Datum.Declaration>
-                                                    {
-                                                        new()
-                                                        {
-                                                            Datatype = Reference(new Name { Source = new[] { Word(Bag) } }, new Inline { Source = new Token[] { StartValues(), Number(15), EndValues() } } ),
-                                                            Mutability = new Constant(),
-                                                            Identifier = Words(correct),
-                                                            Source = new Token[] { StartValues(), Word(correct), Returns(), Word(number), EndValues() }
-                                                        }
-                                                    }
-                                                },
-                                                Name(horse),
-                                                Name(battery)
-                                            },
-                                            Source = new Token[] { StartValues(), Word(correct), Returns(), Word(Bag), StartValues(), Number(15), EndValues(), EndValues(), Word(horse), Word(battery) }
-                                        },
-                                        Returns = Reference(number),
-                                        Definition = new()
-                                        {
-                                            Values = new List<Statement>
-                                            {
-                                                FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(8.2) } })
+                                                Datatype = Reference(new Name { Source = new[] { Word(Bag) } }, new Inline { Source = new Token[] { StartValues(), Number(15), EndValues() } } ),
+                                                Mutability = new Constant(),
+                                                Identifier = Words(correct),
+                                                Source = new Token[] { StartValues(), Word(correct), Returns(), Word(number), EndValues() }
                                             }
-                                        }
-                                    }
+                                        },
+                                        Name(horse),
+                                        Name(battery)
+                                    },
+                                    Source = new Token[] { StartValues(), Word(correct), Returns(), Word(Bag), StartValues(), Number(15), EndValues(), EndValues(), Word(horse), Word(battery) }
+                                },
+                                Returns = Reference(number),
+                                Definition = new()
+                                {
+                                    FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(8.2) } })
                                 }
                             }
-                        },
-                        new AnonymousScope
+                        }
+                    },
+                    new AnonymousScope
+                    {
+                        Definition = new()
                         {
-                            Definition = new()
+                            new Export { Keyword = new PartOf(), Identifier = Words(what, the, what) },
+                            new Datum.Declaration { Identifier = Words(the, the) },
+                            new Function.Declaration
                             {
-                                Values = new List<Statement>
+                                Identifier = new()
                                 {
-                                    new Export { Keyword = new PartOf(), Identifier = Words(what, the, what) },
-                                    new Datum.Declaration { Identifier = Words(the, the) },
-                                    new Function.Declaration
+                                    Components = new List<Identifier.Component>
                                     {
-                                        Identifier = new()
+                                        Name(correct),
+                                        Name(horse),
+                                        Name(battery),
+                                        new Parameters
                                         {
-                                            Components = new List<Identifier.Component>
+                                            new()
                                             {
-                                                Name(correct),
-                                                Name(horse),
-                                                Name(battery),
-                                                new Parameters
-                                                {
-                                                    Values = new List<Datum.Declaration>
-                                                    {
-                                                        new()
-                                                        {
-                                                            Datatype = Reference(money),
-                                                            Mutability = new Variable(),
-                                                            Identifier = Words(horse),
-                                                            Source = new Token[] { Word(horse), Returns(), Word(money) }
-                                                        }
-                                                    },
-                                                    Source = new Token[] { StartValues(), Word(horse), Returns(), Word(money), EndValues() }
-                                                }
+                                                Datatype = Reference(money),
+                                                Mutability = new Variable(),
+                                                Identifier = Words(horse),
+                                                Source = new Token[] { Word(horse), Returns(), Word(money) }
                                             },
-                                            Source = new Token[] { Word(correct), Word(horse), Word(battery), StartValues(), Word(horse), Returns(), Word(money), EndValues() }
-                                        },
-                                        Returns = Reference(whole, number),
-                                        Definition = new()
-                                        {
-                                            Values = new List<Statement>
-                                            {
-                                                FunctionCall(Name(@return), new Inline { Source = new[] { Number(72) } })
-                                            }
+                                            //Source = new Token[] { StartValues(), Word(horse), Returns(), Word(money), EndValues() }
                                         }
                                     },
-                                    new Function.Declaration
+                                    Source = new Token[] { Word(correct), Word(horse), Word(battery), StartValues(), Word(horse), Returns(), Word(money), EndValues() }
+                                },
+                                Returns = Reference(whole, number),
+                                Definition = new()
+                                {
+                                    FunctionCall(Name(@return), new Inline { Source = new[] { Number(72) } })
+                                }
+                            },
+                            new Function.Declaration
+                            {
+                                Identifier = new()
+                                {
+                                    Components = new List<Identifier.Component>
                                     {
-                                        Identifier = new()
+                                        new Parameters
                                         {
-                                            Components = new List<Identifier.Component>
+                                            new()
                                             {
-                                                new Parameters
-                                                {
-                                                    Values = new List<Datum.Declaration>
-                                                    {
-                                                        new()
-                                                        {
-                                                            Datatype = Reference(money),
-                                                            Mutability = new Constant(),
-                                                            Identifier = Words(correct),
-                                                            Source = new Token[] { StartValues(), Word(correct), Returns(), Word(money), EndValues() }
-                                                        }
-                                                    }
-                                                },
-                                                Name(horse),
-                                                Name(battery)
-                                            },
-                                            Source = new Token[] { StartValues(), Word(correct), Returns(), Word(money), EndValues(), Word(horse), Word(battery) }
-                                        },
-                                        Returns = Reference(number),
-                                        Definition = new()
-                                        {
-                                            Values = new List<Statement>
-                                            {
-                                                FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(12) } })
+                                                Datatype = Reference(money),
+                                                Mutability = new Constant(),
+                                                Identifier = Words(correct),
+                                                Source = new Token[] { StartValues(), Word(correct), Returns(), Word(money), EndValues() }
                                             }
-                                        }
-                                    }
+                                        },
+                                        Name(horse),
+                                        Name(battery)
+                                    },
+                                    Source = new Token[] { StartValues(), Word(correct), Returns(), Word(money), EndValues(), Word(horse), Word(battery) }
+                                },
+                                Returns = Reference(number),
+                                Definition = new()
+                                {
+                                    FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(12) } })
                                 }
                             }
                         }
