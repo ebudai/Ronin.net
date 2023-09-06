@@ -105,11 +105,11 @@ public class Imports : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Module, module, errors);
+            Analyzer.Define(Module.Global, module, errors);
             Assert.Empty(errors);
 
             Assert.Single(module.Definition.GetImports());
-            Assert.Empty(Global.Module.GetImports());
+            Assert.Empty(Module.Global.GetImports());
 
             var import = module.Definition.GetImports().First();
             Assert.IsType<Context.Unresolved>(import);

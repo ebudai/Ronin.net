@@ -14,16 +14,15 @@ internal static class Utility
 {
     internal static void SetMemory<T>(this T value, string args) where T : Token => typeof(T).GetProperty("Memory").SetMethod.Invoke(value, new object[] { args.AsMemory() });
 
-    internal static Dictionary<Identifier, Context.Member> GetMembers(this Context context) => MembersProperty.GetValue(context) as Dictionary<Identifier, Context.Member>;
-    internal static List<Context> GetContexts(this Module module) => ContextsProperty.GetValue(module) as List<Context>;
-    internal static List<Module> GetImports(this Context context) => ImportsProperty.GetValue(context) as List<Module>;
-    internal static Dictionary<Identifier, Module> GetModules(this Global global) => ModulesProperty.GetValue(global) as Dictionary<Identifier, Module>;
+    internal static Dictionary<Identifier, Context.Member> GetMembers(this Context context) => MembersField.GetValue(context) as Dictionary<Identifier, Context.Member>;
+    internal static List<Context> GetContexts(this Module module) => ContextsField.GetValue(module) as List<Context>;
+    internal static List<Module> GetImports(this Context context) => ImportsField.GetValue(context) as List<Module>;
+    internal static Dictionary<Identifier.Component, Module> GetModules(this Module module) => ModulesField.GetValue(module) as Dictionary<Identifier.Component, Module>;
 
-    private static readonly FieldInfo MembersProperty = typeof(Context).GetField("Members", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo ContextsProperty = typeof(Module).GetField("Contexts", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo ImportsProperty = typeof(Context).GetField("Imports", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo ModulesProperty = typeof(Global).GetField("Modules", BindingFlags.Instance | BindingFlags.NonPublic);
-    
+    private static readonly FieldInfo MembersField = typeof(Context).GetField("Members", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo ContextsField = typeof(Module).GetField("Contexts", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo ImportsField = typeof(Context).GetField("Imports", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo ModulesField = typeof(Module).GetField("Modules", BindingFlags.Instance | BindingFlags.NonPublic);    
 }
 
 public class ParsingTests

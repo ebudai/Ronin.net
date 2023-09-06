@@ -166,11 +166,11 @@ public class Functions : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Module, context, errors);
+            Analyzer.Define(Module.Global, context, errors);
             Assert.Empty(errors);
 
-            Assert.Single(Global.Module.GetModules());
-            var module = Global.Module.GetModules().First().Value;
+            Assert.Single(Module.Global.GetModules());
+            var module = Module.Global.GetModules().First().Value;
 
             Assert.Single(module.GetMembers());
 
@@ -207,23 +207,23 @@ public class Functions : ParsingTests
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Module.Add(Identifier(Name(test), param), new Function());
+                Module.Global.Add(Identifier(Name(test), param), new Function());
             }
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Module.Add(Identifier(Name(test), param), new Function());
+                Module.Global.Add(Identifier(Name(test), param), new Function());
             }
 
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
             var reference = Reference(Name(test), parameter);
 
             Function.Call call = new() { Function = new Function.Unresolved { Reference = reference } };
-            Global.Module.Add(call);
+            Module.Global.Add(call);
 
-            Analyzer.Resolve(Global.Module, errors);
+            Analyzer.Resolve(Module.Global, errors);
 
             var overloaded = call.Function as Function.Overloaded;
             Assert.Equal(2, overloaded?.Overloads.Count);

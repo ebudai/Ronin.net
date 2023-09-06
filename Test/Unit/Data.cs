@@ -309,7 +309,7 @@ public class Data : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Module, module, errors);
+            Analyzer.Define(Module.Global, module, errors);
             Assert.Empty(errors);
 
             Assert.Single(module.GetMembers());

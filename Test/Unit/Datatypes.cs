@@ -122,7 +122,7 @@ public class Datatypes : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Module, module, errors);
+            Analyzer.Define(Module.Global, module, errors);
             Assert.Empty(errors);
 
             Assert.Single(module);
@@ -181,14 +181,14 @@ public class Datatypes : ParsingTests
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Module.Add(Identifier(Name(Car), param), new Datatype());
+                Module.Global.Add(Identifier(Name(Car), param), new Datatype());
             }
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Module.Add(Identifier(Name(Car), param), new Datatype());
+                Module.Global.Add(Identifier(Name(Car), param), new Datatype());
             }
 
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
@@ -199,10 +199,10 @@ public class Datatypes : ParsingTests
                 Datatype = new Datatype.Unresolved { Reference = datatype } 
             };
 
-            Global.Module.Add(Identifier(car), datum);
+            Module.Global.Add(Identifier(car), datum);
             Assert.Empty(errors);
 
-            Analyzer.Resolve(Global.Module, errors);
+            Analyzer.Resolve(Module.Global, errors);
             Assert.Empty(errors);
 
             var overloaded = datum.Datatype as Datatype.Overloaded;
@@ -227,14 +227,14 @@ public class Datatypes : ParsingTests
                 Algebra = new Algebra.Unresolved { Reference = Reference(number, and) },
                 Reference = Reference(Car)
             };
-            Global.Module.Add(Identifier(Car), datatype);
+            Module.Global.Add(Identifier(Car), datatype);
 
             Datum datum = new() { Datatype = datatype };
 
-            Global.Module.Add(Identifier(car), datum);
+            Module.Global.Add(Identifier(car), datum);
             Assert.Empty(errors);
 
-            Analyzer.Resolve(Global.Module, errors);
+            Analyzer.Resolve(Module.Global, errors);
             Assert.Empty(errors);
 
             var overloaded = datum.Datatype.Algebra as Algebra.Overloaded;

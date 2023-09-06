@@ -99,15 +99,19 @@ public class Exports : ParsingTests
                 }
             };
 
-            Global.Module.GetContexts().Clear();
-            Global.Module.GetMembers().Clear();
+            Module.Global.GetContexts().Clear();
+            Module.Global.GetMembers().Clear();
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Module, scope, errors);
+            Analyzer.Define(Module.Global, scope, errors);
             Assert.Empty(errors);
 
-            Assert.Single(Global.Module.GetModules());
-            var module = Global.Module.GetModules().FirstOrDefault().Value;
+            Assert.Single(Module.Global.GetModules());
+            var module = Module.Global.GetModules().FirstOrDefault().Value;
+            Assert.Single(Module.Global.GetModules());
+            module = module.GetModules().FirstOrDefault().Value;
+            Assert.Single(module.GetModules());
+            module = module.GetModules().FirstOrDefault().Value;
             Assert.Single(module.GetContexts());
             var context = module.GetContexts()[0];
             Assert.Equal(scope.Definition, context);
@@ -276,12 +280,18 @@ public class Exports : ParsingTests
                 }
             };
 
-            Global.Module.GetContexts().Clear();
+            Module.Global.GetContexts().Clear();
             List<Error> errors = new();
-            Analyzer.Define(Global.Module, scope, errors);
+            Analyzer.Define(Module.Global, scope, errors);
             Assert.Empty(errors);
 
-            Assert.Equal(2, Global.Module.GetContexts().Count);
+            Assert.Single(Module.Global.GetModules());
+            var module = Module.Global.GetModules().FirstOrDefault().Value;
+            Assert.Single(module.GetModules());
+            module = module.GetModules().FirstOrDefault().Value;
+            Assert.Single(module.GetModules());
+            module = module.GetModules().FirstOrDefault().Value;
+            Assert.Equal(2, module.GetContexts().Count);
         }
     }
 }
