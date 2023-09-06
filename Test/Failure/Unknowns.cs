@@ -47,7 +47,7 @@ public class Unknowns : ParsingTests
             Context module = new() { function };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, module, errors);
             Assert.Single(errors);
 
             var error = errors[0];

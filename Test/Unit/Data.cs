@@ -309,19 +309,21 @@ public class Data : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, module, errors);
             Assert.Empty(errors);
 
-            Assert.Single(module.Members);
+            Assert.Single(module.GetMembers());
 
-            var entry = module.Members.First();
+            var entry = module.GetMembers().First();
             var identifier = entry.Key;
             var datum = entry.Value as Datum;
 
             Assert.IsType<Variable>(datum.Mutability);
 
-            Assert.Single(identifier.value.Source.ToArray());
-            Assert.Equal(home, identifier.value.Source.Span[0].Memory.ToArray());
+            Assert.Single(identifier.Components);
+            Name name = identifier.Components[0];
+            Assert.Single(name.Source.ToArray());
+            Assert.Equal(home, name.Source.Span[0].Memory.ToArray());
 
             Assert.IsType<Datatype.Unresolved>(datum.Datatype);
         }

@@ -87,7 +87,7 @@ public class Exports : ParsingTests
 
             // { part of thing with stuff; }
 
-            AnonymousScope module = new()
+            AnonymousScope scope = new()
             {
                 Definition = new()
                 {
@@ -99,19 +99,18 @@ public class Exports : ParsingTests
                 }
             };
 
-            Global.Scope.Children.Clear();
-            Global.Scope.Members.Clear();
+            Global.Module.GetContexts().Clear();
+            Global.Module.GetMembers().Clear();
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, scope, errors);
             Assert.Empty(errors);
 
-            Assert.Single(Global.Scope.Children);
-            var child = Global.Scope.Children.First().Value;
-            Assert.Single(child.Children);
-            child = child.Children.First().Value;
-            Assert.Single(child.Children);
-            Assert.Equal(module.Definition, child.Children.First().Value);
+            Assert.Single(Global.Module.GetModules());
+            var module = Global.Module.GetModules().FirstOrDefault().Value;
+            Assert.Single(module.GetContexts());
+            var context = module.GetContexts()[0];
+            Assert.Equal(scope.Definition, context);
         }
 
         [Fact(DisplayName = "join existing")]
@@ -277,18 +276,12 @@ public class Exports : ParsingTests
                 }
             };
 
-            Global.Scope.Children.Clear();
+            Global.Module.GetContexts().Clear();
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, scope, errors);
+            Analyzer.Define(Global.Module, scope, errors);
             Assert.Empty(errors);
 
-            Assert.Single(Global.Scope.Children);
-            var child = Global.Scope.Children.First().Value;
-            Assert.Single(child.Children);
-            child = child.Children.First().Value;
-            Assert.Single(child.Children);
-            var module = child.Children.First().Value as Module;
-            Assert.Equal(2, module.Contexts.Count);
+            Assert.Equal(2, Global.Module.GetContexts().Count);
         }
     }
 }

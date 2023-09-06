@@ -122,17 +122,18 @@ public class Datatypes : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, module, errors);
             Assert.Empty(errors);
 
             Assert.Single(module);
 
-            var entry = module.Members.First();
+            var entry = module.GetMembers().First();
             var identifier = entry.Key;
             var datatype = entry.Value as Datatype;
 
-            Assert.Single(identifier.value.Source.ToArray());
-            Assert.Equal(Big, identifier.value.Source.Span[0].Memory.ToArray());
+            Assert.Single(identifier.Components);
+            Assert.Single(identifier.Components[0].Source.ToArray());
+            Assert.Equal(Big, identifier.Components[0].Source.Span[0].Memory.ToArray());
 
             var algebra = datatype.Algebra as Algebra.Unresolved;
             Assert.Equal(2, algebra?.Reference.Components.Count);
@@ -143,12 +144,13 @@ public class Datatypes : ParsingTests
 
             Assert.Single(datatype.Definition);
 
-            var datumentry = datatype.Definition.Members.First();
+            var datumentry = datatype.Definition.GetMembers().First();
             var name = datumentry.Key;
             var datum = datumentry.Value as Datum;
 
-            Assert.Single(name.value.Source.ToArray());
-            Assert.Equal(x, name.value.Source.Span[0].Memory.ToArray());
+            Assert.Single(name.Components);
+            Assert.Single(name.Components[0].Source.ToArray());
+            Assert.Equal(x, name.Components[0].Source.Span[0].Memory.ToArray());
 
             Assert.IsType<Variable>(datum?.Mutability);
             var unresolved = datum.Datatype as Datatype.Unresolved;
@@ -179,14 +181,14 @@ public class Datatypes : ParsingTests
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Scope.Add(Identifier(Name(Car), param), new Datatype());
+                Global.Module.Add(Identifier(Name(Car), param), new Datatype());
             }
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Scope.Add(Identifier(Name(Car), param), new Datatype());
+                Global.Module.Add(Identifier(Name(Car), param), new Datatype());
             }
 
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
@@ -197,10 +199,10 @@ public class Datatypes : ParsingTests
                 Datatype = new Datatype.Unresolved { Reference = datatype } 
             };
 
-            Global.Scope.Add(Identifier(car), datum);
+            Global.Module.Add(Identifier(car), datum);
             Assert.Empty(errors);
 
-            Analyzer.Resolve(Global.Scope, errors);
+            Analyzer.Resolve(Global.Module, errors);
             Assert.Empty(errors);
 
             var overloaded = datum.Datatype as Datatype.Overloaded;
@@ -225,14 +227,14 @@ public class Datatypes : ParsingTests
                 Algebra = new Algebra.Unresolved { Reference = Reference(number, and) },
                 Reference = Reference(Car)
             };
-            Global.Scope.Add(Identifier(Car), datatype);
+            Global.Module.Add(Identifier(Car), datatype);
 
             Datum datum = new() { Datatype = datatype };
 
-            Global.Scope.Add(Identifier(car), datum);
+            Global.Module.Add(Identifier(car), datum);
             Assert.Empty(errors);
 
-            Analyzer.Resolve(Global.Scope, errors);
+            Analyzer.Resolve(Global.Module, errors);
             Assert.Empty(errors);
 
             var overloaded = datum.Datatype.Algebra as Algebra.Overloaded;

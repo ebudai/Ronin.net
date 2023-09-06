@@ -133,7 +133,7 @@ public class Functions : ParsingTests
 
             // function run home (cash => money) => whole number { return 72; }
 
-            Context module = new()
+            Context context = new()
             {
                 new Function.Declaration
                 {
@@ -166,24 +166,21 @@ public class Functions : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, context, errors);
             Assert.Empty(errors);
 
-            Assert.Single(module.Children);
-            var child = module.Children.First().Value;
+            Assert.Single(Global.Module.GetModules());
+            var module = Global.Module.GetModules().First().Value;
 
-            Assert.Single(child.Children);
-            child = child.Children.First().Value;
+            Assert.Single(module.GetMembers());
 
-            Assert.Single(child.Members);
-
-            var entry = child.Members.First();
+            var entry = module.GetMembers().First();
             var identifier = entry.Key;
             var function = entry.Value as Function;
 
-            Assert.Equal(5, identifier.value.Source.Length);
-            Assert.Equal(cash, identifier.value.Source.Span[1].Memory.ToArray());
-            Assert.Equal(money, identifier.value.Source.Span[3].Memory.ToArray());
+            Assert.Equal(5, identifier.Components.Count);
+            Assert.Equal(cash, identifier.Components[1].Source.Span[0].Memory.ToArray());
+            Assert.Equal(money, identifier.Components[3].Source.Span[0].Memory.ToArray());
 
             Assert.Empty(function.Modifiers.Source.ToArray());
 
@@ -210,23 +207,23 @@ public class Functions : ParsingTests
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Scope.Add(Identifier(Name(test), param), new Function());
+                Global.Module.Add(Identifier(Name(test), param), new Function());
             }
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Global.Scope.Add(Identifier(Name(test), param), new Function());
+                Global.Module.Add(Identifier(Name(test), param), new Function());
             }
 
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
             var reference = Reference(Name(test), parameter);
 
             Function.Call call = new() { Function = new Function.Unresolved { Reference = reference } };
-            Global.Scope.Add(call);
+            Global.Module.Add(call);
 
-            Analyzer.Resolve(Global.Scope, errors);
+            Analyzer.Resolve(Global.Module, errors);
 
             var overloaded = call.Function as Function.Overloaded;
             Assert.Equal(2, overloaded?.Overloads.Count);

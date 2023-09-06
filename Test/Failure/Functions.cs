@@ -52,7 +52,7 @@ public class Functions : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, module, errors);
             Assert.Single(errors);
             Assert.Equal(Error.Message.Redefinition, errors[0].Reason);
         }

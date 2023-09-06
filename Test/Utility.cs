@@ -1,13 +1,29 @@
 ﻿using Ronin.Grammar;
+using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
+using System.Reflection;
+
+using Context = Ronin.Grammar.Context;
 using Function = Ronin.Grammar.Function;
+using Module = Ronin.Hierarchy.Module;
 
 namespace Test;
 
 internal static class Utility
 {
     internal static void SetMemory<T>(this T value, string args) where T : Token => typeof(T).GetProperty("Memory").SetMethod.Invoke(value, new object[] { args.AsMemory() });
+
+    internal static Dictionary<Identifier, Context.Member> GetMembers(this Context context) => MembersProperty.GetValue(context) as Dictionary<Identifier, Context.Member>;
+    internal static List<Context> GetContexts(this Module module) => ContextsProperty.GetValue(module) as List<Context>;
+    internal static List<Module> GetImports(this Context context) => ImportsProperty.GetValue(context) as List<Module>;
+    internal static Dictionary<Identifier, Module> GetModules(this Global global) => ModulesProperty.GetValue(global) as Dictionary<Identifier, Module>;
+
+    private static readonly FieldInfo MembersProperty = typeof(Context).GetField("Members", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo ContextsProperty = typeof(Module).GetField("Contexts", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo ImportsProperty = typeof(Context).GetField("Imports", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo ModulesProperty = typeof(Global).GetField("Modules", BindingFlags.Instance | BindingFlags.NonPublic);
+    
 }
 
 public class ParsingTests

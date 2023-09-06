@@ -44,7 +44,7 @@ public class Exports : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, module, errors);
             Assert.Single(errors);
 
             Error error = errors[0];
@@ -65,7 +65,7 @@ public class Exports : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, module, errors);
             Assert.Single(errors);
 
             Error error = errors[0];
@@ -86,7 +86,7 @@ public class Exports : ParsingTests
             };
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, module, errors);
             Assert.Single(errors);
 
             Error error = errors[0];
@@ -106,10 +106,10 @@ public class Exports : ParsingTests
                 }
             };
 
-            Global.Scope.Children.Clear();
+            Global.Module.GetContexts().Clear();
 
             List<Error> errors = new();
-            Analyzer.Define(Global.Scope, module, errors);
+            Analyzer.Define(Global.Module, module, errors);
             Assert.Single(errors);
 
             Error error = errors[0];
