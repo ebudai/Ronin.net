@@ -1,7 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Lexicon;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -21,7 +21,15 @@ internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration
 {
     public Dictionary<Identifier, Datum> Data { get; } = new();
 
-    public override bool Equals(object obj) => (obj as Parameters)?.SequenceEqual(this) ?? false;
-
-    public override int GetHashCode() => Values.ToHashCode();
+    public int CountMandatory()
+    {
+        var mandatory = 0;
+        foreach (var parameter in Data.Values)
+        {
+            if (parameter.Modifiers?.Is<Optional>() ?? false) continue;
+            if (parameter.Initializer is not null) continue;
+            ++mandatory;
+        }
+        return mandatory;
+    }
 }

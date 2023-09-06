@@ -3,12 +3,13 @@
 using Ronin.Compiler;
 using Ronin.Hierarchy;
 using Ronin.Lexicon;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
 internal class Function : Context.Member
 {
-    public Datatype Returns { get; init; }
+    public Datatype Returns { get; set; }
     public Context Definition { get; init; }
     
     /// <summary>

@@ -1,49 +1,24 @@
 ﻿using Ronin.Grammar;
+using System.Collections.Generic;
 
 namespace Ronin.Hierarchy;
 
-internal class Global : Context
+internal class Global : Module
 {
-    private Global() : base() { }
+    public static readonly Global Module = new();
 
-    public static readonly Global Scope = new();
-
-    public void Add(Identifier identifier, Context module)
+    public Module GetOrAddModule(Identifier identifier)
     {
-        Context child;
-        Context context = this;
-
-        for (int i = 0, max = identifier.Components.Count - 1; i < max; ++i)
+        if (Modules.TryGetValue(identifier, out var module) is false)
         {
-            if (context.Children.TryGetValue(identifier.Components[i], out child) is false)
-            {
-                child = new() { Parent = context };
-                context.Children.Add(identifier.Components[i], child);
-            }
-            context = child;
+            Identifier parent = new() { Components = new(identifier.Components) };
+            parent.Components.RemoveAt(parent.Components.Count - 1);
+            module = parent.Components.Count is 0 ? Module : new() { Parent = GetOrAddModule(parent) };
+            Modules.Add(identifier, module);
         }
-
-        var name = identifier.Components[^1];
-        if (context.Children.TryGetValue(name, out child))
-        {
-            if (child is Module existing)
-            {
-                existing.Contexts.Add(module);
-                return;
-            }
-            module = new Module { Contexts = new() { module, child } };
-        }
-
-        context.Children[name] = module;
+        
+        return module;
     }
 
-    public Module Get(Identifier identfier)
-    {
-        Context context = this;
-        foreach (var name in identfier.Components) 
-        {
-            if (context.Children.TryGetValue(name, out context) is false) return null;
-        }
-        return context as Module;
-    }
+    private readonly Dictionary<Identifier, Module> Modules = new();
 }

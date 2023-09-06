@@ -1,7 +1,9 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using System.Diagnostics.CodeAnalysis;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Ronin.Grammar;
 
@@ -10,6 +12,12 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Reference : Syntax, IParsableSyntax<Reference>
 {
+    public class Component : CompositeSyntax<Component, Name, AnonymousValue>
+    {
+        public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
+        public static implicit operator Component(AnonymousValue value) => new() { value = value, Source = value.Source };
+    }
+
     public List<Component> Components { get; init; }
     public Indexer Indexer { get; init; }
 
@@ -43,11 +51,11 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
         return reference.Components.SequenceEqual(Components) && reference.Indexer.Equals(Indexer);
     }
 
-    public override int GetHashCode() => Components.ToHashCode(Indexer);
-
-    public class Component : CompositeSyntax<Component, Name, AnonymousValue> 
+    public override int GetHashCode()
     {
-        public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
-        public static implicit operator Component(AnonymousValue value) => new() { value = value, Source = value.Source };
+        HashCode hashcode = new();
+        foreach (var component in Components) hashcode.Add(component);
+        hashcode.Add(Indexer);
+        return hashcode.ToHashCode();
     }
 }

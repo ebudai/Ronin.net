@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -31,28 +32,18 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
     {
         public override bool Equals(object obj)
         {
-            if (obj is Component component)
-            {
-                return base.Equals(component);
-            }
+            if (obj is Component) return base.Equals(obj);
 
             if (obj is not Reference.Component reference) return false;
             
             if (value is Name) return reference.Equals(value);
 
-            var parameters = value as Parameters;
-            var mandatory = 0;
-            foreach (var parameter in parameters.Data.Values)
-            {
-                if (parameter.Modifiers?.Is<Optional>() ?? false) continue;
-                if (parameter.Initializer is not null) continue;
-                ++mandatory;
-            }
-
             AnonymousValue anonymous = reference;
             if (anonymous is null) return false;
-            var inputcount = anonymous is Inputs inputs ? inputs.Values.Count : 1;
-            return inputcount >= mandatory && inputcount <= parameters.Data.Count;
+            var inputcount = anonymous is Inputs inputs ? inputs.Count : 1;
+
+            var parameters = value as Parameters;
+            return inputcount >= parameters.CountMandatory() && inputcount <= parameters.Data.Count;
         }
 
         public override int GetHashCode() => base.GetHashCode();

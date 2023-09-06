@@ -1,31 +1,23 @@
 ﻿using Ronin.Grammar;
+using System.Collections.Generic;
 
 namespace Ronin.Hierarchy;
 
 internal class Module : Context
 {
-    public Module() : base() { Parent = Global.Scope; }
+    private readonly List<Context> Contexts = new();
 
-    public List<Context> Contexts { get; init; } = new();
+    public void Add(Context context) => Contexts.Add(context);
 
-    public override Identifier Existing(Identifier identifier)
+    public override Resolution Find(Reference reference)
     {
-        foreach (var context in Contexts)
-        {
-            if (context.Existing(identifier) is Identifier found) return found;
-        }
-        return null;
+        return base.Find(reference);
     }
 
-    public override List<Resolution> Resolve(Reference reference)
+    public new class Unresolved : Module
     {
-        List<Resolution> resolutions = new();
+        public Unresolved(Import import) => Import = import;
 
-        foreach (var context in Contexts)
-        {
-            resolutions.AddRange(context.Resolve(reference));
-        }
-
-        return resolutions;
+        public new Import Import { get; }
     }
 }

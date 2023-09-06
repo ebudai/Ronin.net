@@ -1,36 +1,26 @@
 ﻿using Ronin.Grammar;
 using Ronin.Hierarchy;
-
+using System;
+using System.Collections.Generic;
 using Function = Ronin.Grammar.Function;
 
 namespace Ronin.Compiler;
 
 internal static partial class Analyzer
 {
-    public static void Resolve(Context definition, List<Error> errors)
+    public static void Resolve(Context definition, List<Error> errors) => throw new NotImplementedException();
+    /*public static void Resolve(Context definition, List<Error> errors)
     {
-        for (int i = 0, max = definition.Imports.Count; i != max; ++i)
-        {
-            if (definition.Imports[i] is not Context.Unresolved unresolved) continue;
-
-            var module = Global.Scope.Get(unresolved.Import.Name);
-            if (module is null)
-            {
-                errors.Add(Error.UnresolvedImport(unresolved.Import));
-                continue;
-            }
-            definition.Imports[i] = module;
-        }
+        Resolve(definition.Imports, errors);
 
         foreach (var name in definition.Members.Keys)
         {
-            if (name.value is Parameters parameters)
+            if (name.value is not Parameters parameters) continue;
+            
+            foreach (var datum in parameters.Data.Values)
             {
-                foreach (var datum in parameters.Data.Values)
-                {
-                    if (datum.Datatype is not Datatype.Unresolved unresolved) continue;
-                    datum.Datatype = Resolve(unresolved, definition, errors);
-                }
+                if (datum.Datatype is not Datatype.Unresolved datatype) continue;
+                datum.Datatype = Resolve(datatype, definition, errors);
             }
         }
         
@@ -50,9 +40,13 @@ internal static partial class Analyzer
                 }
                 definition.Members[name] = resolved[0].Member;
             }
-            else if (member is Datum and { Datatype: Datatype.Unresolved unresolved })
+            else if (member is Datum memberdatum and { Datatype: Datatype.Unresolved unresolved })
             {
-                (member as Datum).Datatype = Resolve(unresolved, definition, errors);
+                memberdatum.Datatype = Resolve(unresolved, definition, errors);
+            }
+            else if (member is Function function and { Returns: Datatype.Unresolved returns })
+            {
+                function.Returns = Resolve(returns, definition, errors);
             }
         }
 
@@ -95,6 +89,22 @@ internal static partial class Analyzer
         };
     }
 
+    private static void Resolve(List<Context> imports, List<Error> errors)
+    {
+        for (int i = 0, max = imports.Count; i != max; ++i)
+        {
+            if (imports[i] is not Context.Unresolved unresolved) continue;
+
+            var module = Global.Module.Get(unresolved.Import.Name);
+            if (module is not null)
+            {
+                imports[i] = module;
+                continue;
+            }
+            errors.Add(Error.UnresolvedImport(unresolved.Import));
+        }
+    }
+
     private static List<Resolution> GetOverloads(Context definition, Datatype.Unresolved datatype, List<Error> errors)
     {
         var overloads = definition.Resolve(datatype.Reference);
@@ -115,5 +125,5 @@ internal static partial class Analyzer
             errors.Add(Error.CouldNotResolve(algebra, unresolved.Reference));
         }
         return new Algebra.Overloaded { Overloads = overloads, Source = algebra.Source };
-    }
+    }*/
 }

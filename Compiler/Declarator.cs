@@ -1,5 +1,6 @@
 ﻿using Ronin.Grammar;
 using Ronin.Hierarchy;
+using System.Collections.Generic;
 
 namespace Ronin.Compiler;
 
@@ -38,7 +39,7 @@ internal static partial class Analyzer
         
         if (name is not null)
         {
-            Global.Scope.Add(name, scope.Definition);            
+            Global.Module.GetOrAddModule(name).Add(scope.Definition);            
         }
     }
 
@@ -46,7 +47,7 @@ internal static partial class Analyzer
     {
         switch (statement)
         {
-            case Import import: Import(definition, import); break;
+            case Import import: definition.Import(import); break;
             case Function.Declaration function: Define(definition, function, errors); break;
             case Datatype.Declaration datatype: Define(definition, datatype, errors); break;
             case Datum.Declaration datum: Define(definition, datum, errors); break;
@@ -79,11 +80,6 @@ internal static partial class Analyzer
         }
         
         if (error is false) identifier = export.Identifier;
-    }
-
-    private static void Import(Context definition, Import import)
-    {
-        definition.Imports.Add(new Context.Unresolved { Import = import });
     }
 
     private static void Define(Context definition, Function.Declaration declaration, List<Error> errors)

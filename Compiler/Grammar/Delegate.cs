@@ -2,6 +2,8 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Ronin.Grammar;
 
@@ -26,10 +28,8 @@ internal class Delegate : AnonymousValue, IParsableSyntax<Delegate>
     {
         Parser parser = current;
 
-        List<Datum.Declaration> data;
-
-        var parameters = Parameters.Parse(ref parser);        
-        if (parameters is null)
+        var data = Parameters.Parse(ref parser);        
+        if (data is null)
         {
             if (Datum.Declaration.Parse(ref parser) is not Datum.Declaration datum) return null;
             if (parser.PreviousToken is not Returns) return null;
@@ -37,7 +37,6 @@ internal class Delegate : AnonymousValue, IParsableSyntax<Delegate>
         }
         else
         {
-            data = parameters.ToList();
             if (parser.TryAdvance<Returns>() is false) return null;
         }
 
@@ -45,7 +44,7 @@ internal class Delegate : AnonymousValue, IParsableSyntax<Delegate>
 
         return new Delegate
         {
-            Data = data,
+            Data = new(data),
             Definition = definition,
             Source = parser.Commit(ref current)
         };
