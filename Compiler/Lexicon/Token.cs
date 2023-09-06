@@ -1,5 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using System;
 using System.Buffers;
 
 namespace Ronin.Lexicon;

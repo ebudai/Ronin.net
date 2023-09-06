@@ -3,13 +3,14 @@
 using Ronin.Compiler;
 using Ronin.Hierarchy;
 using Ronin.Lexicon;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
 internal class Datatype : Context.Member
 {
     public Algebra Algebra { get; set; }
-    public Context Definition { get; init; }
+    public Context Definition { get; init; }    
 
     /// <summary>
     ///     Restricts a <see cref="Datum"/> to a particular shape of data

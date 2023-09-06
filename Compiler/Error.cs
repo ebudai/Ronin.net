@@ -1,7 +1,10 @@
 ﻿using Ronin.Grammar;
-using Ronin.Hierarchy;
-using System.Reflection.Metadata.Ecma335;
+using Ronin.Lexicon;
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using static Ronin.Grammar.Context;
+using Import = Ronin.Grammar.Import;
 
 namespace Ronin.Compiler;
 
@@ -20,7 +23,7 @@ internal class Error
 
     public Dictionary<string, object> Data { get; } = new();
     public string Reason { get; }
-    public ReadOnlyMemory<Lexicon.Token> Tokens { get; protected init; }
+    public ReadOnlyMemory<Token> Tokens { get; protected init; }
 
     public Error(string reason) => Reason = reason;
 
@@ -47,9 +50,9 @@ internal class Error
         return error;
     }
 
-    public static Error Redefinition(Identifier identifier, Context.Member member)
+    public static Error Redefinition(Member member)
     {
-        Error error = new(Message.Redefinition) { Tokens = identifier.Source };
+        Error error = new(Message.Redefinition) { Tokens = member.Source };
         error.IsAbout(member);
         return error;
     }

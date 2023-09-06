@@ -2,6 +2,8 @@
 
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using System;
+using System.Collections.Generic;
 
 namespace Ronin.Compiler;
 

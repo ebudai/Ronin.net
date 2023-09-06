@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 internal static class Utility
 {
@@ -17,14 +19,6 @@ internal static class Utility
             if (entry.Key.Equals(key)) return entry;
         }
         return default;
-    }
-
-    public static int ToHashCode<T>(this IEnumerable<T> enumerable, params object[] extra)
-    {
-        HashCode hashcode = new();
-        foreach (var item in enumerable) hashcode.Add(item);
-        foreach (var item in extra) hashcode.Add(item);
-        return hashcode.ToHashCode();
     }
 
     public static int ToHashCode<T>(this ReadOnlySpan<T> enumerable)
