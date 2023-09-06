@@ -39,7 +39,7 @@ internal static partial class Analyzer
         
         if (name is not null)
         {
-            Global.Module.GetOrAddModule(name).Add(scope.Definition);            
+            Module.Global.Add(scope.Definition, name);
         }
     }
 
