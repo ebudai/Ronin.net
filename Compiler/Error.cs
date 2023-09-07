@@ -3,7 +3,7 @@ using Ronin.Lexicon;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using static Ronin.Grammar.Context;
+
 using Import = Ronin.Grammar.Import;
 
 namespace Ronin.Compiler;
@@ -50,7 +50,7 @@ internal class Error
         return error;
     }
 
-    public static Error Redefinition(Member member)
+    public static Error Redefinition(Context.Member member)
     {
         Error error = new(Message.Redefinition) { Tokens = member.Source };
         error.IsAbout(member);
