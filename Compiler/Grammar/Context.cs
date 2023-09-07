@@ -38,19 +38,13 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
     }
 
     public Context Parent { get; set; }
-
-    private readonly List<Module> Imports = new();
-    private readonly Dictionary<Identifier, Member> Members = new();
+    public List<Module> Imports { get; } = new();
+    public Dictionary<Identifier, Member> Members { get; } = new();
 
     public Error Add(Identifier identifier, Member member)
     {
         if (Members.TryAdd(identifier, member)) return null;
         return Error.Redefinition(Members[identifier]);
-    }
-
-    public virtual void Resolve()
-    {
-
     }
 
     public virtual Resolution Find(Reference reference)

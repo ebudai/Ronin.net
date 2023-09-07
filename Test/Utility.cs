@@ -1,30 +1,14 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
-using System.Reflection;
 
 using Context = Ronin.Grammar.Context;
-using Function = Ronin.Grammar.Function;
-using Module = Ronin.Hierarchy.Module;
 
 namespace Test;
 
 internal static class Utility
 {
-    internal static void SetMemory<T>(this T value, string args) where T : Token => typeof(T).GetProperty("Memory").SetMethod.Invoke(value, new object[] { args.AsMemory() });
-
-    internal static Dictionary<Identifier, Context.Member> GetMembers(this Context context) => MembersField.GetValue(context) as Dictionary<Identifier, Context.Member>;
-    internal static List<Context> GetContexts(this Module module) => ContextsField.GetValue(module) as List<Context>;
-    internal static List<Module> GetImports(this Context context) => ImportsField.GetValue(context) as List<Module>;
-    internal static Dictionary<Identifier.Component, Module> GetModules(this Module module) => ModulesField.GetValue(module) as Dictionary<Identifier.Component, Module>;
-
-    internal static void SetGlobal(Module global) => GlobalField.SetValue(null, global);
-
-    private static readonly FieldInfo MembersField = typeof(Context).GetField("Members", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo ContextsField = typeof(Module).GetField("Contexts", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo ImportsField = typeof(Context).GetField("Imports", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo ModulesField = typeof(Module).GetField("Modules", BindingFlags.Instance | BindingFlags.NonPublic);    
-    private static readonly FieldInfo GlobalField = typeof(Module).GetField("Global", BindingFlags.Static | BindingFlags.NonPublic);
+    internal static void SetMemory<T>(this T value, string args) where T : Token => typeof(T).GetProperty(nameof(Token.Memory)).SetMethod.Invoke(value, new object[] { args.AsMemory() });
 }
 
 public class ParsingTests

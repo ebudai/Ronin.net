@@ -5,10 +5,12 @@ namespace Ronin.Hierarchy;
 
 internal class Module : Context
 {
-    private readonly Dictionary<Identifier.Component, Module> Modules = new();
-    private readonly List<Context> Contexts = new();
+    public List<Context> Contexts { get; } = new();
+    public Dictionary<Identifier.Component, Module> Modules { get; } = new();    
 
-    public void Add(Context context, Identifier name = null)
+    public void Add(Context context, Identifier name = null) => GetOrCreate(name).Contexts.Add(context);
+
+    public Module GetOrCreate(Identifier name)
     {
         var module = this;
         for (int i = 0, max = name?.Components.Count ?? 0; i < max; ++i)
@@ -20,7 +22,7 @@ internal class Module : Context
             }
             module = child;
         }
-        module.Contexts.Add(context);
+        return module;
     }
 
     public override Resolution Find(Reference reference)

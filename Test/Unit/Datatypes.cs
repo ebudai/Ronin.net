@@ -128,7 +128,7 @@ public class Datatypes : ParsingTests
 
             Assert.Single(module);
 
-            var entry = module.GetMembers().First();
+            var entry = module.Members.First();
             var identifier = entry.Key;
             var datatype = entry.Value as Datatype;
 
@@ -145,7 +145,7 @@ public class Datatypes : ParsingTests
 
             Assert.Single(datatype.Definition);
 
-            var datumentry = datatype.Definition.GetMembers().First();
+            var datumentry = datatype.Definition.Members.First();
             var name = datumentry.Key;
             var datum = datumentry.Value as Datum;
 

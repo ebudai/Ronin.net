@@ -107,10 +107,10 @@ public class Imports : ParsingTests
             analyzer.Define(analyzer.Global, scope);
             Assert.Empty(analyzer.Errors);
 
-            Assert.Single(scope.Definition.GetImports());
-            Assert.Empty(analyzer.Global.GetImports());
+            Assert.Single(scope.Definition.Imports);
+            Assert.Empty(analyzer.Global.Imports);
 
-            var import = scope.Definition.GetImports().First();
+            var import = scope.Definition.Imports.First();
             Assert.IsType<Module.Unresolved>(import);
         }
     }

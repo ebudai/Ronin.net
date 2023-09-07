@@ -313,9 +313,9 @@ public class Data : ParsingTests
             analyzer.Define(module);
             Assert.Empty(analyzer.Errors);
 
-            Assert.Single(module.GetMembers());
+            Assert.Single(module.Members);
 
-            var entry = module.GetMembers().First();
+            var entry = module.Members.First();
             var identifier = entry.Key;
             var datum = entry.Value as Datum;
 

@@ -171,12 +171,12 @@ public class Functions : ParsingTests
             analyzer.Define(analyzer.Global, scope);
             Assert.Empty(analyzer.Errors);
 
-            Assert.Single(analyzer.Global.GetContexts());
-            var context = analyzer.Global.GetContexts().First();
+            Assert.Single(analyzer.Global.Contexts);
+            var context = analyzer.Global.Contexts.First();
 
-            Assert.Single(context.GetMembers());
+            Assert.Single(context.Members);
 
-            var entry = context.GetMembers().First();
+            var entry = context.Members.First();
             var identifier = entry.Key;
             var function = entry.Value as Function;
 

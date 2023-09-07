@@ -83,8 +83,8 @@ public class AnonymousScopes : ParsingTests
             analyzer.Define(scope.Definition);
             Assert.Empty(analyzer.Errors);
 
-            Assert.Single(scope.Definition.GetMembers());
-            var datum = scope.Definition.GetMembers().First().Value;
+            Assert.Single(scope.Definition.Members);
+            var datum = scope.Definition.Members.First().Value;
             Assert.IsAssignableFrom<Datum>(datum);
         }
 
@@ -128,8 +128,8 @@ public class AnonymousScopes : ParsingTests
             Assert.Single(scope.Definition);
             var inner = scope.Definition[0] as AnonymousScope;
             Assert.NotNull(inner);
-            Assert.Single(inner.Definition.GetMembers());
-            var datum = inner.Definition.GetMembers().First().Value;
+            Assert.Single(inner.Definition.Members);
+            var datum = inner.Definition.Members.First().Value;
             Assert.IsAssignableFrom<Datum>(datum);
         }
     }

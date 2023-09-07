@@ -103,14 +103,14 @@ public class Exports : ParsingTests
             analyzer.Define(analyzer.Global, scope);
             Assert.Empty(analyzer.Errors);
 
-            Assert.Single(analyzer.Global.GetModules());
-            var module = analyzer.Global.GetModules().FirstOrDefault().Value;
-            Assert.Single(analyzer.Global.GetModules());
-            module = module.GetModules().FirstOrDefault().Value;
-            Assert.Single(module.GetModules());
-            module = module.GetModules().FirstOrDefault().Value;
-            Assert.Single(module.GetContexts());
-            var context = module.GetContexts()[0];
+            Assert.Single(analyzer.Global.Modules);
+            var module = analyzer.Global.Modules.FirstOrDefault().Value;
+            Assert.Single(analyzer.Global.Modules);
+            module = module.Modules.FirstOrDefault().Value;
+            Assert.Single(module.Modules);
+            module = module.Modules.FirstOrDefault().Value;
+            Assert.Single(module.Contexts);
+            var context = module.Contexts[0];
             Assert.Equal(scope.Definition, context);
         }
 
@@ -275,13 +275,13 @@ public class Exports : ParsingTests
             analyzer.Define(analyzer.Global, scope);
             Assert.Empty(analyzer.Errors);
 
-            Assert.Single(analyzer.Global.GetModules());
-            var module = analyzer.Global.GetModules().FirstOrDefault().Value;
-            Assert.Single(module.GetModules());
-            module = module.GetModules().FirstOrDefault().Value;
-            Assert.Single(module.GetModules());
-            module = module.GetModules().FirstOrDefault().Value;
-            Assert.Equal(2, module.GetContexts().Count);
+            Assert.Single(analyzer.Global.Modules);
+            var module = analyzer.Global.Modules.FirstOrDefault().Value;
+            Assert.Single(module.Modules);
+            module = module.Modules.FirstOrDefault().Value;
+            Assert.Single(module.Modules);
+            module = module.Modules.FirstOrDefault().Value;
+            Assert.Equal(2, module.Contexts.Count);
         }
     }
 }
