@@ -56,7 +56,7 @@ public class Identifiers : ParsingTests
         Parser parser = new(tokens);
         var identifier = Identifier.Parse(ref parser);
 
-        Assert.Equal(4, identifier?.Components.Count);
+        Assert.Single(identifier?.Components);
     }
 
     [Fact(DisplayName = "equality")]

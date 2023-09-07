@@ -133,49 +133,51 @@ public class Functions : ParsingTests
 
             // function run home (cash => money) => whole number { return 72; }
 
-            Context context = new()
+            AnonymousScope scope = new()
             {
-                new Function.Declaration
+                Definition = new()
                 {
-                    Identifier = new()
+                    new Function.Declaration
                     {
-                        Components = new List<Identifier.Component>
+                        Identifier = new()
                         {
-                            Name(run),
-                            Name(home),
-                            new Parameters
+                            Components = new List<Identifier.Component>
                             {
-                                new()
+                                Name(run),
+                                Name(home),
+                                new Parameters
                                 {
-                                    Datatype = Reference(money),
-                                    Mutability = new Constant(),
-                                    Identifier = Words(cash),
-                                    Source = new Token[] { Word(cash), Returns(), Word(money) }
-                                },
-                                //Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
+                                    new()
+                                    {
+                                        Datatype = Reference(money),
+                                        Mutability = new Constant(),
+                                        Identifier = Words(cash),
+                                        Source = new Token[] { Word(cash), Returns(), Word(money) }
+                                    },
+                                    //Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
+                                }
                             }
+                        },
+                        Returns = Reference(whole, number),
+                        Definition = new()
+                        {
+                            FunctionCall(@return),
+                            new Inline { Source = new[] { Number(72) } }
                         }
-                    },
-                    Returns = Reference(whole, number),
-                    Definition = new()
-                    {
-                        FunctionCall(@return),
-                        new Inline { Source = new[] { Number(72) } }
                     }
                 }
             };
 
             Analyzer analyzer = new();
-            context.Parent = analyzer.Global;
-            analyzer.Define(context);
+            analyzer.Define(analyzer.Global, scope);
             Assert.Empty(analyzer.Errors);
 
-            Assert.Single(analyzer.Global.GetModules());
-            var module = analyzer.Global.GetModules().First().Value;
+            Assert.Single(analyzer.Global.GetContexts());
+            var context = analyzer.Global.GetContexts().First();
 
-            Assert.Single(module.GetMembers());
+            Assert.Single(context.GetMembers());
 
-            var entry = module.GetMembers().First();
+            var entry = context.GetMembers().First();
             var identifier = entry.Key;
             var function = entry.Value as Function;
 
