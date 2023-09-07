@@ -30,10 +30,10 @@ internal class Module : Context
         return base.Find(reference);
     }
 
-    public new class Unresolved : Module
+    public class Unresolved : Module
     {
         public Unresolved(Import import) => Import = import;
 
-        public new Import Import { get; }
+        public Import Import { get; }
     }
 }

@@ -52,5 +52,5 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
         return null;
     }
 
-    public void Import(Import import) => Imports.Add(new Module.Unresolved(import));
+    public void Add(Import import) => Imports.Add(new Module.Unresolved(import));
 }
