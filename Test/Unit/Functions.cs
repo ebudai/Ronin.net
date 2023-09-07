@@ -52,8 +52,8 @@ public class Functions : ParsingTests
         Assert.Equal(1, type?.Source.Length);
         
         Assert.Single(function.Definition);
-        var line = function.Definition[0] as Function.Call;
-        var unresolved = line?.Function as Function.Unresolved;
+        var line = function.Definition[0] as Reference.Unresolved;
+        var unresolved = line?.Member as Context.Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         Name @return = unresolved.Reference.Components[0];
@@ -110,8 +110,8 @@ public class Functions : ParsingTests
         Assert.Equal(1, returns?.Source.Length);
 
         Assert.Single(function.Definition);
-        var line = function.Definition[0] as Function.Call;
-        var unresolved = line?.Function as Function.Unresolved;
+        var line = function.Definition[0] as Reference.Unresolved;
+        var unresolved = line?.Member as Context.Member.Unresolved;
         Assert.Single(unresolved?.Reference.Components);
         Name @return = unresolved.Reference.Components[0];
         Assert.Equal(4, @return?.Source.Length);
@@ -160,7 +160,7 @@ public class Functions : ParsingTests
                         Returns = Reference(whole, number),
                         Definition = new()
                         {
-                            FunctionCall(@return),
+                            UnresolvedReference(@return),
                             new Inline { Source = new[] { Number(72) } }
                         }
                     }
@@ -233,12 +233,12 @@ public class Functions : ParsingTests
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
             var reference = Reference(Name(test), parameter);
 
-            Function.Call call = new() { Function = new Function.Unresolved { Reference = reference } };
-            analyzer.Global.Add(call);
+            Reference.Unresolved unresolved = new() { Member = new Function.Unresolved { Reference = reference } };
+            analyzer.Global.Add(unresolved);
 
             //analyzer.Resolve(Module.Global, errors);
 
-            var overloaded = call.Function as Function.Overloaded;
+            var overloaded = unresolved.Member as Function.Overloaded;
             Assert.Equal(2, overloaded?.Overloads.Count);
         }
     }

@@ -58,4 +58,23 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
         hashcode.Add(Indexer);
         return hashcode.ToHashCode();
     }
+
+    public class Unresolved : Statement, IParsableSyntax<Unresolved>
+    {
+        public Context.Member Member { get; set; }
+        public List<Inputs> Inputs { get; } = new();
+
+        public static new Unresolved Parse(ref Parser current)
+        {
+            Parser parser = current;
+
+            if (Reference.Parse(ref parser) is not Reference reference) return null;
+
+            return new Unresolved
+            {
+                Member = new Context.Member.Unresolved { Reference = reference },
+                Source = parser.Commit(ref current)
+            };
+        }
+    }
 }

@@ -65,30 +65,24 @@ public class AnonymousScopes : ParsingTests
 
             // { var x = 3; }
 
-            Context module = new()
+            AnonymousScope scope = new()
             {
-                new AnonymousScope
+                Definition = new()
                 {
-                    Definition = new()
+                    new Datum.Declaration
                     {
-                        new Datum.Declaration
-                        {
-                            Mutability = new Variable(),
-                            Identifier = Words(x),
-                            Initializer = new Inline { Source = new[] { Number(3) } }
-                        }
+                        Mutability = new Variable(),
+                        Identifier = Words(x),
+                        Initializer = new Inline { Source = new[] { Number(3) } }
                     }
                 }
             };
             
             Analyzer analyzer = new();
-            module.Parent = analyzer.Global;
-            analyzer.Define(module);
+            scope.Definition.Parent = analyzer.Global;
+            analyzer.Define(scope.Definition);
             Assert.Empty(analyzer.Errors);
 
-            Assert.Single(module);
-            var scope = module[0] as AnonymousScope;
-            Assert.NotNull(scope);
             Assert.Single(scope.Definition.GetMembers());
             var datum = scope.Definition.GetMembers().First().Value;
             Assert.IsAssignableFrom<Datum>(datum);

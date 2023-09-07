@@ -36,8 +36,8 @@ public class Delegates : ParsingTests
         Assert.Equal(1, datum?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition);
-        var line = @delegate.Definition[0] as Function.Call;
-        var unresolved = line?.Function as Function.Unresolved;
+        var line = @delegate.Definition[0] as Reference.Unresolved;
+        var unresolved = line?.Member as Context.Member.Unresolved;
         Assert.Equal(2, unresolved.Reference.Components?.Count);
 
         Name name = unresolved.Reference.Components[0];
@@ -76,8 +76,8 @@ public class Delegates : ParsingTests
         Assert.Equal(1, datum?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition);
-        var line = @delegate.Definition[0] as Function.Call;
-        var unresolved = line?.Function as Function.Unresolved;
+        var line = @delegate.Definition[0] as Reference.Unresolved;
+        var unresolved = line?.Member as Context.Member.Unresolved;
         Assert.Equal(2, unresolved.Reference.Components?.Count);
 
         {
@@ -124,8 +124,8 @@ public class Delegates : ParsingTests
         Assert.Equal(1, @delegate.Data[2]?.Identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition);
-        var line = @delegate.Definition[0] as Function.Call;
-        var unresolved = line?.Function as Function.Unresolved;
+        var line = @delegate.Definition[0] as Reference.Unresolved;
+        var unresolved = line?.Member as Context.Member.Unresolved;
         Assert.Equal(2, unresolved.Reference.Components?.Count);
 
         {
@@ -163,9 +163,9 @@ public class Delegates : ParsingTests
         Assert.Empty(@delegate?.Data);
 
         Assert.Single(@delegate?.Definition);
-        var line = @delegate.Definition[0] as Function.Call;
-        var unresolved = line?.Function as Function.Unresolved;
-        Assert.Equal(2, unresolved.Reference.Components?.Count);
+        var line = @delegate.Definition[0] as Reference.Unresolved;
+        var unresolved = line?.Member as Context.Member.Unresolved;
+        Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
             Name name = unresolved.Reference.Components[0];

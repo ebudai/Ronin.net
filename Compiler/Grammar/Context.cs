@@ -30,6 +30,11 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
     public class Member : Syntax
     {
         public Modifiers Modifiers { get; init; }
+
+        public class Unresolved : Member
+        {
+            public Reference Reference { get; init; }
+        }
     }
 
     public Context Parent { get; set; }
@@ -41,6 +46,11 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
     {
         if (Members.TryAdd(identifier, member)) return null;
         return Error.Redefinition(Members[identifier]);
+    }
+
+    public virtual void Resolve()
+    {
+
     }
 
     public virtual Resolution Find(Reference reference)

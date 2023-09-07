@@ -57,26 +57,7 @@ internal class Function : Context.Member
         }
     }
 
-    public class Call : Statement, IParsableSyntax<Call>
-    {
-        public Function Function { get; set; }
-        public List<Inputs> Inputs { get; } = new();
-
-        public static new Call Parse(ref Parser current)
-        {
-            Parser parser = current;
-
-            if (Reference.Parse(ref parser) is not Reference reference) return null;
-
-            return new Call
-            {
-                Function = new Unresolved { Reference = reference },
-                Source = parser.Commit(ref current)
-            };
-        }
-    }
-
-    public class Unresolved : Function
+    public new class Unresolved : Function
     {
         public Reference Reference { get; init; }
     }

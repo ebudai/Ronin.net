@@ -69,7 +69,7 @@ internal class Datum : Context.Member
         }
     }
 
-    public class Unresolved : Datum
+    public new class Unresolved : Datum
     {
         public required Reference Reference { get; set; }
     }

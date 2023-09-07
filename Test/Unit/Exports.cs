@@ -158,9 +158,7 @@ public class Exports : ParsingTests
                                 {
                                     Components = new List<Identifier.Component>
                                     {
-                                        Name(correct),
-                                        Name(horse),
-                                        Name(battery),
+                                        Name(correct, horse, battery),
                                         new Parameters
                                         {
                                             new()
@@ -178,7 +176,7 @@ public class Exports : ParsingTests
                                 Returns = Reference(whole, number),
                                 Definition = new()
                                 {
-                                    FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(24) } })
+                                    UnresolvedReference(Name(@return), new Inline { Source = new Token[] { Number(24) } })
                                 }
                             },
                             new Function.Declaration
@@ -197,15 +195,14 @@ public class Exports : ParsingTests
                                                 Source = new Token[] { StartValues(), Word(correct), Returns(), Word(number), EndValues() }
                                             }
                                         },
-                                        Name(horse),
-                                        Name(battery)
+                                        Name(horse, battery)
                                     },
                                     Source = new Token[] { StartValues(), Word(correct), Returns(), Word(Bag), StartValues(), Number(15), EndValues(), EndValues(), Word(horse), Word(battery) }
                                 },
                                 Returns = Reference(number),
                                 Definition = new()
                                 {
-                                    FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(8.2) } })
+                                    UnresolvedReference(Name(@return), new Inline { Source = new Token[] { Number(8.2) } })
                                 }
                             }
                         }
@@ -222,9 +219,7 @@ public class Exports : ParsingTests
                                 {
                                     Components = new List<Identifier.Component>
                                     {
-                                        Name(correct),
-                                        Name(horse),
-                                        Name(battery),
+                                        Name(correct, horse, battery),
                                         new Parameters
                                         {
                                             new()
@@ -242,7 +237,7 @@ public class Exports : ParsingTests
                                 Returns = Reference(whole, number),
                                 Definition = new()
                                 {
-                                    FunctionCall(Name(@return), new Inline { Source = new[] { Number(72) } })
+                                    UnresolvedReference(Name(@return), new Inline { Source = new[] { Number(72) } })
                                 }
                             },
                             new Function.Declaration
@@ -261,15 +256,14 @@ public class Exports : ParsingTests
                                                 Source = new Token[] { StartValues(), Word(correct), Returns(), Word(money), EndValues() }
                                             }
                                         },
-                                        Name(horse),
-                                        Name(battery)
+                                        Name(horse, battery),
                                     },
                                     Source = new Token[] { StartValues(), Word(correct), Returns(), Word(money), EndValues(), Word(horse), Word(battery) }
                                 },
                                 Returns = Reference(number),
                                 Definition = new()
                                 {
-                                    FunctionCall(Name(@return), new Inline { Source = new Token[] { Number(12) } })
+                                    UnresolvedReference(Name(@return), new Inline { Source = new Token[] { Number(12) } })
                                 }
                             }
                         }

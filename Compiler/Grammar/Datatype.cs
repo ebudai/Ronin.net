@@ -51,7 +51,7 @@ internal class Datatype : Context.Member
         }
     }
 
-    public class Unresolved : Datatype
+    public new class Unresolved : Datatype
     {
         public Reference Reference { get; init; }
     }
