@@ -6,10 +6,10 @@ using Function = Ronin.Grammar.Function;
 
 namespace Ronin.Compiler;
 
-internal static partial class Analyzer
+/*internal static partial class Analyzer
 {
     public static void Resolve(Context definition, List<Error> errors) => throw new NotImplementedException();
-    /*public static void Resolve(Context definition, List<Error> errors)
+    public static void Resolve(Context definition, List<Error> errors)
     {
         Resolve(definition.Imports, errors);
 
@@ -125,5 +125,5 @@ internal static partial class Analyzer
             errors.Add(Error.CouldNotResolve(algebra, unresolved.Reference));
         }
         return new Algebra.Overloaded { Overloads = overloads, Source = algebra.Source };
-    }*/
-}
+    }
+}*/

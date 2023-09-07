@@ -80,10 +80,11 @@ public class AnonymousScopes : ParsingTests
                     }
                 }
             };
-
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Empty(errors);
+            
+            Analyzer analyzer = new();
+            module.Parent = analyzer.Global;
+            analyzer.Define(module);
+            Assert.Empty(analyzer.Errors);
 
             Assert.Single(module);
             var scope = module[0] as AnonymousScope;
@@ -122,9 +123,10 @@ public class AnonymousScopes : ParsingTests
                 }
             };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Empty(errors);
+            Analyzer analyzer = new();
+            module.Parent = analyzer.Global;
+            analyzer.Define(module);
+            Assert.Empty(analyzer.Errors);
 
             Assert.Single(module);
             var scope = module[0] as AnonymousScope;

@@ -5,8 +5,6 @@ namespace Ronin.Hierarchy;
 
 internal class Module : Context
 {
-    public static readonly Module Global = new();
-
     private readonly Dictionary<Identifier.Component, Module> Modules = new();
     private readonly List<Context> Contexts = new();
 

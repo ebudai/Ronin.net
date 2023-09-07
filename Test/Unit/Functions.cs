@@ -165,12 +165,13 @@ public class Functions : ParsingTests
                 }
             };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, context, errors);
-            Assert.Empty(errors);
+            Analyzer analyzer = new();
+            context.Parent = analyzer.Global;
+            analyzer.Define(context);
+            Assert.Empty(analyzer.Errors);
 
-            Assert.Single(Module.Global.GetModules());
-            var module = Module.Global.GetModules().First().Value;
+            Assert.Single(analyzer.Global.GetModules());
+            var module = analyzer.Global.GetModules().First().Value;
 
             Assert.Single(module.GetMembers());
 
@@ -201,29 +202,29 @@ public class Functions : ParsingTests
             // function test(x => money) { }
             // test 3;
 
-            List<Error> errors = new();
+            Analyzer analyzer = new();
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Module.Global.Add(Identifier(Name(test), param), new Function());
+                analyzer.Global.Add(Identifier(Name(test), param), new Function());
             }
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Module.Global.Add(Identifier(Name(test), param), new Function());
+                analyzer.Global.Add(Identifier(Name(test), param), new Function());
             }
 
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
             var reference = Reference(Name(test), parameter);
 
             Function.Call call = new() { Function = new Function.Unresolved { Reference = reference } };
-            Module.Global.Add(call);
+            analyzer.Global.Add(call);
 
-            Analyzer.Resolve(Module.Global, errors);
+            //analyzer.Resolve(Module.Global, errors);
 
             var overloaded = call.Function as Function.Overloaded;
             Assert.Equal(2, overloaded?.Overloads.Count);

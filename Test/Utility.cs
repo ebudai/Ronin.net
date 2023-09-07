@@ -1,5 +1,4 @@
 ﻿using Ronin.Grammar;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Ronin.Lexicon.Literals;
 using System.Reflection;
@@ -19,10 +18,13 @@ internal static class Utility
     internal static List<Module> GetImports(this Context context) => ImportsField.GetValue(context) as List<Module>;
     internal static Dictionary<Identifier.Component, Module> GetModules(this Module module) => ModulesField.GetValue(module) as Dictionary<Identifier.Component, Module>;
 
+    internal static void SetGlobal(Module global) => GlobalField.SetValue(null, global);
+
     private static readonly FieldInfo MembersField = typeof(Context).GetField("Members", BindingFlags.Instance | BindingFlags.NonPublic);
     private static readonly FieldInfo ContextsField = typeof(Module).GetField("Contexts", BindingFlags.Instance | BindingFlags.NonPublic);
     private static readonly FieldInfo ImportsField = typeof(Context).GetField("Imports", BindingFlags.Instance | BindingFlags.NonPublic);
     private static readonly FieldInfo ModulesField = typeof(Module).GetField("Modules", BindingFlags.Instance | BindingFlags.NonPublic);    
+    private static readonly FieldInfo GlobalField = typeof(Module).GetField("Global", BindingFlags.Static | BindingFlags.NonPublic);
 }
 
 public class ParsingTests

@@ -43,11 +43,12 @@ public class Exports : ParsingTests
                 }
             };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Single(errors);
+            Analyzer analyzer = new();
+            module.Parent = analyzer.Global;
+            analyzer.Define(module);
+            Assert.Single(analyzer.Errors);
 
-            Error error = errors[0];
+            Error error = analyzer.Errors[0];
 
             Assert.Equal(Error.Message.ScopeMustBeAnonymous, error.Reason);
         }
@@ -64,11 +65,11 @@ public class Exports : ParsingTests
                 }
             };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Single(errors);
+            Analyzer analyzer = new();
+            analyzer.Define(module);
+            Assert.Single(analyzer.Errors);
 
-            Error error = errors[0];
+            Error error = analyzer.Errors[0];
 
             Assert.Equal(Error.Message.ScopeMustBeAnonymous, error.Reason);
         }
@@ -85,11 +86,11 @@ public class Exports : ParsingTests
                 }
             };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Single(errors);
+            Analyzer analyzer = new();
+            analyzer.Define(module);
+            Assert.Single(analyzer.Errors);
 
-            Error error = errors[0];
+            Error error = analyzer.Errors[0];
 
             Assert.Equal(Error.Message.ScopeMustBeUnmodified, error.Reason);
         }
@@ -106,13 +107,11 @@ public class Exports : ParsingTests
                 }
             };
 
-            Module.Global.GetContexts().Clear();
+            Analyzer analyzer = new();
+            analyzer.Define(module);
+            Assert.Single(analyzer.Errors);
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Single(errors);
-
-            Error error = errors[0];
+            Error error = analyzer.Errors[0];
 
             Assert.Equal(Error.Message.ScopeIsAlreadyPartOfModule, error.Reason);
         }

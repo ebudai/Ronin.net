@@ -121,9 +121,10 @@ public class Datatypes : ParsingTests
                 }
             };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Empty(errors);
+            Analyzer analyzer = new();
+            module.Parent = analyzer.Global;
+            analyzer.Define(module);
+            Assert.Empty(analyzer.Errors);
 
             Assert.Single(module);
 
@@ -175,20 +176,20 @@ public class Datatypes : ParsingTests
             // datatype Car(x => money) { }
             // var car => Car(3);
 
-            List<Error> errors = new();
+            Analyzer analyzer = new();
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Module.Global.Add(Identifier(Name(Car), param), new Datatype());
+                analyzer.Global.Add(Identifier(Name(Car), param), new Datatype());
             }
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
                 param.Data.Add(id, new Datum { Datatype = new() });
-                Module.Global.Add(Identifier(Name(Car), param), new Datatype());
+                analyzer.Global.Add(Identifier(Name(Car), param), new Datatype());
             }
 
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
@@ -199,11 +200,11 @@ public class Datatypes : ParsingTests
                 Datatype = new Datatype.Unresolved { Reference = datatype } 
             };
 
-            Module.Global.Add(Identifier(car), datum);
-            Assert.Empty(errors);
+            analyzer.Global.Add(Identifier(car), datum);
+            Assert.Empty(analyzer.Errors);
 
-            Analyzer.Resolve(Module.Global, errors);
-            Assert.Empty(errors);
+            //analyzer.Resolve(Module.Global, errors);
+            Assert.Empty(analyzer.Errors);
 
             var overloaded = datum.Datatype as Datatype.Overloaded;
             Assert.Equal(2, overloaded?.Overloads.Count);
@@ -220,22 +221,21 @@ public class Datatypes : ParsingTests
             // datatype Car = number and { }
             // var car => Car;
 
-            List<Error> errors = new();
-
+            Analyzer analyzer = new();
             Datatype.Unresolved datatype = new()
             {
                 Algebra = new Algebra.Unresolved { Reference = Reference(number, and) },
                 Reference = Reference(Car)
             };
-            Module.Global.Add(Identifier(Car), datatype);
+            analyzer.Global.Add(Identifier(Car), datatype);
 
             Datum datum = new() { Datatype = datatype };
 
-            Module.Global.Add(Identifier(car), datum);
-            Assert.Empty(errors);
+            analyzer.Global.Add(Identifier(car), datum);
+            Assert.Empty(analyzer.Errors);
 
-            Analyzer.Resolve(Module.Global, errors);
-            Assert.Empty(errors);
+            //analyzer.Resolve(Module.Global, errors);
+            Assert.Empty(analyzer.Errors);
 
             var overloaded = datum.Datatype.Algebra as Algebra.Overloaded;
             Assert.Single(overloaded?.Overloads);

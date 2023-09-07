@@ -99,16 +99,13 @@ public class Exports : ParsingTests
                 }
             };
 
-            Module.Global.GetContexts().Clear();
-            Module.Global.GetMembers().Clear();
+            Analyzer analyzer = new();
+            analyzer.Define(analyzer.Global, scope);
+            Assert.Empty(analyzer.Errors);
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, scope, errors);
-            Assert.Empty(errors);
-
-            Assert.Single(Module.Global.GetModules());
-            var module = Module.Global.GetModules().FirstOrDefault().Value;
-            Assert.Single(Module.Global.GetModules());
+            Assert.Single(analyzer.Global.GetModules());
+            var module = analyzer.Global.GetModules().FirstOrDefault().Value;
+            Assert.Single(analyzer.Global.GetModules());
             module = module.GetModules().FirstOrDefault().Value;
             Assert.Single(module.GetModules());
             module = module.GetModules().FirstOrDefault().Value;
@@ -280,13 +277,12 @@ public class Exports : ParsingTests
                 }
             };
 
-            Module.Global.GetContexts().Clear();
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, scope, errors);
-            Assert.Empty(errors);
+            Analyzer analyzer = new();
+            analyzer.Define(analyzer.Global, scope);
+            Assert.Empty(analyzer.Errors);
 
-            Assert.Single(Module.Global.GetModules());
-            var module = Module.Global.GetModules().FirstOrDefault().Value;
+            Assert.Single(analyzer.Global.GetModules());
+            var module = analyzer.Global.GetModules().FirstOrDefault().Value;
             Assert.Single(module.GetModules());
             module = module.GetModules().FirstOrDefault().Value;
             Assert.Single(module.GetModules());

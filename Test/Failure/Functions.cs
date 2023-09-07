@@ -51,10 +51,10 @@ public class Functions : ParsingTests
                 }
             };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Single(errors);
-            Assert.Equal(Error.Message.Redefinition, errors[0].Reason);
+            Analyzer analyzer = new();
+            analyzer.Define(module);
+            Assert.Single(analyzer.Errors);
+            Assert.Equal(Error.Message.Redefinition, analyzer.Errors[0].Reason);
         }
     }
 }

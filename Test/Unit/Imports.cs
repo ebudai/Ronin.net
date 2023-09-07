@@ -1,9 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
-
 using Import = Ronin.Grammar.Import;
 
 namespace Unit;
@@ -93,7 +91,7 @@ public class Imports : ParsingTests
              
              */
 
-            AnonymousScope module = new()
+            AnonymousScope scope = new()
             {
                 Definition = new()
                 {
@@ -104,14 +102,14 @@ public class Imports : ParsingTests
                 }
             };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Empty(errors);
+            Analyzer analyzer = new();
+            analyzer.Define(analyzer.Global, scope);
+            Assert.Empty(analyzer.Errors);
 
-            Assert.Single(module.Definition.GetImports());
-            Assert.Empty(Module.Global.GetImports());
+            Assert.Single(scope.Definition.GetImports());
+            Assert.Empty(analyzer.Global.GetImports());
 
-            var import = module.Definition.GetImports().First();
+            var import = scope.Definition.GetImports().First();
             Assert.IsType<Context.Unresolved>(import);
         }
     }

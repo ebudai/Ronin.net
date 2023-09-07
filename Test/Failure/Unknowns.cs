@@ -46,11 +46,11 @@ public class Unknowns : ParsingTests
 
             Context module = new() { function };
 
-            List<Error> errors = new();
-            Analyzer.Define(Module.Global, module, errors);
-            Assert.Single(errors);
+            Analyzer analyzer = new();
+            analyzer.Define(module);
+            Assert.Single(analyzer.Errors);
 
-            var error = errors[0];
+            var error = analyzer.Errors[0];
             Assert.Equal(Error.Message.UnknownSyntax, error.Reason);
         }
     }
