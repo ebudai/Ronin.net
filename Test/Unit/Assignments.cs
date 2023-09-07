@@ -115,8 +115,9 @@ public class Assignments : ParsingTests
 
         Assert.IsType<AndAssign>(assignment.Type);
 
-        var unresolvedValue = assignment.Value as Value.Unresolved;
-        Assert.Single(unresolvedValue?.Reference?.Source.ToArray());
+        var unresolvedValue = assignment.Value as Reference.Unresolved;
+        var member = unresolvedValue.Member as Context.Member.Unresolved;
+        Assert.Single(member?.Reference?.Source.ToArray());
     }
 
     [Fact(DisplayName = "divide assign")]
@@ -199,8 +200,9 @@ public class Assignments : ParsingTests
 
         Assert.IsType<OrAssign>(assignment.Type);
 
-        var unresolvedValue = assignment.Value as Value.Unresolved;
-        Assert.Single(unresolvedValue?.Reference?.Source.ToArray());
+        var unresolvedValue = assignment.Value as Reference.Unresolved;
+        var member = unresolvedValue.Member as Context.Member.Unresolved;
+        Assert.Single(member?.Reference?.Source.ToArray());
     }
 
     [Fact(DisplayName = "subtract assign")]

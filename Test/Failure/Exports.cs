@@ -60,7 +60,7 @@ public class Exports : ParsingTests
             {
                 new ConditionalScope
                 {
-                    Condition = new Value.Unresolved { Reference = new() { } },
+                    Condition = new Reference.Unresolved { Member = new Context.Member.Unresolved { Reference = new() { } } },
                     Definition = new() { new Export { Keyword = new PartOf(), Identifier = new() } }
                 }
             };

@@ -25,9 +25,10 @@ public class Indexers : ParsingTests
         var indexer = Indexer.Parse(ref parser);
 
         Assert.Single(indexer);
-        var unresolved = indexer[0] as Value.Unresolved;
-        Assert.Single(unresolved?.Reference?.Components);
-        Name name = unresolved.Reference.Components[0];
+        var unresolved = indexer[0] as Reference.Unresolved;
+        var member = unresolved.Member as Context.Member.Unresolved;
+        Assert.Single(member?.Reference?.Components);
+        Name name = member.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
     }
 
@@ -52,16 +53,18 @@ public class Indexers : ParsingTests
         Assert.Equal(2, indexer?.Count);
 
         {            
-            var test = indexer[0] as Value.Unresolved;
-            Assert.Single(test?.Reference?.Components);
-            Name name = test.Reference.Components[0];
+            var test = indexer[0] as Reference.Unresolved;
+            var member = test.Member as Context.Member.Unresolved;
+            Assert.Single(member?.Reference?.Components);
+            Name name = member.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            var stuff = indexer[1] as Value.Unresolved;
-            Assert.Single(stuff?.Reference?.Components);
-            Name name = stuff.Reference.Components[0];
+            var stuff = indexer[1] as Reference.Unresolved;
+            var member = stuff.Member as Context.Member.Unresolved;
+            Assert.Single(member?.Reference?.Components);
+            Name name = member.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
     }
@@ -117,9 +120,10 @@ public class Indexers : ParsingTests
         }
 
         {
-            var unresolved = arguments[2] as Value.Unresolved;
-            Assert.Single(unresolved?.Reference?.Components);
-            Name name = unresolved.Reference.Components[0];
+            var unresolved = arguments[2] as Reference.Unresolved;
+            var member = unresolved.Member as Context.Member.Unresolved;
+            Assert.Single(member?.Reference?.Components);
+            Name name = member.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }        
     }

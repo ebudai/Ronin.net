@@ -9,9 +9,9 @@ internal class Value : Statement, IParsableSyntax<Value>
 {
     public new static Value Parse(ref Parser current) 
         => AnonymousValue.Parse(ref current) 
-        ?? Unresolved.Parse(ref current) as Value;
+        ?? Reference.Unresolved.Parse(ref current) as Value;
 
-    public class Unresolved : Value, IParsableSyntax<Unresolved>
+    /*public class Unresolved : Value, IParsableSyntax<Unresolved>
     {
         public Reference Reference { get; set; }
 
@@ -25,5 +25,5 @@ internal class Value : Statement, IParsableSyntax<Value>
                 Source = parser.Commit(ref current)
             };
         }
-    }
+    }*/
 }

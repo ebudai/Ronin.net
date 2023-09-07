@@ -59,7 +59,7 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
         return hashcode.ToHashCode();
     }
 
-    public class Unresolved : Statement, IParsableSyntax<Unresolved>
+    public class Unresolved : Value, IParsableSyntax<Unresolved>
     {
         public Context.Member Member { get; set; }
         public List<Inputs> Inputs { get; } = new();
