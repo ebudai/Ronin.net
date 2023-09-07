@@ -349,11 +349,16 @@ public class AnalysisTests : ParsingTests
         return new() { Components = components.ToList(), Source = tokens.ToArray() };
     }
 
-    internal static Name Name(string name)
+    internal static Name Name(params string[] names)
     {
-        Word word = new();
-        word.SetMemory(name);
-        return new() { Source = new[] { word } };
+        List<Word> words = new();
+        foreach (var name in names)
+        {
+            Word word = new();
+            word.SetMemory(name);
+            words.Add(word);
+        }
+        return new() { Source = words.ToArray() };
     }
 
     internal static Identifier Words(string name) => Words(name.Split(new[] { ' ' }));

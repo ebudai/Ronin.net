@@ -143,8 +143,7 @@ public class Functions : ParsingTests
                         {
                             Components = new List<Identifier.Component>
                             {
-                                Name(run),
-                                Name(home),
+                                Name(run, home),
                                 new Parameters
                                 {
                                     new()
@@ -181,10 +180,21 @@ public class Functions : ParsingTests
             var identifier = entry.Key;
             var function = entry.Value as Function;
 
-            Assert.Equal(5, identifier.Components.Count);
-            Assert.Equal(cash, identifier.Components[1].Source.Span[0].Memory.ToArray());
-            Assert.Equal(money, identifier.Components[3].Source.Span[0].Memory.ToArray());
+            Assert.Equal(2, identifier.Components.Count);
+            Assert.Equal(2, identifier.Components[0].Source.Length);
+            Assert.Equal(run, identifier.Components[0].Source.Span[0].Memory.ToArray());
+            Assert.Equal(home, identifier.Components[0].Source.Span[1].Memory.ToArray());
 
+            Parameters parameters = identifier.Components[1];
+            Assert.Single(parameters);
+            Assert.Single(parameters[0].Identifier.Components);
+            Name name = parameters[0].Identifier.Components[0];
+            Assert.Single(name?.Source.ToArray());
+            Assert.Equal(cash, name.Source.Span[0].Memory.ToArray());
+            Assert.Single(parameters[0].Datatype.Components);
+            name = parameters[0].Datatype.Components[0];
+            Assert.Single(name?.Source.ToArray());
+            Assert.Equal(money, name.Source.Span[0].Memory.ToArray());
             Assert.Empty(function.Modifiers.Source.ToArray());
 
             Assert.IsType<Datatype.Unresolved>(function.Returns);

@@ -37,7 +37,7 @@ internal class Analyzer
             Define(scope.Definition, statement);
         }
         
-        if (ReferenceEquals(parent, Global))
+        if (ReferenceEquals(parent, Global) || name is not null)
         {
             Global.Add(scope.Definition, name);
         }
