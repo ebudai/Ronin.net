@@ -2,9 +2,9 @@
 
 namespace Ronin.Lexicon;
 
-internal class DivideAssign : Punctuation
+internal class DivideAssign : Assign
 {
-    internal const string symbol = "/=";
+    internal new const string symbol = "/=";
 
     public static new DivideAssign Lex(ref Lexer lexer)
     {

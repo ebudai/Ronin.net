@@ -2,9 +2,9 @@
 
 namespace Ronin.Lexicon;
 
-internal class SubtractAssign : Punctuation
+internal class SubtractAssign : Assign
 {
-    internal const string symbol = "-=";
+    internal new const string symbol = "-=";
 
     public static new SubtractAssign Lex(ref Lexer lexer)
     {

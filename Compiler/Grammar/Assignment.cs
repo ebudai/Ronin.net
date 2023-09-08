@@ -24,14 +24,7 @@ internal class Assignment : Statement, IParsableSyntax<Assignment>
 
         if (Reference.Parse(ref parser) is not Reference reference) return null;
 
-        if (parser.Token 
-            is not Assign
-            and not AddAssign
-            and not AndAssign
-            and not DivideAssign
-            and not MultiplyAssign
-            and not OrAssign
-            and not SubtractAssign) return null;
+        if (parser.Token is not Assign) return null;
 
         var type = parser.Token as Punctuation;
         parser.Advance();

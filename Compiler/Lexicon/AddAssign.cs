@@ -2,9 +2,9 @@
 
 namespace Ronin.Lexicon;
 
-internal class AddAssign : Punctuation
+internal class AddAssign : Assign
 {
-    internal const string symbol = "+=";
+    internal new const string symbol = "+=";
 
     public static new AddAssign Lex(ref Lexer lexer)
     {

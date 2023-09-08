@@ -2,9 +2,9 @@
 
 namespace Ronin.Lexicon;
 
-internal class MultiplyAssign : Punctuation
+internal class MultiplyAssign : Assign
 {
-    internal const string symbol = "*=";
+    internal new const string symbol = "*=";
 
     public static new MultiplyAssign Lex(ref Lexer lexer)
     {

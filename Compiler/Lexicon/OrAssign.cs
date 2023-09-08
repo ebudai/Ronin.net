@@ -2,9 +2,9 @@
 
 namespace Ronin.Lexicon;
 
-internal class OrAssign : Punctuation
+internal class OrAssign : Assign
 {
-    internal const string symbol = "|=";
+    internal new const string symbol = "|=";
 
     public static new OrAssign Lex(ref Lexer lexer)
     {
