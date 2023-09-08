@@ -25,9 +25,9 @@ internal class Module : Context
         return module;
     }
 
-    public override Resolution Find(Reference reference)
+    public override Resolution Resolve(Reference reference)
     {
-        return base.Find(reference);
+        return base.Resolve(reference);
     }
 
     public class Unresolved : Module

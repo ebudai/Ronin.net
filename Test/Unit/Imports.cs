@@ -104,7 +104,7 @@ public class Imports : ParsingTests
             };
 
             Analyzer analyzer = new();
-            analyzer.Define(analyzer.Global, scope);
+            analyzer.DefineScope(analyzer.Global, scope);
             Assert.Empty(analyzer.Errors);
 
             Assert.Single(scope.Definition.Imports);

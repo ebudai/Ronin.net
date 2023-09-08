@@ -19,6 +19,7 @@ internal class Error
         public const string UnknownSyntax = "unknown syntax";
         public const string CouldNotResolve = "could not resolve";
         public const string UnresolvedImport = "unresolved import";
+        public const string UnresolvedReference = "unresolved reference";
     }
 
     public Dictionary<string, object> Data { get; } = new();
@@ -75,6 +76,13 @@ internal class Error
     {
         Error error = new(Message.UnresolvedImport) { Tokens = import.Source };
         error.IsAbout(import);
+        return error;
+    }
+
+    public static Error UnresolvedReference(Reference reference)
+    {
+        Error error = new(Message.UnresolvedReference) { Tokens = reference.Source };
+        error.IsAbout(reference);
         return error;
     }
 }

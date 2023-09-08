@@ -64,6 +64,11 @@ internal class Function : Context.Member
 
     public class Overloaded : Function
     {
-        public List<Resolution> Overloads { get; init; }
+        public List<Context.Member> Overloads { get; init; }
+    }
+
+    public class Calculated : Function
+    {
+        public Datum Member { get; init; }
     }
 }

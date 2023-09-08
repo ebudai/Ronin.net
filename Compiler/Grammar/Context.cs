@@ -47,7 +47,7 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
         return Error.Redefinition(Members[identifier]);
     }
 
-    public virtual Resolution Find(Reference reference)
+    public virtual Resolution Resolve(Reference reference)
     {
         return null;
     }

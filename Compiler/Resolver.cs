@@ -8,7 +8,6 @@ namespace Ronin.Compiler;
 
 /*internal static partial class Analyzer
 {
-    public static void Resolve(Context definition, List<Error> errors) => throw new NotImplementedException();
     public static void Resolve(Context definition, List<Error> errors)
     {
         Resolve(definition.Imports, errors);

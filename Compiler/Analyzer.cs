@@ -1,6 +1,10 @@
 ﻿using Ronin.Grammar;
 using Ronin.Hierarchy;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Datatype = Ronin.Grammar.Datatype;
+using Function = Ronin.Grammar.Function;
+using Import = Ronin.Grammar.Import;
 
 namespace Ronin.Compiler;
 
@@ -8,21 +12,23 @@ internal class Analyzer
 {
     public Module Global { get; } = new();
     public List<Error> Errors { get; } = new();
+    private readonly HashSet<Module> Resolved = new(ReferenceEqualityComparer.Instance);
 
-    public void Define(Context definition)
+    #region Definition
+    public void Define(Context context)
     {
-        foreach (var statement in definition)
+        foreach (var statement in context)
         {
             if (statement is Export export)
             {
-                Errors.Add(Error.ScopeMustBeAnonymous(definition, export));
+                Errors.Add(Error.ScopeMustBeAnonymous(context, export));
                 continue;
             }
-            Define(definition, statement);
+            DefineStatement(context, statement);
         }
     }
 
-    public void Define(Context parent, Scope scope)
+    public void DefineScope(Context parent, Scope scope)
     {
         scope.Definition.Parent = parent;
         Identifier name = null;
@@ -34,7 +40,7 @@ internal class Analyzer
                 Export(scope, export, ref name);
                 continue;
             }
-            Define(scope.Definition, statement);
+            DefineStatement(scope.Definition, statement);
         }
         
         if (ReferenceEquals(parent, Global) || name is not null)
@@ -43,15 +49,15 @@ internal class Analyzer
         }
     }
 
-    private void Define(Context definition, Statement statement)
+    private void DefineStatement(Context parent, Statement statement)
     {
         switch (statement)
         {
-            case Import import: definition.Import(import); break;
-            case Function.Declaration function: Define(definition, function); break;
-            case Datatype.Declaration datatype: Define(definition, datatype); break;
-            case Datum.Declaration datum: Define(definition, datum); break;
-            case Scope inner: Define(definition, inner); break;
+            case Import import: parent.Add(import); break;
+            case Function.Declaration function: DefineFunction(parent, function); break;
+            case Datatype.Declaration datatype: DefineDatatype(parent, datatype); break;
+            case Datum.Declaration datum: DefineDatum(parent, datum); break;
+            case Scope inner: DefineScope(parent, inner); break;
             case Unknown unknown: Errors.Add(Error.UnknownSyntax(unknown)); break;
             default: break;
         }
@@ -82,9 +88,9 @@ internal class Analyzer
         if (error is false) identifier = export.Identifier;
     }
 
-    private void Define(Context definition, Function.Declaration declaration)
+    private void DefineFunction(Context parent, Function.Declaration declaration)
     {
-        declaration.Definition.Parent = definition;
+        declaration.Definition.Parent = parent;
         Define(declaration.Definition);
         
         Function function = new()
@@ -94,10 +100,10 @@ internal class Analyzer
             Definition = declaration.Definition,
         };
 
-        if (definition.Add(declaration.Identifier, function) is Error error) Errors.Add(error);
+        if (parent.Add(declaration.Identifier, function) is Error error) Errors.Add(error);
     }
 
-    private void Define(Context parent, Datatype.Declaration declaration)
+    private void DefineDatatype(Context parent, Datatype.Declaration declaration)
     {
         declaration.Definition.Parent = parent;
         Define(declaration.Definition);
@@ -112,7 +118,7 @@ internal class Analyzer
         if (parent.Add(declaration.Identifier, datatype) is Error error) Errors.Add(error);
     }
 
-    private void Define(Context definition, Datum.Declaration declaration) 
+    private void DefineDatum(Context parent, Datum.Declaration declaration) 
     {
         Datum datum = new()
         {
@@ -122,6 +128,171 @@ internal class Analyzer
             Initializer = declaration.Initializer
         };
 
-        if (definition.Add(declaration.Identifier, datum) is Error error) Errors.Add(error);
+        if (parent.Add(declaration.Identifier, datum) is Error error) Errors.Add(error);
     }
+    #endregion
+
+    #region Resolution
+    public void Resolve(Module module)
+    {
+        if (Resolved.Add(module) is false) return;
+
+        foreach (var context in module.Contexts) ResolveContext(context);
+
+        foreach (var child in module.Modules.Values) Resolve(child);
+    }
+
+    private void ResolveContext(Context context)
+    {
+        for (int i = 0, max = context.Imports.Count; i != max; ++i)
+        {
+            if (context.Imports[i] is not Module.Unresolved unresolved) continue;
+            context.Imports[i] = Global.GetOrCreate(unresolved.Import.Name);            
+        }
+
+        foreach (var identifier in context.Members.Keys) ResolveIdentifierParameters(identifier, context);
+        context.Members.OnDeserialization(null);
+
+        foreach (var (name, member) in context.Members)
+        {
+            context.Members[name] = member switch
+            {
+                Datatype.Unresolved unresolved => ResolveDatatype(unresolved, context),
+                Function.Unresolved unresolved => ResolveFunction(unresolved, context),
+                Datum.Unresolved unresolved => ResolveDatum(unresolved, context),
+                _ => member
+            };
+        }
+
+        foreach (var statement in context)
+        {
+            switch (statement)
+            {
+                case Assignment assignment: ResolveAssignment(assignment, context); break;
+                case Reference.Unresolved reference: ResolveReference(reference, context); break;
+                case Value.Anonymous value: ResolveValue(value, context); break;
+                default: continue;
+            }
+        }
+    }
+
+    private void ResolveIdentifierParameters(Identifier identifier, Context context)
+    {
+        foreach (var component in identifier.Components) ResolveParameters(component, context);
+    }
+
+    private void ResolveParameters(Identifier.Component component, Context context)
+    {
+        if (component.value is not Parameters parameters) return;
+        foreach (var datum in parameters.Data.Values)
+        {
+            if (datum.Datatype is not Datatype.Unresolved datatype) continue;
+            datum.Datatype = ResolveDatatype(datatype, context);
+        }
+    }
+
+    private Datatype ResolveDatatype(Datatype.Unresolved unresolved, Context context)
+    {
+        var resolution = context.Resolve(unresolved.Reference);
+        var algebra = ResolveAlgebra(unresolved.Algebra as Algebra.Unresolved, context);
+
+        if (resolution is Ambiguous ambiguous)
+        {
+            return new Datatype.Overloaded
+            {
+                Algebra = algebra,
+                Definition = unresolved.Definition,
+                Modifiers = unresolved.Modifiers,
+                Source = unresolved.Source,
+                Overloads = ambiguous.Candidates
+            };
+        }
+
+        return resolution.Member switch
+        {
+            Datatype datatype => datatype,
+            Function function => new Datatype.Calculated<Function> { Member = function },
+            Datum datum => new Datatype.Calculated<Datum> { Member = datum },
+            _ => ResolutionFailure<Datatype>(unresolved.Reference)
+        };
+    }
+
+    private Function ResolveFunction(Function.Unresolved unresolved, Context context)
+    {
+        var resolution = context.Resolve(unresolved.Reference);
+        var returns = ResolveDatatype(unresolved.Returns as Datatype.Unresolved, context);
+
+        if (resolution is Ambiguous ambiguous)
+        {
+            return new Function.Overloaded
+            {
+                Definition = unresolved.Definition,
+                Modifiers = unresolved.Modifiers,
+                Returns = returns,
+                Source = unresolved.Source,
+                Overloads = ambiguous.Candidates
+            };
+        }
+
+        return resolution.Member switch
+        {
+            Function function => function,
+            Datum datum => new Function.Calculated { Member = datum },
+            _ => ResolutionFailure<Function>(unresolved.Reference)
+        };
+    }
+
+    private Datum ResolveDatum(Datum.Unresolved unresolved, Context context)
+    {
+        var resolution = context.Resolve(unresolved.Reference);
+
+        if (resolution is not Ambiguous and { Member: Datum datum }) return datum;
+        
+        return ResolutionFailure<Datum>(unresolved.Reference);
+    }
+
+    private void ResolveAssignment(Assignment assignment, Context context)
+    {
+        if (assignment.Destination is Datum.Unresolved datum) ResolveDatum(datum, context);
+
+    }
+
+    private Reference ResolveReference(Reference.Unresolved reference, Context context)
+    {
+        return null;
+    }
+
+    private void ResolveValue(Value.Anonymous value, Context context)
+    {
+
+    }
+
+    private Algebra ResolveAlgebra(Algebra.Unresolved unresolved, Context context)
+    {
+        var resolution = context.Resolve(unresolved.Reference);
+
+        if (resolution is Ambiguous ambiguous)
+        {
+            return new Algebra.Overloaded
+            {
+                Source = unresolved.Source,
+                Overloads = ambiguous.Candidates
+            };
+        }
+
+        return resolution.Member switch
+        {
+            Function function => new Algebra.Calculated<Function> { Member = function },
+            Datatype datatype => new Algebra.Calculated<Datatype> { Member = datatype },
+            Datum datum => new Algebra.Calculated<Datum> { Member = datum },
+            _ => ResolutionFailure<Algebra>(unresolved.Reference)
+        };
+    }
+
+    private T ResolutionFailure<T>(Reference reference)
+    {
+        Errors.Add(Error.UnresolvedReference(reference));
+        return default;
+    }
+    #endregion
 }
