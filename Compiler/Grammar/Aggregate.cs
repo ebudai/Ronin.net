@@ -31,7 +31,7 @@ namespace Ronin.Grammar;
 /// <typeparam name="TClose">
 ///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Punctuation"/>
 /// </typeparam>
-internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : AnonymousValue, IEnumerable<TElement>, IList<TElement>, IParsableSyntax<T>
+internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Value.Anonymous, IEnumerable<TElement>, IList<TElement>, IParsableSyntax<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
     where TOpen : Punctuation
     where TElement : Syntax, IParsableSyntax<TElement>

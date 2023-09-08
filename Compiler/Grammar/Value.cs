@@ -8,22 +8,20 @@ namespace Ronin.Grammar;
 internal class Value : Statement, IParsableSyntax<Value>
 {
     public new static Value Parse(ref Parser current) 
-        => AnonymousValue.Parse(ref current) 
+        => Anonymous.Parse(ref current) 
         ?? Reference.Unresolved.Parse(ref current) as Value;
 
-    /*public class Unresolved : Value, IParsableSyntax<Unresolved>
+    /// <summary>
+    ///     Represents a <see cref="Value"/> before it has been assigned or bound to a parameter
+    /// </summary>
+    public class Anonymous : Value, IParsableSyntax<Anonymous>
     {
-        public Reference Reference { get; set; }
-
-        public new static Unresolved Parse(ref Parser current)
-        {
-            Parser parser = current;
-            if (Reference.Parse(ref parser) is not Reference reference) return null;
-            return new Unresolved
-            {
-                Reference = reference,
-                Source = parser.Commit(ref current)
-            };
-        }
-    }*/
+        public new static Anonymous Parse(ref Parser current)
+            => Inline.Parse(ref current)
+            ?? Delegate.Parse(ref current)
+            ?? Lookup.Parse(ref current)
+            ?? Inputs.Parse(ref current)
+            ?? List.Parse(ref current)
+            ?? Indexer.Parse(ref current) as Anonymous;
+    }
 }

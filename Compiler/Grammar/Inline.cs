@@ -17,7 +17,7 @@ namespace Ronin.Grammar;
 ///     let x = 7,000,876 + cash amount;
 ///             ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Inline : AnonymousValue, IParsableSyntax<Inline>
+internal class Inline : Value.Anonymous, IParsableSyntax<Inline>
 {
     public new static Inline Parse(ref Parser current)
     {

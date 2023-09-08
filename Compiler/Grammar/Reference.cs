@@ -12,10 +12,10 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Reference : Syntax, IParsableSyntax<Reference>
 {
-    public class Component : CompositeSyntax<Component, Name, AnonymousValue>
+    public class Component : CompositeSyntax<Component, Name, Value.Anonymous>
     {
         public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
-        public static implicit operator Component(AnonymousValue value) => new() { value = value, Source = value.Source };
+        public static implicit operator Component(Value.Anonymous value) => new() { value = value, Source = value.Source };
     }
 
     public List<Component> Components { get; init; }
@@ -29,7 +29,7 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
         if (components.Count is 0) return null;
         foreach (var component in components)
         {
-            if (component.value is not AnonymousValue)
+            if (component.value is not Value.Anonymous)
             {
                 var indexer = Indexer.Parse(ref parser);
 

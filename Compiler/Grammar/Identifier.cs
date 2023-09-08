@@ -38,7 +38,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
             
             if (value is Name) return reference.Equals(value);
 
-            AnonymousValue anonymous = reference;
+            Value.Anonymous anonymous = reference;
             if (anonymous is null) return false;
             var inputcount = anonymous is Inputs inputs ? inputs.Count : 1;
 
