@@ -115,8 +115,7 @@ public class Assignments : ParsingTests
 
         Assert.IsType<AndAssign>(assignment.Type);
 
-        var unresolvedValue = assignment.Value as Reference.Unresolved;
-        var member = unresolvedValue.Member as Context.Member.Unresolved;
+        var member = assignment.Value as Context.Member.Unresolved;
         Assert.Single(member?.Reference?.Source.ToArray());
     }
 
@@ -200,8 +199,7 @@ public class Assignments : ParsingTests
 
         Assert.IsType<OrAssign>(assignment.Type);
 
-        var unresolvedValue = assignment.Value as Reference.Unresolved;
-        var member = unresolvedValue.Member as Context.Member.Unresolved;
+        var member = assignment.Value as Context.Member.Unresolved;
         Assert.Single(member?.Reference?.Source.ToArray());
     }
 

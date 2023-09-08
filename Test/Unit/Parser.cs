@@ -134,7 +134,7 @@ public class Parsing : ParsingTests
         var assignment = statements[2] as Assignment;
         Assert.NotNull(assignment);
 
-        var functioncall = statements[3] as Reference.Unresolved;
+        var functioncall = statements[3] as Context.Member.Unresolved;
         Assert.NotNull(functioncall);
 
         var function = statements[4] as Function.Declaration;

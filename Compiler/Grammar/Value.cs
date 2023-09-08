@@ -8,8 +8,8 @@ namespace Ronin.Grammar;
 internal class Value : Statement, IParsableSyntax<Value>
 {
     public new static Value Parse(ref Parser current) 
-        => Anonymous.Parse(ref current) 
-        ?? Reference.Unresolved.Parse(ref current) as Value;
+        => Context.Member.Unresolved.Parse(ref current)
+        ?? Anonymous.Parse(ref current) as Value;
 
     /// <summary>
     ///     Represents a <see cref="Value"/> before it has been assigned or bound to a parameter

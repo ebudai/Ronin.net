@@ -169,7 +169,7 @@ internal class Analyzer
             switch (statement)
             {
                 case Assignment assignment: ResolveAssignment(assignment, context); break;
-                case Reference.Unresolved reference: ResolveReference(reference, context); break;
+                case Context.Member.Unresolved reference: ResolveReference(reference, context); break;
                 case Value.Anonymous value: ResolveValue(value, context); break;
                 default: continue;
             }
@@ -257,7 +257,7 @@ internal class Analyzer
 
     }
 
-    private Reference ResolveReference(Reference.Unresolved reference, Context context)
+    private Reference ResolveReference(Context.Member.Unresolved reference, Context context)
     {
         return null;
     }

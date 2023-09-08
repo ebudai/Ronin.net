@@ -25,8 +25,7 @@ public class Indexers : ParsingTests
         var indexer = Indexer.Parse(ref parser);
 
         Assert.Single(indexer);
-        var unresolved = indexer[0] as Reference.Unresolved;
-        var member = unresolved.Member as Context.Member.Unresolved;
+        var member = indexer[0] as Context.Member.Unresolved;
         Assert.Single(member?.Reference?.Components);
         Name name = member.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
@@ -52,17 +51,15 @@ public class Indexers : ParsingTests
 
         Assert.Equal(2, indexer?.Count);
 
-        {            
-            var test = indexer[0] as Reference.Unresolved;
-            var member = test.Member as Context.Member.Unresolved;
+        {
+            var member = indexer[0] as Context.Member.Unresolved;
             Assert.Single(member?.Reference?.Components);
             Name name = member.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
         }
 
         {
-            var stuff = indexer[1] as Reference.Unresolved;
-            var member = stuff.Member as Context.Member.Unresolved;
+            var member = indexer[1] as Context.Member.Unresolved;
             Assert.Single(member?.Reference?.Components);
             Name name = member.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
@@ -120,8 +117,7 @@ public class Indexers : ParsingTests
         }
 
         {
-            var unresolved = arguments[2] as Reference.Unresolved;
-            var member = unresolved.Member as Context.Member.Unresolved;
+            var member = arguments[2] as Context.Member.Unresolved;
             Assert.Single(member?.Reference?.Components);
             Name name = member.Reference.Components[0];
             Assert.Equal(1, name?.Source.Length);
