@@ -320,7 +320,8 @@ internal class Analyzer
             case Delegate @delegate:  ResolveInputs(@delegate, context); break;
             case Lookup lookup: ResolveLookup(lookup, context); break;
             case Inputs inputs: ResolveInputs(inputs, context); break;
-            //...
+            case List list: ResolveList(list, context); break;
+            case Indexer indexer: ResolveIndexer(indexer, context); break;
             default: break;
         };
     }
@@ -398,6 +399,22 @@ internal class Analyzer
             case Context.Member.Unresolved member: ResolveMember(member, context); break;
             case Value.Anonymous anonymous: ResolveAnonymousValue(anonymous, context); break;
             default: break;
+        }
+    }
+
+    private void ResolveList(List list, Context context)
+    {
+        foreach (var value in list)
+        {
+            ResolveValue(value, context);
+        }
+    }
+
+    private void ResolveIndexer(Indexer indexer, Context context)
+    {
+        foreach (var value in indexer)
+        {
+            ResolveValue(value, context);
         }
     }
 
