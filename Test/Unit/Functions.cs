@@ -59,7 +59,7 @@ public class Functions : ParsingTests
         Name @return = unresolved.Reference.Components[0];
         Assert.Equal(1, @return?.Source.Length);
 
-        AnonymousValue scalar = unresolved.Reference.Components[1];
+        Value.Anonymous scalar = unresolved.Reference.Components[1];
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -168,7 +168,7 @@ public class Functions : ParsingTests
             };
 
             Analyzer analyzer = new();
-            analyzer.Define(analyzer.Global, scope);
+            analyzer.DefineScope(analyzer.Global, scope);
             Assert.Empty(analyzer.Errors);
 
             Assert.Single(analyzer.Global.Contexts);

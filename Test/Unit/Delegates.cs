@@ -43,7 +43,7 @@ public class Delegates : ParsingTests
         Name name = unresolved.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
         
-        AnonymousValue scalar = unresolved.Reference.Components[1];
+        Value.Anonymous scalar = unresolved.Reference.Components[1];
         Assert.Equal(1, scalar?.Source.Length);        
     }
 
@@ -86,7 +86,7 @@ public class Delegates : ParsingTests
         }
 
         {
-            AnonymousValue scalar = unresolved.Reference.Components[1];
+            Value.Anonymous scalar = unresolved.Reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -134,7 +134,7 @@ public class Delegates : ParsingTests
         }
 
         {
-            AnonymousValue scalar = unresolved.Reference.Components[1];
+            Value.Anonymous scalar = unresolved.Reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
@@ -173,7 +173,7 @@ public class Delegates : ParsingTests
         }
 
         {
-            AnonymousValue scalar = unresolved.Reference.Components[1];
+            Value.Anonymous scalar = unresolved.Reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
     }
