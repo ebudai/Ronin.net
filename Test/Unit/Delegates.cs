@@ -4,7 +4,6 @@ using Ronin.Lexicon;
 using Test;
 
 using Delegate = Ronin.Grammar.Delegate;
-using Function = Ronin.Grammar.Function;
 
 namespace Unit;
 
@@ -29,7 +28,7 @@ public class Delegates : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = Delegate.Declaration.Parse(ref parser);
 
         Assert.Single(@delegate?.Data);
         var datum = @delegate.Data[0];
@@ -68,7 +67,7 @@ public class Delegates : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = Delegate.Declaration.Parse(ref parser);
 
         Assert.Single(@delegate?.Data);
         var datum = @delegate.Data[0];
@@ -113,7 +112,7 @@ public class Delegates : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = Delegate.Declaration.Parse(ref parser);
 
         Assert.Equal(3, @delegate?.Data?.Count);
 
@@ -155,7 +154,7 @@ public class Delegates : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = Delegate.Declaration.Parse(ref parser);
 
         Assert.Empty(@delegate?.Data);
 

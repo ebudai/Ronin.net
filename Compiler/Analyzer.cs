@@ -1,7 +1,7 @@
 ﻿using Ronin.Grammar;
 using Ronin.Hierarchy;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+
 using Datatype = Ronin.Grammar.Datatype;
 using Function = Ronin.Grammar.Function;
 using Import = Ronin.Grammar.Import;
@@ -57,6 +57,7 @@ internal class Analyzer
             case Function.Declaration function: DefineFunction(parent, function); break;
             case Datatype.Declaration datatype: DefineDatatype(parent, datatype); break;
             case Datum.Declaration datum: DefineDatum(parent, datum); break;
+            case Delegate.Declaration @delegate: DefineDelegate(parent, @delegate); break;
             case Scope inner: DefineScope(parent, inner); break;
             case Unknown unknown: Errors.Add(Error.UnknownSyntax(unknown)); break;
             default: break;
@@ -118,7 +119,7 @@ internal class Analyzer
         if (parent.Add(declaration.Identifier, datatype) is Error error) Errors.Add(error);
     }
 
-    private void DefineDatum(Context parent, Datum.Declaration declaration) 
+    private Datum DefineDatum(Context parent, Datum.Declaration declaration) 
     {
         Datum datum = new()
         {
@@ -129,6 +130,31 @@ internal class Analyzer
         };
 
         if (parent.Add(declaration.Identifier, datum) is Error error) Errors.Add(error);
+        
+        return datum;
+    }
+
+    private Delegate DefineDelegate(Context parent, Delegate.Declaration declaration)
+    {
+        declaration.Definition.Parent = parent;
+        Define(declaration.Definition);
+
+        //TODO: captured vars should be added as data
+
+        List<Datum> data = new(declaration.Data.Count);
+        foreach (var datum in declaration.Data)
+        {
+            data.Add(DefineDatum(parent, datum));
+        }
+
+        Delegate @delegate = new()
+        {
+            Data = data,
+            Definition = declaration.Definition,
+            Source = declaration.Source
+        };
+
+        return @delegate;
     }
     #endregion
 
@@ -169,8 +195,8 @@ internal class Analyzer
             switch (statement)
             {
                 case Assignment assignment: ResolveAssignment(assignment, context); break;
-                case Context.Member.Unresolved reference: ResolveReference(reference, context); break;
-                case Value.Anonymous value: ResolveValue(value, context); break;
+                case Context.Member.Unresolved member: ResolveMember(member, context); break;
+                case Value.Anonymous value: ResolveAnonymousValue(value, context); break;
                 default: continue;
             }
         }
@@ -186,21 +212,22 @@ internal class Analyzer
         if (component.value is not Parameters parameters) return;
         foreach (var datum in parameters.Data.Values)
         {
-            if (datum.Datatype is not Datatype.Unresolved datatype) continue;
-            datum.Datatype = ResolveDatatype(datatype, context);
+            datum.Datatype = ResolveDatatype(datum.Datatype, context);
         }
     }
 
-    private Datatype ResolveDatatype(Datatype.Unresolved unresolved, Context context)
+    private Datatype ResolveDatatype(Datatype datatype, Context context)
     {
+        if (datatype is not Datatype.Unresolved unresolved) return datatype;
+
         var resolution = context.Resolve(unresolved.Reference);
-        var algebra = ResolveAlgebra(unresolved.Algebra as Algebra.Unresolved, context);
+        ResolveAlgebra(datatype, context);
 
         if (resolution is Ambiguous ambiguous)
         {
             return new Datatype.Overloaded
             {
-                Algebra = algebra,
+                Algebra = datatype.Algebra,
                 Definition = unresolved.Definition,
                 Modifiers = unresolved.Modifiers,
                 Source = unresolved.Source,
@@ -210,15 +237,17 @@ internal class Analyzer
 
         return resolution.Member switch
         {
-            Datatype datatype => datatype,
+            Datatype resolved => resolved,
             Function function => new Datatype.Calculated<Function> { Member = function },
             Datum datum => new Datatype.Calculated<Datum> { Member = datum },
             _ => ResolutionFailure<Datatype>(unresolved.Reference)
         };
     }
 
-    private Function ResolveFunction(Function.Unresolved unresolved, Context context)
+    private Function ResolveFunction(Function function, Context context)
     {
+        if (function is not Function.Unresolved unresolved) return function;
+
         var resolution = context.Resolve(unresolved.Reference);
         var returns = ResolveDatatype(unresolved.Returns as Datatype.Unresolved, context);
 
@@ -236,57 +265,140 @@ internal class Analyzer
 
         return resolution.Member switch
         {
-            Function function => function,
+            Function resolved => resolved,
             Datum datum => new Function.Calculated { Member = datum },
             _ => ResolutionFailure<Function>(unresolved.Reference)
         };
     }
 
-    private Datum ResolveDatum(Datum.Unresolved unresolved, Context context)
+    private Datum ResolveDatum(Datum datum, Context context)
     {
+        if (datum is not Datum.Unresolved unresolved) return datum;
+
         var resolution = context.Resolve(unresolved.Reference);
 
-        if (resolution is not Ambiguous and { Member: Datum datum }) return datum;
+        if (resolution is not Ambiguous and { Member: Datum resolved }) return resolved;
         
         return ResolutionFailure<Datum>(unresolved.Reference);
     }
 
     private void ResolveAssignment(Assignment assignment, Context context)
     {
-        if (assignment.Destination is Datum.Unresolved datum) ResolveDatum(datum, context);
+        if (assignment.Destination is Datum.Unresolved datum)
+        {
+            assignment.Destination = ResolveDatum(datum, context);
+        }
 
+        if (assignment.Value is Context.Member.Unresolved member)
+        {
+            assignment.Value = ResolveMember(member, context);
+        }        
     }
 
-    private Reference ResolveReference(Context.Member.Unresolved reference, Context context)
+    private Context.Member ResolveMember(Context.Member member, Context context)
     {
-        return null;
-    }
+        if (member is not Context.Member.Unresolved unresolved) return member;
 
-    private void ResolveValue(Value.Anonymous value, Context context)
-    {
-
-    }
-
-    private Algebra ResolveAlgebra(Algebra.Unresolved unresolved, Context context)
-    {
         var resolution = context.Resolve(unresolved.Reference);
 
         if (resolution is Ambiguous ambiguous)
         {
-            return new Algebra.Overloaded
+            return new Context.Member.Overloaded
+            {
+                Source = unresolved.Reference.Source,
+                Overloads = ambiguous.Candidates
+            };
+        }
+
+        return resolution.Member ?? ResolutionFailure<Context.Member>(unresolved.Reference);
+    }
+
+    private void ResolveAnonymousValue(Value.Anonymous value, Context context)
+    {
+        switch (value)
+        {
+            case Delegate @delegate:  ResolveInputs(@delegate, context); break;
+            case Lookup lookup: ResolveLookup(lookup, context); break;
+            case Inputs inputs: ResolveInputs(inputs, context); break;
+            //...
+            default: break;
+        };
+    }
+
+    private void ResolveAlgebra(Datatype datatype, Context context)
+    {
+        if (datatype.Algebra is not Algebra.Unresolved unresolved) return;
+
+        var resolution = context.Resolve(unresolved.Reference);
+
+        if (resolution is Ambiguous ambiguous)
+        {
+            datatype.Algebra = new Algebra.Overloaded
             {
                 Source = unresolved.Source,
                 Overloads = ambiguous.Candidates
             };
         }
-
-        return resolution.Member switch
+        else
         {
-            Function function => new Algebra.Calculated<Function> { Member = function },
-            Datatype datatype => new Algebra.Calculated<Datatype> { Member = datatype },
-            Datum datum => new Algebra.Calculated<Datum> { Member = datum },
-            _ => ResolutionFailure<Algebra>(unresolved.Reference)
-        };
+            datatype.Algebra = resolution.Member switch
+            {
+                Datatype existing => existing.Algebra,
+                Function function => new Algebra.Calculated<Function> { Member = function, Source = resolution.Member.Source },                
+                Datum datum => new Algebra.Calculated<Datum> { Member = datum, Source = resolution.Member.Source },
+                _ => ResolutionFailure<Algebra>(unresolved.Reference)
+            };
+        }
+    }
+
+    private void ResolveInputs(Delegate @delegate, Context context)
+    {
+        for (int i = 0, max = @delegate.Data.Count; i < max; ++i)
+        {
+            @delegate.Data[i] = ResolveDatum(@delegate.Data[i], context);            
+        }
+    }
+
+    private void ResolveInputs(Inputs inputs, Context context)
+    {
+        for (int i = 0, max = inputs.Count; i < max; ++i)
+        {
+            Value value = inputs[i];
+            ResolveValue(value, context);
+
+            Assignment assignment = inputs[i];
+            ResolveAssignment(assignment, context);
+        }
+    }
+
+    private void ResolveLookup(Lookup lookup, Context context)
+    {
+        foreach (var association in lookup)
+        {
+            switch (association.Key)
+            {
+                case Context.Member.Unresolved member: ResolveMember(member, context); break;
+                case Value.Anonymous value: ResolveAnonymousValue(value, context); break;
+                default: break;
+            };
+
+            switch (association.Value)
+            {
+                case Context.Member.Unresolved member: ResolveMember(member, context); break;
+                case Value.Anonymous value: ResolveAnonymousValue(value, context); break;
+                default: break;
+            };
+        }
+    }
+
+    private void ResolveValue(Value value, Context context)
+    {
+        switch (value)
+        {
+            case Context.Member.Unresolved member: ResolveMember(member, context); break;
+            case Value.Anonymous anonymous: ResolveAnonymousValue(anonymous, context); break;
+            default: break;
+        }
     }
 
     private T ResolutionFailure<T>(Reference reference)

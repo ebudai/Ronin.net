@@ -3,7 +3,6 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Ronin.Grammar;
 
@@ -19,34 +18,39 @@ namespace Ronin.Grammar;
 ///     var lambda = () => { return x; };
 ///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Delegate : Value.Anonymous, IParsableSyntax<Delegate>
+internal class Delegate : Value.Anonymous
 {
-    public List<Datum.Declaration> Data { get; init; }
+    public List<Datum> Data { get; init; }
     public Context Definition { get; init; }
 
-    public new static Delegate Parse(ref Parser current)
+    public class Declaration : Delegate, IParsableSyntax<Declaration>
     {
-        Parser parser = current;
+        public new List<Datum.Declaration> Data { get; init; }
 
-        var data = Parameters.Parse(ref parser);        
-        if (data is null)
+        public new static Declaration Parse(ref Parser current)
         {
-            if (Datum.Declaration.Parse(ref parser) is not Datum.Declaration datum) return null;
-            if (parser.PreviousToken is not Returns) return null;
-            data = new() { datum };
+            Parser parser = current;
+
+            var data = Parameters.Parse(ref parser);
+            if (data is null)
+            {
+                if (Datum.Declaration.Parse(ref parser) is not Datum.Declaration datum) return null;
+                if (parser.PreviousToken is not Returns) return null;
+                data = new() { datum };
+            }
+            else
+            {
+                if (parser.TryAdvance<Returns>() is false) return null;
+            }
+
+            if (Context.Parse(ref parser) is not Context definition) return null;
+
+            return new Declaration
+            {
+                Data = new(data),
+                Definition = definition,
+                Source = parser.Commit(ref current)
+            };
         }
-        else
-        {
-            if (parser.TryAdvance<Returns>() is false) return null;
-        }
-
-        if (Context.Parse(ref parser) is not Context definition) return null;
-
-        return new Delegate
-        {
-            Data = new(data),
-            Definition = definition,
-            Source = parser.Commit(ref current)
-        };
     }
 }

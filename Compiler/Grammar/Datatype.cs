@@ -56,7 +56,7 @@ internal class Datatype : Context.Member
         public Reference Reference { get; init; }
     }
 
-    public class Overloaded : Datatype
+    public new class Overloaded : Datatype
     {
         public List<Context.Member> Overloads { get; init; }
     }

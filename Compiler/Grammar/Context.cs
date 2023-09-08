@@ -27,26 +27,31 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Context : Aggregate<Context, StartScope, Statement, Terminal, EndScope>
 {
-    public class Member : Value
+    public class Member : Value, IParsableSyntax<Member>
     {
         public Modifiers Modifiers { get; init; }
 
-        public class Unresolved : Member, IParsableSyntax<Unresolved>
+        public new static Member Parse(ref Parser current)
         {
-            public Reference Reference { get; init; }
+            Parser parser = current;
 
-            public new static Unresolved Parse(ref Parser current)
+            if (Reference.Parse(ref parser) is not Reference reference) return null;
+
+            return new Unresolved
             {
-                Parser parser = current;
+                Reference = reference,
+                Source = parser.Commit(ref current)
+            };
+        }
 
-                if (Reference.Parse(ref parser) is not Reference reference) return null;
+        public class Unresolved : Member
+        {
+            public Reference Reference { get; init; }            
+        }
 
-                return new Unresolved
-                {
-                    Reference = reference,
-                    Source = parser.Commit(ref current)
-                };
-            }
+        public class Overloaded : Member
+        {
+            public List<Member> Overloads { get; init; }
         }
     }
 

@@ -62,7 +62,7 @@ internal class Function : Context.Member
         public Reference Reference { get; init; }
     }
 
-    public class Overloaded : Function
+    public new class Overloaded : Function
     {
         public List<Context.Member> Overloads { get; init; }
     }

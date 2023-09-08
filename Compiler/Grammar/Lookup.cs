@@ -26,8 +26,8 @@ internal class Lookup : Aggregate<Lookup, StartScope, Lookup.Association, Separa
     /// </summary>
     public class Association : Syntax, IParsableSyntax<Association>
     {
-        public Value Key { get; init; }
-        public Value Value { get; init; }
+        public Value Key { get; set; }
+        public Value Value { get; set; }
 
         public static Association Parse(ref Parser current)
         {

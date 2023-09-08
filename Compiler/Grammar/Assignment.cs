@@ -14,9 +14,9 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Assignment : Statement, IParsableSyntax<Assignment>
 {
-    public Datum Destination { get; init; }
+    public Datum Destination { get; set; }
     public Punctuation Type { get; init; }
-    public Value Value { get; init; }
+    public Value Value { get; set; }
 
     public new static Assignment Parse(ref Parser current)
     {

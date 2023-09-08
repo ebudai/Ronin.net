@@ -32,7 +32,7 @@ public class Delegates : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var @delegate = Delegate.Parse(ref parser);
+        var @delegate = Delegate.Declaration.Parse(ref parser);
         
         Assert.Null(@delegate);
     }
