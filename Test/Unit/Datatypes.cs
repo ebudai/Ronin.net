@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -170,6 +169,8 @@ public class Datatypes : ParsingTests
         {
             const string Car = nameof(Car);
             const string car = nameof(car);
+            const string number = nameof(number);
+            const string money = nameof(money);
             const string x = nameof(x);
 
             // datatype Car(x => number) { }
@@ -177,19 +178,24 @@ public class Datatypes : ParsingTests
             // var car => Car(3);
 
             Analyzer analyzer = new();
+                        
+            analyzer.Global.Add(Identifier(number), new Datatype());
+            analyzer.Global.Add(Identifier(money), new Datatype());
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
-                param.Data.Add(id, new Datum { Datatype = new() });
-                analyzer.Global.Add(Identifier(Name(Car), param), new Datatype());
+                param.Data.Add(id, new Datum { Datatype = analyzer.Global.Contexts[0].Members[Identifier(number)] as Datatype });
+                var error = analyzer.Global.Add(Identifier(Name(Car), param), new Datatype());
+                Assert.Null(error);
             }
 
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
-                param.Data.Add(id, new Datum { Datatype = new() });
-                analyzer.Global.Add(Identifier(Name(Car), param), new Datatype());
+                param.Data.Add(id, new Datum { Datatype = analyzer.Global.Contexts[0].Members[Identifier(money)] as Datatype });
+                var error = analyzer.Global.Add(Identifier(Name(Car), param), new Datatype());
+                Assert.Null(error);
             }
 
             Reference.Component parameter = new() { value = new Inline { Source = new[] { Number(3) } }, Source = new[] { Number(3) } };
@@ -201,9 +207,8 @@ public class Datatypes : ParsingTests
             };
 
             analyzer.Global.Add(Identifier(car), datum);
-            Assert.Empty(analyzer.Errors);
 
-            //analyzer.Resolve(Module.Global, errors);
+            analyzer.Resolve();
             Assert.Empty(analyzer.Errors);
 
             var overloaded = datum.Datatype as Datatype.Overloaded;
@@ -231,10 +236,10 @@ public class Datatypes : ParsingTests
 
             Datum datum = new() { Datatype = datatype };
 
-            analyzer.Global.Add(Identifier(car), datum);
+            analyzer.Errors.Add(analyzer.Global.Add(Identifier(car), datum));
             Assert.Empty(analyzer.Errors);
 
-            //analyzer.Resolve(Module.Global, errors);
+            analyzer.Resolve(analyzer.Global);
             Assert.Empty(analyzer.Errors);
 
             var overloaded = datum.Datatype.Algebra as Algebra.Overloaded;
