@@ -14,6 +14,6 @@ public class Whitespaces
         Lexer lexer = new(source);
         var whitespace = Whitespace.Lex(ref lexer);
 
-        Assert.Equal(source, whitespace?.Memory.ToArray());
+        Assert.Equal(source, whitespace?.Memory.ToString());
     }
 }

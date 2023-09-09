@@ -14,7 +14,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name, word?.Memory.ToArray());
+        Assert.Equal(name, word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with terminator")]
@@ -25,7 +25,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with separator")]
@@ -36,7 +36,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with opening parenthesis")]
@@ -47,7 +47,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with closing parenthesis")]
@@ -58,7 +58,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with opening bracket")]
@@ -69,7 +69,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with closing bracket")]
@@ -80,7 +80,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with opening brace")]
@@ -91,7 +91,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with closing brace")]
@@ -102,7 +102,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with single quote")]
@@ -113,7 +113,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with double quote")]
@@ -124,7 +124,7 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with space")]
@@ -135,6 +135,6 @@ public class Words
         Lexer lexer = new(name);
         var word = Word.Lex(ref lexer);
 
-        Assert.Equal(name[..^1], word?.Memory.ToArray());
+        Assert.Equal(name[..^1], word?.Memory.ToString());
     }
 }

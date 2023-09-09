@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -180,19 +179,19 @@ public class Functions : ParsingTests
 
             Assert.Equal(2, identifier.Components.Count);
             Assert.Equal(2, identifier.Components[0].Source.Length);
-            Assert.Equal(run, identifier.Components[0].Source.Span[0].Memory.ToArray());
-            Assert.Equal(home, identifier.Components[0].Source.Span[1].Memory.ToArray());
+            Assert.Equal(run, identifier.Components[0].Source.Span[0].Memory.ToString());
+            Assert.Equal(home, identifier.Components[0].Source.Span[1].Memory.ToString());
 
             Parameters parameters = identifier.Components[1];
             Assert.Single(parameters);
             Assert.Single(parameters[0].Identifier.Components);
             Name name = parameters[0].Identifier.Components[0];
             Assert.Single(name?.Source.ToArray());
-            Assert.Equal(cash, name.Source.Span[0].Memory.ToArray());
+            Assert.Equal(cash, name.Source.Span[0].Memory.ToString());
             Assert.Single(parameters[0].Datatype.Components);
             name = parameters[0].Datatype.Components[0];
             Assert.Single(name?.Source.ToArray());
-            Assert.Equal(money, name.Source.Span[0].Memory.ToArray());
+            Assert.Equal(money, name.Source.Span[0].Memory.ToString());
             Assert.Empty(function.Modifiers.Source.ToArray());
 
             Assert.IsType<Datatype.Unresolved>(function.Returns);
@@ -234,10 +233,14 @@ public class Functions : ParsingTests
             Context.Member.Unresolved unresolved = new() { Reference = reference };
             analyzer.Global.Add(unresolved);
 
-            //analyzer.Resolve(Module.Global, errors);
+            analyzer.Resolve();
 
-            //var overloaded = unresolved.Member as Function.Overloaded;
-            //Assert.Equal(2, overloaded?.Overloads.Count);
+            Assert.Single(analyzer.Global.Contexts);
+            var context = analyzer.Global.Contexts[0];
+            Assert.Equal(2, context.Members.Count);
+            Assert.Single(analyzer.Global);
+            var overloaded = analyzer.Global.First();// as Function.Overloaded;
+            //Assert.Equal(2, overloaded?.Overloads.Length);
         }
     }
 }

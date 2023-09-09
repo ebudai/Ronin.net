@@ -318,7 +318,7 @@ public class AnalysisTests : ParsingTests
         
         return new Identifier
         { 
-            Components = names.Select(name => new Identifier.Component { value = Name(name) }).ToList(),
+            Components = names.Select(name => new Identifier.Component { value = Name(name), Source = new[] { Word(name) } }).ToList(),
             Source = words.ToArray() 
         };
     }

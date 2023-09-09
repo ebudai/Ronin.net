@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 

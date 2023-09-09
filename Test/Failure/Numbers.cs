@@ -26,7 +26,7 @@ public class Numbers
         Lexer lexer = new(literal);
         var number = Literal.Lex(ref lexer) as Numeric;
 
-        Assert.Equal(literal[..^1], number?.Memory.ToArray());
+        Assert.Equal(literal[..^1], number?.Memory.ToString());
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -37,7 +37,7 @@ public class Numbers
         Lexer lexer = new(literal);
         var number = Literal.Lex(ref lexer) as Numeric;
 
-        Assert.Equal(literal[..^2], number?.Memory.ToArray());
+        Assert.Equal(literal[..^2], number?.Memory.ToString());
     }
 
     [Fact(DisplayName = "contains multiple dots")]
@@ -48,7 +48,7 @@ public class Numbers
         Lexer lexer = new(literal);
         var number = Literal.Lex(ref lexer) as Numeric;
 
-        Assert.Equal(literal[..^2], number?.Memory.ToArray());
+        Assert.Equal(literal[..^2], number?.Memory.ToString());
     }
 
     [Fact(DisplayName = "bad commas")]
@@ -59,7 +59,7 @@ public class Numbers
         Lexer lexer = new(literal);
         var number = Literal.Lex(ref lexer) as Numeric;
 
-        Assert.Equal(literal[..1], number?.Memory.ToArray());
+        Assert.Equal(literal[..1], number?.Memory.ToString());
     }
 
     [Fact(DisplayName = "no data")]

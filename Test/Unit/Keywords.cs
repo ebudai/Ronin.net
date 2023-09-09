@@ -32,7 +32,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Datatype;
 
-        Assert.Equal(datatype, keyword?.Memory.ToArray());
+        Assert.Equal(datatype, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = function)]
@@ -43,7 +43,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Function;
 
-        Assert.Equal(function, keyword?.Memory.ToArray());
+        Assert.Equal(function, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = variable)]
@@ -54,7 +54,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Variable;
 
-        Assert.Equal(variable, keyword?.Memory.ToArray());
+        Assert.Equal(variable, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = constant)]
@@ -65,7 +65,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Constant;
 
-        Assert.Equal(constant, keyword?.Memory.ToArray());
+        Assert.Equal(constant, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = reactive)]
@@ -76,7 +76,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Reactive;
 
-        Assert.Equal(reactive, keyword?.Memory.ToArray());
+        Assert.Equal(reactive, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = compiled)]
@@ -87,7 +87,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Compiled;
 
-        Assert.Equal(compiled, keyword?.Memory.ToArray());
+        Assert.Equal(compiled, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = shared)]
@@ -98,7 +98,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Shared;
 
-        Assert.Equal(shared, keyword?.Memory.ToArray());
+        Assert.Equal(shared, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = optional)]
@@ -109,7 +109,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Optional;
 
-        Assert.Equal(optional, keyword?.Memory.ToArray());
+        Assert.Equal(optional, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = persistent)]
@@ -120,7 +120,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Persistent;
 
-        Assert.Equal(persistent, keyword?.Memory.ToArray());
+        Assert.Equal(persistent, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = partof)]
@@ -131,7 +131,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as PartOf;
 
-        Assert.Equal(partof, keyword?.Memory.ToArray());
+        Assert.Equal(partof, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = import)]
@@ -142,7 +142,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Import;
 
-        Assert.Equal(import, keyword?.Memory.ToArray());
+        Assert.Equal(import, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = @foreach)]
@@ -153,7 +153,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as ForEach;
 
-        Assert.Equal(@foreach, keyword?.Memory.ToArray());
+        Assert.Equal(@foreach, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = extends)]
@@ -164,7 +164,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Extends;
 
-        Assert.Equal(extends, keyword?.Memory.ToArray());
+        Assert.Equal(extends, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = @if)]
@@ -175,7 +175,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as If;
 
-        Assert.Equal(@if, keyword?.Memory.ToArray());
+        Assert.Equal(@if, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = let)]
@@ -186,7 +186,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Let;
 
-        Assert.Equal(let, keyword?.Memory.ToArray());
+        Assert.Equal(let, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = @while)]
@@ -197,7 +197,7 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as While;
 
-        Assert.Equal(@while, keyword?.Memory.ToArray());
+        Assert.Equal(@while, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = hidden)]
@@ -208,6 +208,6 @@ public class Keywords
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Hidden;
 
-        Assert.Equal(hidden, keyword?.Memory.ToArray());
+        Assert.Equal(hidden, keyword?.Memory.ToString());
     }
 }

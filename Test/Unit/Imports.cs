@@ -1,6 +1,6 @@
-﻿using Ronin.Compiler;
+﻿using Ronin;
+using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 using Import = Ronin.Grammar.Import;

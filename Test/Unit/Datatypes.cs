@@ -133,14 +133,14 @@ public class Datatypes : ParsingTests
 
             Assert.Single(identifier.Components);
             Assert.Single(identifier.Components[0].Source.ToArray());
-            Assert.Equal(Big, identifier.Components[0].Source.Span[0].Memory.ToArray());
+            Assert.Equal(Big, identifier.Components[0].Source.Span[0].Memory.ToString());
 
             var algebra = datatype.Algebra as Algebra.Unresolved;
             Assert.Equal(2, algebra?.Reference.Components.Count);
             Assert.Equal(1, algebra.Reference.Components[0].value.Source.Length);
-            Assert.Equal(text, algebra.Reference.Components[0].value.Source.Span[0].Memory.ToArray());
+            Assert.Equal(text, algebra.Reference.Components[0].value.Source.Span[0].Memory.ToString());
             Assert.Equal(1, algebra.Reference.Components[1].value.Source.Length);
-            Assert.Equal(or, algebra.Reference.Components[1].value.Source.Span[0].Memory.ToArray());
+            Assert.Equal(or, algebra.Reference.Components[1].value.Source.Span[0].Memory.ToString());
 
             Assert.Single(datatype.Definition);
 
@@ -150,14 +150,14 @@ public class Datatypes : ParsingTests
 
             Assert.Single(name.Components);
             Assert.Single(name.Components[0].Source.ToArray());
-            Assert.Equal(x, name.Components[0].Source.Span[0].Memory.ToArray());
+            Assert.Equal(x, name.Components[0].Source.Span[0].Memory.ToString());
 
             Assert.IsType<Variable>(datum?.Mutability);
             var unresolved = datum.Datatype as Datatype.Unresolved;
             Assert.Single(unresolved?.Reference.Components);
             var unresolvedname = unresolved.Reference.Components[0].value as Name;
             Assert.Single(unresolvedname.Source.ToArray());
-            Assert.Equal(number, unresolvedname.Source.Span[0].Memory.ToArray());
+            Assert.Equal(number, unresolvedname.Source.Span[0].Memory.ToString());
         }
     }
 

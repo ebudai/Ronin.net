@@ -14,7 +14,7 @@ public class Literals
         Lexer lexer = new(literal);
         var lexed = Literal.Lex(ref lexer) as Date;
 
-        Assert.Equal(literal.ToArray(), lexed?.Memory.ToString());
+        Assert.Equal(literal, lexed?.Memory.ToString());
     }
 
     [Fact(DisplayName = "basic char")]

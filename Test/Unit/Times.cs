@@ -14,7 +14,7 @@ public class Times
         Lexer lexer = new(literal);
         var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal, time?.Memory.ToArray());
+        Assert.Equal(literal, time?.Memory.ToString());
     }
 
     [Fact(DisplayName = "two digits with unspaced suffix")]
@@ -25,7 +25,7 @@ public class Times
         Lexer lexer = new(literal);
         var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal, time?.Memory.ToArray());
+        Assert.Equal(literal, time?.Memory.ToString());
     }
 
     [Fact(DisplayName = "two digits without suffix")]
@@ -36,7 +36,7 @@ public class Times
         Lexer lexer = new(literal);
         var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal, time?.Memory.ToArray());
+        Assert.Equal(literal, time?.Memory.ToString());
     }
 
     [Fact(DisplayName = "one digit with spaced suffix")]
@@ -47,7 +47,7 @@ public class Times
         Lexer lexer = new(literal);
         var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal, time?.Memory.ToArray());
+        Assert.Equal(literal, time?.Memory.ToString());
     }
 
     [Fact(DisplayName = "one digit with unspaced suffix")]
@@ -58,7 +58,7 @@ public class Times
         Lexer lexer = new(literal);
         var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal, time?.Memory.ToArray());
+        Assert.Equal(literal, time?.Memory.ToString());
     }
 
     [Fact(DisplayName = "two digit with spaced no suffix")]
@@ -69,6 +69,6 @@ public class Times
         Lexer lexer = new(literal);
         var time = Literal.Lex(ref lexer) as Time;
 
-        Assert.Equal(literal.Trim(), time?.Memory.ToArray());
+        Assert.Equal(literal.Trim(), time?.Memory.ToString());
     }
 }

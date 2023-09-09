@@ -16,7 +16,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal, money?.Memory.ToArray());
+        Assert.Equal(literal, money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with terminator")]
@@ -27,7 +27,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with separator")]
@@ -38,7 +38,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with opening parenthesis")]
@@ -49,7 +49,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with closing parenthesis")]
@@ -60,7 +60,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with opening bracket")]
@@ -71,7 +71,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with closing bracket")]
@@ -82,7 +82,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with opening brace")]
@@ -93,7 +93,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with closing brace")]
@@ -104,7 +104,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with single quote")]
@@ -115,7 +115,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with double quote")]
@@ -126,7 +126,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "with space")]
@@ -137,7 +137,7 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "whole value")]
@@ -148,6 +148,6 @@ public class Currencies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal, money?.Memory.ToArray());
+        Assert.Equal(literal, money?.Memory.ToString());
     }
 }

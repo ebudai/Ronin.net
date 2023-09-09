@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using Test;
 
@@ -324,7 +323,7 @@ public class Data : ParsingTests
             Assert.Single(identifier.Components);
             Name name = identifier.Components[0];
             Assert.Single(name.Source.ToArray());
-            Assert.Equal(home, name.Source.Span[0].Memory.ToArray());
+            Assert.Equal(home, name.Source.Span[0].Memory.ToString());
 
             Assert.IsType<Datatype.Unresolved>(datum.Datatype);
         }

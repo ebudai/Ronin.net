@@ -36,7 +36,7 @@ public class Monies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^1], money?.Memory.ToArray());
+        Assert.Equal(literal[..^1], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "contains invalid chars")]
@@ -47,7 +47,7 @@ public class Monies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^2], money?.Memory.ToArray());
+        Assert.Equal(literal[..^2], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "no data")]
@@ -67,7 +67,7 @@ public class Monies
         Lexer lexer = new(literal);
         var money = Literal.Lex(ref lexer) as Currency;
 
-        Assert.Equal(literal[..^2], money?.Memory.ToArray());
+        Assert.Equal(literal[..^2], money?.Memory.ToString());
     }
 
     [Fact(DisplayName = "just a dollar sign")]
