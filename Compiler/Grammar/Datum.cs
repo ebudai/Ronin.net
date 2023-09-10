@@ -33,10 +33,6 @@ internal class Datum : Context.Member
         public Reference Datatype { get; init; }
         public Value Initializer { get; init; }
 
-        public override bool Equals(object obj) => Datatype?.Equals(obj) ?? false;
-
-        public override int GetHashCode() => Datatype.GetHashCode();
-
         public new static Declaration Parse(ref Parser current)
         {
             Parser parser = current;
@@ -56,6 +52,11 @@ internal class Datum : Context.Member
 
             Value initializer = null;
             if (parser.TryAdvance<Assign>()) initializer = Value.Parse(ref parser);
+
+            if (datatype is null)
+            {
+                if (mutability is null || initializer is null) return null;
+            }
 
             return new Declaration
             {

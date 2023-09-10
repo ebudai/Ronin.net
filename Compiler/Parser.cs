@@ -17,7 +17,6 @@ internal struct Parser
     public Parser(List<Token> tokens) => this.tokens = tokens.AsMemory();
 
     public readonly ref readonly Token Token => ref tokens.Span[cursor];
-    public readonly ref readonly Token PreviousToken => ref tokens.Span[cursor - 1];
     
     public readonly bool IsNotFinished => Token is not Sentinel;
 
@@ -49,9 +48,10 @@ internal struct Parser
         return parsed;
     }
 
-    public void Advance()
+    public Token Advance()
     {
         do ++cursor; while (Token is Trivium);
+        return Token;
     }
 
     public bool TryAdvance<T>() where T : Token

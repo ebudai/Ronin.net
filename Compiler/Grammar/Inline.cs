@@ -23,11 +23,7 @@ internal class Inline : Value.Anonymous, IParsableSyntax<Inline>
     {
         Parser parser = current;
 
-        while (parser.IsNotFinished)
-        {            
-            if (parser.Token is not Literal) break;
-            parser.Advance();
-        }
+        while (parser.TryAdvance<Literal>()) { }
 
         if (parser.Token == current.Token) return null;
 

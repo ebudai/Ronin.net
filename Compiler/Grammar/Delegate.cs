@@ -23,31 +23,37 @@ internal class Delegate : Value.Anonymous
     public List<Datum> Data { get; init; }
     public Context Definition { get; init; }
 
-    public class Declaration : Delegate, IParsableSyntax<Declaration>
+    public class Parameter : CompositeSyntax<Parameter, Datum.Declaration, Identifier> 
     {
-        public new List<Datum.Declaration> Data { get; init; }
+        public static implicit operator Parameter(Identifier identifer) => new() { value = identifer, Source = identifer.Source };
+        public static implicit operator Parameter(Datum.Declaration declaration) => new() { value = declaration, Source = declaration.Source };
+    }
+
+    public class Parameters : Aggregate<Parameters, StartValues, Parameter, Separator, EndValues> { }
+
+    public class Declaration : Anonymous, IParsableSyntax<Declaration>
+    {
+        public Parameters Parameters { get; init; }
+        public Context Definition { get; init; }
 
         public new static Declaration Parse(ref Parser current)
         {
             Parser parser = current;
 
-            var data = Parameters.Parse(ref parser);
-            if (data is null)
+            var parameters = Parameters.Parse(ref parser);
+            if (parameters is null)
             {
-                if (Datum.Declaration.Parse(ref parser) is not Datum.Declaration datum) return null;
-                if (parser.PreviousToken is not Returns) return null;
-                data = new() { datum };
+                if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
+                parameters = new() { identifier };
             }
-            else
-            {
-                if (parser.TryAdvance<Returns>() is false) return null;
-            }
+            
+            if (parser.TryAdvance<Returns>() is false) return null;
 
             if (Context.Parse(ref parser) is not Context definition) return null;
 
             return new Declaration
             {
-                Data = new(data),
+                Parameters = parameters,
                 Definition = definition,
                 Source = parser.Commit(ref current)
             };
