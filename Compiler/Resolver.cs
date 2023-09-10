@@ -1,10 +1,27 @@
 ﻿using Ronin.Grammar;
-using Ronin.Hierarchy;
 using System;
 using System.Collections.Generic;
-using Function = Ronin.Grammar.Function;
 
 namespace Ronin.Compiler;
+
+internal class Resolution
+{
+    public class Exact : Resolution
+    {
+        public Context.Member Member { get; set; }
+        public Resolution[] Inputs { get; set; }
+    }
+
+    public class Ambiguous : Resolution
+    {
+        public List<Resolution> Candidates { get; init; }
+    }
+
+    public static Resolution Match(Context context, Identifier name, Reference reference)
+    {
+        throw new NotImplementedException();
+    }
+}
 
 /*internal static partial class Analyzer
 {

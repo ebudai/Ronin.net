@@ -4,6 +4,7 @@ using Ronin.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Ronin.Grammar;
 
@@ -21,25 +22,27 @@ internal class Reference : Syntax, IParsableSyntax<Reference>
     public List<Component> Components { get; init; }
     public Indexer Indexer { get; init; }
 
+    public ReadOnlySpan<Component> Span => CollectionsMarshal.AsSpan(Components);
+
     public static Reference Parse(ref Parser current)
     {
         Parser parser = current;
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
+
         foreach (var component in components)
         {
-            if (component.value is not Value.Anonymous)
-            {
-                var indexer = Indexer.Parse(ref parser);
+            if (component.value is not Name) continue;
 
-                return new Reference
-                {
-                    Components = components,
-                    Indexer = indexer,
-                    Source = parser.Commit(ref current)
-                };
-            }
+            var indexer = Indexer.Parse(ref parser);
+
+            return new Reference
+            {
+                Components = components,
+                Indexer = indexer,
+                Source = parser.Commit(ref current)
+            };
         }
 
         return null;

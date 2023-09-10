@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Globalization;
 
 namespace Ronin.Grammar;
 
@@ -98,9 +99,18 @@ internal class IteratingScope : Scope, IParsableSyntax<IteratingScope>
 
         if (parser.TryAdvance<ForEach>() is false) return null;
 
-        if (Datum.Declaration.Parse(ref parser) is not Datum.Declaration datum) return null;
+        var datum = Datum.Declaration.Parse(ref parser);
+        var identifier = datum?.Identifier ?? Identifier.Parse(ref parser);
+
+        if (identifier is null) return null;
 
         if (Context.Parse(ref parser) is not Context definition) return null;
+
+        datum ??= new Datum.Declaration
+        {
+            Identifier = identifier,
+            Source = identifier.Source
+        };
 
         return new IteratingScope
         {

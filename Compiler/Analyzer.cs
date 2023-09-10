@@ -1,7 +1,6 @@
 ﻿using Ronin.Grammar;
-using Ronin.Hierarchy;
 using System.Collections.Generic;
-
+using static Ronin.Compiler.Resolution;
 using Datatype = Ronin.Grammar.Datatype;
 using Function = Ronin.Grammar.Function;
 using Import = Ronin.Grammar.Import;
@@ -141,8 +140,8 @@ internal class Analyzer
 
         //TODO: captured vars should be added as data
 
-        List<Datum> data = new(declaration.Data.Count);
-        foreach (var datum in declaration.Data)
+        List<Datum> data = new(declaration.Parameters.Count);
+        foreach (var datum in declaration.Parameters)
         {
             data.Add(DefineDatum(parent, datum));
         }
@@ -159,12 +158,13 @@ internal class Analyzer
     #endregion
 
     #region Resolution
-    public void Resolve(Module module)
+    public void Resolve(Module module = null)
     {
+        module ??= Global;
+
         if (Resolved.Add(module) is false) return;
 
         foreach (var context in module.Contexts) ResolveContext(context);
-
         foreach (var child in module.Modules.Values) Resolve(child);
     }
 
@@ -176,35 +176,32 @@ internal class Analyzer
             context.Imports[i] = Global.GetOrCreate(unresolved.Import.Name);            
         }
 
-        foreach (var identifier in context.Members.Keys) ResolveIdentifierParameters(identifier, context);
+        foreach (var identifier in context.Members.Keys) ResolveParameters(identifier, context);
         context.Members.OnDeserialization(null);
 
+        Dictionary<Identifier.Component, Context.Member> members = new();
         foreach (var (name, member) in context.Members)
         {
-            context.Members[name] = member switch
+            members.Add(name, member switch
             {
-                Datatype.Unresolved unresolved => ResolveDatatype(unresolved, context),
-                Function.Unresolved unresolved => ResolveFunction(unresolved, context),
-                Datum.Unresolved unresolved => ResolveDatum(unresolved, context),
+                Datatype datatype => ResolveDatatype(datatype, context),
+                Function function => ResolveFunction(function, context),
+                Datum datum => ResolveDatum(datum, context),
                 _ => member
-            };
+            });
         }
+        context.Members = members;
 
         foreach (var statement in context)
         {
             switch (statement)
             {
                 case Assignment assignment: ResolveAssignment(assignment, context); break;
-                case Context.Member.Unresolved member: ResolveMember(member, context); break;
+                case Context.Member member: ResolveMember(member, context); break;
                 case Value.Anonymous value: ResolveAnonymousValue(value, context); break;
                 default: continue;
             }
         }
-    }
-
-    private void ResolveIdentifierParameters(Identifier identifier, Context context)
-    {
-        foreach (var component in identifier.Components) ResolveParameters(component, context);
     }
 
     private void ResolveParameters(Identifier.Component component, Context context)
@@ -235,7 +232,7 @@ internal class Analyzer
             };
         }
 
-        return resolution.Member switch
+        return (resolution as Exact).Member switch
         {
             Datatype resolved => resolved,
             Function function => new Datatype.Calculated<Function> { Member = function },
@@ -263,7 +260,7 @@ internal class Analyzer
             };
         }
 
-        return resolution.Member switch
+        return (resolution as Exact).Member switch
         {
             Function resolved => resolved,
             Datum datum => new Function.Calculated { Member = datum },
@@ -273,11 +270,13 @@ internal class Analyzer
 
     private Datum ResolveDatum(Datum datum, Context context)
     {
+        datum.Datatype = ResolveDatatype(datum.Datatype, context);
+
         if (datum is not Datum.Unresolved unresolved) return datum;
 
         var resolution = context.Resolve(unresolved.Reference);
 
-        if (resolution is not Ambiguous and { Member: Datum resolved }) return resolved;
+        if (resolution is Exact and { Member: Datum resolved }) return resolved;
         
         return ResolutionFailure<Datum>(unresolved.Reference);
     }
@@ -310,7 +309,7 @@ internal class Analyzer
             };
         }
 
-        return resolution.Member ?? ResolutionFailure<Context.Member>(unresolved.Reference);
+        return (resolution as Exact).Member ?? ResolutionFailure<Context.Member>(unresolved.Reference);
     }
 
     private void ResolveAnonymousValue(Value.Anonymous value, Context context)
@@ -342,11 +341,12 @@ internal class Analyzer
         }
         else
         {
-            datatype.Algebra = resolution.Member switch
+            var exact = resolution as Exact;
+            datatype.Algebra = exact.Member switch
             {
                 Datatype existing => existing.Algebra,
-                Function function => new Algebra.Calculated<Function> { Member = function, Source = resolution.Member.Source },                
-                Datum datum => new Algebra.Calculated<Datum> { Member = datum, Source = resolution.Member.Source },
+                Function function => new Algebra.Calculated<Function> { Member = function, Source = exact.Member.Source },                
+                Datum datum => new Algebra.Calculated<Datum> { Member = datum, Source = exact.Member.Source },
                 _ => ResolutionFailure<Algebra>(unresolved.Reference)
             };
         }
