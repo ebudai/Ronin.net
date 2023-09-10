@@ -13,11 +13,10 @@ public class Unknowns : ParsingTests
     [Fact(DisplayName = "unknown")]
     public void UnknownSyntax()
     {
-        // datatype => ;
+        // => ;
 
         List<Token> tokens = new()
         {
-            Keyword.Datatype(),
             Returns(),
             Terminal(),
             Sentinel.Instance

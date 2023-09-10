@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
 using System.Collections.Generic;
 
@@ -64,7 +63,7 @@ internal class Function : Context.Member
 
     public new class Overloaded : Function
     {
-        public List<Context.Member> Overloads { get; init; }
+        public List<Resolution> Overloads { get; init; }
     }
 
     public class Calculated : Function

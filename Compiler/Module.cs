@@ -1,12 +1,14 @@
-﻿using Ronin.Grammar;
+﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using System.Collections.Generic;
+using static Ronin.Compiler.Resolution;
 
-namespace Ronin.Hierarchy;
+namespace Ronin;
 
 internal class Module : Context
 {
     public List<Context> Contexts { get; } = new();
-    public Dictionary<Identifier.Component, Module> Modules { get; } = new();    
+    public Dictionary<Identifier.Component, Module> Modules { get; } = new();
 
     public void Add(Context context, Identifier name = null) => GetOrCreate(name).Contexts.Add(context);
 
@@ -27,7 +29,28 @@ internal class Module : Context
 
     public override Resolution Resolve(Reference reference)
     {
-        return base.Resolve(reference);
+        var resolution = base.Resolve(reference);
+
+        foreach (var context in Contexts)
+        {
+            var resolved = context.Resolve(reference);
+            if (resolved is null) continue;
+            if (resolution is not Ambiguous)
+            {
+                resolution = new Ambiguous { Candidates = new() { resolution } };
+            }
+            var candidates = (resolution as Ambiguous).Candidates;
+            if (resolved is Ambiguous ambiguous)
+            {
+                candidates.AddRange(ambiguous.Candidates);
+            }
+            else
+            {
+                candidates.Add(resolved);
+            }
+        }
+
+        return resolution;
     }
 
     public class Unresolved : Module

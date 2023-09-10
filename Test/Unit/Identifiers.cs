@@ -56,24 +56,30 @@ public class Identifiers : ParsingTests
         Parser parser = new(tokens);
         var identifier = Identifier.Parse(ref parser);
 
-        Assert.Single(identifier?.Components);
+        Assert.Equal(4, identifier?.Components.Count);
     }
 
     [Fact(DisplayName = "equality")]
     public void Equality()
     {
         const string things = nameof(things);
+        const string number = nameof(number);
+        const string money = nameof(money);
 
-        // var things;
-        // var things;
+        // var things => number;
+        // var things => money;
 
         List<Token> tokens = new()
         {
             Keyword.Variable(),
             Word(things),
+            Returns(),
+            Word(number),
             Terminal(),
             Keyword.Variable(),
             Word(things),
+            Returns(),
+            Word(money),
             Terminal()
         };
 

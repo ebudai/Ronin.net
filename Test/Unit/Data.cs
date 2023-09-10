@@ -320,8 +320,8 @@ public class Data : ParsingTests
 
             Assert.IsType<Variable>(datum.Mutability);
 
-            Assert.Single(identifier.Components);
-            Name name = identifier.Components[0];
+            Assert.Single(identifier.Source.ToArray());
+            Name name = identifier;
             Assert.Single(name.Source.ToArray());
             Assert.Equal(home, name.Source.Span[0].Memory.ToString());
 

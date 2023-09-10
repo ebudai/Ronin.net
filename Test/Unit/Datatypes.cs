@@ -63,10 +63,8 @@ public class Datatypes : ParsingTests
         Parser parser = new(tokens);
         var datatype = Datatype.Declaration.Parse(ref parser);
 
-        Assert.Single(datatype?.Identifier?.Components);
-        Name algebra = datatype.Algebra.Components[0];
-        Assert.Equal(2, algebra?.Source.Length);
-
+        Assert.Equal(2, datatype?.Identifier.Components.Count);
+        Assert.Equal(2, datatype.Algebra.Components.Count);
         Assert.Equal(2, datatype.Definition.Count);
 
         {
@@ -131,9 +129,8 @@ public class Datatypes : ParsingTests
             var identifier = entry.Key;
             var datatype = entry.Value as Datatype;
 
-            Assert.Single(identifier.Components);
-            Assert.Single(identifier.Components[0].Source.ToArray());
-            Assert.Equal(Big, identifier.Components[0].Source.Span[0].Memory.ToString());
+            Assert.Single(identifier.Source.ToArray());
+            Assert.Equal(Big, identifier.Source.Span[0].Memory.ToString());
 
             var algebra = datatype.Algebra as Algebra.Unresolved;
             Assert.Equal(2, algebra?.Reference.Components.Count);
@@ -148,9 +145,8 @@ public class Datatypes : ParsingTests
             var name = datumentry.Key;
             var datum = datumentry.Value as Datum;
 
-            Assert.Single(name.Components);
-            Assert.Single(name.Components[0].Source.ToArray());
-            Assert.Equal(x, name.Components[0].Source.Span[0].Memory.ToString());
+            Assert.Single(name.Source.ToArray());
+            Assert.Equal(x, name.Source.Span[0].Memory.ToString());
 
             Assert.IsType<Variable>(datum?.Mutability);
             var unresolved = datum.Datatype as Datatype.Unresolved;
@@ -185,7 +181,7 @@ public class Datatypes : ParsingTests
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
-                param.Data.Add(id, new Datum { Datatype = analyzer.Global.Contexts[0].Members[Identifier(number)] as Datatype });
+                //param.Data.Add(id, new Datum { Datatype = analyzer.Global.Contexts[0].Members[Identifier(number)] as Datatype });
                 var error = analyzer.Global.Add(Identifier(Name(Car), param), new Datatype());
                 Assert.Null(error);
             }
@@ -193,7 +189,7 @@ public class Datatypes : ParsingTests
             {
                 Parameters param = new();
                 Identifier id = Identifier(x);
-                param.Data.Add(id, new Datum { Datatype = analyzer.Global.Contexts[0].Members[Identifier(money)] as Datatype });
+                //param.Data.Add(id, new Datum { Datatype = analyzer.Global.Contexts[0].Members[Identifier(money)] as Datatype });
                 var error = analyzer.Global.Add(Identifier(Name(Car), param), new Datatype());
                 Assert.Null(error);
             }

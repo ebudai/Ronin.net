@@ -30,13 +30,13 @@ public class Delegates : ParsingTests
         Parser parser = new(tokens);
         var @delegate = Delegate.Declaration.Parse(ref parser);
 
-        Assert.Single(@delegate?.Data);
-        var datum = @delegate.Data[0];
-        Assert.Equal(1, datum?.Identifier?.Source.Length);
+        Assert.Single(@delegate?.Parameters);
+        Identifier identifier = @delegate.Parameters[0];
+        Assert.Equal(1, identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition);
         var unresolved = @delegate.Definition[0] as Context.Member.Unresolved;
-        Assert.Equal(2, unresolved.Reference.Components?.Count);
+        Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         Name name = unresolved.Reference.Components[0];
         Assert.Equal(1, name?.Source.Length);
@@ -69,13 +69,13 @@ public class Delegates : ParsingTests
         Parser parser = new(tokens);
         var @delegate = Delegate.Declaration.Parse(ref parser);
 
-        Assert.Single(@delegate?.Data);
-        var datum = @delegate.Data[0];
-        Assert.Equal(1, datum?.Identifier?.Source.Length);
+        Assert.Single(@delegate?.Parameters);
+        Datum.Declaration datum = @delegate.Parameters[0];
+        Assert.Equal(1, datum?.Identifier.Source.Length);
 
         Assert.Single(@delegate.Definition);
         var unresolved = @delegate.Definition[0] as Context.Member.Unresolved;
-        Assert.Equal(2, unresolved.Reference.Components?.Count);
+        Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
             Name name = unresolved.Reference.Components[0];
@@ -114,15 +114,18 @@ public class Delegates : ParsingTests
         Parser parser = new(tokens);
         var @delegate = Delegate.Declaration.Parse(ref parser);
 
-        Assert.Equal(3, @delegate?.Data?.Count);
+        Assert.Equal(3, @delegate?.Parameters.Count);
 
-        Assert.Equal(1, @delegate.Data[0]?.Identifier?.Source.Length);
-        Assert.Equal(1, @delegate.Data[1]?.Identifier?.Source.Length);
-        Assert.Equal(1, @delegate.Data[2]?.Identifier?.Source.Length);
+        Identifier identifier = @delegate.Parameters[0];
+        Assert.Equal(1, identifier?.Source.Length);
+        identifier = @delegate.Parameters[1];
+        Assert.Equal(1, identifier?.Source.Length);
+        identifier = @delegate.Parameters[2];
+        Assert.Equal(1, identifier?.Source.Length);
 
         Assert.Single(@delegate.Definition);
         var unresolved = @delegate.Definition[0] as Context.Member.Unresolved;
-        Assert.Equal(2, unresolved.Reference.Components?.Count);
+        Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
             Name name = unresolved.Reference.Components[0];
@@ -156,7 +159,7 @@ public class Delegates : ParsingTests
         Parser parser = new(tokens);
         var @delegate = Delegate.Declaration.Parse(ref parser);
 
-        Assert.Empty(@delegate?.Data);
+        Assert.Empty(@delegate?.Parameters);
 
         Assert.Single(@delegate?.Definition);
         var unresolved = @delegate.Definition[0] as Context.Member.Unresolved;
@@ -199,7 +202,7 @@ public class Delegates : ParsingTests
 
         Assert.Single(statements);
         var datum = statements[0] as Datum.Declaration;
-        var @delegate = datum?.Initializer as Delegate;
+        var @delegate = datum?.Initializer as Delegate.Declaration;
         Assert.NotNull(@delegate);
     }
 }

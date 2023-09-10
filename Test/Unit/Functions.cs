@@ -109,9 +109,7 @@ public class Functions : ParsingTests
 
         Assert.Single(function.Definition);
         var unresolved = function.Definition[0] as Context.Member.Unresolved;
-        Assert.Single(unresolved?.Reference.Components);
-        Name @return = unresolved.Reference.Components[0];
-        Assert.Equal(4, @return?.Source.Length);
+        Assert.Equal(4, unresolved?.Reference.Components.Count);
     }
 
     [Trait(nameof(Analyzer), nameof(Declaration))]
@@ -177,12 +175,11 @@ public class Functions : ParsingTests
             var identifier = entry.Key;
             var function = entry.Value as Function;
 
-            Assert.Equal(2, identifier.Components.Count);
-            Assert.Equal(2, identifier.Components[0].Source.Length);
-            Assert.Equal(run, identifier.Components[0].Source.Span[0].Memory.ToString());
-            Assert.Equal(home, identifier.Components[0].Source.Span[1].Memory.ToString());
+            Assert.Equal(2, identifier.Source.Length);
+            Assert.Equal(run, identifier.Source.Span[0].Memory.ToString());
+            Assert.Equal(home, identifier.Source.Span[1].Memory.ToString());
 
-            Parameters parameters = identifier.Components[1];
+            Parameters parameters = identifier;
             Assert.Single(parameters);
             Assert.Single(parameters[0].Identifier.Components);
             Name name = parameters[0].Identifier.Components[0];

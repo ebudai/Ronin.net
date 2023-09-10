@@ -57,7 +57,7 @@ internal class Datatype : Context.Member
 
     public new class Overloaded : Datatype
     {
-        public List<Context.Member> Overloads { get; init; }
+        public List<Resolution> Overloads { get; init; }
     }
 
     public class Calculated<T> : Datatype where T : Context.Member
@@ -78,7 +78,7 @@ internal class Algebra : Syntax
 
     public class Overloaded : Algebra
     {
-        public List<Context.Member> Overloads { get; init; }
+        public List<Resolution> Overloads { get; init; }
     }
 
     public class Calculated<T> : Algebra where T : Context.Member

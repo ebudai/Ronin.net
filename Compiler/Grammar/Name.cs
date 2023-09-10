@@ -12,18 +12,11 @@ internal class Name : Syntax, IParsableSyntax<Name>
 {
     public static Name Parse(ref Parser current)
     {
-        if (current.Token is Keyword or Punctuation) return null;
-
         Parser parser = current;
 
-        while (parser.IsNotFinished)
-        {
-            if (parser.Token is not Word and not Symbol or Punctuation) break;
-            parser.Advance();
-            //if (parser.PreviousToken is Whitespace or Sentinel) break;
-        }
-
-        if (current.Token == parser.Token) return null;
+        if (parser.Token is not Word and not Symbol or Punctuation) return null;
+        
+        parser.Advance();
 
         return new Name { Source = parser.Commit(ref current) };
     }

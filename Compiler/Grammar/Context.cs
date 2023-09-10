@@ -1,8 +1,8 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Hierarchy;
 using Ronin.Lexicon;
+using System;
 using System.Collections.Generic;
 
 namespace Ronin.Grammar;
@@ -27,7 +27,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Context : Aggregate<Context, StartScope, Statement, Terminal, EndScope>
 {
-    public class Member : Value, IParsableSyntax<Member>
+    public abstract class Member : Value, IParsableSyntax<Member>
     {
         public Modifiers Modifiers { get; init; }
 
@@ -51,24 +51,59 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
 
         public class Overloaded : Member
         {
-            public List<Member> Overloads { get; init; }
+            public List<Resolution> Overloads { get; init; }
         }
     }
 
     public Context Parent { get; set; }
     public List<Module> Imports { get; } = new();
-    public Dictionary<Identifier, Member> Members { get; } = new();
+    public Dictionary<Identifier.Component, Context> Children { get; set; } = new();
+    public Dictionary<Identifier.Component, Member> Members { get; set; } = new();
+
+    public void Add(Import import) => Imports.Add(new Module.Unresolved(import));
 
     public Error Add(Identifier identifier, Member member)
     {
-        if (Members.TryAdd(identifier, member)) return null;
-        return Error.Redefinition(Members[identifier]);
+        var context = this;
+        for (int i = 0, max = identifier.Components.Count - 1; i < max; ++i)
+        {
+            if (Children.TryGetValue(identifier.Components[i], out var child) is false)
+            {
+                child = new() { Parent = context };
+                context.Children.Add(identifier.Components[i], child);
+            }
+            context = child;
+        }
+        return context.Members.TryAdd(identifier.Components[^1], member) ? null : Error.Redefinition(member);
     }
 
     public virtual Resolution Resolve(Reference reference)
     {
-        return null;
+        List<Resolution> resolutions = new();
+        
+        Resolve(reference.Span, resolutions);
+        
+        return resolutions.Count switch
+        {
+            0 => null,
+            1 => resolutions[0],
+            _ => new Resolution.Ambiguous { Candidates = resolutions }
+        };
     }
 
-    public void Add(Import import) => Imports.Add(new Module.Unresolved(import));
+    private void Resolve(ReadOnlySpan<Reference.Component> reference, List<Resolution> resolutions)
+    {
+        if (reference.Length is 1)
+        {
+            foreach (var (name, member) in Members)
+            {
+                if (name.Equals(reference[0]))
+                {
+                    Resolution.Exact resolution = new() { Member = member };
+                    
+                }
+            }
+        }
+        
+    }
 }

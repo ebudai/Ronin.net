@@ -1,8 +1,9 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Lexicon;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Ronin.Grammar;
 
@@ -26,6 +27,15 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
             Components = components, 
             Source = parser.Commit(ref current) 
         };
+    }
+
+    public override bool Equals(object obj) => (obj as Identifier)?.Components.SequenceEqual(Components) ?? false;
+
+    public override int GetHashCode()
+    {
+        HashCode hashcode = new();
+        foreach (var component in Components) hashcode.Add(component);
+        return hashcode.ToHashCode();
     }
 
     public class Component : CompositeSyntax<Component, Name, Parameters>
