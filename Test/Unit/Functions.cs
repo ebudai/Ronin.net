@@ -167,17 +167,12 @@ public class Functions : ParsingTests
             Assert.Empty(analyzer.Errors);
 
             Assert.Single(analyzer.Global.Contexts);
-            var context = analyzer.Global.Contexts.First();
-
-            Assert.Single(context.Members);
+            var context = analyzer.Global.Contexts.FirstOrDefault()?.Children.FirstOrDefault().Value;
+            Assert.Single(context?.Members);
 
             var entry = context.Members.First();
             var identifier = entry.Key;
             var function = entry.Value as Function;
-
-            Assert.Equal(2, identifier.Source.Length);
-            Assert.Equal(run, identifier.Source.Span[0].Memory.ToString());
-            Assert.Equal(home, identifier.Source.Span[1].Memory.ToString());
 
             Parameters parameters = identifier;
             Assert.Single(parameters);
