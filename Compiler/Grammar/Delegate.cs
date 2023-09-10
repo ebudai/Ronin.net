@@ -26,7 +26,6 @@ internal class Delegate : Value.Anonymous
     public class Parameter : CompositeSyntax<Parameter, Datum.Declaration, Identifier> 
     {
         public static implicit operator Parameter(Identifier identifer) => new() { value = identifer, Source = identifer.Source };
-        public static implicit operator Parameter(Datum.Declaration declaration) => new() { value = declaration, Source = declaration.Source };
     }
 
     public class Parameters : Aggregate<Parameters, StartValues, Parameter, Separator, EndValues> { }
