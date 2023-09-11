@@ -21,7 +21,7 @@ internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration
 {
     public Dictionary<Identifier, Datum> Data { get; } = new();
 
-    public int CountMandatory()
+    public int MandatoryInputsCount()
     {
         var mandatory = 0;
         foreach (var parameter in Data.Values)

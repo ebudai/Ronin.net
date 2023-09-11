@@ -77,33 +77,70 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
         return context.Members.TryAdd(identifier.Components[^1], member) ? null : Error.Redefinition(member);
     }
 
-    public virtual Resolution Resolve(Reference reference)
+    public virtual Resolution Resolve(Reference reference) => Resolve(reference.Span);
+
+    private Resolution Resolve(ReadOnlySpan<Reference.Component> reference)
     {
         List<Resolution> resolutions = new();
-        
-        Resolve(reference.Span, resolutions);
-        
-        return resolutions.Count switch
-        {
-            0 => null,
-            1 => resolutions[0],
-            _ => new Resolution.Ambiguous { Candidates = resolutions }
-        };
-    }
 
+        Resolve(reference, resolutions);
+        
+        Parent?.Resolve(reference, resolutions);
+
+        foreach (var module in Imports)
+        {
+            module.Resolve(reference, resolutions);
+        }
+
+        return Resolution.From(resolutions);
+    }
+        
     private void Resolve(ReadOnlySpan<Reference.Component> reference, List<Resolution> resolutions)
     {
-        if (reference.Length is 1)
+        if (reference.Length is > 1)
         {
-            foreach (var (name, member) in Members)
+            foreach (var (name, child) in Children)
             {
                 if (name.Equals(reference[0]))
                 {
-                    Resolution.Exact resolution = new() { Member = member };
-                    
+                    child.Resolve(reference[1..], resolutions);
                 }
             }
         }
-        
+
+        foreach (var (name, member) in Members)
+        {
+            if (name.Equals(reference[0]))
+            {
+                Resolution.Exact resolution = new() { Member = member };
+                Parameters parameters = name;                
+                if (parameters is not null)
+                {
+                    reference.Slice() 
+                }
+                resolutions.Add(resolution);
+            }
+        }
     }
+
+    private Resolution[] Resolve(Parameters parameters, ReadOnlySpan<Reference.Component> reference)
+    {
+        var resolutions = new Resolution[parameters.Data.Count];
+
+        for (int i = 0, max = resolutions.Length; i != max; ++i)
+        {
+            List<Resolution> inputs = new();
+            for (var j = i; j != resolutions.Length; ++j)
+            {
+
+            }
+            resolutions[i] = Resolution.From(inputs);
+        }
+
+        
+        
+        return resolutions;
+    }
+
+    
 }

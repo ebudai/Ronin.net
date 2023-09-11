@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,7 +12,7 @@ namespace Ronin.Grammar;
 ///     A unique name for a <see cref="Datatype.Declaration"/>, <see cref="Datum.Declaration"/> or a <see cref="Function.Declaration"/>
 ///     which can contain multiple <see cref="Identifier"/>s and <see cref="Parameters"/>
 /// </summary>
-internal class Identifier : Syntax, IParsableSyntax<Identifier>
+internal class Identifier : Syntax, IParsableSyntax<Identifier>, IEnumerable<Identifier.Component>
 {
     public List<Component> Components { get; init; } = new();
 
@@ -29,7 +30,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
         };
     }
 
-    public override bool Equals(object obj) => (obj as Identifier)?.Components.SequenceEqual(Components) ?? false;
+    public override bool Equals(object obj) => Components.SequenceEqual(obj as Identifier);
 
     public override int GetHashCode()
     {
@@ -37,6 +38,10 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
         foreach (var component in Components) hashcode.Add(component);
         return hashcode.ToHashCode();
     }
+
+    public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
     public class Component : CompositeSyntax<Component, Name, Parameters>
     {
@@ -49,16 +54,15 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>
             if (value is Name) return reference.Equals(value);
 
             Value.Anonymous anonymous = reference;
-            if (anonymous is null) return false;
             var inputcount = anonymous is Inputs inputs ? inputs.Count : 1;
 
             var parameters = value as Parameters;
-            return inputcount >= parameters.CountMandatory() && inputcount <= parameters.Data.Count;
+            return inputcount >= parameters.MandatoryInputsCount() && inputcount <= parameters.Data.Count;
         }
 
         public override int GetHashCode() => base.GetHashCode();
 
-        public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
-        public static implicit operator Component(Parameters parameters) => new() { value = parameters, Source = parameters.Source };
+        //public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
+        //public static implicit operator Component(Parameters parameters) => new() { value = parameters, Source = parameters.Source };
     }
 }

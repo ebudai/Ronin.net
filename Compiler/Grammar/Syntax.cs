@@ -6,6 +6,32 @@ using System;
 
 namespace Ronin.Grammar;
 
+internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
+{
+    public static abstract T Parse(ref Parser current);
+}
+
+internal interface IParsableSyntax<T, T0, T1>
+    where T : Syntax, IParsableSyntax<T>, new()
+    where T0 : Syntax, IParsableSyntax<T0>
+    where T1 : Syntax, IParsableSyntax<T1>
+{
+    public static T Parse(ref Parser current)
+    {
+        Parser parser = current;
+
+        var syntax = T0.Parse(ref parser) ?? T1.Parse(ref parser) as Syntax;
+
+        if (syntax is null) return default;
+
+        return new T
+        {
+            value = syntax,
+            Source = parser.Commit(ref current)
+        };
+    }
+}
+
 internal abstract class Syntax
 {
     protected internal ReadOnlyMemory<Token> Source { get; init; }

@@ -7,11 +7,6 @@ using System.Collections.Generic;
 
 namespace Ronin.Compiler;
 
-internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
-{
-    public static abstract T Parse(ref Parser current);
-}
-
 internal struct Parser
 {
     public Parser(List<Token> tokens) => this.tokens = tokens.AsMemory();
