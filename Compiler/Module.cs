@@ -10,9 +10,9 @@ internal class Module : Context
     public List<Context> Contexts { get; } = new();
     public Dictionary<Identifier.Component, Module> Modules { get; } = new();
 
-    public void Add(Context context, Identifier name = null) => GetOrCreate(name).Contexts.Add(context);
+    public void Add(Context context, Identifier name = null) => Resolve(name).Contexts.Add(context);
 
-    public Module GetOrCreate(Identifier name)
+    public Module Resolve(Identifier name)
     {
         var module = this;
         for (int i = 0, max = name?.Components.Count ?? 0; i < max; ++i)
