@@ -44,7 +44,7 @@ internal class Comment : Trivium
             return new Comment { Memory = lexer.Commit(linelength) };
         }
 
-        if (lexer.DoesNotStartWith(Multiline.Start)) return null;
+        if (lexer.StartsWith(Multiline.Start) is false) return null;
 
         int depth = 1;
         var length = Multiline.Start.Length;
