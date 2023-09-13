@@ -21,7 +21,7 @@ public class Assignments : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
         
         Assert.Null(assignment);
     }
@@ -43,7 +43,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         Assert.Null(assignment);
     }
@@ -54,7 +54,7 @@ public class Assignments : ParsingTests
         List<Token> tokens = new() { Sentinel.Instance };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         Assert.Null(assignment);
     }

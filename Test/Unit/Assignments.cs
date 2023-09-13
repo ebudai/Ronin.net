@@ -23,7 +23,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         var unresolved = assignment?.Destination as Datum.Unresolved;
         
@@ -49,7 +49,7 @@ public class Assignments : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
@@ -57,7 +57,7 @@ public class Assignments : ParsingTests
         Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
-        Assert.IsType<Assign>(assignment.Type);
+        Assert.IsType<Assign>(assignment.Operation);
 
         var scalar = assignment.Value as Inline;
         Assert.Single(scalar?.Source.ToArray());
@@ -77,7 +77,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
@@ -85,7 +85,7 @@ public class Assignments : ParsingTests
         Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
-        Assert.IsType<AddAssign>(assignment.Type);
+        Assert.IsType<AddAssign>(assignment.Operation);
 
         var scalar = assignment.Value as Inline;
         Assert.Single(scalar?.Source.ToArray());
@@ -105,7 +105,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         var unresolvedDatum = assignment?.Destination as Datum.Unresolved;
 
@@ -113,7 +113,7 @@ public class Assignments : ParsingTests
         Name name = unresolvedDatum.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
-        Assert.IsType<AndAssign>(assignment.Type);
+        Assert.IsType<AndAssign>(assignment.Operation);
 
         var member = assignment.Value as Context.Member.Unresolved;
         Assert.Single(member?.Reference?.Source.ToArray());
@@ -133,7 +133,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
@@ -141,7 +141,7 @@ public class Assignments : ParsingTests
         Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
-        Assert.IsType<DivideAssign>(assignment.Type);
+        Assert.IsType<DivideAssign>(assignment.Operation);
 
         var scalar = assignment.Value as Inline;
         Assert.Single(scalar?.Source.ToArray());
@@ -161,7 +161,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
@@ -169,7 +169,7 @@ public class Assignments : ParsingTests
         Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
-        Assert.IsType<MultiplyAssign>(assignment.Type);
+        Assert.IsType<MultiplyAssign>(assignment.Operation);
 
         var scalar = assignment.Value as Inline;
         Assert.Single(scalar?.Source.ToArray());
@@ -189,7 +189,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         var unresolvedDatum = assignment?.Destination as Datum.Unresolved;
 
@@ -197,7 +197,7 @@ public class Assignments : ParsingTests
         Name name = unresolvedDatum.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
-        Assert.IsType<OrAssign>(assignment.Type);
+        Assert.IsType<OrAssign>(assignment.Operation);
 
         var member = assignment.Value as Context.Member.Unresolved;
         Assert.Single(member?.Reference?.Source.ToArray());
@@ -217,7 +217,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Comparison.Parse(ref parser);
 
         var unresolved = assignment?.Destination as Datum.Unresolved;
 
@@ -225,7 +225,7 @@ public class Assignments : ParsingTests
         Name name = unresolved.Reference.Components?[0];
         Assert.Single(name?.Source.ToArray());
 
-        Assert.IsType<SubtractAssign>(assignment.Type);
+        Assert.IsType<SubtractAssign>(assignment.Operation);
 
         var scalar = assignment.Value as Inline;
         Assert.Single(scalar?.Source.ToArray());

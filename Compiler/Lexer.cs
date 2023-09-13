@@ -45,7 +45,6 @@ internal ref struct Lexer
     public readonly ReadOnlySpan<char> this[in Range range] => sourcecode.AsSpan()[cursor..][range];
 
     public readonly bool StartsWith(string text) => sourcecode.IndexOf(text, cursor) == cursor;
-    public readonly bool DoesNotStartWith(string text) => StartsWith(text) is not true;
 
     public readonly int IndexOf(char character) => sourcecode.IndexOf(character, cursor);
 

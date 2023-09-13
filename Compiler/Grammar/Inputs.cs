@@ -18,5 +18,5 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, StartValues, Inputs.Input, Separator, EndValues>
 {
-    public class Input : CompositeSyntax<Input, Value, Assignment> { }
+    public class Input : CompositeSyntax<Input, Value, Comparison> { }
 }

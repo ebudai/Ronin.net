@@ -131,7 +131,7 @@ public class Parsing : ParsingTests
         var datum = statements[1] as Datum.Declaration;
         Assert.NotNull(datum);
 
-        var assignment = statements[2] as Assignment;
+        var assignment = statements[2] as Comparison;
         Assert.NotNull(assignment);
 
         var functioncall = statements[3] as Context.Member.Unresolved;

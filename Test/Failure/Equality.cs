@@ -31,7 +31,7 @@ public class Equality : AnalysisTests
     [Fact(DisplayName = nameof(Syntax))]
     public void Syntax()
     {
-        Assignment assignment = new();
+        Comparison assignment = new();
         int x = default;
 
         Assert.False(assignment.Equals(x));
