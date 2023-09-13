@@ -8,28 +8,7 @@ namespace Ronin.Grammar;
 
 internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
 {
-    public static abstract T Parse(ref Parser current);
-}
-
-internal interface IParsableSyntax<T, T0, T1>
-    where T : Syntax, IParsableSyntax<T>, new()
-    where T0 : Syntax, IParsableSyntax<T0>
-    where T1 : Syntax, IParsableSyntax<T1>
-{
-    public static T Parse(ref Parser current)
-    {
-        Parser parser = current;
-
-        var syntax = T0.Parse(ref parser) ?? T1.Parse(ref parser) as Syntax;
-
-        if (syntax is null) return default;
-
-        return new T
-        {
-            value = syntax,
-            Source = parser.Commit(ref current)
-        };
-    }
+    static abstract T Parse(ref Parser current);
 }
 
 internal abstract class Syntax
@@ -41,8 +20,8 @@ internal abstract class Syntax
     public override int GetHashCode() => Source.Span.ToHashCode();
 }
 
-internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
-    where T : CompositeSyntax<T, T0, T1>, IParsableSyntax<T>, new()
+internal abstract class UnionSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
+    where T : UnionSyntax<T, T0, T1>, IParsableSyntax<T>, new()
     where T0 : Syntax, IParsableSyntax<T0>
     where T1 : Syntax, IParsableSyntax<T1>
 {
@@ -65,8 +44,8 @@ internal abstract class CompositeSyntax<T, T0, T1> : Syntax, IParsableSyntax<T>
 
     public override int GetHashCode() => value.GetHashCode();
 
-    public static implicit operator T0(CompositeSyntax<T, T0, T1> value) => value.value as T0;
-    public static implicit operator T1(CompositeSyntax<T, T0, T1> value) => value.value as T1;
+    public static implicit operator T0(UnionSyntax<T, T0, T1> value) => value.value as T0;
+    public static implicit operator T1(UnionSyntax<T, T0, T1> value) => value.value as T1;
 
     protected internal Syntax value;
 }

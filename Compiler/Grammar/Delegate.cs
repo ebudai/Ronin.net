@@ -23,7 +23,7 @@ internal class Delegate : Value.Anonymous
     public List<Datum> Data { get; init; }
     public Context Definition { get; init; }
 
-    public class Parameter : CompositeSyntax<Parameter, Datum.Declaration, Identifier> 
+    public class Parameter : UnionSyntax<Parameter, Datum.Declaration, Identifier> 
     {
         public static implicit operator Parameter(Identifier identifer) => new() { value = identifer, Source = identifer.Source };
     }
@@ -46,7 +46,7 @@ internal class Delegate : Value.Anonymous
                 parameters = new() { identifier };
             }
             
-            if (parser.TryAdvance<Returns>() is false) return null;
+            if (parser.TryParse<Returns>() is null) return null;
 
             if (Context.Parse(ref parser) is not Context definition) return null;
 

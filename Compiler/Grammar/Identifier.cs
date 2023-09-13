@@ -43,7 +43,7 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>, IEnumerable<Ide
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public class Component : CompositeSyntax<Component, Name, Parameters>
+    public class Component : UnionSyntax<Component, Name, Parameters>
     {
         public override bool Equals(object obj)
         {
@@ -57,12 +57,12 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>, IEnumerable<Ide
             var inputcount = anonymous is Inputs inputs ? inputs.Count : 1;
 
             var parameters = value as Parameters;
-            return inputcount >= parameters.MandatoryInputsCount() && inputcount <= parameters.Data.Count;
+            return inputcount >= parameters.MandatoryInputsCount && inputcount <= parameters.Data.Count;
         }
 
         public override int GetHashCode() => base.GetHashCode();
 
-        //public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
-        //public static implicit operator Component(Parameters parameters) => new() { value = parameters, Source = parameters.Source };
+        public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
+        public static implicit operator Component(Parameters parameters) => new() { value = parameters, Source = parameters.Source };
     }
 }

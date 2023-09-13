@@ -13,7 +13,7 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Reference : Syntax, IParsableSyntax<Reference>
 {
-    public class Component : CompositeSyntax<Component, Name, Value.Anonymous>
+    public class Component : UnionSyntax<Component, Name, Value.Anonymous>
     {
         public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
         public static implicit operator Component(Value.Anonymous value) => new() { value = value, Source = value.Source };

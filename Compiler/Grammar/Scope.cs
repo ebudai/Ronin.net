@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Globalization;
 
 namespace Ronin.Grammar;
 
@@ -37,7 +36,7 @@ internal class AnonymousScope : Scope, IParsableSyntax<AnonymousScope>
 
 internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
 {
-    public Value Condition { get; init; }
+    public Condition Condition { get; init; }
 
     public static new ConditionalScope Parse(ref Parser current)
     {
@@ -45,9 +44,9 @@ internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
 
         var modifiers = Modifiers.Parse(ref parser);
 
-        if (parser.TryAdvance<If>() is false) return null;
+        if (parser.TryParse<If>() is null) return null;
 
-        if (Value.Parse(ref parser) is not Value condition) return null;
+        if (Condition.Parse(ref parser) is not Condition condition) return null;
 
         if (Context.Parse(ref parser) is not Context definition) return null;
 
@@ -63,7 +62,7 @@ internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
 
 internal class RepeatingScope : Scope, IParsableSyntax<RepeatingScope>
 {
-    public Value Condition { get; init; }
+    public Condition Condition { get; init; }
 
     public static new RepeatingScope Parse(ref Parser current)
     {
@@ -71,9 +70,9 @@ internal class RepeatingScope : Scope, IParsableSyntax<RepeatingScope>
 
         var modifiers = Modifiers.Parse(ref parser);
 
-        if (parser.TryAdvance<While>() is false) return null;
+        if (parser.TryParse<While>() is null) return null;
 
-        if (Value.Parse(ref parser) is not Value condition) return null;
+        if (Condition.Parse(ref parser) is not Condition condition) return null;
 
         if (Context.Parse(ref parser) is not Context definition) return null;
 
@@ -97,7 +96,7 @@ internal class IteratingScope : Scope, IParsableSyntax<IteratingScope>
 
         var modifiers = Modifiers.Parse(ref parser);
 
-        if (parser.TryAdvance<ForEach>() is false) return null;
+        if (parser.TryParse<ForEach>() is null) return null;
 
         var datum = Datum.Declaration.Parse(ref parser);
         var identifier = datum?.Identifier ?? Identifier.Parse(ref parser);

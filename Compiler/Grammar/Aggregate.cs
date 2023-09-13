@@ -51,7 +51,7 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Valu
             var syntax = TElement.Parse(ref parser);
             if (syntax is null)
             {
-                if (parser.TryAdvance<TClose>() is false) return null;
+                if (parser.TryParse<TClose>() is null) return null;
                 break;
             }
             values.Add(syntax);

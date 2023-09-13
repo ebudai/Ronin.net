@@ -13,7 +13,7 @@ internal class Trivia : Syntax, IParsableSyntax<Trivia>
     public static Trivia Parse(ref Parser current)
     {
         Parser parser = current;
-        if (parser.TryAdvance<Trivium>() is false) return null;
+        if (parser.TryParse<Trivium>() is null) return null;
         return new Trivia { Source = parser.Commit(ref current) };
     }
 }

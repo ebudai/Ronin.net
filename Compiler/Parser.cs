@@ -56,6 +56,13 @@ internal struct Parser
         return advanced;
     }
 
+    public T TryParse<T>() where T : Token
+    {
+        if (Token is not T value) return null;
+        Advance();
+        return value;
+    }
+
     public readonly ReadOnlyMemory<Token> Commit(ref Parser current)
     {
         var tokens = this.tokens[current.cursor..cursor];

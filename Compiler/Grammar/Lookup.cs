@@ -35,7 +35,7 @@ internal class Lookup : Aggregate<Lookup, StartScope, Lookup.Association, Separa
 
             if (Value.Parse(ref parser) is not Value key) return null;
 
-            if (parser.TryAdvance<Assign>() is false) return null;
+            if (parser.TryParse<Assign>() is null) return null;
 
             if (Value.Parse(ref parser) is not Value value) return null;
 

@@ -30,7 +30,7 @@ internal class Function : Context.Member
         {
             Parser parser = current;
 
-            if (parser.TryAdvance<Lexicon.Function>() is false) return null;
+            if (parser.TryParse<Lexicon.Function>() is null) return null;
 
             if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
