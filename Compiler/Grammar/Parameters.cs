@@ -21,14 +21,27 @@ internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration
 {
     public Dictionary<Identifier, Datum> Data { get; } = new();
 
-    public int MandatoryInputsCount()
+    public int MandatoryInputsCount
     {
-        var mandatory = 0;
-        foreach (var parameter in Data.Values)
+        get
         {
-            if (parameter.Modifiers?.Is<Optional>() ?? false) continue;
-            if (parameter.Initializer is not null) continue;
-            ++mandatory;
+            var mandatory = 0;
+            foreach (var parameter in Data.Values)
+            {
+                if (parameter.Modifiers?.Is<Optional>() ?? false) continue;
+                if (parameter.Initializer is not null) continue;
+                ++mandatory;
+            }
+            return mandatory;
+        }
+    }
+
+    public int Bind(Inputs inputs)
+    {
+        var mandatory = MandatoryInputsCount;
+        foreach (var input in inputs)
+        {
+            
         }
         return mandatory;
     }
