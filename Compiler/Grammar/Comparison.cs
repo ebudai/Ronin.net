@@ -12,11 +12,11 @@ namespace Ronin.Grammar;
 /// <example>
 ///     x = 16;
 /// </example>
-internal class Comparison : Statement, IParsableSyntax<Comparison>
+internal class Comparison : Value, IParsableSyntax<Comparison>
 {
-    public Datum Destination { get; set; }
+    public Value Left { get; set; }
     public Assign Operation { get; init; }
-    public Value Value { get; set; }
+    public Value Right { get; set; }
 
     public new static Comparison Parse(ref Parser current)
     {
@@ -31,10 +31,16 @@ internal class Comparison : Statement, IParsableSyntax<Comparison>
 
         return new Comparison
         {
-            Destination = new Datum.Unresolved { Reference = reference },
+            Left = new Datum.Unresolved { Reference = reference },
             Operation = operation,
-            Value = value,
+            Right = value,
             Source = parser.Commit(ref current),
         };
     }
+}
+
+internal class Condition : UnionSyntax<Condition, Value, Comparison> 
+{
+    public static implicit operator Condition(Value value) => new() { value = value, Source = value.Source };
+    public static implicit operator Condition(Comparison comparison) => new() { value = comparison, Source = comparison.Source };
 }
