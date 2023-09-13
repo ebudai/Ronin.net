@@ -1,5 +1,6 @@
 ﻿using Ronin.Grammar;
 using System.Collections.Generic;
+
 using static Ronin.Compiler.Resolution;
 using Datatype = Ronin.Grammar.Datatype;
 using Function = Ronin.Grammar.Function;
@@ -172,8 +173,7 @@ internal class Analyzer
     {
         for (int i = 0, max = context.Imports.Count; i != max; ++i)
         {
-            if (context.Imports[i] is not Module.Unresolved unresolved) continue;
-            context.Imports[i] = Global.GetOrCreate(unresolved.Import.Name);            
+            
         }
 
         foreach (var identifier in context.Members.Keys) ResolveParameters(identifier, context);
@@ -196,12 +196,18 @@ internal class Analyzer
         {
             switch (statement)
             {
-                case Assignment assignment: ResolveAssignment(assignment, context); break;
+                case Comparison assignment: ResolveAssignment(assignment, context); break;
                 case Context.Member member: ResolveMember(member, context); break;
                 case Value.Anonymous value: ResolveAnonymousValue(value, context); break;
                 default: continue;
             }
         }
+    }
+
+    private void ResolveImport(Context context, int index)
+    {
+        if (context.Imports[index] is not Module.Unresolved unresolved) return;
+        context.Imports[index] = Global.Resolve(unresolved.Import.Name);
     }
 
     private void ResolveParameters(Identifier.Component component, Context context)
@@ -281,16 +287,16 @@ internal class Analyzer
         return ResolutionFailure<Datum>(unresolved.Reference);
     }
 
-    private void ResolveAssignment(Assignment assignment, Context context)
+    private void ResolveAssignment(Comparison assignment, Context context)
     {
-        if (assignment.Destination is Datum.Unresolved datum)
+        if (assignment.Left is Datum.Unresolved datum)
         {
-            assignment.Destination = ResolveDatum(datum, context);
+            assignment.Left = ResolveDatum(datum, context);
         }
 
-        if (assignment.Value is Context.Member.Unresolved member)
+        if (assignment.Right is Context.Member.Unresolved member)
         {
-            assignment.Value = ResolveMember(member, context);
+            assignment.Right = ResolveMember(member, context);
         }        
     }
 
@@ -367,7 +373,7 @@ internal class Analyzer
             Value value = inputs[i];
             ResolveValue(value, context);
 
-            Assignment assignment = inputs[i];
+            Comparison assignment = inputs[i];
             ResolveAssignment(assignment, context);
         }
     }
