@@ -23,7 +23,8 @@ internal class Keyword : Word
         ?? If.Lex(ref lexer)
         ?? Let.Lex(ref lexer)
         ?? While.Lex(ref lexer)
-        ?? Hidden.Lex(ref lexer);
+        ?? Hidden.Lex(ref lexer)
+        ?? Set.Lex(ref lexer);
 }
 
 internal class Modifier : Keyword { }
