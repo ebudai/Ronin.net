@@ -21,7 +21,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Datum : Context.Member
 {
-    public Keyword Mutability { get; init; }
+    public Mutability Mutability { get; init; }
     public Datatype Datatype { get; set; }
     public Value Initializer { get; init; }
 
