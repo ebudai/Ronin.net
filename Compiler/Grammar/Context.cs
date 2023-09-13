@@ -97,13 +97,14 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
         
     private void Resolve(ReadOnlySpan<Reference.Component> reference, List<Resolution> resolutions)
     {
-        if (reference.Length is > 1)
+        foreach (var (identifier, child) in Children)
         {
-            foreach (var (name, child) in Children)
+            if (identifier.value is Parameters parameters)
             {
-                if (name.Equals(reference[0]))
+                int mandatory = parameters.MandatoryInputsCount;
+                if (reference.Length is not 0 && reference[0].value is Inputs inputs)
                 {
-                    child.Resolve(reference[1..], resolutions);
+                    mandatory = parameters.Bind(inputs);
                 }
             }
         }
@@ -113,10 +114,10 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
             if (name.Equals(reference[0]))
             {
                 Resolution.Exact resolution = new() { Member = member };
-                Parameters parameters = name;                
+                Parameters parameters = name;
                 if (parameters is not null)
                 {
-                    reference.Slice() 
+                    //reference.Slice() 
                 }
                 resolutions.Add(resolution);
             }
