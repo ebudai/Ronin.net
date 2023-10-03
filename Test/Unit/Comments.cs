@@ -13,12 +13,14 @@ public class Comments
     [Fact(DisplayName = "single-line")]
     public void SingleLine()
     {
-        const string literal = $"{singleline} this is a comment\r\n\r\n";
+        const string comment = $"{singleline} this is a comment";
+        const string extra = "\r\n\r\n more things";
+        const string literal = comment + extra;
 
         Lexer lexer = new(literal);
-        var comment = Comment.Lex(ref lexer);
+        var token = Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray()[..^4], comment?.Memory.ToArray());
+        Assert.Equal(literal.ToArray()[..^4], token?.Memory.ToArray());
     }
 
     [Fact(DisplayName = "single-line at end of file")]

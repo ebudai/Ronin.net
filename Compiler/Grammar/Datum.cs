@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -67,6 +68,21 @@ internal class Datum : Context.Member
                 Initializer = initializer,
                 Source = parser.Commit(ref current)
             };
+        }
+
+        public Datum Define(Context context, List<Error> errors)
+        {
+            Datum datum = new()
+            {
+                Mutability = Mutability,
+                Modifiers = Modifiers,
+                Datatype = new Datatype.Unresolved { Reference = Datatype },
+                Initializer = Initializer
+            };
+
+            if (context.Add(Identifier, datum) is Error error) errors.Add(error);
+
+            return datum;
         }
     }
 

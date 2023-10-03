@@ -36,13 +36,13 @@ internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration
         }
     }
 
-    public int Bind(Inputs inputs)
+    public bool Bind(Inputs inputs)
     {
         var mandatory = MandatoryInputsCount;
         foreach (var input in inputs)
         {
             
         }
-        return mandatory;
+        return mandatory is >= 0;
     }
 }

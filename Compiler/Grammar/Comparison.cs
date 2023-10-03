@@ -6,7 +6,7 @@ using Ronin.Lexicon;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Sets the current <see cref="Grammar.Value"/> of a <see cref="Datum"/>
+///     Sets the current <see cref="Value"/> of a <see cref="Datum"/>
 /// </summary>
 /// 
 /// <example>
@@ -14,7 +14,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Comparison : Value, IParsableSyntax<Comparison>
 {
-    public Value Left { get; set; }
+    public Destination Left { get; set; }
     public Assign Operation { get; init; }
     public Value Right { get; set; }
 
@@ -22,7 +22,7 @@ internal class Comparison : Value, IParsableSyntax<Comparison>
     {
         Parser parser = current;
 
-        if (Reference.Parse(ref parser) is not Reference reference) return null;
+        if (Destination.Parse(ref parser) is not Destination destination) return null;
 
         if (parser.Token is not Assign operation) return null;
         parser.Advance();
@@ -31,12 +31,14 @@ internal class Comparison : Value, IParsableSyntax<Comparison>
 
         return new Comparison
         {
-            Left = new Datum.Unresolved { Reference = reference },
+            Left = destination,
             Operation = operation,
             Right = value,
             Source = parser.Commit(ref current),
         };
     }
+
+    public class Destination : UnionSyntax<Destination, Identifier, Value> { }
 }
 
 internal class Condition : UnionSyntax<Condition, Value, Comparison> 

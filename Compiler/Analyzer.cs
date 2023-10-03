@@ -1,8 +1,10 @@
 ﻿using Ronin.Grammar;
+using System;
 using System.Collections.Generic;
 
 using static Ronin.Compiler.Resolution;
 using Datatype = Ronin.Grammar.Datatype;
+using Delegate = Ronin.Grammar.Delegate;
 using Function = Ronin.Grammar.Function;
 using Import = Ronin.Grammar.Import;
 
@@ -15,146 +17,9 @@ internal class Analyzer
     private readonly HashSet<Module> Resolved = new(ReferenceEqualityComparer.Instance);
 
     #region Definition
-    public void Define(Context context)
+    public void Define()
     {
-        foreach (var statement in context)
-        {
-            if (statement is Export export)
-            {
-                Errors.Add(Error.ScopeMustBeAnonymous(context, export));
-                continue;
-            }
-            DefineStatement(context, statement);
-        }
-    }
-
-    public void DefineScope(Context parent, Scope scope)
-    {
-        scope.Definition.Parent = parent;
-        Identifier name = null;
-        
-        foreach (var statement in scope.Definition)
-        {
-            if (statement is Export export)
-            {
-                Export(scope, export, ref name);
-                continue;
-            }
-            DefineStatement(scope.Definition, statement);
-        }
-        
-        if (ReferenceEquals(parent, Global) || name is not null)
-        {
-            Global.Add(scope.Definition, name);
-        }
-    }
-
-    private void DefineStatement(Context parent, Statement statement)
-    {
-        switch (statement)
-        {
-            case Import import: parent.Add(import); break;
-            case Function.Declaration function: DefineFunction(parent, function); break;
-            case Datatype.Declaration datatype: DefineDatatype(parent, datatype); break;
-            case Datum.Declaration datum: DefineDatum(parent, datum); break;
-            case Delegate.Declaration @delegate: DefineDelegate(parent, @delegate); break;
-            case Scope inner: DefineScope(parent, inner); break;
-            case Unknown unknown: Errors.Add(Error.UnknownSyntax(unknown)); break;
-            default: break;
-        }
-    }
-
-    private void Export(Scope scope, Export export, ref Identifier identifier)
-    {
-        bool error = false;
-
-        if (scope is not AnonymousScope)
-        {
-            Errors.Add(Error.ScopeMustBeAnonymous(scope.Definition, export));
-            error = true;
-        }
-
-        if (scope.Modifiers.Source.IsEmpty is false)
-        {
-            Errors.Add(Error.ScopeMustBeUnmodified(scope.Definition, export));
-            error = true;
-        }
-
-        if (identifier is not null)
-        {
-            Errors.Add(Error.ScopeIsAlreadyPartOfAModule(scope.Definition, export));
-            error = true;
-        }
-        
-        if (error is false) identifier = export.Identifier;
-    }
-
-    private void DefineFunction(Context parent, Function.Declaration declaration)
-    {
-        declaration.Definition.Parent = parent;
-        Define(declaration.Definition);
-        
-        Function function = new()
-        {
-            Modifiers = declaration.Modifiers,
-            Returns = new Datatype.Unresolved { Reference = declaration.Returns },
-            Definition = declaration.Definition,
-        };
-
-        if (parent.Add(declaration.Identifier, function) is Error error) Errors.Add(error);
-    }
-
-    private void DefineDatatype(Context parent, Datatype.Declaration declaration)
-    {
-        declaration.Definition.Parent = parent;
-        Define(declaration.Definition);
-
-        Datatype datatype = new()
-        {
-            Modifiers = declaration.Modifiers,
-            Algebra = new Algebra.Unresolved { Reference = declaration.Algebra },
-            Definition = declaration.Definition
-        };
-
-        if (parent.Add(declaration.Identifier, datatype) is Error error) Errors.Add(error);
-    }
-
-    private Datum DefineDatum(Context parent, Datum.Declaration declaration) 
-    {
-        Datum datum = new()
-        {
-            Mutability = declaration.Mutability,
-            Modifiers = declaration.Modifiers,
-            Datatype = new Datatype.Unresolved { Reference = declaration.Datatype },
-            Initializer = declaration.Initializer
-        };
-
-        if (parent.Add(declaration.Identifier, datum) is Error error) Errors.Add(error);
-        
-        return datum;
-    }
-
-    private Delegate DefineDelegate(Context parent, Delegate.Declaration declaration)
-    {
-        declaration.Definition.Parent = parent;
-        Define(declaration.Definition);
-
-        //TODO: captured vars should be added as data
-
-        List<Datum> data = new(declaration.Parameters.Count);
-        foreach (var datum in declaration.Parameters)
-        {
-            data.Add(DefineDatum(parent, datum));
-        }
-
-        Delegate @delegate = new()
-        {
-            Data = data,
-            Definition = declaration.Definition,
-            Source = declaration.Source
-        };
-
-        return @delegate;
+        Global.Define(null, Errors);
     }
     #endregion
 
@@ -198,7 +63,7 @@ internal class Analyzer
             {
                 case Comparison assignment: ResolveAssignment(assignment, context); break;
                 case Context.Member member: ResolveMember(member, context); break;
-                case Value.Anonymous value: ResolveAnonymousValue(value, context); break;
+                case Value value: ResolveValue(value, context); break;
                 default: continue;
             }
         }
@@ -289,15 +154,17 @@ internal class Analyzer
 
     private void ResolveAssignment(Comparison assignment, Context context)
     {
-        if (assignment.Left is Datum.Unresolved datum)
+        if (assignment.Left.value is Datum.Unresolved datum)
         {
-            assignment.Left = ResolveDatum(datum, context);
+            assignment.Left.value = ResolveDatum(datum, context);
         }
 
         if (assignment.Right is Context.Member.Unresolved member)
         {
             assignment.Right = ResolveMember(member, context);
-        }        
+        }
+
+        static void X() { }
     }
 
     private Context.Member ResolveMember(Context.Member member, Context context)
@@ -318,17 +185,18 @@ internal class Analyzer
         return (resolution as Exact).Member ?? ResolutionFailure<Context.Member>(unresolved.Reference);
     }
 
-    private void ResolveAnonymousValue(Value.Anonymous value, Context context)
+    private void ResolveValue(Value value, Context context)
     {
         switch (value)
         {
+            case Context.Member.Unresolved member: ResolveMember(member, context); break;
             case Delegate @delegate:  ResolveInputs(@delegate, context); break;
             case Lookup lookup: ResolveLookup(lookup, context); break;
             case Inputs inputs: ResolveInputs(inputs, context); break;
             case List list: ResolveList(list, context); break;
             case Indexer indexer: ResolveIndexer(indexer, context); break;
             default: break;
-        };
+        }
     }
 
     private void ResolveAlgebra(Datatype datatype, Context context)
@@ -360,9 +228,9 @@ internal class Analyzer
 
     private void ResolveInputs(Delegate @delegate, Context context)
     {
-        for (int i = 0, max = @delegate.Data.Count; i < max; ++i)
+        foreach (var name in @delegate.Data.Keys)
         {
-            @delegate.Data[i] = ResolveDatum(@delegate.Data[i], context);            
+            @delegate.Data[name] = ResolveDatum(@delegate.Data[name], context);
         }
     }
 
@@ -385,26 +253,16 @@ internal class Analyzer
             switch (association.Key)
             {
                 case Context.Member.Unresolved member: ResolveMember(member, context); break;
-                case Value.Anonymous value: ResolveAnonymousValue(value, context); break;
+                case Value value: ResolveValue(value, context); break;
                 default: break;
-            };
+            }
 
             switch (association.Value)
             {
                 case Context.Member.Unresolved member: ResolveMember(member, context); break;
-                case Value.Anonymous value: ResolveAnonymousValue(value, context); break;
+                case Value value: ResolveValue(value, context); break;
                 default: break;
-            };
-        }
-    }
-
-    private void ResolveValue(Value value, Context context)
-    {
-        switch (value)
-        {
-            case Context.Member.Unresolved member: ResolveMember(member, context); break;
-            case Value.Anonymous anonymous: ResolveAnonymousValue(anonymous, context); break;
-            default: break;
+            }
         }
     }
 

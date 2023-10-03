@@ -65,9 +65,9 @@ internal struct Parser
 
     public readonly ReadOnlyMemory<Token> Commit(ref Parser current)
     {
-        var tokens = this.tokens[current.cursor..cursor];
+        var commit = tokens[current.cursor..cursor];
         current = this;
-        return tokens;
+        return commit;
     }
 
     private readonly ReadOnlyMemory<Token> tokens;

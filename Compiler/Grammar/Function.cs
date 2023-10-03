@@ -54,6 +54,20 @@ internal class Function : Context.Member
                 Source = parser.Commit(ref current)
             };
         }
+
+        public void Define(Context context, List<Error> errors)
+        {
+            Definition.Define(context, errors);
+
+            Function function = new()
+            {
+                Modifiers = Modifiers,
+                Returns = new Datatype.Unresolved { Reference = Returns },
+                Definition = Definition,
+            };
+
+            if (context.Add(Identifier, function) is Error error) errors.Add(error);
+        }
     }
 
     public new class Unresolved : Function

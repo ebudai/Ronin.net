@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -35,5 +36,30 @@ internal class Export : Statement, IParsableSyntax<Export>
             Identifier = identifier,
             Source = parser.Commit(ref current) 
         };
+    }
+
+    public void Define(Scope scope, ref Identifier identifier, List<Error> errors)
+    {
+        var error = false;
+
+        if (scope is not AnonymousScope)
+        {
+            errors.Add(Error.ScopeMustBeAnonymous(scope.Definition, this));
+            error = true;
+        }
+
+        if (scope.Modifiers.Source.IsEmpty is false)
+        {
+            errors.Add(Error.ScopeMustBeUnmodified(scope.Definition, this));
+            error = true;
+        }
+
+        if (identifier is not null)
+        {
+            errors.Add(Error.ScopeIsAlreadyPartOfAModule(scope.Definition, this));
+            error = true;
+        }
+
+        if (error is false) identifier = Identifier;
     }
 }

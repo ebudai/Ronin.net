@@ -48,6 +48,20 @@ internal class Datatype : Context.Member
                 Source = parser.Commit(ref current)
             };
         }
+
+        public void Define(Context context, List<Error> errors)
+        {
+            Definition.Define(context, errors);
+
+            Datatype datatype = new()
+            {
+                Modifiers = Modifiers,
+                Algebra = new Algebra.Unresolved { Reference = Algebra },
+                Definition = Definition
+            };
+
+            if (context.Add(Identifier, datatype) is Error error) errors.Add(error);
+        }
     }
 
     public new class Unresolved : Datatype

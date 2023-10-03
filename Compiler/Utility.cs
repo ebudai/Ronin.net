@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 
+namespace Ronin;
+
 internal static class Utility
 {
     public static ReadOnlyMemory<T> AsMemory<T>(this List<T> list)

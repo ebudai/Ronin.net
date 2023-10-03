@@ -15,12 +15,12 @@ namespace Ronin.Lexicon;
 /// </remarks>
 internal class Comment : Trivium
 {
-    public class SingleLine
+    public static class SingleLine
     {
         public const string Start = "//";        
     }
 
-    public class Multiline
+    public static class Multiline
     {
         public const string Start = "/*";
         public const string End = "*/";

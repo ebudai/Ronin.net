@@ -51,12 +51,12 @@ internal class Identifier : Syntax, IParsableSyntax<Identifier>, IEnumerable<Ide
 
             if (obj is not Reference.Component reference) return false;
             
-            if (value is Name) return reference.Equals(value);
+            if (base.value is Name) return reference.Equals(base.value);
 
-            Value.Anonymous anonymous = reference;
-            var inputcount = anonymous is Inputs inputs ? inputs.Count : 1;
+            Value value = reference;
+            var inputcount = value is Inputs inputs ? inputs.Count : 1;
 
-            var parameters = value as Parameters;
+            var parameters = base.value as Parameters;
             return inputcount >= parameters.MandatoryInputsCount && inputcount <= parameters.Data.Count;
         }
 

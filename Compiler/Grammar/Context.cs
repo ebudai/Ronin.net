@@ -77,6 +77,25 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
         return context.Members.TryAdd(identifier.Components[^1], member) ? null : Error.Redefinition(member);
     }
 
+    public void Define(Context context, List<Error> errors)
+    {
+        Parent = context;
+
+        foreach (var statement in this)
+        {
+            switch (statement)
+            {
+                case Import import: context.Add(import); break;
+                case Function.Declaration function: function.Define(this, errors); break;
+                case Datatype.Declaration datatype: datatype.Define(this, errors); break;
+                case Datum.Declaration datum: datum.Define(this, errors); break;
+                case Delegate.Declaration @delegate: @delegate.Define(this, errors); break;
+                case Scope scope: scope.Define(this, errors); break;
+                default: Error.UnknownSyntax(this); break;
+            };
+        }
+    }
+
     public virtual Resolution Resolve(Reference reference) => Resolve(reference.Span);
 
     private Resolution Resolve(ReadOnlySpan<Reference.Component> reference)
@@ -97,15 +116,21 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
         
     private void Resolve(ReadOnlySpan<Reference.Component> reference, List<Resolution> resolutions)
     {
+        foreach (var name in reference)
+        {
+            Value value = name;
+            if (value is null) continue;
+            
+        }
+
         foreach (var (identifier, child) in Children)
         {
             if (identifier.value is Parameters parameters)
             {
-                int mandatory = parameters.MandatoryInputsCount;
                 if (reference.Length is not 0 && reference[0].value is Inputs inputs)
                 {
-                    mandatory = parameters.Bind(inputs);
-                }
+
+                }                
             }
         }
 

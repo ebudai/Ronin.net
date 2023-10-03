@@ -10,7 +10,7 @@ namespace Ronin.Compiler;
 
 internal class Error
 {
-    public class Message
+    public static class Message
     {
         public const string ScopeMustBeAnonymous = "scope must be anonymous";
         public const string ScopeMustBeUnmodified = "scope must be unmodified";
@@ -58,7 +58,7 @@ internal class Error
         return error;
     }
 
-    public static Error UnknownSyntax(Unknown unknown)
+    public static Error UnknownSyntax(Syntax unknown)
     {
         Error error = new(Message.UnknownSyntax) { Tokens = unknown.Source };
         error.IsAbout(unknown);

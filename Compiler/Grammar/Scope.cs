@@ -1,5 +1,6 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -13,6 +14,29 @@ internal class Scope : Statement, IParsableSyntax<Scope>
         ?? ConditionalScope.Parse(ref current)
         ?? RepeatingScope.Parse(ref current)
         ?? IteratingScope.Parse(ref current) as Scope;
+
+    public Identifier Define(Context context, List<Error> errors)
+    {
+        Definition.Parent = context;
+        Identifier name = null;
+
+        foreach (var statement in Definition)
+        {
+            switch (statement)
+            {
+                case Export export: export.Define(this, ref name, errors); break;
+                case Import import: context.Add(import); break;
+                case Function.Declaration function: function.Define(Definition, errors); break;
+                case Datatype.Declaration datatype: datatype.Define(Definition, errors); break;
+                case Datum.Declaration datum: datum.Define(Definition, errors); break;
+                case Delegate.Declaration @delegate: @delegate.Define(Definition, errors); break;
+                case Scope scope: scope.Define(Definition, errors); break;
+                default: Error.UnknownSyntax(this); break;
+            };
+        }
+
+        return name;
+    }
 }
 
 internal class AnonymousScope : Scope, IParsableSyntax<AnonymousScope>

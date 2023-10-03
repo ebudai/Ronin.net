@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Instance of a <see cref="FunctionDeclaration"/> which can be treated as a <see cref="Datum"/>
+///     Instance of a <see cref="Function.Declaration"/> which can be assigned to a <see cref="Datum"/>
 /// </summary>
 /// 
 /// <example>
@@ -20,10 +20,10 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Delegate : Value.Anonymous
 {
-    public List<Datum> Data { get; init; }
+    public Dictionary<Identifier, Datum> Data { get; init; }
     public Context Definition { get; init; }
 
-    public class Parameter : UnionSyntax<Parameter, Datum.Declaration, Identifier> 
+    public class Parameter : UnionSyntax<Parameter, Datum.Declaration, Identifier, Comparison> 
     {
         public static implicit operator Parameter(Identifier identifer) => new() { value = identifer, Source = identifer.Source };
     }
@@ -56,6 +56,43 @@ internal class Delegate : Value.Anonymous
                 Definition = definition,
                 Source = parser.Commit(ref current)
             };
+        }
+
+        public void Define(Context context, List<Error> errors)
+        {
+            Definition.Define(context, errors);
+
+            Dictionary<Identifier, Datum> data = new(Parameters.Count);
+            foreach (var parameter in Parameters)
+            {
+                Datum.Declaration declaration = parameter;
+                if (declaration?.Define(context, errors) is Datum datum)
+                {
+                    data.Add(declaration.Identifier, datum);
+                    continue;
+                }
+
+                Identifier identifier = parameter;
+                Comparison comparison = parameter;
+                Syntax source = identifier ?? comparison as Syntax;
+                Identifier name = identifier ?? comparison.Left;
+                if (name is null)
+                {
+                    errors.Add(Error.UnknownSyntax(source));
+                    continue;
+                }
+                datum = new() { Source = source.Source };
+                data.Add(name, datum);
+            }
+
+            Delegate @delegate = new()
+            {
+                Data = data,
+                Definition = Definition,
+                Source = Source
+            };
+
+            context.Add(@delegate);
         }
     }
 }
