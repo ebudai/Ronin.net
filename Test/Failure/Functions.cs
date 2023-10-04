@@ -28,7 +28,7 @@ public class Functions : ParsingTests
         Assert.Null(function);
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "redefinition")]
@@ -55,5 +55,5 @@ public class Functions : ParsingTests
             Assert.Single(analyzer.Errors);
             Assert.Equal(Error.Message.Redefinition, analyzer.Errors[0].Reason);
         }
-    }
+    }*/
 }

@@ -34,9 +34,8 @@ public class Parameter : ParsingTests
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
-        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
-        Assert.False(datum.Modifiers.Is<Persistent>());
 
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
@@ -77,9 +76,8 @@ public class Parameter : ParsingTests
             Assert.Null(datum?.Mutability);
 
             Assert.False(datum.Modifiers.Is<Compiled>());
-            Assert.False(datum.Modifiers.Is<Shared>());
+            Assert.False(datum.Modifiers.Is<Global>());
             Assert.False(datum.Modifiers.Is<Optional>());
-            Assert.False(datum.Modifiers.Is<Persistent>());
 
             Assert.Equal(1, datum.Identifier?.Source.Length);
         
@@ -94,9 +92,8 @@ public class Parameter : ParsingTests
             Assert.Null(datum?.Mutability);
 
             Assert.False(datum.Modifiers.Is<Compiled>());
-            Assert.False(datum.Modifiers.Is<Shared>());
+            Assert.False(datum.Modifiers.Is<Global>());
             Assert.False(datum.Modifiers.Is<Optional>());
-            Assert.False(datum.Modifiers.Is<Persistent>());
 
             Assert.Single(datum.Datatype?.Components);
             Name name = datum.Datatype.Components[0];

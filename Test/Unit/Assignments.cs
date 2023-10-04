@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Assignment = Ronin.Grammar.Assignment;
 
 namespace Unit;
 

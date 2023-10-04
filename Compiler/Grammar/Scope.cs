@@ -32,7 +32,7 @@ internal class Scope : Statement, IParsableSyntax<Scope>
                 case Delegate.Declaration @delegate: @delegate.Define(Definition, errors); break;
                 case Scope scope: scope.Define(Definition, errors); break;
                 default: Error.UnknownSyntax(this); break;
-            };
+            }
         }
 
         return name;
@@ -120,7 +120,7 @@ internal class IteratingScope : Scope, IParsableSyntax<IteratingScope>
 
         var modifiers = Modifiers.Parse(ref parser);
 
-        if (parser.TryParse<ForEach>() is null) return null;
+        if (parser.TryParse<Iterate>() is null) return null;
 
         var datum = Datum.Declaration.Parse(ref parser);
         var identifier = datum?.Identifier ?? Identifier.Parse(ref parser);

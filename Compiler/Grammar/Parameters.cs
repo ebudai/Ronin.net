@@ -10,14 +10,14 @@ namespace Ronin.Grammar;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Datum"/>s between <see cref="StartValues"/> and <see cref="EndValues"/>
+///     <see cref="Separator"/>-separated <see cref="Datum"/>s between <see cref="OpenParenthesis"/> and <see cref="CloseParenthesis"/>
 /// </remarks>
 /// 
 /// <example>
 ///     function thing (x => number, y => money) with stuff { return 8; }
 ///                    ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Parameters : Aggregate<Parameters, StartValues, Datum.Declaration, Separator, EndValues>
+internal class Parameters : Aggregate<Parameters, OpenParenthesis, Datum.Declaration, Separator, CloseParenthesis>
 {
     public Dictionary<Identifier, Datum> Data { get; } = new();
 

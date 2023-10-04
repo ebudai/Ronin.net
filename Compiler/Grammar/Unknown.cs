@@ -14,13 +14,13 @@ internal class Unknown : Statement, IParsableSyntax<Unknown>
     {
         Parser parser = current;
 
-        if (parser.Token is Sentinel or Terminal or Separator or EndIndexer or EndScope or EndValues) return null;
+        if (parser.Token is Sentinel or Terminal or Separator or CloseSquareBracket or CloseBrace or CloseParenthesis) return null;
 
         do
         {
             parser.Advance();
         }
-        while (parser.Token is not Sentinel and not Terminal and not Separator and not EndIndexer and not EndScope and not EndValues);
+        while (parser.Token is not Sentinel and not Terminal and not Separator and not CloseSquareBracket and not CloseBrace and not CloseParenthesis);
 
         return new Unknown { Source = parser.Commit(ref current) };
     }

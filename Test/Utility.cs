@@ -1,6 +1,5 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
-using Ronin.Lexicon.Literals;
 
 using Context = Ronin.Grammar.Context;
 
@@ -53,13 +52,6 @@ public class ParsingTests
         Numeric number = new();
         number.SetMemory(value.ToString());
         return number;
-    }
-
-    internal static Currency Currency(double value)
-    {
-        Currency currency = new();
-        currency.SetMemory(value.ToString());
-        return currency;
     }
 
     internal static Assign Assign()
@@ -125,45 +117,45 @@ public class ParsingTests
         return separator;
     }
 
-    internal static StartValues StartValues()
+    internal static OpenParenthesis StartValues()
     {
-        StartValues startValues = new();
-        startValues.SetMemory(Ronin.Lexicon.StartValues.symbol.ToString());
+        OpenParenthesis startValues = new();
+        startValues.SetMemory(Ronin.Lexicon.OpenParenthesis.symbol.ToString());
         return startValues;
     }
 
-    internal static EndValues EndValues()
+    internal static CloseParenthesis EndValues()
     {
-        EndValues endValues = new();
-        endValues.SetMemory(Ronin.Lexicon.EndValues.symbol.ToString());
+        CloseParenthesis endValues = new();
+        endValues.SetMemory(Ronin.Lexicon.CloseParenthesis.symbol.ToString());
         return endValues;
     }
 
-    internal static StartIndexer StartIndexer()
+    internal static OpenSquareBracket StartIndexer()
     {
-        StartIndexer startIndexer = new();
-        startIndexer.SetMemory(Ronin.Lexicon.StartIndexer.symbol.ToString());
+        OpenSquareBracket startIndexer = new();
+        startIndexer.SetMemory(Ronin.Lexicon.OpenSquareBracket.symbol.ToString());
         return startIndexer;
     }
 
-    internal static EndIndexer EndIndexer()
+    internal static CloseSquareBracket EndIndexer()
     {
-        EndIndexer endIndexer = new();
-        endIndexer.SetMemory(Ronin.Lexicon.EndIndexer.symbol.ToString());
+        CloseSquareBracket endIndexer = new();
+        endIndexer.SetMemory(Ronin.Lexicon.CloseSquareBracket.symbol.ToString());
         return endIndexer;
     }
 
-    internal static StartScope StartScope()
+    internal static OpenBrace StartScope()
     {
-        StartScope startScope = new();
-        startScope.SetMemory(Ronin.Lexicon.StartScope.symbol.ToString());
+        OpenBrace startScope = new();
+        startScope.SetMemory(Ronin.Lexicon.OpenBrace.symbol.ToString());
         return startScope;
     }
 
-    internal static EndScope EndScope()
+    internal static CloseBrace EndScope()
     {
-        EndScope endScope = new();
-        endScope.SetMemory(Ronin.Lexicon.EndScope.symbol.ToString());
+        CloseBrace endScope = new();
+        endScope.SetMemory(Ronin.Lexicon.CloseBrace.symbol.ToString());
         return endScope;
     }
 
@@ -197,10 +189,10 @@ public class ParsingTests
             return function;
         }
 
-        internal static Ronin.Lexicon.Datatype Datatype()
+        internal static Ronin.Lexicon.Type Datatype()
         {
-            Ronin.Lexicon.Datatype datatype = new();
-            datatype.SetMemory(Ronin.Lexicon.Datatype.keyword);
+            Ronin.Lexicon.Type datatype = new();
+            datatype.SetMemory(Ronin.Lexicon.Type.keyword);
             return datatype;
         }
 
@@ -246,17 +238,10 @@ public class ParsingTests
             return compiled;
         }
 
-        internal static Persistent Persistent()
+        internal static Global Shared()
         {
-            Persistent persistent = new();
-            persistent.SetMemory(Ronin.Lexicon.Persistent.keyword);
-            return persistent;
-        }
-
-        internal static Shared Shared()
-        {
-            Shared shared = new();
-            shared.SetMemory(Ronin.Lexicon.Shared.keyword);
+            Global shared = new();
+            shared.SetMemory(Ronin.Lexicon.Global.keyword);
             return shared;
         }
 
@@ -267,10 +252,10 @@ public class ParsingTests
             return optional;
         }
 
-        internal static ForEach ForEach()
+        internal static Iterate ForEach()
         {
-            ForEach @foreach = new();
-            @foreach.SetMemory(Ronin.Lexicon.ForEach.keyword);
+            Iterate @foreach = new();
+            @foreach.SetMemory(Ronin.Lexicon.Iterate.keyword);
             return @foreach;
         }
 

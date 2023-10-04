@@ -6,33 +6,33 @@ namespace Unit;
 [Trait("Lexer", null)]
 public class Keywords
 {
-    private const string datatype = Datatype.keyword;
+    private const string type = Ronin.Lexicon.Type.keyword;
     private const string function = Function.keyword;
     private const string variable = Variable.keyword;
     private const string constant = Constant.keyword;
     private const string reactive = Reactive.keyword;
     private const string compiled = Compiled.keyword;
-    private const string shared = Shared.keyword;
+    private const string shared = Global.keyword;
     private const string optional = Optional.keyword;
-    private const string persistent = Persistent.keyword;
     private const string partof = PartOf.keyword;
     private const string import = Import.keyword;
-    private const string @foreach = ForEach.keyword;
-    private const string extends = Extends.keyword;
+    private const string @foreach = Iterate.keyword;
+    private const string extends = Extend.keyword;
     private const string @if = If.keyword;
     private const string let = Let.keyword;
     private const string @while = While.keyword;
+    private const string when = When.keyword;
     private const string hidden = Hidden.keyword;
 
-    [Fact(DisplayName = datatype)]
-    public void DatatypeKeyword()
+    [Fact(DisplayName = type)]
+    public void TypeKeyword()
     {
-        const string sourcecode = $"{datatype} thing";
+        const string sourcecode = $"{type} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Datatype;
+        var keyword = Keyword.Lex(ref lexer) as Ronin.Lexicon.Type;
 
-        Assert.Equal(datatype, keyword?.Memory.ToString());
+        Assert.Equal(type, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = function)]
@@ -96,7 +96,7 @@ public class Keywords
         const string sourcecode = $"{shared} thing";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Shared;
+        var keyword = Keyword.Lex(ref lexer) as Global;
 
         Assert.Equal(shared, keyword?.Memory.ToString());
     }
@@ -110,17 +110,6 @@ public class Keywords
         var keyword = Keyword.Lex(ref lexer) as Optional;
 
         Assert.Equal(optional, keyword?.Memory.ToString());
-    }
-
-    [Fact(DisplayName = persistent)]
-    public void PersistentKeyword()
-    {
-        const string sourcecode = $"{persistent} thing";
-
-        Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Persistent;
-
-        Assert.Equal(persistent, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = partof)]
@@ -151,7 +140,7 @@ public class Keywords
         const string sourcecode = "for each thing in all the things { sorgaxulate thing; }";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as ForEach;
+        var keyword = Keyword.Lex(ref lexer) as Iterate;
 
         Assert.Equal(@foreach, keyword?.Memory.ToString());
     }
@@ -162,7 +151,7 @@ public class Keywords
         const string sourcecode = "extends datatype whatch'ma call it { var x => something; }";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Extends;
+        var keyword = Keyword.Lex(ref lexer) as Extend;
 
         Assert.Equal(extends, keyword?.Memory.ToString());
     }
@@ -193,6 +182,17 @@ public class Keywords
     public void WhileKeyword()
     {
         const string sourcecode = "while x < 3 { y += 3; }";
+
+        Lexer lexer = new(sourcecode);
+        var keyword = Keyword.Lex(ref lexer) as While;
+
+        Assert.Equal(@while, keyword?.Memory.ToString());
+    }
+
+    [Fact(DisplayName = when)]
+    public void WhenKeyword()
+    {
+        const string sourcecode = "when x < 3 { y += 3; }";
 
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as While;

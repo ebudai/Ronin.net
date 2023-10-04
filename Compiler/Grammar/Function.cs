@@ -55,7 +55,7 @@ internal class Function : Context.Member
             };
         }
 
-        public void Define(Context context, List<Error> errors)
+        public new void Define(Context context, List<Error> errors)
         {
             Definition.Define(context, errors);
 

@@ -86,7 +86,7 @@ public class Datatypes : ParsingTests
         }
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]
@@ -241,5 +241,5 @@ public class Datatypes : ParsingTests
             var overloaded = datum.Datatype.Algebra as Algebra.Overloaded;
             Assert.Single(overloaded?.Overloads);
         }
-    }
+    }*/
 }

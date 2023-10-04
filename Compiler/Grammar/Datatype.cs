@@ -30,7 +30,7 @@ internal class Datatype : Context.Member
 
             var modifiers = Modifiers.Parse(ref parser);
 
-            if (parser.TryParse<Lexicon.Datatype>() is null) return null;
+            if (parser.TryParse<Lexicon.Type>() is null) return null;
 
             if (Identifier.Parse(ref parser) is not Identifier name) return null;
 
@@ -49,7 +49,7 @@ internal class Datatype : Context.Member
             };
         }
 
-        public void Define(Context context, List<Error> errors)
+        public new void Define(Context context, List<Error> errors)
         {
             Definition.Define(context, errors);
 

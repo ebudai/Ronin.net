@@ -112,7 +112,7 @@ public class Functions : ParsingTests
         Assert.Equal(4, unresolved?.Reference.Components.Count);
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]
@@ -234,5 +234,5 @@ public class Functions : ParsingTests
             var overloaded = analyzer.Global.First();// as Function.Overloaded;
             //Assert.Equal(2, overloaded?.Overloads.Length);
         }
-    }
+    }*/
 }

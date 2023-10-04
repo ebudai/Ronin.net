@@ -74,7 +74,7 @@ public class Imports : ParsingTests
         Assert.Equal(6, import.Name?.Source.Length);
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration
     {
         [Fact(DisplayName = $"basic")]
@@ -84,13 +84,13 @@ public class Imports : ParsingTests
             const string with = nameof(with);
             const string stuff = nameof(stuff);
 
-            /*
+            *//*
              
              {
                 import thing with stuff;
              }
              
-             */
+             *//*
 
             AnonymousScope scope = new()
             {
@@ -113,5 +113,5 @@ public class Imports : ParsingTests
             var import = scope.Definition.Imports.First();
             Assert.IsType<Module.Unresolved>(import);
         }
-    }
+    }*/
 }

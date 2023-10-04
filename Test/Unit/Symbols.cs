@@ -25,25 +25,22 @@ public class Symbols
     public void LexSeparator() => LexSymbol<Separator>(Separator.symbol);
 
     [Fact(DisplayName = "start scope")]
-    public void LexOpenBrace() => LexSymbol<StartScope>(StartScope.symbol);
+    public void LexOpenBrace() => LexSymbol<OpenBrace>(OpenBrace.symbol);
 
     [Fact(DisplayName = "start values")]
-    public void LexOpenParenthesis() => LexSymbol<StartValues>(StartValues.symbol);
+    public void LexOpenParenthesis() => LexSymbol<OpenParenthesis>(OpenParenthesis.symbol);
 
     [Fact(DisplayName = "start indexer")]
-    public void LexOpenSquareBracket() => LexSymbol<StartIndexer>(StartIndexer.symbol);
+    public void LexOpenSquareBracket() => LexSymbol<OpenSquareBracket>(OpenSquareBracket.symbol);
 
     [Fact(DisplayName = "end scope")]
-    public void LexCloseBrace() => LexSymbol<EndScope>(EndScope.symbol);
+    public void LexCloseBrace() => LexSymbol<CloseBrace>(CloseBrace.symbol);
 
     [Fact(DisplayName = "end values")]
-    public void LexCloseParenthesis() => LexSymbol<EndValues>(EndValues.symbol);
+    public void LexCloseParenthesis() => LexSymbol<CloseParenthesis>(CloseParenthesis.symbol);
 
     [Fact(DisplayName = "end indexer")]
-    public void LexCloseSquareBracket() => LexSymbol<EndIndexer>(EndIndexer.symbol);
-
-    [Fact(DisplayName = "character delimiter")]
-    public void LexSingleQuote() => LexSymbol<CharacterDelimiter>(CharacterDelimiter.symbol);
+    public void LexCloseSquareBracket() => LexSymbol<CloseSquareBracket>(CloseSquareBracket.symbol);
 
     [Fact(DisplayName = "text delimiter")]
     public void LexDoubleQuote() => LexSymbol<TextDelimiter>(TextDelimiter.symbol);

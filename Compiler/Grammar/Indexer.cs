@@ -9,7 +9,7 @@ namespace Ronin.Grammar;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Temporary"/>s between <see cref="StartIndexer"/> and <see cref="EndIndexer"/>
+///     <see cref="Separator"/>-separated <see cref="Temporary"/>s between <see cref="OpenSquareBracket"/> and <see cref="CloseSquareBracket"/>
 /// </remarks>
 /// 
 /// <example>
@@ -27,7 +27,7 @@ namespace Ronin.Grammar;
 ///     var selected value = multi-dimensional list[3, 1, 0];
 ///                                                ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Indexer : Aggregate<Indexer, StartIndexer, Value, Separator, EndIndexer>
+internal class Indexer : Aggregate<Indexer, OpenSquareBracket, Value, Separator, CloseSquareBracket>
 {
 
 }

@@ -37,7 +37,7 @@ public class Contexts : ParsingTests
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
-        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 

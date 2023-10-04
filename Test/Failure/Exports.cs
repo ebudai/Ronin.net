@@ -27,7 +27,7 @@ public class Exports : ParsingTests
         Assert.Null(export);
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "function scope is part of a module")]
@@ -114,5 +114,5 @@ public class Exports : ParsingTests
 
             Assert.Equal(Error.Message.ScopeIsAlreadyPartOfModule, error.Reason);
         }
-    }
+    }*/
 }

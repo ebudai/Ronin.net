@@ -28,7 +28,7 @@ internal class Delegate : Value.Anonymous
         public static implicit operator Parameter(Identifier identifer) => new() { value = identifer, Source = identifer.Source };
     }
 
-    public class Parameters : Aggregate<Parameters, StartValues, Parameter, Separator, EndValues> { }
+    public class Parameters : Aggregate<Parameters, OpenParenthesis, Parameter, Separator, CloseParenthesis> { }
 
     public class Declaration : Anonymous, IParsableSyntax<Declaration>
     {

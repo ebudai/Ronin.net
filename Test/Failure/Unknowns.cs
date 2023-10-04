@@ -43,8 +43,8 @@ public class Unknowns : ParsingTests
 
             Context module = new() { function };
 
-            Analyzer analyzer = new();
-            analyzer.Define(module);
+            Analyzer analyzer = new() { Global = module };
+            analyzer.Define();
             Assert.Single(analyzer.Errors);
 
             var error = analyzer.Errors[0];

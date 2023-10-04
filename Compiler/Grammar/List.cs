@@ -9,14 +9,14 @@ namespace Ronin.Grammar;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-delimited list of <see cref="AnonymousValue"/>s between <see cref="StartScope"/> and <see cref="EndScope"/>
+///     <see cref="Separator"/>-delimited list of <see cref="AnonymousValue"/>s between <see cref="OpenBrace"/> and <see cref="CloseBrace"/>
 /// </remarks>
 /// 
 /// <example>
 ///     var x = { 1, 2, seven, three };
 ///             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class List : Aggregate<List, StartScope, Value, Separator, EndScope>
+internal class List : Aggregate<List, OpenBrace, Value, Separator, CloseBrace>
 {
 
 }

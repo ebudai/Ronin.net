@@ -9,7 +9,7 @@ namespace Ronin.Grammar;
 ///     Modifies a <see cref="Datatype"/> or used to restrict a <see cref="Datum"/> or a <see cref="Function"/>
 /// </summary>
 /// 
-/// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Shared"/>, and <see cref="Optional"/></remarks>
+/// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Global"/>, and <see cref="Optional"/></remarks>
 internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
 {
     public bool Is<T>() where T : Modifier

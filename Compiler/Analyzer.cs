@@ -1,18 +1,16 @@
 ﻿using Ronin.Grammar;
-using System;
 using System.Collections.Generic;
 
 using static Ronin.Compiler.Resolution;
 using Datatype = Ronin.Grammar.Datatype;
 using Delegate = Ronin.Grammar.Delegate;
 using Function = Ronin.Grammar.Function;
-using Import = Ronin.Grammar.Import;
 
 namespace Ronin.Compiler;
 
 internal class Analyzer
 {
-    public Module Global { get; } = new();
+    public Module Global { get; init; } = new();
     public List<Error> Errors { get; } = new();
     private readonly HashSet<Module> Resolved = new(ReferenceEqualityComparer.Instance);
 
@@ -38,7 +36,7 @@ internal class Analyzer
     {
         for (int i = 0, max = context.Imports.Count; i != max; ++i)
         {
-            
+            ResolveImport(context, i);
         }
 
         foreach (var identifier in context.Members.Keys) ResolveParameters(identifier, context);
@@ -163,8 +161,6 @@ internal class Analyzer
         {
             assignment.Right = ResolveMember(member, context);
         }
-
-        static void X() { }
     }
 
     private Context.Member ResolveMember(Context.Member member, Context context)

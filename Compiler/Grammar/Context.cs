@@ -12,7 +12,7 @@ namespace Ronin.Grammar;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Terminal"/>-separated <see cref="Statement"/>s between <see cref="StartScope"/> and <see cref="EndScope"/>
+///     <see cref="Terminal"/>-separated <see cref="Statement"/>s between <see cref="OpenBrace"/> and <see cref="CloseBrace"/>
 /// </remarks>
 /// 
 /// <example>
@@ -25,7 +25,7 @@ namespace Ronin.Grammar;
 ///   → }
 ///     ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Context : Aggregate<Context, StartScope, Statement, Terminal, EndScope>
+internal class Context : Aggregate<Context, OpenBrace, Statement, Terminal, CloseBrace>
 {
     public abstract class Member : Value, IParsableSyntax<Member>
     {
@@ -92,7 +92,7 @@ internal class Context : Aggregate<Context, StartScope, Statement, Terminal, End
                 case Delegate.Declaration @delegate: @delegate.Define(this, errors); break;
                 case Scope scope: scope.Define(this, errors); break;
                 default: Error.UnknownSyntax(this); break;
-            };
+            }
         }
     }
 

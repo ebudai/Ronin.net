@@ -1,18 +1,84 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using Ronin.Lexicon.Literals;
+using System.Text.RegularExpressions;
 
 namespace Ronin.Lexicon;
 
 internal class Literal : Token
 {
-    public static Token Lex(ref Lexer lexer)
-        => Character.Lex(ref lexer)
-        ?? Date.Lex(ref lexer)
-        ?? Time.Lex(ref lexer)
-        ?? Currency.Lex(ref lexer)
+    public static Literal Lex(ref Lexer lexer)
+        => Date.Lex(ref lexer)
         ?? Numeric.Lex(ref lexer)
-        ?? Text.Lex(ref lexer)
-        ?? Url.Lex(ref lexer);
+        ?? Text.Lex(ref lexer) as Literal;
+}
+
+internal class Date : Literal
+{
+    public static new Date Lex(ref Lexer lexer)
+    {
+        if (lexer.Length is < Length) return null;
+
+        //TODO allow year to be one or more digits
+        if (char.IsDigit(lexer[0]) is not true) return null;
+        if (char.IsDigit(lexer[1]) is not true) return null;
+        if (char.IsDigit(lexer[2]) is not true) return null;
+        if (char.IsDigit(lexer[3]) is not true) return null;
+        if (lexer[4] is not '-') return null;
+        if (char.IsDigit(lexer[5]) is not true) return null;
+        if (char.IsDigit(lexer[6]) is not true) return null;
+        if (lexer[7] is not '-') return null;
+        if (char.IsDigit(lexer[8]) is not true) return null;
+        if (char.IsDigit(lexer[9]) is not true) return null;
+
+        return new Date { Memory = lexer.Commit(Length) };
+    }
+
+    private const int Length = 10;
+}
+
+internal partial class Numeric : Literal
+{
+    public static new Numeric Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || char.IsDigit(lexer[0]) is false) return null;
+
+        int length = 1;
+        for (int max = lexer.Length; length != max; ++length)
+        {
+            char c = lexer[length];
+
+            if (char.IsWhiteSpace(c)) break;
+            if (char.IsDigit(c) is false && c is not ',' and not '.') break;
+        }
+
+        var number = lexer[..length].ToString();
+
+        var match = NumbersWithCommas().Match(number);
+        if (match.Success) return new Numeric { Memory = lexer.Commit(match.Length) };
+
+        match = NumbersWithoutCommas().Match(number);
+        return new Numeric { Memory = lexer.Commit(match.Length) };
+    }
+
+    [GeneratedRegex("[0-9]+([.][0-9]+)?", RegexOptions.Compiled | RegexOptions.Singleline)]
+    private static partial Regex NumbersWithoutCommas();
+
+    [GeneratedRegex("[0-9]{1,3}(,[0-9]{3})+([.][0-9]+)?", RegexOptions.Compiled | RegexOptions.Singleline)]
+    private static partial Regex NumbersWithCommas();
+}
+
+internal class Text : Literal
+{
+    public static new Text Lex(ref Lexer lexer)
+    {
+        if (lexer.IsEmpty || lexer[0] is not TextDelimiter.symbol) return null;
+
+        for (var i = 1; i < lexer.Length; ++i)
+        {
+            if (lexer[i] is TextDelimiter.symbol && lexer[i - 1] is not '\\') return new Text { Memory = lexer.Commit(i + 1) };
+        }
+
+        return null;
+    }
 }

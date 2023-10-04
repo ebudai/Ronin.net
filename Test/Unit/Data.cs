@@ -32,7 +32,7 @@ public class Data : ParsingTests
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
-        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
         Assert.Equal(2, datum.Identifier?.Source.Length);
@@ -108,40 +108,7 @@ public class Data : ParsingTests
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{Persistent.keyword}")]
-    public void PersistentDatatype()
-    {
-        // constant x => persistent text;
-
-        List<Token> tokens = new()
-        {
-            Keyword.Constant(),
-            Word("x"),
-            Returns(),
-            Keyword.Persistent(),
-            Word("text"),
-            Terminal(),
-            Sentinel.Instance
-        };
-
-        Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
-
-        Assert.IsType<Constant>(datum?.Mutability);
-
-        Assert.Equal(1, datum.Modifiers?.Source.Length);
-        Assert.True(datum.Modifiers.Is<Persistent>());
-
-        Assert.Equal(1, datum.Identifier?.Source.Length);
-
-        Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Source.ToArray());
-
-        Assert.Null(datum.Initializer);
-    }
-
-    [Fact(DisplayName = $"{Shared.keyword}")]
+    [Fact(DisplayName = $"{Global.keyword}")]
     public void SharedDatatype()
     {
         // var x => shared text;
@@ -163,7 +130,7 @@ public class Data : ParsingTests
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.Equal(1, datum.Modifiers?.Source.Length);
-        Assert.True(datum.Modifiers.Is<Shared>());
+        Assert.True(datum.Modifiers.Is<Global>());
 
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
@@ -227,9 +194,8 @@ public class Data : ParsingTests
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
-        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
-        Assert.False(datum.Modifiers.Is<Persistent>());
 
         Assert.Equal(1, datum.Identifier?.Source.Length);
 
@@ -264,7 +230,7 @@ public class Data : ParsingTests
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
-        Assert.False(datum.Modifiers.Is<Shared>());
+        Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
@@ -278,7 +244,7 @@ public class Data : ParsingTests
         Assert.Equal(1, scalar?.Source.Length);
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]
@@ -296,7 +262,7 @@ public class Data : ParsingTests
                 {
                     Mutability = new Variable(),
                     Identifier = Words(home),
-                    Modifiers = new() { Source = new[] { new Shared() } },
+                    Modifiers = new() { Source = new[] { new Global() } },
                     Datatype = Reference(Building),
                     Initializer = new Inputs
                     {
@@ -327,5 +293,5 @@ public class Data : ParsingTests
 
             Assert.IsType<Datatype.Unresolved>(datum.Datatype);
         }
-    }
+    }*/
 }

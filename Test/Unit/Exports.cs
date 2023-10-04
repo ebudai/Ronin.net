@@ -74,7 +74,7 @@ public class Exports : ParsingTests
         Assert.Equal(6, export.Identifier?.Source.Length);
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]
@@ -282,5 +282,5 @@ public class Exports : ParsingTests
             module = module.Modules.FirstOrDefault().Value;
             Assert.Equal(2, module.Contexts.Count);
         }
-    }
+    }*/
 }

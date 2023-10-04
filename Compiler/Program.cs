@@ -1,40 +1,4 @@
-﻿
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Copyright © 2023 Eric Budai
+﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
 using Ronin.Grammar;
@@ -44,8 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 
+namespace Ronin;
+
 [ExcludeFromCodeCoverage]
-internal class Program
+internal static class Program
 {
     private const string debug = nameof(debug);
 
@@ -62,21 +28,8 @@ internal class Program
 
         ConcurrentBag<Context> scopes = new();
         Parse(folder, scopes);
-        //var main = Analyze(scopes);
-        //bool isDebug = args.Length is > 1 && args[1] is debug;
-        
-        
     }
     
-    /*private static Context Analyze(ConcurrentBag<Definition> scopes)
-    {
-        foreach (var scope in scopes)
-        {
-
-        }
-
-        return null;
-    }*/
 
     private static void Parse(DirectoryInfo folder, ConcurrentBag<Context> scopes)
     {

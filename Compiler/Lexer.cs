@@ -15,11 +15,12 @@ internal ref struct Lexer
         List<Token> tokens = new(256);
         while (cursor < sourcecode.Length)
         {
-            var token = Whitespace.Lex(ref this)                
-                ?? Comment.Lex(ref this)
-                ?? Literal.Lex(ref this)
-                ?? Symbol.Lex(ref this)
+            var token = Literal.Lex(ref this)                
+                ?? Special.Lex(ref this)
+                ?? Punctuation.Lex(ref this)
                 ?? Keyword.Lex(ref this)
+                ?? Trivium.Lex(ref this)
+                ?? Symbol.Lex(ref this)
                 ?? Word.Lex(ref this) as Token;
             if (tokens.Count is not 0) tokens[^1].Append(token);
             tokens.Add(token);
