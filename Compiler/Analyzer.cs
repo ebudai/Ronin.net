@@ -190,7 +190,7 @@ internal class Analyzer
             case Lookup lookup: ResolveLookup(lookup, context); break;
             case Inputs inputs: ResolveInputs(inputs, context); break;
             case List list: ResolveList(list, context); break;
-            case Indexer indexer: ResolveIndexer(indexer, context); break;
+            case Index indexer: ResolveIndexer(indexer, context); break;
             default: break;
         }
     }
@@ -270,7 +270,7 @@ internal class Analyzer
         }
     }
 
-    private void ResolveIndexer(Indexer indexer, Context context)
+    private void ResolveIndexer(Index indexer, Context context)
     {
         foreach (var value in indexer)
         {

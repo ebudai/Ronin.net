@@ -20,18 +20,16 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, OpenParenthesis, Inputs.Input, Separator, CloseParenthesis>
 {
-    public class Input : Grammar<Input, Value>, IGrammar<Input>
+    public class Input : OneOfBase<Value, Association>, IGrammar<Input>
     {
-        public Input(OneOf<Value, Association> _) : base(_)
-        {
-        }
+        protected Input(OneOf<Value, Association> _) : base(_) { }
 
-        public static new Input Parse(ref Parser current)
-        {
-            return Grammar<Value, Association>.Parse(ref current).Match(
-                value => value,
-                association => association
-            );
-        }
+        public static implicit operator Input(Value value) => value;
+        public static implicit operator Input(Association association) => association;
+
+        public static Input Parse(ref Parser current)
+            => Grammar.Value.Parse(ref current) is Value value
+                ? value
+                : Association.Parse(ref current);
     }
 }

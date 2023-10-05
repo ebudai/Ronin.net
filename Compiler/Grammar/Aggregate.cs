@@ -9,7 +9,7 @@ using System.Linq;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Indexer"/>, <see cref="Parameters"/>, and <see cref="Context"/>)
+///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Index"/>, <see cref="Parameters"/>, and <see cref="Context"/>)
 /// </summary>
 /// 
 /// <typeparam name="T">

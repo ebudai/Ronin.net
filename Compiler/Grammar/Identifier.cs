@@ -1,5 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using OneOf;
 using Ronin.Compiler;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,10 +11,7 @@ namespace Ronin.Grammar;
 ///     A unique name for a <see cref="Type.Declaration"/>, <see cref="Datum.Declaration"/> or a <see cref="Function.Declaration"/>
 ///     which can contain multiple <see cref="Identifier"/>s and <see cref="Parameters"/>
 /// </summary>
-
-using Component = Grammar<Name, Parameters>;
-
-internal class Identifier : IGrammar<Identifier>, IEnumerable<Component>
+internal class Identifier : IGrammar<Identifier>, IEnumerable<Identifier.Component>
 {
     public List<Component> Components { get; init; } = new();
 
@@ -30,4 +28,17 @@ internal class Identifier : IGrammar<Identifier>, IEnumerable<Component>
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
+
+    public class Component : OneOfBase<Name, Parameters>, IGrammar<Component>
+    {
+        protected Component(OneOf<Name, Parameters> _) : base(_) { }
+
+        public static implicit operator Component(Name name) => name;
+        public static implicit operator Component(Parameters parameters) => parameters;
+
+        public static Component Parse(ref Parser current)
+            => Name.Parse(ref current) is Name name
+                ? name
+                : Parameters.Parse(ref current);
+    }
 }

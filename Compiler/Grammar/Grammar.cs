@@ -1,6 +1,5 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using OneOf;
 using Ronin.Compiler;
 
 namespace Ronin.Grammar;
@@ -10,11 +9,11 @@ internal interface IGrammar<T> where T : IGrammar<T>
     static abstract T Parse(ref Parser current);
 }
 
-internal class Grammar<T0, T1> : OneOfBase<T0, T1>, IGrammar<Grammar<T0, T1>> 
+/*internal class Grammar<T0, T1> : OneOfBase<T0, T1>, IGrammar<Grammar<T0, T1>> 
     where T0 : IGrammar<T0>
     where T1 : IGrammar<T1>
 {
-    public Grammar(OneOf<T0, T1> _) : base(_) { }
+    protected Grammar(OneOf<T0, T1> _) : base(_) { }
 
     public static implicit operator Grammar<T0, T1>(T0 value) => value;
     public static implicit operator Grammar<T0, T1>(T1 value) => value;
@@ -37,7 +36,7 @@ internal class Grammar<T0, T1, T2> : OneOfBase<T0, T1, T2>, IGrammar<Grammar<T0,
         => T0.Parse(ref current)
         ?? T1.Parse(ref current)
         ?? T2.Parse(ref current) as Grammar<T0, T1, T2>;
-}
+}*/
 
 /*internal abstract class Syntax
 {

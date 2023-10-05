@@ -17,12 +17,12 @@ namespace Ronin.Grammar;
 ///     import best package for weather lookups
 ///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
-internal class Export : Statement, IGrammar<Export>
+internal class Export : IGrammar<Export>
 {
     public PartOf Keyword { get; init; }
     public Name Identifier { get; init; }
 
-    public new static Export Parse(ref Parser current)
+    public static Export Parse(ref Parser current)
     {
         Parser parser = current;
 

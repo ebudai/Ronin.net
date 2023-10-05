@@ -22,7 +22,7 @@ public class Indexers : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var indexer = Indexer.Parse(ref parser);
+        var indexer = Ronin.Grammar.Index.Parse(ref parser);
 
         Assert.Single(indexer);
         var member = indexer[0] as Context.Member.Unresolved;
@@ -47,7 +47,7 @@ public class Indexers : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var indexer = Indexer.Parse(ref parser);
+        var indexer = Ronin.Grammar.Index.Parse(ref parser);
 
         Assert.Equal(2, indexer?.Count);
 
@@ -79,7 +79,7 @@ public class Indexers : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var indexer = Indexer.Parse(ref parser);
+        var indexer = Ronin.Grammar.Index.Parse(ref parser);
 
         Assert.Empty(indexer);
     }
@@ -102,7 +102,7 @@ public class Indexers : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var arguments = Indexer.Parse(ref parser);
+        var arguments = Ronin.Grammar.Index.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Count);
 

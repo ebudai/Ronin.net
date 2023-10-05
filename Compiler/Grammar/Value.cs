@@ -5,10 +5,12 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Base class representing any <see cref="Temporary"/> or <see cref="Reference"/>d value
 /// </summary>
-internal class Value : Statement, IGrammar<Value>
+internal class Value : IGrammar<Value>
 {
-    public new static Value Parse(ref Parser current) 
-        => Context.Member.Parse(ref current)
+    public static Value Parse(ref Parser current) 
+        => Type.Parse(ref current)
+        ?? Function.Parse(ref current)
+        ?? Datum.Parse(ref current)
         ?? Temporary.Parse(ref current) as Value;
 
     /// <summary>
@@ -22,6 +24,6 @@ internal class Value : Statement, IGrammar<Value>
             ?? Lookup.Parse(ref current)
             ?? Inputs.Parse(ref current)
             ?? List.Parse(ref current)
-            ?? Indexer.Parse(ref current) as Temporary;
+            ?? Index.Parse(ref current) as Temporary;
     }
 }

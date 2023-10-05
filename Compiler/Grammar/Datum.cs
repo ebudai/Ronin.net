@@ -20,7 +20,7 @@ namespace Ronin.Grammar;
 ///     function do stuff(x => number, y => date) { }
 ///                       ↑↑↑↑↑↑↑↑↑↑↑  ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Datum : Statement, IGrammar<Datum>
+internal class Datum : Value, IGrammar<Datum>
 {
     public Mutability Mutability { get; init; }
     public Identifier Identifier { get; init; }
@@ -35,9 +35,11 @@ internal class Datum : Statement, IGrammar<Datum>
         var mutability = parser.Token as Mutability;
         if (mutability is not null) parser.Advance();
 
-        if (Identifier.Parse(ref parser) is not Identifier identifier && mutability is not null)
+        if (Identifier.Parse(ref parser) is not Identifier identifier)
         {
-            return new ExpectedIdentifierError(ref parser);
+            return mutability is not null
+                ? new ExpectedIdentifierError(ref parser)
+                : null;
         }
 
         Modifiers modifiers = null;

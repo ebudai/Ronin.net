@@ -15,7 +15,7 @@ namespace Ronin.Grammar;
 ///         return 8; 
 ///     }
 /// </example>
-internal class Function : Statement, IGrammar<Function>
+internal class Function : Value, IGrammar<Function>
 {
     public Lexicon.Function Keyword { get; init; }
     public Identifier Identifier { get; init; }

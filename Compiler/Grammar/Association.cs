@@ -5,13 +5,13 @@ using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Association : Statement, IGrammar<Association>
+internal class Association : IGrammar<Association>
 {
     public Value Destination { get; init; }
     public Assignment Assignment { get; init; }
     public Value Origin { get; init; }
 
-    public static new Association Parse(ref Parser current)
+    public static Association Parse(ref Parser current)
     {
         Parser parser = current;
 

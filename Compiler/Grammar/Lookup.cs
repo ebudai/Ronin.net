@@ -24,7 +24,7 @@ internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separat
     /// <summary>
     ///     key=value pair
     /// </summary>
-    public class Association : Syntax, IGrammar<Association>
+    public class Association : IGrammar<Association>
     {
         public Value Key { get; set; }
         public Value Value { get; set; }
@@ -42,8 +42,7 @@ internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separat
             return new Association
             {
                 Key = key,
-                Value = value,
-                Source = parser.Commit(ref current),
+                Value = value
             };
         }
     }

@@ -13,7 +13,7 @@ namespace Ronin.Grammar;
 /// <example>
 ///     datatype Car = Vehicle and { var speed => number; var price => money; }
 /// </example>
-internal class Type : Statement, IGrammar<Type>
+internal class Type : Value, IGrammar<Type>
 {
     public Algebra Algebra { get; set; }
     public Context Definition { get; init; }
@@ -23,6 +23,8 @@ internal class Type : Statement, IGrammar<Type>
     {
 
     }
+
+    
 
     public class Declaration : Scope, IGrammar<Declaration>
     {
@@ -85,7 +87,7 @@ internal class Type : Statement, IGrammar<Type>
     }
 }
 
-internal class Algebra : Syntax
+public class Algebra
 {
     public List<Type> Bases { get; } = new();
     public List<Type> Unions { get; } = new();
