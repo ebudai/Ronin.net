@@ -1,5 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using OneOf;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using System;
@@ -15,6 +16,9 @@ internal struct Parser
     
     public readonly bool IsNotFinished => Token is not Sentinel;
 
+    public static bool operator ==(Parser left, Parser right) => left.cursor == right.cursor;
+    public static bool operator !=(Parser left, Parser right) => left.cursor != right.cursor;
+
     public Context Parse()
     {
         List<Statement> statements = new();
@@ -26,12 +30,12 @@ internal struct Parser
             if (Token is Terminal) Advance();
         }
 
-        Context context = new() { Source = tokens };
+        Context context = new();
         context.AddRange(statements);
         return context;
     }
 
-    public List<T> ParseRepeating<T>() where T : IParsableSyntax<T>
+    public List<T> ParseRepeating<T>() where T : IGrammar<T>
     {
         List<T> parsed = new();
         while (IsNotFinished)
@@ -56,17 +60,24 @@ internal struct Parser
         return advanced;
     }
 
+    public bool TryAdvanceMany<T>() where T : Token
+    {
+        bool advanced = false;
+        while (TryAdvance<T>()) advanced = true;
+        return advanced;
+    }
+
     public T TryParse<T>() where T : Token
     {
         if (Token is not T value) return null;
         Advance();
         return value;
     }
-
-    public readonly ReadOnlyMemory<Token> Commit(ref Parser current)
+    
+    public ReadOnlyMemory<Token> AdvanceTo(Parser parser)
     {
-        var commit = tokens[current.cursor..cursor];
-        current = this;
+        var commit = tokens[cursor..parser.cursor];
+        cursor = parser.cursor;
         return commit;
     }
 

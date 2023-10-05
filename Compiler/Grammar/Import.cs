@@ -1,4 +1,7 @@
 ﻿using Ronin.Compiler;
+using Ronin.Lexicon;
+using System.Collections.Generic;
+using System;
 
 namespace Ronin.Grammar;
 
@@ -12,23 +15,32 @@ namespace Ronin.Grammar;
 ///     import best package for weather lookups
 ///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
-internal class Import : Statement, IParsableSyntax<Import>
+internal class Import : Statement, IGrammar<Import>
 {
-    public Identifier Name { get; init; }
+    public Lexicon.Import Keyword { get; init; }
+    public Name Name { get; init; }
 
     public new static Import Parse(ref Parser current)
     {
-        if (current.Token is not Lexicon.Import) return null;
-
         Parser parser = current;
+        
+        if (current.Token is not Lexicon.Import keyword) return null;
         parser.Advance();
 
-        if (Identifier.Parse(ref parser) is not Identifier name) return null;
+        if (Name.Parse(ref parser) is not Name name) return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
 
+        current = parser;
         return new Import
         {
-            Name = name,
-            Source = parser.Commit(ref current)
+            Keyword = keyword,
+            Name = name
         };
+    }
+
+    public class ExpectedNameError : Import, IError
+    {
+        public Dictionary<string, object> Data { get; }
+        public string Reason { get; } = "expected name";
+        public ReadOnlyMemory<Token> Tokens { get; init; }
     }
 }

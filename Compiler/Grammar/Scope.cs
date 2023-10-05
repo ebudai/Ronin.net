@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Scope : Statement, IParsableSyntax<Scope>
+internal class Scope : Statement, IGrammar<Scope>
 {
     public Modifiers Modifiers { get; init; } = new();
     public Context Definition { get; set; }
@@ -27,7 +27,7 @@ internal class Scope : Statement, IParsableSyntax<Scope>
                 case Export export: export.Define(this, ref name, errors); break;
                 case Import import: context.Add(import); break;
                 case Function.Declaration function: function.Define(Definition, errors); break;
-                case Datatype.Declaration datatype: datatype.Define(Definition, errors); break;
+                case Type.Declaration datatype: datatype.Define(Definition, errors); break;
                 case Datum.Declaration datum: datum.Define(Definition, errors); break;
                 case Delegate.Declaration @delegate: @delegate.Define(Definition, errors); break;
                 case Scope scope: scope.Define(Definition, errors); break;
@@ -39,7 +39,7 @@ internal class Scope : Statement, IParsableSyntax<Scope>
     }
 }
 
-internal class AnonymousScope : Scope, IParsableSyntax<AnonymousScope>
+internal class AnonymousScope : Scope, IGrammar<AnonymousScope>
 {
     public static new AnonymousScope Parse(ref Parser current)
     {
@@ -58,7 +58,7 @@ internal class AnonymousScope : Scope, IParsableSyntax<AnonymousScope>
     }
 }
 
-internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
+internal class ConditionalScope : Scope, IGrammar<ConditionalScope>
 {
     public Condition Condition { get; init; }
 
@@ -84,7 +84,7 @@ internal class ConditionalScope : Scope, IParsableSyntax<ConditionalScope>
     }
 }
 
-internal class RepeatingScope : Scope, IParsableSyntax<RepeatingScope>
+internal class RepeatingScope : Scope, IGrammar<RepeatingScope>
 {
     public Condition Condition { get; init; }
 
@@ -110,7 +110,7 @@ internal class RepeatingScope : Scope, IParsableSyntax<RepeatingScope>
     }
 }
 
-internal class IteratingScope : Scope, IParsableSyntax<IteratingScope>
+internal class IteratingScope : Scope, IGrammar<IteratingScope>
 {
     public Datum.Declaration Iterator { get; init; }
 

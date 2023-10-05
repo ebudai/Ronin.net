@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Body of <see cref="Scope"/>s, <see cref="Datatype.Declaration"/>s and <see cref="Function.Declaration"/>s.
+///     Body of <see cref="Scope"/>s, <see cref="Type.Declaration"/>s and <see cref="Function.Declaration"/>s.
 /// </summary>
 /// 
 /// <remarks>
@@ -27,7 +27,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Context : Aggregate<Context, OpenBrace, Statement, Terminal, CloseBrace>
 {
-    public abstract class Member : Value, IParsableSyntax<Member>
+    public abstract class Member : Value, IGrammar<Member>
     {
         public Modifiers Modifiers { get; init; }
 
@@ -87,7 +87,7 @@ internal class Context : Aggregate<Context, OpenBrace, Statement, Terminal, Clos
             {
                 case Import import: context.Add(import); break;
                 case Function.Declaration function: function.Define(this, errors); break;
-                case Datatype.Declaration datatype: datatype.Define(this, errors); break;
+                case Type.Declaration datatype: datatype.Define(this, errors); break;
                 case Datum.Declaration datum: datum.Define(this, errors); break;
                 case Delegate.Declaration @delegate: @delegate.Define(this, errors); break;
                 case Scope scope: scope.Define(this, errors); break;

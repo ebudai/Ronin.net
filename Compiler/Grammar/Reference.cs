@@ -1,64 +1,32 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function.Declaration"/>, <see cref="Datatype.Declaration"/> or <see cref="Value"/>
+///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function.Declaration"/>, <see cref="Type.Declaration"/> or <see cref="Value"/>
 /// </summary>
-internal class Reference : Syntax, IParsableSyntax<Reference>
+
+using Component = Grammar<Name, Value.Temporary>;
+
+internal class Reference : IGrammar<Reference>, IEnumerable<Component>
 {
-    public class Component : UnionSyntax<Component, Name, Value.Anonymous>
-    {
-        public static implicit operator Component(Name name) => new() { value = name, Source = name.Source };
-        public static implicit operator Component(Value.Anonymous value) => new() { value = value, Source = value.Source };
-    }
-
     public List<Component> Components { get; init; }
-    public Indexer Indexer { get; init; }
-
-    public ReadOnlySpan<Component> Span => CollectionsMarshal.AsSpan(Components);
 
     public static Reference Parse(ref Parser current)
     {
         Parser parser = current;
 
         var components = parser.ParseRepeating<Component>();
-        if (components.Count is 0) return null;
-
-        foreach (var component in components)
-        {
-            if (component.value is not Name) continue;
-
-            var indexer = Indexer.Parse(ref parser);
-
-            return new Reference
-            {
-                Components = components,
-                Indexer = indexer,
-                Source = parser.Commit(ref current)
-            };
-        }
-
-        return null;
+        return components.Count is 0
+            ? null
+            : new Reference { Components = components };
     }
 
-    public override bool Equals(object obj)
-    {
-        if (obj is not Reference reference) return false;
-        return reference.Components.SequenceEqual(Components) && reference.Indexer.Equals(Indexer);
-    }
+    public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 
-    public override int GetHashCode()
-    {
-        HashCode hashcode = new();
-        foreach (var component in Components) hashcode.Add(component);
-        hashcode.Add(Indexer);
-        return hashcode.ToHashCode();
-    }
+    IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 }

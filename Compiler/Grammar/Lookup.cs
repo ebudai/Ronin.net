@@ -24,7 +24,7 @@ internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separat
     /// <summary>
     ///     key=value pair
     /// </summary>
-    public class Association : Syntax, IParsableSyntax<Association>
+    public class Association : Syntax, IGrammar<Association>
     {
         public Value Key { get; set; }
         public Value Value { get; set; }

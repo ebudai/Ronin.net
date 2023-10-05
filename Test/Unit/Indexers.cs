@@ -107,12 +107,12 @@ public class Indexers : ParsingTests
         Assert.Equal(3, arguments?.Count);
 
         {
-            var scalar = arguments[0] as Inline;
+            var scalar = arguments[0] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = arguments[1] as Inline;
+            var scalar = arguments[1] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 

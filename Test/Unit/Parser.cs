@@ -3,7 +3,7 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
-using Datatype = Ronin.Grammar.Datatype;
+using Type = Ronin.Grammar.Type;
 using Function = Ronin.Grammar.Function;
 
 namespace Unit;
@@ -140,10 +140,10 @@ public class Parsing : ParsingTests
         var function = statements[4] as Function.Declaration;
         Assert.NotNull(function);
 
-        var datatype = statements[5] as Datatype.Declaration;
+        var datatype = statements[5] as Type.Declaration;
         Assert.NotNull(datatype);
 
-        var scalar = statements[6] as Inline;
+        var scalar = statements[6] as Ronin.Grammar.Literal;
         Assert.NotNull(scalar);
 
         var arguments = statements[7] as Inputs;

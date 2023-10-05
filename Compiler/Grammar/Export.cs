@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
 using System.Collections.Generic;
 
 namespace Ronin.Grammar;
@@ -16,10 +17,10 @@ namespace Ronin.Grammar;
 ///     import best package for weather lookups
 ///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
-internal class Export : Statement, IParsableSyntax<Export>
+internal class Export : Statement, IGrammar<Export>
 {
-    public required PartOf Keyword { get; init; }
-    public required Identifier Identifier { get; init; }
+    public PartOf Keyword { get; init; }
+    public Name Identifier { get; init; }
 
     public new static Export Parse(ref Parser current)
     {
@@ -28,38 +29,20 @@ internal class Export : Statement, IParsableSyntax<Export>
         if (parser.Token is not PartOf keyword) return null;
         parser.Advance();
 
-        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
+        if (Name.Parse(ref parser) is not Name identifier) return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
 
+        current = parser;
         return new Export 
         {
             Keyword = keyword,
-            Identifier = identifier,
-            Source = parser.Commit(ref current) 
+            Identifier = identifier
         };
     }
 
-    public void Define(Scope scope, ref Identifier identifier, List<Error> errors)
+    public class ExpectedNameError : Export, IError
     {
-        var error = false;
-
-        if (scope is not AnonymousScope)
-        {
-            errors.Add(Error.ScopeMustBeAnonymous(scope.Definition, this));
-            error = true;
-        }
-
-        if (scope.Modifiers.Source.IsEmpty is false)
-        {
-            errors.Add(Error.ScopeMustBeUnmodified(scope.Definition, this));
-            error = true;
-        }
-
-        if (identifier is not null)
-        {
-            errors.Add(Error.ScopeIsAlreadyPartOfAModule(scope.Definition, this));
-            error = true;
-        }
-
-        if (error is false) identifier = Identifier;
+        public Dictionary<string, object> Data { get; }
+        public string Reason { get; } = "expected name";
+        public ReadOnlyMemory<Token> Tokens { get; init; }
     }
 }

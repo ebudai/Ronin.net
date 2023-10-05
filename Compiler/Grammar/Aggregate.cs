@@ -21,7 +21,7 @@ namespace Ronin.Grammar;
 /// </typeparam>
 /// 
 /// <typeparam name="TElement">
-///     class to be grouped - must be implementation of <see cref="IParsableSyntax{TElement}"/> and subclass of <see cref="Syntax"/>
+///     class to be grouped - must be implementation of <see cref="IGrammar{TElement}"/> and subclass of <see cref="Syntax"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TSeparator">
@@ -31,12 +31,12 @@ namespace Ronin.Grammar;
 /// <typeparam name="TClose">
 ///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Punctuation"/>
 /// </typeparam>
-internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Value.Anonymous, IList<TElement>, IParsableSyntax<T>
+internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Value.Temporary, IList<TElement>, IGrammar<T>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
-    where TOpen : Punctuation
-    where TElement : Syntax, IParsableSyntax<TElement>
+    where TOpen : Open
+    where TElement : IGrammar<TElement>
     where TSeparator : Punctuation
-    where TClose : Punctuation
+    where TClose : Close
 {
     public new static T Parse(ref Parser current)
     {
@@ -58,8 +58,9 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Valu
             if (parser.Token is TSeparator) parser.Advance();
         }
 
-        var parsed = new T { Source = parser.Commit(ref current) };
+        var parsed = new T();
         parsed.AddRange(values);
+        current = parser;
         return parsed;
     }
 

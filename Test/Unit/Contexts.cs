@@ -41,7 +41,7 @@ public class Contexts : ParsingTests
         Assert.False(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Persistent>());
 
-        var scalar = datum.Initializer as Inline;
+        var scalar = datum.Initializer as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
     }
 }

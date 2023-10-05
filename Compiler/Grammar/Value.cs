@@ -3,25 +3,25 @@
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Base class representing any <see cref="Anonymous"/> or <see cref="Reference"/>d value
+///     Base class representing any <see cref="Temporary"/> or <see cref="Reference"/>d value
 /// </summary>
-internal class Value : Statement, IParsableSyntax<Value>
+internal class Value : Statement, IGrammar<Value>
 {
     public new static Value Parse(ref Parser current) 
         => Context.Member.Parse(ref current)
-        ?? Anonymous.Parse(ref current) as Value;
+        ?? Temporary.Parse(ref current) as Value;
 
     /// <summary>
     ///     Represents a <see cref="Value"/> before it has been assigned or bound to a parameter
     /// </summary>
-    public class Anonymous : Value, IParsableSyntax<Anonymous>
+    public class Temporary : Value, IGrammar<Temporary>
     {
-        public new static Anonymous Parse(ref Parser current)
-            => Inline.Parse(ref current)
-            ?? Delegate.Declaration.Parse(ref current)
+        public new static Temporary Parse(ref Parser current)
+            => Literal.Parse(ref current)
+            ?? Delegate.Parse(ref current)
             ?? Lookup.Parse(ref current)
             ?? Inputs.Parse(ref current)
             ?? List.Parse(ref current)
-            ?? Indexer.Parse(ref current) as Anonymous;
+            ?? Indexer.Parse(ref current) as Temporary;
     }
 }

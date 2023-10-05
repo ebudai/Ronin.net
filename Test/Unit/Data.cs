@@ -3,7 +3,7 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
-using Datatype = Ronin.Grammar.Datatype;
+using Datatype = Ronin.Grammar.Type;
 
 namespace Unit;
 
@@ -240,7 +240,7 @@ public class Data : ParsingTests
         Name name = datum.Datatype.Components[0];
         Assert.Single(name?.Source.ToArray());
 
-        var scalar = datum.Initializer as Ronin.Grammar.Inline;
+        var scalar = datum.Initializer as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
     }
 

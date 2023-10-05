@@ -7,15 +7,15 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Central workhorse class for <see cref="Parser"/>
 /// </summary>
-internal class Statement : Syntax, IParsableSyntax<Statement>
+internal class Statement : IGrammar<Statement>
 {
     public static Statement Parse(ref Parser current)
         => Export.Parse(ref current)
         ?? Import.Parse(ref current)
         ?? Function.Declaration.Parse(ref current)
-        ?? Datatype.Declaration.Parse(ref current)
+        ?? Type.Declaration.Parse(ref current)
         ?? Datum.Declaration.Parse(ref current)
-        ?? Assignment.Parse(ref current)
+        ?? Association.Parse(ref current)
         ?? Value.Parse(ref current)
         ?? Scope.Parse(ref current)
         ?? Unknown.Parse(ref current) as Statement;

@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Lexicon;
-using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -17,32 +16,9 @@ namespace Ronin.Grammar;
 ///     function thing (x => number, y => money) with stuff { return 8; }
 ///                    ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Parameters : Aggregate<Parameters, OpenParenthesis, Datum.Declaration, Separator, CloseParenthesis>
+using Parameter = Grammar<Datum, Association>;
+
+internal class Parameters : Aggregate<Parameters, OpenParenthesis, Parameter, Separator, CloseParenthesis>
 {
-    public Dictionary<Identifier, Datum> Data { get; } = new();
 
-    public int MandatoryInputsCount
-    {
-        get
-        {
-            var mandatory = 0;
-            foreach (var parameter in Data.Values)
-            {
-                if (parameter.Modifiers?.Is<Optional>() ?? false) continue;
-                if (parameter.Initializer is not null) continue;
-                ++mandatory;
-            }
-            return mandatory;
-        }
-    }
-
-    public bool Bind(Inputs inputs)
-    {
-        var mandatory = MandatoryInputsCount;
-        foreach (var input in inputs)
-        {
-            
-        }
-        return mandatory is >= 0;
-    }
 }

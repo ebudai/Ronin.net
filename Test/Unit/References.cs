@@ -34,16 +34,16 @@ public class References : ParsingTests
         }
 
         {
-            Value.Anonymous scalar = reference.Components[1];
+            Value.Temporary scalar = reference.Components[1];
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            Value.Anonymous anonymous = reference.Components[2];
+            Value.Temporary anonymous = reference.Components[2];
             var arguments = anonymous as Inputs;
             Assert.Single(arguments);
             Value value = arguments[0];
-            var scalar = value as Inline;
+            var scalar = value as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
     }

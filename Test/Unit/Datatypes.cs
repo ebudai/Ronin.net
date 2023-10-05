@@ -3,7 +3,7 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
-using Datatype = Ronin.Grammar.Datatype;
+using Type = Ronin.Grammar.Type;
 
 namespace Unit;
 
@@ -25,7 +25,7 @@ public class Datatypes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datatype = Datatype.Declaration.Parse(ref parser);
+        var datatype = Type.Declaration.Parse(ref parser);
 
         Assert.Single(datatype?.Identifier?.Components);
         Identifier.Component name = datatype.Identifier.Components[0];
@@ -61,7 +61,7 @@ public class Datatypes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datatype = Datatype.Declaration.Parse(ref parser);
+        var datatype = Type.Declaration.Parse(ref parser);
 
         Assert.Equal(2, datatype?.Identifier.Components.Count);
         Assert.Equal(2, datatype.Algebra.Components.Count);

@@ -25,7 +25,7 @@ public class Lists : ParsingTests
         var list = List.Parse(ref parser);
 
         Assert.Single(list);
-        var scalar = list[0] as Inline;
+        var scalar = list[0] as Ronin.Grammar.Literal;
         Assert.Equal(1, scalar?.Source.Length);
     }
 
@@ -52,17 +52,17 @@ public class Lists : ParsingTests
         Assert.Equal(3, list?.Count);
 
         {
-            var scalar = list[0] as Inline;
+            var scalar = list[0] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = list[1] as Inline;
+            var scalar = list[1] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
-            var scalar = list[2] as Inline;
+            var scalar = list[2] as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
     }

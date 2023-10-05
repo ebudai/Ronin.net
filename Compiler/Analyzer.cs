@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 using static Ronin.Compiler.Resolution;
-using Datatype = Ronin.Grammar.Datatype;
+using Type = Ronin.Grammar.Type;
 using Delegate = Ronin.Grammar.Delegate;
 using Function = Ronin.Grammar.Function;
 
@@ -47,7 +47,7 @@ internal class Analyzer
         {
             members.Add(name, member switch
             {
-                Datatype datatype => ResolveDatatype(datatype, context),
+                Type datatype => ResolveDatatype(datatype, context),
                 Function function => ResolveFunction(function, context),
                 Datum datum => ResolveDatum(datum, context),
                 _ => member
@@ -59,7 +59,7 @@ internal class Analyzer
         {
             switch (statement)
             {
-                case Comparison assignment: ResolveAssignment(assignment, context); break;
+                //case Comparison assignment: ResolveAssignment(assignment, context); break;
                 case Context.Member member: ResolveMember(member, context); break;
                 case Value value: ResolveValue(value, context); break;
                 default: continue;
@@ -73,7 +73,7 @@ internal class Analyzer
         context.Imports[index] = Global.Resolve(unresolved.Import.Name);
     }
 
-    private void ResolveParameters(Identifier.Component component, Context context)
+    private void ResolveParameters(Component component, Context context)
     {
         if (component.value is not Parameters parameters) return;
         foreach (var datum in parameters.Data.Values)
@@ -82,16 +82,16 @@ internal class Analyzer
         }
     }
 
-    private Datatype ResolveDatatype(Datatype datatype, Context context)
+    private Type ResolveDatatype(Type datatype, Context context)
     {
-        if (datatype is not Datatype.Unresolved unresolved) return datatype;
+        if (datatype is not Type.Unresolved unresolved) return datatype;
 
         var resolution = context.Resolve(unresolved.Reference);
         ResolveAlgebra(datatype, context);
 
         if (resolution is Ambiguous ambiguous)
         {
-            return new Datatype.Overloaded
+            return new Type.Overloaded
             {
                 Algebra = datatype.Algebra,
                 Definition = unresolved.Definition,
@@ -103,10 +103,10 @@ internal class Analyzer
 
         return (resolution as Exact).Member switch
         {
-            Datatype resolved => resolved,
-            Function function => new Datatype.Calculated<Function> { Member = function },
-            Datum datum => new Datatype.Calculated<Datum> { Member = datum },
-            _ => ResolutionFailure<Datatype>(unresolved.Reference)
+            Type resolved => resolved,
+            Function function => new Type.Calculated<Function> { Member = function },
+            Datum datum => new Type.Calculated<Datum> { Member = datum },
+            _ => ResolutionFailure<Type>(unresolved.Reference)
         };
     }
 
@@ -115,7 +115,7 @@ internal class Analyzer
         if (function is not Function.Unresolved unresolved) return function;
 
         var resolution = context.Resolve(unresolved.Reference);
-        var returns = ResolveDatatype(unresolved.Returns as Datatype.Unresolved, context);
+        var returns = ResolveDatatype(unresolved.Returns as Type.Unresolved, context);
 
         if (resolution is Ambiguous ambiguous)
         {
@@ -195,7 +195,7 @@ internal class Analyzer
         }
     }
 
-    private void ResolveAlgebra(Datatype datatype, Context context)
+    private void ResolveAlgebra(Type datatype, Context context)
     {
         if (datatype.Algebra is not Algebra.Unresolved unresolved) return;
 
@@ -214,7 +214,7 @@ internal class Analyzer
             var exact = resolution as Exact;
             datatype.Algebra = exact.Member switch
             {
-                Datatype existing => existing.Algebra,
+                Type existing => existing.Algebra,
                 Function function => new Algebra.Calculated<Function> { Member = function, Source = exact.Member.Source },                
                 Datum datum => new Algebra.Calculated<Datum> { Member = datum, Source = exact.Member.Source },
                 _ => ResolutionFailure<Algebra>(unresolved.Reference)

@@ -2,22 +2,28 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
 
 namespace Ronin.Grammar;
 
 /// <summary>
 ///     The part of an <see cref="Identifier"/> or <see cref="Reference"/> which is not being used for <see cref="Parameters"/> and <see cref="Inputs"/>
 /// </summary>
-internal class Name : Syntax, IParsableSyntax<Name>
+internal class Name : IGrammar<Name>
 {
+    public ReadOnlyMemory<Token> Tokens { get; init; }
+
     public static Name Parse(ref Parser current)
     {
         Parser parser = current;
 
-        if (parser.Token is not Word and not Symbol or Punctuation) return null;
-        
-        parser.Advance();
+        while (parser.Token is Word or Symbol and not Punctuation) 
+        {
+            parser.Advance(); 
+        }
 
-        return new Name { Source = parser.Commit(ref current) };
+        if (parser == current) return null;
+
+        return new Name { Tokens = current.AdvanceTo(parser) };
     }
 }

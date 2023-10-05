@@ -2,7 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
-using Assignment = Ronin.Grammar.Assignment;
+using Association = Ronin.Grammar.Association;
 
 namespace Unit;
 
@@ -24,7 +24,7 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Assignment.Parse(ref parser);
+        var assignment = Association.Parse(ref parser);
 
         var unresolved = assignment?.Comparison.Left as Datum.Unresolved;
         
@@ -32,7 +32,7 @@ public class Assignments : ParsingTests
         Name name = unresolved.Reference.Components[0];
         Assert.Single(name?.Source.ToArray());
 
-        var scalar = assignment.Right as Inline;
+        var scalar = assignment.Right as Ronin.Grammar.Literal;
         Assert.Single(scalar?.Source.ToArray());
     }
 
@@ -60,7 +60,7 @@ public class Assignments : ParsingTests
 
         Assert.IsType<Assign>(assignment.Operation);
 
-        var scalar = assignment.Right as Inline;
+        var scalar = assignment.Right as Ronin.Grammar.Literal;
         Assert.Single(scalar?.Source.ToArray());
     }
 
@@ -86,7 +86,7 @@ public class Assignments : ParsingTests
 
         Assert.IsType<AddAssign>(assignment.Operation);
 
-        var scalar = assignment.Right as Inline;
+        var scalar = assignment.Right as Ronin.Grammar.Literal;
         Assert.Single(scalar?.Source.ToArray());
     }
 
@@ -142,7 +142,7 @@ public class Assignments : ParsingTests
 
         Assert.IsType<DivideAssign>(assignment.Operation);
 
-        var scalar = assignment.Right as Inline;
+        var scalar = assignment.Right as Ronin.Grammar.Literal;
         Assert.Single(scalar?.Source.ToArray());
     }
 
@@ -170,7 +170,7 @@ public class Assignments : ParsingTests
 
         Assert.IsType<MultiplyAssign>(assignment.Operation);
 
-        var scalar = assignment.Right as Inline;
+        var scalar = assignment.Right as Ronin.Grammar.Literal;
         Assert.Single(scalar?.Source.ToArray());
     }
 
@@ -226,7 +226,7 @@ public class Assignments : ParsingTests
 
         Assert.IsType<SubtractAssign>(assignment.Operation);
 
-        var scalar = assignment.Right as Inline;
+        var scalar = assignment.Right as Ronin.Grammar.Literal;
         Assert.Single(scalar?.Source.ToArray());
     }
 }

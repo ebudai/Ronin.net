@@ -12,11 +12,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>1701;1702;S1135;S1125;S3267;</NoWarn>
+    <NoWarn>1701;1702;S1135;S1125;S3267;S3218;S1168;</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>1701;1702;S1135;S1125;S3267;</NoWarn>
+    <NoWarn>1701;1702;S1135;S1125;S3267;S3218;S1168;</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,10 +30,7 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeCoverage" Version="17.7.2" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.10.0.77988">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="OneOf" Version="3.0.263" />
+    <PackageReference Include="OneOf.SourceGenerator" Version="3.0.263" />
   </ItemGroup>
 </Project>

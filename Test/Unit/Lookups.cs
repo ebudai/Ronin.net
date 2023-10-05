@@ -29,10 +29,10 @@ public class Lookups : ParsingTests
         Assert.Single(lookup);
         var association = lookup[0];
 
-        var key = association.Key as Inline;
+        var key = association.Key as Ronin.Grammar.Literal;
         Assert.Equal(1, key?.Source.Length);
 
-        var value = association.Value as Inline;
+        var value = association.Value as Ronin.Grammar.Literal;
         Assert.Equal(1, value?.Source.Length);
     }
 

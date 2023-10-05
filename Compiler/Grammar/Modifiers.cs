@@ -2,19 +2,22 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
 
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Modifies a <see cref="Datatype"/> or used to restrict a <see cref="Datum"/> or a <see cref="Function"/>
+///     Modifies a <see cref="Type"/> or used to restrict a <see cref="Datum"/> or a <see cref="Function"/>
 /// </summary>
 /// 
 /// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Global"/>, and <see cref="Optional"/></remarks>
-internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
+internal class Modifiers : IGrammar<Modifiers>
 {
+    public ReadOnlyMemory<Token> Tokens { get; init; }
+
     public bool Is<T>() where T : Modifier
     {
-        foreach (var token in Source.Span)
+        foreach (var token in Tokens.Span)
         {
             if (token is T) return true;
         }
@@ -24,15 +27,9 @@ internal class Modifiers : Syntax, IParsableSyntax<Modifiers>
     public static Modifiers Parse(ref Parser current)
     {
         Parser parser = current;
-        
-        while (parser.IsNotFinished)
-        {
-            if (parser.Token is not Modifier) break;
-            parser.Advance();
-        }
 
-        if (current.Token == parser.Token) return null;
+        if (parser.TryAdvanceMany<Modifier>() is false) return null;
 
-        return new Modifiers { Source = parser.Commit(ref current) };
+        return new Modifiers { Tokens = current.AdvanceTo(parser) };
     }
 }

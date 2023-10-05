@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
 
 namespace Ronin.Grammar;
 
@@ -17,16 +18,16 @@ namespace Ronin.Grammar;
 ///     let x = 7,000,876 + cash amount;
 ///             ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Inline : Value.Anonymous, IParsableSyntax<Inline>
+internal class Literal : Value.Temporary, IGrammar<Literal>
 {
-    public new static Inline Parse(ref Parser current)
+    public ReadOnlyMemory<Token> Tokens { get; init; }
+
+    public new static Literal Parse(ref Parser current)
     {
         Parser parser = current;
 
-        while (parser.TryAdvance<Literal>()) { }
+        if (parser.TryAdvanceMany<Lexicon.Literal>() is false) return null;
 
-        if (parser.Token == current.Token) return null;
-
-        return new Inline { Source = parser.Commit(ref current) };
+        return new Literal { Tokens = current.AdvanceTo(parser) };
     }
 }

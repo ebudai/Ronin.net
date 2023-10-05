@@ -1,17 +1,45 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using OneOf;
 using Ronin.Compiler;
-using Ronin.Lexicon;
-using System;
 
 namespace Ronin.Grammar;
 
-internal interface IParsableSyntax<T> where T : IParsableSyntax<T>
+internal interface IGrammar<T> where T : IGrammar<T>
 {
     static abstract T Parse(ref Parser current);
 }
 
-internal abstract class Syntax
+internal class Grammar<T0, T1> : OneOfBase<T0, T1>, IGrammar<Grammar<T0, T1>> 
+    where T0 : IGrammar<T0>
+    where T1 : IGrammar<T1>
+{
+    public Grammar(OneOf<T0, T1> _) : base(_) { }
+
+    public static implicit operator Grammar<T0, T1>(T0 value) => value;
+    public static implicit operator Grammar<T0, T1>(T1 value) => value;
+
+    public static Grammar<T0, T1> Parse(ref Parser current) => T0.Parse(ref current) ?? T1.Parse(ref current) as Grammar<T0, T1>;
+}
+
+internal class Grammar<T0, T1, T2> : OneOfBase<T0, T1, T2>, IGrammar<Grammar<T0, T1, T2>>
+    where T0 : IGrammar<T0>
+    where T1 : IGrammar<T1>
+    where T2 : IGrammar<T2>
+{
+    protected Grammar(OneOf<T0, T1, T2> _) : base(_) { }
+
+    public static implicit operator Grammar<T0, T1, T2>(T0 value) => value;
+    public static implicit operator Grammar<T0, T1, T2>(T1 value) => value;
+    public static implicit operator Grammar<T0, T1, T2>(T2 value) => value;
+
+    public static Grammar<T0, T1, T2> Parse(ref Parser current)
+        => T0.Parse(ref current)
+        ?? T1.Parse(ref current)
+        ?? T2.Parse(ref current) as Grammar<T0, T1, T2>;
+}
+
+/*internal abstract class Syntax
 {
     protected internal ReadOnlyMemory<Token> Source { get; init; }
 
@@ -59,4 +87,4 @@ internal abstract class UnionSyntax<T, T0, T1, T2> : UnionSyntax<T, T0, T1>
     public static new T Parse(ref Parser current) => UnionSyntax<T, T0, T1>.Parse(ref current) ?? T2.Parse(ref current) as T;
 
     public static implicit operator T2(UnionSyntax<T, T0, T1, T2> value) => value.value as T2;
-}
+}*/

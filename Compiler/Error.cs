@@ -8,8 +8,29 @@ using Import = Ronin.Grammar.Import;
 
 namespace Ronin.Compiler;
 
+internal interface IError
+{
+    Dictionary<string, object> Data { get; }
+    string Reason { get; }
+    ReadOnlyMemory<Token> Tokens { get; }
+
+    void IsAbout(object data, [CallerArgumentExpression(nameof(data))] string name = "") => Data.Add(name, data);
+}
+
 internal class Error
 {
+    public static class Message
+    {
+        public const string ScopeMustBeAnonymous = "scope must be anonymous";
+        public const string ScopeMustBeUnmodified = "scope must be unmodified";
+        public const string ScopeIsAlreadyPartOfAModule = "scope is already a part of a module";
+        public const string Redefinition = "redefinition";
+        public const string UnknownSyntax = "unknown syntax";
+        public const string CouldNotResolve = "could not resolve";
+        public const string UnresolvedImport = "unresolved import";
+        public const string UnresolvedReference = "unresolved reference";
+    }
+
     public Dictionary<string, object> Data { get; } = new();
     public string Reason { get; }
     public ReadOnlyMemory<Token> Tokens { get; protected init; }
@@ -20,56 +41,56 @@ internal class Error
 
     public static Error ScopeMustBeAnonymous(Context scope, Export export)
     {
-        Error error = new("scope must be anonymous") { Tokens = new[] { export.Keyword } };
+        Error error = new(Message.ScopeMustBeAnonymous) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
     public static Error ScopeMustBeUnmodified(Context scope, Export export)
     {
-        Error error = new("scope must be unmodified") { Tokens = new[] { export.Keyword } };
+        Error error = new(Message.ScopeMustBeUnmodified) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
     public static Error ScopeIsAlreadyPartOfAModule(Context scope, Export export)
     {
-        Error error = new("scope is already a part of a module") { Tokens = new[] { export.Keyword } };
+        Error error = new(Message.ScopeIsAlreadyPartOfAModule) { Tokens = new[] { export.Keyword } };
         error.IsAbout(scope);
         return error;
     }
 
     public static Error Redefinition(Context.Member member)
     {
-        Error error = new("redefinition") { Tokens = member.Source };
+        Error error = new(Message.Redefinition) { /*Tokens = member.Source*/ };
         error.IsAbout(member);
         return error;
     }
 
-    public static Error UnknownSyntax(Syntax unknown)
+    public static Error UnknownSyntax(Unknown unknown)
     {
-        Error error = new("unknown syntax") { Tokens = unknown.Source };
+        Error error = new(Message.UnknownSyntax) { /*Tokens = unknown.Source*/ };
         error.IsAbout(unknown);
         return error;
     }
 
-    public static Error CouldNotResolve<T>(T member, Reference reference) where T : Syntax
+    public static Error CouldNotResolve<T>(T member, Reference reference)
     {
-        Error error = new("could not resolve") { Tokens = reference.Source };
+        Error error = new(Message.CouldNotResolve) { /*Tokens = reference.Source*/ };
         error.IsAbout(member);
         return error;
     }
 
     public static Error UnresolvedImport(Import import)
     {
-        Error error = new("unresolved import") { Tokens = import.Source };
+        Error error = new(Message.UnresolvedImport) { /*Tokens = import.Source*/ };
         error.IsAbout(import);
         return error;
     }
 
     public static Error UnresolvedReference(Reference reference)
     {
-        Error error = new("unresolved reference") { Tokens = reference.Source };
+        Error error = new(Message.UnresolvedReference) { /*Tokens = reference.Source*/ };
         error.IsAbout(reference);
         return error;
     }

@@ -5,21 +5,26 @@ using Ronin.Lexicon;
 using System.Collections.Generic;
 
 namespace Ronin.Grammar;
-
-internal class Datatype : Context.Member
+/// <summary>
+///     Restricts a <see cref="Datum"/> to a particular shape of data
+///     resulting from evaluation of a <see cref="Function.Declaration"/> or <see cref="Datum"/>
+/// </summary>
+/// 
+/// <example>
+///     datatype Car = Vehicle and { var speed => number; var price => money; }
+/// </example>
+internal class Type : Statement, IGrammar<Type>
 {
     public Algebra Algebra { get; set; }
-    public Context Definition { get; init; }    
+    public Context Definition { get; init; }
+    public Identifier Identifier { get; init; }
 
-    /// <summary>
-    ///     Restricts a <see cref="Datum"/> to a particular shape of data
-    ///     resulting from evaluation of a <see cref="Function.Declaration"/> or <see cref="Datum"/>
-    /// </summary>
-    /// 
-    /// <example>
-    ///     datatype Car = Vehicle and { var speed => number; var price => money; }
-    /// </example>
-    public class Declaration : Scope, IParsableSyntax<Declaration>
+    public static new Type Parse(ref Parser current)
+    {
+
+    }
+
+    public class Declaration : Scope, IGrammar<Declaration>
     {
         public Identifier Identifier { get; init; }
         public Reference Algebra { get; init; }
@@ -53,7 +58,7 @@ internal class Datatype : Context.Member
         {
             Definition.Define(context, errors);
 
-            Datatype datatype = new()
+            Type datatype = new()
             {
                 Modifiers = Modifiers,
                 Algebra = new Algebra.Unresolved { Reference = Algebra },
@@ -64,17 +69,17 @@ internal class Datatype : Context.Member
         }
     }
 
-    public new class Unresolved : Datatype
+    public new class Unresolved : Type
     {
         public Reference Reference { get; init; }
     }
 
-    public new class Overloaded : Datatype
+    public new class Overloaded : Type
     {
         public List<Resolution> Overloads { get; init; }
     }
 
-    public class Calculated<T> : Datatype where T : Context.Member
+    public class Calculated<T> : Type where T : Context.Member
     {
         public T Member { get; init; }
     }
@@ -82,8 +87,8 @@ internal class Datatype : Context.Member
 
 internal class Algebra : Syntax
 {
-    public List<Datatype> Bases { get; } = new();
-    public List<Datatype> Unions { get; } = new();
+    public List<Type> Bases { get; } = new();
+    public List<Type> Unions { get; } = new();
 
     public class Unresolved : Algebra
     {

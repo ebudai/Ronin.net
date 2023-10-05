@@ -1,87 +1,60 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Collections.Generic;
 
 namespace Ronin.Grammar;
-
-internal class Function : Context.Member
+/// <summary>
+///     Ordered grouping of instructions to execute when called
+/// </summary>
+/// 
+/// <example>
+///     function florb (x => number) things with (fast => maybe, fun => maybe) stuff => number 
+///     {
+///         return 8; 
+///     }
+/// </example>
+internal class Function : Statement, IGrammar<Function>
 {
-    public Datatype Returns { get; set; }
-    public Context Definition { get; init; }
+    public Lexicon.Function Keyword { get; init; }
+    public Identifier Identifier { get; init; }
+    public Modifiers Modifiers { get;init; }
+    public Type Returns { get; set; }
+    public Definition Definition { get; init; }    
     
-    /// <summary>
-    ///     Ordered grouping of instructions to execute when called
-    /// </summary>
-    /// 
-    /// <example>
-    ///     function florb (x => number) things with (fast => maybe, fun => maybe) stuff => whole number 
-    ///     {
-    ///         return 8; 
-    ///     }
-    /// </example>
-    public class Declaration : Scope, IParsableSyntax<Declaration>
+    public new static Function Parse(ref Parser current)
     {
-        public Identifier Identifier { get; init; }
-        public Reference Returns { get; init; }
+        Parser parser = current;
 
-        public new static Declaration Parse(ref Parser current)
+        var keyword = parser.Token;
+        if (keyword is not Lexicon.Function) return null;
+        parser.Advance();
+
+        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
+
+        Modifiers modifiers = null;
+        Reference returns = null;
+        if (parser.TryAdvance<Returns>())
         {
-            Parser parser = current;
-
-            if (parser.TryParse<Lexicon.Function>() is null) return null;
-
-            if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
-
-            Modifiers modifiers = null;
-            Reference returns = null;
-            if (parser.Token is Returns)
-            {
-                parser.Advance();
-                modifiers = Modifiers.Parse(ref parser);
-                returns = Reference.Parse(ref parser);
-            }
-
-            var definition = Context.Parse(ref parser);
-
-            return new Declaration
-            {
-                Identifier = identifier,
-                Modifiers = modifiers,
-                Returns = returns,
-                Definition = definition,
-                Source = parser.Commit(ref current)
-            };
+            modifiers = Modifiers.Parse(ref parser);
+            returns = Reference.Parse(ref parser);
         }
 
-        public new void Define(Context context, List<Error> errors)
+        var definition = Definition.Parse(ref parser);
+
+        current = parser;
+        return new Function
         {
-            Definition.Define(context, errors);
-
-            Function function = new()
-            {
-                Modifiers = Modifiers,
-                Returns = new Datatype.Unresolved { Reference = Returns },
-                Definition = Definition,
-            };
-
-            if (context.Add(Identifier, function) is Error error) errors.Add(error);
-        }
+            Identifier = identifier,
+            Modifiers = modifiers,
+            Returns = new Type.Unresolved { Reference = returns },
+            Definition = definition,
+        };
     }
 
-    public new class Unresolved : Function
+    public class Unresolved : Function
     {
         public Reference Reference { get; init; }
-    }
-
-    public new class Overloaded : Function
-    {
-        public List<Resolution> Overloads { get; init; }
-    }
-
-    public class Calculated : Function
-    {
-        public Datum Member { get; init; }
     }
 }

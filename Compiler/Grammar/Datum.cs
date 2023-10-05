@@ -20,74 +20,63 @@ namespace Ronin.Grammar;
 ///     function do stuff(x => number, y => date) { }
 ///                       ↑↑↑↑↑↑↑↑↑↑↑  ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Datum : Context.Member
+internal class Datum : Statement, IGrammar<Datum>
 {
     public Mutability Mutability { get; init; }
-    public Datatype Datatype { get; set; }
+    public Identifier Identifier { get; init; }
+    public Modifiers Modifiers { get; init; }
+    public Type Datatype { get; set; }
     public Value Initializer { get; init; }
 
-    public class Declaration : Statement, IParsableSyntax<Declaration>
+    public static new Datum Parse(ref Parser current)
     {
-        public Mutability Mutability { get; init; }
-        public Identifier Identifier { get; init; }
-        public Modifiers Modifiers { get; init; }
-        public Reference Datatype { get; init; }
-        public Value Initializer { get; init; }
+        Parser parser = current;
 
-        public new static Declaration Parse(ref Parser current)
+        var mutability = parser.Token as Mutability;
+        if (mutability is not null) parser.Advance();
+
+        if (Identifier.Parse(ref parser) is not Identifier identifier && mutability is not null)
         {
-            Parser parser = current;
-
-            var mutability = parser.Token as Mutability;
-            if (mutability is not null) parser.Advance();
-
-            if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
-
-            Modifiers modifiers = null;
-            Reference datatype = null;
-            if (parser.TryAdvance<Returns>())
-            {
-                modifiers = Modifiers.Parse(ref parser);
-                datatype = Reference.Parse(ref parser);
-            }
-
-            Value initializer = null;
-            if (parser.TryAdvance<Assign>()) initializer = Value.Parse(ref parser);
-
-            if (datatype is null)
-            {
-                if (mutability is null || initializer is null) return null;
-            }
-
-            return new Declaration
-            {
-                Mutability = mutability,
-                Identifier = identifier,
-                Modifiers = modifiers ?? new(),
-                Datatype = datatype,
-                Initializer = initializer,
-                Source = parser.Commit(ref current)
-            };
+            return new ExpectedIdentifierError(ref parser);
         }
 
-        public Datum Define(Context context, List<Error> errors)
+        Modifiers modifiers = null;
+        Reference datatype = null;
+        if (parser.TryAdvance<Returns>())
         {
-            Datum datum = new()
-            {
-                Mutability = Mutability,
-                Modifiers = Modifiers,
-                Datatype = new Datatype.Unresolved { Reference = Datatype },
-                Initializer = Initializer
-            };
-
-            if (context.Add(Identifier, datum) is Error error) errors.Add(error);
-
-            return datum;
+            modifiers = Modifiers.Parse(ref parser);
+            datatype = Reference.Parse(ref parser);
         }
+
+        Value initializer = null;
+        if (parser.TryAdvance<Assign>()) initializer = Value.Parse(ref parser);
+
+        if (datatype is null)
+        {
+            if (mutability is null || initializer is null) return null;
+        }
+
+        return new Datum
+        {
+            Mutability = mutability,
+            Identifier = identifier,
+            Modifiers = modifiers ?? new(),
+            Datatype = new Type.Unresolved { Reference = datatype },
+            Initializer = initializer
+        };
     }
 
-    public new class Unresolved : Datum
+    public class Unresolved : Datum
     {
-        public required Reference Reference { get; set; }
+        public Reference Reference { get; set; }
+    }
+
+    public class ExpectedIdentifierError : Datum, IError
+    {
+        public ExpectedIdentifierError(ref Parser parser) => Tokens = Unknown.Parse(ref parser).Tokens;
+
+        public Dictionary<string, object> Data { get; }
+        public string Reason { get; } = "expected identifier";
+        public System.ReadOnlyMemory<Token> Tokens { get; init; }
     }
 }

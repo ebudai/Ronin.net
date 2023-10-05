@@ -1,5 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using OneOf;
+using Ronin.Compiler;
 using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
@@ -18,5 +20,18 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, OpenParenthesis, Inputs.Input, Separator, CloseParenthesis>
 {
-    public class Input : UnionSyntax<Input, Value, Comparison> { }
+    public class Input : Grammar<Input, Value>, IGrammar<Input>
+    {
+        public Input(OneOf<Value, Association> _) : base(_)
+        {
+        }
+
+        public static new Input Parse(ref Parser current)
+        {
+            return Grammar<Value, Association>.Parse(ref current).Match(
+                value => value,
+                association => association
+            );
+        }
+    }
 }

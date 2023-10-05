@@ -5,10 +5,12 @@ using static Ronin.Compiler.Resolution;
 
 namespace Ronin;
 
+using Component = Grammar<Name, Parameters>;
+
 internal class Module : Context
 {
     public List<Context> Contexts { get; } = new();
-    public Dictionary<Identifier.Component, Module> Modules { get; } = new();
+    public Dictionary<Component, Module> Modules { get; } = new();
 
     public void Add(Context context, Identifier name = null) => Resolve(name).Contexts.Add(context);
 

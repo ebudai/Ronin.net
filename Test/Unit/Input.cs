@@ -110,13 +110,13 @@ public class Input : ParsingTests
         
         {
             Value value = arguments[0];
-            var scalar = value as Inline;
+            var scalar = value as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
         {
             Value value = arguments[1];
-            var scalar = value as Inline;
+            var scalar = value as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
@@ -167,7 +167,7 @@ public class Input : ParsingTests
 
         {
             Value value = arguments[1];
-            var scalar = value as Inline;
+            var scalar = value as Ronin.Grammar.Literal;
             Assert.Equal(1, scalar?.Source.Length);
         }
 
@@ -178,19 +178,19 @@ public class Input : ParsingTests
 
             {
                 Value subvalue = subargs[0];
-                var scalar = subvalue as Inline;
+                var scalar = subvalue as Ronin.Grammar.Literal;
                 Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
                 Value subvalue = subargs[1];
-                var scalar = subvalue as Inline;
+                var scalar = subvalue as Ronin.Grammar.Literal;
                 Assert.Equal(1, scalar?.Source.Length);
             }
 
             {
                 Value subvalue = subargs[2];
-                var scalar = subvalue as Inline;
+                var scalar = subvalue as Ronin.Grammar.Literal;
                 Assert.Equal(1, scalar?.Source.Length);
             }
         }

@@ -72,7 +72,7 @@ public class AnonymousScopes : ParsingTests
                     {
                         Mutability = new Variable(),
                         Identifier = Words(x),
-                        Initializer = new Inline { Source = new[] { Number(3) } }
+                        Initializer = new Ronin.Grammar.Literal { Source = new[] { Number(3) } }
                     }
                 }
             };
@@ -108,7 +108,7 @@ public class AnonymousScopes : ParsingTests
                                 {
                                     Mutability = new Variable(),
                                     Identifier = Words(x),
-                                    Initializer = new Inline { Source = new[] { Number(3) } }
+                                    Initializer = new Ronin.Grammar.Literal { Source = new[] { Number(3) } }
                                 }
                             }
                         }

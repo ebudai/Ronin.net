@@ -3,7 +3,7 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
-using Datatype = Ronin.Grammar.Datatype;
+using Datatype = Ronin.Grammar.Type;
 using Function = Ronin.Grammar.Function;
 
 namespace Unit;
@@ -57,7 +57,7 @@ public class Functions : ParsingTests
         Name @return = unresolved.Reference.Components[0];
         Assert.Equal(1, @return?.Source.Length);
 
-        Value.Anonymous scalar = unresolved.Reference.Components[1];
+        Value.Temporary scalar = unresolved.Reference.Components[1];
         Assert.Equal(1, scalar?.Source.Length);
     }
 
