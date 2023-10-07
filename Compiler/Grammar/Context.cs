@@ -25,9 +25,9 @@ namespace Ronin.Grammar;
 ///   → }
 ///     ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Context : Aggregate<Context, OpenBrace, Statement, Terminal, CloseBrace>
+/*internal class Context : Aggregate<Context, OpenBrace, Statement, Terminal, CloseBrace>
 {
-    public abstract class Member : Value, IGrammar<Member>
+    public abstract class Member : Value
     {
         public Modifiers Modifiers { get; init; }
 
@@ -169,4 +169,4 @@ internal class Context : Aggregate<Context, OpenBrace, Statement, Terminal, Clos
     }
 
     
-}
+}*/

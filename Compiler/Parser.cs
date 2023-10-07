@@ -1,6 +1,5 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using OneOf;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using System;
@@ -19,23 +18,9 @@ internal struct Parser
     public static bool operator ==(Parser left, Parser right) => left.cursor == right.cursor;
     public static bool operator !=(Parser left, Parser right) => left.cursor != right.cursor;
 
-    public Context Parse()
-    {
-        List<Statement> statements = new();
+    public Scope Parse() => Scope.Parse(ref this);
 
-        while (IsNotFinished)
-        {
-            if (Trivia.Parse(ref this) is not null) continue;
-            statements.Add(Statement.Parse(ref this));
-            if (Token is Terminal) Advance();
-        }
-
-        Context context = new();
-        context.AddRange(statements);
-        return context;
-    }
-
-    public List<T> ParseRepeating<T>() where T : IGrammar<T>
+    public List<T> ParseRepeating<T>() where T : IAggregable<T>
     {
         List<T> parsed = new();
         while (IsNotFinished)
@@ -65,13 +50,6 @@ internal struct Parser
         bool advanced = false;
         while (TryAdvance<T>()) advanced = true;
         return advanced;
-    }
-
-    public T TryParse<T>() where T : Token
-    {
-        if (Token is not T value) return null;
-        Advance();
-        return value;
     }
     
     public ReadOnlyMemory<Token> AdvanceTo(Parser parser)

@@ -8,8 +8,13 @@ using System.Linq;
 
 namespace Ronin.Grammar;
 
+internal interface IAggregable<T> where T : IAggregable<T>
+{
+    static abstract T Parse(ref Parser current);
+}
+
 /// <summary>
-///     Parent class for all groupings (<see cref="Inputs"/>, <see cref="Index"/>, <see cref="Parameters"/>, and <see cref="Context"/>)
+///     Parent class for all syntactical groupings
 /// </summary>
 /// 
 /// <typeparam name="T">
@@ -21,7 +26,7 @@ namespace Ronin.Grammar;
 /// </typeparam>
 /// 
 /// <typeparam name="TElement">
-///     class to be grouped - must be implementation of <see cref="IGrammar{TElement}"/> and subclass of <see cref="Syntax"/>
+///     class to be grouped - must be implementation of <see cref="IAggregable{TElement}"/> and subclass of <see cref="Syntax"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TSeparator">
@@ -31,19 +36,22 @@ namespace Ronin.Grammar;
 /// <typeparam name="TClose">
 ///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Punctuation"/>
 /// </typeparam>
-internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Value.Temporary, IList<TElement>, IGrammar<T>
+internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Value.Temporary, IList<TElement>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
     where TOpen : Open
-    where TElement : IGrammar<TElement>
+    where TElement : IAggregable<TElement>
     where TSeparator : Punctuation
     where TClose : Close
 {
+    protected Aggregate() { }
+    protected Aggregate(IEnumerable<TElement> values) => Values = values.ToList();
+
     public new static T Parse(ref Parser current)
     {
         if (current.Token is not TOpen) return null;
 
         Parser parser = current;
-        List<TElement> values = new();
+        T values = new();
         parser.Advance();
 
         while (parser.IsNotFinished)
@@ -51,17 +59,15 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Valu
             var syntax = TElement.Parse(ref parser);
             if (syntax is null)
             {
-                if (parser.TryParse<TClose>() is null) return null;
+                if (parser.TryAdvance<TClose>() is false) return null;
                 break;
             }
             values.Add(syntax);
-            if (parser.Token is TSeparator) parser.Advance();
+            parser.TryAdvance<TSeparator>();
         }
 
-        var parsed = new T();
-        parsed.AddRange(values);
         current = parser;
-        return parsed;
+        return values;
     }
 
     public IEnumerator<TElement> GetEnumerator() => Values.GetEnumerator();

@@ -11,7 +11,7 @@ namespace Ronin.Grammar;
 /// </summary>
 /// 
 /// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Persistent"/>, <see cref="Global"/>, and <see cref="Optional"/></remarks>
-internal class Modifiers : IGrammar<Modifiers>
+internal class Modifiers
 {
     public ReadOnlyMemory<Token> Tokens { get; init; }
 

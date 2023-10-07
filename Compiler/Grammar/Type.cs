@@ -1,5 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
@@ -13,81 +14,63 @@ namespace Ronin.Grammar;
 /// <example>
 ///     datatype Car = Vehicle and { var speed => number; var price => money; }
 /// </example>
-internal class Type : Value, IGrammar<Type>
-{
-    public Algebra Algebra { get; set; }
-    public Context Definition { get; init; }
-    public Identifier Identifier { get; init; }
 
+internal class Type : Member
+{
+    public Modifiers Modifiers { get; init; }
+    public Identifier Identifier { get; init; }
+    public Algebra Algebra { get; set; }    
+    public Definition Members { get; init; }
+    
     public static new Type Parse(ref Parser current)
     {
+        Parser parser = current;
 
+        var modifiers = Modifiers.Parse(ref parser);
+
+        if (parser.TryAdvance<Lexicon.Type>() is false) return null;
+
+        if (Identifier.Parse(ref parser) is not Identifier name) return null;
+
+        Algebra algebra = parser.TryAdvance<Assign>() ? Algebra.Unresolved.Parse(ref parser) : null;
+
+        var definition = Definition.Parse(ref parser);
+
+        current = parser;
+        return new Type
+        {
+            Modifiers = modifiers,
+            Identifier = name,
+            Algebra = algebra,
+            Members = definition
+        };
     }
 
-    
-
-    public class Declaration : Scope, IGrammar<Declaration>
-    {
-        public Identifier Identifier { get; init; }
-        public Reference Algebra { get; init; }
-
-        public new static Declaration Parse(ref Parser current)
-        {
-            Parser parser = current;
-
-            var modifiers = Modifiers.Parse(ref parser);
-
-            if (parser.TryParse<Lexicon.Type>() is null) return null;
-
-            if (Identifier.Parse(ref parser) is not Identifier name) return null;
-
-            Reference algebra = null;
-            if (parser.TryAdvance<Assign>()) algebra = Reference.Parse(ref parser);
-
-            var definition = Context.Parse(ref parser);
-
-            return new Declaration
-            {
-                Modifiers = modifiers,
-                Identifier = name,
-                Algebra = algebra,
-                Definition = definition,
-                Source = parser.Commit(ref current)
-            };
-        }
-
-        public new void Define(Context context, List<Error> errors)
-        {
-            Definition.Define(context, errors);
-
-            Type datatype = new()
-            {
-                Modifiers = Modifiers,
-                Algebra = new Algebra.Unresolved { Reference = Algebra },
-                Definition = Definition
-            };
-
-            if (context.Add(Identifier, datatype) is Error error) errors.Add(error);
-        }
-    }
+    public class Definition : Aggregate<Definition, OpenBrace, Member, Terminal, CloseBrace> { }
 
     public new class Unresolved : Type
     {
         public Reference Reference { get; init; }
+
+        public static new Type Parse(ref Parser current)
+        {
+            if (Reference.Parse(ref current) is not Reference reference) return null;
+            return new Unresolved { Reference = reference };
+        }
     }
 
-    public new class Overloaded : Type
+    public class Overloaded : Type
     {
         public List<Resolution> Overloads { get; init; }
     }
 
-    public class Calculated<T> : Type where T : Context.Member
+    public class Calculated : Type
     {
-        public T Member { get; init; }
+        public Member Member { get; init; }
     }
 }
 
-public class Algebra
+internal class Algebra
 {
     public List<Type> Bases { get; } = new();
     public List<Type> Unions { get; } = new();
@@ -95,6 +78,12 @@ public class Algebra
     public class Unresolved : Algebra
     {
         public Reference Reference { get; init; }
+
+        public static Algebra Parse(ref Parser current)
+        {
+            if (Reference.Parse(ref current) is not Reference reference) return null;
+            return new Unresolved { Reference = reference };
+        }
     }
 
     public class Overloaded : Algebra
@@ -102,7 +91,7 @@ public class Algebra
         public List<Resolution> Overloads { get; init; }
     }
 
-    public class Calculated<T> : Algebra where T : Context.Member
+    public class Calculated<T> : Algebra
     {
         public T Member { get; init; }
     }

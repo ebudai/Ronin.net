@@ -1,146 +1,242 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Scope : Statement, IGrammar<Scope>
+internal class Scope : Statement, IList<Statement>
 {
-    public Modifiers Modifiers { get; init; } = new();
-    public Context Definition { get; set; }
+    public Modifiers Modifiers { get; set; }
+    public List<Statement> Statements { get; init; }
 
+    public Scope() { }
+    private Scope(Scope scope) => Statements = scope.Statements;
+
+    public int Count => ((ICollection<Statement>)Statements).Count;
+    public bool IsReadOnly => ((ICollection<Statement>)Statements).IsReadOnly;
+
+    public Statement this[int index] { get => ((IList<Statement>)Statements)[index]; set => ((IList<Statement>)Statements)[index] = value; }
+
+    public int IndexOf(Statement item) => ((IList<Statement>)Statements).IndexOf(item);
+    public void Insert(int index, Statement item) => ((IList<Statement>)Statements).Insert(index, item);
+    public void RemoveAt(int index) => ((IList<Statement>)Statements).RemoveAt(index);
+    public void Add(Statement item) => ((ICollection<Statement>)Statements).Add(item);
+    public void Clear() => ((ICollection<Statement>)Statements).Clear();
+    public bool Contains(Statement item) => ((ICollection<Statement>)Statements).Contains(item);
+    public void CopyTo(Statement[] array, int arrayIndex) => ((ICollection<Statement>)Statements).CopyTo(array, arrayIndex);
+    public bool Remove(Statement item) => ((ICollection<Statement>)Statements).Remove(item);
+    public IEnumerator<Statement> GetEnumerator() => ((IEnumerable<Statement>)Statements).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
+    
     public static new Scope Parse(ref Parser current)
-        => AnonymousScope.Parse(ref current)
-        ?? ConditionalScope.Parse(ref current)
-        ?? RepeatingScope.Parse(ref current)
-        ?? IteratingScope.Parse(ref current) as Scope;
-
-    public Identifier Define(Context context, List<Error> errors)
     {
-        Definition.Parent = context;
-        Identifier name = null;
+        Parser parser = current;
 
-        foreach (var statement in Definition)
+        var modifiers = Modifiers.Parse(ref parser);
+
+        if (parser.TryAdvance<OpenBrace>() is false) return null;
+        
+        List<Statement> statements = new();
+
+        while (parser.IsNotFinished)
         {
-            switch (statement)
+            if (Trivia.Parse(ref parser) is not null) continue;
+            var syntax = Statement.Parse(ref parser);
+            if (syntax is null)
             {
-                case Export export: export.Define(this, ref name, errors); break;
-                case Import import: context.Add(import); break;
-                case Function.Declaration function: function.Define(Definition, errors); break;
-                case Type.Declaration datatype: datatype.Define(Definition, errors); break;
-                case Datum.Declaration datum: datum.Define(Definition, errors); break;
-                case Delegate.Declaration @delegate: @delegate.Define(Definition, errors); break;
-                case Scope scope: scope.Define(Definition, errors); break;
-                default: Error.UnknownSyntax(this); break;
+                if (parser.TryAdvance<CloseBrace>() is false) return null;
+                break;
             }
+            statements.Add(syntax);
+            parser.TryAdvance<Terminal>();
         }
 
-        return name;
-    }
-}
-
-internal class AnonymousScope : Scope, IGrammar<AnonymousScope>
-{
-    public static new AnonymousScope Parse(ref Parser current)
-    {
-        Parser parser = current;
-
-        var modifiers = Modifiers.Parse(ref parser);
-
-        if (Context.Parse(ref parser) is not Context definition) return null;
-
-        return new AnonymousScope
+        current = parser;
+        return new Scope
         {
             Modifiers = modifiers,
-            Definition = definition,
-            Source = parser.Commit(ref current)
+            Statements = statements
         };
     }
-}
 
-internal class ConditionalScope : Scope, IGrammar<ConditionalScope>
-{
-    public Condition Condition { get; init; }
-
-    public static new ConditionalScope Parse(ref Parser current)
+    public class Applicative : Scope
     {
-        Parser parser = current;
+        private Applicative(Scope scope) : base(scope) { }       
 
-        var modifiers = Modifiers.Parse(ref parser);
-
-        if (parser.TryParse<If>() is null) return null;
-
-        if (Condition.Parse(ref parser) is not Condition condition) return null;
-
-        if (Context.Parse(ref parser) is not Context definition) return null;
-
-        return new ConditionalScope
+        public static new Applicative Parse(ref Parser current)
         {
-            Modifiers = modifiers,
-            Condition = condition,
-            Definition = definition,
-            Source = parser.Commit(ref current)
-        };
+            Parser parser = current;
+
+            var modifiers = Modifiers.Parse(ref parser);
+
+            if (Scope.Parse(ref parser) is not Scope scope) return null;
+
+            current = parser;
+            return new Applicative(scope) { Modifiers = modifiers };
+        }
     }
-}
 
-internal class RepeatingScope : Scope, IGrammar<RepeatingScope>
-{
-    public Condition Condition { get; init; }
+    public class Branching : Conditional<If> { }    
+    
+    public class Repeating : Conditional<While> { }
+    
+    public class ReactiveConditional : Conditional<When> { }
 
-    public static new RepeatingScope Parse(ref Parser current)
+    public class Iterating : Scope
     {
-        Parser parser = current;
+        public Datum List { get; init; }
+        public Identifier Current { get; init; }
 
-        var modifiers = Modifiers.Parse(ref parser);
+        private Iterating() { }
+        private Iterating(Scope scope) : base(scope) { }
 
-        if (parser.TryParse<While>() is null) return null;
-
-        if (Condition.Parse(ref parser) is not Condition condition) return null;
-
-        if (Context.Parse(ref parser) is not Context definition) return null;
-
-        return new RepeatingScope
+        public static new Iterating Parse(ref Parser current)
         {
-            Modifiers = modifiers,
-            Condition = condition,
-            Definition = definition,
-            Source = parser.Commit(ref current)
-        };
+            Parser parser = current;
+
+            var modifiers = Modifiers.Parse(ref parser);
+
+            if (parser.TryAdvance<Iterate>() is false) return null;
+
+            if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
+            {
+                return new ExpectedListError { Tokens = current.AdvanceTo(parser) };
+            }
+
+            if (parser.TryAdvance<Returns>() is false)
+            {
+                return new ExpectedLReturnsSymbolError { Tokens = current.AdvanceTo(parser) };
+            }
+
+            if (Name.Parse(ref parser) is not Name name)
+            {
+                return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
+            }
+
+            Statement definition = null;
+            if (parser.TryAdvance<Assign>())
+            {
+                definition = Value.Parse(ref parser);
+            }
+            definition ??= Scope.Parse(ref parser);
+
+            current = parser;
+            return new Iterating(definition as Scope ?? new Scope { definition })
+            {
+                Modifiers = modifiers,
+                List = datum,
+                Current = new Identifier { Components = { name } }
+            };
+        }
+
+        public class ExpectedListError : Iterating, IError
+        {
+            public Dictionary<string, object> Data { get; }
+            public string Reason { get; } = "expected list";
+            public ReadOnlyMemory<Token> Tokens { get; init; }
+        }
+
+        public class ExpectedLReturnsSymbolError : Iterating, IError
+        {
+            public Dictionary<string, object> Data { get; }
+            public string Reason { get; } = $"expected '{Returns.symbol}'";
+            public ReadOnlyMemory<Token> Tokens { get; init; }
+        }
+
+        public class ExpectedNameError : Iterating, IError
+        {
+            public Dictionary<string, object> Data { get; }
+            public string Reason { get; } = "expected name";
+            public ReadOnlyMemory<Token> Tokens { get; init; }
+        }
     }
-}
 
-internal class IteratingScope : Scope, IGrammar<IteratingScope>
-{
-    public Datum.Declaration Iterator { get; init; }
-
-    public static new IteratingScope Parse(ref Parser current)
+    public class Reactive : Scope
     {
-        Parser parser = current;
+        public Datum Changed { get; init; }
 
-        var modifiers = Modifiers.Parse(ref parser);
+        private Reactive() { }
+        private Reactive(Scope scope) : base(scope) { }
 
-        if (parser.TryParse<Iterate>() is null) return null;
-
-        var datum = Datum.Declaration.Parse(ref parser);
-        var identifier = datum?.Identifier ?? Identifier.Parse(ref parser);
-
-        if (identifier is null) return null;
-
-        if (Context.Parse(ref parser) is not Context definition) return null;
-
-        datum ??= new Datum.Declaration
+        public static new Reactive Parse(ref Parser current)
         {
-            Identifier = identifier,
-            Source = identifier.Source
-        };
+            Parser parser = current;
 
-        return new IteratingScope
+            var modifiers = Modifiers.Parse(ref parser);
+
+            if (parser.TryAdvance<When>() is false) return null;
+            if (parser.TryAdvance<Changing>() is false) return null;
+
+            if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
+            {
+                return new ExpectedTargetError { Tokens = current.AdvanceTo(parser) };
+            }
+
+            Statement definition = null;
+            if (parser.TryAdvance<Assign>())
+            {
+                definition = Value.Parse(ref parser);
+            }
+            definition ??= Scope.Parse(ref parser);
+
+            current = parser;
+            return new Reactive(definition as Scope ?? new Scope { definition })
+            {
+                Modifiers = modifiers,
+                Changed = datum
+            };
+        }
+
+        public class ExpectedTargetError : Reactive, IError
         {
-            Modifiers = modifiers,
-            Iterator = datum,
-            Definition = definition,
-            Source = parser.Commit(ref current)
-        };
+            public Dictionary<string, object> Data { get; }
+            public string Reason { get; } = "expected reactive variable";
+            public ReadOnlyMemory<Token> Tokens { get; init; }
+        }
+    }
+
+    internal class Conditional<T> : Scope where T : Keyword
+    {
+        protected Conditional() { }
+        protected Conditional(Scope scope) : base(scope) { }
+
+        public Member Condition { get; init; }
+
+        public static new Conditional<T> Parse(ref Parser current)
+        {
+            Parser parser = current;
+
+            var modifiers = Modifiers.Parse(ref parser);
+
+            if (parser.TryAdvance<T>() is false) return null;
+
+            if (Member.Unresolved.Parse(ref parser) is not Member condition)
+            {
+                return new ExpectedConditionError { Tokens = current.AdvanceTo(parser) };
+            }
+
+            Statement definition = null;
+            if (parser.TryAdvance<Assign>())
+            {
+                definition = Value.Parse(ref parser);
+            }
+            definition ??= Scope.Parse(ref parser);
+
+            current = parser;
+            return new Conditional<T>(definition as Scope ?? new Scope { definition })
+            {
+                Modifiers = modifiers,
+                Condition = condition
+            };
+        }
+
+        public class ExpectedConditionError : Conditional<T>, IError
+        {
+            public Dictionary<string, object> Data { get; }
+            public string Reason { get; } = "expected condition";
+            public ReadOnlyMemory<Token> Tokens { get; init; }
+        }
     }
 }

@@ -5,9 +5,7 @@ using static Ronin.Compiler.Resolution;
 
 namespace Ronin;
 
-using Component = Grammar<Name, Parameters>;
-
-internal class Module : Context
+/*internal class Module : Context
 {
     public List<Context> Contexts { get; } = new();
     public Dictionary<Component, Module> Modules { get; } = new();
@@ -61,4 +59,4 @@ internal class Module : Context
 
         public Import Import { get; }
     }
-}
+}*/

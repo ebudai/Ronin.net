@@ -10,10 +10,7 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function.Declaration"/>, <see cref="Type.Declaration"/> or <see cref="Value"/>
 /// </summary>
-
-//using Component = Grammar<Name, Value.Temporary>;
-
-internal class Reference : IGrammar<Reference>, IEnumerable<Reference.Component>
+internal class Reference : IEnumerable<Reference.Component>
 {
     public List<Component> Components { get; init; }
 
@@ -31,7 +28,7 @@ internal class Reference : IGrammar<Reference>, IEnumerable<Reference.Component>
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public class Component : OneOfBase<Name, Value.Temporary>, IGrammar<Component>
+    public class Component : OneOfBase<Name, Value.Temporary>, IAggregable<Component>
     {
         protected Component(OneOf<Name, Value.Temporary> _) : base(_) { }
 

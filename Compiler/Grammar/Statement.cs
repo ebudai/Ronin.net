@@ -8,8 +8,16 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Central workhorse class for <see cref="Parser"/>
 /// </summary>
-[GenerateOneOf]
-internal partial class Statement : OneOfBase<Import, Function, Type, Datum, Association, Value, Scope, Unknown> { }
+internal partial class Statement : /*OneOfBase<Import, Function, Type, Datum, Association, Value, Scope, Unknown>,*/ IAggregable<Statement>
+{
+    public static Statement Parse(ref Parser current)
+        => Import.Parse(ref current)
+        ?? Member.Parse(ref current)
+        ?? Association.Parse(ref current)
+        ?? Value.Parse(ref current)
+        ?? Scope.Parse(ref current)
+        ?? Unknown.Parse(ref current) as Statement; 
+}
 /*{
     public static Statement Parse(ref Parser current)
         => Export.Parse(ref current)

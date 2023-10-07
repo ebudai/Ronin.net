@@ -8,7 +8,7 @@ using Function = Ronin.Grammar.Function;
 
 namespace Ronin.Compiler;
 
-internal class Analyzer
+/*internal class Analyzer
 {
     public Module Global { get; init; } = new();
     public List<Error> Errors { get; } = new();
@@ -73,7 +73,7 @@ internal class Analyzer
         context.Imports[index] = Global.Resolve(unresolved.Import.Name);
     }
 
-    private void ResolveParameters(Component component, Context context)
+    private void ResolveParameters(Identifier.Component component, Context context)
     {
         if (component.value is not Parameters parameters) return;
         foreach (var datum in parameters.Data.Values)
@@ -96,7 +96,6 @@ internal class Analyzer
                 Algebra = datatype.Algebra,
                 Definition = unresolved.Definition,
                 Modifiers = unresolved.Modifiers,
-                Source = unresolved.Source,
                 Overloads = ambiguous.Candidates
             };
         }
@@ -285,3 +284,4 @@ internal class Analyzer
     }
     #endregion
 }
+*/

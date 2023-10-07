@@ -17,7 +17,7 @@ namespace Ronin.Grammar;
 ///     import best package for weather lookups
 ///     import git://github.com/ebudai/Ronin as ronin
 /// </example>
-internal class Export : IGrammar<Export>
+internal class Export
 {
     public PartOf Keyword { get; init; }
     public Name Identifier { get; init; }

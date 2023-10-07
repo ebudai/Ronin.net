@@ -24,7 +24,7 @@ internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separat
     /// <summary>
     ///     key=value pair
     /// </summary>
-    public class Association : IGrammar<Association>
+    public class Association : IAggregable<Association>
     {
         public Value Key { get; set; }
         public Value Value { get; set; }
@@ -35,7 +35,7 @@ internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separat
 
             if (Value.Parse(ref parser) is not Value key) return null;
 
-            if (parser.TryParse<Assign>() is null) return null;
+            if (parser.TryAdvance<Assign>() is false) return null;
 
             if (Value.Parse(ref parser) is not Value value) return null;
 

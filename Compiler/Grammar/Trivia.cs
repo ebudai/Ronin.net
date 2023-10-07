@@ -9,7 +9,7 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Represents a <see cref="Whitespace"/> or a <see cref="Comment"/>
 /// </summary>
-internal class Trivia : IGrammar<Trivia>
+internal class Trivia
 {
     public ReadOnlyMemory<Token> Tokens { get; init; }
 

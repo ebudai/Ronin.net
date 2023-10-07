@@ -13,16 +13,16 @@ internal abstract class Resolution
         _ => new Ambiguous { Candidates = resolutions }
     };
 
-    public static Resolution Match(Context context, Identifier name, Reference reference)
+    public static Resolution Match(Scope context, Identifier name, Reference reference)
     {
         throw new NotImplementedException();
     }
 
-    public class Exact : Resolution
+    /*public class Exact : Resolution
     {
-        public Context.Member Member { get; set; }
+        public Member Member { get; set; }
         public List<Resolution> Inputs { get; } = new();
-    }
+    }*/
 
     public class Ambiguous : Resolution
     {

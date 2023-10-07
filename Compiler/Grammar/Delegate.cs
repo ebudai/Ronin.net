@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Instance of a <see cref="Function.Declaration"/> which can be assigned to a <see cref="Datum"/>
+///     Instance of a <see cref="Function"/> which can be assigned to a <see cref="Datum"/>
 /// </summary>
 /// 
 /// <example>
@@ -20,19 +20,14 @@ namespace Ronin.Grammar;
 ///     var lambda = () => { return x; };
 ///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-
-//using Parameter = Grammar<Datum, Name>;
-//using Definition = Grammar<Scope, Value>;
-
-
-internal class Delegate : Value.Temporary, IGrammar<Delegate>
+internal class Delegate : Value.Temporary
 {
     public Parameters Data { get; init; }
-    public Definition Definition { get; init; }
+    public Scope Definition { get; init; }
 
-    public class Parameter : OneOfBase<Datum, Name>, IGrammar<Parameter>
+    public class Parameter : OneOfBase<Datum, Name>, IAggregable<Parameter>
     {
-        protected Parameter(OneOf<Name, Datum> _) : base(_) { }
+        protected Parameter(OneOf<Datum, Name> _) : base(_) { }
 
         public static implicit operator Parameter(Datum datum) => datum;
         public static implicit operator Parameter(Name name) => name;
@@ -57,17 +52,18 @@ internal class Delegate : Value.Temporary, IGrammar<Delegate>
 
         if (parser.TryAdvance<Returns>() is false) return null;
 
-        Definition definition = parser.TryAdvance<Assign>()
-            ? Value.Parse(ref parser)
-            : Scope.Parse(ref parser);
+        Statement definition = null;
+        if (parser.TryAdvance<Assign>())
+        {
+            definition = Value.Parse(ref parser);
+        }
+        definition ??= Scope.Parse(ref parser);
 
         current = parser;
         return new Delegate
         {
             Data = parameters,
-            Definition = definition
+            Definition = definition as Scope ?? new Scope { definition }
         };
     }
-
-    
 }

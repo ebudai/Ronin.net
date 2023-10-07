@@ -1,8 +1,8 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Runtime.CompilerServices;
 
 namespace Ronin.Grammar;
 /// <summary>
@@ -15,14 +15,14 @@ namespace Ronin.Grammar;
 ///         return 8; 
 ///     }
 /// </example>
-internal class Function : Value, IGrammar<Function>
+internal class Function : Member
 {
     public Lexicon.Function Keyword { get; init; }
     public Identifier Identifier { get; init; }
-    public Modifiers Modifiers { get;init; }
+    public Modifiers Modifiers { get; init; }
     public Type Returns { get; set; }
-    public Definition Definition { get; init; }    
-    
+    public Scope Definition { get; init; }
+
     public new static Function Parse(ref Parser current)
     {
         Parser parser = current;
@@ -34,27 +34,39 @@ internal class Function : Value, IGrammar<Function>
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
 
         Modifiers modifiers = null;
-        Reference returns = null;
+        Type returns = null;
         if (parser.TryAdvance<Returns>())
         {
             modifiers = Modifiers.Parse(ref parser);
-            returns = Reference.Parse(ref parser);
+            returns = Type.Unresolved.Parse(ref parser);
         }
 
-        var definition = Definition.Parse(ref parser);
+        Statement definition = null;
+        if (parser.Token is Assign)
+        {
+            parser.Advance();
+            definition = Value.Parse(ref parser);    
+        }
+        definition ??= Scope.Parse(ref parser);
 
         current = parser;
         return new Function
         {
             Identifier = identifier,
             Modifiers = modifiers,
-            Returns = new Type.Unresolved { Reference = returns },
-            Definition = definition,
+            Returns = returns,
+            Definition = definition as Scope ?? new Scope { definition }
         };
     }
 
-    public class Unresolved : Function
+    public new class Unresolved : Function
     {
         public Reference Reference { get; init; }
+
+        public static new Function Parse(ref Parser current)
+        {
+            if (Reference.Parse(ref current) is not Reference reference) return null;
+            return new Unresolved { Reference = reference };
+        }
     }
 }

@@ -20,12 +20,12 @@ namespace Ronin.Grammar;
 ///     function do stuff(x => number, y => date) { }
 ///                       ↑↑↑↑↑↑↑↑↑↑↑  ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Datum : Value, IGrammar<Datum>
+internal class Datum : Member
 {
     public Mutability Mutability { get; init; }
     public Identifier Identifier { get; init; }
     public Modifiers Modifiers { get; init; }
-    public Type Datatype { get; set; }
+    public Type Type { get; set; }
     public Value Initializer { get; init; }
 
     public static new Datum Parse(ref Parser current)
@@ -37,23 +37,21 @@ internal class Datum : Value, IGrammar<Datum>
 
         if (Identifier.Parse(ref parser) is not Identifier identifier)
         {
-            return mutability is not null
-                ? new ExpectedIdentifierError(ref parser)
-                : null;
+            return mutability is null ? null : new ExpectedIdentifierError(ref parser);
         }
 
         Modifiers modifiers = null;
-        Reference datatype = null;
+        Type type = null;
         if (parser.TryAdvance<Returns>())
         {
             modifiers = Modifiers.Parse(ref parser);
-            datatype = Reference.Parse(ref parser);
+            type = Type.Unresolved.Parse(ref parser);
         }
 
         Value initializer = null;
         if (parser.TryAdvance<Assign>()) initializer = Value.Parse(ref parser);
 
-        if (datatype is null)
+        if (type is null)
         {
             if (mutability is null || initializer is null) return null;
         }
@@ -63,14 +61,16 @@ internal class Datum : Value, IGrammar<Datum>
             Mutability = mutability,
             Identifier = identifier,
             Modifiers = modifiers ?? new(),
-            Datatype = new Type.Unresolved { Reference = datatype },
+            Type = type,
             Initializer = initializer
         };
     }
 
-    public class Unresolved : Datum
+    public new class Unresolved : Datum
     {
         public Reference Reference { get; set; }
+
+        public static new Datum Parse(ref Parser parser) => Reference.Parse(ref parser) is Reference reference ? new Unresolved { Reference = reference } : null;
     }
 
     public class ExpectedIdentifierError : Datum, IError

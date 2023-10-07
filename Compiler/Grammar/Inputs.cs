@@ -20,7 +20,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, OpenParenthesis, Inputs.Input, Separator, CloseParenthesis>
 {
-    public class Input : OneOfBase<Value, Association>, IGrammar<Input>
+    public class Input : OneOfBase<Value, Association>, IAggregable<Input>
     {
         protected Input(OneOf<Value, Association> _) : base(_) { }
 

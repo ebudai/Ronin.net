@@ -5,18 +5,19 @@ using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Association : IGrammar<Association>
+internal class Association : Statement
 {
     public Value Destination { get; init; }
     public Assignment Assignment { get; init; }
     public Value Origin { get; init; }
 
-    public static Association Parse(ref Parser current)
+    public static new Association Parse(ref Parser current)
     {
         Parser parser = current;
 
         if (Value.Parse(ref parser) is not Value destination) return null;
         if (parser.Token is not Assignment assignment) return null;
+        parser.Advance();
 
         var origin = Value.Parse(ref parser);
         if (origin is IError error) return new Error(error);
@@ -31,7 +32,7 @@ internal class Association : IGrammar<Association>
     }
 
     public class Error : Association, IError
-    {        
+    {
         public Error(IError error)
         {
             Data = error.Data;

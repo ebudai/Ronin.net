@@ -1,10 +1,7 @@
-﻿using Ronin.Grammar;
-using Ronin.Lexicon;
+﻿using Ronin.Lexicon;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-
-using Import = Ronin.Grammar.Import;
 
 namespace Ronin.Compiler;
 
@@ -14,10 +11,10 @@ internal interface IError
     string Reason { get; }
     ReadOnlyMemory<Token> Tokens { get; }
 
-    void IsAbout(object data, [CallerArgumentExpression(nameof(data))] string name = "") => Data.Add(name, data);
+    public void IsAbout(object data, [CallerArgumentExpression(nameof(data))] string name = "") => Data.Add(name, data);
 }
 
-internal class Error
+/*internal class Error : IError
 {
     public static class Message
     {
@@ -37,8 +34,7 @@ internal class Error
 
     public Error(string reason) => Reason = reason;
 
-    public void IsAbout(object data, [CallerArgumentExpression(nameof(data))] string name = "") => Data.Add(name, data);
-
+    public void IsAbout(object data, [CallerArgumentExpression(nameof(data))] string name = "") => 
     public static Error ScopeMustBeAnonymous(Context scope, Export export)
     {
         Error error = new(Message.ScopeMustBeAnonymous) { Tokens = new[] { export.Keyword } };
@@ -62,36 +58,36 @@ internal class Error
 
     public static Error Redefinition(Context.Member member)
     {
-        Error error = new(Message.Redefinition) { /*Tokens = member.Source*/ };
+        Error error = new(Message.Redefinition) { *//*Tokens = member.Source*//* };
         error.IsAbout(member);
         return error;
     }
 
     public static Error UnknownSyntax(Unknown unknown)
     {
-        Error error = new(Message.UnknownSyntax) { /*Tokens = unknown.Source*/ };
+        Error error = new(Message.UnknownSyntax) { *//*Tokens = unknown.Source*//* };
         error.IsAbout(unknown);
         return error;
     }
 
     public static Error CouldNotResolve<T>(T member, Reference reference)
     {
-        Error error = new(Message.CouldNotResolve) { /*Tokens = reference.Source*/ };
+        Error error = new(Message.CouldNotResolve) { *//*Tokens = reference.Source*//* };
         error.IsAbout(member);
         return error;
     }
 
     public static Error UnresolvedImport(Import import)
     {
-        Error error = new(Message.UnresolvedImport) { /*Tokens = import.Source*/ };
+        Error error = new(Message.UnresolvedImport) { *//*Tokens = import.Source*//* };
         error.IsAbout(import);
         return error;
     }
 
     public static Error UnresolvedReference(Reference reference)
     {
-        Error error = new(Message.UnresolvedReference) { /*Tokens = reference.Source*/ };
+        Error error = new(Message.UnresolvedReference) { *//*Tokens = reference.Source*//* };
         error.IsAbout(reference);
         return error;
     }
-}
+}*/

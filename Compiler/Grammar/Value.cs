@@ -5,18 +5,18 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Base class representing any <see cref="Temporary"/> or <see cref="Reference"/>d value
 /// </summary>
-internal class Value : IGrammar<Value>
+internal class Value : Statement, IAggregable<Value>
 {
-    public static Value Parse(ref Parser current) 
-        => Type.Parse(ref current)
-        ?? Function.Parse(ref current)
-        ?? Datum.Parse(ref current)
+    public static new Value Parse(ref Parser current) 
+        => Type.Unresolved.Parse(ref current)
+        ?? Function.Unresolved.Parse(ref current)
+        ?? Datum.Unresolved.Parse(ref current)
         ?? Temporary.Parse(ref current) as Value;
 
     /// <summary>
     ///     Represents a <see cref="Value"/> before it has been assigned or bound to a parameter
     /// </summary>
-    public class Temporary : Value, IGrammar<Temporary>
+    public class Temporary : Value
     {
         public new static Temporary Parse(ref Parser current)
             => Literal.Parse(ref current)

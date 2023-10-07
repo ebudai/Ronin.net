@@ -9,7 +9,7 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     The part of an <see cref="Identifier"/> or <see cref="Reference"/> which is not being used for <see cref="Parameters"/> and <see cref="Inputs"/>
 /// </summary>
-internal class Name : IGrammar<Name>
+internal class Name
 {
     public ReadOnlyMemory<Token> Tokens { get; init; }
 

@@ -12,7 +12,7 @@ internal ref struct Lexer
 
     public List<Token> Lex()
     {
-        List<Token> tokens = new(256);
+        List<Token> tokens = new(256) { new OpenBrace() };
         while (cursor < sourcecode.Length)
         {
             var token = Literal.Lex(ref this)                
@@ -27,6 +27,7 @@ internal ref struct Lexer
         }
 
         if (tokens.Count is not 0) tokens[^1].Append(Sentinel.Instance);
+        tokens.Add(new CloseBrace());
         tokens.Add(Sentinel.Instance);
 
         return tokens;

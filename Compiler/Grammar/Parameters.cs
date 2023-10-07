@@ -21,7 +21,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Parameters : Aggregate<Parameters, OpenParenthesis, Parameters.Parameter, Separator, CloseParenthesis>
 {
-    public class Parameter : OneOfBase<Datum, Association>, IGrammar<Parameter>
+    public class Parameter : OneOfBase<Datum, Association>, IAggregable<Parameter>
     {
         protected Parameter(OneOf<Datum, Association> _) : base(_) { }
 

@@ -11,7 +11,7 @@ namespace Ronin.Grammar;
 ///     A unique name for a <see cref="Type.Declaration"/>, <see cref="Datum.Declaration"/> or a <see cref="Function.Declaration"/>
 ///     which can contain multiple <see cref="Identifier"/>s and <see cref="Parameters"/>
 /// </summary>
-internal class Identifier : IGrammar<Identifier>, IEnumerable<Identifier.Component>
+internal class Identifier : IEnumerable<Identifier.Component>
 {
     public List<Component> Components { get; init; } = new();
 
@@ -29,7 +29,7 @@ internal class Identifier : IGrammar<Identifier>, IEnumerable<Identifier.Compone
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public class Component : OneOfBase<Name, Parameters>, IGrammar<Component>
+    public class Component : OneOfBase<Name, Parameters>, IAggregable<Component>
     {
         protected Component(OneOf<Name, Parameters> _) : base(_) { }
 

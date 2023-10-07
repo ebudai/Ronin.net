@@ -9,11 +9,11 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Catch-all class for any unparsable <see cref="Token"/>s
 /// </summary>
-internal class Unknown : Statement, IGrammar<Unknown>
+internal class Unknown : Statement
 {
     public ReadOnlyMemory<Token> Tokens { get; init; }
 
-    public new static Unknown Parse(ref Parser current)
+    public static new Unknown Parse(ref Parser current)
     {
         Parser parser = current;
 

@@ -26,12 +26,12 @@ internal static class Program
             return;
         }
 
-        ConcurrentBag<Context> scopes = new();
+        ConcurrentBag<Scope> scopes = new();
         Parse(folder, scopes);
     }
     
 
-    private static void Parse(DirectoryInfo folder, ConcurrentBag<Context> scopes)
+    private static void Parse(DirectoryInfo folder, ConcurrentBag<Scope> scopes)
     {
         var infos = folder.EnumerateFileSystemInfos();
         foreach (var info in infos)
@@ -47,7 +47,7 @@ internal static class Program
         }
     }
 
-    private static Context Parse(FileInfo file)
+    private static Scope Parse(FileInfo file)
     {
         string sourcecode = File.ReadAllText(file.FullName);
         Lexer lexer = new(sourcecode);
