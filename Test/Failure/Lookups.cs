@@ -22,7 +22,7 @@ public class Lookups : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var lookup = Lookup.Parse(ref parser);
 
         Assert.IsNotType<Lookup>(lookup);
@@ -42,7 +42,7 @@ public class Lookups : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var lookup = Lookup.Parse(ref parser);
 
         Assert.IsNotType<Lookup>(lookup);
@@ -61,7 +61,7 @@ public class Lookups : ParsingTests
             EndScope(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var lookup = Lookup.Parse(ref parser);
 
         Assert.IsNotType<Lookup>(lookup);

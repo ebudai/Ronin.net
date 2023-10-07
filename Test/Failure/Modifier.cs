@@ -21,7 +21,7 @@ public class Modifier : ParsingTests
             Terminal(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var modifier = Modifiers.Parse(ref parser);
 
         Assert.Null(modifier);

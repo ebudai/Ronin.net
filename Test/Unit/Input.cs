@@ -22,7 +22,7 @@ public class Input : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var inputs = Inputs.Parse(ref parser);
 
         Assert.Single(inputs);
@@ -47,7 +47,7 @@ public class Input : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
 
         Assert.Equal(2, arguments?.Count);
@@ -79,7 +79,7 @@ public class Input : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
         Assert.Empty(arguments);
     }
@@ -101,7 +101,7 @@ public class Input : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Count);
@@ -147,7 +147,7 @@ public class Input : ParsingTests
             Sentinel.Instance,
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
 
         Assert.Equal(3, arguments?.Count);

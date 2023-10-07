@@ -47,7 +47,7 @@ public class Lists : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var list = List.Parse(ref parser);
 
         Assert.Equal(3, list?.Count);
@@ -88,7 +88,7 @@ public class Lists : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var statements = parser.Parse().ToList();
 
         Assert.Single(statements);

@@ -21,7 +21,7 @@ public class Input : ParsingTests
             Terminal(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
 
         Assert.Null(arguments);
@@ -31,7 +31,7 @@ public class Input : ParsingTests
     public void Blank()
     {
         List<Token> tokens = new() { Sentinel.Instance };
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
 
         Assert.Null(arguments);
@@ -55,7 +55,7 @@ public class Input : ParsingTests
             EndValues(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
         
         Assert.Null(arguments);
@@ -74,7 +74,7 @@ public class Input : ParsingTests
             EndValues(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
         
         Assert.Null(arguments);

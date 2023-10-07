@@ -53,18 +53,17 @@ internal class Type : Member
         public Reference Reference { get; init; }
 
         public static new Type Parse(ref Parser current)
-        {
-            if (Reference.Parse(ref current) is not Reference reference) return null;
-            return new Unresolved { Reference = reference };
-        }
+            => Reference.Parse(ref current) is not Reference reference 
+                ? null
+                : new Unresolved { Reference = reference };
     }
 
-    public class Overloaded : Type
+    internal class Overloaded : Type
     {
         public List<Resolution> Overloads { get; init; }
     }
 
-    public class Calculated : Type
+    internal class Calculated : Type
     {
         public Member Member { get; init; }
     }
@@ -80,18 +79,17 @@ internal class Algebra
         public Reference Reference { get; init; }
 
         public static Algebra Parse(ref Parser current)
-        {
-            if (Reference.Parse(ref current) is not Reference reference) return null;
-            return new Unresolved { Reference = reference };
-        }
+            => Reference.Parse(ref current) is not Reference reference
+                ? null
+                : new Unresolved { Reference = reference };
     }
 
-    public class Overloaded : Algebra
+    internal class Overloaded : Algebra
     {
         public List<Resolution> Overloads { get; init; }
     }
 
-    public class Calculated<T> : Algebra
+    internal class Calculated<T> : Algebra
     {
         public T Member { get; init; }
     }

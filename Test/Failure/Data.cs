@@ -21,7 +21,7 @@ public class Data : ParsingTests
             Terminal(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
         
         Assert.Null(datum);
@@ -39,7 +39,7 @@ public class Data : ParsingTests
             Terminal(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
         
         Assert.Null(datum);

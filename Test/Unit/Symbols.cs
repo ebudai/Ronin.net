@@ -6,68 +6,80 @@ namespace Unit;
 [Trait("Lexer", null)]
 public class Symbols
 {
-    private static void LexSymbol<T>(char lexed) where T : Symbol => LexSymbol<T>(new string(lexed, 1));
+    private static void LexSymbol(char lexed) => LexSymbol(new string(lexed, 1));
 
-    private static void LexSymbol<T>(string lexed) where T : Symbol
+    private static void LexSymbol(string lexed)
     {
         Lexer lexer = new(lexed);
         Assert.False(lexer.IsEmpty);
         for (var i = 0; i != lexed.Length; ++i) Assert.True(char.IsSymbol(lexed[i]) || char.IsPunctuation(lexed[i]));
-        var symbol = Symbol.Lex(ref lexer) as T;
+        var symbol = Special.Lex(ref lexer) ?? Punctuation.Lex(ref lexer) ?? Symbol.Lex(ref lexer);
 
         Assert.Equal(lexed.ToArray(), symbol?.Memory.ToArray());
     }
 
     [Fact(DisplayName = "terminal")]
-    public void LexTerminal() => LexSymbol<Terminal>(Terminal.symbol);
+    public void LexTerminal() => LexSymbol(Terminal.symbol);
 
     [Fact(DisplayName = "separator")]
-    public void LexSeparator() => LexSymbol<Separator>(Separator.symbol);
+    public void LexSeparator() => LexSymbol(Separator.symbol);
 
     [Fact(DisplayName = "start scope")]
-    public void LexOpenBrace() => LexSymbol<OpenBrace>(OpenBrace.symbol);
+    public void LexOpenBrace() => LexSymbol(OpenBrace.symbol);
 
     [Fact(DisplayName = "start values")]
-    public void LexOpenParenthesis() => LexSymbol<OpenParenthesis>(OpenParenthesis.symbol);
+    public void LexOpenParenthesis() => LexSymbol(OpenParenthesis.symbol);
 
     [Fact(DisplayName = "start indexer")]
-    public void LexOpenSquareBracket() => LexSymbol<OpenSquareBracket>(OpenSquareBracket.symbol);
+    public void LexOpenSquareBracket() => LexSymbol(OpenSquareBracket.symbol);
 
     [Fact(DisplayName = "end scope")]
-    public void LexCloseBrace() => LexSymbol<CloseBrace>(CloseBrace.symbol);
+    public void LexCloseBrace() => LexSymbol(CloseBrace.symbol);
 
     [Fact(DisplayName = "end values")]
-    public void LexCloseParenthesis() => LexSymbol<CloseParenthesis>(CloseParenthesis.symbol);
+    public void LexCloseParenthesis() => LexSymbol(CloseParenthesis.symbol);
 
     [Fact(DisplayName = "end indexer")]
-    public void LexCloseSquareBracket() => LexSymbol<CloseSquareBracket>(CloseSquareBracket.symbol);
+    public void LexCloseSquareBracket() => LexSymbol(CloseSquareBracket.symbol);
 
     [Fact(DisplayName = "text delimiter")]
-    public void LexDoubleQuote() => LexSymbol<TextDelimiter>(TextDelimiter.symbol);
+    public void LexDoubleQuote() => LexSymbol(TextDelimiter.symbol);
 
     [Fact(DisplayName = "returns")]
-    public void LexReturns() => LexSymbol<Returns>(Returns.symbol);
+    public void LexReturns() => LexSymbol(Returns.symbol);
 
     [Fact(DisplayName = "assign")]
-    public void LexAssign() => LexSymbol<Assign>(Assign.symbol);
+    public void LexAssign() => LexSymbol(Assign.symbol);
 
     [Fact(DisplayName = "add assign")]
-    public void LexAddAssign() => LexSymbol<AddAssign>(AddAssign.symbol);
+    public void LexAddAssign() => LexSymbol(AddAssign.symbol);
 
     [Fact(DisplayName = "and assign")]
-    public void LexAndAssign() => LexSymbol<AndAssign>(AndAssign.symbol);
+    public void LexAndAssign() => LexSymbol(AndAssign.symbol);
 
     [Fact(DisplayName = "and assign")]
-    public void LexDivideAssign() => LexSymbol<DivideAssign>(DivideAssign.symbol);
+    public void LexDivideAssign() => LexSymbol(DivideAssign.symbol);
 
     [Fact(DisplayName = "multiply assign")]
-    public void LexMultiplyAssign() => LexSymbol<MultiplyAssign>(MultiplyAssign.symbol);
+    public void LexMultiplyAssign() => LexSymbol(MultiplyAssign.symbol);
 
     [Fact(DisplayName = "or assign")]
-    public void LexOrAssign() => LexSymbol<OrAssign>(OrAssign.symbol);
+    public void LexOrAssign() => LexSymbol(OrAssign.symbol);
 
     [Fact(DisplayName = "subtract assign")]
-    public void LexSubtractAssign() => LexSymbol<SubtractAssign>(SubtractAssign.symbol);
+    public void LexSubtractAssign() => LexSymbol(SubtractAssign.symbol);
+
+    [Fact(DisplayName = "elipsis")]
+    public void LexElipsis() => LexSymbol(Elipsis.symbol);
+
+    [Fact(DisplayName = "interval")]
+    public void LexInterval() => LexSymbol(Interval.symbol);
+
+    [Fact(DisplayName = "greater than or equal")]
+    public void LexGreaterThanOrEqual() => LexSymbol(GreaterThanOrEqual.symbol);
+
+    [Fact(DisplayName = "less than or equal")]
+    public void LexLessThanOrEqual() => LexSymbol(LessThanOrEqual.symbol);
 
     [Fact(DisplayName = "not punctuation")]
     public void NotPunctuation()
@@ -81,13 +93,13 @@ public class Symbols
     }
 
     [Fact(DisplayName = "punctuation")]
-    public void Punctuation()
+    public void IsPunctuation()
     {
         const string plus = ")";
 
         Lexer lexer = new(plus);
-        var lexed = Symbol.Lex(ref lexer);
+        var lexed = Punctuation.Lex(ref lexer);
 
-        Assert.IsAssignableFrom<Punctuation>(lexed);
+        Assert.NotNull(lexed);
     }
 }

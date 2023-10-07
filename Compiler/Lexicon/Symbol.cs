@@ -10,7 +10,7 @@ internal class Symbol : Token
     {
         if (lexer.IsEmpty) return null;
         if (char.IsSymbol(lexer[0]) is false && char.IsPunctuation(lexer[0]) is false) return null;
-        return new Symbol { Memory = lexer.Commit(1) };
+        return new Symbol { Memory = lexer.AdvanceBy(1) };
     }
 }
 

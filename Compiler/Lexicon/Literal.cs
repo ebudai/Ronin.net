@@ -31,7 +31,7 @@ internal class Date : Literal
         if (char.IsDigit(lexer[8]) is not true) return null;
         if (char.IsDigit(lexer[9]) is not true) return null;
 
-        return new Date { Memory = lexer.Commit(Length) };
+        return new Date { Memory = lexer.AdvanceBy(Length) };
     }
 
     private const int Length = 10;
@@ -55,10 +55,10 @@ internal partial class Numeric : Literal
         var number = lexer[..length].ToString();
 
         var match = NumbersWithCommas().Match(number);
-        if (match.Success) return new Numeric { Memory = lexer.Commit(match.Length) };
+        if (match.Success) return new Numeric { Memory = lexer.AdvanceBy(match.Length) };
 
         match = NumbersWithoutCommas().Match(number);
-        return new Numeric { Memory = lexer.Commit(match.Length) };
+        return new Numeric { Memory = lexer.AdvanceBy(match.Length) };
     }
 
     [GeneratedRegex("[0-9]+([.][0-9]+)?", RegexOptions.Compiled | RegexOptions.Singleline)]
@@ -76,7 +76,7 @@ internal class Text : Literal
 
         for (var i = 1; i < lexer.Length; ++i)
         {
-            if (lexer[i] is TextDelimiter.symbol && lexer[i - 1] is not '\\') return new Text { Memory = lexer.Commit(i + 1) };
+            if (lexer[i] is TextDelimiter.symbol && lexer[i - 1] is not '\\') return new Text { Memory = lexer.AdvanceBy(i + 1) };
         }
 
         return null;

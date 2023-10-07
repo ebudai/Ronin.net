@@ -17,13 +17,14 @@ internal class Keyword : Word
         ?? PartOf.Lex(ref lexer)
         ?? If.Lex(ref lexer)
         ?? While.Lex(ref lexer) 
-        ?? Changing.Lex(ref lexer) as Keyword;
+        ?? Changing.Lex(ref lexer)
+        ?? When.Lex(ref lexer) as Keyword;
 
     protected static T Lex<T>(ref Lexer lexer, string keyword) where T : Keyword, new()
     {
         if (lexer.StartsWith(keyword) is false) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new T { Memory = lexer.Commit(keyword.Length) };
+        return new T { Memory = lexer.AdvanceBy(keyword.Length) };
     }
 }
 

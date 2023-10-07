@@ -18,7 +18,7 @@ public class Imports : ParsingTests
             Terminal(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var import = Ronin.Grammar.Import.Parse(ref parser);
 
         Assert.Null(import);

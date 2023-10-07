@@ -22,7 +22,7 @@ public class Functions : ParsingTests
             EndScope(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
         
         Assert.Null(function);

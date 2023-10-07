@@ -22,6 +22,7 @@ public class Keywords
     private const string let = Let.keyword;
     private const string @while = While.keyword;
     private const string when = When.keyword;
+    private const string changing = Changing.keyword;
     private const string hidden = Hidden.keyword;
 
     [Fact(DisplayName = type)]
@@ -137,7 +138,7 @@ public class Keywords
     [Fact(DisplayName = @foreach)]
     public void ForEachKeyword()
     {
-        const string sourcecode = "for each thing in all the things { sorgaxulate thing; }";
+        const string sourcecode = "iterate all the things => thing { sorgaxulate thing; }";
 
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Iterate;
@@ -148,7 +149,7 @@ public class Keywords
     [Fact(DisplayName = extends)]
     public void ExtendsKeyword()
     {
-        const string sourcecode = "extends datatype whatch'ma call it { var x => something; }";
+        const string sourcecode = "extend whatch'ma call it { var x => something; }";
 
         Lexer lexer = new(sourcecode);
         var keyword = Keyword.Lex(ref lexer) as Extend;
@@ -195,9 +196,20 @@ public class Keywords
         const string sourcecode = "when x < 3 { y += 3; }";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as While;
+        var keyword = Keyword.Lex(ref lexer) as When;
 
-        Assert.Equal(@while, keyword?.Memory.ToString());
+        Assert.Equal(when, keyword?.Memory.ToString());
+    }
+
+    [Fact(DisplayName = $"{when} {changing}")]
+    public void WhenChangingKeyword()
+    {
+        const string sourcecode = "when changing x { y += 3; }";
+
+        Lexer lexer = new(sourcecode);
+        var keyword = Keyword.Lex(ref lexer) as When;
+
+        Assert.Equal(when, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = hidden)]

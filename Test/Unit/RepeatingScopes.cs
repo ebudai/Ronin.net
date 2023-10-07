@@ -27,7 +27,7 @@ public class RepeatingScopes : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var repeating = Scope.Repeating.Parse(ref parser);
 
         Assert.NotNull(repeating?.Condition);

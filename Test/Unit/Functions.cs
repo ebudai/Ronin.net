@@ -34,7 +34,7 @@ public class Functions : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
@@ -88,7 +88,7 @@ public class Functions : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);

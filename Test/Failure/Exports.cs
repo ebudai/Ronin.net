@@ -21,7 +21,7 @@ public class Exports : ParsingTests
             Terminal(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var export = Export.Parse(ref parser);
 
         Assert.Null(export);

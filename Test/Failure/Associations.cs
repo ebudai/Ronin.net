@@ -20,7 +20,7 @@ public class Associations : ParsingTests
             Terminal(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
         
         Assert.Null(association);
@@ -42,7 +42,7 @@ public class Associations : ParsingTests
             Terminal(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         Assert.Null(association);
@@ -53,7 +53,7 @@ public class Associations : ParsingTests
     {
         List<Token> tokens = new() { Sentinel.Instance };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         Assert.Null(association);

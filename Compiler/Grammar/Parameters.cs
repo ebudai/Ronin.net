@@ -25,8 +25,8 @@ internal class Parameters : Aggregate<Parameters, OpenParenthesis, Parameters.Pa
     {
         protected Parameter(OneOf<Datum, Association> _) : base(_) { }
 
-        public static implicit operator Parameter(Datum datum) => datum;
-        public static implicit operator Parameter(Association association) => association;
+        public static implicit operator Parameter(Datum datum) => new(datum);
+        public static implicit operator Parameter(Association association) => new(association);
 
         public static Parameter Parse(ref Parser current)
             => Datum.Parse(ref current) is Datum datum

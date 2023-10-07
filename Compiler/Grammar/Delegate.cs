@@ -29,8 +29,8 @@ internal class Delegate : Value.Temporary
     {
         protected Parameter(OneOf<Datum, Name> _) : base(_) { }
 
-        public static implicit operator Parameter(Datum datum) => datum;
-        public static implicit operator Parameter(Name name) => name;
+        public static implicit operator Parameter(Datum datum) => new(datum);
+        public static implicit operator Parameter(Name name) => new(name);
 
         public static Parameter Parse(ref Parser current)
             => Datum.Parse(ref current) is Datum datum

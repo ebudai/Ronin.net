@@ -20,7 +20,7 @@ internal class Compiled : Modifier
     {
         if (lexer.StartsWith(keyword) is false) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Compiled { Memory = lexer.Commit(keyword.Length) };
+        return new Compiled { Memory = lexer.AdvanceBy(keyword.Length) };
     }
 }
 
@@ -32,7 +32,7 @@ internal class Global : Modifier
     {
         if (lexer.StartsWith(keyword) is false) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Global { Memory = lexer.Commit(keyword.Length) };
+        return new Global { Memory = lexer.AdvanceBy(keyword.Length) };
     }
 }
 
@@ -44,7 +44,7 @@ internal class Hidden : Modifier
     {
         if (lexer.StartsWith(keyword) is false) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Hidden { Memory = lexer.Commit(keyword.Length) };
+        return new Hidden { Memory = lexer.AdvanceBy(keyword.Length) };
     }
 }
 
@@ -57,7 +57,7 @@ internal class Optional : Modifier
     {
         if (lexer.StartsWith(keyword) is false) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Optional { Memory = lexer.Commit(keyword.Length) };
+        return new Optional { Memory = lexer.AdvanceBy(keyword.Length) };
     }
 }
 
@@ -69,6 +69,6 @@ internal class Reactive : Modifier
     {
         if (lexer.StartsWith(keyword) is false) return null;
         if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Reactive { Memory = lexer.Commit(keyword.Length) };
+        return new Reactive { Memory = lexer.AdvanceBy(keyword.Length) };
     }
 }

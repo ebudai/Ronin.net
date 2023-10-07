@@ -10,31 +10,31 @@ public class Comments
     public const string multilinestart = Comment.Multiline.Start;
     public const string multilineend = Comment.Multiline.End;
 
-    [Fact(DisplayName = "single-line")]
+    [Fact(DisplayName = "single-line comment stops at end of a line")]
     public void SingleLine()
     {
         const string comment = $"{singleline} this is a comment";
         const string extra = "\r\n\r\n more things";
-        const string literal = comment + extra;
+        const string text = comment + extra;
 
-        Lexer lexer = new(literal);
+        Lexer lexer = new(text);
         var token = Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray()[..^4], token?.Memory.ToArray());
+        Assert.Equal(comment.ToArray(), token?.Memory.ToArray());
     }
 
-    [Fact(DisplayName = "single-line at end of file")]
+    [Fact(DisplayName = "single-line stops at end of file")]
     public void SingleLineEoF()
     {
-        const string literal = $"{singleline} this is a comment";
+        const string text = $"{singleline} this is a comment";
 
-        Lexer lexer = new(literal);
+        Lexer lexer = new(text);
         var comment = Comment.Lex(ref lexer);
 
-        Assert.Equal(literal.ToArray(), comment?.Memory.ToArray());
+        Assert.Equal(text.ToArray(), comment?.Memory.ToArray());
     }
 
-    [Fact(DisplayName = "multiline")]
+    [Fact(DisplayName = "multiline comment stops at end of file")]
     public void Multiline()
     {
         const string literal = $"""
@@ -50,7 +50,7 @@ public class Comments
         Assert.Equal(literal[..^2].ToArray(), comment?.Memory.ToArray());
     }
 
-    [Fact(DisplayName = "multiline nested")]
+    [Fact(DisplayName = "multiline comments can be nested")]
     public void NestedMultiline()
     {
         const string literal = $"{multilinestart}\n\n this{multilinestart} is a c{multilineend}omment\n\n{multilineend}";

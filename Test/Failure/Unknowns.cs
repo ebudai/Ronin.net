@@ -22,7 +22,7 @@ public class Unknowns : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var statements = parser.Parse().ToList();
         
         Assert.Single(statements);

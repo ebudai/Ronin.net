@@ -24,7 +24,7 @@ public class Data : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
@@ -55,7 +55,7 @@ public class Data : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Let>(datum?.Mutability);
@@ -88,7 +88,7 @@ public class Data : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
@@ -121,7 +121,7 @@ public class Data : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
@@ -153,7 +153,7 @@ public class Data : ParsingTests
             Terminal()
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Let>(datum?.Mutability);
@@ -185,7 +185,7 @@ public class Data : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
@@ -221,7 +221,7 @@ public class Data : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);

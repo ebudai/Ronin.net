@@ -21,7 +21,7 @@ internal class Assign : Assignment
     public static new Assign Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer[0] is not symbol) return null;
-        return new() { Memory = lexer.Commit(1) };
+        return new() { Memory = lexer.AdvanceBy(1) };
     }
 }
 
@@ -32,7 +32,7 @@ internal class AddAssign : Assignment
     public static new AddAssign Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
-        return new AddAssign { Memory = lexer.Commit(symbol.Length) };
+        return new AddAssign { Memory = lexer.AdvanceBy(symbol.Length) };
     }
 }
 
@@ -43,7 +43,7 @@ internal class AndAssign : Assignment
     public static new AndAssign Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
-        return new AndAssign { Memory = lexer.Commit(symbol.Length) };
+        return new AndAssign { Memory = lexer.AdvanceBy(symbol.Length) };
     }
 }
 
@@ -54,7 +54,7 @@ internal class DivideAssign : Assignment
     public static new DivideAssign Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
-        return new DivideAssign { Memory = lexer.Commit(symbol.Length) };
+        return new DivideAssign { Memory = lexer.AdvanceBy(symbol.Length) };
     }
 }
 
@@ -65,7 +65,7 @@ internal class MultiplyAssign : Assignment
     public static new MultiplyAssign Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
-        return new MultiplyAssign { Memory = lexer.Commit(symbol.Length) };
+        return new MultiplyAssign { Memory = lexer.AdvanceBy(symbol.Length) };
     }
 }
 
@@ -76,7 +76,7 @@ internal class OrAssign : Assignment
     public static new OrAssign Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
-        return new OrAssign { Memory = lexer.Commit(symbol.Length) };
+        return new OrAssign { Memory = lexer.AdvanceBy(symbol.Length) };
     }
 }
 
@@ -87,6 +87,6 @@ internal class SubtractAssign : Assignment
     public static new SubtractAssign Lex(ref Lexer lexer)
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
-        return new SubtractAssign { Memory = lexer.Commit(symbol.Length) };
+        return new SubtractAssign { Memory = lexer.AdvanceBy(symbol.Length) };
     }
 }

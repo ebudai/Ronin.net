@@ -2,9 +2,9 @@
 
 namespace Ronin.Lexicon;
 
-internal class Special : Token
+internal class Special : Symbol
 {
-    public static Special Lex(ref Lexer lexer)
+    public static new Special Lex(ref Lexer lexer)
         => Elipsis.Lex(ref lexer)
         ?? Interval.Lex(ref lexer)
         ?? LessThanOrEqual.Lex(ref lexer)
@@ -12,8 +12,8 @@ internal class Special : Token
 
     protected static T Lex<T>(ref Lexer lexer, string symbol) where T : Special, new()
     {
-        if (lexer.IsEmpty || symbol.StartsWith(lexer[0]) is false) return null;
-        return new() { Memory = lexer.Commit(symbol.Length) };
+        if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
+        return new() { Memory = lexer.AdvanceBy(symbol.Length) };
     }
 }
 

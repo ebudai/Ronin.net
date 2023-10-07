@@ -21,7 +21,7 @@ public class Imports : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var import = Import.Parse(ref parser);
 
         Assert.Single(import.Name.Tokens.ToArray());
@@ -42,7 +42,7 @@ public class Imports : ParsingTests
             Sentinel.Instance
         };
                 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var import = Import.Parse(ref parser);
 
         Assert.Equal(3, import.Name?.Tokens.Length);
@@ -66,7 +66,7 @@ public class Imports : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var import = Import.Parse(ref parser);
 
         Assert.Equal(6, import.Name?.Tokens.Length);

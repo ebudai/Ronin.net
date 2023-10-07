@@ -28,7 +28,7 @@ public class Delegates : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var @delegate = Delegate.Parse(ref parser);
 
         {
@@ -71,7 +71,7 @@ public class Delegates : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var @delegate = Delegate.Parse(ref parser);
 
         Assert.Single(@delegate?.Data);
@@ -116,7 +116,7 @@ public class Delegates : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var @delegate = Delegate.Parse(ref parser);
 
         Assert.Equal(3, @delegate?.Data.Count);
@@ -161,7 +161,7 @@ public class Delegates : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var @delegate = Delegate.Parse(ref parser);
 
         Assert.Empty(@delegate?.Data);
@@ -202,7 +202,7 @@ public class Delegates : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var statements = parser.Parse().ToList();
 
         Assert.Single(statements);

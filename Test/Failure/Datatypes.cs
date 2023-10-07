@@ -21,7 +21,7 @@ public class Datatypes : ParsingTests
             Terminal(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datatype = Type.Parse(ref parser);
         Assert.Null(datatype);
     }

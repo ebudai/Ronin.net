@@ -25,7 +25,7 @@ public class AnonymousScopes : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var scope = Scope.Parse(ref parser);
 
         Assert.NotNull(scope);
@@ -48,7 +48,7 @@ public class AnonymousScopes : ParsingTests
             Sentinel.Instance,
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var scope = Scope.Parse(ref parser);
 
         Assert.NotNull(scope);

@@ -21,7 +21,7 @@ public class Parameter : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
@@ -31,7 +31,7 @@ public class Parameter : ParsingTests
     public void Blank()
     {
         List<Token> tokens = new() { Sentinel.Instance };
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
@@ -58,7 +58,7 @@ public class Parameter : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Null(parameters);
@@ -79,7 +79,7 @@ public class Parameter : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var parameters = Parameters.Parse(ref parser);
 
         Assert.Null(parameters);

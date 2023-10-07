@@ -24,7 +24,7 @@ public class Assignments : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var assignment = Association.Parse(ref parser);
 
         var unresolved = assignment?.Destination as Datum.Unresolved;
@@ -50,7 +50,7 @@ public class Assignments : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         var unresolved = association?.Destination as Datum.Unresolved;
@@ -78,7 +78,7 @@ public class Assignments : ParsingTests
             Terminal()
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         var unresolved = association?.Destination as Datum.Unresolved;
@@ -106,7 +106,7 @@ public class Assignments : ParsingTests
             Terminal()
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         var unresolvedDatum = association?.Destination as Datum.Unresolved;
@@ -134,7 +134,7 @@ public class Assignments : ParsingTests
             Terminal()
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         var unresolved = association?.Destination as Datum.Unresolved;
@@ -162,7 +162,7 @@ public class Assignments : ParsingTests
             Terminal()
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         var unresolved = association?.Destination as Datum.Unresolved;
@@ -190,7 +190,7 @@ public class Assignments : ParsingTests
             Terminal()
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         var unresolvedDatum = association?.Destination as Datum.Unresolved;
@@ -218,7 +218,7 @@ public class Assignments : ParsingTests
             Terminal()
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
         var unresolved = association?.Destination as Datum.Unresolved;

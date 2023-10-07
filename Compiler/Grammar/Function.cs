@@ -63,10 +63,9 @@ internal class Function : Member
     {
         public Reference Reference { get; init; }
 
-        public static new Function Parse(ref Parser current)
-        {
-            if (Reference.Parse(ref current) is not Reference reference) return null;
-            return new Unresolved { Reference = reference };
-        }
+        public static new Function Parse(ref Parser current) 
+            => Reference.Parse(ref current) is not Reference reference
+                ? null
+                : new Unresolved { Reference = reference };
     }
 }

@@ -35,7 +35,7 @@ internal class Datum : Member
         var mutability = parser.Token as Mutability;
         if (mutability is not null) parser.Advance();
 
-        if (Identifier.Parse(ref parser) is not Identifier identifier)
+        if (Name.Parse(ref parser) is not Name name)
         {
             return mutability is null ? null : new ExpectedIdentifierError(ref parser);
         }
@@ -56,10 +56,11 @@ internal class Datum : Member
             if (mutability is null || initializer is null) return null;
         }
 
+        current = parser;
         return new Datum
         {
             Mutability = mutability,
-            Identifier = identifier,
+            Identifier = new() { Components = { name } },
             Modifiers = modifiers ?? new(),
             Type = type,
             Initializer = initializer

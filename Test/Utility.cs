@@ -6,6 +6,29 @@ namespace Test;
 internal static class Utility
 {
     internal static void SetMemory<T>(this T value, string args) where T : Token => typeof(T).GetProperty(nameof(Token.Memory)).SetMethod.Invoke(value, new object[] { args.AsMemory() });
+
+    internal static Token AsLinkedList(this List<Token> tokens)
+    {
+        if (tokens.Count is 0) return null;
+        var list = tokens[0];
+        foreach (var token in tokens.Skip(1))
+        {
+            list = list.Append(token);
+        }
+        return tokens[0];
+    }
+
+    internal static Token[] ToArray(this Token token)
+    {
+        if (token is null) return null;
+        List<Token> tokens = new();
+        while (token is not null)
+        {
+            tokens.Add(token);
+            token = token.Next as Token;
+        }
+        return tokens.ToArray();
+    }
 }
 
 public class ParsingTests

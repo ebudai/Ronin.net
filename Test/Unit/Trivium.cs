@@ -20,7 +20,7 @@ public class Trivium : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var trivia = Trivia.Parse(ref parser);
         Assert.NotNull(trivia);
     }

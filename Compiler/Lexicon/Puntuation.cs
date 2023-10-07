@@ -15,13 +15,13 @@ internal class Punctuation : Symbol
     protected static T Lex<T>(ref Lexer lexer, string symbol) where T : Punctuation, new()
     {
         if (lexer.IsEmpty || lexer.StartsWith(symbol) is false) return null;
-        return new() { Memory = lexer.Commit(symbol.Length) };
+        return new() { Memory = lexer.AdvanceBy(symbol.Length) };
     }
 
     protected static T Lex<T>(ref Lexer lexer, char symbol) where T : Punctuation, new()
     {
         if (lexer.IsEmpty || lexer[0] != symbol) return null;
-        return new() { Memory = lexer.Commit(1) };
+        return new() { Memory = lexer.AdvanceBy(1) };
     }
 }
 

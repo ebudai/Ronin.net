@@ -20,9 +20,9 @@ internal class Identifier : IEnumerable<Identifier.Component>
         Parser parser = current;
 
         var components = parser.ParseRepeating<Component>();
-        return components.Count is 0
-            ? null
-            : new Identifier { Components = components };
+        if (components.Count is 0) return null;
+        current = parser;
+        return new Identifier { Components = components };
     }
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
@@ -33,8 +33,8 @@ internal class Identifier : IEnumerable<Identifier.Component>
     {
         protected Component(OneOf<Name, Parameters> _) : base(_) { }
 
-        public static implicit operator Component(Name name) => name;
-        public static implicit operator Component(Parameters parameters) => parameters;
+        public static implicit operator Component(Name name) => new(name);
+        public static implicit operator Component(Parameters parameters) => new(parameters);
 
         public static Component Parse(ref Parser current)
             => Name.Parse(ref current) is Name name

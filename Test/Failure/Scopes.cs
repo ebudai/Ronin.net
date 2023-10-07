@@ -24,7 +24,7 @@ public class Scopes : ParsingTests
             EndScope(),
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var scope = Scope.Parse(ref parser);
 
         Assert.Null(scope);

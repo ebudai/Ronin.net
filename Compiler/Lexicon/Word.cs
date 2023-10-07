@@ -21,6 +21,6 @@ internal class Word : Token
             && char.IsPunctuation(lexer[length]) is false) ++length;
 
         if (length is 0) return null;
-        return new Word { Memory = lexer.Commit(length) };
+        return new Word { Memory = lexer.AdvanceBy(length) };
     }
 }

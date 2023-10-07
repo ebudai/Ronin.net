@@ -21,7 +21,7 @@ public class Intervals : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var interval = Value.Parse(ref parser);
 
         Assert.NotNull(interval);
@@ -39,7 +39,7 @@ public class Intervals : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var reference = Reference.Parse(ref parser);
 
         Assert.Equal(2, reference?.Components.Count);
@@ -57,7 +57,7 @@ public class Intervals : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var reference = Reference.Parse(ref parser);
 
         Assert.Equal(2, reference?.Components.Count);

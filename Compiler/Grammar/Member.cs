@@ -13,6 +13,9 @@ internal class Member : Value, IAggregable<Member>
     {
         public Reference Reference { get; init; }
 
-        public static new Member Parse(ref Parser parser) => Reference.Parse(ref parser) is Reference reference ? new Unresolved { Reference = reference } : null;
+        public static new Member Parse(ref Parser parser) 
+            => Reference.Parse(ref parser) is not Reference reference 
+                ? null
+                : new Unresolved { Reference = reference };
     }
 }

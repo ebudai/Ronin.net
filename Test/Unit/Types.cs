@@ -24,7 +24,7 @@ public class Types : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datatype = Type.Parse(ref parser);
 
         Assert.Single(datatype?.Identifier);
@@ -60,7 +60,7 @@ public class Types : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var type = Type.Parse(ref parser);
 
         Assert.Equal(2, type?.Identifier.Components.Count);

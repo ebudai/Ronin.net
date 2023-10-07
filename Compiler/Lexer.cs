@@ -2,7 +2,6 @@
 
 using Ronin.Lexicon;
 using System;
-using System.Collections.Generic;
 
 namespace Ronin.Compiler;
 
@@ -10,9 +9,10 @@ internal ref struct Lexer
 {
     public Lexer(in string sourcecode) => this.sourcecode = ref sourcecode;
 
-    public List<Token> Lex()
+    public Token Lex()
     {
-        List<Token> tokens = new(256) { new OpenBrace() };
+        Token start = new OpenBrace();
+        var current = start;
         while (cursor < sourcecode.Length)
         {
             var token = Literal.Lex(ref this)                
@@ -22,18 +22,14 @@ internal ref struct Lexer
                 ?? Trivium.Lex(ref this)
                 ?? Symbol.Lex(ref this)
                 ?? Word.Lex(ref this) as Token;
-            if (tokens.Count is not 0) tokens[^1].Append(token);
-            tokens.Add(token);
+            current = current.Append(token);
         }
 
-        if (tokens.Count is not 0) tokens[^1].Append(Sentinel.Instance);
-        tokens.Add(new CloseBrace());
-        tokens.Add(Sentinel.Instance);
-
-        return tokens;
+        current.Append(new CloseBrace()).Append(Sentinel.Instance);
+        return start;
     }
 
-    public ReadOnlyMemory<char> Commit(int length)
+    public ReadOnlyMemory<char> AdvanceBy(int length)
     {
         var memory = sourcecode.AsMemory().Slice(cursor, length);
         cursor += length;

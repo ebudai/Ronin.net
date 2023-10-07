@@ -9,10 +9,16 @@ namespace Ronin.Compiler;
 
 internal struct Parser
 {
-    public Parser(List<Token> tokens) => this.tokens = tokens.AsMemory();
+    public Parser(Token start) => Token = start;
 
-    public readonly ref readonly Token Token => ref tokens.Span[cursor];
-    
+    public Parser(List<Token> tokens) : this()
+    {
+        this.tokens = tokens;
+    }
+
+    public Token Token;
+    private List<Token> tokens;
+
     public readonly bool IsNotFinished => Token is not Sentinel;
 
     public Scope Parse() => Scope.Parse(ref this);
@@ -31,7 +37,7 @@ internal struct Parser
 
     public Token Advance()
     {
-        do ++cursor; while (Token is Trivium);
+        do Token = Token.Next as Token; while (Token is Trivium);
         return Token;
     }
 
@@ -51,11 +57,13 @@ internal struct Parser
     
     public ReadOnlyMemory<Token> AdvanceTo(Parser parser)
     {
-        var commit = tokens[cursor..parser.cursor];
-        cursor = parser.cursor;
-        return commit;
+        var tokens = new Token[parser.Token.RunningIndex - Token.RunningIndex];
+        int i = 0;
+        while (ReferenceEquals(Token, parser.Token) is false)
+        {
+            tokens[i++] = Token;
+            Token = Token.Next as Token;
+        }
+        return tokens;
     }
-
-    private readonly ReadOnlyMemory<Token> tokens;
-    private int cursor;
 }

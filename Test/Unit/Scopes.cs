@@ -25,7 +25,7 @@ public class Scopes : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var scope = Scope.Parse(ref parser);
 
         Assert.Single(scope);

@@ -31,7 +31,7 @@ public class Delegates : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var @delegate = Delegate.Parse(ref parser);
         
         Assert.Null(@delegate);
@@ -48,7 +48,7 @@ public class Delegates : ParsingTests
             Terminal(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var @delegate = Delegate.Parse(ref parser);
 
         Assert.Null(@delegate);

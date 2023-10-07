@@ -19,9 +19,9 @@ internal class Reference : IEnumerable<Reference.Component>
         Parser parser = current;
 
         var components = parser.ParseRepeating<Component>();
-        return components.Count is 0
-            ? null
-            : new Reference { Components = components };
+        if (components.Count is 0) return null;
+        current = parser;
+        return new Reference { Components = components };
     }
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
@@ -32,8 +32,8 @@ internal class Reference : IEnumerable<Reference.Component>
     {
         protected Component(OneOf<Name, Value.Temporary> _) : base(_) { }
 
-        public static implicit operator Component(Name name) => name;
-        public static implicit operator Component(Value.Temporary value) => value;
+        public static implicit operator Component(Name name) => new(name);
+        public static implicit operator Component(Value.Temporary value) => new(value);
 
         public static Component Parse(ref Parser current)
             => Name.Parse(ref current) is Name name

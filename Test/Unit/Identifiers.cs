@@ -25,7 +25,7 @@ public class Identifiers : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var identifier = Identifier.Parse(ref parser);
 
         Assert.Equal(3, identifier?.Components.Count);
@@ -53,7 +53,7 @@ public class Identifiers : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var identifier = Identifier.Parse(ref parser);
 
         Assert.Equal(4, identifier?.Components.Count);
@@ -83,7 +83,7 @@ public class Identifiers : ParsingTests
             Terminal()
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var first = Datum.Parse(ref parser);
         parser.Advance();
         var second = Datum.Parse(ref parser);

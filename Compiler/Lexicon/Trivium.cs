@@ -7,8 +7,7 @@ namespace Ronin.Lexicon;
 
 internal abstract class Trivium : Token 
 {
-    public static Trivium Lex(ref Lexer lexer)
-        => Comment.Lex(ref lexer) as Trivium;
+    public static Trivium Lex(ref Lexer lexer) => Comment.Lex(ref lexer) ?? Whitespace.Lex(ref lexer) as Trivium;
 }
 
 /// <summary>
@@ -47,7 +46,7 @@ internal class Comment : Trivium
             {
                 --linelength;
             }
-            return new Comment { Memory = lexer.Commit(linelength) };
+            return new Comment { Memory = lexer.AdvanceBy(linelength) };
         }
 
         if (lexer.StartsWith(Multiline.Start) is false) return null;
@@ -66,7 +65,7 @@ internal class Comment : Trivium
         length += Multiline.End.Length;
         if (depth is not 0 && length > lexer.Length) length = lexer.Length;
 
-        return new Comment { Terminated = depth is 0, Memory = lexer.Commit(length) };
+        return new Comment { Terminated = depth is 0, Memory = lexer.AdvanceBy(length) };
     }
 }
 
@@ -77,6 +76,6 @@ internal class Whitespace : Trivium
         var length = 0;
         while (length < lexer.Length && char.IsWhiteSpace(lexer[length])) ++length;
         if (length is 0) return null;
-        return new Whitespace { Memory = lexer.Commit(length) };
+        return new Whitespace { Memory = lexer.AdvanceBy(length) };
     }
 }

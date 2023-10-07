@@ -24,8 +24,8 @@ internal class Inputs : Aggregate<Inputs, OpenParenthesis, Inputs.Input, Separat
     {
         protected Input(OneOf<Value, Association> _) : base(_) { }
 
-        public static implicit operator Input(Value value) => value;
-        public static implicit operator Input(Association association) => association;
+        public static implicit operator Input(Value value) => new(value);
+        public static implicit operator Input(Association association) => new(association);
 
         public static Input Parse(ref Parser current)
             => Grammar.Value.Parse(ref current) is Value value

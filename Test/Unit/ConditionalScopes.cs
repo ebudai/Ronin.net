@@ -27,7 +27,7 @@ public class ConditionalScopes : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var conditional = Scope.Conditional.Parse(ref parser);
 
         Assert.NotNull(conditional?.Condition);
@@ -54,7 +54,7 @@ public class ConditionalScopes : ParsingTests
             Sentinel.Instance,
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var conditional = Scope.Conditional.Parse(ref parser);
 
         Assert.True(conditional?.Modifiers.Is<Compiled>());
