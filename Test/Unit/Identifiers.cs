@@ -28,7 +28,8 @@ public class Identifiers : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var identifier = Identifier.Parse(ref parser);
 
-        Assert.Equal(3, identifier?.Components.Count);
+        Assert.Single(identifier);
+        Assert.Equal(3, identifier.Components[0].AsT0.Tokens.Length);
     }
 
     [Fact(DisplayName = "words")]
@@ -56,7 +57,8 @@ public class Identifiers : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var identifier = Identifier.Parse(ref parser);
 
-        Assert.Equal(4, identifier?.Components.Count);
+        Assert.Single(identifier);
+        Assert.Equal(7, identifier.Components[0].AsT0.Tokens.Length);
     }
 
     [Fact(DisplayName = "equality")]
@@ -88,10 +90,9 @@ public class Identifiers : ParsingTests
         parser.Advance();
         var second = Datum.Parse(ref parser);
 
-        Assert.Single(first.Identifier.Components);
-        Assert.Single(second.Identifier.Components);
+        Assert.Single(first.Identifier);
+        Assert.Single(second.Identifier);
 
-        Assert.Equal(first.Identifier.Components[0].GetHashCode(), second.Identifier.Components[0].GetHashCode());
-        Assert.Equal(first.Identifier.Components[0], second.Identifier.Components[0]);
+        Assert.Equal(first.Identifier.Components[0].AsT0.Tokens.Span[0].Memory, second.Identifier.Components[0].AsT0.Tokens.Span[0].Memory);
     }
 }

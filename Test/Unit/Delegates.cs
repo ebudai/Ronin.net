@@ -143,8 +143,8 @@ public class Delegates : ParsingTests
         }
     }
 
-    [Fact(DisplayName = "no parameters")]
-    public void NoParameters()
+    [Fact(DisplayName = "empty parameters")]
+    public void EmptyParameters()
     {
         // () => { return 3; }
 
@@ -203,10 +203,8 @@ public class Delegates : ParsingTests
         };
         
         Parser parser = new(tokens.AsLinkedList());
-        var statements = parser.Parse().ToList();
+        var datum = Datum.Parse(ref parser);
 
-        Assert.Single(statements);
-        var datum = statements[0] as Datum;
         var @delegate = datum?.Initializer as Delegate;
         Assert.NotNull(@delegate);
     }

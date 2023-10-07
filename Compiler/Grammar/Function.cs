@@ -41,13 +41,7 @@ internal class Function : Member
             returns = Type.Unresolved.Parse(ref parser);
         }
 
-        Statement definition = null;
-        if (parser.Token is Assign)
-        {
-            parser.Advance();
-            definition = Value.Parse(ref parser);    
-        }
-        definition ??= Scope.Parse(ref parser);
+        if (Scope.Definition.Parse(ref parser) is not Scope definition) return null;
 
         current = parser;
         return new Function
@@ -55,7 +49,7 @@ internal class Function : Member
             Identifier = identifier,
             Modifiers = modifiers,
             Returns = returns,
-            Definition = definition as Scope ?? new Scope { definition }
+            Definition = definition
         };
     }
 

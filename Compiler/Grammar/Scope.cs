@@ -9,7 +9,7 @@ namespace Ronin.Grammar;
 internal class Scope : Statement, IList<Statement>
 {
     public Modifiers Modifiers { get; set; }
-    public List<Statement> Statements { get; init; }
+    public List<Statement> Statements { get; init; } = new();
 
     public Scope() { }
     private Scope(Scope scope) => Statements = scope.Statements;
@@ -29,37 +29,14 @@ internal class Scope : Statement, IList<Statement>
     public bool Remove(Statement item) => ((ICollection<Statement>)Statements).Remove(item);
     public IEnumerator<Statement> GetEnumerator() => ((IEnumerable<Statement>)Statements).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
-    
+
     public static new Scope Parse(ref Parser current)
-    {
-        Parser parser = current;
-
-        var modifiers = Modifiers.Parse(ref parser);
-
-        if (parser.TryAdvance<OpenBrace>() is false) return null;
-        
-        List<Statement> statements = new();
-
-        while (parser.IsNotFinished)
-        {
-            if (Trivia.Parse(ref parser) is not null) continue;
-            var syntax = Statement.Parse(ref parser);
-            if (syntax is null)
-            {
-                if (parser.TryAdvance<CloseBrace>() is false) return null;
-                break;
-            }
-            statements.Add(syntax);
-            parser.TryAdvance<Terminal>();
-        }
-
-        current = parser;
-        return new Scope
-        {
-            Modifiers = modifiers,
-            Statements = statements
-        };
-    }
+        => Basic.Parse(ref current)
+        ?? Applicative.Parse(ref current)
+        ?? Conditional.Parse(ref current)
+        ?? ConditionalReactive.Parse(ref current)
+        ?? Iterating.Parse(ref current)
+        ?? Reactive.Parse(ref current) as Scope;
 
     public class Applicative : Scope
     {
@@ -71,18 +48,18 @@ internal class Scope : Statement, IList<Statement>
 
             var modifiers = Modifiers.Parse(ref parser);
 
-            if (Scope.Parse(ref parser) is not Scope scope) return null;
+            if (Basic.Parse(ref parser) is not Scope scope) return null;
 
             current = parser;
             return new Applicative(scope) { Modifiers = modifiers };
         }
     }
 
-    public class Conditional : Conditional<If> { }    
+    public class Conditional : Conditional<If> { }
     
     public class Repeating : Conditional<While> { }
     
-    public class ReactiveConditional : Conditional<When> { }
+    public class ConditionalReactive : Conditional<When> { }
 
     public class Iterating : Scope
     {
@@ -115,15 +92,10 @@ internal class Scope : Statement, IList<Statement>
                 return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
             }
 
-            Statement definition = null;
-            if (parser.TryAdvance<Assign>())
-            {
-                definition = Value.Parse(ref parser);
-            }
-            definition ??= Scope.Parse(ref parser);
+            if (Definition.Parse(ref parser) is not Scope definition) return null;
 
             current = parser;
-            return new Iterating(definition as Scope ?? new Scope { definition })
+            return new Iterating(definition )
             {
                 Modifiers = modifiers,
                 List = datum,
@@ -174,15 +146,10 @@ internal class Scope : Statement, IList<Statement>
                 return new ExpectedTargetError { Tokens = current.AdvanceTo(parser) };
             }
 
-            Statement definition = null;
-            if (parser.TryAdvance<Assign>())
-            {
-                definition = Value.Parse(ref parser);
-            }
-            definition ??= Scope.Parse(ref parser);
+            if (Definition.Parse(ref parser) is not Scope definition) return null;
 
             current = parser;
-            return new Reactive(definition as Scope ?? new Scope { definition })
+            return new Reactive(definition)
             {
                 Modifiers = modifiers,
                 Changed = datum
@@ -194,6 +161,59 @@ internal class Scope : Statement, IList<Statement>
             public Dictionary<string, object> Data { get; }
             public string Reason { get; } = "expected reactive variable";
             public ReadOnlyMemory<Token> Tokens { get; init; }
+        }
+    }
+
+    public class Definition : Scope
+    {
+        private Definition() { }
+        private Definition(Scope scope) : base(scope) { }
+
+        public static new Definition Parse(ref Parser current)
+        {
+            Parser parser = current;
+            Statement definition = null;
+            if (parser.TryAdvance<Assign>())
+            {
+                definition = Value.Parse(ref parser);
+            }
+            definition ??= Basic.Parse(ref parser);
+
+            if (definition is null) return null;
+
+            current = parser;
+            return new(definition as Scope ?? new Scope { definition });
+        }
+    }
+
+    internal class Basic : Scope
+    {
+        public static new Basic Parse(ref Parser current)
+        {
+            Parser parser = current;
+
+            if (parser.TryAdvance<OpenBrace>() is false) return null;
+
+            List<Statement> statements = new();
+
+            while (parser.IsNotFinished)
+            {
+                if (Trivia.Parse(ref parser) is not null) continue;
+                var syntax = Statement.Parse(ref parser);
+                if (syntax is null)
+                {
+                    if (parser.TryAdvance<CloseBrace>() is false) return null;
+                    break;
+                }
+                statements.Add(syntax);
+                parser.TryAdvance<Terminal>();
+            }
+
+            current = parser;
+            return new Basic
+            {
+                Statements = statements
+            };
         }
     }
 
@@ -217,15 +237,10 @@ internal class Scope : Statement, IList<Statement>
                 return new ExpectedConditionError { Tokens = current.AdvanceTo(parser) };
             }
 
-            Statement definition = null;
-            if (parser.TryAdvance<Assign>())
-            {
-                definition = Value.Parse(ref parser);
-            }
-            definition ??= Scope.Parse(ref parser);
+            if (Definition.Parse(ref parser) is not Scope definition) return null;
 
             current = parser;
-            return new Conditional<T>(definition as Scope ?? new Scope { definition })
+            return new Conditional<T>(definition)
             {
                 Modifiers = modifiers,
                 Condition = condition

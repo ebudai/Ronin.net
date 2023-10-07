@@ -3,8 +3,6 @@
 using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System;
-using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -25,7 +23,7 @@ internal class Delegate : Value.Temporary
     public Parameters Data { get; init; }
     public Scope Definition { get; init; }
 
-    public class Parameter : OneOfBase<Datum, Name>, Compiler.IParsable<Parameter>
+    public class Parameter : OneOfBase<Datum, Name>, IParsable<Parameter>
     {
         protected Parameter(OneOf<Datum, Name> _) : base(_) { }
 
@@ -48,24 +46,29 @@ internal class Delegate : Value.Temporary
 
         if (Parameters.Parse(ref parser) is not Parameters parameters)
         {
-            if (Name.Parse(ref parser) is not Name name) return null;
-            parameters = new Parameters { name };
+            if (Name.Parse(ref parser) is Name name)
+            {
+                parameters = new Parameters { name };
+            }
+            else if (parser.TryAdvance<OpenParenthesis>() 
+                && parser.TryAdvance<CloseParenthesis>()
+                && parser.TryAdvance<Returns>())
+            {
+                parameters = new();
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        if (parser.TryAdvance<Returns>() is false) return null;
-
-        Statement definition = null;
-        if (parser.TryAdvance<Assign>())
-        {
-            definition = Value.Parse(ref parser);
-        }
-        definition ??= Scope.Parse(ref parser);
+        if (Scope.Definition.Parse(ref parser) is not Scope definition) return null;
 
         current = parser;
         return new Delegate
         {
-            Data = parameters,
-            Definition = definition as Scope ?? new Scope { definition }
+            Data = parameters ?? new(),
+            Definition = definition
         };
     }
 }

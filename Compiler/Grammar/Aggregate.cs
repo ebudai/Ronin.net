@@ -63,8 +63,9 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Valu
             parser.TryAdvance<TSeparator>();
         }
 
+        if (values.Count is 0) return null;
         current = parser;
-        return values.Count is not 0 ? values : null;
+        return values;
     }
 
     public IEnumerator<TElement> GetEnumerator() => Values.GetEnumerator();
