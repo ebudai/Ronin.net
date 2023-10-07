@@ -33,9 +33,11 @@ internal class Delegate : Value.Temporary
         public static implicit operator Parameter(Name name) => new(name);
 
         public static Parameter Parse(ref Parser current)
-            => Datum.Parse(ref current) is Datum datum
-                ? datum
-                : Name.Parse(ref current);
+        {
+            if (Datum.Parse(ref current) is Datum datum) return datum;
+            if (Name.Parse(ref current) is Name name) return name;
+            return null;
+        }
     }
 
     public class Parameters : Aggregate<Parameters, OpenParenthesis, Parameter, Separator, CloseParenthesis> { }

@@ -29,7 +29,7 @@ public class IteratingScopes : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var loop = Scope.Iterating.Parse(ref parser);
 
         Assert.NotNull(loop?.List);
@@ -64,7 +64,7 @@ public class IteratingScopes : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var loop = Scope.Iterating.Parse(ref parser);
 
         Assert.NotNull(loop?.List);

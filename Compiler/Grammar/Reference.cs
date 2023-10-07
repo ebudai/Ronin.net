@@ -4,6 +4,7 @@ using OneOf;
 using Ronin.Compiler;
 using System.Collections;
 using System.Collections.Generic;
+using static Ronin.Grammar.Value;
 
 namespace Ronin.Grammar;
 
@@ -28,16 +29,18 @@ internal class Reference : IEnumerable<Reference.Component>
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public class Component : OneOfBase<Name, Value.Temporary>, IAggregable<Component>
+    public class Component : OneOfBase<Name, Temporary>, IAggregable<Component>
     {
-        protected Component(OneOf<Name, Value.Temporary> _) : base(_) { }
+        protected Component(OneOf<Name, Temporary> _) : base(_) { }
 
         public static implicit operator Component(Name name) => new(name);
-        public static implicit operator Component(Value.Temporary value) => new(value);
+        public static implicit operator Component(Temporary value) => new(value);
 
         public static Component Parse(ref Parser current)
-            => Name.Parse(ref current) is Name name
-                ? name
-                : Grammar.Value.Temporary.Parse(ref current);
+        {
+            if (Name.Parse(ref current) is Name name) return name;
+            if (Temporary.Parse(ref current) is Temporary value) return value;
+            return null;
+        }
     }
 }

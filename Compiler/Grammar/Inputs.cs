@@ -28,8 +28,10 @@ internal class Inputs : Aggregate<Inputs, OpenParenthesis, Inputs.Input, Separat
         public static implicit operator Input(Association association) => new(association);
 
         public static Input Parse(ref Parser current)
-            => Grammar.Value.Parse(ref current) is Value value
-                ? value
-                : Association.Parse(ref current);
+        {
+            if (Grammar.Value.Parse(ref current) is Value value) return value;
+            if (Association.Parse(ref current) is Association association) return association;
+            return null;
+        }
     }
 }

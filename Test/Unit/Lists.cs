@@ -22,7 +22,7 @@ public class Lists : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var list = List.Parse(ref parser);
 
         Assert.Single(list);

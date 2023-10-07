@@ -11,13 +11,7 @@ internal struct Parser
 {
     public Parser(Token start) => Token = start;
 
-    public Parser(List<Token> tokens) : this()
-    {
-        this.tokens = tokens;
-    }
-
     public Token Token;
-    private List<Token> tokens;
 
     public readonly bool IsNotFinished => Token is not Sentinel;
 

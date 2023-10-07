@@ -24,7 +24,7 @@ public class Lookups : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var lookup = Lookup.Parse(ref parser);
 
         Assert.Single(lookup);
@@ -55,7 +55,7 @@ public class Lookups : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var statements = parser.Parse().ToList();
 
         Assert.Single(statements);

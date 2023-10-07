@@ -3,7 +3,6 @@
 using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using static Ronin.Grammar.Lookup;
 
 namespace Ronin.Grammar;
 
@@ -29,8 +28,10 @@ internal class Parameters : Aggregate<Parameters, OpenParenthesis, Parameters.Pa
         public static implicit operator Parameter(Association association) => new(association);
 
         public static Parameter Parse(ref Parser current)
-            => Datum.Parse(ref current) is Datum datum
-                ? datum
-                : Association.Parse(ref current);
+        {
+            if (Datum.Parse(ref current) is Datum datum) return datum;
+            if (Association.Parse(ref current) is Association association) return association;
+            return null;
+        }
     }
 }

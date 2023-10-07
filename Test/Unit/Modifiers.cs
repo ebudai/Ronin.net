@@ -23,7 +23,7 @@ public class Modifiers : ParsingTests
             Terminal(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Compiled>());
@@ -46,7 +46,7 @@ public class Modifiers : ParsingTests
             Terminal(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Global>());
@@ -69,7 +69,7 @@ public class Modifiers : ParsingTests
             Terminal(),
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Optional>());

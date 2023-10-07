@@ -24,7 +24,7 @@ public class References : ParsingTests
             Sentinel.Instance
         };
         
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var reference = Reference.Parse(ref parser);
 
         Assert.Equal(3, reference?.Components?.Count);

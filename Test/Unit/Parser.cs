@@ -121,7 +121,7 @@ public class Parsing : ParsingTests
             Sentinel.Instance
         };
 
-        Parser parser = new(tokens);
+        Parser parser = new(tokens.AsLinkedList());
         var statements = parser.Parse().ToList();
 
         Assert.Equal(9, statements.Count);
