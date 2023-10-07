@@ -25,7 +25,7 @@ internal class Delegate : Value.Temporary
     public Parameters Data { get; init; }
     public Scope Definition { get; init; }
 
-    public class Parameter : OneOfBase<Datum, Name>, IAggregable<Parameter>
+    public class Parameter : OneOfBase<Datum, Name>, Compiler.IParsable<Parameter>
     {
         protected Parameter(OneOf<Datum, Name> _) : base(_) { }
 

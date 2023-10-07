@@ -29,7 +29,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public class Component : OneOfBase<Name, Parameters>, IAggregable<Component>
+    public class Component : OneOfBase<Name, Parameters>, IParsable<Component>
     {
         protected Component(OneOf<Name, Parameters> _) : base(_) { }
 

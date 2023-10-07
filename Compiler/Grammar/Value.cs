@@ -5,12 +5,10 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Base class representing any <see cref="Temporary"/> or <see cref="Reference"/>d value
 /// </summary>
-internal class Value : Statement, IAggregable<Value>
+internal class Value : Statement, IParsable<Value>
 {
     public static new Value Parse(ref Parser current) 
-        => Type.Unresolved.Parse(ref current)
-        ?? Function.Unresolved.Parse(ref current)
-        ?? Datum.Unresolved.Parse(ref current)
+        => Member.Parse(ref current)
         ?? Temporary.Parse(ref current) as Value;
 
     /// <summary>

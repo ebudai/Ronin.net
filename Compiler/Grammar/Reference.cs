@@ -21,6 +21,9 @@ internal class Reference : IEnumerable<Reference.Component>
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
+        if (components.Count is 1 
+            && components[0].IsT1 
+            && components[0].AsT1 is Literal) return null;
         current = parser;
         return new Reference { Components = components };
     }
@@ -29,7 +32,7 @@ internal class Reference : IEnumerable<Reference.Component>
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public class Component : OneOfBase<Name, Temporary>, IAggregable<Component>
+    public class Component : OneOfBase<Name, Temporary>, IParsable<Component>
     {
         protected Component(OneOf<Name, Temporary> _) : base(_) { }
 

@@ -7,6 +7,11 @@ using System.Collections.Generic;
 
 namespace Ronin.Compiler;
 
+internal interface IParsable<T> where T : IParsable<T>
+{
+    static abstract T Parse(ref Parser current);
+}
+
 internal struct Parser
 {
     public Parser(Token start) => Token = start;
@@ -17,7 +22,7 @@ internal struct Parser
 
     public Scope Parse() => Scope.Parse(ref this);
 
-    public List<T> ParseRepeating<T>() where T : IAggregable<T>
+    public List<T> ParseRepeating<T>() where T : IParsable<T>
     {
         List<T> parsed = new();
         while (IsNotFinished)

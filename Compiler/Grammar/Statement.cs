@@ -7,7 +7,7 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Central workhorse class for <see cref="Parser"/>
 /// </summary>
-internal partial class Statement : IAggregable<Statement>
+internal partial class Statement : IParsable<Statement>
 {
     public static Statement Parse(ref Parser current)
         => Export.Parse(ref current)

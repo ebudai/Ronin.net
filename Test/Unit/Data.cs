@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Type = Ronin.Grammar.Type;
 
 namespace Unit;
 
@@ -32,9 +33,10 @@ public class Data : ParsingTests
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
-        Assert.Equal(2, datum.Identifier?.Components.Count);
-        Assert.Single(datum.Type?.Identifier);
-        var name = datum.Type.Identifier.Components[0].AsT0;
+        Assert.Single(datum.Identifier);
+        var unresolved = datum.Type as Type.Unresolved;
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
         Assert.Null(datum.Initializer);
     }
@@ -64,9 +66,10 @@ public class Data : ParsingTests
         Assert.Single(datum.Modifiers.Tokens.ToArray());
 
         Assert.Single(datum.Identifier);
-        
-        Assert.Single(datum.Type?.Identifier);
-        var name = datum.Type.Identifier.Components[0].AsT0;
+
+        var unresolved = datum.Type as Type.Unresolved;
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
         
         Assert.Null(datum.Initializer);
@@ -98,8 +101,9 @@ public class Data : ParsingTests
         
         Assert.Single(datum.Identifier);
 
-        Assert.Single(datum.Type?.Identifier);
-        var name = datum.Type.Identifier.Components[0].AsT0;
+        var unresolved = datum.Type as Type.Unresolved;
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -131,8 +135,9 @@ public class Data : ParsingTests
 
         Assert.Single(datum.Identifier);
 
-        Assert.Single(datum.Type?.Identifier);
-        var name = datum.Type.Identifier.Components[0].AsT0;
+        var unresolved = datum.Type as Type.Unresolved;
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -162,9 +167,10 @@ public class Data : ParsingTests
         Assert.True(datum.Modifiers.Is<Optional>());
 
         Assert.Single(datum.Identifier);
-        
-        Assert.Single(datum.Type?.Identifier.Components);
-        var name = datum.Type.Identifier.Components[0].AsT0;
+
+        var unresolved = datum.Type as Type.Unresolved;
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
         
         Assert.Null(datum.Initializer);
@@ -232,8 +238,9 @@ public class Data : ParsingTests
 
         Assert.Single(datum.Identifier);
 
-        Assert.Single(datum.Type?.Identifier);
-        Name name = datum.Type.Identifier.Components[0].AsT0;
+        var unresolved = datum.Type as Type.Unresolved;
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
 
         var scalar = datum.Initializer as Ronin.Grammar.Literal;

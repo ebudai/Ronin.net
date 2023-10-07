@@ -8,10 +8,7 @@ using System.Linq;
 
 namespace Ronin.Grammar;
 
-internal interface IAggregable<T> where T : IAggregable<T>
-{
-    static abstract T Parse(ref Parser current);
-}
+
 
 /// <summary>
 ///     Parent class for all syntactical groupings
@@ -26,7 +23,7 @@ internal interface IAggregable<T> where T : IAggregable<T>
 /// </typeparam>
 /// 
 /// <typeparam name="TElement">
-///     class to be grouped - must be implementation of <see cref="IAggregable{TElement}"/> and subclass of <see cref="Syntax"/>
+///     class to be grouped - must be implementation of <see cref="IParsable{TElement}"/> and subclass of <see cref="Syntax"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TSeparator">
@@ -39,7 +36,7 @@ internal interface IAggregable<T> where T : IAggregable<T>
 internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Value.Temporary, IList<TElement>
     where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
     where TOpen : Open
-    where TElement : IAggregable<TElement>
+    where TElement : IParsable<TElement>
     where TSeparator : Punctuation
     where TClose : Close
 {

@@ -27,7 +27,7 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var assignment = Association.Parse(ref parser);
 
-        var unresolved = assignment?.Destination as Datum.Unresolved;
+        var unresolved = assignment?.Destination as Member.Unresolved;
         
         Assert.Single(unresolved?.Reference.Components);
         Name name = unresolved.Reference.Components[0].AsT0;
@@ -53,7 +53,7 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Datum.Unresolved;
+        var unresolved = association?.Destination as Member.Unresolved;
 
         Assert.Single(unresolved?.Reference);
         Name name = unresolved.Reference.Components?[0].AsT0;
@@ -81,7 +81,7 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Datum.Unresolved;
+        var unresolved = association?.Destination as Member.Unresolved;
 
         Assert.Single(unresolved?.Reference);
         Name name = unresolved.Reference.Components?[0].AsT0;
@@ -109,7 +109,7 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolvedDatum = association?.Destination as Datum.Unresolved;
+        var unresolvedDatum = association?.Destination as Member.Unresolved;
 
         Assert.Single(unresolvedDatum?.Reference);
         var name = unresolvedDatum.Reference.Components?[0].AsT0;
@@ -137,7 +137,7 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Datum.Unresolved;
+        var unresolved = association?.Destination as Member.Unresolved;
 
         Assert.Single(unresolved?.Reference);
         var name = unresolved.Reference.Components?[0].AsT0;
@@ -165,7 +165,7 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Datum.Unresolved;
+        var unresolved = association?.Destination as Member.Unresolved;
 
         Assert.Single(unresolved?.Reference);
         var name = unresolved.Reference.Components?[0].AsT0;
@@ -193,7 +193,7 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolvedDatum = association?.Destination as Datum.Unresolved;
+        var unresolvedDatum = association?.Destination as Member.Unresolved;
 
         Assert.Single(unresolvedDatum?.Reference);
         var name = unresolvedDatum.Reference.Components?[0].AsT0;
@@ -221,7 +221,7 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Datum.Unresolved;
+        var unresolved = association?.Destination as Member.Unresolved;
 
         Assert.Single(unresolved?.Reference);
         var name = unresolved.Reference.Components?[0].AsT0;
@@ -229,7 +229,7 @@ public class Assignments : ParsingTests
 
         Assert.IsType<SubtractAssign>(association.Assignment);
 
-        var scalar = association.Destination as Literal;
+        var scalar = association.Origin as Literal;
         Assert.Single(scalar?.Tokens.ToArray());
     }
 }
