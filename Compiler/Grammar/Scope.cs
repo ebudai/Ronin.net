@@ -78,7 +78,7 @@ internal class Scope : Statement, IList<Statement>
         }
     }
 
-    public class Branching : Conditional<If> { }    
+    public class Conditional : Conditional<If> { }    
     
     public class Repeating : Conditional<While> { }
     

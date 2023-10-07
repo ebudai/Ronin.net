@@ -15,9 +15,6 @@ internal struct Parser
     
     public readonly bool IsNotFinished => Token is not Sentinel;
 
-    public static bool operator ==(Parser left, Parser right) => left.cursor == right.cursor;
-    public static bool operator !=(Parser left, Parser right) => left.cursor != right.cursor;
-
     public Scope Parse() => Scope.Parse(ref this);
 
     public List<T> ParseRepeating<T>() where T : IAggregable<T>

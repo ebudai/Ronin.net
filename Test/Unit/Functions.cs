@@ -5,6 +5,7 @@ using Test;
 
 using Datatype = Ronin.Grammar.Type;
 using Function = Ronin.Grammar.Function;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -34,31 +35,31 @@ public class Functions : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var function = Function.Declaration.Parse(ref parser);
+        var function = Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
 
-        Assert.Equal(1, function.Identifier.Components[0].Source.Length);
+        Assert.Single(function.Identifier);
         
-        Parameters parameters = function.Identifier.Components[1];
+        var parameters = function.Identifier.Components[1].AsT1;
 
         Assert.Single(parameters);
-        var parameter = parameters[0];
-        Assert.Equal(1, parameter?.Identifier?.Source.Length);
+        var parameter = parameters[0].AsT0;
+        Assert.Single(parameter?.Identifier);
 
-        Assert.Single(parameter.Datatype?.Components);
-        Name type = parameter.Datatype.Components[0];
-        Assert.Equal(1, type?.Source.Length);
+        Assert.Single(parameter.Type?.Identifier);
+        var type = parameter.Type.Identifier.Components[0].AsT0;
+        Assert.Single(type?.Tokens.ToArray());
         
         Assert.Single(function.Definition);
-        var unresolved = function.Definition[0] as Context.Member.Unresolved;
+        var unresolved = function.Definition[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
-        Name @return = unresolved.Reference.Components[0];
-        Assert.Equal(1, @return?.Source.Length);
+        var @return = unresolved.Reference.Components[0].AsT0;
+        Assert.Single(@return?.Tokens.ToArray());
 
-        Value.Temporary scalar = unresolved.Reference.Components[1];
-        Assert.Equal(1, scalar?.Source.Length);
+        var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "specifies return datatype")]
@@ -88,27 +89,27 @@ public class Functions : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var function = Function.Declaration.Parse(ref parser);
+        var function = Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components?.Count);
 
-        Assert.Equal(1, function.Identifier.Components[0].Source.Length);
+        Assert.Single(function.Identifier.Components[0].AsT0.Tokens.ToArray());
 
-        Parameters parameters = function.Identifier.Components[1];
+        var parameters = function.Identifier.Components[1].AsT1;
         Assert.Single(parameters);
-        var parameter = parameters[0];
-        Assert.Equal(1, parameter.Identifier?.Source.Length);
+        var parameter = parameters[0].AsT0;
+        Assert.Single(parameter.Identifier);
 
-        Assert.Single(parameter.Datatype?.Components);
-        Name type = parameter.Datatype.Components[0];
-        Assert.Equal(1, type?.Source.Length);        
+        Assert.Single(parameter.Type?.Identifier);
+        var type = parameter.Type.Identifier.Components[0].AsT0;
+        Assert.Single(type?.Tokens.ToArray());        
 
-        Assert.Single(function.Returns?.Components);
-        Name returns = function.Returns.Components[0];
-        Assert.Equal(1, returns?.Source.Length);
+        Assert.Single(function.Returns?.Identifier);
+        var returns = function.Returns.Identifier.Components[0].AsT0;
+        Assert.Single(returns?.Tokens.ToArray());
 
         Assert.Single(function.Definition);
-        var unresolved = function.Definition[0] as Context.Member.Unresolved;
+        var unresolved = function.Definition[0] as Member.Unresolved;
         Assert.Equal(4, unresolved?.Reference.Components.Count);
     }
 

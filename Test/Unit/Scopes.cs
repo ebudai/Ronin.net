@@ -6,7 +6,7 @@ using Test;
 namespace Unit;
 
 [Trait("Parser", null)]
-public class Contexts : ParsingTests
+public class Scopes : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -26,22 +26,21 @@ public class Contexts : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var scope = Context.Parse(ref parser);
+        var scope = Scope.Parse(ref parser);
 
         Assert.Single(scope);
 
-        var datum = scope[0] as Datum.Declaration;
+        var datum = scope[0] as Datum;
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Equal(1, datum.Identifier?.Source.Length);
+        Assert.Single(datum.Identifier);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
-        Assert.False(datum.Modifiers.Is<Persistent>());
 
         var scalar = datum.Initializer as Ronin.Grammar.Literal;
-        Assert.Equal(1, scalar?.Source.Length);
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 }

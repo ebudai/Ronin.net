@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -29,11 +30,11 @@ public class Lookups : ParsingTests
         Assert.Single(lookup);
         var association = lookup[0];
 
-        var key = association.Key as Ronin.Grammar.Literal;
-        Assert.Equal(1, key?.Source.Length);
+        var key = association.Destination as Literal;
+        Assert.Single(key?.Tokens.ToArray());
 
-        var value = association.Value as Ronin.Grammar.Literal;
-        Assert.Equal(1, value?.Source.Length);
+        var value = association.Origin as Literal;
+        Assert.Single(value?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "as value")]
@@ -58,7 +59,7 @@ public class Lookups : ParsingTests
         var statements = parser.Parse().ToList();
 
         Assert.Single(statements);
-        var datum = statements[0] as Datum.Declaration;
+        var datum = statements[0] as Datum;
         var lookup = datum?.Initializer as Lookup;
         Assert.NotNull(lookup);
     }

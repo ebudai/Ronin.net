@@ -4,6 +4,7 @@ using Ronin.Lexicon;
 using Test;
 
 using Delegate = Ronin.Grammar.Delegate;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -28,21 +29,25 @@ public class Delegates : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var @delegate = Delegate.Declaration.Parse(ref parser);
+        var @delegate = Delegate.Parse(ref parser);
 
-        Assert.Single(@delegate?.Parameters);
-        Identifier identifier = @delegate.Parameters[0];
-        Assert.Equal(1, identifier?.Source.Length);
+        {
+            Assert.Single(@delegate?.Data);
+            var name = @delegate.Data[0].AsT1;
+            Assert.Single(name?.Tokens.ToArray());
+        }
 
         Assert.Single(@delegate.Definition);
-        var unresolved = @delegate.Definition[0] as Context.Member.Unresolved;
+        var unresolved = @delegate.Definition[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
-        Name name = unresolved.Reference.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        {
+            var name = unresolved.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
+        }
         
-        Value.Temporary scalar = unresolved.Reference.Components[1];
-        Assert.Equal(1, scalar?.Source.Length);        
+        var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());        
     }
 
     [Fact(DisplayName = "one parameter typed")]
@@ -67,24 +72,24 @@ public class Delegates : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var @delegate = Delegate.Declaration.Parse(ref parser);
+        var @delegate = Delegate.Parse(ref parser);
 
-        Assert.Single(@delegate?.Parameters);
-        Datum.Declaration datum = @delegate.Parameters[0];
-        Assert.Equal(1, datum?.Identifier.Source.Length);
+        Assert.Single(@delegate?.Data);
+        Datum datum = @delegate.Data[0].AsT0;
+        Assert.Single(datum?.Identifier);
 
         Assert.Single(@delegate.Definition);
-        var unresolved = @delegate.Definition[0] as Context.Member.Unresolved;
+        var unresolved = @delegate.Definition[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
-            Name name = unresolved.Reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            var name = unresolved.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            Value.Temporary scalar = unresolved.Reference.Components[1];
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
     }
 
@@ -112,29 +117,29 @@ public class Delegates : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var @delegate = Delegate.Declaration.Parse(ref parser);
+        var @delegate = Delegate.Parse(ref parser);
 
-        Assert.Equal(3, @delegate?.Parameters.Count);
+        Assert.Equal(3, @delegate?.Data.Count);
 
-        Identifier identifier = @delegate.Parameters[0];
-        Assert.Equal(1, identifier?.Source.Length);
-        identifier = @delegate.Parameters[1];
-        Assert.Equal(1, identifier?.Source.Length);
-        identifier = @delegate.Parameters[2];
-        Assert.Equal(1, identifier?.Source.Length);
+        var identifier = @delegate.Data[0].AsT1;
+        Assert.Single(identifier?.Tokens.ToArray());
+        identifier = @delegate.Data[1].AsT1;
+        Assert.Single(identifier?.Tokens.ToArray());
+        identifier = @delegate.Data[2].AsT1;
+        Assert.Single(identifier?.Tokens.ToArray());
 
         Assert.Single(@delegate.Definition);
-        var unresolved = @delegate.Definition[0] as Context.Member.Unresolved;
+        var unresolved = @delegate.Definition[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
-            Name name = unresolved.Reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            Name name = unresolved.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            Value.Temporary scalar = unresolved.Reference.Components[1];
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
     }
 
@@ -157,22 +162,22 @@ public class Delegates : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var @delegate = Delegate.Declaration.Parse(ref parser);
+        var @delegate = Delegate.Parse(ref parser);
 
-        Assert.Empty(@delegate?.Parameters);
+        Assert.Empty(@delegate?.Data);
 
         Assert.Single(@delegate?.Definition);
-        var unresolved = @delegate.Definition[0] as Context.Member.Unresolved;
+        var unresolved = @delegate.Definition[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
-            Name name = unresolved.Reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            Name name = unresolved.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            Value.Temporary scalar = unresolved.Reference.Components[1];
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
     }
 
@@ -201,8 +206,8 @@ public class Delegates : ParsingTests
         var statements = parser.Parse().ToList();
 
         Assert.Single(statements);
-        var datum = statements[0] as Datum.Declaration;
-        var @delegate = datum?.Initializer as Delegate.Declaration;
+        var datum = statements[0] as Datum;
+        var @delegate = datum?.Initializer as Delegate;
         Assert.NotNull(@delegate);
     }
 }

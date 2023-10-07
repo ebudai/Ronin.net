@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Test;
+using Type = Ronin.Grammar.Type;
 
 namespace Failure;
 
@@ -21,7 +22,7 @@ public class Datatypes : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datatype = Ronin.Grammar.Type.Declaration.Parse(ref parser);
+        var datatype = Type.Parse(ref parser);
         Assert.Null(datatype);
     }
 }

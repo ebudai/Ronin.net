@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -25,8 +26,8 @@ public class Lists : ParsingTests
         var list = List.Parse(ref parser);
 
         Assert.Single(list);
-        var scalar = list[0] as Ronin.Grammar.Literal;
-        Assert.Equal(1, scalar?.Source.Length);
+        var scalar = list[0] as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "multiple")]
@@ -52,18 +53,18 @@ public class Lists : ParsingTests
         Assert.Equal(3, list?.Count);
 
         {
-            var scalar = list[0] as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = list[0] as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var scalar = list[1] as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = list[1] as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var scalar = list[2] as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = list[2] as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
     }
 
@@ -91,7 +92,7 @@ public class Lists : ParsingTests
         var statements = parser.Parse().ToList();
 
         Assert.Single(statements);
-        var datum = statements[0] as Datum.Declaration;
+        var datum = statements[0] as Datum;
         var list = datum?.Initializer as List;
         Assert.NotNull(list);
     }

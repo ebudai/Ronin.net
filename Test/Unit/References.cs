@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -29,22 +30,20 @@ public class References : ParsingTests
         Assert.Equal(3, reference?.Components?.Count);
 
         {
-            Name name = reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            Name name = reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            Value.Temporary scalar = reference.Components[1];
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = reference.Components[1].AsT1 as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            Value.Temporary anonymous = reference.Components[2];
-            var arguments = anonymous as Inputs;
+            var arguments = reference.Components[2].AsT1 as Inputs;
             Assert.Single(arguments);
-            Value value = arguments[0];
-            var scalar = value as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = arguments[0].AsT0 as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
     }
 }

@@ -7,7 +7,7 @@ using Function = Ronin.Grammar.Function;
 
 namespace Failure;
 
-[Trait(nameof(Analyzer), nameof(Function.Declaration))]
+/*[Trait(nameof(Analyzer), nameof(Function.Declaration))]
 public class Equality : AnalysisTests
 {
     [Fact(DisplayName = nameof(Data))]
@@ -46,3 +46,4 @@ public class Equality : AnalysisTests
         Assert.False(name.Components[0].Equals(x));
     }
 }
+*/

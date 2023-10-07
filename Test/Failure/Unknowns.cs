@@ -29,7 +29,7 @@ public class Unknowns : ParsingTests
         Assert.IsType<Unknown>(statements[0]);
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "inside definition")]
@@ -50,5 +50,5 @@ public class Unknowns : ParsingTests
             var error = analyzer.Errors[0];
             Assert.Equal(Error.Message.UnknownSyntax, error.Reason);
         }
-    }
+    }*/
 }

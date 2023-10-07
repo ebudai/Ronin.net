@@ -3,8 +3,6 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
-using Datatype = Ronin.Grammar.Type;
-
 namespace Unit;
 
 [Trait(nameof(Parser), null)]
@@ -27,18 +25,17 @@ public class Data : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
-        Assert.False(datum.Modifiers.Is<Persistent>());
-        Assert.Equal(2, datum.Identifier?.Source.Length);
-        Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Equal(2, datum.Identifier?.Components.Count);
+        Assert.Single(datum.Type?.Identifier);
+        var name = datum.Type.Identifier.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
         Assert.Null(datum.Initializer);
     }
 
@@ -59,18 +56,18 @@ public class Data : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Let>(datum?.Mutability);
 
         Assert.True(datum.Modifiers.Is<Reactive>());
-        Assert.Single(datum.Modifiers.Source.ToArray());
+        Assert.Single(datum.Modifiers.Tokens.ToArray());
 
-        Assert.Equal(1, datum.Identifier?.Source.Length);
+        Assert.Single(datum.Identifier);
         
-        Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(datum.Type?.Identifier);
+        var name = datum.Type.Identifier.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
         
         Assert.Null(datum.Initializer);
     }
@@ -92,18 +89,18 @@ public class Data : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Equal(1, datum.Modifiers?.Source.Length);
+        Assert.Single(datum.Modifiers?.Tokens.ToArray());
         Assert.True(datum.Modifiers.Is<Compiled>());
         
-        Assert.Equal(1, datum.Identifier?.Source.Length);
+        Assert.Single(datum.Identifier);
 
-        Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(datum.Type?.Identifier);
+        var name = datum.Type.Identifier.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
         Assert.Null(datum.Initializer);
     }
@@ -125,18 +122,18 @@ public class Data : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
-        Assert.Equal(1, datum.Modifiers?.Source.Length);
+        Assert.Single(datum.Modifiers?.Tokens.ToArray());
         Assert.True(datum.Modifiers.Is<Global>());
 
-        Assert.Equal(1, datum.Identifier?.Source.Length);
+        Assert.Single(datum.Identifier);
 
-        Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(datum.Type?.Identifier);
+        var name = datum.Type.Identifier.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
         Assert.Null(datum.Initializer);
     }
@@ -157,18 +154,18 @@ public class Data : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Let>(datum?.Mutability);
 
-        Assert.Equal(1, datum.Modifiers?.Source.Length);
+        Assert.Single(datum.Modifiers?.Tokens.ToArray());
         Assert.True(datum.Modifiers.Is<Optional>());
 
-        Assert.Equal(1, datum.Identifier?.Source.Length);
+        Assert.Single(datum.Identifier);
         
-        Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(datum.Type?.Identifier.Components);
+        var name = datum.Type.Identifier.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
         
         Assert.Null(datum.Initializer);
     }
@@ -189,7 +186,7 @@ public class Data : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -197,14 +194,14 @@ public class Data : ParsingTests
         Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
 
-        Assert.Equal(1, datum.Identifier?.Source.Length);
+        Assert.Single(datum.Identifier);
 
-        Assert.Null(datum.Datatype);
+        Assert.Null(datum.Type);
 
-        var member = datum?.Initializer as Context.Member.Unresolved;
-        Assert.Single(member?.Reference.Components);
-        Name name = member.Reference.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        var member = datum.Initializer as Member.Unresolved;
+        Assert.Single(member?.Reference);
+        var name = member.Reference.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "typed and initialized via literal")]
@@ -225,23 +222,22 @@ public class Data : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Variable>(datum?.Mutability);
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
-        Assert.False(datum.Modifiers.Is<Persistent>());
 
-        Assert.Equal(1, datum.Identifier?.Source.Length);
+        Assert.Single(datum.Identifier);
 
-        Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(datum.Type?.Identifier);
+        Name name = datum.Type.Identifier.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
         var scalar = datum.Initializer as Ronin.Grammar.Literal;
-        Assert.Equal(1, scalar?.Source.Length);
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]

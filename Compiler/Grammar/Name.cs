@@ -22,7 +22,7 @@ internal class Name
             parser.Advance(); 
         }
 
-        if (parser == current) return null;
+        if (ReferenceEquals(parser.Token, current.Token)) return null;
 
         return new Name { Tokens = current.AdvanceTo(parser) };
     }

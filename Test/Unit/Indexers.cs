@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -25,10 +26,10 @@ public class Indexers : ParsingTests
         var indexer = Ronin.Grammar.Index.Parse(ref parser);
 
         Assert.Single(indexer);
-        var member = indexer[0] as Context.Member.Unresolved;
+        var member = indexer[0] as Member.Unresolved;
         Assert.Single(member?.Reference?.Components);
-        Name name = member.Reference.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        var name = member.Reference.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "multidimensional")]
@@ -52,17 +53,17 @@ public class Indexers : ParsingTests
         Assert.Equal(2, indexer?.Count);
 
         {
-            var member = indexer[0] as Context.Member.Unresolved;
-            Assert.Single(member?.Reference?.Components);
-            Name name = member.Reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            var member = indexer[0] as Member.Unresolved;
+            Assert.Single(member?.Reference);
+            Name name = member.Reference.Components[0].AsT0;
+            Assert.Equal(1, name?.Tokens.Length);
         }
 
         {
-            var member = indexer[1] as Context.Member.Unresolved;
-            Assert.Single(member?.Reference?.Components);
-            Name name = member.Reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            var member = indexer[1] as Member.Unresolved;
+            Assert.Single(member?.Reference);
+            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
     }
 
@@ -107,20 +108,20 @@ public class Indexers : ParsingTests
         Assert.Equal(3, arguments?.Count);
 
         {
-            var scalar = arguments[0] as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = arguments[0] as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var scalar = arguments[1] as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = arguments[1] as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var member = arguments[2] as Context.Member.Unresolved;
+            var member = arguments[2] as Member.Unresolved;
             Assert.Single(member?.Reference?.Components);
-            Name name = member.Reference.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }        
     }
 }

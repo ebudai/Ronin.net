@@ -23,7 +23,7 @@ public class Functions : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var function = Function.Declaration.Parse(ref parser);
+        var function = Function.Parse(ref parser);
         
         Assert.Null(function);
     }

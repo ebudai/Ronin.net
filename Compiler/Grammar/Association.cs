@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Association : Statement
+internal class Association : Statement, IAggregable<Association>
 {
     public Value Destination { get; init; }
     public Assignment Assignment { get; init; }

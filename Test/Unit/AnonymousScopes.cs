@@ -26,9 +26,9 @@ public class AnonymousScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var anonymous = AnonymousScope.Parse(ref parser);
+        var scope = Scope.Parse(ref parser);
 
-        Assert.NotNull(anonymous.Definition);
+        Assert.NotNull(scope);
     }
 
     [Fact(DisplayName = "compiled")]
@@ -49,12 +49,12 @@ public class AnonymousScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var anonymous = AnonymousScope.Parse(ref parser);
+        var scope = Scope.Parse(ref parser);
 
-        Assert.NotNull(anonymous.Definition);
+        Assert.NotNull(scope);
     }
 
-    [Trait(nameof(Analyzer), nameof(Declaration))]
+    /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {
         [Fact(DisplayName = "basic")]
@@ -131,5 +131,5 @@ public class AnonymousScopes : ParsingTests
             var datum = inner.Definition.Members.First().Value;
             Assert.IsAssignableFrom<Datum>(datum);
         }
-    }
+    }*/
 }

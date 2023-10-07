@@ -22,7 +22,7 @@ internal class Unknown : Statement
             parser.Advance();
         }
 
-        if (current == parser) return null;
+        if (ReferenceEquals(current.Token, parser.Token)) return null;
 
         return new Unknown { Tokens = current.AdvanceTo(parser) };
     }

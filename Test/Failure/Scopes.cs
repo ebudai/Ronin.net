@@ -6,7 +6,7 @@ using Test;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Contexts : ParsingTests
+public class Scopes : ParsingTests
 {
     [Fact(DisplayName = "missing name")]
     public void MissingName()
@@ -25,7 +25,7 @@ public class Contexts : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var scope = Context.Parse(ref parser);
+        var scope = Scope.Parse(ref parser);
 
         Assert.Null(scope);
     }

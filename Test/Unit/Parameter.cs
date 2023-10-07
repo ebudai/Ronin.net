@@ -29,7 +29,7 @@ public class Parameter : ParsingTests
 
         Assert.Single(parameters);
 
-        Datum.Declaration datum = parameters[0];
+        var datum = parameters[0].AsT0;
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -37,11 +37,11 @@ public class Parameter : ParsingTests
         Assert.False(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Optional>());
 
-        Assert.Equal(1, datum.Identifier?.Source.Length);
+        Assert.Single(datum.Identifier);
 
-        Assert.Single(datum.Datatype?.Components);
-        Name name = datum.Datatype.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(datum.Type?.Identifier);
+        var name = datum.Type.Identifier.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "multiple")]
@@ -71,7 +71,7 @@ public class Parameter : ParsingTests
         Assert.Equal(2, parameters?.Count);
 
         {
-            Datum.Declaration datum = parameters[0];
+            Datum datum = parameters[0].AsT0;
             
             Assert.Null(datum?.Mutability);
 
@@ -79,15 +79,15 @@ public class Parameter : ParsingTests
             Assert.False(datum.Modifiers.Is<Global>());
             Assert.False(datum.Modifiers.Is<Optional>());
 
-            Assert.Equal(1, datum.Identifier?.Source.Length);
+            Assert.Single(datum.Identifier);
         
-            Assert.Single(datum.Datatype?.Components);
-            Name name = datum.Datatype.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            Assert.Single(datum.Type?.Identifier);
+            var name = datum.Type.Identifier.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            Datum.Declaration datum = parameters[1];
+            var datum = parameters[1].AsT0;
 
             Assert.Null(datum?.Mutability);
 
@@ -95,9 +95,9 @@ public class Parameter : ParsingTests
             Assert.False(datum.Modifiers.Is<Global>());
             Assert.False(datum.Modifiers.Is<Optional>());
 
-            Assert.Single(datum.Datatype?.Components);
-            Name name = datum.Datatype.Components[0];
-            Assert.Equal(1, name?.Source.Length);
+            Assert.Single(datum.Type.Identifier);
+            var name = datum.Type.Identifier.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
     }
 

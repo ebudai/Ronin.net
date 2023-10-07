@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -22,14 +23,13 @@ public class Input : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var arguments = Inputs.Parse(ref parser);
+        var inputs = Inputs.Parse(ref parser);
 
-        Assert.Single(arguments);
-        Value value = arguments[0];
-        var member = value as Context.Member.Unresolved;
-        Assert.Single(member?.Reference?.Components);
-        Name name = member.Reference.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(inputs);
+        var member = inputs[0].AsT0 as Member.Unresolved;
+        Assert.Single(member?.Reference.Components);
+        var name = member.Reference.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "multiple")]
@@ -53,19 +53,17 @@ public class Input : ParsingTests
         Assert.Equal(2, arguments?.Count);
 
         {
-            Value value = arguments[0];
-            var member = value as Context.Member.Unresolved;
+            var member = arguments[0].AsT0 as Member.Unresolved;
             Assert.Single(member?.Reference?.Components);
-            Name name = member.Reference.Components[0];
-            Assert.Single(name?.Source.ToArray());
+            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            Value value = arguments[1];
-            var member = value as Context.Member.Unresolved;
-            Assert.Single(member?.Reference?.Components);
-            Name name = member.Reference.Components[0];
-            Assert.Single(name?.Source.ToArray());
+            var member = arguments[1].AsT0 as Member.Unresolved;
+            Assert.Single(member?.Reference.Components);
+            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
     }
 
@@ -109,23 +107,20 @@ public class Input : ParsingTests
         Assert.Equal(3, arguments?.Count);
         
         {
-            Value value = arguments[0];
-            var scalar = value as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = arguments[0].AsT0 as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            Value value = arguments[1];
-            var scalar = value as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = arguments[1].AsT0 as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            Value value = arguments[2];
-            var member = value as Context.Member.Unresolved;
-            Assert.Single(member?.Reference?.Components);
-            Name name = member.Reference.Components[0];
-            Assert.Single(name?.Source.ToArray());
+            var member = arguments[2].AsT0 as Member.Unresolved;
+            Assert.Single(member?.Reference.Components);
+            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
     }
 
@@ -158,40 +153,34 @@ public class Input : ParsingTests
         Assert.Equal(3, arguments?.Count);
 
         {
-            Value value = arguments[0];
-            var member = value as Context.Member.Unresolved;
-            Assert.Single(member?.Reference?.Components);
-            Name name = member.Reference.Components[0];
-            Assert.Single(name?.Source.ToArray());
+            var member = arguments[0].AsT0 as Member.Unresolved;
+            Assert.Single(member?.Reference.Components);
+            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            Value value = arguments[1];
-            var scalar = value as Ronin.Grammar.Literal;
-            Assert.Equal(1, scalar?.Source.Length);
+            var scalar = arguments[1].AsT0 as Literal;
+            Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            Value value = arguments[2];
-            var subargs = value as Inputs;
+            var subargs = arguments[2].AsT0 as Inputs;
             Assert.Equal(3, subargs?.Count);
 
             {
-                Value subvalue = subargs[0];
-                var scalar = subvalue as Ronin.Grammar.Literal;
-                Assert.Equal(1, scalar?.Source.Length);
+                var scalar = subargs[0].AsT0 as Literal;
+                Assert.Single(scalar?.Tokens.ToArray());
             }
 
             {
-                Value subvalue = subargs[1];
-                var scalar = subvalue as Ronin.Grammar.Literal;
-                Assert.Equal(1, scalar?.Source.Length);
+                var scalar = subargs[1].AsT0 as Literal;
+                Assert.Single(scalar?.Tokens.ToArray());
             }
 
             {
-                Value subvalue = subargs[2];
-                var scalar = subvalue as Ronin.Grammar.Literal;
-                Assert.Equal(1, scalar?.Source.Length);
+                var scalar = subargs[2].AsT0 as Literal;
+                Assert.Single(scalar?.Tokens.ToArray());
             }
         }
     }

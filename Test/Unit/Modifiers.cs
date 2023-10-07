@@ -24,7 +24,7 @@ public class Modifiers : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
@@ -47,7 +47,7 @@ public class Modifiers : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Global>());
         Assert.False(datum.Modifiers.Is<Compiled>());
@@ -70,7 +70,7 @@ public class Modifiers : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datum = Datum.Declaration.Parse(ref parser);
+        var datum = Datum.Parse(ref parser);
 
         Assert.True(datum.Modifiers.Is<Optional>());
         Assert.False(datum.Modifiers.Is<Compiled>());

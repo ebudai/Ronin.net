@@ -26,7 +26,7 @@ public class RepeatingScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var repeating = RepeatingScope.Parse(ref parser);
+        var repeating = Scope.Repeating.Parse(ref parser);
 
         Assert.Null(repeating);
     }
@@ -47,7 +47,7 @@ public class RepeatingScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var repeating = RepeatingScope.Parse(ref parser);
+        var repeating = Scope.Repeating.Parse(ref parser);
 
         Assert.Null(repeating);
     }

@@ -8,7 +8,7 @@ using Type = Ronin.Grammar.Type;
 namespace Unit;
 
 [Trait(nameof(Parser), null)]
-public class Datatypes : ParsingTests
+public class Types : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
@@ -25,11 +25,11 @@ public class Datatypes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datatype = Type.Declaration.Parse(ref parser);
+        var datatype = Type.Parse(ref parser);
 
-        Assert.Single(datatype?.Identifier?.Components);
-        Identifier.Component name = datatype.Identifier.Components[0];
-        Assert.Equal(1, name?.Source.Length);
+        Assert.Single(datatype?.Identifier);
+        var name = datatype.Identifier.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "with algebra and members")]
@@ -61,28 +61,29 @@ public class Datatypes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var datatype = Type.Declaration.Parse(ref parser);
+        var type = Type.Parse(ref parser);
 
-        Assert.Equal(2, datatype?.Identifier.Components.Count);
-        Assert.Equal(2, datatype.Algebra.Components.Count);
-        Assert.Equal(2, datatype.Definition.Count);
+        Assert.Equal(2, type?.Identifier.Components.Count);
+        var algebra = type.Algebra as Algebra.Unresolved;
+        Assert.Equal(2, algebra.Reference.Components.Count);
+        Assert.Equal(2, type.Members.Count);
 
         {
-            var cash = datatype.Definition[0] as Datum.Declaration;
+            var cash = type.Members[0] as Datum;
             Assert.IsType<Variable>(cash?.Mutability);
-            Assert.Equal(1, cash.Identifier?.Source.Length);
-            Assert.Single(cash.Datatype?.Components);
-            Name type = cash.Datatype.Components[0];
-            Assert.Equal(1, type?.Source.Length);
+            Assert.Single(cash.Identifier);
+            Assert.Single(cash.Type?.Identifier);
+            var name = cash.Type.Identifier.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var debt = datatype.Definition[1] as Datum.Declaration;
+            var debt = type.Members[1] as Datum;
             Assert.IsType<Variable>(debt?.Mutability);
-            Assert.Equal(1, debt.Identifier?.Source.Length);
-            Assert.Single(debt.Datatype?.Components);
-            Name type = debt.Datatype.Components[0];
-            Assert.Equal(1, type?.Source.Length);
+            Assert.Single(debt.Identifier);
+            Assert.Single(debt.Type?.Identifier);
+            var name = debt.Type.Identifier.Components[0].AsT0;
+            Assert.Single(name?.Tokens.ToArray());
         }
     }
 

@@ -19,31 +19,7 @@ namespace Ronin.Grammar;
 ///     var x = { a = 3, b = 22.3, "special" = values maximum };
 ///             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Lookup : Aggregate<Lookup, OpenBrace, Lookup.Association, Separator, CloseBrace>
+internal class Lookup : Aggregate<Lookup, OpenBrace, Association, Separator, CloseBrace>
 {
-    /// <summary>
-    ///     key=value pair
-    /// </summary>
-    public class Association : IAggregable<Association>
-    {
-        public Value Key { get; set; }
-        public Value Value { get; set; }
 
-        public static Association Parse(ref Parser current)
-        {
-            Parser parser = current;
-
-            if (Value.Parse(ref parser) is not Value key) return null;
-
-            if (parser.TryAdvance<Assign>() is false) return null;
-
-            if (Value.Parse(ref parser) is not Value value) return null;
-
-            return new Association
-            {
-                Key = key,
-                Value = value
-            };
-        }
-    }
 }

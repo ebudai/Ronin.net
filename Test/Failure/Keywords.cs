@@ -50,7 +50,6 @@ public class Keywords
             $"{Import.keyword}s",
             $"{Optional.keyword}s",
             $"{PartOf.keyword}fer",
-            $"{Persistent.keyword}x",
             $"{Reactive.keyword}tion",
             $"{Global.keyword}ding",
             $"{Variable.keyword}rrrr",

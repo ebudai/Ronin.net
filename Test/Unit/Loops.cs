@@ -30,13 +30,13 @@ public class IteratingScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = IteratingScope.Parse(ref parser);
+        var loop = Scope.Iterating.Parse(ref parser);
 
-        Assert.NotNull(loop?.Iterator);
+        Assert.NotNull(loop?.List);
 
-        Assert.Single(loop.Definition);
+        Assert.Single(loop);
 
-        var assignment = loop.Definition[0] as Comparison;
+        var assignment = loop[0] as Association;
         Assert.NotNull(assignment);
     }
 
@@ -65,8 +65,8 @@ public class IteratingScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var loop = IteratingScope.Parse(ref parser);
+        var loop = Scope.Iterating.Parse(ref parser);
 
-        Assert.NotNull(loop?.Iterator);
+        Assert.NotNull(loop?.List);
     }
 }

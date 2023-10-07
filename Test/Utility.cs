@@ -1,8 +1,6 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
 
-using Context = Ronin.Grammar.Context;
-
 namespace Test;
 
 internal static class Utility
@@ -12,6 +10,8 @@ internal static class Utility
 
 public class ParsingTests
 {
+    protected ParsingTests() { }
+
     internal static Word Word(string text)
     {
         Word word = new();
@@ -300,23 +300,13 @@ public class AnalysisTests : ParsingTests
             word.SetMemory(name);
             words.Add(word);
         }
-        
-        return new Identifier
-        { 
-            Components = names.Select(name => new Identifier.Component { value = Name(name), Source = new[] { Word(name) } }).ToList(),
-            Source = words.ToArray() 
-        };
+
+        List<Identifier.Component> components = new();
+        foreach (var name in names) components.Add(Name(name));
+        return new Identifier {  Components = components };
     }
 
-    internal static Identifier Identifier(params Identifier.Component[] components)
-    {
-        List<Token> tokens = new();
-        foreach (var component in components)
-        {
-            foreach (var token in component.Source.Span) tokens.Add(token);
-        }
-        return new() { Components = components.ToList(), Source = tokens.ToArray() };
-    }
+    internal static Identifier Identifier(params Identifier.Component[] components) => new() { Components = components.ToList() };
 
     internal static Name Name(params string[] names)
     {
@@ -327,10 +317,10 @@ public class AnalysisTests : ParsingTests
             word.SetMemory(name);
             words.Add(word);
         }
-        return new() { Source = words.ToArray() };
+        return new() { Tokens = words.ToArray() };
     }
 
-    internal static Identifier Words(string name) => Words(name.Split(new[] { ' ' }));
+    internal static Identifier Words(string name) => Words(name.Split(' '));
 
     internal static Identifier Words(params string[] names)
     {
@@ -344,13 +334,9 @@ public class AnalysisTests : ParsingTests
         List<Identifier.Component> components = new();
         foreach (var word in words)
         {
-            components.Add(new Name { Source = new[] { word } });
+            components.Add(new Name { Tokens = new[] { word } });
         }
-        return new Identifier
-        {
-            Components = components,
-            Source = words.ToArray()
-        };
+        return new Identifier { Components = components };
     }
 
     internal static Reference Reference(params string[] words)
@@ -360,26 +346,26 @@ public class AnalysisTests : ParsingTests
         {
             Word token = new();
             token.SetMemory(word);
-            Name name = new() { Source = new[] { token } };
+            Name name = new() { Tokens = new[] { token } };
             components.Add(name);
         }
         return Reference(components.ToArray());
     }
 
-    internal static Reference Reference(params Reference.Component[] components) => new() { Components = components.ToList(), Source = components.SelectMany(component => component.value.Source.Span.ToArray()).ToList().AsMemory() };
+    internal static Reference Reference(params Reference.Component[] components) => new() { Components = components.ToList() };
 
-    internal static Context.Member.Unresolved UnresolvedReference(params string[] words)
+    internal static Member.Unresolved UnresolvedReference(params string[] words)
     {
         List<Reference.Component> components = new();
         foreach (var word in words)
         {
             Word token = new();
             token.SetMemory(word);
-            Name name = new() { Source = new[] { token } };
+            Name name = new() { Tokens = new[] { token } };
             components.Add(name);
         }
         return UnresolvedReference(components.ToArray());
     }
 
-    internal static Context.Member.Unresolved UnresolvedReference(params Reference.Component[] components) => new() { Reference = new() { Components = components.ToList() } };
+    internal static Member.Unresolved UnresolvedReference(params Reference.Component[] components) => new() { Reference = new() { Components = components.ToList() } };
 }

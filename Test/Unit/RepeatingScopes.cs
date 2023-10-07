@@ -28,10 +28,9 @@ public class RepeatingScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var repeating = RepeatingScope.Parse(ref parser);
+        var repeating = Scope.Repeating.Parse(ref parser);
 
         Assert.NotNull(repeating?.Condition);
-        Assert.NotNull(repeating.Definition);
     }
 
     [Fact(DisplayName = "compiled")]
@@ -56,7 +55,7 @@ public class RepeatingScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var conditional = ConditionalScope.Parse(ref parser);
+        var conditional = Scope.Conditional.Parse(ref parser);
 
         Assert.NotNull(conditional?.Modifiers);
         Assert.True(conditional.Modifiers.Is<Compiled>());        

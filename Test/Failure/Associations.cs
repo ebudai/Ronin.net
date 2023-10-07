@@ -6,7 +6,7 @@ using Test;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Assignments : ParsingTests
+public class Associations : ParsingTests
 {
     [Fact(DisplayName = "no value")]
     public void NoValue()
@@ -21,9 +21,9 @@ public class Assignments : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
         
-        Assert.Null(assignment);
+        Assert.Null(association);
     }
 
     [Fact(DisplayName = "not an assignment")]
@@ -43,9 +43,9 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        Assert.Null(assignment);
+        Assert.Null(association);
     }
 
     [Fact(DisplayName = "empty")]
@@ -54,8 +54,8 @@ public class Assignments : ParsingTests
         List<Token> tokens = new() { Sentinel.Instance };
 
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        Assert.Null(assignment);
+        Assert.Null(association);
     }
 }

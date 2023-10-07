@@ -28,7 +28,7 @@ public class Identifiers : ParsingTests
         Parser parser = new(tokens);
         var identifier = Identifier.Parse(ref parser);
 
-        Assert.Equal(3, identifier?.Source.Length);
+        Assert.Equal(3, identifier?.Components.Count);
     }
 
     [Fact(DisplayName = "words")]
@@ -84,9 +84,9 @@ public class Identifiers : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var first = Datum.Declaration.Parse(ref parser);
+        var first = Datum.Parse(ref parser);
         parser.Advance();
-        var second = Datum.Declaration.Parse(ref parser);
+        var second = Datum.Parse(ref parser);
 
         Assert.Single(first.Identifier.Components);
         Assert.Single(second.Identifier.Components);

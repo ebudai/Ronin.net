@@ -5,6 +5,7 @@ using Test;
 
 using Type = Ronin.Grammar.Type;
 using Function = Ronin.Grammar.Function;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -123,27 +124,27 @@ public class Parsing : ParsingTests
         Parser parser = new(tokens);
         var statements = parser.Parse().ToList();
 
-        Assert.Equal(9, statements?.Count);
+        Assert.Equal(9, statements.Count);
 
         var partof = statements[0] as Export;
         Assert.NotNull(partof);
 
-        var datum = statements[1] as Datum.Declaration;
+        var datum = statements[1] as Datum;
         Assert.NotNull(datum);
 
-        var assignment = statements[2] as Comparison;
+        var assignment = statements[2] as Association;
         Assert.NotNull(assignment);
 
-        var functioncall = statements[3] as Context.Member.Unresolved;
+        var functioncall = statements[3] as Member.Unresolved;
         Assert.NotNull(functioncall);
 
-        var function = statements[4] as Function.Declaration;
+        var function = statements[4] as Function;
         Assert.NotNull(function);
 
-        var datatype = statements[5] as Type.Declaration;
+        var datatype = statements[5] as Type;
         Assert.NotNull(datatype);
 
-        var scalar = statements[6] as Ronin.Grammar.Literal;
+        var scalar = statements[6] as Literal;
         Assert.NotNull(scalar);
 
         var arguments = statements[7] as Inputs;

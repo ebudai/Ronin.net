@@ -1,6 +1,4 @@
-﻿using Ronin;
-using Ronin.Compiler;
-using Ronin.Grammar;
+﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using Test;
 using Import = Ronin.Grammar.Import;
@@ -26,7 +24,7 @@ public class Imports : ParsingTests
         Parser parser = new(tokens);
         var import = Import.Parse(ref parser);
 
-        Assert.Equal(1, import.Name?.Source.Length);     
+        Assert.Single(import.Name.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -47,7 +45,7 @@ public class Imports : ParsingTests
         Parser parser = new(tokens);
         var import = Import.Parse(ref parser);
 
-        Assert.Equal(3, import.Name?.Source.Length);
+        Assert.Equal(3, import.Name?.Tokens.Length);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -71,7 +69,7 @@ public class Imports : ParsingTests
         Parser parser = new(tokens);
         var import = Import.Parse(ref parser);
 
-        Assert.Equal(6, import.Name?.Source.Length);
+        Assert.Equal(6, import.Name?.Tokens.Length);
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]

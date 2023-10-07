@@ -25,7 +25,7 @@ public class ConditionalScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var conditional = ConditionalScope.Parse(ref parser);
+        var conditional = Scope.Conditional.Parse(ref parser);
 
         Assert.Null(conditional);
     }
@@ -46,7 +46,7 @@ public class ConditionalScopes : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var conditional = ConditionalScope.Parse(ref parser);
+        var conditional = Scope.Conditional.Parse(ref parser);
 
         Assert.Null(conditional);
     }

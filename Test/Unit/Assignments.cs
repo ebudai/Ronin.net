@@ -3,6 +3,7 @@ using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 using Association = Ronin.Grammar.Association;
+using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
@@ -26,14 +27,14 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens);
         var assignment = Association.Parse(ref parser);
 
-        var unresolved = assignment?.Comparison.Left as Datum.Unresolved;
+        var unresolved = assignment?.Destination as Datum.Unresolved;
         
         Assert.Single(unresolved?.Reference.Components);
-        Name name = unresolved.Reference.Components[0];
-        Assert.Single(name?.Source.ToArray());
+        Name name = unresolved.Reference.Components[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
-        var scalar = assignment.Right as Ronin.Grammar.Literal;
-        Assert.Single(scalar?.Source.ToArray());
+        var scalar = assignment.Origin as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "no whitespace")]
@@ -50,18 +51,18 @@ public class Assignments : ParsingTests
         };
         
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        var unresolved = assignment?.Left as Datum.Unresolved;
+        var unresolved = association?.Destination as Datum.Unresolved;
 
-        Assert.Single(unresolved?.Reference.Components);
-        Name name = unresolved.Reference.Components?[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(unresolved?.Reference);
+        Name name = unresolved.Reference.Components?[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
-        Assert.IsType<Assign>(assignment.Operation);
+        Assert.IsType<Assign>(association.Assignment);
 
-        var scalar = assignment.Right as Ronin.Grammar.Literal;
-        Assert.Single(scalar?.Source.ToArray());
+        var scalar = association.Origin as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "add assign")]
@@ -78,16 +79,18 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        Assert.Single(assignment?.Left.Reference.Components);
-        Name name = assignment?.Left.Reference.Components?[0];
-        Assert.Single(name?.Source.ToArray());
+        var unresolved = association?.Destination as Datum.Unresolved;
 
-        Assert.IsType<AddAssign>(assignment.Operation);
+        Assert.Single(unresolved?.Reference);
+        Name name = unresolved.Reference.Components?[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
-        var scalar = assignment.Right as Ronin.Grammar.Literal;
-        Assert.Single(scalar?.Source.ToArray());
+        Assert.IsType<AddAssign>(association.Assignment);
+
+        var scalar = association.Origin as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "and assign")]
@@ -104,18 +107,18 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        var unresolvedDatum = assignment?.Left as Datum.Unresolved;
+        var unresolvedDatum = association?.Destination as Datum.Unresolved;
 
-        Assert.Single(unresolvedDatum?.Reference.Components);
-        Name name = unresolvedDatum.Reference.Components?[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(unresolvedDatum?.Reference);
+        var name = unresolvedDatum.Reference.Components?[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
-        Assert.IsType<AndAssign>(assignment.Operation);
+        Assert.IsType<AndAssign>(association.Assignment);
 
-        var member = assignment.Right as Context.Member.Unresolved;
-        Assert.Single(member?.Reference?.Source.ToArray());
+        var member = association.Origin as Member.Unresolved;
+        Assert.Single(member?.Reference);
     }
 
     [Fact(DisplayName = "divide assign")]
@@ -132,18 +135,18 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        var unresolved = assignment?.Left as Datum.Unresolved;
+        var unresolved = association?.Destination as Datum.Unresolved;
 
-        Assert.Single(unresolved?.Reference.Components);
-        Name name = unresolved.Reference.Components?[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components?[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
-        Assert.IsType<DivideAssign>(assignment.Operation);
+        Assert.IsType<DivideAssign>(association.Assignment);
 
-        var scalar = assignment.Right as Ronin.Grammar.Literal;
-        Assert.Single(scalar?.Source.ToArray());
+        var scalar = association.Origin as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "multiply assign")]
@@ -160,18 +163,18 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        var unresolved = assignment?.Left as Datum.Unresolved;
+        var unresolved = association?.Destination as Datum.Unresolved;
 
-        Assert.Single(unresolved?.Reference.Components);
-        Name name = unresolved.Reference.Components?[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components?[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
-        Assert.IsType<MultiplyAssign>(assignment.Operation);
+        Assert.IsType<MultiplyAssign>(association.Assignment);
 
-        var scalar = assignment.Right as Ronin.Grammar.Literal;
-        Assert.Single(scalar?.Source.ToArray());
+        var scalar = association.Origin as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "or assign")]
@@ -188,18 +191,18 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        var unresolvedDatum = assignment?.Left as Datum.Unresolved;
+        var unresolvedDatum = association?.Destination as Datum.Unresolved;
 
-        Assert.Single(unresolvedDatum?.Reference.Components);
-        Name name = unresolvedDatum.Reference.Components?[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(unresolvedDatum?.Reference);
+        var name = unresolvedDatum.Reference.Components?[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
-        Assert.IsType<OrAssign>(assignment.Operation);
+        Assert.IsType<OrAssign>(association.Assignment);
 
-        var member = assignment.Right as Context.Member.Unresolved;
-        Assert.Single(member?.Reference?.Source.ToArray());
+        var member = association.Origin as Member.Unresolved;
+        Assert.Single(member?.Reference);
     }
 
     [Fact(DisplayName = "subtract assign")]
@@ -216,17 +219,17 @@ public class Assignments : ParsingTests
         };
 
         Parser parser = new(tokens);
-        var assignment = Comparison.Parse(ref parser);
+        var association = Association.Parse(ref parser);
 
-        var unresolved = assignment?.Left as Datum.Unresolved;
+        var unresolved = association?.Destination as Datum.Unresolved;
 
-        Assert.Single(unresolved?.Reference.Components);
-        Name name = unresolved.Reference.Components?[0];
-        Assert.Single(name?.Source.ToArray());
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components?[0].AsT0;
+        Assert.Single(name?.Tokens.ToArray());
 
-        Assert.IsType<SubtractAssign>(assignment.Operation);
+        Assert.IsType<SubtractAssign>(association.Assignment);
 
-        var scalar = assignment.Right as Ronin.Grammar.Literal;
-        Assert.Single(scalar?.Source.ToArray());
+        var scalar = association.Destination as Literal;
+        Assert.Single(scalar?.Tokens.ToArray());
     }
 }
