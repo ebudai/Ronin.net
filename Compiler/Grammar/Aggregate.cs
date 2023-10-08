@@ -65,6 +65,8 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
         return values;
     }
 
+    private readonly List<TElement> Values = new();
+
     #region list implementation
     [ExcludeFromCodeCoverage] public IEnumerator<TElement> GetEnumerator() => Values.GetEnumerator();
     [ExcludeFromCodeCoverage] IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
@@ -83,6 +85,4 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
     [ExcludeFromCodeCoverage] public override bool Equals(object obj) => (obj as IEnumerable<TElement>)?.SequenceEqual(Values) ?? false;
     [ExcludeFromCodeCoverage] public override int GetHashCode() => Values.GetHashCode();
     #endregion
-
-    private readonly List<TElement> Values = new();
 }

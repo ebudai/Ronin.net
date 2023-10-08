@@ -77,4 +77,28 @@ public class IteratingScopes : ParsingTests
 
         Assert.IsType<Scope.Iterating.ExpectedReturnsSymbolError>(loop);
     }
+
+    [Fact(DisplayName = "missing iterable")]
+    public void MissingIterable()
+    {
+        // iterate => car fast colour = 3;
+
+        List<Token> tokens = new()
+        {
+            Keyword.Iterate(),
+            Returns(),
+            Word("car"),
+            Word("fast"),
+            Word("colour"),
+            Assign(),
+            Number(3),
+            Terminal(),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var loop = Scope.Parse(ref parser);
+
+        Assert.IsType<Scope.Iterating.ExpectedIterableError>(loop);
+    }
 }

@@ -39,5 +39,14 @@ public class Symbols
         Assert.Null(lexed);
     }
 
+    [Fact(DisplayName = "not an assignment")]
+    public void NotAnAssignment()
+    {
+        const string literal = "a";
 
+        Lexer lexer = new(literal);
+        var lexed = Assignment.Lex(ref lexer);
+
+        Assert.Null(lexed);
+    }
 }

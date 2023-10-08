@@ -1,5 +1,6 @@
 ﻿using OneOf;
 using Ronin.Compiler;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
@@ -18,6 +19,7 @@ internal class Member : Value, IParsable<Member>
         {
             Parser parser = current;
             if (Reference.Parse(ref parser) is not Reference reference) return null;
+            
             foreach (var component in reference)
             {
                 if (component.IsT0)
@@ -26,6 +28,7 @@ internal class Member : Value, IParsable<Member>
                     return new Unresolved { Reference = reference };
                 }
             }
+            
             return null;
         }
     }

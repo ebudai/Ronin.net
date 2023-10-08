@@ -43,7 +43,7 @@ public class References : ParsingTests
         {
             var arguments = reference.Components[2].AsT1 as Inputs;
             Assert.Single(arguments);
-            var scalar = arguments[0].AsT0 as Literal;
+            var scalar = arguments[0].AsT1 as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }

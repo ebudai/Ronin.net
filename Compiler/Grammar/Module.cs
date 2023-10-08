@@ -1,12 +1,27 @@
 ﻿using Ronin.Compiler;
-using System;
+using Ronin.Lexicon;
 
 namespace Ronin.Grammar;
 
 internal class Module : Scope
 {
-    public static new Module Parse(ref Parser parser)
+    public static new Module Parse(ref Parser current)
     {
-        throw new NotImplementedException();
+        Parser parser = current;
+
+        Module values = new();
+
+        while (parser.IsNotFinished)
+        {
+            var syntax = Statement.Parse(ref parser);
+            if (syntax is null) break;
+            values.Add(syntax);
+            parser.TryAdvance<Terminal>();
+        }
+
+        if (values.Count is 0) return null;
+
+        current = parser;
+        return values;
     }
 }
