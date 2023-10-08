@@ -82,7 +82,7 @@ public class Indexers : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var indexer = Ronin.Grammar.Index.Parse(ref parser);
 
-        Assert.Empty(indexer);
+        Assert.Null(indexer);
     }
 
     [Fact(DisplayName = "multidimensional named")]

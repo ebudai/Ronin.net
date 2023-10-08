@@ -49,7 +49,10 @@ internal class Datum : Member
         }
 
         Value initializer = null;
-        if (parser.TryAdvance<Assign>()) initializer = Value.Parse(ref parser);
+        if (parser.TryAdvance<Assign>())
+        {
+            initializer = Value.Parse(ref parser);
+        }
 
         if (type is null)
         {

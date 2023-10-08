@@ -81,7 +81,7 @@ public class Input : ParsingTests
         
         Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
-        Assert.Empty(arguments);
+        Assert.Null(arguments);
     }
 
     [Fact(DisplayName = "named")]

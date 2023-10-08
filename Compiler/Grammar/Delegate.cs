@@ -50,9 +50,7 @@ internal class Delegate : Value.Temporary
             {
                 parameters = new Parameters { name };
             }
-            else if (parser.TryAdvance<OpenParenthesis>() 
-                && parser.TryAdvance<CloseParenthesis>()
-                && parser.TryAdvance<Returns>())
+            else if (parser.TryAdvance<OpenParenthesis>() && parser.TryAdvance<CloseParenthesis>())
             {
                 parameters = new();
             }
@@ -62,6 +60,7 @@ internal class Delegate : Value.Temporary
             }
         }
 
+        if (parser.TryAdvance<Returns>() is false) return null;
         if (Scope.Definition.Parse(ref parser) is not Scope definition) return null;
 
         current = parser;

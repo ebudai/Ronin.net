@@ -7,7 +7,7 @@ using Type = Ronin.Grammar.Type;
 using Function = Ronin.Grammar.Function;
 using Literal = Ronin.Grammar.Literal;
 
-namespace Unit;
+namespace Integration;
 
 [Trait("Parser", null)]
 public class Parsing : ParsingTests

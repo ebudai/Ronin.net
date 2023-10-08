@@ -6,6 +6,7 @@ using Test;
 using Datatype = Ronin.Grammar.Type;
 using Function = Ronin.Grammar.Function;
 using Literal = Ronin.Grammar.Literal;
+using Type = Ronin.Grammar.Type;
 
 namespace Unit;
 
@@ -38,8 +39,6 @@ public class Functions : ParsingTests
         var function = Function.Parse(ref parser);
 
         Assert.Equal(2, function?.Identifier?.Components.Count);
-
-        Assert.Single(function.Identifier);
         
         var parameters = function.Identifier.Components[1].AsT1;
 
@@ -47,18 +46,19 @@ public class Functions : ParsingTests
         var parameter = parameters[0].AsT0;
         Assert.Single(parameter?.Identifier);
 
-        Assert.Single(parameter.Type?.Identifier);
-        var type = parameter.Type.Identifier.Components[0].AsT0;
+        var unresolved = parameter.Type as Type.Unresolved;
+        Assert.Single(unresolved.Reference);
+        var type = unresolved.Reference.Components[0].AsT0;
         Assert.Single(type?.Tokens.ToArray());
         
         Assert.Single(function.Definition);
-        var unresolved = function.Definition[0] as Member.Unresolved;
-        Assert.Equal(2, unresolved?.Reference.Components.Count);
+        var member = function.Definition[0] as Member.Unresolved;
+        Assert.Equal(2, member?.Reference.Components.Count);
 
-        var @return = unresolved.Reference.Components[0].AsT0;
+        var @return = member.Reference.Components[0].AsT0;
         Assert.Single(@return?.Tokens.ToArray());
 
-        var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+        var scalar = member.Reference.Components[1].AsT1 as Literal;
         Assert.Single(scalar?.Tokens.ToArray());
     }
 
@@ -100,17 +100,23 @@ public class Functions : ParsingTests
         var parameter = parameters[0].AsT0;
         Assert.Single(parameter.Identifier);
 
-        Assert.Single(parameter.Type?.Identifier);
-        var type = parameter.Type.Identifier.Components[0].AsT0;
-        Assert.Single(type?.Tokens.ToArray());        
+        {
+            var unresolved = parameter.Type as Type.Unresolved;
+            Assert.Single(unresolved.Reference);
+            var type = unresolved.Reference.Components[0].AsT0;
+            Assert.Single(type?.Tokens.ToArray());
+        }
 
-        Assert.Single(function.Returns?.Identifier);
-        var returns = function.Returns.Identifier.Components[0].AsT0;
-        Assert.Single(returns?.Tokens.ToArray());
+        {
+            var unresolved = function.Returns as Type.Unresolved;
+            Assert.Single(unresolved.Reference);
+            var returns = unresolved.Reference.Components[0].AsT0;
+            Assert.Single(returns?.Tokens.ToArray());
+        }
 
         Assert.Single(function.Definition);
-        var unresolved = function.Definition[0] as Member.Unresolved;
-        Assert.Equal(4, unresolved?.Reference.Components.Count);
+        var member = function.Definition[0] as Member.Unresolved;
+        Assert.Single(member?.Reference);
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]
