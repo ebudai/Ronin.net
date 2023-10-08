@@ -81,7 +81,6 @@ internal class Datum : Member
     {
         public ExpectedIdentifierError(ref Parser parser) => Tokens = Unknown.Parse(ref parser).Tokens;
 
-        public Dictionary<string, object> Data { get; }
         public string Reason { get; } = "expected identifier";
         public System.ReadOnlyMemory<Token> Tokens { get; init; }
     }

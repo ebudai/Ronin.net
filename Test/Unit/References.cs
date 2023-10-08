@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using System.Collections;
 using Test;
 using Literal = Ronin.Grammar.Literal;
 
@@ -45,5 +46,25 @@ public class References : ParsingTests
             var scalar = arguments[0].AsT0 as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
+    }
+
+    [Fact(DisplayName = "enumerable")]
+    public void Enumerable()
+    {
+        List<Token> tokens = new()
+        {
+            Word("thing"),
+            Number(7),
+            StartValues(),
+            Text("stuff"),
+            EndValues(),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var reference = Reference.Parse(ref parser);
+        IEnumerable enumerable = reference;
+
+        Assert.Equivalent(enumerable.GetEnumerator(), reference.GetEnumerator());
     }
 }

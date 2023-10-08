@@ -36,12 +36,10 @@ internal class Association : Statement, Compiler.IParsable<Association>
     {
         public Error(IError error)
         {
-            Data = error.Data;
             Reason = error.Reason;
             Tokens = error.Tokens;
         }
 
-        public Dictionary<string, object> Data { get; }
         public string Reason { get; }
         public ReadOnlyMemory<Token> Tokens { get; }
     }

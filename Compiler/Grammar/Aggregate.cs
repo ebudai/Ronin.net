@@ -8,22 +8,20 @@ using System.Linq;
 
 namespace Ronin.Grammar;
 
-
-
 /// <summary>
 ///     Parent class for all syntactical groupings
 /// </summary>
 /// 
-/// <typeparam name="T">
-///     The aggregated class
+/// <typeparam name="TParent">
+///     The parent class
 /// </typeparam>
 /// 
 /// <typeparam name="TOpen">
-///     <see cref="Symbol"/> used to denote the start of the grouping - must be subclass of <see cref="Punctuation"/>
+///     <see cref="Symbol"/> used to denote the start of the grouping - must be subclass of <see cref="Open"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TElement">
-///     class to be grouped - must be implementation of <see cref="IParsable{TElement}"/> and subclass of <see cref="Syntax"/>
+///     class to be aggregated - must be implementation of <see cref="IParsable{TElement}"/>
 /// </typeparam>
 /// 
 /// <typeparam name="TSeparator">
@@ -31,25 +29,22 @@ namespace Ronin.Grammar;
 /// </typeparam>
 /// 
 /// <typeparam name="TClose">
-///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Punctuation"/>
+///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Close"/>
 /// </typeparam>
-internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Value.Temporary, IList<TElement>
-    where T : Aggregate<T, TOpen, TElement, TSeparator, TClose>, new()
+internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> : Value.Temporary, IList<TElement>
+    where TParent : class, IList<TElement>, new()
     where TOpen : Open
     where TElement : IParsable<TElement>
     where TSeparator : Punctuation
     where TClose : Close
 {
-    protected Aggregate() { }
-    protected Aggregate(IEnumerable<TElement> values) => Values = values.ToList();
-
-    public new static T Parse(ref Parser current)
+    public new static TParent Parse(ref Parser current)
     {
         Parser parser = current;
         
         if (parser.TryAdvance<TOpen>() is false) return null;
         
-        T values = new();
+        TParent values = new();
 
         while (parser.IsNotFinished)
         {

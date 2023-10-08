@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Scope : Statement
+internal class Scope : Statement, IList<Statement>
 {
     public Modifiers Modifiers { get; set; }
     public List<Statement> Statements { get; init; } = new();
@@ -30,7 +30,7 @@ internal class Scope : Statement
         {
             Parser parser = current;
 
-            var modifiers = Modifiers.Parse(ref parser);
+            if (Modifiers.Parse(ref parser) is not Modifiers modifiers) return null;
 
             if (Basic.Parse(ref parser) is not Scope scope) return null;
 
@@ -89,21 +89,18 @@ internal class Scope : Statement
 
         public class ExpectedIterableError : Iterating, IError
         {
-            public Dictionary<string, object> Data { get; }
             public string Reason { get; } = "expected list";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
 
         public class ExpectedReturnsSymbolError : Iterating, IError
         {
-            public Dictionary<string, object> Data { get; }
             public string Reason { get; } = $"expected '{Returns.symbol}'";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
 
         public class ExpectedNameError : Iterating, IError
         {
-            public Dictionary<string, object> Data { get; }
             public string Reason { get; } = "expected name";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
@@ -142,7 +139,6 @@ internal class Scope : Statement
 
         public class ExpectedTargetError : Reactive, IError
         {
-            public Dictionary<string, object> Data { get; }
             public string Reason { get; } = "expected reactive variable";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
@@ -171,30 +167,7 @@ internal class Scope : Statement
 
     internal class Basic : Scope
     {
-        public static new Basic Parse(ref Parser current)
-        {
-            Parser parser = current;
-
-            if (parser.TryAdvance<Open.Brace>() is false) return null;
-
-            List<Statement> statements = new();
-
-            while (parser.IsNotFinished)
-            {
-                if (Trivia.Parse(ref parser) is not null) continue;
-                var syntax = Statement.Parse(ref parser);
-                if (syntax is null)
-                {
-                    if (parser.TryAdvance<Close.Brace>() is false) return null;
-                    break;
-                }
-                statements.Add(syntax);
-                parser.TryAdvance<Terminal>();
-            }
-
-            current = parser;
-            return new Basic { Statements = statements };
-        }
+        public static new Basic Parse(ref Parser current) => Aggregate<Basic, Open.Brace, Statement, Terminal, Close.Brace>.Parse(ref current);
     }
 
     internal class Conditional<T> : Scope where T : Keyword
@@ -229,9 +202,24 @@ internal class Scope : Statement
 
         public class ExpectedConditionError : Conditional<T>, IError
         {
-            public Dictionary<string, object> Data { get; }
             public string Reason { get; } = "expected condition";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
     }
+
+    public int Count => ((ICollection<Statement>)Statements).Count;
+    public bool IsReadOnly => ((ICollection<Statement>)Statements).IsReadOnly;
+    public Statement this[int index] { get => ((IList<Statement>)Statements)[index]; set => ((IList<Statement>)Statements)[index] = value; }
+
+    public int IndexOf(Statement item) => ((IList<Statement>)Statements).IndexOf(item);
+    public void Insert(int index, Statement item) => ((IList<Statement>)Statements).Insert(index, item);
+    public void RemoveAt(int index) => ((IList<Statement>)Statements).RemoveAt(index);
+    public void Add(Statement item) => ((ICollection<Statement>)Statements).Add(item);
+    public void Clear() => ((ICollection<Statement>)Statements).Clear();
+    public bool Contains(Statement item) => ((ICollection<Statement>)Statements).Contains(item);
+    public void CopyTo(Statement[] array, int arrayIndex) => ((ICollection<Statement>)Statements).CopyTo(array, arrayIndex);
+    public bool Remove(Statement item) => ((ICollection<Statement>)Statements).Remove(item);
+    public IEnumerator<Statement> GetEnumerator() => ((IEnumerable<Statement>)Statements).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
+
 }

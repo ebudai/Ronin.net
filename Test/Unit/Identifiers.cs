@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using System.Collections;
 using Test;
 
 namespace Unit;
@@ -94,5 +95,34 @@ public class Identifiers : ParsingTests
         Assert.Single(second.Identifier);
 
         Assert.Equal(first.Identifier.Components[0].AsT0.Tokens.Span[0].Memory, second.Identifier.Components[0].AsT0.Tokens.Span[0].Memory);
+    }
+
+    [Fact(DisplayName = "enumerable")]
+    public void Enumerable()
+    {
+        const string name = nameof(name);
+        const string all = nameof(all);
+        const string the = nameof(the);
+        const string things = nameof(things);
+
+        // name all the things
+
+        List<Token> tokens = new()
+        {
+            Word(name),
+            Whitespace(),
+            Word(all),
+            Whitespace(),
+            Word(the),
+            Whitespace(),
+            Word(things),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var identifier = Identifier.Parse(ref parser);
+        IEnumerable enumerable = identifier;
+
+        Assert.Equivalent(enumerable.GetEnumerator(), identifier.GetEnumerator());
     }
 }

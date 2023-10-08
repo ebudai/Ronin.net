@@ -11,8 +11,8 @@ internal ref struct Lexer
 
     public Token Lex()
     {
-        Token start = new Open.Brace();
-        var current = start;
+        Token start = null;
+        Token current = null;
         while (cursor < sourcecode.Length)
         {
             var token = Literal.Lex(ref this)                
@@ -22,10 +22,12 @@ internal ref struct Lexer
                 ?? Trivium.Lex(ref this)
                 ?? Symbol.Lex(ref this)
                 ?? Word.Lex(ref this) as Token;
-            current = current.Append(token);
+            if (token is Trivium) continue;
+            current = current?.Append(token) ?? token;
+            start ??= current;
         }
 
-        current.Append(new Close.Brace()).Append(new Sentinel());
+        current?.Append(new Sentinel());
         return start;
     }
 

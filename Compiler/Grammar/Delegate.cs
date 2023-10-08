@@ -66,7 +66,7 @@ internal class Delegate : Value.Temporary
         current = parser;
         return new Delegate
         {
-            Data = parameters ?? new(),
+            Data = parameters,
             Definition = definition
         };
     }

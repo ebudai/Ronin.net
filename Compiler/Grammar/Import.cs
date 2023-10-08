@@ -39,7 +39,6 @@ internal class Import : Statement
 
     public class ExpectedNameError : Import, IError
     {
-        public Dictionary<string, object> Data { get; }
         public string Reason { get; } = "expected name";
         public ReadOnlyMemory<Token> Tokens { get; init; }
     }

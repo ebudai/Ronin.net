@@ -41,7 +41,6 @@ internal class Export : Statement
 
     public class ExpectedNameError : Export, IError
     {
-        public Dictionary<string, object> Data { get; }
         public string Reason { get; } = "expected name";
         public ReadOnlyMemory<Token> Tokens { get; init; }
     }

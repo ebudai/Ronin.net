@@ -20,7 +20,7 @@ internal struct Parser
 
     public readonly bool IsNotFinished => Token is not Sentinel;
 
-    public Scope Parse() => Scope.Parse(ref this);
+    public Module Parse() => Module.Parse(ref this);
 
     public List<T> ParseRepeating<T>() where T : IParsable<T>
     {

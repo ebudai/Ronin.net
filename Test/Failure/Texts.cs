@@ -26,11 +26,11 @@ public class Texts
         Lexer lexer = new(literal);
         var tokens = lexer.Lex().ToArray();
 
-        Assert.Equal(5, tokens.Length);
+        Assert.Equal(3, tokens.Length);
 
-        Assert.IsType<TextDelimiter>(tokens[1]);
+        Assert.IsType<TextDelimiter>(tokens[0]);
 
-        var word = tokens[2] as Word;
+        var word = tokens[1] as Word;
         Assert.Equal(literal[1..], word?.Memory.ToString());
     }
 
@@ -42,9 +42,9 @@ public class Texts
         Lexer lexer = new(literal);
         var lexed = lexer.Lex().ToArray();
 
-        Assert.Equal(4, lexed.Length);
+        Assert.Equal(2, lexed.Length);
 
-        var quote = lexed[1] as TextDelimiter;
+        var quote = lexed[0] as TextDelimiter;
         Assert.Equal(literal, quote?.Memory.ToString());
     }
 
