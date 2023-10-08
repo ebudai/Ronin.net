@@ -119,6 +119,38 @@ public class Functions : ParsingTests
         Assert.Single(member?.Reference);
     }
 
+    [Fact(DisplayName = "default parameter")]
+    public void DefaultParameter()
+    {
+        // function test(x = "3") => number { return x as number; }
+
+        List<Token> tokens = new()
+        {
+            Keyword.Function(),
+            Word("test"),
+            StartValues(),
+            Word("x"),
+            Assign(),
+            Text("3"),
+            EndValues(),
+            Returns(),
+            Word("number"),
+            StartScope(),
+            Word("return"),
+            Word("x"),
+            Word("as"),
+            Word("number"),
+            Terminal(),
+            EndScope(),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var function = Function.Parse(ref parser);
+
+        Assert.Equal(2, function?.Identifier?.Components?.Count);
+    }
+
     /*[Trait(nameof(Analyzer), nameof(Declaration))]
     public class Declaration : AnalysisTests
     {

@@ -3,6 +3,7 @@ using Ronin.Lexicon;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -207,19 +208,19 @@ internal class Scope : Statement, IList<Statement>
         }
     }
 
-    public int Count => ((ICollection<Statement>)Statements).Count;
-    public bool IsReadOnly => ((ICollection<Statement>)Statements).IsReadOnly;
-    public Statement this[int index] { get => ((IList<Statement>)Statements)[index]; set => ((IList<Statement>)Statements)[index] = value; }
-
-    public int IndexOf(Statement item) => ((IList<Statement>)Statements).IndexOf(item);
-    public void Insert(int index, Statement item) => ((IList<Statement>)Statements).Insert(index, item);
-    public void RemoveAt(int index) => ((IList<Statement>)Statements).RemoveAt(index);
-    public void Add(Statement item) => ((ICollection<Statement>)Statements).Add(item);
-    public void Clear() => ((ICollection<Statement>)Statements).Clear();
-    public bool Contains(Statement item) => ((ICollection<Statement>)Statements).Contains(item);
-    public void CopyTo(Statement[] array, int arrayIndex) => ((ICollection<Statement>)Statements).CopyTo(array, arrayIndex);
-    public bool Remove(Statement item) => ((ICollection<Statement>)Statements).Remove(item);
-    public IEnumerator<Statement> GetEnumerator() => ((IEnumerable<Statement>)Statements).GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
-
+    #region list implementation
+    [ExcludeFromCodeCoverage] public int Count => ((ICollection<Statement>)Statements).Count;
+    [ExcludeFromCodeCoverage] public bool IsReadOnly => ((ICollection<Statement>)Statements).IsReadOnly;
+    [ExcludeFromCodeCoverage] public Statement this[int index] { get => ((IList<Statement>)Statements)[index]; set => ((IList<Statement>)Statements)[index] = value; }
+    [ExcludeFromCodeCoverage] public int IndexOf(Statement item) => ((IList<Statement>)Statements).IndexOf(item);
+    [ExcludeFromCodeCoverage] public void Insert(int index, Statement item) => ((IList<Statement>)Statements).Insert(index, item);
+    [ExcludeFromCodeCoverage] public void RemoveAt(int index) => ((IList<Statement>)Statements).RemoveAt(index);
+    [ExcludeFromCodeCoverage] public void Add(Statement item) => ((ICollection<Statement>)Statements).Add(item);
+    [ExcludeFromCodeCoverage] public void Clear() => ((ICollection<Statement>)Statements).Clear();
+    [ExcludeFromCodeCoverage] public bool Contains(Statement item) => ((ICollection<Statement>)Statements).Contains(item);
+    [ExcludeFromCodeCoverage] public void CopyTo(Statement[] array, int arrayIndex) => ((ICollection<Statement>)Statements).CopyTo(array, arrayIndex);
+    [ExcludeFromCodeCoverage] public bool Remove(Statement item) => ((ICollection<Statement>)Statements).Remove(item);
+    [ExcludeFromCodeCoverage] public IEnumerator<Statement> GetEnumerator() => ((IEnumerable<Statement>)Statements).GetEnumerator();
+    [ExcludeFromCodeCoverage] IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
+    #endregion
 }

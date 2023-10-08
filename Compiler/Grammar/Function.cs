@@ -27,8 +27,7 @@ internal class Function : Member
     {
         Parser parser = current;
 
-        var keyword = parser.Token;
-        if (keyword is not Lexicon.Function) return null;
+        if (parser.Token is not Lexicon.Function keyword) return null;
         parser.Advance();
 
         if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
@@ -46,20 +45,11 @@ internal class Function : Member
         current = parser;
         return new Function
         {
+            Keyword = keyword,
             Identifier = identifier,
             Modifiers = modifiers,
             Returns = returns,
             Definition = definition
         };
-    }
-
-    public new class Unresolved : Function
-    {
-        public Reference Reference { get; init; }
-
-        public static new Function Parse(ref Parser current) 
-            => Reference.Parse(ref current) is not Reference reference
-                ? null
-                : new Unresolved { Reference = reference };
     }
 }

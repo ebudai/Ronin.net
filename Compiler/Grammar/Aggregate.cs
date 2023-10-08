@@ -4,6 +4,7 @@ using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Ronin.Grammar;
@@ -41,9 +42,9 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
     public new static TParent Parse(ref Parser current)
     {
         Parser parser = current;
-        
+
         if (parser.TryAdvance<TOpen>() is false) return null;
-        
+
         TParent values = new();
 
         while (parser.IsNotFinished)
@@ -64,41 +65,24 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
         return values;
     }
 
-    public IEnumerator<TElement> GetEnumerator() => Values.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
-
-    public int Count => Values.Count;
-
-    public bool IsReadOnly => false;
-
-    public TElement this[int index]
-    {
-        get => Values[index];
-        set => Values[index] = value;
-    }
-
-    public int IndexOf(TElement item) => Values.IndexOf(item);
-
-    public void Insert(int index, TElement item) => Values.Insert(index, item);
-
-    public void RemoveAt(int index) => Values.RemoveAt(index);
-
-    public void Add(TElement item) => Values.Add(item);
-
-    public void AddRange(IEnumerable<TElement> items) => Values.AddRange(items);
-
-    public void Clear() => Values.Clear();
-
-    public bool Contains(TElement item) => Values.Contains(item);
-
-    public void CopyTo(TElement[] array, int arrayIndex) => Values.CopyTo(array, arrayIndex);
-
-    public bool Remove(TElement item) => Values.Remove(item);
-
-    public override bool Equals(object obj) => (obj as IEnumerable<TElement>)?.SequenceEqual(Values) ?? false;
-
-    public override int GetHashCode() => Values.GetHashCode();
+    #region list implementation
+    [ExcludeFromCodeCoverage] public IEnumerator<TElement> GetEnumerator() => Values.GetEnumerator();
+    [ExcludeFromCodeCoverage] IEnumerator IEnumerable.GetEnumerator() => Values.GetEnumerator();
+    [ExcludeFromCodeCoverage] public int Count => Values.Count;
+    [ExcludeFromCodeCoverage] public bool IsReadOnly => false;
+    [ExcludeFromCodeCoverage] public TElement this[int index] { get => Values[index]; set => Values[index] = value; }
+    [ExcludeFromCodeCoverage] public int IndexOf(TElement item) => Values.IndexOf(item);
+    [ExcludeFromCodeCoverage] public void Insert(int index, TElement item) => Values.Insert(index, item);
+    [ExcludeFromCodeCoverage] public void RemoveAt(int index) => Values.RemoveAt(index);
+    [ExcludeFromCodeCoverage] public void Add(TElement item) => Values.Add(item);
+    [ExcludeFromCodeCoverage] public void AddRange(IEnumerable<TElement> items) => Values.AddRange(items);
+    [ExcludeFromCodeCoverage] public void Clear() => Values.Clear();
+    [ExcludeFromCodeCoverage] public bool Contains(TElement item) => Values.Contains(item);
+    [ExcludeFromCodeCoverage] public void CopyTo(TElement[] array, int arrayIndex) => Values.CopyTo(array, arrayIndex);
+    [ExcludeFromCodeCoverage] public bool Remove(TElement item) => Values.Remove(item);
+    [ExcludeFromCodeCoverage] public override bool Equals(object obj) => (obj as IEnumerable<TElement>)?.SequenceEqual(Values) ?? false;
+    [ExcludeFromCodeCoverage] public override int GetHashCode() => Values.GetHashCode();
+    #endregion
 
     private readonly List<TElement> Values = new();
 }

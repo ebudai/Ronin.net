@@ -1,9 +1,11 @@
 ﻿using Ronin.Grammar;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Compiler;
 
+[ExcludeFromCodeCoverage]
 internal abstract class Resolution
 {
     public static Resolution From(List<Resolution> resolutions) => resolutions.Count switch

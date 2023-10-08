@@ -1,6 +1,5 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
@@ -58,7 +57,7 @@ internal class Type : Member
                 : new Unresolved { Reference = reference };
     }
 
-    internal class Overloaded : Type
+    /*internal class Overloaded : Type
     {
         public List<Resolution> Overloads { get; init; }
     }
@@ -66,7 +65,7 @@ internal class Type : Member
     internal class Calculated : Type
     {
         public Member Member { get; init; }
-    }
+    }*/
 }
 
 internal class Algebra
@@ -84,7 +83,7 @@ internal class Algebra
                 : new Unresolved { Reference = reference };
     }
 
-    internal class Overloaded : Algebra
+    /*internal class Overloaded : Algebra
     {
         public List<Resolution> Overloads { get; init; }
     }
@@ -92,5 +91,5 @@ internal class Algebra
     internal class Calculated<T> : Algebra
     {
         public T Member { get; init; }
-    }
+    }*/
 }
