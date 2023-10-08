@@ -18,7 +18,7 @@ public class Imports : ParsingTests
             Keyword.Import(),
             Word("things"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -39,7 +39,7 @@ public class Imports : ParsingTests
             Word("funstuff"),
             Word("websockets"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
                 
         Parser parser = new(tokens.AsLinkedList());
@@ -63,7 +63,7 @@ public class Imports : ParsingTests
             Word("secret"),
             Word("stuff"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());

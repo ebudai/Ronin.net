@@ -18,7 +18,7 @@ public class Intervals : ParsingTests
             Number(3),
             Range(),
             Number(4),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -36,7 +36,7 @@ public class Intervals : ParsingTests
         {
             Range(),
             Number(3),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -54,7 +54,7 @@ public class Intervals : ParsingTests
         {
             Number(7),
             Range(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());

@@ -24,6 +24,6 @@ internal class Unknown : Statement
 
         if (ReferenceEquals(current.Token, parser.Token)) return null;
 
-        return new Unknown { Tokens = current.AdvanceTo(parser) };
+        return new Unknown { Tokens = current.AdvanceTo(ref parser) };
     }
 }

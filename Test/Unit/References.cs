@@ -21,7 +21,7 @@ public class References : ParsingTests
             StartValues(),
             Text("stuff"),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());

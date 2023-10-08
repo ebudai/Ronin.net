@@ -18,7 +18,7 @@ public class Parameter : ParsingTests
             Word("not"),
             Word("parameters"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -30,7 +30,7 @@ public class Parameter : ParsingTests
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        List<Token> tokens = new() { Sentinel.Instance };
+        List<Token> tokens = new() { new Sentinel() };
         Parser parser = new(tokens.AsLinkedList());
         var parameters = Parameters.Parse(ref parser);
 
@@ -55,7 +55,7 @@ public class Parameter : ParsingTests
             Word("stuff"),
             EndIndexer(),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -76,7 +76,7 @@ public class Parameter : ParsingTests
             Word("text"),
             Terminal(),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());

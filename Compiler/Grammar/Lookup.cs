@@ -19,7 +19,7 @@ namespace Ronin.Grammar;
 ///     var x = { a = 3, b = 22.3, "special" = values maximum };
 ///             ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Lookup : Aggregate<Lookup, OpenBrace, Association, Separator, CloseBrace>
+internal class Lookup : Aggregate<Lookup, Open.Brace, Association, Separator, Close.Brace>
 {
 
 }

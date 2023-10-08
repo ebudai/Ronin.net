@@ -21,7 +21,7 @@ public class Lookups : ParsingTests
             Assign(),
             Number(3),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -52,14 +52,11 @@ public class Lookups : ParsingTests
             Assign(),
             Number(4),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
-        var statements = parser.Parse().ToList();
-
-        Assert.Single(statements);
-        var datum = statements[0] as Datum;
+        var datum = Datum.Parse(ref parser);
         var lookup = datum?.Initializer as Lookup;
         Assert.NotNull(lookup);
     }

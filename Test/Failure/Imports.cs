@@ -21,6 +21,6 @@ public class Imports : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var import = Ronin.Grammar.Import.Parse(ref parser);
 
-        Assert.Null(import);
+        Assert.IsType<Ronin.Grammar.Import.ExpectedNameError>(import);
     }
 }

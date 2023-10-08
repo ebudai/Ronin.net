@@ -18,7 +18,7 @@ public class IteratingScopes : ParsingTests
             Word("not"),
             Word("loop"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -30,53 +30,51 @@ public class IteratingScopes : ParsingTests
     [Fact(DisplayName = "bad name")]
     public void BadName()
     {
-        // for each 7 in best horses { run the horse; }
+        // iterate best horses => 7 { run the horse; }
 
         List<Token> tokens = new()
         {
-            Keyword.ForEach(),
-            Number(7),
-            Word("in"),
+            Keyword.Iterate(),
             Word("best"),
             Word("horses"),
+            Returns(),
+            Number(7),
             StartScope(),
             Word("run"),
             Word("the"),
             Word("horse"),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
         var loop = Scope.Parse(ref parser);
 
-        Assert.Null(loop);
+        Assert.IsType<Scope.Iterating.ExpectedNameError>(loop);
     }
 
-    [Fact(DisplayName = "missing scope")]
-    public void MissingScope()
+    [Fact(DisplayName = "missing returns")]
+    public void MissingReturns()
     {
-        // for each car in fast cars car colour = 3;
+        // iterate cars car fast colour = 3;
 
         List<Token> tokens = new()
         {
-            Keyword.ForEach(),
-            Word("car"),
-            Word("in"),
-            Word("fast"),
+            Keyword.Iterate(),
             Word("cars"),
             Word("car"),
+            Word("fast"),
             Word("colour"),
             Assign(),
             Number(3),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
         var loop = Scope.Parse(ref parser);
 
-        Assert.Null(loop);
+        Assert.IsType<Scope.Iterating.ExpectedReturnsSymbolError>(loop);
     }
 }

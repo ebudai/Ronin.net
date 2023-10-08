@@ -22,7 +22,7 @@ public class Data : ParsingTests
             Returns(),
             Word("number"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -54,7 +54,7 @@ public class Data : ParsingTests
             Keyword.Reactive(),
             Word("text"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -88,7 +88,7 @@ public class Data : ParsingTests
             Keyword.Compiled(),
             Word("text"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -122,7 +122,7 @@ public class Data : ParsingTests
             Keyword.Shared(),
             Word("text"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -188,7 +188,7 @@ public class Data : ParsingTests
             Assign(),
             Word("things"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -224,7 +224,7 @@ public class Data : ParsingTests
             Assign(),
             Number(2),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());

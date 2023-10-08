@@ -11,14 +11,15 @@ public class IteratingScopes : ParsingTests
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        // for each car in cars { car speed = 9000; }
+        // iterate cars => var car { car speed = 9000; }
 
         List<Token> tokens = new()
         {
-            Keyword.ForEach(),
-            Word("car"),
-            Word("in"),
+            Keyword.Iterate(),
             Word("cars"),
+            Returns(),
+            Keyword.Variable(),
+            Word("car"),
             StartScope(),
             Word("car"),
             Word("speed"),
@@ -26,47 +27,44 @@ public class IteratingScopes : ParsingTests
             Number(9000),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
         var loop = Scope.Iterating.Parse(ref parser);
 
-        Assert.NotNull(loop?.List);
+        Assert.NotNull(loop?.Iterable);
 
-        Assert.Single(loop);
+        Assert.Single(loop.Statements);
 
-        var assignment = loop[0] as Association;
+        var assignment = loop.Statements[0] as Association;
         Assert.NotNull(assignment);
     }
 
     [Fact(DisplayName = "specifies datatype")]
     public void SpecifiesDatatype()
     {
-        // for each var value => whole number in values { value++; }
-        
+        // iterate values => var value { value++; }
+
         List<Token> tokens = new()
         {
-            Keyword.ForEach(),
+            Keyword.Iterate(),
+            Word("values"),
+            Returns(),
             Keyword.Variable(),
             Word("value"),
-            Returns(),
-            Word("whole"),
-            Word("number"),
-            Word("in"),
-            Word("values"),
             StartScope(),
             Word("value"),
             Symbol("+"),
             Symbol("+"),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
         var loop = Scope.Iterating.Parse(ref parser);
 
-        Assert.NotNull(loop?.List);
+        Assert.NotNull(loop?.Iterable);
     }
 }

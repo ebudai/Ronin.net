@@ -2,6 +2,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
+using Type = Ronin.Grammar.Type;
 
 namespace Unit;
 
@@ -21,7 +22,7 @@ public class Parameter : ParsingTests
             Returns(),
             Word("money"),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -39,8 +40,9 @@ public class Parameter : ParsingTests
 
         Assert.Single(datum.Identifier);
 
-        Assert.Single(datum.Type?.Identifier);
-        var name = datum.Type.Identifier.Components[0].AsT0;
+        var unresolved = datum.Type as Type.Unresolved;
+        Assert.Single(unresolved?.Reference);
+        var name = unresolved.Reference.Components[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
     }
 
@@ -62,7 +64,7 @@ public class Parameter : ParsingTests
             Returns(),
             Word("text"),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -71,32 +73,32 @@ public class Parameter : ParsingTests
         Assert.Equal(2, parameters?.Count);
 
         {
-            Datum datum = parameters[0].AsT0;
+            Assert.True(parameters[0].IsT0);
             
-            Assert.Null(datum?.Mutability);
-
-            Assert.False(datum.Modifiers.Is<Compiled>());
-            Assert.False(datum.Modifiers.Is<Global>());
-            Assert.False(datum.Modifiers.Is<Optional>());
-
+            Datum datum = parameters[0].AsT0;            
+            
+            Assert.NotNull(datum);
+            Assert.Null(datum.Mutability);
+            Assert.Empty(datum.Modifiers.Tokens.ToArray());
             Assert.Single(datum.Identifier);
-        
-            Assert.Single(datum.Type?.Identifier);
-            var name = datum.Type.Identifier.Components[0].AsT0;
+
+            var unresolved = datum.Type as Type.Unresolved;
+            Assert.Single(unresolved?.Reference);
+            var name = unresolved.Reference.Components[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
             var datum = parameters[1].AsT0;
 
-            Assert.Null(datum?.Mutability);
+            Assert.NotNull(datum);
+            Assert.Null(datum.Mutability);
+            Assert.Empty(datum.Modifiers.Tokens.ToArray());
+            Assert.Single(datum.Identifier);
 
-            Assert.False(datum.Modifiers.Is<Compiled>());
-            Assert.False(datum.Modifiers.Is<Global>());
-            Assert.False(datum.Modifiers.Is<Optional>());
-
-            Assert.Single(datum.Type.Identifier);
-            var name = datum.Type.Identifier.Components[0].AsT0;
+            var unresolved = datum.Type as Type.Unresolved;
+            Assert.Single(unresolved?.Reference);
+            var name = unresolved.Reference.Components[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
     }
@@ -110,12 +112,12 @@ public class Parameter : ParsingTests
         {
             StartValues(),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
         var arguments = Parameters.Parse(ref parser);
 
-        Assert.Empty(arguments);
+        Assert.Null(arguments);
     }
 }

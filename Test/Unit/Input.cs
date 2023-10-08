@@ -19,7 +19,7 @@ public class Input : ParsingTests
             StartValues(),
             Word("stuff"),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -44,7 +44,7 @@ public class Input : ParsingTests
             Separator(),
             Word("stuff"),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -76,7 +76,7 @@ public class Input : ParsingTests
         {
             StartValues(),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -98,7 +98,7 @@ public class Input : ParsingTests
             Separator(),
             Word("thing"),
             EndValues(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -144,7 +144,7 @@ public class Input : ParsingTests
             Number(3),
             EndValues(),
             EndValues(),
-            Sentinel.Instance,
+            new Sentinel(),
         };
         
         Parser parser = new(tokens.AsLinkedList());

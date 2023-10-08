@@ -6,29 +6,13 @@ using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Scope : Statement, IList<Statement>
+internal class Scope : Statement
 {
     public Modifiers Modifiers { get; set; }
     public List<Statement> Statements { get; init; } = new();
 
     public Scope() { }
     private Scope(Scope scope) => Statements = scope.Statements;
-
-    public int Count => ((ICollection<Statement>)Statements).Count;
-    public bool IsReadOnly => ((ICollection<Statement>)Statements).IsReadOnly;
-
-    public Statement this[int index] { get => ((IList<Statement>)Statements)[index]; set => ((IList<Statement>)Statements)[index] = value; }
-
-    public int IndexOf(Statement item) => ((IList<Statement>)Statements).IndexOf(item);
-    public void Insert(int index, Statement item) => ((IList<Statement>)Statements).Insert(index, item);
-    public void RemoveAt(int index) => ((IList<Statement>)Statements).RemoveAt(index);
-    public void Add(Statement item) => ((ICollection<Statement>)Statements).Add(item);
-    public void Clear() => ((ICollection<Statement>)Statements).Clear();
-    public bool Contains(Statement item) => ((ICollection<Statement>)Statements).Contains(item);
-    public void CopyTo(Statement[] array, int arrayIndex) => ((ICollection<Statement>)Statements).CopyTo(array, arrayIndex);
-    public bool Remove(Statement item) => ((ICollection<Statement>)Statements).Remove(item);
-    public IEnumerator<Statement> GetEnumerator() => ((IEnumerable<Statement>)Statements).GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
 
     public static new Scope Parse(ref Parser current)
         => Basic.Parse(ref current)
@@ -63,7 +47,7 @@ internal class Scope : Statement, IList<Statement>
 
     public class Iterating : Scope
     {
-        public Datum List { get; init; }
+        public Datum Iterable { get; init; }
         public Identifier Current { get; init; }
 
         private Iterating() { }
@@ -79,38 +63,38 @@ internal class Scope : Statement, IList<Statement>
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
-                return new ExpectedListError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedIterableError { Tokens = current.AdvanceTo(ref parser) };
             }
 
             if (parser.TryAdvance<Returns>() is false)
             {
-                return new ExpectedLReturnsSymbolError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedReturnsSymbolError { Tokens = current.AdvanceTo(ref parser) };
             }
 
             if (Name.Parse(ref parser) is not Name name)
             {
-                return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedNameError { Tokens = current.AdvanceTo(ref parser) };
             }
 
             if (Definition.Parse(ref parser) is not Scope definition) return null;
 
             current = parser;
-            return new Iterating(definition )
+            return new Iterating(definition)
             {
                 Modifiers = modifiers,
-                List = datum,
+                Iterable = datum,
                 Current = new Identifier { Components = { name } }
             };
         }
 
-        public class ExpectedListError : Iterating, IError
+        public class ExpectedIterableError : Iterating, IError
         {
             public Dictionary<string, object> Data { get; }
             public string Reason { get; } = "expected list";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
 
-        public class ExpectedLReturnsSymbolError : Iterating, IError
+        public class ExpectedReturnsSymbolError : Iterating, IError
         {
             public Dictionary<string, object> Data { get; }
             public string Reason { get; } = $"expected '{Returns.symbol}'";
@@ -143,7 +127,7 @@ internal class Scope : Statement, IList<Statement>
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
-                return new ExpectedTargetError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedTargetError { Tokens = current.AdvanceTo(ref parser) };
             }
 
             if (Definition.Parse(ref parser) is not Scope definition) return null;
@@ -166,7 +150,6 @@ internal class Scope : Statement, IList<Statement>
 
     public class Definition : Scope
     {
-        private Definition() { }
         private Definition(Scope scope) : base(scope) { }
 
         public static new Definition Parse(ref Parser current)
@@ -182,7 +165,7 @@ internal class Scope : Statement, IList<Statement>
             if (definition is null) return null;
 
             current = parser;
-            return new(definition as Scope ?? new Scope { definition });
+            return new(definition as Scope ?? new Scope { Statements = { definition } });
         }
     }
 
@@ -192,7 +175,7 @@ internal class Scope : Statement, IList<Statement>
         {
             Parser parser = current;
 
-            if (parser.TryAdvance<OpenBrace>() is false) return null;
+            if (parser.TryAdvance<Open.Brace>() is false) return null;
 
             List<Statement> statements = new();
 
@@ -202,7 +185,7 @@ internal class Scope : Statement, IList<Statement>
                 var syntax = Statement.Parse(ref parser);
                 if (syntax is null)
                 {
-                    if (parser.TryAdvance<CloseBrace>() is false) return null;
+                    if (parser.TryAdvance<Close.Brace>() is false) return null;
                     break;
                 }
                 statements.Add(syntax);
@@ -210,10 +193,7 @@ internal class Scope : Statement, IList<Statement>
             }
 
             current = parser;
-            return new Basic
-            {
-                Statements = statements
-            };
+            return new Basic { Statements = statements };
         }
     }
 
@@ -234,7 +214,7 @@ internal class Scope : Statement, IList<Statement>
 
             if (Member.Unresolved.Parse(ref parser) is not Member condition)
             {
-                return new ExpectedConditionError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedConditionError { Tokens = current.AdvanceTo(ref parser) };
             }
 
             if (Definition.Parse(ref parser) is not Scope definition) return null;

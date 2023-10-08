@@ -51,7 +51,7 @@ public class Associations : ParsingTests
     [Fact(DisplayName = "empty")]
     public void Blank()
     {
-        List<Token> tokens = new() { Sentinel.Instance };
+        List<Token> tokens = new() { new Sentinel() };
 
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);

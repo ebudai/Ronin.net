@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 ///     function thing (x => number, y => money) with stuff { return 8; }
 ///                    ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Parameters : Aggregate<Parameters, OpenParenthesis, Parameters.Parameter, Separator, CloseParenthesis>
+internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.Parameter, Separator, Close.Parenthesis>
 {
     public class Parameter : OneOfBase<Datum, Association>, IParsable<Parameter>
     {

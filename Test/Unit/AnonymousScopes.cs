@@ -22,7 +22,7 @@ public class AnonymousScopes : ParsingTests
             Number(2),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -45,7 +45,7 @@ public class AnonymousScopes : ParsingTests
             Word("store"),
             Terminal(),
             EndScope(),
-            Sentinel.Instance,
+            new Sentinel(),
         };
 
         Parser parser = new(tokens.AsLinkedList());

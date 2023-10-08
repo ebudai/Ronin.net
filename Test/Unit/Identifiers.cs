@@ -22,7 +22,7 @@ public class Identifiers : ParsingTests
             Word(name),
             Symbol(plus),
             Word(things),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -51,7 +51,7 @@ public class Identifiers : ParsingTests
             Word(the),
             Whitespace(),
             Word(things),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());

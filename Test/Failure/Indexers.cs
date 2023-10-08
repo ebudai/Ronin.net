@@ -30,7 +30,7 @@ public class Indexers : ParsingTests
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        List<Token> tokens = new() { Sentinel.Instance };
+        List<Token> tokens = new() { new Sentinel() };
         Parser parser = new(tokens.AsLinkedList());
         var arguments = Ronin.Grammar.Index.Parse(ref parser);
 

@@ -2,6 +2,7 @@
 
 using OneOf;
 using Ronin.Compiler;
+using Ronin.Lexicon;
 using System.Collections;
 using System.Collections.Generic;
 using static Ronin.Grammar.Value;
@@ -9,7 +10,7 @@ using static Ronin.Grammar.Value;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function.Declaration"/>, <see cref="Type.Declaration"/> or <see cref="Value"/>
+///     Represents a named indirection to a <see cref="Datum"/>, <see cref="Function"/>, <see cref="Type"/> or <see cref="Value"/>
 /// </summary>
 internal class Reference : IEnumerable<Reference.Component>
 {
@@ -18,6 +19,8 @@ internal class Reference : IEnumerable<Reference.Component>
     public static Reference Parse(ref Parser current)
     {
         Parser parser = current;
+
+        if (current.Token is Keyword) return null;
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;

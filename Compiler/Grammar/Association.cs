@@ -21,7 +21,8 @@ internal class Association : Statement, Compiler.IParsable<Association>
 
         var origin = Value.Parse(ref parser);
         if (origin is IError error) return new Error(error);
-        
+        if (origin is null) return null;
+
         current = parser;
         return new Association
         {

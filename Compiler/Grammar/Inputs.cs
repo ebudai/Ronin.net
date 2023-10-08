@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 ///     var x = pack(a, 8.2, "first name");
 ///                 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Inputs : Aggregate<Inputs, OpenParenthesis, Inputs.Input, Separator, CloseParenthesis>
+internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separator, Close.Parenthesis>
 {
     public class Input : OneOfBase<Value, Association>, IParsable<Input>
     {

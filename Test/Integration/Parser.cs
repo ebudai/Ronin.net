@@ -117,12 +117,11 @@ public class Parsing : ParsingTests
             Word("now"),
             Terminal(),
             EndScope(),
-
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
-        var statements = parser.Parse().ToList();
+        var statements = parser.Parse().Statements;
 
         Assert.Equal(9, statements.Count);
 

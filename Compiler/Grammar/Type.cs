@@ -46,7 +46,7 @@ internal class Type : Member
         };
     }
 
-    public class Definition : Aggregate<Definition, OpenBrace, Member, Terminal, CloseBrace> { }
+    public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace> { }
 
     public new class Unresolved : Type
     {

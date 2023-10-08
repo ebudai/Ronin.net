@@ -32,7 +32,7 @@ public class Functions : ParsingTests
             Number(7),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -51,8 +51,8 @@ public class Functions : ParsingTests
         var type = unresolved.Reference.Components[0].AsT0;
         Assert.Single(type?.Tokens.ToArray());
         
-        Assert.Single(function.Definition);
-        var member = function.Definition[0] as Member.Unresolved;
+        Assert.Single(function.Definition.Statements);
+        var member = function.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, member?.Reference.Components.Count);
 
         var @return = member.Reference.Components[0].AsT0;
@@ -85,7 +85,7 @@ public class Functions : ParsingTests
             Word("number"),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -114,8 +114,8 @@ public class Functions : ParsingTests
             Assert.Single(returns?.Tokens.ToArray());
         }
 
-        Assert.Single(function.Definition);
-        var member = function.Definition[0] as Member.Unresolved;
+        Assert.Single(function.Definition.Statements);
+        var member = function.Definition.Statements[0] as Member.Unresolved;
         Assert.Single(member?.Reference);
     }
 

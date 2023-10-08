@@ -11,7 +11,7 @@ internal ref struct Lexer
 
     public Token Lex()
     {
-        Token start = new OpenBrace();
+        Token start = new Open.Brace();
         var current = start;
         while (cursor < sourcecode.Length)
         {
@@ -25,7 +25,7 @@ internal ref struct Lexer
             current = current.Append(token);
         }
 
-        current.Append(new CloseBrace()).Append(Sentinel.Instance);
+        current.Append(new Close.Brace()).Append(new Sentinel());
         return start;
     }
 

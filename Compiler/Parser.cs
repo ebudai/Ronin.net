@@ -54,14 +54,14 @@ internal struct Parser
         return advanced;
     }
     
-    public ReadOnlyMemory<Token> AdvanceTo(Parser parser)
+    public ReadOnlyMemory<Token> AdvanceTo(ref Parser parser)
     {
         var tokens = new Token[parser.Token.RunningIndex - Token.RunningIndex];
         int i = 0;
         while (ReferenceEquals(Token, parser.Token) is false)
         {
             tokens[i++] = Token;
-            Token = Token.Next as Token;
+            Token = Advance();
         }
         return tokens;
     }

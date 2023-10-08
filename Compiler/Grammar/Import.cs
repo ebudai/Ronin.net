@@ -27,7 +27,7 @@ internal class Import : Statement
         if (current.Token is not Lexicon.Import keyword) return null;
         parser.Advance();
 
-        if (Name.Parse(ref parser) is not Name name) return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
+        if (Name.Parse(ref parser) is not Name name) return new ExpectedNameError { Tokens = current.AdvanceTo(ref parser) };
 
         current = parser;
         return new Import

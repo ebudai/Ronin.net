@@ -5,7 +5,7 @@ using Test;
 
 using Function = Ronin.Grammar.Function;
 
-namespace Failure;
+namespace Integration;
 
 [Trait(nameof(Parser), null)]
 public class Unknowns : ParsingTests
@@ -19,11 +19,11 @@ public class Unknowns : ParsingTests
         {
             Returns(),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
-        var statements = parser.Parse().ToList();
+        var statements = parser.Parse().Statements;
         
         Assert.Single(statements);
         Assert.IsType<Unknown>(statements[0]);

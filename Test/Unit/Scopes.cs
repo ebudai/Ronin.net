@@ -22,15 +22,15 @@ public class Scopes : ParsingTests
             Number(56),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
         var scope = Scope.Parse(ref parser);
 
-        Assert.Single(scope);
+        Assert.Single(scope.Statements);
 
-        var datum = scope[0] as Datum;
+        var datum = scope.Statements[0] as Datum;
 
         Assert.IsType<Variable>(datum?.Mutability);
 

@@ -21,13 +21,13 @@ public class ConditionalScopes : ParsingTests
             Number(2),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
         var conditional = Scope.Conditional.Parse(ref parser);
 
-        Assert.Null(conditional);
+        Assert.IsType<Scope.Conditional.ExpectedConditionError>(conditional);
     }
 
     [Fact(DisplayName = "no definition")]

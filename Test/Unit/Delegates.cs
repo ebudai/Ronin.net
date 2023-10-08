@@ -25,7 +25,7 @@ public class Delegates : ParsingTests
             Number(3),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -37,8 +37,8 @@ public class Delegates : ParsingTests
             Assert.Single(name?.Tokens.ToArray());
         }
 
-        Assert.Single(@delegate.Definition);
-        var unresolved = @delegate.Definition[0] as Member.Unresolved;
+        Assert.Single(@delegate.Definition.Statements);
+        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
@@ -68,7 +68,7 @@ public class Delegates : ParsingTests
             Number(3),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -78,8 +78,8 @@ public class Delegates : ParsingTests
         Datum datum = @delegate.Data[0].AsT0;
         Assert.Single(datum?.Identifier);
 
-        Assert.Single(@delegate.Definition);
-        var unresolved = @delegate.Definition[0] as Member.Unresolved;
+        Assert.Single(@delegate.Definition.Statements);
+        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
@@ -113,7 +113,7 @@ public class Delegates : ParsingTests
             Number(3),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -128,8 +128,8 @@ public class Delegates : ParsingTests
         identifier = @delegate.Data[2].AsT1;
         Assert.Single(identifier?.Tokens.ToArray());
 
-        Assert.Single(@delegate.Definition);
-        var unresolved = @delegate.Definition[0] as Member.Unresolved;
+        Assert.Single(@delegate.Definition.Statements);
+        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
@@ -158,7 +158,7 @@ public class Delegates : ParsingTests
             Number(3),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -166,8 +166,8 @@ public class Delegates : ParsingTests
 
         Assert.Empty(@delegate?.Data);
 
-        Assert.Single(@delegate?.Definition);
-        var unresolved = @delegate.Definition[0] as Member.Unresolved;
+        Assert.Single(@delegate?.Definition.Statements);
+        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Components.Count);
 
         {
@@ -199,7 +199,7 @@ public class Delegates : ParsingTests
             Number(3),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());

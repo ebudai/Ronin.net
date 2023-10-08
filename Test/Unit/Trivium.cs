@@ -17,7 +17,7 @@ public class Trivium : ParsingTests
         {
             Whitespace(),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());

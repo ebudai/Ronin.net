@@ -38,7 +38,7 @@ internal class Delegate : Value.Temporary
         }
     }
 
-    public class Parameters : Aggregate<Parameters, OpenParenthesis, Parameter, Separator, CloseParenthesis> { }
+    public class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameter, Separator, Close.Parenthesis> { }
 
     public static new Delegate Parse(ref Parser current)
     {
@@ -50,7 +50,7 @@ internal class Delegate : Value.Temporary
             {
                 parameters = new Parameters { name };
             }
-            else if (parser.TryAdvance<OpenParenthesis>() && parser.TryAdvance<CloseParenthesis>())
+            else if (parser.TryAdvance<Open.Parenthesis>() && parser.TryAdvance<Close.Parenthesis>())
             {
                 parameters = new();
             }

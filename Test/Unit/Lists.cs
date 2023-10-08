@@ -19,7 +19,7 @@ public class Lists : ParsingTests
             StartScope(),
             Number(3),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -44,7 +44,7 @@ public class Lists : ParsingTests
             Separator(),
             Number(5),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -85,14 +85,11 @@ public class Lists : ParsingTests
             Separator(),
             Word("test"),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
-        var statements = parser.Parse().ToList();
-
-        Assert.Single(statements);
-        var datum = statements[0] as Datum;
+        var datum = Datum.Parse(ref parser);
         var list = datum?.Initializer as List;
         Assert.NotNull(list);
     }

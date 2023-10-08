@@ -1,6 +1,8 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
 
+//[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace Test;
 
 internal static class Utility
@@ -140,45 +142,45 @@ public class ParsingTests
         return separator;
     }
 
-    internal static OpenParenthesis StartValues()
+    internal static Open.Parenthesis StartValues()
     {
-        OpenParenthesis startValues = new();
-        startValues.SetMemory(Ronin.Lexicon.OpenParenthesis.symbol.ToString());
+        Open.Parenthesis startValues = new();
+        startValues.SetMemory(Open.Parenthesis.symbol.ToString());
         return startValues;
     }
 
-    internal static CloseParenthesis EndValues()
+    internal static Close.Parenthesis EndValues()
     {
-        CloseParenthesis endValues = new();
-        endValues.SetMemory(Ronin.Lexicon.CloseParenthesis.symbol.ToString());
+        Close.Parenthesis endValues = new();
+        endValues.SetMemory(Close.Parenthesis.symbol.ToString());
         return endValues;
     }
 
-    internal static OpenSquareBracket StartIndexer()
+    internal static Open.SquareBracket StartIndexer()
     {
-        OpenSquareBracket startIndexer = new();
-        startIndexer.SetMemory(Ronin.Lexicon.OpenSquareBracket.symbol.ToString());
+        Open.SquareBracket startIndexer = new();
+        startIndexer.SetMemory(Open.SquareBracket.symbol.ToString());
         return startIndexer;
     }
 
-    internal static CloseSquareBracket EndIndexer()
+    internal static Close.SquareBracket EndIndexer()
     {
-        CloseSquareBracket endIndexer = new();
-        endIndexer.SetMemory(Ronin.Lexicon.CloseSquareBracket.symbol.ToString());
+        Close.SquareBracket endIndexer = new();
+        endIndexer.SetMemory(Close.SquareBracket.symbol.ToString());
         return endIndexer;
     }
 
-    internal static OpenBrace StartScope()
+    internal static Open.Brace StartScope()
     {
-        OpenBrace startScope = new();
-        startScope.SetMemory(Ronin.Lexicon.OpenBrace.symbol.ToString());
+        Open.Brace startScope = new();
+        startScope.SetMemory(Open.Brace.symbol.ToString());
         return startScope;
     }
 
-    internal static CloseBrace EndScope()
+    internal static Close.Brace EndScope()
     {
-        CloseBrace endScope = new();
-        endScope.SetMemory(Ronin.Lexicon.CloseBrace.symbol.ToString());
+        Close.Brace endScope = new();
+        endScope.SetMemory(Close.Brace.symbol.ToString());
         return endScope;
     }
 
@@ -275,11 +277,11 @@ public class ParsingTests
             return optional;
         }
 
-        internal static Iterate ForEach()
+        internal static Iterate Iterate()
         {
-            Iterate @foreach = new();
-            @foreach.SetMemory(Ronin.Lexicon.Iterate.keyword);
-            return @foreach;
+            Iterate iterate = new();
+            iterate.SetMemory(Ronin.Lexicon.Iterate.keyword);
+            return iterate;
         }
 
         internal static If If()

@@ -1,10 +1,14 @@
-﻿using Ronin.Compiler;
+﻿using OneOf;
+using Ronin.Compiler;
 
 namespace Ronin.Grammar;
 
 internal class Member : Value, IParsable<Member>
 {
-    public static new Member Parse(ref Parser current) => Unresolved.Parse(ref current);
+    public static new Member Parse(ref Parser current)
+        => Datum.Parse(ref current)
+        ?? Function.Parse(ref current)
+        ?? Type.Parse(ref current) as Member;
     
     public class Unresolved : Member
     {
@@ -22,7 +26,7 @@ internal class Member : Value, IParsable<Member>
                     return new Unresolved { Reference = reference };
                 }
             }
-            return null; // members can only have a name
+            return null;
         }
     }
 }

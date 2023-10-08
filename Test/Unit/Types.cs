@@ -21,7 +21,7 @@ public class Types : ParsingTests
             Word("Test"),
             StartScope(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -57,23 +57,24 @@ public class Types : ParsingTests
             Word("money"),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
         var type = Type.Parse(ref parser);
 
-        Assert.Equal(2, type?.Identifier.Components.Count);
+        Assert.Single(type?.Identifier);
         var algebra = type.Algebra as Algebra.Unresolved;
-        Assert.Equal(2, algebra.Reference.Components.Count);
+        Assert.Single(algebra.Reference);
         Assert.Equal(2, type.Members.Count);
 
         {
             var cash = type.Members[0] as Datum;
             Assert.IsType<Variable>(cash?.Mutability);
             Assert.Single(cash.Identifier);
-            Assert.Single(cash.Type?.Identifier);
-            var name = cash.Type.Identifier.Components[0].AsT0;
+            var unresolved = cash.Type as Type.Unresolved;
+            Assert.Single(unresolved?.Reference);
+            var name = unresolved.Reference.Components[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
@@ -81,8 +82,9 @@ public class Types : ParsingTests
             var debt = type.Members[1] as Datum;
             Assert.IsType<Variable>(debt?.Mutability);
             Assert.Single(debt.Identifier);
-            Assert.Single(debt.Type?.Identifier);
-            var name = debt.Type.Identifier.Components[0].AsT0;
+            var unresolved = debt.Type as Type.Unresolved;
+            Assert.Single(unresolved?.Reference);
+            var name = unresolved.Reference.Components[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
     }

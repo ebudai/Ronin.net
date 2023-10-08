@@ -10,57 +10,58 @@ internal class Bracket : Punctuation
 internal class Open : Bracket
 {
     public new static Open Lex(ref Lexer lexer)
-        => OpenSquareBracket.Lex(ref lexer)
-        ?? OpenBrace.Lex(ref lexer)
-        ?? OpenParenthesis.Lex(ref lexer) as Open;
+        => SquareBracket.Lex(ref lexer)
+        ?? Brace.Lex(ref lexer)
+        ?? Parenthesis.Lex(ref lexer) as Open;
+
+    internal class SquareBracket : Open
+    {
+        internal const char symbol = '[';
+
+        public static new SquareBracket Lex(ref Lexer lexer) => Lex<SquareBracket>(ref lexer, symbol);
+    }
+
+    internal class Brace : Open
+    {
+        internal const char symbol = '{';
+
+        public static new Brace Lex(ref Lexer lexer) => Lex<Brace>(ref lexer, symbol);
+    }
+
+    internal class Parenthesis : Open
+    {
+        internal const char symbol = '(';
+
+        public static new Parenthesis Lex(ref Lexer lexer) => Lex<Parenthesis>(ref lexer, symbol);
+    }
+
 }
 
 internal class Close : Bracket
 {
     public new static Close Lex(ref Lexer lexer)
-        => CloseSquareBracket.Lex(ref lexer)
-        ?? CloseBrace.Lex(ref lexer)
-        ?? CloseParenthesis.Lex(ref lexer) as Close;
-}
+        => SquareBracket.Lex(ref lexer)
+        ?? Brace.Lex(ref lexer)
+        ?? Parenthesis.Lex(ref lexer) as Close;
 
-internal class CloseSquareBracket : Close
-{
-    internal const char symbol = ']';
+    internal class SquareBracket : Close
+    {
+        internal const char symbol = ']';
 
-    public static new CloseSquareBracket Lex(ref Lexer lexer) => Lex<CloseSquareBracket>(ref lexer, symbol);
-}
+        public static new SquareBracket Lex(ref Lexer lexer) => Lex<SquareBracket>(ref lexer, symbol);
+    }
 
-internal class CloseBrace : Close
-{
-    internal const char symbol = '}';
+    internal class Brace : Close
+    {
+        internal const char symbol = '}';
 
-    public static new CloseBrace Lex(ref Lexer lexer) => Lex<CloseBrace>(ref lexer, symbol);
-}
+        public static new Brace Lex(ref Lexer lexer) => Lex<Brace>(ref lexer, symbol);
+    }
 
-internal class CloseParenthesis : Close
-{
-    internal const char symbol = ')';
+    internal class Parenthesis : Close
+    {
+        internal const char symbol = ')';
 
-    public static new CloseParenthesis Lex(ref Lexer lexer) => Lex<CloseParenthesis>(ref lexer, symbol);
-}
-
-internal class OpenSquareBracket : Open
-{
-    internal const char symbol = '[';
-
-    public static new OpenSquareBracket Lex(ref Lexer lexer) => Lex<OpenSquareBracket>(ref lexer, symbol);
-}
-
-internal class OpenBrace : Open
-{
-    internal const char symbol = '{';
-
-    public static new OpenBrace Lex(ref Lexer lexer) => Lex<OpenBrace>(ref lexer, symbol);
-}
-
-internal class OpenParenthesis : Open
-{
-    internal const char symbol = '(';
-
-    public static new OpenParenthesis Lex(ref Lexer lexer) => Lex<OpenParenthesis>(ref lexer, symbol);
+        public static new Parenthesis Lex(ref Lexer lexer) => Lex<Parenthesis>(ref lexer, symbol);
+    }
 }

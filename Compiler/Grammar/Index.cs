@@ -27,7 +27,7 @@ namespace Ronin.Grammar;
 ///     var selected value = multi-dimensional list[3, 1, 0];
 ///                                                ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Index : Aggregate<Index, OpenSquareBracket, Value, Separator, CloseSquareBracket>
+internal class Index : Aggregate<Index, Open.SquareBracket, Value, Separator, Close.SquareBracket>
 {
 
 }

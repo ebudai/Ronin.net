@@ -28,7 +28,7 @@ public class Delegates : ParsingTests
             Number(3),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());

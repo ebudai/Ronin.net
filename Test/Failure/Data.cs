@@ -42,7 +42,7 @@ public class Data : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
         
-        Assert.Null(datum);
+        Assert.IsType<Datum.ExpectedIdentifierError>(datum);
     }
 }
 

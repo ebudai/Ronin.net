@@ -21,7 +21,7 @@ public class Assignments : ParsingTests
             Assign(),
             Number(3),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -40,14 +40,14 @@ public class Assignments : ParsingTests
     [Fact(DisplayName = "no whitespace")]
     public void NoWhitespace()
     {
-        // thing = 0
+        // thing=0
 
         List<Token> tokens = new()
         {
             Word("thing"),
             Assign(),
             Number(0),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());

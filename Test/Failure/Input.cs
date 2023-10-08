@@ -30,7 +30,7 @@ public class Input : ParsingTests
     [Fact(DisplayName = "blank")]
     public void Blank()
     {
-        List<Token> tokens = new() { Sentinel.Instance };
+        List<Token> tokens = new() { new Sentinel() };
         Parser parser = new(tokens.AsLinkedList());
         var arguments = Inputs.Parse(ref parser);
 

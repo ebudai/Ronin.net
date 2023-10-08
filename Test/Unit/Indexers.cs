@@ -19,7 +19,7 @@ public class Indexers : ParsingTests
             StartIndexer(),
             Word("test"),
             EndIndexer(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -44,7 +44,7 @@ public class Indexers : ParsingTests
             Separator(),
             Word("stuff"),
             EndIndexer(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -76,7 +76,7 @@ public class Indexers : ParsingTests
         {
             StartIndexer(),
             EndIndexer(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());
@@ -99,7 +99,7 @@ public class Indexers : ParsingTests
             Separator(),
             Word("thing"),
             EndIndexer(),
-            Sentinel.Instance
+            new Sentinel()
         };
         
         Parser parser = new(tokens.AsLinkedList());

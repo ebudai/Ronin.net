@@ -22,7 +22,7 @@ public class RepeatingScopes : ParsingTests
             Number(2),
             Terminal(),
             EndScope(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());

@@ -45,11 +45,11 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Valu
 
     public new static T Parse(ref Parser current)
     {
-        if (current.Token is not TOpen) return null;
-
         Parser parser = current;
+        
+        if (parser.TryAdvance<TOpen>() is false) return null;
+        
         T values = new();
-        parser.Advance();
 
         while (parser.IsNotFinished)
         {
@@ -64,6 +64,7 @@ internal abstract class Aggregate<T, TOpen, TElement, TSeparator, TClose> : Valu
         }
 
         if (values.Count is 0) return null;
+
         current = parser;
         return values;
     }

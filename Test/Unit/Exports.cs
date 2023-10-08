@@ -20,7 +20,7 @@ public class Exports : ParsingTests
             Keyword.PartOf(),
             Word("things"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());
@@ -41,7 +41,7 @@ public class Exports : ParsingTests
             Word("funstuff"),
             Word("websockets"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
                 
         Parser parser = new(tokens.AsLinkedList());
@@ -65,7 +65,7 @@ public class Exports : ParsingTests
             Word("secret"),
             Word("stuff"),
             Terminal(),
-            Sentinel.Instance
+            new Sentinel()
         };
 
         Parser parser = new(tokens.AsLinkedList());

@@ -24,7 +24,7 @@ public class Exports : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var export = Export.Parse(ref parser);
 
-        Assert.Null(export);
+        Assert.IsType<Export.ExpectedNameError>(export);
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]
