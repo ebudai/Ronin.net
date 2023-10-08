@@ -30,6 +30,6 @@ internal class Modifiers
 
         if (parser.TryAdvanceMany<Modifier>() is false) return null;
 
-        return new Modifiers { Tokens = current.AdvanceTo(ref parser) };
+        return new Modifiers { Tokens = current.AdvanceTo(parser) };
     }
 }

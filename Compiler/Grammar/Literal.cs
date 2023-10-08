@@ -28,6 +28,6 @@ internal class Literal : Value.Temporary
 
         if (parser.TryAdvanceMany<Lexicon.Literal>() is false) return null;
 
-        return new Literal { Tokens = current.AdvanceTo(ref parser) };
+        return new Literal { Tokens = current.AdvanceTo(parser) };
     }
 }

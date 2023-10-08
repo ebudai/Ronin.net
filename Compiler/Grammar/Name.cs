@@ -24,6 +24,6 @@ internal class Name
 
         if (ReferenceEquals(parser.Token, current.Token)) return null;
 
-        return new Name { Tokens = current.AdvanceTo(ref parser) };
+        return new Name { Tokens = current.AdvanceTo(parser) };
     }
 }

@@ -19,6 +19,6 @@ internal class Trivia
 
         if (parser.TryAdvanceMany<Trivium>() is false) return null;
 
-        return new Trivia { Tokens = current.AdvanceTo(ref parser) };
+        return new Trivia { Tokens = current.AdvanceTo(parser) };
     }
 }

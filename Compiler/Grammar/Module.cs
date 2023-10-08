@@ -19,8 +19,6 @@ internal class Module : Scope
             parser.TryAdvance<Terminal>();
         }
 
-        if (values.Count is 0) return null;
-
         current = parser;
         return values;
     }

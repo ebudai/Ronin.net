@@ -7,7 +7,7 @@ namespace Ronin.Grammar;
 /// <summary>
 ///     Central workhorse class for <see cref="Parser"/>
 /// </summary>
-internal partial class Statement : IParsable<Statement>
+internal abstract class Statement : IParsable<Statement>
 {
     public static Statement Parse(ref Parser current)
         => Export.Parse(ref current)
@@ -16,5 +16,7 @@ internal partial class Statement : IParsable<Statement>
         ?? Member.Parse(ref current)        
         ?? Value.Parse(ref current)
         ?? Scope.Parse(ref current)
-        ?? Unknown.Parse(ref current) as Statement; 
+        ?? Unknown.Parse(ref current) as Statement;
+
+    public virtual void ResolveTypes(Scope context) { }
 }

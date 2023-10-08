@@ -29,7 +29,7 @@ internal class Export : Statement
         if (parser.Token is not PartOf keyword) return null;
         parser.Advance();
 
-        if (Name.Parse(ref parser) is not Name identifier) return new ExpectedNameError { Tokens = current.AdvanceTo(ref parser) };
+        if (Name.Parse(ref parser) is not Name identifier) return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
 
         current = parser;
         return new Export 
