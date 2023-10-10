@@ -39,14 +39,14 @@ public class Delegates : ParsingTests
 
         Assert.Single(@delegate.Definition.Statements);
         var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
-        Assert.Equal(2, unresolved?.Reference.Components.Count);
+        Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
-            var name = unresolved.Reference.Components[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
         
-        var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+        var scalar = unresolved.Reference.Span[1].AsT1 as Literal;
         Assert.Single(scalar?.Tokens.ToArray());        
     }
 
@@ -80,15 +80,15 @@ public class Delegates : ParsingTests
 
         Assert.Single(@delegate.Definition.Statements);
         var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
-        Assert.Equal(2, unresolved?.Reference.Components.Count);
+        Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
-            var name = unresolved.Reference.Components[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+            var scalar = unresolved.Reference.Span[1].AsT1 as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }
@@ -130,15 +130,15 @@ public class Delegates : ParsingTests
 
         Assert.Single(@delegate.Definition.Statements);
         var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
-        Assert.Equal(2, unresolved?.Reference.Components.Count);
+        Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
-            Name name = unresolved.Reference.Components[0].AsT0;
+            Name name = unresolved.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+            var scalar = unresolved.Reference.Span[1].AsT1 as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }
@@ -168,15 +168,15 @@ public class Delegates : ParsingTests
 
         Assert.Single(@delegate?.Definition.Statements);
         var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
-        Assert.Equal(2, unresolved?.Reference.Components.Count);
+        Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
-            Name name = unresolved.Reference.Components[0].AsT0;
+            Name name = unresolved.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = unresolved.Reference.Components[1].AsT1 as Literal;
+            var scalar = unresolved.Reference.Span[1].AsT1 as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }

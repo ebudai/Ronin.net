@@ -48,17 +48,17 @@ public class Functions : ParsingTests
 
         var unresolved = parameter.Type as Type.Unresolved;
         Assert.Single(unresolved.Reference);
-        var type = unresolved.Reference.Components[0].AsT0;
+        var type = unresolved.Reference.Span[0].AsT0;
         Assert.Single(type?.Tokens.ToArray());
         
         Assert.Single(function.Definition.Statements);
         var member = function.Definition.Statements[0] as Member.Unresolved;
-        Assert.Equal(2, member?.Reference.Components.Count);
+        Assert.Equal(2, member?.Reference.Span.Length);
 
-        var @return = member.Reference.Components[0].AsT0;
+        var @return = member.Reference.Span[0].AsT0;
         Assert.Single(@return?.Tokens.ToArray());
 
-        var scalar = member.Reference.Components[1].AsT1 as Literal;
+        var scalar = member.Reference.Span[1].AsT1 as Literal;
         Assert.Single(scalar?.Tokens.ToArray());
     }
 
@@ -103,14 +103,14 @@ public class Functions : ParsingTests
         {
             var unresolved = parameter.Type as Type.Unresolved;
             Assert.Single(unresolved.Reference);
-            var type = unresolved.Reference.Components[0].AsT0;
+            var type = unresolved.Reference.Span[0].AsT0;
             Assert.Single(type?.Tokens.ToArray());
         }
 
         {
             var unresolved = function.Returns as Type.Unresolved;
             Assert.Single(unresolved.Reference);
-            var returns = unresolved.Reference.Components[0].AsT0;
+            var returns = unresolved.Reference.Span[0].AsT0;
             Assert.Single(returns?.Tokens.ToArray());
         }
 

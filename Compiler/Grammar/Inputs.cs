@@ -3,6 +3,7 @@
 using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Reflection;
 
 namespace Ronin.Grammar;
 
@@ -20,6 +21,25 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separator, Close.Parenthesis>
 {
+    public override void ResolveReferences(Scope context)
+    {
+        for (var i = 0; i != Count; ++i)
+        {
+            if (this[i].IsT0)
+            {
+                this[i].AsT0.ResolveReferences(context);
+            }
+            else if (this[i].AsT1 is Member.Unresolved unresolved)
+            {
+                this[i] = context.Find(unresolved.Reference);
+            }
+            else
+            {
+                this[i].AsT1.ResolveReferences(context);
+            }
+        }
+    }
+
     public class Input : OneOfBase<Association, Value>, IParsable<Input>
     {
         protected Input(OneOf<Association, Value> _) : base(_) { }

@@ -27,8 +27,8 @@ public class Input : ParsingTests
 
         Assert.Single(inputs);
         var member = inputs[0].AsT1 as Member.Unresolved;
-        Assert.Single(member?.Reference.Components);
-        var name = member.Reference.Components[0].AsT0;
+        Assert.Single(member?.Reference);
+        var name = member.Reference.Span[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
     }
 
@@ -54,15 +54,15 @@ public class Input : ParsingTests
 
         {
             var member = arguments[0].AsT1 as Member.Unresolved;
-            Assert.Single(member?.Reference?.Components);
-            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(member?.Reference);
+            var name = member.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
             var member = arguments[1].AsT1 as Member.Unresolved;
-            Assert.Single(member?.Reference.Components);
-            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(member?.Reference);
+            var name = member.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
     }
@@ -118,8 +118,8 @@ public class Input : ParsingTests
 
         {
             var member = arguments[2].AsT1 as Member.Unresolved;
-            Assert.Single(member?.Reference.Components);
-            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(member?.Reference);
+            var name = member.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
     }
@@ -154,8 +154,8 @@ public class Input : ParsingTests
 
         {
             var member = arguments[0].AsT1 as Member.Unresolved;
-            Assert.Single(member?.Reference.Components);
-            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(member?.Reference);
+            var name = member.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
@@ -213,8 +213,8 @@ public class Input : ParsingTests
         Association assignment = arguments[1].AsT0;
         var member = assignment.Destination as Member.Unresolved;
         Assert.Single(member?.Reference);
-        Assert.True(member.Reference.Components[0].IsT0);
-        var name = member.Reference.Components[0].AsT0;
+        Assert.True(member.Reference.Span[0].IsT0);
+        var name = member.Reference.Span[0].AsT0;
         Assert.Single(name.Tokens.ToArray());
         Assert.Equal(variable, name.Tokens.Span[0].Memory.ToString());
     }

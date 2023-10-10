@@ -18,8 +18,6 @@ namespace Ronin.Grammar;
 internal class Function : Member
 {
     public Lexicon.Function Keyword { get; init; }
-    public Identifier Identifier { get; init; }
-    public Modifiers Modifiers { get; init; }
     public Type Returns { get; set; }
     public Scope Definition { get; init; }
 
@@ -51,5 +49,16 @@ internal class Function : Member
             Returns = returns,
             Definition = definition
         };
+    }
+
+    public override void ResolveReferences(Scope context)
+    {
+        Identifier.ResolveReferences(context);
+        if (Returns is Type.Unresolved unresolved)
+        {
+            var member = context.Find(unresolved.Reference);
+            Returns = member as Type ?? new Type.Calculated { Member = member };
+        }
+        Definition.ResolveReferences(context);
     }
 }

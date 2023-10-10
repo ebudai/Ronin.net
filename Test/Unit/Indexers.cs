@@ -27,8 +27,8 @@ public class Indexers : ParsingTests
 
         Assert.Single(indexer);
         var member = indexer[0] as Member.Unresolved;
-        Assert.Single(member?.Reference?.Components);
-        var name = member.Reference.Components[0].AsT0;
+        Assert.Single(member?.Reference);
+        var name = member.Reference.Span[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
     }
 
@@ -55,14 +55,14 @@ public class Indexers : ParsingTests
         {
             var member = indexer[0] as Member.Unresolved;
             Assert.Single(member?.Reference);
-            Name name = member.Reference.Components[0].AsT0;
+            Name name = member.Reference.Span[0].AsT0;
             Assert.Equal(1, name?.Tokens.Length);
         }
 
         {
             var member = indexer[1] as Member.Unresolved;
             Assert.Single(member?.Reference);
-            var name = member.Reference.Components[0].AsT0;
+            var name = member.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
     }
@@ -119,8 +119,8 @@ public class Indexers : ParsingTests
 
         {
             var member = arguments[2] as Member.Unresolved;
-            Assert.Single(member?.Reference?.Components);
-            var name = member.Reference.Components[0].AsT0;
+            Assert.Single(member?.Reference);
+            var name = member.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }        
     }

@@ -1,7 +1,7 @@
 ﻿using Ronin.Grammar;
 using System.Collections.Generic;
 
-using static Ronin.Compiler.Resolution;
+//using static Ronin.Compiler.Resolution;
 using Type = Ronin.Grammar.Type;
 using Delegate = Ronin.Grammar.Delegate;
 using Function = Ronin.Grammar.Function;

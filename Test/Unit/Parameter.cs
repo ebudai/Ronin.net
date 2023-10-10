@@ -42,7 +42,7 @@ public class Parameter : ParsingTests
 
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Components[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
     }
 
@@ -84,7 +84,7 @@ public class Parameter : ParsingTests
 
             var unresolved = datum.Type as Type.Unresolved;
             Assert.Single(unresolved?.Reference);
-            var name = unresolved.Reference.Components[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
@@ -98,7 +98,7 @@ public class Parameter : ParsingTests
 
             var unresolved = datum.Type as Type.Unresolved;
             Assert.Single(unresolved?.Reference);
-            var name = unresolved.Reference.Components[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
     }

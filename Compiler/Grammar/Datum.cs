@@ -23,8 +23,6 @@ namespace Ronin.Grammar;
 internal class Datum : Member
 {
     public Mutability Mutability { get; init; }
-    public Identifier Identifier { get; init; }
-    public Modifiers Modifiers { get; init; }
     public Type Type { get; set; }
     public Value Initializer { get; init; }
 
@@ -70,11 +68,27 @@ internal class Datum : Member
         };
     }
 
+    public override void ResolveReferences(Scope context)
+    {
+        Identifier.ResolveReferences(context);
+        if (Type is Type.Unresolved unresolved)
+        {
+            var member = context.Find(unresolved.Reference);
+            Type = member as Type ?? new Type.Calculated { Member = member };
+        }
+        Initializer.ResolveReferences(context);
+    }
+
     public new class Unresolved : Datum
     {
         public Reference Reference { get; set; }
 
         public static new Datum Parse(ref Parser parser) => Reference.Parse(ref parser) is Reference reference ? new Unresolved { Reference = reference } : null;
+    }
+
+    public class Calculated : Datum
+    {
+        public Member Member { get; init; }
     }
 
     public class ExpectedIdentifierError : Datum, IError

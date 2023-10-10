@@ -32,7 +32,7 @@ namespace Ronin.Grammar;
 /// <typeparam name="TClose">
 ///     <see cref="Symbol"/> used to denote the completion of the grouping - must be subclass of <see cref="Close"/>
 /// </typeparam>
-internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> : Value.Temporary, IList<TElement>
+internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> : Temporary, IList<TElement>
     where TParent : class, IList<TElement>, new()
     where TOpen : Open
     where TElement : IParsable<TElement>

@@ -5,7 +5,7 @@ using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections;
 using System.Collections.Generic;
-using static Ronin.Grammar.Value;
+using System.Runtime.InteropServices;
 
 namespace Ronin.Grammar;
 
@@ -14,7 +14,9 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Reference : IEnumerable<Reference.Component>
 {
-    public List<Component> Components { get; init; }
+    public System.ReadOnlySpan<Component> Span => CollectionsMarshal.AsSpan(Components);
+
+    internal List<Component> Components { private get; init; }
 
     public static Reference Parse(ref Parser current)
     {

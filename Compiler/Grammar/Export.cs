@@ -3,7 +3,6 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System;
-using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 

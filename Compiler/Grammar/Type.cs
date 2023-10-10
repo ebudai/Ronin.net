@@ -16,8 +16,6 @@ namespace Ronin.Grammar;
 
 internal class Type : Member
 {
-    public Modifiers Modifiers { get; init; }
-    public Identifier Identifier { get; init; }
     public Algebra Algebra { get; set; }    
     public Definition Members { get; init; }
     
@@ -45,6 +43,20 @@ internal class Type : Member
         };
     }
 
+    public override void ResolveReferences(Scope context)
+    {
+        Identifier.ResolveReferences(context);
+        if (Algebra is Algebra.Unresolved unresolved)
+        {
+            var member = context.Find(unresolved.Reference);
+            Algebra = member as Algebra ?? new Algebra.Calculated { Member = member };
+        }
+        foreach (var member in Members)
+        {
+            member.ResolveReferences(context);
+        }
+    }
+
     public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace> { }
 
     public new class Unresolved : Type
@@ -60,24 +72,24 @@ internal class Type : Member
     /*internal class Overloaded : Type
     {
         public List<Resolution> Overloads { get; init; }
-    }
+    }*/
 
     internal class Calculated : Type
     {
         public Member Member { get; init; }
-    }*/
+    }
 }
 
-internal class Algebra
+internal class Algebra : Type
 {
     public List<Type> Bases { get; } = new();
     public List<Type> Unions { get; } = new();
 
-    public class Unresolved : Algebra
+    public new class Unresolved : Algebra
     {
         public Reference Reference { get; init; }
 
-        public static Algebra Parse(ref Parser current)
+        public static new Algebra Parse(ref Parser current)
             => Reference.Parse(ref current) is not Reference reference
                 ? null
                 : new Unresolved { Reference = reference };
@@ -86,10 +98,10 @@ internal class Algebra
     /*internal class Overloaded : Algebra
     {
         public List<Resolution> Overloads { get; init; }
-    }
-
-    internal class Calculated<T> : Algebra
-    {
-        public T Member { get; init; }
     }*/
+
+    internal new class Calculated : Algebra
+    {
+        public Member Member { get; init; }
+    }
 }

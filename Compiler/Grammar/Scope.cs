@@ -9,11 +9,36 @@ namespace Ronin.Grammar;
 
 internal class Scope : Statement, IList<Statement>
 {
-    public Modifiers Modifiers { get; set; }
-    public List<Statement> Statements { get; init; } = new();
+    public Scope Parent { get; set; }
+    public Modifiers Modifiers { get; init; }
+    public List<Module> Imports { get; } = new();    
+    public List<Statement> Statements { get; } = new();
 
-    public Scope() { }
+    protected Scope() { }
     private Scope(Scope scope) => Statements = scope.Statements;
+
+    public virtual Member Find(Reference reference)
+    {
+        foreach (var statement in Statements)
+        {
+            if (statement is not Member member) continue;
+
+        }
+        throw new NotImplementedException();
+    }
+
+    public override void ResolveReferences(Scope context)
+    {
+        Parent = context;
+        foreach (var statement in Statements)
+        {
+            if (statement is Import import)
+            {
+                Imports.Add(new Module.Unresolved { Name = import.Name });
+            }
+            statement.ResolveReferences(this);
+        }
+    }
 
     public static new Scope Parse(ref Parser current)
         => Basic.Parse(ref current)

@@ -11,12 +11,12 @@ namespace Ronin.Grammar;
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Separator"/>-separated <see cref="Datum"/>s between <see cref="OpenParenthesis"/> and <see cref="CloseParenthesis"/>
+///     <see cref="Separator"/>-separated <see cref="Datum"/>s between <see cref="Open.Parenthesis"/> and <see cref="Close.Parenthesis"/>
 /// </remarks>
 /// 
 /// <example>
-///     function thing (x => number, y => money) with stuff { return 8; }
-///                    ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+///     function thing (x => number, var y => text) with stuff { return 8; }
+///                    ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
 internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.Parameter, Separator, Close.Parenthesis>
 {

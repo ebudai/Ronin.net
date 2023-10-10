@@ -3,6 +3,7 @@
 using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -18,27 +19,10 @@ namespace Ronin.Grammar;
 ///     var lambda = () => { return x; };
 ///                  ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Delegate : Value.Temporary
+internal class Delegate : Temporary
 {
     public Parameters Data { get; init; }
     public Scope Definition { get; init; }
-
-    public class Parameter : OneOfBase<Datum, Name>, IParsable<Parameter>
-    {
-        protected Parameter(OneOf<Datum, Name> _) : base(_) { }
-
-        public static implicit operator Parameter(Datum datum) => new(datum);
-        public static implicit operator Parameter(Name name) => new(name);
-
-        public static Parameter Parse(ref Parser current)
-        {
-            if (Datum.Parse(ref current) is Datum datum) return datum;
-            if (Name.Parse(ref current) is Name name) return name;
-            return null;
-        }
-    }
-
-    public class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameter, Separator, Close.Parenthesis> { }
 
     public static new Delegate Parse(ref Parser current)
     {
@@ -70,4 +54,35 @@ internal class Delegate : Value.Temporary
             Definition = definition
         };
     }
+
+    public override void ResolveReferences(Scope context)
+    {
+        for (int i = 0; i != Data.Count; ++i)
+        {
+            if (Data[i].IsT1) continue;
+            if (Data[i].AsT0 is Datum.Unresolved unresolved)
+            {
+                var member = context.Find(unresolved.Reference);
+                Data[i] = member as Datum ?? new Datum.Calculated { Member = member };
+            }
+        }
+        Definition.ResolveReferences(context);
+    }
+
+    public class Parameter : OneOfBase<Datum, Name>, IParsable<Parameter>
+    {
+        protected Parameter(OneOf<Datum, Name> _) : base(_) { }
+
+        public static implicit operator Parameter(Datum datum) => new(datum);
+        public static implicit operator Parameter(Name name) => new(name);
+
+        public static Parameter Parse(ref Parser current)
+        {
+            if (Datum.Parse(ref current) is Datum datum) return datum;
+            if (Name.Parse(ref current) is Name name) return name;
+            return null;
+        }
+    }
+
+    public class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameter, Separator, Close.Parenthesis> { }
 }

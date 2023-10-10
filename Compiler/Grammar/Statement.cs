@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -18,5 +19,5 @@ internal abstract class Statement : IParsable<Statement>
         ?? Scope.Parse(ref current)
         ?? Unknown.Parse(ref current) as Statement;
 
-    public virtual void ResolveTypes(Scope context) { }
+    [ExcludeFromCodeCoverage] public virtual void ResolveReferences(Scope context) { }
 }

@@ -8,8 +8,8 @@ using System.Collections.Generic;
 namespace Ronin.Grammar;
 
 /// <summary>
-///     A unique name for a <see cref="Type.Declaration"/>, <see cref="Datum.Declaration"/> or a <see cref="Function.Declaration"/>
-///     which can contain multiple <see cref="Identifier"/>s and <see cref="Parameters"/>
+///     A unique name for a <see cref="Type"/>, <see cref="Datum"/> or a <see cref="Function"/>
+///     which can contain multiple <see cref="Name"/>s and <see cref="Parameters"/>
 /// </summary>
 internal class Identifier : IEnumerable<Identifier.Component>
 {
@@ -23,6 +23,22 @@ internal class Identifier : IEnumerable<Identifier.Component>
         if (components.Count is 0) return null;
         current = parser;
         return new Identifier { Components = components };
+    }
+
+    public void ResolveReferences(Scope context)
+    {
+        foreach (var component in Components)
+        {
+            if (component.IsT1 is false) continue;
+            foreach (var parameter in component.AsT1)
+            {
+                parameter.Switch
+                (
+                    datum => datum.ResolveReferences(context),
+                    association => association.ResolveReferences(context)
+                );
+            }
+        }
     }
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();

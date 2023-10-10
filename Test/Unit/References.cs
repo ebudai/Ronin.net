@@ -28,20 +28,20 @@ public class References : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var reference = Reference.Parse(ref parser);
 
-        Assert.Equal(3, reference?.Components?.Count);
+        Assert.Equal(3, reference?.Span.Length);
 
         {
-            Name name = reference.Components[0].AsT0;
+            Name name = reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = reference.Components[1].AsT1 as Literal;
+            var scalar = reference.Span[1].AsT1 as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var arguments = reference.Components[2].AsT1 as Inputs;
+            var arguments = reference.Span[2].AsT1 as Inputs;
             Assert.Single(arguments);
             var scalar = arguments[0].AsT1 as Literal;
             Assert.Single(scalar?.Tokens.ToArray());

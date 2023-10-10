@@ -18,5 +18,18 @@ namespace Ronin.Grammar;
 /// </example>
 internal class List : Aggregate<List, Open.Brace, Value, Separator, Close.Brace>
 {
-
+    public override void ResolveReferences(Scope context)
+    {
+        for (var i = 0; i != Count; ++i)
+        {
+            if (this[i] is Member.Unresolved unresolved)
+            {
+                this[i] = context.Find(unresolved.Reference);
+            }
+            else
+            {
+                this[i].ResolveReferences(context);
+            }
+        }
+    }
 }

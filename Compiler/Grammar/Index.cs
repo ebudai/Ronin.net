@@ -29,5 +29,18 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Index : Aggregate<Index, Open.SquareBracket, Value, Separator, Close.SquareBracket>
 {
-
+    public override void ResolveReferences(Scope context)
+    {
+        for (var i = 0; i != Count; ++i)
+        {
+            if (this[i] is Member.Unresolved unresolved)
+            {
+                this[i] = context.Find(unresolved.Reference);
+            }
+            else
+            {
+                this[i].ResolveReferences(context);
+            }
+        }
+    }
 }

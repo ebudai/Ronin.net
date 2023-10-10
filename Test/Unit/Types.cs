@@ -74,7 +74,7 @@ public class Types : ParsingTests
             Assert.Single(cash.Identifier);
             var unresolved = cash.Type as Type.Unresolved;
             Assert.Single(unresolved?.Reference);
-            var name = unresolved.Reference.Components[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
 
@@ -84,7 +84,7 @@ public class Types : ParsingTests
             Assert.Single(debt.Identifier);
             var unresolved = debt.Type as Type.Unresolved;
             Assert.Single(unresolved?.Reference);
-            var name = unresolved.Reference.Components[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsT0;
             Assert.Single(name?.Tokens.ToArray());
         }
     }

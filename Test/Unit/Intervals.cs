@@ -42,7 +42,7 @@ public class Intervals : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var reference = Reference.Parse(ref parser);
 
-        Assert.Equal(2, reference?.Components.Count);
+        Assert.Equal(2, reference?.Span.Length);
     }
 
     [Fact(DisplayName = "right unspecified")]
@@ -60,6 +60,6 @@ public class Intervals : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var reference = Reference.Parse(ref parser);
 
-        Assert.Equal(2, reference?.Components.Count);
+        Assert.Equal(2, reference?.Span.Length);
     }
 }

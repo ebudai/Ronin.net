@@ -1,15 +1,16 @@
-﻿using Ronin.Compiler;
+﻿// Copyright © 2023 Eric Budai
+
+using Ronin.Compiler;
 using Ronin.Lexicon;
 using System;
-using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
 internal class Association : Statement, Compiler.IParsable<Association>
 {
-    public Value Destination { get; init; }
+    public Value Destination { get; set; }
     public Assignment Assignment { get; init; }
-    public Value Origin { get; init; }
+    public Value Origin { get; set; }
 
     public static new Association Parse(ref Parser current)
     {
@@ -30,6 +31,26 @@ internal class Association : Statement, Compiler.IParsable<Association>
             Assignment = assignment,
             Origin = origin
         };
+    }
+
+    public override void ResolveReferences(Scope context)
+    {
+        if (Destination is Member.Unresolved destination)
+        {
+            Destination = context.Find(destination.Reference);
+        }
+        else
+        {
+            Destination.ResolveReferences(context);
+        }
+        if (Origin is Member.Unresolved origin)
+        {
+            Origin = context.Find(origin.Reference);
+        }
+        else
+        {
+            Origin.ResolveReferences(context);
+        }        
     }
 
     public class Error : Association, IError

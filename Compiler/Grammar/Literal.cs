@@ -18,7 +18,7 @@ namespace Ronin.Grammar;
 ///     let x = 7,000,876 + cash amount;
 ///             ↑↑↑↑↑↑↑↑↑
 /// </example>
-internal class Literal : Value.Temporary
+internal class Literal : Temporary
 {
     public ReadOnlyMemory<Token> Tokens { get; init; }
 
