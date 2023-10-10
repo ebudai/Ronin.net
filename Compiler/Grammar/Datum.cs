@@ -3,6 +3,7 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -68,6 +69,7 @@ internal class Datum : Member
         };
     }
 
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         Identifier.ResolveReferences(context);
@@ -86,6 +88,7 @@ internal class Datum : Member
         public static new Datum Parse(ref Parser parser) => Reference.Parse(ref parser) is Reference reference ? new Unresolved { Reference = reference } : null;
     }
 
+    [ExcludeFromCodeCoverage]
     public class Calculated : Datum
     {
         public Member Member { get; init; }

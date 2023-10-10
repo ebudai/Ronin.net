@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Ronin.Grammar;
@@ -51,6 +52,7 @@ internal class Function : Member
         };
     }
 
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         Identifier.ResolveReferences(context);

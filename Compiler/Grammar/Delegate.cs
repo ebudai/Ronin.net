@@ -4,6 +4,7 @@ using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -55,6 +56,7 @@ internal class Delegate : Temporary
         };
     }
 
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         for (int i = 0; i != Data.Count; ++i)

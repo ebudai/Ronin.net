@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Lexicon;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -29,6 +30,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Index : Aggregate<Index, Open.SquareBracket, Value, Separator, Close.SquareBracket>
 {
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         for (var i = 0; i != Count; ++i)

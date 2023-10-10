@@ -3,6 +3,7 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 /// <summary>
@@ -43,6 +44,7 @@ internal class Type : Member
         };
     }
 
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         Identifier.ResolveReferences(context);
@@ -74,6 +76,7 @@ internal class Type : Member
         public List<Resolution> Overloads { get; init; }
     }*/
 
+    [ExcludeFromCodeCoverage]
     internal class Calculated : Type
     {
         public Member Member { get; init; }
@@ -100,6 +103,7 @@ internal class Algebra : Type
         public List<Resolution> Overloads { get; init; }
     }*/
 
+    [ExcludeFromCodeCoverage]
     internal new class Calculated : Algebra
     {
         public Member Member { get; init; }

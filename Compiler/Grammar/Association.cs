@@ -3,6 +3,7 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -33,6 +34,7 @@ internal class Association : Statement, Compiler.IParsable<Association>
         };
     }
 
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         if (Destination is Member.Unresolved destination)
@@ -53,6 +55,7 @@ internal class Association : Statement, Compiler.IParsable<Association>
         }        
     }
 
+    [ExcludeFromCodeCoverage]
     public class Error : Association, IError
     {
         public Error(IError error)

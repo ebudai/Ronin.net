@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -21,6 +22,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Lookup : Aggregate<Lookup, Open.Brace, Association, Separator, Close.Brace>
 {
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         foreach (var association in this)

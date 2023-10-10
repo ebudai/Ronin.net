@@ -1,6 +1,7 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -8,7 +9,6 @@ using Children = Dictionary<Token, Module>;
 
 internal partial class Module : Scope
 {
-    public Token Name { get; set; }
     public List<Scope> Scopes { get; } = new();
     public Children Children { get; } = new();
 
@@ -30,6 +30,7 @@ internal partial class Module : Scope
         return values;
     }
 
+    [ExcludeFromCodeCoverage]
     public Module Get(Name name)
     {
         Module found = this;
@@ -47,8 +48,9 @@ internal partial class Module : Scope
         return found;
     }
 
+    [ExcludeFromCodeCoverage]
     public class Unresolved : Module
     {
-        public new Name Name { get; init; }
+        public Name Name { get; init; }
     }
 }

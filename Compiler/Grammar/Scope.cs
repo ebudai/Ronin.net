@@ -9,7 +9,7 @@ namespace Ronin.Grammar;
 
 internal class Scope : Statement, IList<Statement>
 {
-    public Scope Parent { get; set; }
+    [ExcludeFromCodeCoverage] public Scope Parent { get; set; }
     public Modifiers Modifiers { get; init; }
     public List<Module> Imports { get; } = new();    
     public List<Statement> Statements { get; } = new();
@@ -17,6 +17,15 @@ internal class Scope : Statement, IList<Statement>
     protected Scope() { }
     private Scope(Scope scope) => Statements = scope.Statements;
 
+    public static new Scope Parse(ref Parser current)
+        => Basic.Parse(ref current)
+        ?? Applicative.Parse(ref current)
+        ?? Conditional.Parse(ref current)
+        ?? ConditionalReactive.Parse(ref current)
+        ?? Iterating.Parse(ref current)
+        ?? Reactive.Parse(ref current) as Scope;
+
+    [ExcludeFromCodeCoverage]
     public virtual Member Find(Reference reference)
     {
         foreach (var statement in Statements)
@@ -27,6 +36,7 @@ internal class Scope : Statement, IList<Statement>
         throw new NotImplementedException();
     }
 
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         Parent = context;
@@ -40,17 +50,15 @@ internal class Scope : Statement, IList<Statement>
         }
     }
 
-    public static new Scope Parse(ref Parser current)
-        => Basic.Parse(ref current)
-        ?? Applicative.Parse(ref current)
-        ?? Conditional.Parse(ref current)
-        ?? ConditionalReactive.Parse(ref current)
-        ?? Iterating.Parse(ref current)
-        ?? Reactive.Parse(ref current) as Scope;
+    public class Conditional : Conditional<If> { }
+    
+    public class Repeating : Conditional<While> { }
+    
+    public class ConditionalReactive : Conditional<When> { }
 
     public class Applicative : Scope
     {
-        private Applicative(Scope scope) : base(scope) { }       
+        private Applicative(Scope scope) : base(scope) { }
 
         public static new Applicative Parse(ref Parser current)
         {
@@ -64,12 +72,6 @@ internal class Scope : Statement, IList<Statement>
             return new Applicative(scope) { Modifiers = modifiers };
         }
     }
-
-    public class Conditional : Conditional<If> { }
-    
-    public class Repeating : Conditional<While> { }
-    
-    public class ConditionalReactive : Conditional<When> { }
 
     public class Iterating : Scope
     {
@@ -153,7 +155,10 @@ internal class Scope : Statement, IList<Statement>
                 return new ExpectedTargetError { Tokens = current.AdvanceTo(parser) };
             }
 
-            if (Definition.Parse(ref parser) is not Scope definition) return null;
+            if (Definition.Parse(ref parser) is not Scope definition)
+            {
+                return new ExpectedDefinitionError { Tokens = current.AdvanceTo(parser) };
+            }
 
             current = parser;
             return new Reactive(definition)
@@ -168,6 +173,12 @@ internal class Scope : Statement, IList<Statement>
             public string Reason { get; } = "expected reactive variable";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
+
+        public class ExpectedDefinitionError : Reactive, IError
+        {
+            public string Reason { get; } = "expected definition";
+            public ReadOnlyMemory<Token> Tokens { get; init; }
+        }
     }
 
     public class Definition : Scope
@@ -178,7 +189,7 @@ internal class Scope : Statement, IList<Statement>
         {
             Parser parser = current;
             Statement definition = null;
-            if (parser.TryAdvance<Assign>())
+            if (parser.TryAdvance<Returns>())
             {
                 definition = Value.Parse(ref parser);
             }

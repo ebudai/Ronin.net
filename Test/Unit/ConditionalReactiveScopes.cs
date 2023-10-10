@@ -6,18 +6,20 @@ using Test;
 namespace Unit;
 
 [Trait(nameof(Parser), null)]
-public class ReactiveScopes : ParsingTests
+public class ConditionalReactiveScopes : ParsingTests
 {
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        // when changing x => y = x;
+        // when x < 2 => y = x;
 
         List<Token> tokens = new()
         {
             Keyword.When(),
             Keyword.Changing(),
             Word("x"),
+            Symbol("<"),
+            Number(2),
             Returns(),
             Word("y"),
             Assign(),
@@ -28,7 +30,7 @@ public class ReactiveScopes : ParsingTests
         };
 
         Parser parser = new(tokens.AsLinkedList());
-        var reactive = Scope.Reactive.Parse(ref parser);
+        var reactive = Scope.ConditionalReactive.Parse(ref parser);
 
         Assert.NotNull(reactive);
     }

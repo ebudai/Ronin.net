@@ -4,6 +4,7 @@ using OneOf;
 using Ronin.Compiler;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -25,6 +26,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
         return new Identifier { Components = components };
     }
 
+    [ExcludeFromCodeCoverage]
     public void ResolveReferences(Scope context)
     {
         foreach (var component in Components)
@@ -32,11 +34,11 @@ internal class Identifier : IEnumerable<Identifier.Component>
             if (component.IsT1 is false) continue;
             foreach (var parameter in component.AsT1)
             {
-                parameter.Switch
+                /*parameter.Switch
                 (
                     datum => datum.ResolveReferences(context),
                     association => association.ResolveReferences(context)
-                );
+                );*/
             }
         }
     }

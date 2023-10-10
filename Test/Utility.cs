@@ -263,6 +263,13 @@ public class ParsingTests
             return compiled;
         }
 
+        internal static Hidden Hidden()
+        {
+            Hidden hidden = new();
+            hidden.SetMemory(Ronin.Lexicon.Hidden.keyword);
+            return hidden;
+        }
+
         internal static Global Shared()
         {
             Global shared = new();
@@ -296,6 +303,20 @@ public class ParsingTests
             While @while = new();
             @while.SetMemory(Ronin.Lexicon.While.keyword);
             return @while;
+        }
+
+        internal static When When()
+        {
+            When when = new();
+            when.SetMemory(Ronin.Lexicon.When.keyword);
+            return when;
+        }
+
+        internal static Changing Changing()
+        {
+            Changing changing = new();
+            changing.SetMemory(Ronin.Lexicon.Changing.keyword);
+            return changing;
         }
 
         internal static Ronin.Lexicon.Import Import()

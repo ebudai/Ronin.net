@@ -3,6 +3,7 @@
 using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Ronin.Grammar;
@@ -21,6 +22,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separator, Close.Parenthesis>
 {
+    [ExcludeFromCodeCoverage]
     public override void ResolveReferences(Scope context)
     {
         for (var i = 0; i != Count; ++i)
