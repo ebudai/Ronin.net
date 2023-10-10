@@ -6,7 +6,7 @@ using Type = Ronin.Grammar.Type;
 namespace Failure;
 
 [Trait("Parser", null)]
-public class Datatypes : ParsingTests
+public class Types : ParsingTests
 {
     [Fact(DisplayName = "no identifier")]
     public void NoIdentifier()
@@ -15,7 +15,7 @@ public class Datatypes : ParsingTests
 
         List<Token> tokens = new()
         {
-            Keyword.Datatype(),
+            Keyword.Type(),
             StartScope(),
             EndScope(),
             Terminal(),

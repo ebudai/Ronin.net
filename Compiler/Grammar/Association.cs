@@ -21,9 +21,7 @@ internal class Association : Statement, Compiler.IParsable<Association>
         if (parser.Token is not Assignment assignment) return null;
         parser.Advance();
 
-        var origin = Value.Parse(ref parser);
-        if (origin is IError error) return new Error(error);
-        if (origin is null) return null;
+        if (Value.Parse(ref parser) is not Value origin) return null;
 
         current = parser;
         return new Association
@@ -53,18 +51,5 @@ internal class Association : Statement, Compiler.IParsable<Association>
         {
             Origin.ResolveReferences(context);
         }        
-    }
-
-    [ExcludeFromCodeCoverage]
-    public class Error : Association, IError
-    {
-        public Error(IError error)
-        {
-            Reason = error.Reason;
-            Tokens = error.Tokens;
-        }
-
-        public string Reason { get; }
-        public ReadOnlyMemory<Token> Tokens { get; }
     }
 }

@@ -13,7 +13,7 @@ public class Symbols
         Lexer lexer = new(lexed);
         Assert.False(lexer.IsEmpty);
         for (var i = 0; i != lexed.Length; ++i) Assert.True(char.IsSymbol(lexed[i]) || char.IsPunctuation(lexed[i]));
-        var symbol = Special.Lex(ref lexer) ?? Punctuation.Lex(ref lexer) ?? Symbol.Lex(ref lexer);
+        var symbol = Symbol.Special.Lex(ref lexer) ?? Punctuation.Lex(ref lexer) ?? Symbol.Lex(ref lexer);
 
         Assert.Equal(lexed.ToArray(), symbol?.Memory.ToArray());
     }
@@ -70,16 +70,16 @@ public class Symbols
     public void LexSubtractAssign() => LexSymbol(SubtractAssign.symbol);
 
     [Fact(DisplayName = "elipsis")]
-    public void LexElipsis() => LexSymbol(Elipsis.symbol);
+    public void LexElipsis() => LexSymbol(Symbol.Special.Elipsis.symbol);
 
     [Fact(DisplayName = "interval")]
-    public void LexInterval() => LexSymbol(Interval.symbol);
+    public void LexInterval() => LexSymbol(Symbol.Special.Interval.symbol);
 
     [Fact(DisplayName = "greater than or equal")]
-    public void LexGreaterThanOrEqual() => LexSymbol(GreaterThanOrEqual.symbol);
+    public void LexGreaterThanOrEqual() => LexSymbol(Symbol.Special.GreaterThanOrEqual.symbol);
 
     [Fact(DisplayName = "less than or equal")]
-    public void LexLessThanOrEqual() => LexSymbol(LessThanOrEqual.symbol);
+    public void LexLessThanOrEqual() => LexSymbol(Symbol.Special.LessThanOrEqual.symbol);
 
     [Fact(DisplayName = "not punctuation")]
     public void NotPunctuation()

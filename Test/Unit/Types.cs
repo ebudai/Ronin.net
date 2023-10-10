@@ -17,7 +17,7 @@ public class Types : ParsingTests
 
         List<Token> tokens = new()
         {
-            Keyword.Datatype(),
+            Keyword.Type(),
             Word("Test"),
             StartScope(),
             EndScope(),
@@ -39,7 +39,7 @@ public class Types : ParsingTests
 
         List<Token> tokens = new()
         {
-            Keyword.Datatype(),
+            Keyword.Type(),
             Word("Algebra"),
             Word("Example"),
             Assign(),

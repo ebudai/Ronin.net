@@ -3,7 +3,6 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 
 namespace Ronin.Grammar;
 /// <summary>
@@ -29,7 +28,10 @@ internal class Function : Member
         if (parser.Token is not Lexicon.Function keyword) return null;
         parser.Advance();
 
-        if (Identifier.Parse(ref parser) is not Identifier identifier) return null;
+        if (Identifier.Parse(ref parser) is not Identifier identifier)
+        {
+            return new ExpectedIdentifierError { Tokens = current.AdvanceTo(parser) };
+        }
 
         Modifiers modifiers = null;
         Type returns = null;
@@ -39,7 +41,10 @@ internal class Function : Member
             returns = Type.Unresolved.Parse(ref parser);
         }
 
-        if (Scope.Definition.Parse(ref parser) is not Scope definition) return null;
+        if (Scope.Definition.Parse(ref parser) is not Scope definition)
+        {
+            return new ExpectedDefinitionError { Tokens = current.AdvanceTo(parser) };
+        }
 
         current = parser;
         return new Function
@@ -62,5 +67,17 @@ internal class Function : Member
             Returns = member as Type ?? new Type.Calculated { Member = member };
         }
         Definition.ResolveReferences(context);
+    }
+
+    public class ExpectedIdentifierError : Function, IError
+    {
+        public string Reason { get; } = "expected identifier";
+        public System.ReadOnlyMemory<Token> Tokens { get; init; }
+    }
+
+    public class ExpectedDefinitionError : Function, IError
+    {
+        public string Reason { get; } = "expected definition";
+        public System.ReadOnlyMemory<Token> Tokens { get; init; }
     }
 }

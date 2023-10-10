@@ -49,4 +49,26 @@ public class Symbols
 
         Assert.Null(lexed);
     }
+
+    [Fact(DisplayName = "empty punctuation")]
+    public void EmptyPunctuation()
+    {
+        const string literal = "";
+
+        Lexer lexer = new(literal);
+        var lexed = Punctuation.Lex(ref lexer);
+
+        Assert.Null(lexed);
+    }
+
+    [Fact(DisplayName = "empty special symbol")]
+    public void EmptySpecial()
+    {
+        const string literal = "";
+
+        Lexer lexer = new(literal);
+        var lexed = Symbol.Special.Lex(ref lexer);
+
+        Assert.Null(lexed);
+    }
 }

@@ -76,7 +76,7 @@ public class Parsing : ParsingTests
 
             // datatype big thing { constant size => whole number; }
 
-            Keyword.Datatype(),
+            Keyword.Type(),
             Word("big"),
             Word("thing"),
             StartScope(),

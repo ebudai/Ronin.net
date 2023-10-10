@@ -191,10 +191,10 @@ public class ParsingTests
         return textDelimiter;
     }
 
-    internal static Interval Range()
+    internal static Symbol.Special.Interval Range()
     {
-        Interval range = new();
-        range.SetMemory(Interval.symbol);
+        Symbol.Special.Interval range = new();
+        range.SetMemory(Ronin.Lexicon.Symbol.Special.Interval.symbol);
         return range;
     }
 
@@ -214,7 +214,7 @@ public class ParsingTests
             return function;
         }
 
-        internal static Ronin.Lexicon.Type Datatype()
+        internal static Ronin.Lexicon.Type Type()
         {
             Ronin.Lexicon.Type datatype = new();
             datatype.SetMemory(Ronin.Lexicon.Type.keyword);

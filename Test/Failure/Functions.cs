@@ -1,5 +1,4 @@
 ﻿using Ronin.Compiler;
-using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
@@ -25,7 +24,27 @@ public class Functions : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
         
-        Assert.Null(function);
+        Assert.IsType<Function.ExpectedIdentifierError>(function);
+    }
+
+    [Fact(DisplayName = "no definition")]
+    public void NoDefinition()
+    {
+        // function test = ;
+
+        List<Token> tokens = new()
+        {
+            Keyword.Function(),
+            Word("test"),
+            Assign(),
+            Terminal(),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var function = Function.Parse(ref parser);
+
+        Assert.IsType<Function.ExpectedDefinitionError>(function);
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]

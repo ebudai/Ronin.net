@@ -29,4 +29,44 @@ public class Scopes : ParsingTests
 
         Assert.Null(scope);
     }
+
+    [Fact(DisplayName = "applicative missing scope")]
+    public void ApplicativeMissingScope() 
+    {
+        // compiled hidden;
+
+        List<Token> tokens = new()
+        {
+            Keyword.Compiled(),
+            Keyword.Hidden(),
+            Terminal(),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var scope = Scope.Parse(ref parser);
+
+        Assert.Null(scope);
+    }
+
+    [Fact(DisplayName = "iterative missing definition")]
+    public void IterativeMissingDefinition()
+    {
+        // iterate things => thing;
+
+        List<Token> tokens = new()
+        {
+            Keyword.Iterate(),
+            Word("things"),
+            Returns(),
+            Word("thing"),
+            Terminal(),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var scope = Scope.Parse(ref parser);
+
+        Assert.Null(scope);
+    }
 }

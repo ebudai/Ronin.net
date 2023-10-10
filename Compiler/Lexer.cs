@@ -16,7 +16,7 @@ internal ref struct Lexer
         while (cursor < sourcecode.Length)
         {
             var token = Literal.Lex(ref this)                
-                ?? Special.Lex(ref this)
+                ?? Symbol.Special.Lex(ref this)
                 ?? Punctuation.Lex(ref this)
                 ?? Keyword.Lex(ref this)
                 ?? Trivium.Lex(ref this)

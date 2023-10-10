@@ -147,8 +147,7 @@ internal class Scope : Statement, IList<Statement>
 
             var modifiers = Modifiers.Parse(ref parser);
 
-            if (parser.TryAdvance<When>() is false) return null;
-            if (parser.TryAdvance<Changing>() is false) return null;
+            if (parser.TryAdvance<When>() is false || parser.TryAdvance<Changing>() is false) return null;
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {

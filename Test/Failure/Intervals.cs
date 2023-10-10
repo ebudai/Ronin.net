@@ -12,8 +12,8 @@ public class Intervals
         const string literal = "notARange";
 
         Lexer lexer = new(literal);
-        var lexed = Interval.Lex(ref lexer);
+        var lexed = Symbol.Special.Interval.Lex(ref lexer);
 
-        Assert.IsNotType<Interval>(lexed);
+        Assert.IsNotType<Symbol.Special.Interval>(lexed);
     }
 }
