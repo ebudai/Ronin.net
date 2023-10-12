@@ -56,19 +56,10 @@ internal class Delegate : Temporary
         };
     }
 
-    [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
-        for (int i = 0; i != Data.Count; ++i)
-        {
-            if (Data[i].IsT1) continue;
-            if (Data[i].AsT0 is Datum.Unresolved unresolved)
-            {
-                var member = context.Find(unresolved.Reference);
-                Data[i] = member as Datum ?? new Datum.Calculated { Member = member };
-            }
-        }
-        Definition.ResolveReferences(context);
+        Data.ResolveTypes(context);
+        Definition.ResolveTypes(context);
     }
 
     public class Parameter : OneOfBase<Datum, Name>, IParsable<Parameter>
@@ -86,5 +77,15 @@ internal class Delegate : Temporary
         }
     }
 
-    public class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameter, Separator, Close.Parenthesis> { }
+    public class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameter, Separator, Close.Parenthesis>
+    {
+        public override void ResolveTypes(Scope context)
+        {
+            foreach (var parameter in this)
+            {
+                if (parameter.IsT0 is false) continue;
+                parameter.AsT0.ResolveTypes(context);
+            }
+        }
+    }
 }

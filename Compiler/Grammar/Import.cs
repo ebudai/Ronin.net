@@ -1,6 +1,5 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Collections.Generic;
 using System;
 
 namespace Ronin.Grammar;
@@ -18,23 +17,31 @@ namespace Ronin.Grammar;
 internal class Import : Statement
 {
     public Lexicon.Import Keyword { get; init; }
-    public Name Name { get; init; }
+    public Module Module { get; init; }
 
     public static new Import Parse(ref Parser current)
     {
-        Parser parser = current;
-        
         if (current.Token is not Lexicon.Import keyword) return null;
+
+        Parser parser = current;
         parser.Advance();
 
-        if (Name.Parse(ref parser) is not Name name) return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
+        if (Name.Parse(ref parser) is not Name name)
+        {
+            return new ExpectedNameError { Tokens = Unknown.Parse(ref parser).Tokens };
+        }
 
         current = parser;
         return new Import
         {
             Keyword = keyword,
-            Name = name
+            Module = new Module.Unresolved { Name = name }
         };
+    }
+
+    public override void ResolveTypes(Scope context)
+    {
+        Module.ResolveTypes(context);
     }
 
     public class ExpectedNameError : Import, IError

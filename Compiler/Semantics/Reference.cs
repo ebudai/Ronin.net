@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Semantics;
 
-internal partial class Resolver
+internal partial class Analyzer
 {
     public Resolution Dereference(Scope context, Identifier identifier, Reference reference)
     {

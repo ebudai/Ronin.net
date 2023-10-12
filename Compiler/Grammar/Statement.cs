@@ -1,7 +1,8 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -19,5 +20,9 @@ internal abstract class Statement : IParsable<Statement>
         ?? Scope.Parse(ref current)
         ?? Unknown.Parse(ref current) as Statement;
 
-    [ExcludeFromCodeCoverage] public virtual void ResolveReferences(Scope context) { }
+    public virtual void ResolveTypes(Scope context) { }
+
+    public virtual void ResolveCalculatedTypes(Scope context, Stack<Statement> circularityCheck) { }
 }
+
+internal class Noop : Statement { }

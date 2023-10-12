@@ -69,16 +69,28 @@ internal class Datum : Member
         };
     }
 
-    [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
-        Identifier.ResolveReferences(context);
+        base.ResolveTypes(context);
         if (Type is Type.Unresolved unresolved)
         {
             var member = context.Find(unresolved.Reference);
             Type = member as Type ?? new Type.Calculated { Member = member };
         }
-        Initializer.ResolveReferences(context);
+        Initializer.ResolveTypes(context);
+    }
+
+    public override void ResolveCalculatedTypes(Scope context, Stack<Statement> circularityCheck)
+    {
+        if (Type is not Type.Calculated type) return;
+
+        if (circularityCheck.Contains(this))
+        {
+            Type = new Type.Calculated.CircularityError { Statements = circularityCheck };
+            return;
+        }
+
+        //todo Find() the member, create a compiled statement setting the type to the result of the member (function exec or datum value)
     }
 
     public new class Unresolved : Datum
@@ -101,4 +113,6 @@ internal class Datum : Member
         public string Reason { get; } = "expected identifier";
         public System.ReadOnlyMemory<Token> Tokens { get; init; }
     }
+
+    
 }

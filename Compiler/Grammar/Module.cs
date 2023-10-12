@@ -1,16 +1,15 @@
 ﻿using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Ronin.Grammar;
 
-using Children = Dictionary<Token, Module>;
-
-internal partial class Module : Scope
+internal class Module : Scope
 {
-    public List<Scope> Scopes { get; } = new();
-    public Children Children { get; } = new();
+    private readonly ConcurrentDictionary<Token, Module> children = new();
+    private readonly ConcurrentBag<Scope> scopes = new();
 
     public static new Module Parse(ref Parser current)
     {
@@ -18,11 +17,9 @@ internal partial class Module : Scope
 
         Module values = new();
 
-        while (parser.IsNotFinished)
+        while (Statement.Parse(ref parser) is Statement statement)
         {
-            var syntax = Statement.Parse(ref parser);
-            if (syntax is null) break;
-            values.Add(syntax);
+            values.Add(statement);
             parser.TryAdvance<Terminal>();
         }
 
@@ -30,26 +27,56 @@ internal partial class Module : Scope
         return values;
     }
 
-    [ExcludeFromCodeCoverage]
-    public Module Get(Name name)
+    public override void ResolveTypes(Scope context)
     {
-        Module found = this;
-
-        for (int i = 0; i != name.Tokens.Length; ++i)
+        Parent = context;
+        base.ResolveTypes(this);
+        foreach (var scope in scopes)
         {
-            if (found.Children.TryGetValue(name.Tokens.Span[i], out var child) is false)
-            {
-                child = new() { Parent = found };
-                found.Children.Add(name.Tokens.Span[i], child);
-            }
-            found = child;
+            scope.ResolveTypes(this);
+        }
+        foreach (var child in children.Values)
+        {
+            child.ResolveTypes(this);
+        }
+    }
+
+    public Module GetOrAdd(Name name)
+    {
+        var module = this;
+
+        foreach (var token in name.Tokens.Span)
+        {
+            module = module.children.GetOrAdd(token, static _ => new Module());
         }
 
-        return found;
+        return module;
+    }
+
+    public Module this[Name name]
+    {
+        get
+        {
+            var module = this;
+
+            foreach (var token in name.Tokens.Span)
+            {
+                if (module.children.TryGetValue(token, out module) is false) return null;
+            }
+
+            return module;
+        }
+    }
+
+    public void Add(Scope scope) => scopes.Add(scope);
+
+    public override Member Find(Reference reference)
+    {
+        throw new System.NotImplementedException();
     }
 
     [ExcludeFromCodeCoverage]
-    public class Unresolved : Module
+    public class Unresolved : Module 
     {
         public Name Name { get; init; }
     }

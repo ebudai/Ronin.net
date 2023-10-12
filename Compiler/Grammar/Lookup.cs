@@ -23,11 +23,11 @@ namespace Ronin.Grammar;
 internal class Lookup : Aggregate<Lookup, Open.Brace, Association, Separator, Close.Brace>
 {
     [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
         foreach (var association in this)
         {
-            association.ResolveReferences(context);
+            association.ResolveTypes(context);
         }
     }
 }

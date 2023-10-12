@@ -2,12 +2,12 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Association : Statement, Compiler.IParsable<Association>
+internal class Association : Statement, IParsable<Association>
 {
     public Value Destination { get; set; }
     public Assignment Assignment { get; init; }
@@ -21,7 +21,10 @@ internal class Association : Statement, Compiler.IParsable<Association>
         if (parser.Token is not Assignment assignment) return null;
         parser.Advance();
 
-        if (Value.Parse(ref parser) is not Value origin) return null;
+        if (Value.Parse(ref parser) is not Value origin)
+        {
+            return new ExpectedValueError { Tokens = Unknown.Parse(ref parser).Tokens };
+        }
 
         current = parser;
         return new Association
@@ -32,24 +35,24 @@ internal class Association : Statement, Compiler.IParsable<Association>
         };
     }
 
-    [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
+        Destination.ResolveTypes(context);
         if (Destination is Member.Unresolved destination)
         {
             Destination = context.Find(destination.Reference);
         }
-        else
-        {
-            Destination.ResolveReferences(context);
-        }
+
+        Origin.ResolveTypes(context);
         if (Origin is Member.Unresolved origin)
         {
             Origin = context.Find(origin.Reference);
         }
-        else
-        {
-            Origin.ResolveReferences(context);
-        }        
+    }
+
+    public class ExpectedValueError : Association, IError
+    {
+        public string Reason { get; } = "expected value";
+        public System.ReadOnlyMemory<Token> Tokens { get; init; }
     }
 }

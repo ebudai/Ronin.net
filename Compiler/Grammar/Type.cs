@@ -45,21 +45,27 @@ internal class Type : Member
     }
 
     [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
-        Identifier.ResolveReferences(context);
+        base.ResolveTypes(context);
         if (Algebra is Algebra.Unresolved unresolved)
         {
             var member = context.Find(unresolved.Reference);
             Algebra = member as Algebra ?? new Algebra.Calculated { Member = member };
         }
-        foreach (var member in Members)
-        {
-            member.ResolveReferences(context);
-        }
+        Members.ResolveTypes(context);
     }
 
-    public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace> { }
+    public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace>
+    {
+        public override void ResolveTypes(Scope context)
+        {
+            foreach (var member in this)
+            {
+                member.ResolveTypes(context);
+            }
+        }
+    }
 
     public new class Unresolved : Type
     {
@@ -80,6 +86,13 @@ internal class Type : Member
     internal class Calculated : Type
     {
         public Member Member { get; init; }
+
+        public class CircularityError : Calculated, IError
+        {
+            public Stack<Statement> Statements { get; init; }
+            public string Reason { get; } = "calculated type depends on itself";
+            public System.ReadOnlyMemory<Token> Tokens { get; init; }
+        }
     }
 }
 

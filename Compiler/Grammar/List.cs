@@ -20,18 +20,11 @@ namespace Ronin.Grammar;
 internal class List : Aggregate<List, Open.Brace, Value, Separator, Close.Brace>
 {
     [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
-        for (var i = 0; i != Count; ++i)
+        foreach (var value in this)
         {
-            if (this[i] is Member.Unresolved unresolved)
-            {
-                this[i] = context.Find(unresolved.Reference);
-            }
-            else
-            {
-                this[i].ResolveReferences(context);
-            }
+            value.ResolveTypes(context);
         }
     }
 }

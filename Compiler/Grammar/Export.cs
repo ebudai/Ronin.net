@@ -19,7 +19,7 @@ namespace Ronin.Grammar;
 internal class Export : Statement
 {
     public PartOf Keyword { get; init; }
-    public Name Identifier { get; init; }
+    public Name Name { get; init; }
 
     public static new Export Parse(ref Parser current)
     {
@@ -34,7 +34,7 @@ internal class Export : Statement
         return new Export 
         {
             Keyword = keyword,
-            Identifier = identifier
+            Name = identifier
         };
     }
 

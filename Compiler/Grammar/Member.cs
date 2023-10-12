@@ -13,7 +13,9 @@ internal class Member : Value, IParsable<Member>
         => Datum.Parse(ref current)
         ?? Function.Parse(ref current)
         ?? Type.Parse(ref current) as Member;
-    
+
+    public override void ResolveTypes(Scope context) => Identifier.ResolveTypes(context);
+
     public class Unresolved : Member
     {
         public Reference Reference { get; init; }

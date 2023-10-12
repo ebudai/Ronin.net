@@ -22,23 +22,15 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separator, Close.Parenthesis>
 {
-    [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
-        for (var i = 0; i != Count; ++i)
+        foreach (var input in this)
         {
-            if (this[i].IsT0)
-            {
-                this[i].AsT0.ResolveReferences(context);
-            }
-            else if (this[i].AsT1 is Member.Unresolved unresolved)
-            {
-                this[i] = context.Find(unresolved.Reference);
-            }
-            else
-            {
-                this[i].AsT1.ResolveReferences(context);
-            }
+            input.Switch
+            (
+                value => value.ResolveTypes(context), 
+                association => association.ResolveTypes(context)
+            );
         }
     }
 

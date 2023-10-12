@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Ronin.Semantics;
 
-internal partial class Resolver
+internal partial class Analyzer
 {
     public Module Global { get; init; } = new();
     public List<IError> Errors { get; } = new();

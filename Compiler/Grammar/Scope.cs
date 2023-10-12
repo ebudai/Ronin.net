@@ -9,12 +9,12 @@ namespace Ronin.Grammar;
 
 internal class Scope : Statement, IList<Statement>
 {
-    [ExcludeFromCodeCoverage] public Scope Parent { get; set; }
+    public Scope Parent { get; set; }
     public Modifiers Modifiers { get; init; }
-    public List<Module> Imports { get; } = new();    
+    public List<Module> Imports { get; } = new();
     public List<Statement> Statements { get; } = new();
 
-    protected Scope() { }
+    public Scope() { }
     private Scope(Scope scope) => Statements = scope.Statements;
 
     public static new Scope Parse(ref Parser current)
@@ -25,7 +25,6 @@ internal class Scope : Statement, IList<Statement>
         ?? Iterating.Parse(ref current)
         ?? Reactive.Parse(ref current) as Scope;
 
-    [ExcludeFromCodeCoverage]
     public virtual Member Find(Reference reference)
     {
         foreach (var statement in Statements)
@@ -36,17 +35,12 @@ internal class Scope : Statement, IList<Statement>
         throw new NotImplementedException();
     }
 
-    [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
         Parent = context;
         foreach (var statement in Statements)
         {
-            if (statement is Import import)
-            {
-                Imports.Add(new Module.Unresolved { Name = import.Name });
-            }
-            statement.ResolveReferences(this);
+            statement.ResolveTypes(this);
         }
     }
 
@@ -115,6 +109,13 @@ internal class Scope : Statement, IList<Statement>
             };
         }
 
+        public override void ResolveTypes(Scope context)
+        {
+            Parent = context;
+            base.ResolveTypes(this);
+            Iterable.ResolveTypes(context);
+        }
+
         public class ExpectedIterableError : Iterating, IError
         {
             public string Reason { get; } = "expected list";
@@ -167,6 +168,13 @@ internal class Scope : Statement, IList<Statement>
             };
         }
 
+        public override void ResolveTypes(Scope context)
+        {
+            Parent = context;
+            base.ResolveTypes(this);
+            Target.ResolveTypes(context);
+        }
+
         public class ExpectedTargetError : Reactive, IError
         {
             public string Reason { get; } = "expected reactive variable";
@@ -208,10 +216,10 @@ internal class Scope : Statement, IList<Statement>
 
     internal class Conditional<T> : Scope where T : Keyword
     {
+        public Member Condition { get; init; }
+
         protected Conditional() { }
         protected Conditional(Scope scope) : base(scope) { }
-
-        public Member Condition { get; init; }
 
         public static new Conditional<T> Parse(ref Parser current)
         {

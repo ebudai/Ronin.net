@@ -26,7 +26,7 @@ public class Exports : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var export = Export.Parse(ref parser);
 
-        Assert.Single(export.Identifier?.Tokens.ToArray());
+        Assert.Single(export.Name?.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -47,7 +47,7 @@ public class Exports : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var export = Export.Parse(ref parser);
 
-        Assert.Equal(3, export.Identifier?.Tokens.Length);
+        Assert.Equal(3, export.Name?.Tokens.Length);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -71,7 +71,7 @@ public class Exports : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var export = Export.Parse(ref parser);
 
-        Assert.Equal(6, export.Identifier?.Tokens.Length);
+        Assert.Equal(6, export.Name?.Tokens.Length);
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]

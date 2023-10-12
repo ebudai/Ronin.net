@@ -31,7 +31,7 @@ namespace Ronin.Grammar;
 internal class Index : Aggregate<Index, Open.SquareBracket, Value, Separator, Close.SquareBracket>
 {
     [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
         for (var i = 0; i != Count; ++i)
         {
@@ -41,7 +41,7 @@ internal class Index : Aggregate<Index, Open.SquareBracket, Value, Separator, Cl
             }
             else
             {
-                this[i].ResolveReferences(context);
+                this[i].ResolveTypes(context);
             }
         }
     }

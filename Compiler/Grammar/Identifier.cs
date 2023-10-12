@@ -27,19 +27,12 @@ internal class Identifier : IEnumerable<Identifier.Component>
     }
 
     [ExcludeFromCodeCoverage]
-    public void ResolveReferences(Scope context)
+    public void ResolveTypes(Scope context)
     {
         foreach (var component in Components)
         {
             if (component.IsT1 is false) continue;
-            foreach (var parameter in component.AsT1)
-            {
-                /*parameter.Switch
-                (
-                    datum => datum.ResolveReferences(context),
-                    association => association.ResolveReferences(context)
-                );*/
-            }
+            component.AsT1.ResolveTypes(context);
         }
     }
 

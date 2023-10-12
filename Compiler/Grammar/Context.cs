@@ -1,18 +1,21 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using Ronin.Compiler;
-using Ronin.Lexicon;
-using System;
 using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
+/*internal interface IContext : IEnumerable<Statement>
+{
+    IContext Parent { get; }
+    Member Find(Reference reference);
+}*/
+
 /// <summary>
-///     Body of <see cref="Scope"/>s, <see cref="Type.Declaration"/>s and <see cref="Function.Declaration"/>s.
+///     Body of <see cref="Scope"/>s, <see cref="Type"/>s and <see cref="Function"/>s.
 /// </summary>
 /// 
 /// <remarks>
-///     <see cref="Terminal"/>-separated <see cref="Statement"/>s between <see cref="OpenBrace"/> and <see cref="CloseBrace"/>
+///     <see cref="Terminal"/>-separated <see cref="Statement"/>s between <see cref="Open.Brace"/> and <see cref="Close.Brace"/>
 /// </remarks>
 /// 
 /// <example>

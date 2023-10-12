@@ -57,16 +57,15 @@ internal class Function : Member
         };
     }
 
-    [ExcludeFromCodeCoverage]
-    public override void ResolveReferences(Scope context)
+    public override void ResolveTypes(Scope context)
     {
-        Identifier.ResolveReferences(context);
+        base.ResolveTypes(context);
         if (Returns is Type.Unresolved unresolved)
         {
             var member = context.Find(unresolved.Reference);
             Returns = member as Type ?? new Type.Calculated { Member = member };
         }
-        Definition.ResolveReferences(context);
+        Definition.ResolveTypes(context);
     }
 
     public class ExpectedIdentifierError : Function, IError
