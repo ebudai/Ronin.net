@@ -23,7 +23,7 @@ internal class Association : Statement, IParsable<Association>
 
         if (Value.Parse(ref parser) is not Value origin)
         {
-            return new ExpectedValueError { Tokens = Unknown.Parse(ref parser).Tokens };
+            return new ExpectedValueError { Tokens = Unknown.Parse(ref current).Tokens };
         }
 
         current = parser;

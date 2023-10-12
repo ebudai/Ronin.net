@@ -64,6 +64,8 @@ public class Lookups : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var lookup = Lookup.Parse(ref parser);
 
-        Assert.IsNotType<Lookup>(lookup);
+        Assert.IsType<Lookup>(lookup);
+        Assert.Single(lookup);
+        Assert.IsType<Association.ExpectedValueError>(lookup[0]);
     }
 }

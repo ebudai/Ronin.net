@@ -1,4 +1,5 @@
 ﻿using Ronin.Compiler;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 using Import = Ronin.Grammar.Import;
@@ -24,7 +25,8 @@ public class Imports : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var import = Import.Parse(ref parser);
 
-        Assert.Single(import.Name.Tokens.ToArray());
+        var module = import?.Module as Module.Unresolved;
+        Assert.Single(module?.Name.Tokens.ToArray());
     }
 
     [Fact(DisplayName = "with some hierarchy")]
@@ -45,7 +47,8 @@ public class Imports : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var import = Import.Parse(ref parser);
 
-        Assert.Equal(3, import.Name?.Tokens.Length);
+        var module = import?.Module as Module.Unresolved;
+        Assert.Equal(3, module?.Name?.Tokens.Length);
     }
 
     [Fact(DisplayName = "keywords are just text")]
@@ -69,7 +72,8 @@ public class Imports : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var import = Import.Parse(ref parser);
 
-        Assert.Equal(6, import.Name?.Tokens.Length);
+        var module = import?.Module as Module.Unresolved;
+        Assert.Equal(6, module?.Name.Tokens.Length);
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]

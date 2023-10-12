@@ -22,7 +22,6 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Lookup : Aggregate<Lookup, Open.Brace, Association, Separator, Close.Brace>
 {
-    [ExcludeFromCodeCoverage]
     public override void ResolveTypes(Scope context)
     {
         foreach (var association in this)

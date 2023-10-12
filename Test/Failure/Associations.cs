@@ -23,7 +23,7 @@ public class Associations : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
         
-        Assert.Null(association);
+        Assert.IsType<Association.ExpectedValueError>(association);
     }
 
     [Fact(DisplayName = "not an assignment")]

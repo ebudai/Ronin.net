@@ -28,7 +28,7 @@ internal class Import : Statement
 
         if (Name.Parse(ref parser) is not Name name)
         {
-            return new ExpectedNameError { Tokens = Unknown.Parse(ref parser).Tokens };
+            return new ExpectedNameError { Tokens = Unknown.Parse(ref current).Tokens };
         }
 
         current = parser;
