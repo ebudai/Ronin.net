@@ -4,7 +4,6 @@ using OneOf;
 using Ronin.Compiler;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -14,7 +13,7 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Identifier : IEnumerable<Identifier.Component>
 {
-    public List<Component> Components { get; init; } = new();
+    private List<Component> Components { get; init; } = new();
 
     public static Identifier Parse(ref Parser current)
     {
@@ -23,12 +22,17 @@ internal class Identifier : IEnumerable<Identifier.Component>
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
         current = parser;
-        return new Identifier { Components = components };
+        return new Identifier { components };
     }
+
+    public Component this[int i] => Components[i];
+
+    public void Add(Name name) => Components.Add(name);
+    public void Add(IEnumerable<Component> components) => Components.AddRange(components);
 
     public void ResolveTypes(Scope context)
     {
-        foreach (var component in Components)
+        foreach (var component in this)
         {
             if (component.IsT1 is false) continue;
             component.AsT1.ResolveTypes(context);
@@ -37,10 +41,18 @@ internal class Identifier : IEnumerable<Identifier.Component>
 
     public void ResolveFunctions(Scope context)
     {
-        foreach (var component in Components)
+        foreach (var component in this)
         {
             if (component.IsT1 is false) continue;
             component.AsT1.ResolveFunctions(context);
+        }
+    }
+
+    public void ResolveData(Scope context)
+    {
+        foreach (var component in this)
+        {
+
         }
     }
 

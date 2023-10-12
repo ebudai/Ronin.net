@@ -349,10 +349,10 @@ public class AnalysisTests : ParsingTests
 
         List<Identifier.Component> components = new();
         foreach (var name in names) components.Add(Name(name));
-        return new Identifier {  Components = components };
+        return new Identifier { components };
     }
 
-    internal static Identifier Identifier(params Identifier.Component[] components) => new() { Components = components.ToList() };
+    internal static Identifier Identifier(params Identifier.Component[] components) => new() { components };
 
     internal static Name Name(params string[] names)
     {
@@ -382,7 +382,7 @@ public class AnalysisTests : ParsingTests
         {
             components.Add(new Name { Tokens = new[] { word } });
         }
-        return new Identifier { Components = components };
+        return new Identifier { components };
     }
 
     internal static Reference Reference(params string[] words)

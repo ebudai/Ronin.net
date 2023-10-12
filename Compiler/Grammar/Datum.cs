@@ -62,7 +62,7 @@ internal class Datum : Member
         return new Datum
         {
             Mutability = mutability,
-            Identifier = new() { Components = { name } },
+            Identifier = new() { name },
             Modifiers = modifiers ?? new(),
             Type = type,
             Initializer = initializer

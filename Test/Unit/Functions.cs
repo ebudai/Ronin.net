@@ -38,9 +38,9 @@ public class Functions : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
 
-        Assert.Equal(2, function?.Identifier?.Components.Count);
+        Assert.Equal(2, function?.Identifier?.Count());
         
-        var parameters = function.Identifier.Components[1].AsT1;
+        var parameters = function.Identifier[1].AsT1;
 
         Assert.Single(parameters);
         var parameter = parameters[0].AsT0;
@@ -91,11 +91,11 @@ public class Functions : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
 
-        Assert.Equal(2, function?.Identifier?.Components?.Count);
+        Assert.Equal(2, function?.Identifier?.Count());
 
-        Assert.Single(function.Identifier.Components[0].AsT0.Tokens.ToArray());
+        Assert.Single(function.Identifier[0].AsT0.Tokens.ToArray());
 
-        var parameters = function.Identifier.Components[1].AsT1;
+        var parameters = function.Identifier[1].AsT1;
         Assert.Single(parameters);
         var parameter = parameters[0].AsT0;
         Assert.Single(parameter.Identifier);
@@ -148,7 +148,7 @@ public class Functions : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
 
-        Assert.Equal(2, function?.Identifier?.Components?.Count);
+        Assert.Equal(2, function?.Identifier?.Count());
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]

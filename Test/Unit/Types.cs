@@ -28,7 +28,7 @@ public class Types : ParsingTests
         var datatype = Type.Parse(ref parser);
 
         Assert.Single(datatype?.Identifier);
-        var name = datatype.Identifier.Components[0].AsT0;
+        var name = datatype.Identifier[0].AsT0;
         Assert.Single(name?.Tokens.ToArray());
     }
 

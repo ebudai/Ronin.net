@@ -113,7 +113,7 @@ internal class Scope : Statement, IList<Statement>
             {
                 Modifiers = modifiers,
                 Iterable = datum,
-                Current = new Identifier { Components = { name } }
+                Current = new Identifier { name }
             };
         }
 
