@@ -16,6 +16,8 @@ internal class Member : Value, IParsable<Member>
 
     public override void ResolveTypes(Scope context) => Identifier.ResolveTypes(context);
 
+    public override void ResolveFunctions(Scope context) => Identifier.ResolveFunctions(context);
+
     public class Unresolved : Member
     {
         public Reference Reference { get; init; }

@@ -30,19 +30,19 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Index : Aggregate<Index, Open.SquareBracket, Value, Separator, Close.SquareBracket>
 {
-    [ExcludeFromCodeCoverage]
     public override void ResolveTypes(Scope context)
     {
-        for (var i = 0; i != Count; ++i)
+        foreach (var value in this)
         {
-            if (this[i] is Member.Unresolved unresolved)
-            {
-                this[i] = context.Find(unresolved.Reference);
-            }
-            else
-            {
-                this[i].ResolveTypes(context);
-            }
+            value.ResolveTypes(context);
+        }
+    }
+
+    public override void ResolveFunctions(Scope context)
+    {
+        foreach (var value in this)
+        {
+            value.ResolveTypes(context);
         }
     }
 }

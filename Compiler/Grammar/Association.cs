@@ -2,8 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -48,6 +46,18 @@ internal class Association : Statement, IParsable<Association>
         {
             Origin = context.Find(origin.Reference);
         }
+    }
+
+    public override void ResolveFunctions(Scope context)
+    {
+        Destination.ResolveFunctions(context);
+        Origin.ResolveFunctions(context);
+    }
+
+    public override void ResolveData(Scope context)
+    {
+        Destination.ResolveData(context);
+        Origin.ResolveData(context);
     }
 
     public class ExpectedValueError : Association, IError

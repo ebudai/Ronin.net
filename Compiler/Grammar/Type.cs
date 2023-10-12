@@ -44,7 +44,6 @@ internal class Type : Member
         };
     }
 
-    [ExcludeFromCodeCoverage]
     public override void ResolveTypes(Scope context)
     {
         base.ResolveTypes(context);
@@ -56,13 +55,64 @@ internal class Type : Member
         Members.ResolveTypes(context);
     }
 
+    public override void ResolveFunctions(Scope context)
+    {
+        base.ResolveFunctions(context);
+        Algebra.ResolveFunctions(context);
+        Members.ResolveFunctions(context);
+    }
+
+    public override void ResolveData(Scope context)
+    {
+        base.ResolveData(context);
+        Algebra.ResolveData(context);
+        Members.ResolveData(context);
+    }
+
     public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace>
     {
         public override void ResolveTypes(Scope context)
         {
-            foreach (var member in this)
+            for (int i = 0; i != Count; ++i)
             {
-                member.ResolveTypes(context);
+                if (this[i] is Member.Unresolved unresolved)
+                {
+                    this[i] = context.Find(unresolved.Reference);
+                }
+                else
+                {
+                    this[i].ResolveTypes(context);
+                }
+            }
+        }
+
+        public override void ResolveFunctions(Scope context)
+        {
+            for (int i = 0; i != Count; ++i)
+            {
+                if (this[i] is Member.Unresolved unresolved)
+                {
+                    this[i] = context.Find(unresolved.Reference);
+                }
+                else
+                {
+                    this[i].ResolveFunctions(context);
+                }
+            }
+        }
+
+        public override void ResolveData(Scope context)
+        {
+            for (int i = 0; i != Count; ++i)
+            {
+                if (this[i] is Member.Unresolved unresolved)
+                {
+                    this[i] = context.Find(unresolved.Reference);
+                }
+                else
+                {
+                    this[i].ResolveData(context);
+                }
             }
         }
     }
@@ -121,4 +171,10 @@ internal class Algebra : Type
     {
         public Member Member { get; init; }
     }
+}
+
+internal class Calculation : Statement
+{
+    public Member Member { get; init; }
+    public Type Owner { get; init; }
 }

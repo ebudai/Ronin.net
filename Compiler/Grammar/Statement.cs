@@ -1,7 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Ronin.Grammar;
@@ -22,7 +21,14 @@ internal abstract class Statement : IParsable<Statement>
 
     public virtual void ResolveTypes(Scope context) { }
 
-    public virtual void ResolveCalculatedTypes(Scope context, Stack<Statement> circularityCheck) { }
+    public virtual void ResolveCalculatedTypes(Scope context, List<Statement> calculations, Stack<Statement> circularityCheck) { }
+
+    public virtual void ResolveFunctions(Scope context) { }
+
+    public virtual void ResolveData(Scope context) { }
+
+    public virtual void ResolveCalculatedData(Scope context) { }
 }
 
 internal class Noop : Statement { }
+

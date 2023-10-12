@@ -29,4 +29,12 @@ internal class Lookup : Aggregate<Lookup, Open.Brace, Association, Separator, Cl
             association.ResolveTypes(context);
         }
     }
+
+    public override void ResolveFunctions(Scope context)
+    {
+        foreach (var association in this)
+        {
+            association.ResolveFunctions(context);
+        }
+    }
 }

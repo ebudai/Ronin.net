@@ -3,8 +3,6 @@
 using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 
 namespace Ronin.Grammar;
 
@@ -30,6 +28,18 @@ internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separa
             (
                 value => value.ResolveTypes(context), 
                 association => association.ResolveTypes(context)
+            );
+        }
+    }
+
+    public override void ResolveFunctions(Scope context)
+    {
+        foreach (var input in this)
+        {
+            input.Switch
+            (
+                value => value.ResolveFunctions(context),
+                association => association.ResolveFunctions(context)
             );
         }
     }

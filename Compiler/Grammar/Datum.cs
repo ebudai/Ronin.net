@@ -80,7 +80,7 @@ internal class Datum : Member
         Initializer.ResolveTypes(context);
     }
 
-    public override void ResolveCalculatedTypes(Scope context, Stack<Statement> circularityCheck)
+    public override void ResolveCalculatedTypes(Scope context, List<Statement> calculations, Stack<Statement> circularityCheck)
     {
         if (Type is not Type.Calculated type) return;
 
@@ -90,7 +90,24 @@ internal class Datum : Member
             return;
         }
 
+        circularityCheck.Push(this);
+
+        
         //todo Find() the member, create a compiled statement setting the type to the result of the member (function exec or datum value)
+    }
+
+    public override void ResolveFunctions(Scope context)
+    {
+        base.ResolveFunctions(context);
+        Type.ResolveFunctions(context);
+        Initializer.ResolveFunctions(context);
+    }
+
+    public override void ResolveData(Scope context)
+    {
+        base.ResolveData(context);
+        Type.ResolveData(context);
+        Initializer.ResolveData(context);
     }
 
     public new class Unresolved : Datum
@@ -100,7 +117,6 @@ internal class Datum : Member
         public static new Datum Parse(ref Parser parser) => Reference.Parse(ref parser) is Reference reference ? new Unresolved { Reference = reference } : null;
     }
 
-    [ExcludeFromCodeCoverage]
     public class Calculated : Datum
     {
         public Member Member { get; init; }

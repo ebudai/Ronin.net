@@ -44,6 +44,14 @@ internal class Scope : Statement, IList<Statement>
         }
     }
 
+    public override void ResolveFunctions(Scope context)
+    {
+        foreach (var statement in Statements)
+        {
+            statement.ResolveFunctions(context);
+        }
+    }
+
     public class Conditional : Conditional<If> { }
     
     public class Repeating : Conditional<While> { }

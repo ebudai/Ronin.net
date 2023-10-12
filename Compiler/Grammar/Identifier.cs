@@ -26,13 +26,21 @@ internal class Identifier : IEnumerable<Identifier.Component>
         return new Identifier { Components = components };
     }
 
-    [ExcludeFromCodeCoverage]
     public void ResolveTypes(Scope context)
     {
         foreach (var component in Components)
         {
             if (component.IsT1 is false) continue;
             component.AsT1.ResolveTypes(context);
+        }
+    }
+
+    public void ResolveFunctions(Scope context)
+    {
+        foreach (var component in Components)
+        {
+            if (component.IsT1 is false) continue;
+            component.AsT1.ResolveFunctions(context);
         }
     }
 

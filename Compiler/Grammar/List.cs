@@ -19,12 +19,19 @@ namespace Ronin.Grammar;
 /// </example>
 internal class List : Aggregate<List, Open.Brace, Value, Separator, Close.Brace>
 {
-    [ExcludeFromCodeCoverage]
     public override void ResolveTypes(Scope context)
     {
         foreach (var value in this)
         {
             value.ResolveTypes(context);
+        }
+    }
+
+    public override void ResolveFunctions(Scope context)
+    {
+        foreach(var value in this)
+        {
+            value.ResolveFunctions(context);
         }
     }
 }

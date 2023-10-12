@@ -68,6 +68,20 @@ internal class Function : Member
         Definition.ResolveTypes(context);
     }
 
+    public override void ResolveFunctions(Scope context)
+    {
+        base.ResolveFunctions(context);
+        Returns.ResolveFunctions(context);
+        Definition.ResolveFunctions(context);
+    }
+
+    public override void ResolveData(Scope context)
+    {
+        base.ResolveData(context);
+        Returns.ResolveData(context);
+        Definition.ResolveData(context);
+    }
+
     public class ExpectedIdentifierError : Function, IError
     {
         public string Reason { get; } = "expected identifier";

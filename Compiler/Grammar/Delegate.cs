@@ -3,9 +3,6 @@
 using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-
 namespace Ronin.Grammar;
 
 /// <summary>
@@ -62,6 +59,18 @@ internal class Delegate : Temporary
         Definition.ResolveTypes(context);
     }
 
+    public override void ResolveFunctions(Scope context)
+    {
+        Data.ResolveFunctions(context);
+        Definition.ResolveFunctions(context);
+    }
+
+    public override void ResolveData(Scope context)
+    {
+        Data.ResolveData(context);
+        Definition.ResolveData(context);
+    }
+
     public class Parameter : OneOfBase<Datum, Name>, IParsable<Parameter>
     {
         protected Parameter(OneOf<Datum, Name> _) : base(_) { }
@@ -85,6 +94,26 @@ internal class Delegate : Temporary
             {
                 if (parameter.IsT0 is false) continue;
                 parameter.AsT0.ResolveTypes(context);
+            }
+        }
+
+        public override void ResolveFunctions(Scope context)
+        {
+            foreach (var parameter in this)
+            {
+                if (parameter.IsT0 is false) continue;
+                parameter.AsT0.ResolveFunctions(context);
+            }
+        }
+
+        public override void ResolveData(Scope context)
+        {
+            for (int i = 0; i != Count; ++i)
+            {
+                if (this[i].IsT0 is false || this[i].AsT0 is not Datum.Unresolved unresolved) continue;
+
+                var member = context.Find(unresolved.Reference);
+                this[i] = member as Datum ?? new Datum.Calculated { Member = member };
             }
         }
     }
