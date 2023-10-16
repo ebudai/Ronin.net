@@ -38,27 +38,27 @@ public class Functions : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
 
-        Assert.Equal(2, function?.Identifier?.Count());
+        Assert.Equal(2, function?.Identifier?.Count);
         
-        var parameters = function.Identifier[1].AsT1;
+        var parameters = function.Identifier[1].AsParameters;
 
         Assert.Single(parameters);
-        var parameter = parameters[0].AsT0;
+        var parameter = parameters[0].AsDatum;
         Assert.Single(parameter?.Identifier);
 
         var unresolved = parameter.Type as Type.Unresolved;
         Assert.Single(unresolved.Reference);
-        var type = unresolved.Reference.Span[0].AsT0;
+        var type = unresolved.Reference.Span[0].AsName;
         Assert.Single(type?.Tokens.ToArray());
         
         Assert.Single(function.Definition.Statements);
-        var member = function.Definition.Statements[0] as Member.Unresolved;
+        var member = function.Definition.Statements[0] as Resolution.Unresolved;
         Assert.Equal(2, member?.Reference.Span.Length);
 
-        var @return = member.Reference.Span[0].AsT0;
+        var @return = member.Reference.Span[0].AsName;
         Assert.Single(@return?.Tokens.ToArray());
 
-        var scalar = member.Reference.Span[1].AsT1 as Literal;
+        var scalar = member.Reference.Span[1].AsTemporary as Literal;
         Assert.Single(scalar?.Tokens.ToArray());
     }
 
@@ -91,31 +91,31 @@ public class Functions : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var function = Function.Parse(ref parser);
 
-        Assert.Equal(2, function?.Identifier?.Count());
+        Assert.Equal(2, function?.Identifier?.Count);
 
-        Assert.Single(function.Identifier[0].AsT0.Tokens.ToArray());
+        Assert.Single(function.Identifier[0].AsName.Tokens.ToArray());
 
-        var parameters = function.Identifier[1].AsT1;
+        var parameters = function.Identifier[1].AsParameters;
         Assert.Single(parameters);
-        var parameter = parameters[0].AsT0;
+        var parameter = parameters[0].AsDatum;
         Assert.Single(parameter.Identifier);
 
         {
             var unresolved = parameter.Type as Type.Unresolved;
             Assert.Single(unresolved.Reference);
-            var type = unresolved.Reference.Span[0].AsT0;
+            var type = unresolved.Reference.Span[0].AsName;
             Assert.Single(type?.Tokens.ToArray());
         }
 
         {
             var unresolved = function.Returns as Type.Unresolved;
             Assert.Single(unresolved.Reference);
-            var returns = unresolved.Reference.Span[0].AsT0;
+            var returns = unresolved.Reference.Span[0].AsName;
             Assert.Single(returns?.Tokens.ToArray());
         }
 
         Assert.Single(function.Definition.Statements);
-        var member = function.Definition.Statements[0] as Member.Unresolved;
+        var member = function.Definition.Statements[0] as Resolution.Unresolved;
         Assert.Single(member?.Reference);
     }
 

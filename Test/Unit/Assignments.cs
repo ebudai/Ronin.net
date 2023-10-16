@@ -27,10 +27,10 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var assignment = Association.Parse(ref parser);
 
-        var unresolved = assignment?.Destination as Member.Unresolved;
+        var unresolved = assignment?.Destination as Resolution.Unresolved;
         
         Assert.Single(unresolved?.Reference);
-        Name name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         var scalar = assignment.Origin as Literal;
@@ -53,10 +53,10 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Member.Unresolved;
+        var unresolved = association?.Destination as Resolution.Unresolved;
 
         Assert.Single(unresolved?.Reference);
-        Name name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.IsType<Assign>(association.Assignment);
@@ -81,10 +81,10 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Member.Unresolved;
+        var unresolved = association?.Destination as Resolution.Unresolved;
 
         Assert.Single(unresolved?.Reference);
-        Name name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.IsType<AddAssign>(association.Assignment);
@@ -109,15 +109,15 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolvedDatum = association?.Destination as Member.Unresolved;
+        var unresolvedDatum = association?.Destination as Resolution.Unresolved;
 
         Assert.Single(unresolvedDatum?.Reference);
-        var name = unresolvedDatum.Reference.Span[0].AsT0;
+        var name = unresolvedDatum.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.IsType<AndAssign>(association.Assignment);
 
-        var member = association.Origin as Member.Unresolved;
+        var member = association.Origin as Resolution.Unresolved;
         Assert.Single(member?.Reference);
     }
 
@@ -137,10 +137,10 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Member.Unresolved;
+        var unresolved = association?.Destination as Resolution.Unresolved;
 
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.IsType<DivideAssign>(association.Assignment);
@@ -165,10 +165,10 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Member.Unresolved;
+        var unresolved = association?.Destination as Resolution.Unresolved;
 
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.IsType<MultiplyAssign>(association.Assignment);
@@ -193,15 +193,15 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolvedDatum = association?.Destination as Member.Unresolved;
+        var unresolvedDatum = association?.Destination as Resolution.Unresolved;
 
         Assert.Single(unresolvedDatum?.Reference);
-        var name = unresolvedDatum.Reference.Span[0].AsT0;
+        var name = unresolvedDatum.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.IsType<OrAssign>(association.Assignment);
 
-        var member = association.Origin as Member.Unresolved;
+        var member = association.Origin as Resolution.Unresolved;
         Assert.Single(member?.Reference);
     }
 
@@ -221,10 +221,10 @@ public class Assignments : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var association = Association.Parse(ref parser);
 
-        var unresolved = association?.Destination as Member.Unresolved;
+        var unresolved = association?.Destination as Resolution.Unresolved;
 
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.IsType<SubtractAssign>(association.Assignment);

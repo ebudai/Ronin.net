@@ -30,7 +30,7 @@ public class Parameter : ParsingTests
 
         Assert.Single(parameters);
 
-        var datum = parameters[0].AsT0;
+        var datum = parameters[0].AsDatum;
 
         Assert.IsType<Variable>(datum?.Mutability);
 
@@ -42,7 +42,7 @@ public class Parameter : ParsingTests
 
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
     }
 
@@ -72,10 +72,8 @@ public class Parameter : ParsingTests
 
         Assert.Equal(2, parameters?.Count);
 
-        {
-            Assert.True(parameters[0].IsT0);
-            
-            Datum datum = parameters[0].AsT0;            
+        {            
+            Datum datum = parameters[0].AsDatum;            
             
             Assert.NotNull(datum);
             Assert.Null(datum.Mutability);
@@ -84,12 +82,12 @@ public class Parameter : ParsingTests
 
             var unresolved = datum.Type as Type.Unresolved;
             Assert.Single(unresolved?.Reference);
-            var name = unresolved.Reference.Span[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var datum = parameters[1].AsT0;
+            var datum = parameters[1].AsDatum;
 
             Assert.NotNull(datum);
             Assert.Null(datum.Mutability);
@@ -98,7 +96,7 @@ public class Parameter : ParsingTests
 
             var unresolved = datum.Type as Type.Unresolved;
             Assert.Single(unresolved?.Reference);
-            var name = unresolved.Reference.Span[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
     }

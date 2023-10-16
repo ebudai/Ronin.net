@@ -31,19 +31,19 @@ public class References : ParsingTests
         Assert.Equal(3, reference?.Span.Length);
 
         {
-            Name name = reference.Span[0].AsT0;
+            var name = reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = reference.Span[1].AsT1 as Literal;
+            var scalar = reference.Span[1].AsTemporary as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var arguments = reference.Span[2].AsT1 as Inputs;
+            var arguments = reference.Span[2].AsTemporary as Inputs;
             Assert.Single(arguments);
-            var scalar = arguments[0].AsT1 as Literal;
+            var scalar = arguments[0].AsValue as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }

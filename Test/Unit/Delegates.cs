@@ -33,20 +33,20 @@ public class Delegates : ParsingTests
 
         {
             Assert.Single(@delegate?.Data);
-            var name = @delegate.Data[0].AsT1;
+            var name = @delegate.Data[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         Assert.Single(@delegate.Definition.Statements);
-        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
+        var unresolved = @delegate.Definition.Statements[0] as Resolution.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
-            var name = unresolved.Reference.Span[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
         
-        var scalar = unresolved.Reference.Span[1].AsT1 as Literal;
+        var scalar = unresolved.Reference.Span[1].AsTemporary as Literal;
         Assert.Single(scalar?.Tokens.ToArray());        
     }
 
@@ -75,20 +75,20 @@ public class Delegates : ParsingTests
         var @delegate = Delegate.Parse(ref parser);
 
         Assert.Single(@delegate?.Data);
-        Datum datum = @delegate.Data[0].AsT0;
+        var datum = @delegate.Data[0].AsDatum;
         Assert.Single(datum?.Identifier);
 
         Assert.Single(@delegate.Definition.Statements);
-        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
+        var unresolved = @delegate.Definition.Statements[0] as Resolution.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
-            var name = unresolved.Reference.Span[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = unresolved.Reference.Span[1].AsT1 as Literal;
+            var scalar = unresolved.Reference.Span[1].AsTemporary as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }
@@ -121,24 +121,24 @@ public class Delegates : ParsingTests
 
         Assert.Equal(3, @delegate?.Data.Count);
 
-        var identifier = @delegate.Data[0].AsT1;
+        var identifier = @delegate.Data[0].AsName;
         Assert.Single(identifier?.Tokens.ToArray());
-        identifier = @delegate.Data[1].AsT1;
+        identifier = @delegate.Data[1].AsName;
         Assert.Single(identifier?.Tokens.ToArray());
-        identifier = @delegate.Data[2].AsT1;
+        identifier = @delegate.Data[2].AsName;
         Assert.Single(identifier?.Tokens.ToArray());
 
         Assert.Single(@delegate.Definition.Statements);
-        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
+        var unresolved = @delegate.Definition.Statements[0] as Resolution.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
-            Name name = unresolved.Reference.Span[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = unresolved.Reference.Span[1].AsT1 as Literal;
+            var scalar = unresolved.Reference.Span[1].AsTemporary as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }
@@ -167,16 +167,16 @@ public class Delegates : ParsingTests
         Assert.Empty(@delegate?.Data);
 
         Assert.Single(@delegate?.Definition.Statements);
-        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
+        var unresolved = @delegate.Definition.Statements[0] as Resolution.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
-            Name name = unresolved.Reference.Span[0].AsT0;
+            var name = unresolved.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = unresolved.Reference.Span[1].AsT1 as Literal;
+            var scalar = unresolved.Reference.Span[1].AsTemporary as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }

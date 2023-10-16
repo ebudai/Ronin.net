@@ -26,9 +26,9 @@ public class Input : ParsingTests
         var inputs = Inputs.Parse(ref parser);
 
         Assert.Single(inputs);
-        var member = inputs[0].AsT1 as Member.Unresolved;
+        var member = inputs[0].AsValue as Resolution.Unresolved;
         Assert.Single(member?.Reference);
-        var name = member.Reference.Span[0].AsT0;
+        var name = member.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
     }
 
@@ -53,16 +53,16 @@ public class Input : ParsingTests
         Assert.Equal(2, arguments?.Count);
 
         {
-            var member = arguments[0].AsT1 as Member.Unresolved;
+            var member = arguments[0].AsValue as Resolution.Unresolved;
             Assert.Single(member?.Reference);
-            var name = member.Reference.Span[0].AsT0;
+            var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var member = arguments[1].AsT1 as Member.Unresolved;
+            var member = arguments[1].AsValue as Resolution.Unresolved;
             Assert.Single(member?.Reference);
-            var name = member.Reference.Span[0].AsT0;
+            var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
     }
@@ -107,19 +107,19 @@ public class Input : ParsingTests
         Assert.Equal(3, arguments?.Count);
         
         {
-            var scalar = arguments[0].AsT1 as Literal;
+            var scalar = arguments[0].AsValue as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var scalar = arguments[1].AsT1 as Literal;
+            var scalar = arguments[1].AsValue as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var member = arguments[2].AsT1 as Member.Unresolved;
+            var member = arguments[2].AsValue as Resolution.Unresolved;
             Assert.Single(member?.Reference);
-            var name = member.Reference.Span[0].AsT0;
+            var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
     }
@@ -153,33 +153,33 @@ public class Input : ParsingTests
         Assert.Equal(3, arguments?.Count);
 
         {
-            var member = arguments[0].AsT1 as Member.Unresolved;
+            var member = arguments[0].AsValue as Resolution.Unresolved;
             Assert.Single(member?.Reference);
-            var name = member.Reference.Span[0].AsT0;
+            var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var scalar = arguments[1].AsT1 as Literal;
+            var scalar = arguments[1].AsValue as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var subargs = arguments[2].AsT1 as Inputs;
+            var subargs = arguments[2].AsValue as Inputs;
             Assert.Equal(3, subargs?.Count);
 
             {
-                var scalar = subargs[0].AsT1 as Literal;
+                var scalar = subargs[0].AsValue as Literal;
                 Assert.Single(scalar?.Tokens.ToArray());
             }
 
             {
-                var scalar = subargs[1].AsT1 as Literal;
+                var scalar = subargs[1].AsValue as Literal;
                 Assert.Single(scalar?.Tokens.ToArray());
             }
 
             {
-                var scalar = subargs[2].AsT1 as Literal;
+                var scalar = subargs[2].AsValue as Literal;
                 Assert.Single(scalar?.Tokens.ToArray());
             }
         }
@@ -209,12 +209,10 @@ public class Input : ParsingTests
 
         Assert.Equal(2, arguments?.Count);
 
-        Assert.True(arguments[1].IsT0);
-        Association assignment = arguments[1].AsT0;
-        var member = assignment.Destination as Member.Unresolved;
+        var assignment = arguments[1].AsAssociation;
+        var member = assignment?.Destination as Resolution.Unresolved;
         Assert.Single(member?.Reference);
-        Assert.True(member.Reference.Span[0].IsT0);
-        var name = member.Reference.Span[0].AsT0;
+        var name = member.Reference.Span[0].AsName;
         Assert.Single(name.Tokens.ToArray());
         Assert.Equal(variable, name.Tokens.Span[0].Memory.ToString());
     }

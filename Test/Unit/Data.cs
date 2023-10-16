@@ -36,7 +36,7 @@ public class Data : ParsingTests
         Assert.Single(datum.Identifier);
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
         Assert.Null(datum.Initializer);
     }
@@ -69,7 +69,7 @@ public class Data : ParsingTests
 
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
         
         Assert.Null(datum.Initializer);
@@ -103,7 +103,7 @@ public class Data : ParsingTests
 
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -137,7 +137,7 @@ public class Data : ParsingTests
 
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         Assert.Null(datum.Initializer);
@@ -170,7 +170,7 @@ public class Data : ParsingTests
 
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
         
         Assert.Null(datum.Initializer);
@@ -204,9 +204,9 @@ public class Data : ParsingTests
 
         Assert.Null(datum.Type);
 
-        var member = datum.Initializer as Member.Unresolved;
+        var member = datum.Initializer as Resolution.Unresolved;
         Assert.Single(member?.Reference);
-        var name = member.Reference.Span[0].AsT0;
+        var name = member.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
     }
 
@@ -240,7 +240,7 @@ public class Data : ParsingTests
 
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsT0;
+        var name = unresolved.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
 
         var scalar = datum.Initializer as Ronin.Grammar.Literal;

@@ -26,9 +26,9 @@ public class Indexers : ParsingTests
         var indexer = Ronin.Grammar.Index.Parse(ref parser);
 
         Assert.Single(indexer);
-        var member = indexer[0] as Member.Unresolved;
+        var member = indexer[0] as Resolution.Unresolved;
         Assert.Single(member?.Reference);
-        var name = member.Reference.Span[0].AsT0;
+        var name = member.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
     }
 
@@ -53,16 +53,16 @@ public class Indexers : ParsingTests
         Assert.Equal(2, indexer?.Count);
 
         {
-            var member = indexer[0] as Member.Unresolved;
+            var member = indexer[0] as Resolution.Unresolved;
             Assert.Single(member?.Reference);
-            Name name = member.Reference.Span[0].AsT0;
+            Name name = member.Reference.Span[0].AsName;
             Assert.Equal(1, name?.Tokens.Length);
         }
 
         {
-            var member = indexer[1] as Member.Unresolved;
+            var member = indexer[1] as Resolution.Unresolved;
             Assert.Single(member?.Reference);
-            var name = member.Reference.Span[0].AsT0;
+            var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
     }
@@ -118,9 +118,9 @@ public class Indexers : ParsingTests
         }
 
         {
-            var member = arguments[2] as Member.Unresolved;
+            var member = arguments[2] as Resolution.Unresolved;
             Assert.Single(member?.Reference);
-            var name = member.Reference.Span[0].AsT0;
+            var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }        
     }

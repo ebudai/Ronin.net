@@ -30,7 +30,7 @@ public class Identifiers : ParsingTests
         var identifier = Identifier.Parse(ref parser);
 
         Assert.Single(identifier);
-        Assert.Equal(3, identifier[0].AsT0.Tokens.Length);
+        Assert.Equal(3, identifier[0].AsName.Tokens.Length);
     }
 
     [Fact(DisplayName = "words")]
@@ -59,7 +59,7 @@ public class Identifiers : ParsingTests
         var identifier = Identifier.Parse(ref parser);
 
         Assert.Single(identifier);
-        Assert.Equal(7, identifier[0].AsT0.Tokens.Length);
+        Assert.Equal(7, identifier[0].AsName.Tokens.Length);
     }
 
     [Fact(DisplayName = "equality")]
@@ -94,7 +94,7 @@ public class Identifiers : ParsingTests
         Assert.Single(first.Identifier);
         Assert.Single(second.Identifier);
 
-        Assert.Equal(first.Identifier[0].AsT0.Tokens.Span[0].Memory, second.Identifier[0].AsT0.Tokens.Span[0].Memory);
+        Assert.Equal(first.Identifier[0].AsName.Tokens.Span[0].Memory, second.Identifier[0].AsName.Tokens.Span[0].Memory);
     }
 
     [Fact(DisplayName = "enumerable")]

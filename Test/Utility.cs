@@ -398,9 +398,9 @@ public class AnalysisTests : ParsingTests
         return Reference(components.ToArray());
     }
 
-    internal static Reference Reference(params Reference.Component[] components) => new() { Components = components.ToList() };
+    internal static Reference Reference(params Reference.Component[] components) => new() { components };
 
-    internal static Member.Unresolved UnresolvedReference(params string[] words)
+    internal static Resolution UnresolvedReference(params string[] words)
     {
         List<Reference.Component> components = new();
         foreach (var word in words)
@@ -413,5 +413,5 @@ public class AnalysisTests : ParsingTests
         return UnresolvedReference(components.ToArray());
     }
 
-    internal static Member.Unresolved UnresolvedReference(params Reference.Component[] components) => new() { Reference = new() { Components = components.ToList() } };
+    internal static Resolution UnresolvedReference(params Reference.Component[] components) => new Resolution.Unresolved { Reference = new() { components } };
 }
