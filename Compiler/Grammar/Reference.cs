@@ -57,7 +57,12 @@ internal class Reference : IEnumerable<Reference.Component>
         public static implicit operator Component(Name name) => new(name);
         public static implicit operator Component(Temporary value) => new(value);
 
-        public static Component Parse(ref Parser current) => Name.Parse(ref current) is Name name ? name : Temporary.Parse(ref current);
+        public static Component Parse(ref Parser current)
+        {
+            if (Name.Parse(ref current) is Name name) return name;
+            if (Temporary.Parse(ref current) is Temporary temporary) return temporary;
+            return null;
+        }
         
         public Name AsName => value as Name;
         public Temporary AsTemporary => value as Temporary;

@@ -1,8 +1,9 @@
 ﻿using Ronin.Compiler;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal class Resolution : Value, IParsable<Resolution>
+internal abstract class Resolution : Value, IParsable<Resolution>
 {
     public static new Resolution Parse(ref Parser current)
     {
@@ -25,5 +26,16 @@ internal class Resolution : Value, IParsable<Resolution>
     public class Unresolved : Resolution
     {
         public Reference Reference { get; init; }
+    }
+
+    public class Definite : Resolution
+    {
+        public Member Member { get; init; }
+        public List<Resolution> Inputs { get; init; } = new();
+    }
+
+    public class Ambiguous : Resolution
+    {
+        public List<Resolution> Candidates { get; init; } = new();
     }
 }

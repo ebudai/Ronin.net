@@ -71,7 +71,12 @@ internal class Identifier : IEnumerable<Identifier.Component>
         public static implicit operator Component(Name name) => new(name);
         public static implicit operator Component(Parameters parameters) => new(parameters);
 
-        public static Component Parse(ref Parser current) => Name.Parse(ref current) is Name name ? name : Parameters.Parse(ref current);
+        public static Component Parse(ref Parser current)// => Name.Parse(ref current) is Name name ? name : Parameters.Parse(ref current);
+        {
+            if (Name.Parse(ref current) is Name name) return name;
+            if (Parameters.Parse(ref current) is Parameters parameters) return parameters;
+            return null;
+        }
 
         public Name AsName => value as Name;
         public Parameters AsParameters => value as Parameters;
