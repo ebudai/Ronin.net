@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin;
@@ -14,13 +13,5 @@ internal static class Utility
             if (entry.Key.Equals(key)) return entry;
         }
         return default;
-    }
-
-    [ExcludeFromCodeCoverage]
-    public static int ToHashCode<T>(this ReadOnlySpan<T> enumerable)
-    {
-        HashCode hashcode = new();
-        foreach (var item in enumerable) hashcode.Add(item);
-        return hashcode.ToHashCode();
     }
 }

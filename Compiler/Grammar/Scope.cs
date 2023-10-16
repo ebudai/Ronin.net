@@ -27,12 +27,13 @@ internal class Scope : Statement, IList<Statement>
 
     public virtual Member Find(Reference reference)
     {
-        foreach (var statement in Statements)
+        List<Member> members = new();
+        foreach (var statement in this)
         {
             if (statement is not Member member) continue;
-
+            
         }
-        throw new NotImplementedException();
+        return Parent?.Find(reference);
     }
 
     public override void ResolveTypes(Scope context)
@@ -224,7 +225,7 @@ internal class Scope : Statement, IList<Statement>
 
     internal class Conditional<T> : Scope where T : Keyword
     {
-        public Member Condition { get; init; }
+        public Resolution Condition { get; init; }
 
         protected Conditional() { }
         protected Conditional(Scope scope) : base(scope) { }
@@ -237,7 +238,7 @@ internal class Scope : Statement, IList<Statement>
 
             if (parser.TryAdvance<T>() is false) return null;
 
-            if (Member.Unresolved.Parse(ref parser) is not Member condition)
+            if (Resolution.Parse(ref parser) is not Resolution condition)
             {
                 return new ExpectedConditionError { Tokens = current.AdvanceTo(parser) };
             }

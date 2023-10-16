@@ -75,14 +75,7 @@ internal class Type : Member
         {
             for (int i = 0; i != Count; ++i)
             {
-                if (this[i] is Member.Unresolved unresolved)
-                {
-                    this[i] = context.Find(unresolved.Reference);
-                }
-                else
-                {
-                    this[i].ResolveTypes(context);
-                }
+                this[i].ResolveTypes(context);
             }
         }
 
@@ -90,14 +83,7 @@ internal class Type : Member
         {
             for (int i = 0; i != Count; ++i)
             {
-                if (this[i] is Member.Unresolved unresolved)
-                {
-                    this[i] = context.Find(unresolved.Reference);
-                }
-                else
-                {
-                    this[i].ResolveFunctions(context);
-                }
+                this[i].ResolveFunctions(context);
             }
         }
 
@@ -105,19 +91,12 @@ internal class Type : Member
         {
             for (int i = 0; i != Count; ++i)
             {
-                if (this[i] is Member.Unresolved unresolved)
-                {
-                    this[i] = context.Find(unresolved.Reference);
-                }
-                else
-                {
-                    this[i].ResolveData(context);
-                }
+                this[i].ResolveData(context);
             }
         }
     }
 
-    public new class Unresolved : Type
+    public class Unresolved : Type
     {
         public Reference Reference { get; init; }
 
@@ -126,11 +105,6 @@ internal class Type : Member
                 ? null
                 : new Unresolved { Reference = reference };
     }
-
-    /*internal class Overloaded : Type
-    {
-        public List<Resolution> Overloads { get; init; }
-    }*/
 
     [ExcludeFromCodeCoverage]
     internal class Calculated : Type

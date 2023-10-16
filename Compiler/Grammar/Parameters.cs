@@ -1,8 +1,9 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
+using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -20,9 +21,25 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.Parameter, Separator, Close.Parenthesis>
 {
-    public class Parameter : OneOfBase<Datum, Association>, IParsable<Parameter>
+    public ReadOnlyMemory<Parameter> Mandatory { get; }
+
+    public Parameters() : base()
     {
-        protected Parameter(OneOf<Datum, Association> _) : base(_) { }
+        List<Parameter> parameters = new();
+        foreach (var parameter in this)
+        {
+            if (parameter.AsDatum is not Datum datum) continue;
+            if (datum.Initializer is not null) continue;
+            if (datum.Modifiers.Is<Optional>()) continue;
+            parameters.Add(parameter);
+        }
+        Mandatory = parameters.ToArray();
+    }
+
+    public class Parameter : Compiler.IParsable<Parameter>
+    {
+        private Parameter(Datum datum) => value = datum;
+        private Parameter(Association association) => value = association;
 
         public static implicit operator Parameter(Datum datum) => new(datum);
         public static implicit operator Parameter(Association association) => new(association);
@@ -33,5 +50,10 @@ internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.P
             if (Association.Parse(ref current) is Association association) return association;
             return null;
         }
+
+        public Datum AsDatum => value as Datum;
+        public Association AsAssociation => value as Association;
+
+        private readonly object value;
     }
 }

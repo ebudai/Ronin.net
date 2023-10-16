@@ -3,7 +3,6 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -34,7 +33,7 @@ internal class Datum : Member
         var mutability = parser.Token as Mutability;
         if (mutability is not null) parser.Advance();
 
-        if (Name.Parse(ref parser) is not Name name)
+        if (Identifier.Parse(ref parser) is not Identifier identifier)
         {
             return mutability is null ? null : new ExpectedIdentifierError(ref parser);
         }
@@ -62,7 +61,7 @@ internal class Datum : Member
         return new Datum
         {
             Mutability = mutability,
-            Identifier = new() { name },
+            Identifier = identifier,
             Modifiers = modifiers ?? new(),
             Type = type,
             Initializer = initializer
@@ -92,7 +91,7 @@ internal class Datum : Member
 
         circularityCheck.Push(this);
 
-        
+        throw new System.NotImplementedException();
         //todo Find() the member, create a compiled statement setting the type to the result of the member (function exec or datum value)
     }
 
@@ -110,7 +109,7 @@ internal class Datum : Member
         Initializer.ResolveData(context);
     }
 
-    public new class Unresolved : Datum
+    public class Unresolved : Datum
     {
         public Reference Reference { get; set; }
 
@@ -128,7 +127,5 @@ internal class Datum : Member
 
         public string Reason { get; } = "expected identifier";
         public System.ReadOnlyMemory<Token> Tokens { get; init; }
-    }
-
-    
+    }    
 }

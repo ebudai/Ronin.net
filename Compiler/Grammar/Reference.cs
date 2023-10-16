@@ -1,8 +1,8 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -14,9 +14,9 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Reference : IEnumerable<Reference.Component>
 {
-    public System.ReadOnlySpan<Component> Span => CollectionsMarshal.AsSpan(Components);
+    public ReadOnlySpan<Component> Span => CollectionsMarshal.AsSpan(Components);
 
-    internal List<Component> Components { private get; init; }
+    private List<Component> Components { get; init; }
 
     public static Reference Parse(ref Parser current)
     {
@@ -26,32 +26,42 @@ internal class Reference : IEnumerable<Reference.Component>
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
-        if (components.Count is 1 
-            && components[0].IsT1 
-            && components[0].AsT1 is Literal) return null;
+        if (components.Count is 1 && components[0].AsTemporary is Literal) return null;
         current = parser;
         return new Reference { Components = components };
     }
-
-    /*public void Add(Component component) => Components.Add(component);
-    public void Add(IEnumerable<Component> components) => Components.AddRange(components);*/
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public class Component : OneOfBase<Name, Temporary>, IParsable<Component>
+    public Component this[int i] => Components[i];
+
+    public int Count => Components.Count;
+
+    public void Add(Name name) => Components.Add(name);
+    public void Add(IEnumerable<Component> components) => Components.AddRange(components);
+
+    public Resolution Resolve(Scope context)
     {
-        protected Component(OneOf<Name, Temporary> _) : base(_) { }
+        
+
+        return null;
+    }
+
+    public class Component : Compiler.IParsable<Component>
+    {
+        private Component(Name name) => value = name;
+        private Component(Temporary temporary) => value = temporary;
 
         public static implicit operator Component(Name name) => new(name);
         public static implicit operator Component(Temporary value) => new(value);
 
-        public static Component Parse(ref Parser current)
-        {
-            if (Name.Parse(ref current) is Name name) return name;
-            if (Temporary.Parse(ref current) is Temporary value) return value;
-            return null;
-        }
+        public static Component Parse(ref Parser current) => Name.Parse(ref current) is Name name ? name : Temporary.Parse(ref current);
+        
+        public Name AsName => value as Name;
+        public Temporary AsTemporary => value as Temporary;
+
+        private readonly object value;
     }
 }

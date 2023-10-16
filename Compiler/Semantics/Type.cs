@@ -32,13 +32,13 @@ internal partial class Analyzer
     {
         foreach (var component in identifier)
         {
-            if (component.IsT0) continue;
-            Types(component.AsT1, scope);
+            Types(component.AsParameters, scope);
         }
     }
 
     private static void Types(Parameters parameters, Scope scope)
     {
+        if (parameters is null) return;
         foreach (var parameter in parameters)
         {
 

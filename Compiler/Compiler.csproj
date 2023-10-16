@@ -8,7 +8,7 @@
     <RootNamespace>Ronin</RootNamespace>
     <TieredCompilation>false</TieredCompilation>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -28,9 +28,5 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Ronin.Test2</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="OneOf" Version="3.0.263" />
-    <PackageReference Include="OneOf.SourceGenerator" Version="3.0.263" />
   </ItemGroup>
 </Project>

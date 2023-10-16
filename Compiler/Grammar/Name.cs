@@ -26,4 +26,16 @@ internal class Name
 
         return new Name { Tokens = current.AdvanceTo(parser) };
     }
+
+    public override bool Equals(object obj) => (obj as Name)?.Tokens.Span.SequenceEqual(Tokens.Span) ?? false;
+
+    public override int GetHashCode()
+    {
+        HashCode hashCode = new();
+        foreach (var token in Tokens.Span)
+        {
+            hashCode.Add(token.Memory);
+        }
+        return hashCode.ToHashCode();
+    }
 }

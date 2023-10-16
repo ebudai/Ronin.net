@@ -1,6 +1,5 @@
 ﻿// Copyright © 2023 Eric Budai
 
-using OneOf;
 using Ronin.Compiler;
 using Ronin.Lexicon;
 namespace Ronin.Grammar;
@@ -71,9 +70,10 @@ internal class Delegate : Temporary
         Definition.ResolveData(context);
     }
 
-    public class Parameter : OneOfBase<Datum, Name>, IParsable<Parameter>
+    public class Parameter : IParsable<Parameter>
     {
-        protected Parameter(OneOf<Datum, Name> _) : base(_) { }
+        private Parameter(Datum datum) => value = datum;
+        private Parameter(Name name) => value = name;
 
         public static implicit operator Parameter(Datum datum) => new(datum);
         public static implicit operator Parameter(Name name) => new(name);
@@ -84,6 +84,11 @@ internal class Delegate : Temporary
             if (Name.Parse(ref current) is Name name) return name;
             return null;
         }
+
+        public Datum AsDatum => value as Datum;
+        public Name AsName => value as Name;
+
+        private readonly object value;
     }
 
     public class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameter, Separator, Close.Parenthesis>
@@ -92,8 +97,7 @@ internal class Delegate : Temporary
         {
             foreach (var parameter in this)
             {
-                if (parameter.IsT0 is false) continue;
-                parameter.AsT0.ResolveTypes(context);
+                parameter.AsDatum?.ResolveTypes(context);
             }
         }
 
@@ -101,8 +105,7 @@ internal class Delegate : Temporary
         {
             foreach (var parameter in this)
             {
-                if (parameter.IsT0 is false) continue;
-                parameter.AsT0.ResolveFunctions(context);
+                parameter.AsDatum?.ResolveFunctions(context);
             }
         }
 
@@ -110,7 +113,7 @@ internal class Delegate : Temporary
         {
             for (int i = 0; i != Count; ++i)
             {
-                if (this[i].IsT0 is false || this[i].AsT0 is not Datum.Unresolved unresolved) continue;
+                if (this[i].AsDatum is not Datum.Unresolved unresolved) continue;
 
                 var member = context.Find(unresolved.Reference);
                 this[i] = member as Datum ?? new Datum.Calculated { Member = member };

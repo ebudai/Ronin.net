@@ -36,13 +36,13 @@ internal class Association : Statement, IParsable<Association>
     public override void ResolveTypes(Scope context)
     {
         Destination.ResolveTypes(context);
-        if (Destination is Member.Unresolved destination)
+        if (Destination is Resolution.Unresolved destination)
         {
             Destination = context.Find(destination.Reference);
         }
 
         Origin.ResolveTypes(context);
-        if (Origin is Member.Unresolved origin)
+        if (Origin is Resolution.Unresolved origin)
         {
             Origin = context.Find(origin.Reference);
         }
