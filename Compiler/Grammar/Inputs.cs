@@ -19,7 +19,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separator, Close.Parenthesis>
 {
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         foreach (var input in this)
         {
@@ -28,7 +28,7 @@ internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separa
         }
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
         foreach (var input in this)
         {
@@ -55,6 +55,6 @@ internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separa
         public Value AsValue => input as Value;
         public Association AsAssociation => input as Association;
 
-        private readonly object input;
+        private readonly Statement input;
     }
 }

@@ -5,6 +5,16 @@ namespace Ronin.Grammar;
 
 internal abstract class Resolution : Value, IParsable<Resolution>
 {
+    public static Resolution From(List<Resolution> resolutions)
+    {
+        return resolutions.Count switch
+        {
+            0 => null,
+            1 => resolutions[0],
+            _ => new Resolution.Ambiguous { Candidates = resolutions }
+        };
+    }
+
     public static new Resolution Parse(ref Parser current)
     {
         Parser parser = current;

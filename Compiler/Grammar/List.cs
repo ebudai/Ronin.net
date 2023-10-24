@@ -19,7 +19,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class List : Aggregate<List, Open.Brace, Value, Separator, Close.Brace>
 {
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         foreach (var value in this)
         {
@@ -27,7 +27,7 @@ internal class List : Aggregate<List, Open.Brace, Value, Separator, Close.Brace>
         }
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
         foreach(var value in this)
         {

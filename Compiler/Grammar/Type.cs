@@ -44,25 +44,25 @@ internal class Type : Member
         };
     }
 
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         base.ResolveTypes(context);
         if (Algebra is Algebra.Unresolved unresolved)
         {
-            var member = context.Find(unresolved.Reference);
+            var member = context.Resolve(unresolved.Reference);
             Algebra = member as Algebra ?? new Algebra.Calculated { Member = member };
         }
         Members.ResolveTypes(context);
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
         base.ResolveFunctions(context);
         Algebra.ResolveFunctions(context);
         Members.ResolveFunctions(context);
     }
 
-    public override void ResolveData(Scope context)
+    public override void ResolveData(IContext context)
     {
         base.ResolveData(context);
         Algebra.ResolveData(context);
@@ -71,7 +71,7 @@ internal class Type : Member
 
     public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace>
     {
-        public override void ResolveTypes(Scope context)
+        public override void ResolveTypes(IContext context)
         {
             for (int i = 0; i != Count; ++i)
             {
@@ -79,7 +79,7 @@ internal class Type : Member
             }
         }
 
-        public override void ResolveFunctions(Scope context)
+        public override void ResolveFunctions(IContext context)
         {
             for (int i = 0; i != Count; ++i)
             {
@@ -87,7 +87,7 @@ internal class Type : Member
             }
         }
 
-        public override void ResolveData(Scope context)
+        public override void ResolveData(IContext context)
         {
             for (int i = 0; i != Count; ++i)
             {

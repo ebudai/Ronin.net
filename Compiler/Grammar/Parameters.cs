@@ -54,6 +54,6 @@ internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.P
         public Datum AsDatum => value as Datum;
         public Association AsAssociation => value as Association;
 
-        private readonly object value;
+        private readonly Statement value;
     }
 }

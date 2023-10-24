@@ -35,7 +35,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
 
     public int Count => Components.Count;
 
-    public void ResolveTypes(Scope context)
+    public void ResolveTypes(IContext context)
     {
         foreach (var component in this)
         {
@@ -43,7 +43,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
         }
     }
 
-    public void ResolveFunctions(Scope context)
+    public void ResolveFunctions(IContext context)
     {
         foreach (var component in this)
         {
@@ -51,7 +51,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
         }
     }
 
-    public void ResolveData(Scope context)
+    public void ResolveData(IContext context)
     {
         foreach (var component in this)
         {
@@ -62,6 +62,79 @@ internal class Identifier : IEnumerable<Identifier.Component>
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
+
+    public Resolution Resolve(Reference reference)
+    {
+        List<Resolution> resolutions = new();
+
+        var combinations = GenerateCombinations(this, reference);
+
+        foreach (var combination in combinations)
+        {
+            if (Validate(combination) is false) continue;
+
+            System.Index previndex = 0;
+            System.Index prevanchor = 0;
+            foreach (var index in combination)
+            {
+                var subreference = reference.Span[previndex..index];
+                previndex = index;
+
+                var anchor = IndexOfNextAnchorPoint(Span, prevanchor);
+                var subidentifier = Span[prevanchor..anchor];
+                prevanchor = anchor;
+
+                var resolution = Subresolve(subidentifier, subreference);
+                resolutions.Add(resolution);
+            }
+        }
+
+        return Resolution.From(resolutions);
+
+        static ArrayIndexCombinations GenerateCombinations(Identifier identifier, Reference reference)
+        {
+            ArrayIndexCombinations combinations = new();
+            foreach (var idpart in identifier)
+            {
+                var indices = idpart.AsName is Name name
+                    ? reference.IndicesOf(name)
+                    : reference.IndicesOf(idpart.AsParameters);
+
+                if (indices is null) continue;
+
+                combinations.Add(indices);
+            }
+            return combinations;
+        }
+
+        static bool Validate(System.Index[] combination)
+        {
+            System.Index lastIndex = -1;
+            foreach (var index in combination)
+            {
+                if (lastIndex.Value < index.Value) return false;
+            }
+            return true;
+        }
+
+        static int IndexOfNextAnchorPoint(ReadOnlySpan<Component> identifier, System.Index previousAnchorPoint)
+        {
+            for (int i = previousAnchorPoint.Value + 1; i != identifier.Length; ++i)
+            {
+                if (identifier[i].AsParameters is Parameters and { Mandatory.Length: > 1 }) return i;
+            }
+            return -1;
+        }
+    }
+
+    private Resolution Subresolve(ReadOnlySpan<Component> identifier, ReadOnlySpan<Reference.Component> reference)
+    {
+        ArrayIndexCombinations combinations = new();
+        foreach (var component in identifier)
+        {
+
+        }
+    }
 
     public class Component : Compiler.IParsable<Component>
     {

@@ -57,25 +57,25 @@ internal class Function : Member
         };
     }
 
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         base.ResolveTypes(context);
         if (Returns is Type.Unresolved unresolved)
         {
-            var member = context.Find(unresolved.Reference);
+            var member = context.Resolve(unresolved.Reference);
             Returns = member as Type ?? new Type.Calculated { Member = member };
         }
         Definition.ResolveTypes(context);
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
         base.ResolveFunctions(context);
         Returns.ResolveFunctions(context);
         Definition.ResolveFunctions(context);
     }
 
-    public override void ResolveData(Scope context)
+    public override void ResolveData(IContext context)
     {
         base.ResolveData(context);
         Returns.ResolveData(context);

@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-/*internal interface IContext : IEnumerable<Statement>
+internal interface IContext : IList<Statement>
 {
     IContext Parent { get; }
-    Member Find(Reference reference);
-}*/
+    Resolution Resolve(Reference reference);
+}
 
 /// <summary>
 ///     Body of <see cref="Scope"/>s, <see cref="Type"/>s and <see cref="Function"/>s.

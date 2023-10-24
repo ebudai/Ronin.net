@@ -31,6 +31,8 @@ internal class Reference : IEnumerable<Reference.Component>
         return new Reference { Components = components };
     }
 
+    
+
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
@@ -42,11 +44,40 @@ internal class Reference : IEnumerable<Reference.Component>
     public void Add(Name name) => Components.Add(name);
     public void Add(IEnumerable<Component> components) => Components.AddRange(components);
 
-    public Resolution Resolve(Scope context)
+    public System.Index[] IndicesOf(Name name)
     {
-        
+        if (name is null) return null;
 
-        return null;
+        List<System.Index> indices = new();
+
+        for (var i = 0; i != Count; ++i)
+        {
+            if (name.Equals(this[i].AsName))
+            {
+                indices.Add(i);
+            }
+        }
+
+        return indices.ToArray();
+    }
+
+    public System.Index[] IndicesOf(Parameters parameters)
+    {
+        if (parameters.Mandatory.Length is 0 or 1) return null;
+
+        List<System.Index> indices = new();
+
+        for (var i = 0; i != Count; ++i)
+        {
+            if (this[i].AsTemporary is not Inputs inputs) continue;
+
+            if (inputs.Count >= parameters.Mandatory.Length && inputs.Count <= parameters.Count)
+            {
+                indices.Add(i);
+            }
+        }
+
+        return indices.ToArray();
     }
 
     public class Component : Compiler.IParsable<Component>

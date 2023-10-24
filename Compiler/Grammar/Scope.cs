@@ -7,9 +7,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
-internal class Scope : Statement, IList<Statement>
+internal class Scope : Statement, IContext
 {
-    public Scope Parent { get; set; }
+    public IContext Parent { get; set; }
     public Modifiers Modifiers { get; init; }
     public List<Module> Imports { get; } = new();
     public List<Statement> Statements { get; } = new();
@@ -25,32 +25,46 @@ internal class Scope : Statement, IList<Statement>
         ?? Iterating.Parse(ref current)
         ?? Reactive.Parse(ref current) as Scope;
 
-    public virtual Member Find(Reference reference)
-    {
-        List<Member> members = new();
-        foreach (var statement in this)
-        {
-            if (statement is not Member member) continue;
-            
-        }
-        return Parent?.Find(reference);
-    }
-
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         Parent = context;
-        foreach (var statement in Statements)
+        foreach (var statement in this)
         {
             statement.ResolveTypes(this);
         }
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
-        foreach (var statement in Statements)
+        Parent = context;
+        foreach (var statement in this)
+        {
+            statement.ResolveFunctions(this);
+        }
+    }
+
+    public override void ResolveData(IContext context)
+    {
+        Parent = this;
+        foreach (var statement in this)
         {
             statement.ResolveFunctions(context);
         }
+    }
+
+    public Resolution Resolve(Reference reference)
+    {
+        List<Resolution> resolutions = new();
+
+        foreach (var statement in this)
+        {
+            if (statement is Member member && member.Identifier.Resolve(reference) is Resolution resolution)
+            {
+                resolutions.Add(resolution);
+            }
+        }
+
+        return Resolution.From(resolutions);
     }
 
     public class Conditional : Conditional<If> { }
@@ -118,7 +132,7 @@ internal class Scope : Statement, IList<Statement>
             };
         }
 
-        public override void ResolveTypes(Scope context)
+        public override void ResolveTypes(IContext context)
         {
             Parent = context;
             base.ResolveTypes(this);
@@ -177,7 +191,7 @@ internal class Scope : Statement, IList<Statement>
             };
         }
 
-        public override void ResolveTypes(Scope context)
+        public override void ResolveTypes(IContext context)
         {
             Parent = context;
             base.ResolveTypes(this);

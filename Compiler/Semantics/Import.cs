@@ -7,10 +7,8 @@ namespace Ronin.Semantics;
 
 internal partial class Analyzer
 {
-    public void Imports(Scope scope = null)
+    public void Imports(Scope scope)
     {
-        scope ??= Global;
-
         for (int i = 0; i != scope.Imports.Count; ++i) 
         {
             if (scope.Imports[i] is Module.Unresolved unresolved)

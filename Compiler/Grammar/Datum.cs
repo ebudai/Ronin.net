@@ -68,18 +68,18 @@ internal class Datum : Member
         };
     }
 
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         base.ResolveTypes(context);
         if (Type is Type.Unresolved unresolved)
         {
-            var member = context.Find(unresolved.Reference);
+            var member = context.Resolve(unresolved.Reference);
             Type = member as Type ?? new Type.Calculated { Member = member };
         }
         Initializer.ResolveTypes(context);
     }
 
-    public override void ResolveCalculatedTypes(Scope context, List<Statement> calculations, Stack<Statement> circularityCheck)
+    public override void ResolveCalculatedTypes(IContext context, List<Statement> calculations, Stack<Statement> circularityCheck)
     {
         if (Type is not Type.Calculated type) return;
 
@@ -95,14 +95,14 @@ internal class Datum : Member
         //todo Find() the member, create a compiled statement setting the type to the result of the member (function exec or datum value)
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
         base.ResolveFunctions(context);
         Type.ResolveFunctions(context);
         Initializer.ResolveFunctions(context);
     }
 
-    public override void ResolveData(Scope context)
+    public override void ResolveData(IContext context)
     {
         base.ResolveData(context);
         Type.ResolveData(context);

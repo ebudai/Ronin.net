@@ -4,39 +4,39 @@ namespace Ronin.Semantics;
 
 internal partial class Analyzer
 {
-    public void Types(Scope scope = null)
+    public void Types(IContext context = null)
     {
-        scope ??= Global;
+        context ??= Global;
 
-        foreach (var statement in scope)
+        foreach (var statement in context)
         {
             if (statement is Datum datum)
             {
-                Types(datum.Identifier, scope);
+                Types(datum.Identifier, context);
                 if (datum.Type is Type.Unresolved unresolved)
                 {
-                    var member = scope.Find(unresolved.Reference);
+                    var member = context.Resolve(unresolved.Reference);
                     datum.Type = member as Type ?? new Type.Calculated { Member = member };
                 }                
             }
             else if (statement is Function function and { Returns: Type.Unresolved returns })
             {
-                var member = scope.Find(returns.Reference);
+                var member = context.Resolve(returns.Reference);
                 function.Returns = member as Type ?? new Type.Calculated { Member = member };
                 Types(function.Definition);
             }
         }
     }
 
-    private static void Types(Identifier identifier, Scope scope)
+    private static void Types(Identifier identifier, IContext context)
     {
         foreach (var component in identifier)
         {
-            Types(component.AsParameters, scope);
+            Types(component.AsParameters, context);
         }
     }
 
-    private static void Types(Parameters parameters, Scope scope)
+    private static void Types(Parameters parameters, IContext context)
     {
         if (parameters is null) return;
         foreach (var parameter in parameters)

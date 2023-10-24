@@ -30,7 +30,7 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Index : Aggregate<Index, Open.SquareBracket, Value, Separator, Close.SquareBracket>
 {
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         foreach (var value in this)
         {
@@ -38,7 +38,7 @@ internal class Index : Aggregate<Index, Open.SquareBracket, Value, Separator, Cl
         }
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
         foreach (var value in this)
         {

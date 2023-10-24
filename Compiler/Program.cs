@@ -26,28 +26,28 @@ internal static class Program
             return;
         }
 
-        ConcurrentBag<Scope> scopes = new();
-        Parse(folder, scopes);
+        ConcurrentBag<Module> modules = new();
+        Parse(folder, modules);
     }
     
 
-    private static void Parse(DirectoryInfo folder, ConcurrentBag<Scope> scopes)
+    private static void Parse(DirectoryInfo folder, ConcurrentBag<Module> modules)
     {
         var infos = folder.EnumerateFileSystemInfos();
         foreach (var info in infos)
         {
             if (info is DirectoryInfo subfolder)
             {
-                Parse(subfolder, scopes);
+                Parse(subfolder, modules);
                 continue;
             }
 
             var file = info as FileInfo;
-            ThreadPool.UnsafeQueueUserWorkItem(static state => state.scopes.Add(Parse(state.file)), (file, scopes), preferLocal: true);
+            ThreadPool.UnsafeQueueUserWorkItem(static state => state.modules.Add(Parse(state.file)), (file, modules), preferLocal: true);
         }
     }
 
-    private static Scope Parse(FileInfo file)
+    private static Module Parse(FileInfo file)
     {
         string sourcecode = File.ReadAllText(file.FullName);
         Lexer lexer = new(sourcecode);

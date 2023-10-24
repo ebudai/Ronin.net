@@ -33,28 +33,28 @@ internal class Association : Statement, IParsable<Association>
         };
     }
 
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         Destination.ResolveTypes(context);
         if (Destination is Resolution.Unresolved destination)
         {
-            Destination = context.Find(destination.Reference);
+            Destination = context.Resolve(destination.Reference);
         }
 
         Origin.ResolveTypes(context);
         if (Origin is Resolution.Unresolved origin)
         {
-            Origin = context.Find(origin.Reference);
+            Origin = context.Resolve(origin.Reference);
         }
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
         Destination.ResolveFunctions(context);
         Origin.ResolveFunctions(context);
     }
 
-    public override void ResolveData(Scope context)
+    public override void ResolveData(IContext context)
     {
         Destination.ResolveData(context);
         Origin.ResolveData(context);

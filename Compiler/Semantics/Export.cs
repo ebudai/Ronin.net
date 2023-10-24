@@ -7,20 +7,20 @@ namespace Ronin.Semantics;
 
 internal partial class Analyzer
 {
-    public bool Exports(Scope scope = null)
+    public bool Exports(IContext context = null)
     {
-        scope ??= Global;
+        context ??= Global;
 
         Export module = null;
 
-        for (int i = 0; i != scope.Count; ++i)
+        for (int i = 0; i != context.Count; ++i)
         {
-            if (scope[i] is Scope child && Exports(child))
+            if (context[i] is Scope child && Exports(child))
             {
-                scope[i] = new Noop();
+                context[i] = new Noop();
             }            
             
-            if (scope[i] is not Export export) continue;
+            if (context[i] is not Export export) continue;
             
             if (module is not null)
             {
@@ -32,8 +32,12 @@ internal partial class Analyzer
         }
 
         if (module is null) return false;
-        
-        Global.GetOrAdd(module.Name).Add(scope);
+
+        if (context is Scope scope)
+        {
+            Global.GetOrAdd(module.Name).Add(scope);
+        }
+
         return true;
     }
 

@@ -52,19 +52,19 @@ internal class Delegate : Temporary
         };
     }
 
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         Data.ResolveTypes(context);
         Definition.ResolveTypes(context);
     }
 
-    public override void ResolveFunctions(Scope context)
+    public override void ResolveFunctions(IContext context)
     {
         Data.ResolveFunctions(context);
         Definition.ResolveFunctions(context);
     }
 
-    public override void ResolveData(Scope context)
+    public override void ResolveData(IContext context)
     {
         Data.ResolveData(context);
         Definition.ResolveData(context);
@@ -93,7 +93,7 @@ internal class Delegate : Temporary
 
     public class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameter, Separator, Close.Parenthesis>
     {
-        public override void ResolveTypes(Scope context)
+        public override void ResolveTypes(IContext context)
         {
             foreach (var parameter in this)
             {
@@ -101,7 +101,7 @@ internal class Delegate : Temporary
             }
         }
 
-        public override void ResolveFunctions(Scope context)
+        public override void ResolveFunctions(IContext context)
         {
             foreach (var parameter in this)
             {
@@ -109,13 +109,13 @@ internal class Delegate : Temporary
             }
         }
 
-        public override void ResolveData(Scope context)
+        public override void ResolveData(IContext context)
         {
             for (int i = 0; i != Count; ++i)
             {
                 if (this[i].AsDatum is not Datum.Unresolved unresolved) continue;
 
-                var member = context.Find(unresolved.Reference);
+                var member = context.Resolve(unresolved.Reference);
                 this[i] = member as Datum ?? new Datum.Calculated { Member = member };
             }
         }

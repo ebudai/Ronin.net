@@ -19,15 +19,15 @@ internal abstract class Statement : IParsable<Statement>
         ?? Scope.Parse(ref current)
         ?? Unknown.Parse(ref current) as Statement;
 
-    public virtual void ResolveTypes(Scope context) { }
+    public virtual void ResolveTypes(IContext context) { }
 
-    public virtual void ResolveCalculatedTypes(Scope context, List<Statement> calculations, Stack<Statement> circularityCheck) { }
+    public virtual void ResolveCalculatedTypes(IContext context, List<Statement> calculations, Stack<Statement> circularityCheck) { }
 
-    public virtual void ResolveFunctions(Scope context) { }
+    public virtual void ResolveFunctions(IContext context) { }
 
-    public virtual void ResolveData(Scope context) { }
+    public virtual void ResolveData(IContext context) { }
 
-    public virtual void ResolveCalculatedData(Scope context) { }
+    public virtual void ResolveCalculatedData(IContext context) { }
 }
 
 internal class Noop : Statement { }

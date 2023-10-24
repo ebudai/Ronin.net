@@ -39,7 +39,7 @@ internal class Import : Statement
         };
     }
 
-    public override void ResolveTypes(Scope context)
+    public override void ResolveTypes(IContext context)
     {
         Module.ResolveTypes(context);
     }
