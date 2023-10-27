@@ -74,7 +74,7 @@ internal class Module : IContext
 
     public void Add(Scope scope) => scopes.Add(scope);
 
-    public Member Resolve(Reference reference)
+    public Resolution Resolve(Reference reference)
     {
         throw new NotImplementedException();
     }
@@ -83,6 +83,49 @@ internal class Module : IContext
     public class Unresolved : Module
     {
         public Name Name { get; init; }
+    }
+
+    public sealed class Statements : IEnumerator<Statement>
+    {
+        public Statements(Module module)
+        {
+            this.module = module;
+            Reset();
+        }
+
+        public Statement Current => module.scopes[scope][statement];
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { /* do nothing */ }
+
+        public bool MoveNext()
+        {
+            if (IsLastStatement)
+            {
+                if (IsLastScope) return false;
+                ++scope;
+                statement = 0;
+            }
+            else
+            {
+                ++statement;
+            }
+            return true;
+        }
+
+        public void Reset()
+        {
+            scope = 0;
+            statement = 0;
+        }
+
+        private bool IsLastScope => scope == module.scopes.Count - 1;
+        private bool IsLastStatement => ReferenceEquals(Current, module.scopes[scope][^1]);
+
+        private readonly Module module;
+        private int scope;
+        private int statement;
     }
 
     #region list implementation
@@ -202,49 +245,5 @@ internal class Module : IContext
     [ExcludeFromCodeCoverage] public IEnumerator<Statement> GetEnumerator() => new Statements(this);
 
     [ExcludeFromCodeCoverage] IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    internal sealed class Statements : IEnumerator<Statement>
-    {
-        public Statements(Module module)
-        {
-            this.module = module;
-            Reset();
-        }
-
-        public Statement Current => module.scopes[scope][statement];
-
-        object IEnumerator.Current => Current;
-
-        public void Dispose() { /* do nothing */ }
-
-        public bool MoveNext()
-        {
-            if (IsLastStatement)
-            {
-                if (IsLastScope) return false;
-                ++scope;
-                statement = 0;
-            }
-            else
-            {
-                ++statement;
-            }
-            return true;
-        }
-
-        public void Reset()
-        {
-            scope = 0;
-            statement = 0;
-        }
-
-        private bool IsLastScope => scope == module.scopes.Count - 1;
-        private bool IsLastStatement => ReferenceEquals(Current, module.scopes[scope][^1]);
-
-        private readonly Module module;
-        private int scope;
-        private int statement;
-    }
-
     #endregion
 }

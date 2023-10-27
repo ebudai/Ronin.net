@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Ronin.Compiler;
 
-internal class ArrayIndexCombinations : IEnumerable<Index[]>
+internal class ArrayIndexPermutations : IEnumerable<Index[]>
 {
     public IEnumerator<Index[]> GetEnumerator() => enumerator;
 

@@ -4,6 +4,7 @@ using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace Ronin.Grammar;
 /// <summary>
@@ -104,6 +105,11 @@ internal class Type : Member
             => Reference.Parse(ref current) is not Reference reference 
                 ? null
                 : new Unresolved { Reference = reference };
+    }
+
+    public class Overloaded : Type
+    {
+        public List<Resolution> Candidates { get; init; }
     }
 
     [ExcludeFromCodeCoverage]
