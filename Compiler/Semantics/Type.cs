@@ -15,6 +15,8 @@ internal partial class Analyzer
                 case Datum datum:               Types(datum, context);          break;
                 case Function function:         Types(function, context);       break;
                 case Association association:   Types(association, context);    break;
+                case Value value:               Types(value, context);          break;
+                case Scope scope:               scope.ResolveTypes(context);    break;
             }
         }
     }

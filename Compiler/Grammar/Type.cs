@@ -50,8 +50,15 @@ internal class Type : Member
         base.ResolveTypes(context);
         if (Algebra is Algebra.Unresolved unresolved)
         {
-            var member = context.Resolve(unresolved.Reference);
-            Algebra = member as Algebra ?? new Algebra.Calculated { Member = member };
+            var resolution = context.Resolve(unresolved.Reference);
+            if (resolution is Resolution.Definite definite)
+            {
+                Algebra = definite.Member as Algebra ?? new Algebra.Calculated { Member = definite.Member };
+            }
+            else if (resolution is Resolution.Ambiguous ambiguous)
+            {
+                Algebra = new Algebra.Overloaded { Candidates = ambiguous.Candidates };
+            }
         }
         Members.ResolveTypes(context);
     }
@@ -141,12 +148,11 @@ internal class Algebra : Type
                 : new Unresolved { Reference = reference };
     }
 
-    /*internal class Overloaded : Algebra
+    internal new class Overloaded : Algebra
     {
-        public List<Resolution> Overloads { get; init; }
-    }*/
+        public List<Resolution> Candidates { get; init; }
+    }
 
-    [ExcludeFromCodeCoverage]
     internal new class Calculated : Algebra
     {
         public Member Member { get; init; }

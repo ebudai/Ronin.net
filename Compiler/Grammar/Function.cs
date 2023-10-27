@@ -62,8 +62,15 @@ internal class Function : Member
         base.ResolveTypes(context);
         if (Returns is Type.Unresolved unresolved)
         {
-            var member = context.Resolve(unresolved.Reference);
-            Returns = member as Type ?? new Type.Calculated { Member = member };
+            var resolution = context.Resolve(unresolved.Reference);
+            if (resolution is Resolution.Definite definite)
+            {
+                Returns = definite.Member as Type ?? new Type.Calculated { Member = definite.Member };
+            }
+            else if (resolution is Resolution.Ambiguous ambiguous)
+            {
+                Returns = new Type.Overloaded { Candidates = ambiguous.Candidates };
+            }            
         }
         Definition.ResolveTypes(context);
     }

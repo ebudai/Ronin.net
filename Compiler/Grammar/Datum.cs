@@ -73,8 +73,15 @@ internal class Datum : Member
         base.ResolveTypes(context);
         if (Type is Type.Unresolved unresolved)
         {
-            var member = context.Resolve(unresolved.Reference);
-            Type = member as Type ?? new Type.Calculated { Member = member };
+            var resolution = context.Resolve(unresolved.Reference);
+            if (resolution is Resolution.Definite definite)
+            {
+                Type = definite.Member as Type ?? new Type.Calculated { Member = definite.Member };
+            }
+            else if (resolution is Resolution.Ambiguous ambiguous)
+            {
+                Type = new Type.Overloaded { Candidates = ambiguous.Candidates };
+            }
         }
         Initializer.ResolveTypes(context);
     }

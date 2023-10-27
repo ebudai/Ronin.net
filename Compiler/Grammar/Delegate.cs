@@ -2,6 +2,8 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System.Collections.Generic;
+
 namespace Ronin.Grammar;
 
 /// <summary>
@@ -72,8 +74,8 @@ internal class Delegate : Temporary
 
     public class Parameter : IParsable<Parameter>
     {
-        private Parameter(Datum datum) => value = datum;
-        private Parameter(Name name) => value = name;
+        protected Parameter(Datum datum) => value = datum;
+        protected Parameter(Name name) => value = name;
 
         public static implicit operator Parameter(Datum datum) => new(datum);
         public static implicit operator Parameter(Name name) => new(name);
@@ -115,9 +117,32 @@ internal class Delegate : Temporary
             {
                 if (this[i].AsDatum is not Datum.Unresolved unresolved) continue;
 
-                var member = context.Resolve(unresolved.Reference);
-                this[i] = member as Datum ?? new Datum.Calculated { Member = member };
+                if (context.Resolve(unresolved.Reference) is Resolution.Definite definite)
+                {
+                    this[i] = definite.Member as Datum ?? new Datum.Calculated { Member = definite.Member };
+                }
+                else
+                {
+                    this[i] = new UnresolvedDatumError(unresolved);
+                }
             }
+        }
+
+        public class UnresolvedDatumError : Parameter, IError
+        {
+            public UnresolvedDatumError(Datum.Unresolved unresolved) : base(unresolved) 
+            {
+                List<Token> tokens = new();
+                foreach (var component in unresolved.Reference)
+                {
+                    // component must be a Name as it's a datum and they can't have parameters
+                    tokens.AddRange(component.AsName.Tokens.ToArray());
+                }
+                Tokens = tokens.ToArray();
+            }
+
+            public string Reason { get; } = "unresolved datum";
+            public System.ReadOnlyMemory<Token> Tokens { get; }
         }
     }
 }

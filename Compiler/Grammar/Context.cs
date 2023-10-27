@@ -1,5 +1,6 @@
 ﻿// Copyright © 2023 Eric Budai
 
+using Ronin.Compiler;
 using System.Collections.Generic;
 
 namespace Ronin.Grammar;

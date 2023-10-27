@@ -31,8 +31,6 @@ internal class Reference : IEnumerable<Reference.Component>
         return new Reference { Components = components };
     }
 
-    
-
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
