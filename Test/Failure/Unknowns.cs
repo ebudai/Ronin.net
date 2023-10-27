@@ -23,10 +23,10 @@ public class Unknowns : ParsingTests
         };
         
         Parser parser = new(tokens.AsLinkedList());
-        var statements = parser.Parse().Statements;
+        var module = parser.Parse();
         
-        Assert.Single(statements);
-        Assert.IsType<Unknown>(statements[0]);
+        Assert.Single(module);
+        Assert.IsType<Unknown>(module[0]);
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]

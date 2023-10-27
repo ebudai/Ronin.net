@@ -121,7 +121,7 @@ public class Parsing : ParsingTests
         };
 
         Parser parser = new(tokens.AsLinkedList());
-        var statements = parser.Parse().Statements;
+        var statements = parser.Parse();
 
         Assert.Equal(9, statements.Count);
 

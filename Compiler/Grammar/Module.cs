@@ -76,7 +76,15 @@ internal class Module : IContext
 
     public Resolution Resolve(Reference reference)
     {
-        throw new NotImplementedException();
+        List<Resolution> resolutions = new();
+        foreach (var scope in scopes)
+        {
+            if (scope.Resolve(reference) is Resolution resolution)
+            {
+                resolutions.Add(resolution);
+            }
+        }
+        return Resolution.From(resolutions);
     }
 
     private (Scope, int) GetRealIndex(int index)
@@ -119,9 +127,9 @@ internal class Module : IContext
         {
             if (IsLastStatement)
             {
+                statement = 0;
                 if (IsLastScope) return false;
                 ++scope;
-                statement = 0;
             }
             else
             {
@@ -133,11 +141,11 @@ internal class Module : IContext
         public void Reset()
         {
             scope = 0;
-            statement = 0;
+            statement = -1;
         }
 
         private bool IsLastScope => scope == module.scopes.Count - 1;
-        private bool IsLastStatement => ReferenceEquals(Current, module.scopes[scope][^1]);
+        private bool IsLastStatement => statement == module.scopes[scope].Count - 1;
 
         private readonly Module module;
         private int scope;
