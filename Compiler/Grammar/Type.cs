@@ -3,8 +3,6 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 
 namespace Ronin.Grammar;
 /// <summary>
@@ -119,7 +117,6 @@ internal class Type : Member
         public List<Resolution> Candidates { get; init; }
     }
 
-    [ExcludeFromCodeCoverage]
     internal class Calculated : Type
     {
         public Member Member { get; init; }

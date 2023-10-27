@@ -79,7 +79,23 @@ internal class Module : IContext
         throw new NotImplementedException();
     }
 
-    [ExcludeFromCodeCoverage]
+    private (Scope, int) GetRealIndex(int index)
+    {
+        if (index < 0) throw new ArgumentOutOfRangeException(nameof(index), "index must be positive");
+
+        int remaining = index;
+        foreach (var scope in scopes)
+        {
+            if (remaining < scope.Count)
+            {
+                return (scope, remaining);
+            }
+            remaining -= scope.Count;
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(index));
+    }
+
     public class Unresolved : Module
     {
         public Name Name { get; init; }
@@ -129,22 +145,6 @@ internal class Module : IContext
     }
 
     #region list implementation
-    [ExcludeFromCodeCoverage] private (Scope, int) GetRealIndex(int index)
-    {
-        if (index < 0) throw new ArgumentOutOfRangeException(nameof(index), "index must be positive");
-
-        int remaining = index;
-        foreach (var scope in scopes)
-        {
-            if (remaining < scope.Count)
-            {
-                return (scope, remaining);
-            }
-            remaining -= scope.Count;
-        }
-
-        throw new ArgumentOutOfRangeException(nameof(index));
-    }
 
     [ExcludeFromCodeCoverage] public int Count
     {
