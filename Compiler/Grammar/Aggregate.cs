@@ -49,8 +49,7 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
 
         while (parser.IsNotFinished)
         {
-            var syntax = TElement.Parse(ref parser);
-            if (syntax is null)
+            if (TElement.Parse(ref parser) is not TElement syntax)
             {
                 if (parser.TryAdvance<TClose>() is false) return null;
                 break;
