@@ -17,6 +17,7 @@ internal partial class Analyzer
                 if (import is null)
                 {
                     Errors.Add(new MissingModuleError(unresolved.Name));
+                    continue;
                 }
                 scope.Imports[i] = import;
             }

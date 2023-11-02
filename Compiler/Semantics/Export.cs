@@ -17,8 +17,8 @@ internal partial class Analyzer
         {
             if (context[i] is Scope child && Exports(child))
             {
-                context[i] = new Noop();
-            }            
+                context[i] = null;
+            }       
             
             if (context[i] is not Export export) continue;
             

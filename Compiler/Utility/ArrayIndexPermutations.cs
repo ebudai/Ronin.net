@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Ronin.Compiler;
+namespace Ronin.Utility;
 
 internal class ArrayIndexPermutations : IEnumerable<Index[]>
 {
