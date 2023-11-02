@@ -19,24 +19,6 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Inputs : Aggregate<Inputs, Open.Parenthesis, Inputs.Input, Separator, Close.Parenthesis>
 {
-    public override void ResolveTypes(IContext context)
-    {
-        foreach (var input in this)
-        {
-            input.AsValue?.ResolveTypes(context);
-            input.AsAssociation?.ResolveTypes(context);
-        }
-    }
-
-    public override void ResolveFunctions(IContext context)
-    {
-        foreach (var input in this)
-        {
-            input.AsValue?.ResolveFunctions(context);
-            input.AsAssociation?.ResolveFunctions(context);
-        }
-    }
-
     public class Input : IParsable<Input>
     {
         private Input(Value value) => input = value;

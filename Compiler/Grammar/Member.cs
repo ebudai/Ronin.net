@@ -14,8 +14,4 @@ internal class Member : Value, IParsable<Member>
         => Datum.Parse(ref current)
         ?? Function.Parse(ref current)
         ?? Type.Parse(ref current) as Member;
-
-    public override void ResolveTypes(IContext context) => Identifier.ResolveTypes(context);
-    public override void ResolveFunctions(IContext context) => Identifier.ResolveFunctions(context);
-    public override void ResolveData(IContext context) => Identifier.ResolveData(context);
 }

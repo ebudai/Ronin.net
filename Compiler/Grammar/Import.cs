@@ -21,10 +21,9 @@ internal class Import : Statement
 
     public static new Import Parse(ref Parser current)
     {
-        if (current.Token is not Lexicon.Import keyword) return null;
-
         Parser parser = current;
-        parser.Advance();
+
+        if (parser.TryAdvance<Lexicon.Import>(out var keyword) is false) return null;
 
         if (Name.Parse(ref parser) is not Name name)
         {
@@ -37,11 +36,6 @@ internal class Import : Statement
             Keyword = keyword,
             Module = new Module.Unresolved { Name = name }
         };
-    }
-
-    public override void ResolveTypes(IContext context)
-    {
-        Module.ResolveTypes(context);
     }
 
     public class ExpectedNameError : Import, IError

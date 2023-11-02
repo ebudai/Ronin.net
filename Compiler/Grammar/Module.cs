@@ -10,6 +10,7 @@ namespace Ronin.Grammar;
 internal class Module : IContext
 {
     public IContext Parent { get; set; }
+
     private readonly Dictionary<Token, Module> children = new();
     private readonly List<Scope> scopes = new();
 
@@ -27,19 +28,6 @@ internal class Module : IContext
 
         current = parser;
         return values;
-    }
-
-    public void ResolveTypes(IContext context)
-    {
-        Parent = context;
-        foreach (var scope in scopes)
-        {
-            scope.ResolveTypes(this);
-        }
-        foreach (var child in children.Values)
-        {
-            child.ResolveTypes(this);
-        }
     }
 
     public Module GetOrAdd(Name name)
@@ -109,9 +97,9 @@ internal class Module : IContext
         public Name Name { get; init; }
     }
 
-    public sealed class Statements : IEnumerator<Statement>
+    public sealed class StatementEnumerator : IEnumerator<Statement>
     {
-        public Statements(Module module)
+        public StatementEnumerator(Module module)
         {
             this.module = module;
             Reset();
@@ -250,7 +238,7 @@ internal class Module : IContext
         return false;
     }
 
-    [ExcludeFromCodeCoverage] public IEnumerator<Statement> GetEnumerator() => new Statements(this);
+    [ExcludeFromCodeCoverage] public IEnumerator<Statement> GetEnumerator() => new StatementEnumerator(this);
 
     [ExcludeFromCodeCoverage] IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     #endregion

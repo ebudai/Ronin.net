@@ -2,7 +2,6 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
-using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
@@ -30,8 +29,7 @@ internal class Datum : Member
     {
         Parser parser = current;
 
-        var mutability = parser.Token as Mutability;
-        if (mutability is not null) parser.Advance();
+        parser.TryAdvance<Mutability>(out var mutability);
 
         if (Identifier.Parse(ref parser) is not Identifier identifier)
         {
@@ -66,54 +64,6 @@ internal class Datum : Member
             Type = type,
             Initializer = initializer
         };
-    }
-
-    public override void ResolveTypes(IContext context)
-    {
-        base.ResolveTypes(context);
-        if (Type is Type.Unresolved unresolved)
-        {
-            var resolution = context.Resolve(unresolved.Reference);
-            if (resolution is Resolution.Definite definite)
-            {
-                Type = definite.Member as Type ?? new Type.Calculated { Member = definite.Member };
-            }
-            else if (resolution is Resolution.Ambiguous ambiguous)
-            {
-                Type = new Type.Overloaded { Candidates = ambiguous.Candidates };
-            }
-        }
-        Initializer.ResolveTypes(context);
-    }
-
-    public override void ResolveCalculatedTypes(IContext context, List<Statement> calculations, Stack<Statement> circularityCheck)
-    {
-        if (Type is not Type.Calculated type) return;
-
-        if (circularityCheck.Contains(this))
-        {
-            Type = new Type.Calculated.CircularityError { Statements = circularityCheck };
-            return;
-        }
-
-        circularityCheck.Push(this);
-
-        throw new System.NotImplementedException();
-        //todo Find() the member, create a compiled statement setting the type to the result of the member (function exec or datum value)
-    }
-
-    public override void ResolveFunctions(IContext context)
-    {
-        base.ResolveFunctions(context);
-        Type.ResolveFunctions(context);
-        Initializer.ResolveFunctions(context);
-    }
-
-    public override void ResolveData(IContext context)
-    {
-        base.ResolveData(context);
-        Type.ResolveData(context);
-        Initializer.ResolveData(context);
     }
 
     public class Unresolved : Datum

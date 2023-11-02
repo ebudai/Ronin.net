@@ -43,63 +43,9 @@ internal class Type : Member
         };
     }
 
-    public override void ResolveTypes(IContext context)
-    {
-        base.ResolveTypes(context);
-        if (Algebra is Algebra.Unresolved unresolved)
-        {
-            var resolution = context.Resolve(unresolved.Reference);
-            if (resolution is Resolution.Definite definite)
-            {
-                Algebra = definite.Member as Algebra ?? new Algebra.Calculated { Member = definite.Member };
-            }
-            else if (resolution is Resolution.Ambiguous ambiguous)
-            {
-                Algebra = new Algebra.Overloaded { Candidates = ambiguous.Candidates };
-            }
-        }
-        Members.ResolveTypes(context);
-    }
-
-    public override void ResolveFunctions(IContext context)
-    {
-        base.ResolveFunctions(context);
-        Algebra.ResolveFunctions(context);
-        Members.ResolveFunctions(context);
-    }
-
-    public override void ResolveData(IContext context)
-    {
-        base.ResolveData(context);
-        Algebra.ResolveData(context);
-        Members.ResolveData(context);
-    }
-
     public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace>
     {
-        public override void ResolveTypes(IContext context)
-        {
-            for (int i = 0; i != Count; ++i)
-            {
-                this[i].ResolveTypes(context);
-            }
-        }
-
-        public override void ResolveFunctions(IContext context)
-        {
-            for (int i = 0; i != Count; ++i)
-            {
-                this[i].ResolveFunctions(context);
-            }
-        }
-
-        public override void ResolveData(IContext context)
-        {
-            for (int i = 0; i != Count; ++i)
-            {
-                this[i].ResolveData(context);
-            }
-        }
+        
     }
 
     public class Unresolved : Type

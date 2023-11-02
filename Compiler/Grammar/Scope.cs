@@ -25,33 +25,6 @@ internal class Scope : Statement, IContext
         ?? Iterating.Parse(ref current)
         ?? Reactive.Parse(ref current) as Scope;
 
-    public override void ResolveTypes(IContext context)
-    {
-        Parent = context;
-        foreach (var statement in this)
-        {
-            statement.ResolveTypes(this);
-        }
-    }
-
-    public override void ResolveFunctions(IContext context)
-    {
-        Parent = context;
-        foreach (var statement in this)
-        {
-            statement.ResolveFunctions(this);
-        }
-    }
-
-    public override void ResolveData(IContext context)
-    {
-        Parent = this;
-        foreach (var statement in this)
-        {
-            statement.ResolveFunctions(context);
-        }
-    }
-
     public Resolution Resolve(Reference reference)
     {
         List<Resolution> resolutions = new();
@@ -132,13 +105,6 @@ internal class Scope : Statement, IContext
             };
         }
 
-        public override void ResolveTypes(IContext context)
-        {
-            Parent = context;
-            base.ResolveTypes(this);
-            Iterable.ResolveTypes(context);
-        }
-
         public class ExpectedIterableError : Iterating, IError
         {
             public string Reason { get; } = "expected list";
@@ -189,13 +155,6 @@ internal class Scope : Statement, IContext
                 Modifiers = modifiers,
                 Target = datum
             };
-        }
-
-        public override void ResolveTypes(IContext context)
-        {
-            Parent = context;
-            base.ResolveTypes(this);
-            Target.ResolveTypes(context);
         }
 
         public class ExpectedTargetError : Reactive, IError

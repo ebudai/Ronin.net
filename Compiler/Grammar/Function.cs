@@ -24,8 +24,7 @@ internal class Function : Member
     {
         Parser parser = current;
 
-        if (parser.Token is not Lexicon.Function keyword) return null;
-        parser.Advance();
+        if (parser.TryAdvance<Lexicon.Function>(out var keyword) is false) return null;
 
         if (Identifier.Parse(ref parser) is not Identifier identifier)
         {
@@ -54,38 +53,6 @@ internal class Function : Member
             Returns = returns,
             Definition = definition
         };
-    }
-
-    public override void ResolveTypes(IContext context)
-    {
-        base.ResolveTypes(context);
-        if (Returns is Type.Unresolved unresolved)
-        {
-            var resolution = context.Resolve(unresolved.Reference);
-            if (resolution is Resolution.Definite definite)
-            {
-                Returns = definite.Member as Type ?? new Type.Calculated { Member = definite.Member };
-            }
-            else if (resolution is Resolution.Ambiguous ambiguous)
-            {
-                Returns = new Type.Overloaded { Candidates = ambiguous.Candidates };
-            }            
-        }
-        Definition.ResolveTypes(context);
-    }
-
-    public override void ResolveFunctions(IContext context)
-    {
-        base.ResolveFunctions(context);
-        Returns.ResolveFunctions(context);
-        Definition.ResolveFunctions(context);
-    }
-
-    public override void ResolveData(IContext context)
-    {
-        base.ResolveData(context);
-        Returns.ResolveData(context);
-        Definition.ResolveData(context);
     }
 
     public class ExpectedIdentifierError : Function, IError

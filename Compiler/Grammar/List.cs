@@ -19,19 +19,5 @@ namespace Ronin.Grammar;
 /// </example>
 internal class List : Aggregate<List, Open.Brace, Value, Separator, Close.Brace>
 {
-    public override void ResolveTypes(IContext context)
-    {
-        foreach (var value in this)
-        {
-            value.ResolveTypes(context);
-        }
-    }
 
-    public override void ResolveFunctions(IContext context)
-    {
-        foreach(var value in this)
-        {
-            value.ResolveFunctions(context);
-        }
-    }
 }

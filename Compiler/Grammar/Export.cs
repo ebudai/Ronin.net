@@ -25,8 +25,7 @@ internal class Export : Statement
     {
         Parser parser = current;
 
-        if (parser.Token is not PartOf keyword) return null;
-        parser.Advance();
+        if (parser.TryAdvance<PartOf>(out var keyword) is false) return null;
 
         if (Name.Parse(ref parser) is not Name identifier) return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
 

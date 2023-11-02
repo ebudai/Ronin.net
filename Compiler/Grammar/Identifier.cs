@@ -1,6 +1,7 @@
 ﻿// Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
 
     public int Count => Components.Count;
 
-    public void ResolveTypes(IContext context)
+    /*public void ResolveTypes(IContext context)
     {
         foreach (var component in this)
         {
@@ -57,7 +58,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
         {
             component.AsParameters?.ResolveData(context);
         }
-    }
+    }*/
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 

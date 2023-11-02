@@ -34,17 +34,30 @@ internal struct Parser
         return parsed;
     }
 
-    public Token Advance()
+    public void Advance()
     {
         do Token = Token.Next as Token; while (Token is Trivium);
-        return Token;
     }
 
     public bool TryAdvance<T>() where T : Token
     {
-        var advanced = Token is T;
-        if (advanced) Advance();
-        return advanced;
+        var advance = Token is T;
+        if (advance)
+        {
+            Advance();
+        }
+        return advance;
+    }
+
+    public bool TryAdvance<T>(out T token) where T : Token
+    {
+        token = Token as T;
+        if (token is not null)
+        {
+            Advance();
+            return true;
+        }
+        return false;
     }
 
     public bool TryAdvanceMany<T>() where T : Token
@@ -61,7 +74,7 @@ internal struct Parser
         while (ReferenceEquals(Token, parser.Token) is false)
         {
             tokens[i++] = Token;
-            Token = Advance();
+            Advance();
         }
         return tokens;
     }
