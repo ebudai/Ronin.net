@@ -137,7 +137,7 @@ public class Parsing : ParsingTests
         var assignment = statements[2] as Association;
         Assert.NotNull(assignment);
 
-        var functioncall = statements[3] as Resolution;
+        var functioncall = statements[3] as Member;
         Assert.NotNull(functioncall);
 
         var function = statements[4] as Function;
