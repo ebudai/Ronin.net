@@ -3,7 +3,7 @@ using Ronin.Lexicon;
 
 namespace Failure;
 
-[Trait("Lexer", null)]
+[Trait(nameof(Lexer), null)]
 public class Comments
 {
     public const string singleline = Comment.SingleLine.Start;

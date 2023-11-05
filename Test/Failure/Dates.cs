@@ -4,7 +4,7 @@ using Ronin.Lexicon;
 
 namespace Failure;
 
-[Trait("Lexer", null)]
+[Trait(nameof(Lexer), null)]
 public class Dates
 {
     [Fact(DisplayName = "not a date literal")]

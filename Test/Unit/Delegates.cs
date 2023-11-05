@@ -8,7 +8,7 @@ using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Delegates : ParsingTests
 {
     [Fact(DisplayName = "one parameter")]

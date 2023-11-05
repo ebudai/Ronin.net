@@ -4,7 +4,7 @@ using Test;
 
 namespace Failure;
 
-[Trait("Lexer", null)]
+[Trait(nameof(Lexer), null)]
 public class Texts
 {
     [Fact(DisplayName = "without quotes")]

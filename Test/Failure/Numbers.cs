@@ -3,7 +3,7 @@ using Ronin.Lexicon;
 
 namespace Failure;
 
-[Trait("Lexer", null)]
+[Trait(nameof(Lexer), null)]
 public class Numbers
 {
     [Fact(DisplayName = "doesn't start with a number")]

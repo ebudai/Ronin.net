@@ -5,7 +5,7 @@ using Test;
 
 namespace Failure;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Input : ParsingTests
 {
     [Fact(DisplayName = "does not start with (")]

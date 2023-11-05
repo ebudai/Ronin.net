@@ -6,7 +6,7 @@ using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Lookups : ParsingTests
 {
     [Fact(DisplayName = "basic")]

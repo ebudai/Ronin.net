@@ -5,7 +5,7 @@ using Type = Ronin.Grammar.Type;
 
 namespace Failure;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Types : ParsingTests
 {
     [Fact(DisplayName = "no identifier")]

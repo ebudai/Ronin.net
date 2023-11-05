@@ -5,7 +5,7 @@ using Test;
 
 namespace Unit;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Intervals : ParsingTests
 {
     [Fact(DisplayName = "basic")]

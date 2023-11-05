@@ -6,7 +6,7 @@ using Delegate = Ronin.Grammar.Delegate;
 
 namespace Failure;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Delegates : ParsingTests
 {
     [Fact(DisplayName = "missing returns symbol")]

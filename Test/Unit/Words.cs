@@ -3,7 +3,7 @@ using Ronin.Lexicon;
 
 namespace Unit;
 
-[Trait("Lexer", null)]
+[Trait(nameof(Lexer), null)]
 public class Words
 {
     [Fact(DisplayName = "basic")]

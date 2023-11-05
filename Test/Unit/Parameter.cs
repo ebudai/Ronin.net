@@ -6,7 +6,7 @@ using Type = Ronin.Grammar.Type;
 
 namespace Unit;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Parameter : ParsingTests
 {
     [Fact(DisplayName = "basic")]

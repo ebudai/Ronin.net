@@ -9,7 +9,7 @@ using Literal = Ronin.Grammar.Literal;
 
 namespace Integration;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Parsing : ParsingTests
 {
     [Fact(DisplayName = "parse")]

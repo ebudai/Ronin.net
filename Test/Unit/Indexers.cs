@@ -6,7 +6,7 @@ using Literal = Ronin.Grammar.Literal;
 
 namespace Unit;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Indexers : ParsingTests
 {
     [Fact(DisplayName = "basic")]

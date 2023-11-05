@@ -4,7 +4,7 @@ using Ronin.Lexicon;
 
 namespace Failure;
 
-[Trait("Lexer", null)]
+[Trait(nameof(Lexer), null)]
 public class Words
 {
     [Fact(DisplayName = "not a valid name")]

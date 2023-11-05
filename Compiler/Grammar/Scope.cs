@@ -3,6 +3,7 @@ using Ronin.Lexicon;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -200,19 +201,19 @@ internal class Scope : Statement, IContext
             set => Statements[index] = value; 
         }
 
-        public int Count => Statements.Count;
-        public bool IsReadOnly => false;
+        [ExcludeFromCodeCoverage] public int Count => Statements.Count;
+        [ExcludeFromCodeCoverage] public bool IsReadOnly => false;
 
-        public void Add(Statement item) => Statements.Add(item);
-        public void Clear() => Statements.Clear();
-        public bool Contains(Statement item) => Statements.Contains(item);
-        public void CopyTo(Statement[] array, int arrayIndex) => Statements.CopyTo(array, arrayIndex);
-        public IEnumerator<Statement> GetEnumerator() => Statements.GetEnumerator();
-        public int IndexOf(Statement item) => Statements.IndexOf(item);
-        public void Insert(int index, Statement item) => Statements.Insert(index, item);
-        public bool Remove(Statement item) => Statements.Remove(item);
-        public void RemoveAt(int index) => Statements.RemoveAt(index);
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
+        [ExcludeFromCodeCoverage] public void Add(Statement item) => Statements.Add(item);
+        [ExcludeFromCodeCoverage] public void Clear() => Statements.Clear();
+        [ExcludeFromCodeCoverage] public bool Contains(Statement item) => Statements.Contains(item);
+        [ExcludeFromCodeCoverage] public void CopyTo(Statement[] array, int arrayIndex) => Statements.CopyTo(array, arrayIndex);
+        [ExcludeFromCodeCoverage] public IEnumerator<Statement> GetEnumerator() => Statements.GetEnumerator();
+        [ExcludeFromCodeCoverage] public int IndexOf(Statement item) => Statements.IndexOf(item);
+        [ExcludeFromCodeCoverage] public void Insert(int index, Statement item) => Statements.Insert(index, item);
+        [ExcludeFromCodeCoverage] public bool Remove(Statement item) => Statements.Remove(item);
+        [ExcludeFromCodeCoverage] public void RemoveAt(int index) => Statements.RemoveAt(index);
+        [ExcludeFromCodeCoverage] IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
     }
 
     internal class Conditional<T> : Scope where T : Keyword

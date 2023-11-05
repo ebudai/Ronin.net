@@ -5,7 +5,7 @@ using Test;
 
 namespace Failure;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class RepeatingScopes : ParsingTests
 {
     [Fact(DisplayName = "no condition")]

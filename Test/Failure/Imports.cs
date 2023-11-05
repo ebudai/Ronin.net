@@ -4,7 +4,7 @@ using Test;
 
 namespace Failure;
 
-[Trait("Parser", null)]
+[Trait(nameof(Parser), null)]
 public class Imports : ParsingTests
 {
     [Fact(DisplayName = "missing identifier")]
