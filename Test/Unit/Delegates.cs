@@ -38,7 +38,7 @@ public class Delegates : ParsingTests
         }
 
         Assert.Single(@delegate.Definition.Statements);
-        var unresolved = @delegate.Definition.Statements[0] as Resolution.Unresolved;
+        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
@@ -79,7 +79,7 @@ public class Delegates : ParsingTests
         Assert.Single(datum?.Identifier);
 
         Assert.Single(@delegate.Definition.Statements);
-        var unresolved = @delegate.Definition.Statements[0] as Resolution.Unresolved;
+        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
@@ -129,7 +129,7 @@ public class Delegates : ParsingTests
         Assert.Single(identifier?.Tokens.ToArray());
 
         Assert.Single(@delegate.Definition.Statements);
-        var unresolved = @delegate.Definition.Statements[0] as Resolution.Unresolved;
+        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {
@@ -167,7 +167,7 @@ public class Delegates : ParsingTests
         Assert.Empty(@delegate?.Data);
 
         Assert.Single(@delegate?.Definition.Statements);
-        var unresolved = @delegate.Definition.Statements[0] as Resolution.Unresolved;
+        var unresolved = @delegate.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, unresolved?.Reference.Span.Length);
 
         {

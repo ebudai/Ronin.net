@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Ronin.Grammar;
 
-internal abstract class Resolution : Value, IParsable<Resolution>
+internal abstract class Resolution : Value
 {
     public static Resolution From(List<Resolution> resolutions)
     {
@@ -11,36 +11,13 @@ internal abstract class Resolution : Value, IParsable<Resolution>
         {
             0 => null,
             1 => resolutions[0],
-            _ => new Resolution.Ambiguous { Candidates = resolutions }
+            _ => new Ambiguous { Candidates = resolutions }
         };
-    }
-
-    public static new Resolution Parse(ref Parser current)
-    {
-        Parser parser = current;
-
-        if (Reference.Parse(ref parser) is not Reference reference) return null;
-
-        foreach (var component in reference)
-        {
-            if (component.AsName is not null)
-            {
-                current = parser;
-                return new Unresolved { Reference = reference };
-            }
-        }
-
-        return null;
-    }
-
-    public class Unresolved : Resolution
-    {
-        public Reference Reference { get; init; }
     }
 
     public class Definite : Resolution
     {
-        public Member Member { get; init; }
+        public Member Member { get; set; }
         public List<Resolution> Inputs { get; init; } = new();
     }
 

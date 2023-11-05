@@ -400,7 +400,7 @@ public class AnalysisTests : ParsingTests
 
     internal static Reference Reference(params Reference.Component[] components) => new() { components };
 
-    internal static Resolution UnresolvedReference(params string[] words)
+    internal static Member UnresolvedReference(params string[] words)
     {
         List<Reference.Component> components = new();
         foreach (var word in words)
@@ -413,5 +413,5 @@ public class AnalysisTests : ParsingTests
         return UnresolvedReference(components.ToArray());
     }
 
-    internal static Resolution UnresolvedReference(params Reference.Component[] components) => new Resolution.Unresolved { Reference = new() { components } };
+    internal static Member UnresolvedReference(params Reference.Component[] components) => new Member.Unresolved { Reference = new() { components } };
 }

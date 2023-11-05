@@ -7,7 +7,7 @@ namespace Ronin.Grammar;
 /// </summary>
 internal class Value : Statement, IParsable<Value>
 {
-    public static new Value Parse(ref Parser current) => Resolution.Parse(ref current) ?? Temporary.Parse(ref current) as Value;
+    public static new Value Parse(ref Parser current) => Member.Unresolved.Parse(ref current) ?? Temporary.Parse(ref current) as Value;
 }
 
 /// <summary>

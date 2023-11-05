@@ -49,6 +49,6 @@ public class RepeatingScopes : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var repeating = Scope.Repeating.Parse(ref parser);
 
-        Assert.Null(repeating);
+        Assert.IsType<Scope.Repeating.ExpectedConditionError>(repeating);
     }
 }

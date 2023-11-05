@@ -26,7 +26,7 @@ public class Input : ParsingTests
         var inputs = Inputs.Parse(ref parser);
 
         Assert.Single(inputs);
-        var member = inputs[0].AsValue as Resolution.Unresolved;
+        var member = inputs[0].AsValue as Member.Unresolved;
         Assert.Single(member?.Reference);
         var name = member.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());
@@ -53,14 +53,14 @@ public class Input : ParsingTests
         Assert.Equal(2, arguments?.Count);
 
         {
-            var member = arguments[0].AsValue as Resolution.Unresolved;
+            var member = arguments[0].AsValue as Member.Unresolved;
             Assert.Single(member?.Reference);
             var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
         }
 
         {
-            var member = arguments[1].AsValue as Resolution.Unresolved;
+            var member = arguments[1].AsValue as Member.Unresolved;
             Assert.Single(member?.Reference);
             var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
@@ -117,7 +117,7 @@ public class Input : ParsingTests
         }
 
         {
-            var member = arguments[2].AsValue as Resolution.Unresolved;
+            var member = arguments[2].AsValue as Member.Unresolved;
             Assert.Single(member?.Reference);
             var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
@@ -153,7 +153,7 @@ public class Input : ParsingTests
         Assert.Equal(3, arguments?.Count);
 
         {
-            var member = arguments[0].AsValue as Resolution.Unresolved;
+            var member = arguments[0].AsValue as Member.Unresolved;
             Assert.Single(member?.Reference);
             var name = member.Reference.Span[0].AsName;
             Assert.Single(name?.Tokens.ToArray());
@@ -210,7 +210,7 @@ public class Input : ParsingTests
         Assert.Equal(2, arguments?.Count);
 
         var assignment = arguments[1].AsAssociation;
-        var member = assignment?.Destination as Resolution.Unresolved;
+        var member = assignment?.Destination as Member.Unresolved;
         Assert.Single(member?.Reference);
         var name = member.Reference.Span[0].AsName;
         Assert.Single(name.Tokens.ToArray());

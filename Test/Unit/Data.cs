@@ -204,7 +204,7 @@ public class Data : ParsingTests
 
         Assert.Null(datum.Type);
 
-        var member = datum.Initializer as Resolution.Unresolved;
+        var member = datum.Initializer as Member.Unresolved;
         Assert.Single(member?.Reference);
         var name = member.Reference.Span[0].AsName;
         Assert.Single(name?.Tokens.ToArray());

@@ -25,8 +25,9 @@ public class Unknowns : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var module = parser.Parse();
         
-        Assert.Single(module);
-        Assert.IsType<Unknown>(module[0]);
+        Assert.Single(module.Scopes);
+        Assert.Single(module.Scopes[0].Statements);
+        Assert.IsType<Unknown>(module.Scopes[0].Statements[0]);
     }
 
     /*[Trait(nameof(Analyzer), nameof(Declaration))]

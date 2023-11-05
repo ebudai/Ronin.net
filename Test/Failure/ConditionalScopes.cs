@@ -48,6 +48,6 @@ public class ConditionalScopes : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var conditional = Scope.Conditional.Parse(ref parser);
 
-        Assert.Null(conditional);
+        Assert.IsType<Scope.Conditional.ExpectedConditionError>(conditional);
     }
 }

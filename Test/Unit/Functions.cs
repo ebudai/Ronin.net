@@ -52,7 +52,7 @@ public class Functions : ParsingTests
         Assert.Single(type?.Tokens.ToArray());
         
         Assert.Single(function.Definition.Statements);
-        var member = function.Definition.Statements[0] as Resolution.Unresolved;
+        var member = function.Definition.Statements[0] as Member.Unresolved;
         Assert.Equal(2, member?.Reference.Span.Length);
 
         var @return = member.Reference.Span[0].AsName;
@@ -115,7 +115,7 @@ public class Functions : ParsingTests
         }
 
         Assert.Single(function.Definition.Statements);
-        var member = function.Definition.Statements[0] as Resolution.Unresolved;
+        var member = function.Definition.Statements[0] as Member.Unresolved;
         Assert.Single(member?.Reference);
     }
 

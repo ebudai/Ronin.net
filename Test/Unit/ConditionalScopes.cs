@@ -17,7 +17,7 @@ public class ConditionalScopes : ParsingTests
         {
             Keyword.If(),
             Word("x"),
-            Word(">"),
+            Symbol(">"),
             Number(3),
             StartScope(),
             Word("return"),
@@ -30,6 +30,7 @@ public class ConditionalScopes : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var conditional = Scope.Conditional.Parse(ref parser);
 
+        Assert.NotNull(conditional?.Condition);
         Assert.NotNull(conditional?.Condition);
     }
 
