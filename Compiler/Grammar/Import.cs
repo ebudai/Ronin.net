@@ -17,7 +17,7 @@ namespace Ronin.Grammar;
 internal class Import : Statement
 {
     public Lexicon.Import Keyword { get; init; }
-    public Module Module { get; init; }
+    public Module Module { get; set; }
 
     public static new Import Parse(ref Parser current)
     {

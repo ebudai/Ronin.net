@@ -23,7 +23,7 @@ internal class Datum : Member
 {
     public Mutability Mutability { get; init; }
     public Type Type { get; set; }
-    public Value Initializer { get; init; }
+    public Value Initializer { get; set; }
 
     public static new Datum Parse(ref Parser current)
     {
@@ -66,7 +66,7 @@ internal class Datum : Member
         };
     }
 
-    public class Unresolved : Datum
+    public new class Unresolved : Datum
     {
         public Reference Reference { get; set; }
 
@@ -75,7 +75,7 @@ internal class Datum : Member
 
     public class Calculated : Datum
     {
-        public Member Member { get; init; }
+        public Resolution Resolution { get; init; }
     }
 
     public class ExpectedIdentifierError : Datum, IError

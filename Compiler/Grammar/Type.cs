@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Ronin.Grammar;
 /// <summary>
 ///     Restricts a <see cref="Datum"/> to a particular shape of data
-///     resulting from evaluation of a <see cref="Function.Declaration"/> or <see cref="Datum"/>
+///     resulting from evaluation of a <see cref="Function"/> or <see cref="Association"/>.
 /// </summary>
 /// 
 /// <example>
@@ -48,7 +48,7 @@ internal class Type : Member
         
     }
 
-    public class Unresolved : Type
+    public new class Unresolved : Type
     {
         public Reference Reference { get; init; }
 
@@ -56,6 +56,13 @@ internal class Type : Member
             => Reference.Parse(ref current) is not Reference reference 
                 ? null
                 : new Unresolved { Reference = reference };
+
+        public Type Resolve(IContext context) => context.Resolve(Reference) switch
+        {
+            Resolution.Definite definite => definite.Member as Type ?? new Calculated { Resolution = definite },
+            Resolution.Ambiguous ambiguous => new Overloaded { Candidates = ambiguous.Candidates },
+            _ => null
+        };
     }
 
     public class Overloaded : Type
@@ -65,14 +72,7 @@ internal class Type : Member
 
     internal class Calculated : Type
     {
-        public Member Member { get; init; }
-
-        public class CircularityError : Calculated, IError
-        {
-            public Stack<Statement> Statements { get; init; }
-            public string Reason { get; } = "calculated type depends on itself";
-            public System.ReadOnlyMemory<Token> Tokens { get; init; }
-        }
+        public Resolution Resolution { get; init; }
     }
 }
 
@@ -98,7 +98,7 @@ internal class Algebra : Type
 
     internal new class Calculated : Algebra
     {
-        public Member Member { get; init; }
+        public Resolution Resolution { get; init; }
     }
 }
 

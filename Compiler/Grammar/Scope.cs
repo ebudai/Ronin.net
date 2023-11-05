@@ -3,7 +3,6 @@ using Ronin.Lexicon;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
@@ -11,7 +10,7 @@ internal class Scope : Statement, IContext
 {
     public IContext Parent { get; set; }
     public Modifiers Modifiers { get; init; }
-    public List<Module> Imports { get; } = new();
+    public List<Import> Imports { get; } = new();
     public List<Statement> Statements { get; } = new();
 
     public Scope() { }
@@ -29,7 +28,7 @@ internal class Scope : Statement, IContext
     {
         List<Resolution> resolutions = new();
 
-        foreach (var statement in this)
+        foreach (var statement in Statements)
         {
             if (statement is Member member && member.Identifier.Resolve(reference) is Resolution resolution)
             {
@@ -191,14 +190,34 @@ internal class Scope : Statement, IContext
         }
     }
 
-    internal class Basic : Scope
+    internal class Basic : Scope, IList<Statement>
     {
         public static new Basic Parse(ref Parser current) => Aggregate<Basic, Open.Brace, Statement, Terminal, Close.Brace>.Parse(ref current);
+
+        public Statement this[int index] 
+        {
+            get => Statements[index];
+            set => Statements[index] = value; 
+        }
+
+        public int Count => Statements.Count;
+        public bool IsReadOnly => false;
+
+        public void Add(Statement item) => Statements.Add(item);
+        public void Clear() => Statements.Clear();
+        public bool Contains(Statement item) => Statements.Contains(item);
+        public void CopyTo(Statement[] array, int arrayIndex) => Statements.CopyTo(array, arrayIndex);
+        public IEnumerator<Statement> GetEnumerator() => Statements.GetEnumerator();
+        public int IndexOf(Statement item) => Statements.IndexOf(item);
+        public void Insert(int index, Statement item) => Statements.Insert(index, item);
+        public bool Remove(Statement item) => Statements.Remove(item);
+        public void RemoveAt(int index) => Statements.RemoveAt(index);
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
     }
 
     internal class Conditional<T> : Scope where T : Keyword
     {
-        public Resolution Condition { get; init; }
+        public Member Condition { get; init; }
 
         protected Conditional() { }
         protected Conditional(Scope scope) : base(scope) { }
@@ -211,7 +230,7 @@ internal class Scope : Statement, IContext
 
             if (parser.TryAdvance<T>() is false) return null;
 
-            if (Resolution.Parse(ref parser) is not Resolution condition)
+            if (Member.Unresolved.Parse(ref parser) is not Member condition)
             {
                 return new ExpectedConditionError { Tokens = current.AdvanceTo(parser) };
             }
@@ -232,20 +251,4 @@ internal class Scope : Statement, IContext
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
     }
-
-    #region list implementation
-    [ExcludeFromCodeCoverage] public int Count => ((ICollection<Statement>)Statements).Count;
-    [ExcludeFromCodeCoverage] public bool IsReadOnly => ((ICollection<Statement>)Statements).IsReadOnly;
-    [ExcludeFromCodeCoverage] public Statement this[int index] { get => ((IList<Statement>)Statements)[index]; set => ((IList<Statement>)Statements)[index] = value; }
-    [ExcludeFromCodeCoverage] public int IndexOf(Statement item) => ((IList<Statement>)Statements).IndexOf(item);
-    [ExcludeFromCodeCoverage] public void Insert(int index, Statement item) => ((IList<Statement>)Statements).Insert(index, item);
-    [ExcludeFromCodeCoverage] public void RemoveAt(int index) => ((IList<Statement>)Statements).RemoveAt(index);
-    [ExcludeFromCodeCoverage] public void Add(Statement item) => ((ICollection<Statement>)Statements).Add(item);
-    [ExcludeFromCodeCoverage] public void Clear() => ((ICollection<Statement>)Statements).Clear();
-    [ExcludeFromCodeCoverage] public bool Contains(Statement item) => ((ICollection<Statement>)Statements).Contains(item);
-    [ExcludeFromCodeCoverage] public void CopyTo(Statement[] array, int arrayIndex) => ((ICollection<Statement>)Statements).CopyTo(array, arrayIndex);
-    [ExcludeFromCodeCoverage] public bool Remove(Statement item) => ((ICollection<Statement>)Statements).Remove(item);
-    [ExcludeFromCodeCoverage] public IEnumerator<Statement> GetEnumerator() => ((IEnumerable<Statement>)Statements).GetEnumerator();
-    [ExcludeFromCodeCoverage] IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Statements).GetEnumerator();
-    #endregion
 }

@@ -7,19 +7,31 @@ namespace Ronin.Semantics;
 
 internal partial class Analyzer
 {
-    public void Imports(Scope scope)
+    public void Imports(Module module)
     {
-        for (int i = 0; i != scope.Imports.Count; ++i) 
+        foreach (var subscope in module.Scopes)
         {
-            if (scope.Imports[i] is Module.Unresolved unresolved)
+            Imports(subscope, module);
+        }
+        foreach (var submodule in module.Modules.Values)
+        {
+            Imports(submodule);
+        }
+    }
+
+    private void Imports(Scope scope, Module parent)
+    {
+        for (int i = 0; i != scope.Imports.Count; ++i)
+        {
+            if (scope.Imports[i].Module is Module.Unresolved unresolved)
             {
-                var import = Global[unresolved.Name];
+                var import = parent[unresolved.Name];
                 if (import is null)
                 {
                     Errors.Add(new MissingModuleError(unresolved.Name));
                     continue;
                 }
-                scope.Imports[i] = import;
+                scope.Imports[i].Module = import;
             }
         }
     }
