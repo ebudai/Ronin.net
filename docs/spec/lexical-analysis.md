@@ -11,21 +11,20 @@ The lexer uses the following order of token types in its attempt to satisfy one 
 1. ***comment***
     - Intended for maintainer edification, does not participate in grammatical analysis.
     - Multiline comments can be nested provided they are balanced.
-1. ***literal***
-    1. ***character***
-        - All characters are UTF-8.        
-    1. ***date***
-    1. ***time***
-    1. ***moment***
-        - for timezones see https://www.iana.org/time-zones or https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-    1. ***currency***
-    1. ***numeric***
-    1. ***text***
-        - All text is UTF-8
-    1. ***url***
-        - **domain** conforms to *IDNA2008* (see https://www.rfc-editor.org/info/rfc5892)
-        - as the terminal `;` is a valid character in the **domain**, if the value of the url ends with `;`, it is not considered part of the domain and is instead interpreted as a statement terminator.
-        - **version** is interpreted as *semver* with wildcards as default values.  Omitting version will default to the latest available.
+1. ***character literal***
+    - All characters are UTF-8.
+1. ***date literal***
+1. ***moment literal***
+    - for timezones see https://www.iana.org/time-zones or https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+1. ***time literal***
+1. ***currency literal***
+1. ***numeric literal***
+1. ***text literal***
+    - All text is UTF-8
+1. ***url literal***
+    - **domain** conforms to *IDNA2008* (see https://www.rfc-editor.org/info/rfc5892)
+    - as the terminal `;` is a valid character in the **domain**, if the value of the url ends with `;`, it is not considered part of the domain and is instead interpreted as a statement terminator.
+    - **version** is interpreted as *semver* with wildcards as default values.  Omitting version will default to the latest available.
 1. ***symbol***
     1. *interval*
     1. ***punctuation***

@@ -1,4 +1,4 @@
-# Detailed table of contents
+# Table of contents
 
 - [Foreword](foreword.md)
 - [Introduction](introduction.md)

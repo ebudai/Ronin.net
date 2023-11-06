@@ -1,8 +1,6 @@
 ﻿using Ronin.Grammar;
 using Ronin.Lexicon;
 
-//[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
 namespace Test;
 
 internal static class Utility

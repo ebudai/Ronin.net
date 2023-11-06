@@ -1,5 +1,4 @@
 ﻿using Ronin.Grammar;
-using static Ronin.Grammar.Resolution;
 
 namespace Ronin.Semantics;
 

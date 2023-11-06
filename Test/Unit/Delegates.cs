@@ -184,11 +184,11 @@ public class Delegates : ParsingTests
     [Fact(DisplayName = "as value")]
     public void AsValue()
     {
-        // constant x = () => { return 3; }
+        // var x = () => { return 3; }
 
         List<Token> tokens = new()
         {
-            Keyword.Constant(),
+            Keyword.Variable(),
             Word("x"),
             Assign(),
             StartValues(),

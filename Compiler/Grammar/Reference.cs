@@ -26,7 +26,7 @@ internal class Reference : IEnumerable<Reference.Component>
 
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
-        if (components.Count is 1 && components[0].AsTemporary is Literal) return null;
+        if (components.Count is 1 && components[0].AsTemporary is not null) return null;
         current = parser;
         return new Reference { Components = components };
     }
