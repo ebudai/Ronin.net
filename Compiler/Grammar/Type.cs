@@ -52,10 +52,7 @@ internal class Type : Member
     {
         public Reference Reference { get; init; }
 
-        public static new Type Parse(ref Parser current)
-            => Reference.Parse(ref current) is not Reference reference 
-                ? null
-                : new Unresolved { Reference = reference };
+        public static new Type Parse(ref Parser current) => Reference.Parse(ref current) is Reference reference ? new Unresolved { Reference = reference } : null;
 
         public Type Resolve(IContext context) => context.Resolve(Reference) switch
         {
@@ -85,10 +82,7 @@ internal class Algebra : Type
     {
         public Reference Reference { get; init; }
 
-        public static new Algebra Parse(ref Parser current)
-            => Reference.Parse(ref current) is not Reference reference
-                ? null
-                : new Unresolved { Reference = reference };
+        public static new Algebra Parse(ref Parser current) => Reference.Parse(ref current) is Reference reference ? new Unresolved { Reference = reference } : null;
     }
 
     internal new class Overloaded : Algebra
