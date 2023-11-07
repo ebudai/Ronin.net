@@ -32,7 +32,7 @@ Reactive data is declared via
 
 Datum identifiers may not contain parameters.
 
-Data is written to via `set identifier = new value;`.
+Data is assigned via `identifier = new value;`.  For reactive data which (even through multiple reactive variables) is bound to an imperative variable, that can be assigned a new value using `set identifier = new value;`.  Reactive variables which are bound to a function call cannot use `set`.
 
 #### Modifiers
 - `compiled` - causes the variable to be computed at compile time.
@@ -64,12 +64,18 @@ Algebraic types are supported via `and` and `or`.  Sum types are discriminated.
 #### Extensions
 All types may be extended, meaning having new members added, member functions overridden, and member types extended.  Types can be extended via
 - `extend identifier { members+ }`
-Algebra may not be altered.  Data may not be altered.  Nothing can be deleted.
 
-#### Initialization
+The only changes available are extensions on inner types, and overriding functions.
 
 ### Functions
 Functions are scopes with an identifier.
+
+Functions are declared via
+- `function identifier [=> type] { statements* }`
+
+#### Overrides
+Functions can be overridden via
+`override identifier [=> type] { statements* }`
 
 ### Identifiers
 Identifiers can contain zero or more ***names*** and zero or more ***parameters*** in any order.  An identifier must contain at least one of either of these.
@@ -80,6 +86,12 @@ Names are separated by whitespace, but whitespace between words and symbols may 
 
 #### **Parameters**
 Parameters are one or more comma-delimited identifiers surrounded by `(`brackets`)`.
+
+Parameters can be optional or mandatory.  Optional parameters either have the modifier `optional`, or have an initializer.  Optional parameters can be skipped.
+
+If there are fewer than two mandatory parameters, the remaining parameter may be bound without the use of `(`brackets`)`.
+
+Parameters may be bound by name.  Parameters are then bound in dependency order (so one parameter's initializer can refer to another parameter), or left-to-right otherwise.
 
 ##### Examples:
 - `fastest horse`
@@ -104,3 +116,5 @@ Modules are named lists of scopes.  They may also contain one or modules, provid
 
 #### Global Module
 There exists one and only one global module in each program.  The global module is visible from all scopes.  The global module does not have a parent context.
+
+
