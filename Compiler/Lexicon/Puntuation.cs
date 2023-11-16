@@ -52,3 +52,10 @@ internal class TextDelimiter : Punctuation
 
     public static new TextDelimiter Lex(ref Lexer lexer) => Lex<TextDelimiter>(ref lexer, symbol);
 }
+
+internal class Question : Punctuation
+{
+    internal const char symbol = '?';
+
+    public static new Question Lex(ref Lexer lexer) => Lex<Question>(ref lexer, symbol);
+}

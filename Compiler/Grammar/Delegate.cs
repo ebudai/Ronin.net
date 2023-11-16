@@ -31,11 +31,11 @@ internal class Delegate : Temporary
         {
             if (Name.Parse(ref parser) is Name name)
             {
-                parameters = new Parameters { name };
+                parameters = [name];
             }
             else if (parser.TryAdvance<Open.Parenthesis>() && parser.TryAdvance<Close.Parenthesis>())
             {
-                parameters = new();
+                parameters = [];
             }
             else
             {

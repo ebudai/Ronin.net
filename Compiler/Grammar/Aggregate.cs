@@ -51,20 +51,18 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
         {
             if (TElement.Parse(ref parser) is not TElement syntax)
             {
-                if (parser.TryAdvance<TClose>() is false) return null;
-                break;
+                if (parser.TryAdvance<TClose>()) break;
+                return null;
             }
             values.Add(syntax);
             parser.TryAdvance<TSeparator>();
         }
 
-        if (values.Count is 0) return null;
-
         current = parser;
         return values;
     }
 
-    private readonly List<TElement> Values = new();
+    private readonly List<TElement> Values = [];
 
     #region list implementation
     [ExcludeFromCodeCoverage] public IEnumerator<TElement> GetEnumerator() => Values.GetEnumerator();

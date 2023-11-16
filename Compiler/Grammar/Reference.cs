@@ -46,7 +46,7 @@ internal class Reference : IEnumerable<Reference.Component>
     {
         if (name is null) return null;
 
-        List<System.Index> indices = new();
+        List<System.Index> indices = [];
 
         for (var i = 0; i != Count; ++i)
         {
@@ -56,14 +56,14 @@ internal class Reference : IEnumerable<Reference.Component>
             }
         }
 
-        return indices.ToArray();
+        return [.. indices];
     }
 
     public System.Index[] IndicesOf(Parameters parameters)
     {
         if (parameters.Mandatory.Length is 0 or 1) return null;
 
-        List<System.Index> indices = new();
+        List<System.Index> indices = [];
 
         for (var i = 0; i != Count; ++i)
         {
@@ -75,7 +75,7 @@ internal class Reference : IEnumerable<Reference.Component>
             }
         }
 
-        return indices.ToArray();
+        return [.. indices];
     }
 
     public class Component : Compiler.IParsable<Component>

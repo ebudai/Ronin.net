@@ -1,120 +1,209 @@
 # The Ronin Programming Language
-
-Ronin's purpose is to implement game logic, user interfaces, and modifications thereof for the Omniverse Game Engine.  It is a weakly-typed, reactive language.
+Ronin's purpose is to implement game logic, user interfaces, and mods for the Unnamed Game Engine. 
 
 ## Goals
 - readable
-- composable
-- nothing locked-down or hidden
-- performant
 - easy to learn
-- "you don't need to worry about it" - minimize extraneous details
+- composable
+- reactivity without all the boilerplate and ceremony
+- nothing locked-down or private
+- fast
+- minimize extraneous details - "you don't need to worry about it"
 - hot-reloadable
 
 ## Non-goals
 - general purpose
 - satisfying any particular programming paradigm
 
-## Overview
-A Ronin **program** consists of one or more **modules** which contain one or more **scopes** and a **name**.  Each scope contains one or more **statements**.  A statement may be an **assignment**, **member declaration**, or a 
-## Concepts
+## Hello World
+```
+print "Hello world!";
+```
 
-### Data
-Data can be imperative, which does not change until explicitly set to a value, or reactive, which will automatically change when one of its dependent values changes. All data is typed, either explicitly via `=> identifier` or implicitly via `= some value`.
+## Identifiers
+Identifiers in Ronin can any number or *words* or *parameter blocks* in any order.
 
-Imperative data is declared via
-- `var identifier => [modifiers] type [= initial state];` or
-- `var identifier [=> modifiers] = initial state;`
+**Words** can contain letters, numbers, or symbols.  They cannot start with a number, and some symbols are reserved (called *punctuation*): `=> ( [ { ) ] } , ; " = ?`. Additionally, there are keywords which identifiers cannot start with:
 
-Reactive data is declared via 
-- `let identifier [=> [modifiers] type] = value;` (early binding) or
-- `var identifier => [modifiers] reactive type;` (late binding)
+`compiled`\
+`extend`\
+`function`\
+`global`\
+`if`\
+`import`\
+`iterate`\
+`hidden`\
+`let`\
+`optional`\
+`part of`\
+`reactive`\
+`type`\
+`var`\
+`when`\
+`while`
 
-Datum identifiers may not contain parameters.
+**Parameter Blocks** are surrounded by `(`brackets`)` and contain zero or more *parameters* specified by an identifier, and separated by a comma.  If a parameter has an initializer, or is marked as `optional`, the parameter need not be specified.  If fewer than two parameters are being bound in a particular block, the brackets may be elided.
 
-Data is assigned via `identifier = new value;`.  For reactive data which (even through multiple reactive variables) is bound to an imperative variable, that can be assigned a new value using `set identifier = new value;`.  Reactive variables which are bound to a function call cannot use `set`.
+## Variables
+Variables must be declared prior to use.  All variables have a type which cannot change, and is set by the declaration.  The type can be specified directly or by using an expression to initialize it.  
 
-#### Modifiers
-- `compiled` - causes the variable to be computed at compile time.
-- `global` - when applied to a member variable, this causes it to be accessed via the type's identifier rather than the variable's identifier.  The value is shared between all instances of the type.  When applied to a local variable of a function, it can be accessed without invoking the function, and does not get cleaned up on scope exit.
-- `optional` - allows the variable to be set to the special value of `nothing`.
-- `hidden` - hides the member from code completion unless requested
-- `reactive` - causes the variable to be late-bound reactive
+Variables in Ronin can be either imperative or reactive.  Imperative variables are declared using `var` and their value does not change until explicitly set.
 
-### Types
-Types describe the shape and behaviour of data.
+```js
+var name = "Billy Williamson";
+var fastest horse => Horse;
+var top speed => Number = 7.2;
+var candy choices = [lollypop, hard candy];
+var my car => Car = 
+(
+    speed = 9001,
+    colour = red,
+    22,
+    options = 
+    (
+        turbo = true,
+        greeting = "♪boo bee boo♫",
+        heated seats = false,
+    )
+);
+```
 
-Types are declared via
-- `type identifier [= algebra] { member+ }` or
-- `type identifier = algebra;`
+Reactive variables are declared using `let` and their value changes whenever any of their dependant values changes.  They can be early- or late-bound.  Late-bound reactive variables cannot be referred to before they are initialized.
 
-#### Primary Types
-There are four primary types which all built-in and user-defined types are composed of.  They are:
-- `number` - can store integers, reals, positive, negative, infinite or undefined.  Underlying type is determined at compile time by examining usage.  If you require integer division, specify `whole number`.  If you require arbitrary precision above 64 bits, specify `large number` or `large whole number`.
-- `text` - UTF8 character list
-- `date` - year-month-day, with 57 bytes for the year, and the remaining 7 for the day of the year (1 to 360)
-- `true/false`
+```js
+let x = y + 7;
+let speed = distance * time;
+let expensive calculation result = calculate(things, stuff, 7, "the other one");
+let late-bound fastest horse => Horse;
+```
 
-#### Members
-All types have at least one member, which can be a variable, a function, or a type.  Member functions have an implicit parameter prepended to the identifier, of the type of the enclosing type, called `me`.  This implicit parameter does not have to be referred to directly, and is automatically prefixed on every reference in the member function.
+## Control Flow Statements
+Ronin supports both imperative and reactive control flow.
 
-#### Algebra
-Algebraic types are supported via `and` and `or`.  Sum types are discriminated.
+```js
+if year > 2025 
+{
+     print "17";
+}
+else 
+{
+    print "12";
+};
 
-#### Extensions
-All types may be extended, meaning having new members added, member functions overridden, and member types extended.  Types can be extended via
-- `extend identifier { members+ }`
+var slow = if speed < 10 => 3; else => 500;
+```
 
-The only changes available are extensions on inner types, and overriding functions.
+```js
+iterate shoes => shoe
+{
+    print line shoe #;
+}
+```
 
-### Functions
-Functions are scopes with an identifier.
+```js
+while year < 12
+{
+    print "working" + year;
+}
+```
 
-Functions are declared via
-- `function identifier [=> type] { statements* }`
+```js
+when year is 2001
+{
+    print "turn of the millenium";
+}
+```
 
-#### Overrides
-Functions can be overridden via
-`override identifier [=> type] { statements* }`
+## Functions
+Functions can be created via declaration, equality, or partial application.
+```js
+function save the (species)
+{
+    species is saved = true;
+    return species;
+}
 
-### Identifiers
-Identifiers can contain zero or more ***names*** and zero or more ***parameters*** in any order.  An identifier must contain at least one of either of these.
+function getting stung = save the bees;
 
-#### **Names**
-Names can contain one or more words, symbols, or numerals, except ***punctuation***, defined as any one of `=> ( [ { ) ] } , ; " = ?`
-Names are separated by whitespace, but whitespace between words and symbols may be elided.  Names cannot start with numerals.
+function add (other => Number) to 3 = 3 + ?;
+```
 
-#### **Parameters**
-Parameters are one or more comma-delimited identifiers surrounded by `(`brackets`)`.
+All functions can be overridden
+```js
+override add (other => Number) to 3 = 77 + ?;
+```
 
-Parameters can be optional or mandatory.  Optional parameters either have the modifier `optional`, or have an initializer.  Optional parameters can be skipped.
+Functions which implicitly return `nothing` can be extended
+```js
+extend print line (value)
+{
+    print "printed " + value;
+}
+```
 
-If there are fewer than two mandatory parameters, the remaining parameter may be bound without the use of `(`brackets`)`.
+## Comments
+Comments can start with `//` and extend to the end of the line.  Multiline comments are surrounded by `/*` and `*/`.  Multiline comments can be nested.
 
-Parameters may be bound by name.  Parameters are then bound in dependency order (so one parameter's initializer can refer to another parameter), or left-to-right otherwise.
+## Modules
+Any implicit or anonymous scope can be declared as belonging to a module.
+```
+part of standard math calculus;
+```
 
-##### Examples:
-- `fastest horse`
-- `write (book contents => text) to (library => Library)`
-- `restricted list (things => T, T = things type)`
+Scopes which join modules are not processed along with their parent scopes.  They are reparented to the module they join.  Imports for reparented scopes are not transitive with other scopes belonging to that same module.
 
-Two identifiers are equivalent if they have the same names and the same parameters with the same types.  If only one or more type differs, the identifiers are ***overloaded***.
+Any module can be imported to any scope.
+```js
+import standard math calculus;
+import matrix math = standard math algebra;
+```
 
-### Statements
-Statements contain references which refer to one identifier belonging to a member.  In order for an identifier to match a given reference, all names must be the same, and all parameters must be accounted for.
+## Types
+Type names are conventionally Capitalized.  There are four primary types from which all others are constructed:
+- `Number`
+- `Text`
+- `Date`
+- `True or False`
 
-### Contexts
-Contexts contain a parent context, as well as a list of members, which can be data, functions, and/or types.  The two types of contexts are ***scopes*** and ***modules***.
+There is also the type `Nothing` intended for use with optional variables.  It is a singleton named `nothing`.  There is no `void` type.
 
-#### Scopes
-Scopes are surrounded by `{}` and contain a list of statements separated by `;`.  These statements are resolved in the order they are written when the scope is resolved.
+`Number` is a signed 64-bit integer, unless it is ever the result of division, in which case the underlying type is a 64-bit float.  This is determined at compile time.  In order to lock the type to a signed 64-bit integer, use `Whole Number`.  To lock the type to a 64-bit float, use `Real Number`.  If you require arbitrary precision, use `Irrational Number`.
 
-If a statement begins with the keyword `return`, or it is the last statement in a scope, the scope resolves to the resolution of that statement.  If the scope's resolved value is not assigned, its parent also resolves to that value, and so on until assigned.  If no assignment takes place, the program concludes and the returned value is printed.
+`Text` is a UTF-8 string, unless many concatenations are performed, in which case the underlying representation is a rope.  There is no character type.
 
-#### Modules
-Modules are named lists of scopes.  They may also contain one or modules, provided the child module's name starts with its parent's name.  Any scope may join a module by stating it is `part of module name`.  The order by which scopes are added to a module is not defined.
+`Date` has 30 days per month, 12 months per year, and years ranging from 0 to 2^55.  Year 0 is considered the beginning of time.  There is no time-of-day type.
 
-#### Global Module
-There exists one and only one global module in each program.  The global module is visible from all scopes.  The global module does not have a parent context.
+`true or false` is a boolean type.
 
+Types can be user defined:
+```js
+type Dog(speed => Number, how much fun, nutritional requirements => Food)
+{
+    var name => Text;
+    var running speed = speed;
+    let is fun = how much fun >= 2;
+    var owners => [Owner];
+    var thinks he is people => true or false;
+    var location => Location;
 
+    function fetch (the ball)
+    {
+        location = the park;
+        shoes 3 = 4;
+        return the ball;
+    }
+}
+
+var good boy => Dog = (3.2, 8, ());
+```
+
+Algebraic data types are supported via `and` and `or`.
+
+```js
+type Transformer = Robot and Vehicle;
+type Platypus = Mammal and Bird and
+{
+    var distinct types of venom not found in nature = 3;    
+};
+var the only real outcomes => Win or Lose;
+```

@@ -11,19 +11,21 @@ Tokens which do not participate in grammatical analysis.
 Instances of a specific ***word*** which has pre-defined meaning by the compiler.  They are all intended to assist in grammatical and semantic analysis.
 - `alias`
 - `compiled`
-- `constant`
-- `datatype`
-- `export`
 - `extend`
-- `for each`
 - `function`
+- `hidden`
 - `import`
+- `iterate`
 - `let`
 - `optional`
 - `override`
 - `part of`
+- `reactive`
+- `type`
 - `var`
 - `when`
+- `while`
+
 ## 2.3 Literal
 A ***constant*** value specified directly in source code.
 - **lexicographic**

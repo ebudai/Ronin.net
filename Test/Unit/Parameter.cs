@@ -116,6 +116,7 @@ public class Parameter : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var arguments = Parameters.Parse(ref parser);
 
-        Assert.Null(arguments);
+        Assert.NotNull(arguments);
+        Assert.Empty(arguments);
     }
 }

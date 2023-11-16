@@ -68,7 +68,7 @@ internal class Module : IContext
 
     public Resolution Resolve(Reference reference)
     {
-        List<Resolution> resolutions = new();
+        List<Resolution> resolutions = [];
         foreach (var scope in Scopes)
         {
             if (scope.Resolve(reference) is Resolution resolution)

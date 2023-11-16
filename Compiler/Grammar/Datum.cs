@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
 
 namespace Ronin.Grammar;
 
@@ -83,6 +84,6 @@ internal class Datum : Member
         public ExpectedIdentifierError(ref Parser parser) => Tokens = Unknown.Parse(ref parser).Tokens;
 
         public string Reason { get; } = "expected identifier";
-        public System.ReadOnlyMemory<Token> Tokens { get; init; }
+        public ReadOnlyMemory<Token> Tokens { get; init; }
     }    
 }

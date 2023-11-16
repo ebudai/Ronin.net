@@ -25,7 +25,7 @@ internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.P
 
     public Parameters() : base()
     {
-        List<Parameter> parameters = new();
+        List<Parameter> parameters = [];
         foreach (var parameter in this)
         {
             if (parameter.AsDatum is not Datum datum) continue;

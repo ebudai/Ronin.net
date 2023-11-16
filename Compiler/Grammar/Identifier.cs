@@ -17,7 +17,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
 {
     public ReadOnlySpan<Component> Span => CollectionsMarshal.AsSpan(Components);
 
-    private List<Component> Components { get; init; } = new();
+    private List<Component> Components { get; init; } = [];
 
     public static Identifier Parse(ref Parser current)
     {
@@ -85,7 +85,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
                 var subidentifier = Span[prevanchor..anchor];
                 prevanchor = anchor;
 
-                var resolution = Subresolve(subidentifier, subreference);
+                var resolution = Resolve(subidentifier, subreference);
                 resolutions.Add(resolution);
             }
         }
@@ -129,9 +129,9 @@ internal class Identifier : IEnumerable<Identifier.Component>
     }
 
     // all identifier components are Parameters where either zero or only one parameter is mandatory
-    private static Resolution Subresolve(ReadOnlySpan<Component> identifier, ReadOnlySpan<Reference.Component> reference)
+    private static Resolution Resolve(ReadOnlySpan<Component> identifier, ReadOnlySpan<Reference.Component> reference)
     {
-        ArrayIndexPermutations permutations = new();
+        ArrayIndexPermutations permutations = [];
         foreach (var component in identifier)
         {
             var parameters = component.AsParameters;
@@ -146,7 +146,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
             permutations.Add(array);
         }
 
-        List<Resolution> resolutions = new();
+        List<Resolution> resolutions = [];
         foreach (var permutation in permutations) 
         {
             if (IsValid(permutation, reference.Length) is false) continue;

@@ -13,7 +13,7 @@ internal abstract class Statement : IParsable<Statement>
         => Export.Parse(ref current)
         ?? Import.Parse(ref current)
         ?? Association.Parse(ref current)
-        ?? Member.Parse(ref current)        
+        ?? Member.Parse(ref current)
         ?? Value.Parse(ref current)
         ?? Scope.Parse(ref current)
         ?? Unknown.Parse(ref current) as Statement;

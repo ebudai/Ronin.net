@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Ronin.Semantics;
 
-namespace Unit
+namespace Unit;
+
+[Trait(nameof(Analyzer), "Type Resolution")]
+public class CalculatedData
 {
-    internal class CalculatedData
+    [Fact(DisplayName = "calculated type")]
+    public void Calculated()
     {
+        // function test (thing => stuff) => if stuff is not finished { }
     }
 }
