@@ -16,9 +16,7 @@ internal class Constant : Mutability
 
     public static new Keyword Lex(ref Lexer lexer)
     {
-        if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Constant { Memory = lexer.AdvanceBy(keyword.Length) };
+        return Lex<Constant>(ref lexer, keyword);
     }
 }
 
@@ -28,9 +26,7 @@ internal class Variable : Mutability
 
     public static new Keyword Lex(ref Lexer lexer)
     {
-        if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Variable { Memory = lexer.AdvanceBy(keyword.Length) };
+        return Lex<Variable>(ref lexer, keyword);
     }
 }
 
@@ -40,8 +36,6 @@ internal class Let : Mutability
 
     public static new Keyword Lex(ref Lexer lexer)
     {
-        if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Let { Memory = lexer.AdvanceBy(keyword.Length) };
+        return Lex<Let>(ref lexer, keyword);
     }
 }

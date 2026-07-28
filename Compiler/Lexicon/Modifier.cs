@@ -18,9 +18,7 @@ internal class Compiled : Modifier
 
     public static new Keyword Lex(ref Lexer lexer)
     {
-        if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Compiled { Memory = lexer.AdvanceBy(keyword.Length) };
+        return Lex<Compiled>(ref lexer, keyword);
     }
 }
 
@@ -30,9 +28,7 @@ internal class Global : Modifier
 
     public static new Keyword Lex(ref Lexer lexer)
     {
-        if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Global { Memory = lexer.AdvanceBy(keyword.Length) };
+        return Lex<Global>(ref lexer, keyword);
     }
 }
 
@@ -42,9 +38,7 @@ internal class Hidden : Modifier
 
     public static new Keyword Lex(ref Lexer lexer)
     {
-        if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Hidden { Memory = lexer.AdvanceBy(keyword.Length) };
+        return Lex<Hidden>(ref lexer, keyword);
     }
 }
 
@@ -55,9 +49,7 @@ internal class Optional : Modifier
 
     public static new Keyword Lex(ref Lexer lexer)
     {
-        if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Optional { Memory = lexer.AdvanceBy(keyword.Length) };
+        return Lex<Optional>(ref lexer, keyword);
     }
 }
 
@@ -67,8 +59,6 @@ internal class Reactive : Modifier
 
     public static new Keyword Lex(ref Lexer lexer)
     {
-        if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
-        return new Reactive { Memory = lexer.AdvanceBy(keyword.Length) };
+        return Lex<Reactive>(ref lexer, keyword);
     }
 }

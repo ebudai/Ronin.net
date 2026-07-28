@@ -27,8 +27,12 @@ internal ref struct Lexer
             start ??= current;
         }
 
-        current?.Append(new Sentinel());
-        return start;
+        // An empty source is a token list of one sentinel, not a null. Returning
+        // null made Parser.IsNotFinished true forever and the first Advance
+        // dereferenced it.
+        Sentinel sentinel = new();
+        current?.Append(sentinel);
+        return start ?? sentinel;
     }
 
     public ReadOnlyMemory<char> AdvanceBy(int length)
@@ -44,9 +48,24 @@ internal ref struct Lexer
     public readonly char this[int index] => sourcecode[cursor + index];
     public readonly ReadOnlySpan<char> this[in Range range] => sourcecode.AsSpan()[cursor..][range];
 
-    public readonly bool StartsWith(string text) => sourcecode.IndexOf(text, cursor) == cursor;
+    /// <remarks>Ordinal: a source file is not prose, and CA1310 is right about it.</remarks>
+    public readonly bool StartsWith(string text)
+        => sourcecode.AsSpan(cursor).StartsWith(text, System.StringComparison.Ordinal);
 
-    public readonly int IndexOf(char character) => sourcecode.IndexOf(character, cursor);
+    /// <summary>
+    ///     Relative to the cursor, like every other member here.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     It used to return an absolute index, which <c>Comment.Lex</c> then
+    ///     passed to <c>AdvanceBy</c> as a length — so a comment anywhere but the
+    ///     start of a file swallowed everything after it.
+    /// </remarks>
+    public readonly int IndexOf(char character)
+    {
+        var found = sourcecode.IndexOf(character, cursor);
+        return found < 0 ? found : found - cursor;
+    }
 
     private int cursor;
     private readonly ref readonly string sourcecode;

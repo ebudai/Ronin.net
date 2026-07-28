@@ -23,7 +23,12 @@ internal class Keyword : Word
     protected static T Lex<T>(ref Lexer lexer, string keyword) where T : Keyword, new()
     {
         if (lexer.StartsWith(keyword) is false) return null;
-        if (char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
+
+        // A keyword needs a boundary after it, or «iffy» would lex as «if».
+        // Reaching the end of the source IS a boundary — reading one past it to
+        // check was an IndexOutOfRangeException for a file ending in «if».
+        if (lexer.Length > keyword.Length && char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
+
         return new T { Memory = lexer.AdvanceBy(keyword.Length) };
     }
 }
