@@ -226,12 +226,11 @@ public class ScopeBuilding
         var declared = Nested("var hello to alice => Number;",
                               "function send (x => Number) to (y => Number) { return x; }");
 
-        var complaint = Assert.Single(declared.Symbols.Validate(),
-                                      problem => problem.Contains("«hello to alice»"));
+        var complaint = Assert.Single(declared.Problems, finding => finding.Kind is FindingKind.GlueInName);
 
-        Assert.Contains("«to»", complaint);
-        Assert.Contains("«send (_) to (_)»", complaint);
-        Assert.Contains("later declaration", complaint);
+        Assert.Equal("hello to alice", complaint["name"]);
+        Assert.Equal("to", complaint["word"]);
+        Assert.Equal("send (_) to (_)", complaint["pattern"]);
     }
 
     [Fact(DisplayName = "a type is a name that holds no value")]

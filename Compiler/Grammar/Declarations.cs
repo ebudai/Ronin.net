@@ -32,8 +32,11 @@ internal sealed class Declarations
 
     public SymbolTable Symbols { get; } = new();
 
-    /// <summary>What could not be declared, in the order it was found.</summary>
-    public IReadOnlyList<Finding> Problems => problems;
+    /// <summary>
+    ///     What could not be declared, and what the scope-wide rules rejected.
+    /// </summary>
+    public IEnumerable<Finding> Problems => problems.Concat(Rules.Validate(symbols, [.. shapes.SelectMany(
+        shape => shape.Value.Select(span => (shape.Key, span)))]));
 
     /// <summary>
     ///     The declarations of one scope, folded into everything the enclosing
@@ -68,6 +71,8 @@ internal sealed class Declarations
             foreach (var (pattern, declared) in enclosing.Overloads) declarations.Overloads[pattern] = [.. declared];
             foreach (var (name, span) in enclosing.written) declarations.written[name] = span;
             foreach (var (pattern, spans) in enclosing.shapes) declarations.shapes[pattern] = [.. spans];
+
+            declarations.symbols.AddRange(enclosing.symbols);
         }
 
         foreach (var statement in statements) declarations.Declare(statement);
@@ -153,9 +158,25 @@ internal sealed class Declarations
 
         written[name] = span;
 
-        if (member is Datum { Mutability: Constant }) Symbols.Constants(name);
-        else if (member is Datum) Symbols.Declaring(name);
-        else Symbols.WithNames(name);
+        if (member is Datum { Mutability: Constant })
+        {
+            Symbols.Constants(name);
+            symbols.Add(new Declared(name, span));
+        }
+        else if (member is Datum)
+        {
+            Symbols.Declaring(name);
+
+            // the shadow carries its origin's span, because it has none of its
+            // own and is not the programmer's to rename
+            symbols.Add(new Declared(name, span));
+            symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name));
+        }
+        else
+        {
+            Symbols.WithNames(name);
+            symbols.Add(new Declared(name, span));
+        }
     }
 
     private string Where(string name) => inherited.Contains(name) ? "in an enclosing scope" : "in this scope";
@@ -175,6 +196,7 @@ internal sealed class Declarations
     private readonly List<Finding> problems = [];
     private readonly Dictionary<string, Span> written = [];
     private readonly Dictionary<Compiler.Pattern, List<Span>> shapes = [];
+    private readonly List<Declared> symbols = [];
     private SourceText source;
     private readonly HashSet<string> inherited = [];
 }

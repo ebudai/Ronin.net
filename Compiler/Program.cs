@@ -103,19 +103,16 @@ internal static class Program
 
         var declared = Declarations.Of(module.Scopes[0].Statements, source);
 
-        foreach (var problem in declared.Problems)
+        var problems = declared.Problems.ToArray();
+
+        foreach (var problem in problems)
         {
             Console.Error.WriteLine(Diagnostics.Report(problem));
-        }
-
-        foreach (var problem in declared.Symbols.Validate())
-        {
-            Console.Error.WriteLine($"{file.FullName}: {problem}");
         }
 
         Console.WriteLine($"{file.FullName}: {module.Scopes[0].Statements.Count} statement(s), " +
                           $"{declared.Symbols.Names.Count} name(s), {declared.Symbols.Patterns.Count} pattern(s)");
 
-        return declared.Problems.Count is 0 ? 0 : 1;
+        return problems.Length is 0 ? 0 : 1;
     }
 }

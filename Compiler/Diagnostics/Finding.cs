@@ -20,6 +20,18 @@ internal enum FindingKind
 
     /// <summary>More declarations of one shape than can yet be chosen between.</summary>
     Overloaded,
+
+    /// <summary>One pattern's anchor run begins another's.</summary>
+    AnchorPrefix,
+
+    /// <summary>A pattern uses a reserved word as a segment.</summary>
+    ReservedSegment,
+
+    /// <summary>A multi-word name contains a word that is glue in some pattern.</summary>
+    GlueInName,
+
+    /// <summary>The same, for a name the compiler injected.</summary>
+    GlueInInjectedName,
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -109,9 +121,30 @@ internal static class Diagnostics
             $"«{finding["name"]}» begins with the reserved word «{finding["word"]}», which is " +
             "injected rather than declared. Respell it.",
 
-        _ => $"«{finding["pattern"]}» has {finding["count"]} declarations and type-directed " +
-             "selection is not implemented, so there is no way to choose between them yet. " +
-             "Give them different shapes for now.",
+        FindingKind.Overloaded =>
+            $"«{finding["pattern"]}» has {finding["count"]} declarations and type-directed " +
+            "selection is not implemented, so there is no way to choose between them yet. " +
+            "Give them different shapes for now.",
+
+        FindingKind.AnchorPrefix =>
+            $"the anchor of «{finding["prefix"]}» begins that of «{finding["pattern"]}», so a " +
+            "statement can read as either and no bracketing tells them apart. Respell one of " +
+            "them.",
+
+        FindingKind.ReservedSegment =>
+            $"«{finding["pattern"]}» uses the reserved word «{finding["word"]}» as a segment, " +
+            "which would make it glue and reject every injected name in scope. Respell that " +
+            "segment.",
+
+        FindingKind.GlueInName =>
+            $"«{finding["name"]}» contains «{finding["word"]}», which is glue in " +
+            $"«{finding["pattern"]}». A name containing glue silently re-reads statements that " +
+            "already worked, so one of the two has to be respelled — and it is the later " +
+            "declaration that gives way.",
+
+        _ => $"«{finding["name"]}», injected by «{finding["injector"]}», collides with pattern " +
+             $"glue «{finding["word"]}» from «{finding["pattern"]}». Rename " +
+             $"«{finding["injector"]}», or respell the pattern.",
     };
 
     /// <summary>The sentence with its spans, as a build would print it.</summary>

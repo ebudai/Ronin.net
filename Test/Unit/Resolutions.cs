@@ -256,16 +256,28 @@ public class Resolutions
         Assert.Equal("Resolved", resolver.Resolve("(compute total for a) + b").Kind.ToString());
     }
 
+
+    /// <summary>
+    ///     Spans for a rule test, which reads symbols and never their positions.
+    ///     Rendering from real findings is what the golden file covers.
+    /// </summary>
+    private static readonly SourceText Nowhere = new(string.Empty);
+
+    private static Declared Declares(string name, string injectedBy = null)
+        => new(name, Nowhere.Span(0, 0), injectedBy);
+
+    private static (Pattern, Span) Shape(string pattern) => (Pattern.Parse(pattern), Nowhere.Span(0, 0));
+
     [Fact(DisplayName = "anchor runs must be prefix free")]
     public void AnchorRunsMustBePrefixFree()
     {
         // Found by exhaustive search: «b (_)» and «b b (_)» tie on «b b b a» with
         // no name involved, so no naming rule can repair it.
-        SymbolTable symbols = new();
-        symbols.WithPatterns("b _", "b b _");
+        var complaint = Assert.Single(Rules.Validate([], [Shape("b _"), Shape("b b _")]));
 
-        var complaint = Assert.Single(symbols.Validate());
-        Assert.Contains("prefix", complaint);
+        Assert.Equal(FindingKind.AnchorPrefix, complaint.Kind);
+        Assert.Equal("b (_)", complaint["prefix"]);
+        Assert.Equal("b b (_)", complaint["pattern"]);
     }
 
     [Fact(DisplayName = "names may not contain pattern glue")]
@@ -273,11 +285,12 @@ public class Resolutions
     {
         // Without this, defining «hello to alice» silently re-resolves
         // «send hello to alice» from a two-argument call to a one-argument one.
-        SymbolTable symbols = new();
-        symbols.WithNames("hello to alice").WithPatterns("send _ to _");
+        var complaint = Assert.Single(Rules.Validate([Declares("hello to alice")], [Shape("send _ to _")]));
 
-        var complaint = Assert.Single(symbols.Validate());
-        Assert.Contains("glue", complaint);
+        Assert.Equal(FindingKind.GlueInName, complaint.Kind);
+        Assert.Equal("hello to alice", complaint["name"]);
+        Assert.Equal("to", complaint["word"]);
+        Assert.Equal("send (_) to (_)", complaint["pattern"]);
     }
 
     [Fact(DisplayName = "operators of one precedence chain")]

@@ -33,6 +33,22 @@ public class Findings
                      function area of (shape => Text) { return shape; }
 
                      """,
+                     """
+                     function b (x => Number) { return x; }
+                     function b b (y => Number) { return y; }
+
+                     """,
+                     "function recall (x => Number) old (y => Number) { return x; }\n",
+                     """
+                     var hello to alice => Number;
+                     function send (x => Number) to (y => Number) { return x; }
+
+                     """,
+                     """
+                     var smoothed => Number;
+                     function apply (x => Number) smoothed (y => Number) { return x; }
+
+                     """,
                  })
         {
             SourceText text = new(source, "Player.ron");
@@ -116,6 +132,17 @@ public class Findings
 
             Player.ron:1:10: «area of (_)» has 2 declarations and type-directed selection is not implemented, so there is no way to choose between them yet. Give them different shapes for now.
                 Player.ron:2:10: also declared here
+
+            Player.ron:2:10: the anchor of «b (_)» begins that of «b b (_)», so a statement can read as either and no bracketing tells them apart. Respell one of them.
+                Player.ron:1:10: the anchor this one begins with
+
+            Player.ron:1:10: «recall (_) old (_)» uses the reserved word «old» as a segment, which would make it glue and reject every injected name in scope. Respell that segment.
+
+            Player.ron:1:5: «hello to alice» contains «to», which is glue in «send (_) to (_)». A name containing glue silently re-reads statements that already worked, so one of the two has to be respelled — and it is the later declaration that gives way.
+                Player.ron:2:10: which makes it glue
+
+            Player.ron:1:5: «old smoothed», injected by «smoothed», collides with pattern glue «smoothed» from «apply (_) smoothed (_)». Rename «smoothed», or respell the pattern.
+                Player.ron:2:10: which makes it glue
             """,
             rendered);
     }

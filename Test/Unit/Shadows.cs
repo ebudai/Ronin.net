@@ -110,16 +110,28 @@ public class Shadows
         Assert.Equal(1d, graph.Read("tick"));
     }
 
+
+    /// <summary>
+    ///     Spans for a rule test, which reads symbols and never their positions.
+    ///     Rendering from real findings is what the golden file covers.
+    /// </summary>
+    private static readonly SourceText Nowhere = new(string.Empty);
+
+    private static Declared Declares(string name, string injectedBy = null)
+        => new(name, Nowhere.Span(0, 0), injectedBy);
+
+    private static (Pattern, Span) Shape(string pattern) => (Pattern.Parse(pattern), Nowhere.Span(0, 0));
+
     [Fact(DisplayName = "old is reserved against pattern segments")]
     public void OldIsReservedAgainstPatternSegments()
     {
         // One hostile pattern would put «old» in the glue set, and R5 would then
         // reject every injected name in scope.
-        SymbolTable symbols = new();
-        symbols.Declaring("smoothed").WithPatterns("recall _ old _");
+        var complaint = Assert.Single(Rules.Validate([Declares("smoothed")], [Shape("recall _ old _")]),
+                                      finding => finding.Kind is FindingKind.ReservedSegment);
 
-        var complaint = Assert.Single(symbols.Validate(), problem => problem.Contains("reserved"));
-        Assert.Contains("«old»", complaint);
+        Assert.Equal("old", complaint["word"]);
+        Assert.Equal("recall (_) old (_)", complaint["pattern"]);
     }
 
     [Fact(DisplayName = "a shadow is checked by R5 even when its source is not")]
@@ -128,17 +140,15 @@ public class Shadows
         // R5 only examines multi-word names, so a one-word declaration is never
         // checked — but its two-word shadow is, and this conflict is reachable
         // only through the shadow. Suppressing injected names would hide it.
-        SymbolTable symbols = new();
-        symbols.Declaring("smoothed").WithPatterns("apply _ smoothed _");
-
-        var complaint = Assert.Single(symbols.Validate());
+        var complaint = Assert.Single(Rules.Validate(
+            [Declares("smoothed"), Declares("old smoothed", injectedBy: "smoothed")],
+            [Shape("apply _ smoothed _")]));
 
         // named against the two things the programmer controls, since «old
         // smoothed» is not one of them
-        Assert.Equal(
-            "«old smoothed», injected by «smoothed», collides with pattern glue «smoothed» " +
-            "from «apply (_) smoothed (_)». Rename «smoothed», or respell the pattern.",
-            complaint);
+        Assert.Equal(FindingKind.GlueInInjectedName, complaint.Kind);
+        Assert.Equal("old smoothed", complaint["name"]);
+        Assert.Equal("smoothed", complaint["injector"]);
     }
 
     [Fact(DisplayName = "one mistake reports once when both halves fail")]
@@ -146,13 +156,12 @@ public class Shadows
     {
         // «hello to alice» and «old hello to alice» both contain the glue, but
         // there is one fix, so the shadow's complaint adds nothing
-        SymbolTable symbols = new();
-        symbols.Declaring("hello to alice").WithPatterns("send _ to _");
+        var complaint = Assert.Single(Rules.Validate(
+            [Declares("hello to alice"), Declares("old hello to alice", injectedBy: "hello to alice")],
+            [Shape("send _ to _")]));
 
-        var complaint = Assert.Single(symbols.Validate());
-
-        Assert.Contains("name «hello to alice»", complaint);
-        Assert.DoesNotContain("old hello to alice", complaint);
+        Assert.Equal(FindingKind.GlueInName, complaint.Kind);
+        Assert.Equal("hello to alice", complaint["name"]);
     }
 
     [Fact(DisplayName = "a name that only looks injected is an ordinary name")]
@@ -161,12 +170,10 @@ public class Shadows
         // WithNames is the raw scope and injects nothing, so «old growth» with no
         // «growth» beside it was written by someone rather than generated — and
         // it is theirs to rename, so it gets the ordinary message
-        SymbolTable symbols = new();
-        symbols.WithNames("old growth").WithPatterns("apply _ growth _");
+        var complaint = Assert.Single(Rules.Validate([Declares("old growth")], [Shape("apply _ growth _")]));
 
-        var complaint = Assert.Single(symbols.Validate());
-
-        Assert.StartsWith("name «old growth» contains «growth»", complaint);
+        Assert.Equal(FindingKind.GlueInName, complaint.Kind);
+        Assert.Equal("old growth", complaint["name"]);
     }
 
     [Fact(DisplayName = "a collision with an injected name is a declaration error")]

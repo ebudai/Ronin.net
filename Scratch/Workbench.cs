@@ -124,7 +124,8 @@ internal sealed class Workbench : Window
         {
             var symbols = Symbols();
 
-            problems.Text = string.Join(Environment.NewLine, symbols.Validate());
+            problems.Text = string.Join(Environment.NewLine, Rules.Validate(NamedCollection(), Shapes(symbols))
+                                                                  .Select(Diagnostics.Render));
 
             Complete(symbols);
             Resolve(symbols);
@@ -136,6 +137,25 @@ internal sealed class Workbench : Window
             problems.Text = error.Message;
         }
     }
+
+    /// <summary>
+    ///     The scope panes are hand-declared, so their spans point at the pane
+    ///     rather than at anything the resolver would see. The workbench shows
+    ///     wording, not positions.
+    /// </summary>
+    private IReadOnlyCollection<Declared> NamedCollection() => [.. Named()];
+
+    private IEnumerable<Declared> Named()
+        => Lines(names).SelectMany(name => new[]
+           {
+               new Declared(name, blank.Span(0, 0)),
+               new Declared(SymbolTable.Shadowed + name, blank.Span(0, 0), name),
+           });
+
+    private IReadOnlyCollection<(Pattern, Span)> Shapes(SymbolTable symbols)
+        => [.. symbols.Patterns.Select(pattern => (pattern, blank.Span(0, 0)))];
+
+    private readonly SourceText blank = new(string.Empty);
 
     private SymbolTable Symbols()
     {
