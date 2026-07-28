@@ -108,6 +108,19 @@ internal sealed class Declarations
 
         if (member.Identifier.TryPattern(out var pattern, out var blocks) is false)
         {
+            // Too wide is not "not a pattern": it has holes, so it is a pattern
+            // declaration and it is one this will not match. Saying so is the
+            // whole point of the ceiling — a bound that refuses hostile input by
+            // terminating the compiler is not a bound.
+            if (member.Identifier.Width > Compiler.Pattern.MaxSegments)
+            {
+                problems.Add(new PatternTooWide(member.Identifier.Span(source),
+                                                member.Identifier.Words,
+                                                member.Identifier.Width,
+                                                Compiler.Pattern.MaxSegments));
+                return;
+            }
+
             Cell(member);
             return;
         }

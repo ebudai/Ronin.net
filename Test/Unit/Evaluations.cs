@@ -322,15 +322,38 @@ public class Evaluations
         }
     }
 
-    [Fact(DisplayName = "an operator with no implementation is an error")]
-    public void AnOperatorWithNoImplementationIsAnError()
+    [Fact(DisplayName = "evaluation uses the operator resolution chose")]
+    public void EvaluationUsesTheOperatorResolutionChose()
     {
-        // unreachable through the resolver while the tables agree, and the guard
-        // is what makes the drift survivable rather than a crash
-        Tree.Operation operation = new(new Tree.Literal("1"), "%", new Tree.Literal("2"));
+        // The two halves used to be looked up in different registries: the
+        // resolver read the scope's table, the evaluator read the global one. So
+        // an operator a scope added resolved and then had "no implementation",
+        // and an implementation a scope replaced was ignored in favour of the
+        // built-in — both silent, and both invisible to a test that compared the
+        // two tables' initial contents.
+        SymbolTable symbols = new();
+        symbols.WithNames("a", "b");
+        symbols.Operators["^"] = new Operator(25, Builtin.Lift((left, right) => Math.Pow((double)left, (double)right)));
+        symbols.Operators["+"] = new Operator(10, (_, _) => 999d);
 
-        var error = Assert.IsType<Error>(new Evaluator(new Scope()).Evaluate(new Graph(), operation, insideLet: false));
-        Assert.Contains("no implementation", error.Message);
+        Graph graph = new();
+        graph.Var("a", 2d);
+        graph.Var("b", 3d);
+
+        Assert.Equal(8d, Evaluated(symbols, graph, "a ^ b"));
+
+        // and the scope's «+» wins, because it is the one that resolved
+        Assert.Equal(999d, Evaluated(symbols, graph, "a + b"));
+
+        // while an untouched scope still means what the language means
+        Assert.Equal(5d, Evaluated(new SymbolTable().WithNames("a", "b"), graph, "a + b"));
+    }
+
+    private static object Evaluated(SymbolTable symbols, Graph graph, string source)
+    {
+        Assert.True(new Resolver(symbols).Resolve(source).TryTree(out var tree), source);
+
+        return new Evaluator(new Scope()).Evaluate(graph, tree, insideLet: false);
     }
 
     [Fact(DisplayName = "the evaluator rejects nonsense")]

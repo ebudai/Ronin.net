@@ -174,6 +174,49 @@ public class Compilations
         Assert.Equal(FindingKind.Malformed, Single(source));
     }
 
+    [Fact(DisplayName = "a pattern past its width is refused, not thrown")]
+    public void APatternPastItsWidthIsRefusedNotThrown()
+    {
+        // The ceiling exists to stop a declaration being a way to exhaust the
+        // stack, and it was enforced by a constructor throwing — so source wide
+        // enough to reach it terminated compilation instead of being rejected.
+        // A bound that refuses hostile input by killing the compiler is not a
+        // bound.
+        string wide(int words) => "function " + string.Concat(Enumerable.Repeat("word ", words)) + "(x => Number) {}\n";
+
+        Assert.Empty(Of(wide(Ronin.Compiler.Pattern.MaxSegments - 1)));
+
+        var finding = Assert.Single(Of(wide(Ronin.Compiler.Pattern.MaxSegments)));
+        var refused = Assert.IsType<PatternTooWide>(finding);
+
+        Assert.Equal(Ronin.Compiler.Pattern.MaxSegments + 1, refused.Width);
+        Assert.Equal(Ronin.Compiler.Pattern.MaxSegments, refused.Most);
+    }
+
+    [Fact(DisplayName = "compiling two files at once does not corrupt the walk")]
+    public void CompilingTwoFilesAtOnceDoesNotCorruptTheWalk()
+    {
+        // The reflected member cache is process-wide and a compilation is not.
+        // An unsynchronised check-then-assign corrupted it the first time two
+        // files were compiled together — five runs out of five — and today's CLI
+        // escapes it only by looping one file at a time, which is a property of
+        // that loop and not of this type.
+        var sources = Enumerable.Range(0, 64)
+                                .Select(each => $"var name{each} => Number;\n" +
+                                                $"function f{each} (x => Number) {{ return x; }}\n")
+                                .ToArray();
+
+        System.Collections.Concurrent.ConcurrentBag<Exception> failures = [];
+
+        Parallel.For(0, sources.Length, each =>
+        {
+            try { Compilation.Of(new SourceText(sources[each], $"f{each}.ron")); }
+            catch (Exception corrupted) { failures.Add(corrupted); }
+        });
+
+        Assert.Empty(failures);
+    }
+
     [Fact(DisplayName = "unrecognisable input is a problem, not a statement")]
     public void UnrecognisableInputIsAProblemNotAStatement()
     {

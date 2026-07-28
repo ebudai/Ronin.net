@@ -219,23 +219,31 @@ internal sealed class Compilation
     ///     value cannot be boxed — reflection throws rather than answering, so
     ///     they are excluded by what they are and not by catching the attempt.
     /// </remarks>
-    private static System.Reflection.PropertyInfo[] Members(System.Type type)
-    {
-        if (members.TryGetValue(type, out var cached)) return cached;
+    private static System.Reflection.PropertyInfo[] Members(System.Type type) => members.GetOrAdd(type, Reflect);
 
-        return members[type] =
-            [.. type.GetProperties(System.Reflection.BindingFlags.Public
-                                 | System.Reflection.BindingFlags.NonPublic
-                                 | System.Reflection.BindingFlags.Instance)
-                    .Where(property => property.CanRead
-                                    && property.GetIndexParameters().Length is 0
-                                    && property.PropertyType.IsByRefLike is false
-                                    && IsSyntax(property.DeclaringType))];
-    }
+    private static System.Reflection.PropertyInfo[] Reflect(System.Type type)
+        => [.. type.GetProperties(System.Reflection.BindingFlags.Public
+                                | System.Reflection.BindingFlags.NonPublic
+                                | System.Reflection.BindingFlags.Instance)
+                   .Where(property => property.CanRead
+                                   && property.GetIndexParameters().Length is 0
+                                   && property.PropertyType.IsByRefLike is false
+                                   && IsSyntax(property.DeclaringType))];
 
     private const string Syntax = "Ronin.Grammar";
 
-    private static readonly Dictionary<System.Type, System.Reflection.PropertyInfo[]> members = [];
+    /// <summary>
+    ///     Reflected members, cached across compilations.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Concurrent, because the cache is process-wide and a compilation is
+    ///     not. A plain dictionary with a check and then an assignment corrupted
+    ///     itself the first time two files were compiled at once — five runs out
+    ///     of five — and the CLI only escaped it by compiling one file at a time,
+    ///     which is a property of today's loop and not of this type.
+    /// </remarks>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<System.Type, System.Reflection.PropertyInfo[]> members = new();
 
     private void Malformed(IError error)
         => Add(new Malformed(Where(error), error.Reason, Text(error)));

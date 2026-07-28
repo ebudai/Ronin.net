@@ -77,10 +77,28 @@ internal class Identifier : IEnumerable<Identifier.Component>
             holes.Add([.. component.AsParameters.Select(Named)]);
         }
 
-        pattern = holes.Count is 0 ? null : new Compiler.Pattern(segments);
         blocks = holes;
+
+        // Width is checked HERE and not left to the constructor's guard. That
+        // guard is an invariant for direct construction and throws, and a
+        // declaration wide enough to trip it is ordinary source — so the bound
+        // introduced to refuse hostile input would have become a fatal path of
+        // its own.
+        Width = segments.Count;
+
+        pattern = holes.Count is 0 || segments.Count > Compiler.Pattern.MaxSegments
+                ? null
+                : new Compiler.Pattern(segments);
+
         return pattern is not null;
     }
+
+    /// <summary>
+    ///     How many words and holes the last <see cref="TryPattern"/> counted,
+    ///     so a caller can say why a pattern was refused rather than only that it
+    ///     was.
+    /// </summary>
+    public int Width { get; private set; }
 
     /// <summary>A parameter's name, which every parameter has.</summary>
     private static string Named(Parameters.Parameter parameter) => parameter.AsDatum.Identifier.Words;

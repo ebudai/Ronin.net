@@ -357,7 +357,7 @@ internal sealed class Resolver
             if (Expressions(k + 1, j, rightminimum).TryBest(out var right) is false) continue;
 
             cell.Offer(left.Cost + right.Cost,
-                       new Node.Operation(left.Node, lexemes[k].Text, right.Node),
+                       new Node.Operation(left.Node, lexemes[k].Text, op, right.Node),
                        Cell.Saturating(left.Count * right.Count));
         }
     }

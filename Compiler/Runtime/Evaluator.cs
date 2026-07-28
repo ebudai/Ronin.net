@@ -73,17 +73,17 @@ internal sealed class Evaluator(Scope scope)
          ? Evaluate(graph, group.Parts[0], insideLet)
          : group.Parts.Select(part => Evaluate(graph, part, insideLet)).ToArray();
 
+    /// <remarks>
+    ///     The operator comes off the node, which is the one the resolver chose.
+    ///     Looking the symbol up again in <see cref="Builtin.Operators"/> made
+    ///     resolution and evaluation two registries with one name: an operator
+    ///     added to a scope resolved and then had "no implementation", and an
+    ///     implementation replaced in a scope was silently ignored in favour of
+    ///     the built-in. There is nothing left to look up.
+    /// </remarks>
     private object Apply(Graph graph, Tree.Operation operation, bool insideLet)
-    {
-        // The resolver only builds an Operation for a symbol in its own operator
-        // table, so this only fires for a hand-built tree or if the two tables
-        // drift apart.
-        if (Builtin.Operators.TryGetValue(operation.Symbol, out var op) is false)
-            return new Error($"«{operation.Symbol}» has no implementation");
-
-        return op.Apply(Evaluate(graph, operation.Left, insideLet),
-                        Evaluate(graph, operation.Right, insideLet));
-    }
+        => operation.Operator.Apply(Evaluate(graph, operation.Left, insideLet),
+                                    Evaluate(graph, operation.Right, insideLet));
 
     private object Invoke(Graph graph, Tree.Call call, bool insideLet)
         => scope.Invoke(graph,

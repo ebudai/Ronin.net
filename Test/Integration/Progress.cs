@@ -30,10 +30,23 @@ namespace Integration;
 public class Progress
 {
     /// <summary>
-    ///     Malformed input, one line each: a keyword with nothing after it, a
-    ///     keyword followed by the wrong thing, and dangling operators.
+    ///     Input the parser must survive, one line each: a keyword with nothing
+    ///     after it, a keyword followed by the wrong thing, and dangling
+    ///     operators.
     /// </summary>
-    public static TheoryData<string> Malformed =>
+    ///
+    /// <remarks>
+    ///     Surviving is ALL this asserts. Membership here does not mean an input
+    ///     is rejected — «for ;» and «for each ;» are in the list and compile
+    ///     clean, because «for» is not a keyword this language has: the lexer
+    ///     knows «iterate» while the specification documents «for each ... in
+    ///     ...». Calling the list «malformed» implied a diagnostic nothing here
+    ///     checks, which is the same shape of mistake as a test asserting a bug.
+    ///     Whether those two lines should be errors is a language decision and is
+    ///     open; what is not open is that this test cannot be read as having made
+    ///     it. Findings are asserted in Compilations, per input, by kind.
+    /// </remarks>
+    public static TheoryData<string> Survivable =>
     [
         "var +;",
         "var ;",
@@ -72,9 +85,9 @@ public class Progress
         "reactive => 44.3;",
     ];
 
-    [Theory(DisplayName = "a malformed statement still finishes, and is still accounted for")]
-    [MemberData(nameof(Malformed))]
-    public void AMalformedStatementStillFinishes(string source)
+    [Theory(DisplayName = "a statement the parser cannot read still finishes, and is still accounted for")]
+    [MemberData(nameof(Survivable))]
+    public void AStatementTheParserCannotReadStillFinishes(string source)
     {
         Lexer lexer = new(source);
         Parser parser = new(lexer.Lex());

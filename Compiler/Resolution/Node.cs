@@ -68,10 +68,20 @@ internal abstract class Node
     }
 
     /// <summary>An operator applied to two operands. Free: no table is consulted.</summary>
-    internal sealed class Operation(Node left, string symbol, Node right) : Node
+    ///
+    /// <remarks>
+    ///     Carries the <see cref="Operator"/> the resolver chose, not just its
+    ///     symbol. Storing the symbol alone meant evaluation looked it up again in
+    ///     a different registry — so resolution could accept an operator the
+    ///     evaluator had never heard of, and an implementation the scope had
+    ///     replaced was ignored in favour of the built-in one. Two tables wearing
+    ///     the same name.
+    /// </remarks>
+    internal sealed class Operation(Node left, string symbol, Operator op, Node right) : Node
     {
         public Node Left { get; } = left;
         public string Symbol { get; } = symbol;
+        public Operator Operator { get; } = op;
         public Node Right { get; } = right;
 
         protected override string Render() => $"({Left} {Symbol} {Right})";

@@ -51,6 +51,7 @@ public class Findings
 
                      """,
                      "var x => = 1;\n",
+                     "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => Number) {}\n",
                  })
         {
             // Through the whole pipeline rather than one phase of it, so an
@@ -195,6 +196,8 @@ public class Findings
                 Player.ron:1:5: the name it collides with
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
+
+            Player.ron:1:10: «word word word word wor ... ord word word word word» has 129 words and holes, and a pattern may have at most 128. Matching one walks a frame per segment, so the limit is what keeps a declaration from being a way to exhaust the stack. Split it into smaller patterns.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

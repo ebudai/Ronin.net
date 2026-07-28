@@ -45,6 +45,9 @@ internal enum FindingKind
 
     /// <summary>Input the grammar could not account for.</summary>
     Malformed,
+
+    /// <summary>A pattern with more words and holes than will be matched.</summary>
+    PatternTooWide,
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -231,6 +234,26 @@ internal sealed class InitialisationRing(Span primary, string ring)
         => $"«{Ring}» is a cycle: each initialiser reads the one before it, so none of them can " +
            "be evaluated first. Break the ring by giving one of them a value that does not depend " +
            "on the others.";
+}
+
+/// <summary>A pattern with more words and holes than will be matched.</summary>
+internal sealed class PatternTooWide(Span primary, string name, int width, int most)
+    : Finding(FindingKind.PatternTooWide, primary)
+{
+    public string Name { get; } = name;
+    public int Width { get; } = width;
+    public int Most { get; } = most;
+
+    /// <remarks>
+    ///     Elided, because a name wide enough to trip this is by definition too
+    ///     wide to print — and the same helper a cycle ring uses for the same
+    ///     reason keeps both ends, which are the informative ones.
+    /// </remarks>
+    public override string Message
+        => $"«{Triggers.Elide(Name)}» has {Width.ToString(CultureInfo.InvariantCulture)} words and holes, and a " +
+           $"pattern may have at most {Most.ToString(CultureInfo.InvariantCulture)}. Matching one " +
+           "walks a frame per segment, so the limit is what keeps a declaration from being a way " +
+           "to exhaust the stack. Split it into smaller patterns.";
 }
 
 /// <summary>Input the grammar could not account for.</summary>
