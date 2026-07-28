@@ -24,6 +24,7 @@ public class ApplicativeScopes : ParsingTests
             Word("time"),
             Word("tomorrow"),
             Terminal(),
+            EndScope(),          // the brace the comment shows and the tokens omitted
             new Sentinel()
         };
 

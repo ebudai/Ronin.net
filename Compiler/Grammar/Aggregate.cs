@@ -46,17 +46,37 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
         if (parser.TryAdvance<TOpen>() is false) return null;
 
         TParent values = [];
+        var closed = false;
 
         while (parser.IsNotFinished)
         {
             if (TElement.Parse(ref parser) is not TElement syntax)
             {
-                if (parser.TryAdvance<TClose>()) break;
-                return null;
+                // an element that will not parse is only acceptable where the
+                // closer is, which is what makes «(a b)» and a truncated
+                // aggregate different from an empty one
+                if (parser.TryAdvance<TClose>() is false) return null;
+
+                closed = true;
+                break;
             }
+
             values.Add(syntax);
-            parser.TryAdvance<TSeparator>();
+
+            // A trailing separator is allowed — the guide's own examples use one
+            // and it makes for cleaner diffs. An omitted one is not: «(a b)» has
+            // to be rejected rather than read as two elements.
+            if (parser.TryAdvance<TSeparator>() is false)
+            {
+                if (parser.TryAdvance<TClose>() is false) return null;
+
+                closed = true;
+                break;
+            }
         }
+
+        // running out of tokens is not the same as being closed
+        if (closed is false) return null;
 
         current = parser;
         return values;

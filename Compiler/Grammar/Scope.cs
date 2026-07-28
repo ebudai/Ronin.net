@@ -25,6 +25,7 @@ internal class Scope : Statement
         => Basic.Parse(ref current)
         ?? Applicative.Parse(ref current)
         ?? Conditional.Parse(ref current)
+        ?? Repeating.Parse(ref current)
         ?? Reactive.Parse(ref current)
         ?? ConditionalReactive.Parse(ref current)
         ?? Iterating.Parse(ref current) as Scope;
