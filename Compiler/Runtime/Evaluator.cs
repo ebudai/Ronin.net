@@ -78,11 +78,11 @@ internal sealed class Evaluator(Scope scope)
         // The resolver only builds an Operation for a symbol in its own operator
         // table, so this only fires for a hand-built tree or if the two tables
         // drift apart.
-        if (Builtin.Operators.TryGetValue(operation.Symbol, out var apply) is false)
+        if (Builtin.Operators.TryGetValue(operation.Symbol, out var op) is false)
             return new Error($"«{operation.Symbol}» has no implementation");
 
-        return apply(Evaluate(graph, operation.Left, insideLet),
-                     Evaluate(graph, operation.Right, insideLet));
+        return op.Apply(Evaluate(graph, operation.Left, insideLet),
+                        Evaluate(graph, operation.Right, insideLet));
     }
 
     private object Invoke(Graph graph, Tree.Call call, bool insideLet)

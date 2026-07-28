@@ -373,7 +373,8 @@ public class Resolutions
         // is: left takes the higher minimum, right takes the operator's own.
         SymbolTable symbols = new();
         symbols.WithNames("a", "b", "c");
-        symbols.Operators["^"] = new Operator(25, IsLeftAssociative: false);
+        symbols.Operators["^"] = new Operator(25, Ronin.Runtime.Builtin.Lift(
+            (left, right) => System.Math.Pow((double)left, (double)right)), IsLeftAssociative: false);
 
         Resolver resolver = new(symbols);
 

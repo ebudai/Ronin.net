@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using Ronin.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -77,17 +78,26 @@ internal static class Builtin
         => (left, right) => left as Error ?? right as Error ?? operation(left, right);
 
     /// <summary>
-    ///     What each operator does. The resolver's <c>SymbolTable.Operators</c>
-    ///     gives the same symbols their binding power; the two tables are separate
-    ///     and must agree, which is why a test pins that they do.
+    ///     The operators. One table: precedence, associativity and meaning
+    ///     together, because they are one fact about the language.
     /// </summary>
-    public static IReadOnlyDictionary<string, Func<object, object, object>> Operators { get; }
-        = new Dictionary<string, Func<object, object, object>>
+    ///
+    /// <remarks>
+    ///     There were two — binding powers on <see cref="SymbolTable"/> and
+    ///     implementations here — with a test asserting their key sets matched. A
+    ///     key-set test notices a symbol added to one and not the other, and
+    ///     cannot notice a precedence changed on one side or a meaning changed on
+    ///     the other, which are the drifts that would actually mislead. Neither
+    ///     can now happen: <see cref="SymbolTable"/> seeds from this, so adding an
+    ///     operator means giving it both halves in one place.
+    /// </remarks>
+    public static IReadOnlyDictionary<string, Operator> Operators { get; }
+        = new Dictionary<string, Operator>
         {
-            ["+"] = Arithmetic("+", (left, right) => left + right),
-            ["-"] = Arithmetic("-", (left, right) => left - right),
-            ["*"] = Arithmetic("*", (left, right) => left * right),
-            ["/"] = Divide(),
+            ["+"] = new(10, Arithmetic("+", (left, right) => left + right)),
+            ["-"] = new(10, Arithmetic("-", (left, right) => left - right)),
+            ["*"] = new(20, Arithmetic("*", (left, right) => left * right)),
+            ["/"] = new(20, Divide()),
         };
 
     /// <summary>

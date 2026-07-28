@@ -42,6 +42,12 @@ internal sealed class Resolver
     /// <summary>Highest binding power the table indexes. Must exceed every operator.</summary>
     private const int MaxBindingPower = 30;
 
+    /// <summary>
+    ///     The longest statement that will be resolved. Far past anything anyone
+    ///     writes on one line, and short of what a cubic table makes expensive.
+    /// </summary>
+    public const int MaxLexemes = 256;
+
     public Resolver(SymbolTable symbols, int patternBindingPower = 7)
     {
         ArgumentNullException.ThrowIfNull(symbols);
@@ -89,14 +95,40 @@ internal sealed class Resolver
         ArgumentNullException.ThrowIfNull(lexemes);
         if (lexemes.Count is 0) return Resolution.NoParse;
 
+        // The table is cubic in the lexeme count, so one generated or pasted
+        // statement can ask for arbitrarily much of it. Per-statement resolution
+        // bounds the ordinary case and not that one, and a compiler that stops
+        // is better than a compiler that is stopped.
+        if (lexemes.Count > MaxLexemes) return Resolution.TooLong;
+
         var n = lexemes.Count;
-        closed = NewTable(n);
-        open = NewTable(n);
-        expressions = new Cell[n + 1, n + 1, minima.Length];
-        for (var i = 0; i <= n; ++i)
-            for (var j = 0; j <= n; ++j)
-                for (var slot = 0; slot < minima.Length; ++slot)
-                    expressions[i, j, slot] = new Cell();
+
+        // Patterns by their first word, rebuilt per call because a scope may have
+        // gained one since the last.
+        anchored = [];
+        foreach (var pattern in symbols.Patterns)
+        {
+            var first = pattern.Segments[0];
+
+            if (anchored.TryGetValue(first, out var sharing) is false) anchored[first] = sharing = [];
+
+            sharing.Add(pattern);
+        }
+
+        // Triangular. A span runs from «i» to «j» with i <= j, so half of a
+        // rectangular table is spans that do not exist and were allocated anyway
+        // — and the largest of the three tables paid for that half once per
+        // binding power.
+        rows = new int[n + 2];
+        for (var i = 0; i <= n; ++i) rows[i + 1] = rows[i] + (n + 1 - i);
+
+        var spans = rows[n + 1];
+
+        closed = NewTable(spans);
+        open = NewTable(spans);
+
+        expressions = new Cell[spans * minima.Length];
+        for (var cell = 0; cell < expressions.Length; ++cell) expressions[cell] = new Cell();
 
         for (var width = 1; width <= n; ++width)
         {
@@ -133,14 +165,15 @@ internal sealed class Resolver
     /// </remarks>
     public Resolution Resolve(string source) => Resolve(Lexemes.Lex(source));
 
-    private static Cell[,] NewTable(int n)
+    private static Cell[] NewTable(int spans)
     {
-        var table = new Cell[n + 1, n + 1];
-        for (var i = 0; i <= n; ++i)
-            for (var j = 0; j <= n; ++j)
-                table[i, j] = new Cell();
+        var table = new Cell[spans];
+        for (var span = 0; span < spans; ++span) table[span] = new Cell();
         return table;
     }
+
+    /// <summary>Where the span «i..j» sits, counting only spans that exist.</summary>
+    private int Span(int i, int j) => rows[i] + (j - i);
 
     /// <summary>
     ///     Fills the atom tables for one span. <see cref="closed"/> holds atoms
@@ -150,7 +183,7 @@ internal sealed class Resolver
     /// </summary>
     private void Atoms(IReadOnlyList<Lexeme> lexemes, int i, int j)
     {
-        var cell = closed[i, j];
+        var cell = closed[Span(i, j)];
 
         if (j - i is 1 && lexemes[i].Kind is LexemeKind.Number) cell.Offer(0, new Node.Literal(lexemes[i].Text));
 
@@ -167,9 +200,17 @@ internal sealed class Resolver
             Group(lexemes, cell, i + 1, j - 1);
         }
 
-        foreach (var pattern in symbols.Patterns)
+        // Only the patterns whose first word is the one actually sitting at «i».
+        // Every pattern begins with a word — a leading hole is left recursive and
+        // rejected at construction — so a pattern that starts with anything else
+        // cannot match this span, and asking it was a table walk per pattern per
+        // span to arrive at the same answer.
+        if (lexemes[i].Kind is not LexemeKind.Word) return;
+        if (anchored.TryGetValue(lexemes[i].Text, out var candidates) is false) return;
+
+        foreach (var pattern in candidates)
         {
-            var target = pattern.IsOpenEnded ? open[i, j] : cell;
+            var target = pattern.IsOpenEnded ? open[Span(i, j)] : cell;
             foreach (var (cost, arguments, count) in Match(pattern, 0, lexemes, i, j))
                 target.Offer(1 + cost, new Node.Call(pattern, arguments), count);
         }
@@ -280,11 +321,11 @@ internal sealed class Resolver
     private void Expression(IReadOnlyList<Lexeme> lexemes, int i, int j, int minimum)
     {
         var cell = Expressions(i, j, minimum);
-        cell.Merge(closed[i, j]);
+        cell.Merge(closed[Span(i, j)]);
 
         // an open pattern call returns at PatternBindingPower, so it is only
         // available where no tighter minimum is demanded
-        if (minimum <= PatternBindingPower) cell.Merge(open[i, j]);
+        if (minimum <= PatternBindingPower) cell.Merge(open[Span(i, j)]);
 
         var depth = 0;
         for (var k = i; k < j; ++k)
@@ -325,14 +366,16 @@ internal sealed class Resolver
     ///     The cell for a span at a minimum binding power. Only the minima the
     ///     recurrences can ask for have a slot, so this maps one to the other.
     /// </summary>
-    private Cell Expressions(int i, int j, int minimum) => expressions[i, j, slots[minimum]];
+    private Cell Expressions(int i, int j, int minimum) => expressions[(Span(i, j) * minima.Length) + slots[minimum]];
 
+    private Dictionary<string, List<Pattern>> anchored;
     private readonly int[] minima;
     private readonly int[] slots;
     private readonly SymbolTable symbols;
-    private Cell[,] closed;
-    private Cell[,] open;
-    private Cell[,,] expressions;
+    private int[] rows;
+    private Cell[] closed;
+    private Cell[] open;
+    private Cell[] expressions;
 
     /// <summary>
     ///     Cheapest cost for a span, and how many derivations achieve it. The
@@ -454,6 +497,12 @@ internal sealed class Pattern : IEquatable<Pattern>
         if (segments[0] is null)
             throw new ArgumentException("a word pattern must begin with a word, not a hole", nameof(segments));
 
+        // Matching recurses one frame per segment, so this is what bounds that
+        // recursion. A declaration this wide is not a pattern anyone is reading.
+        if (segments.Count > MaxSegments)
+            throw new ArgumentException($"a word pattern may have at most {MaxSegments} words and holes",
+                                        nameof(segments));
+
         // Copied, because identity IS the segment sequence and a scope is keyed
         // on it. Keeping the caller's list meant mutating that list changed the
         // hash of a live key: the entry became unreachable both by the pattern
@@ -461,6 +510,9 @@ internal sealed class Pattern : IEquatable<Pattern>
         // vanished from the scope with nothing to show it had.
         Segments = [.. segments];
     }
+
+    /// <summary>The most words and holes one pattern may have.</summary>
+    public const int MaxSegments = 128;
 
     /// <summary>Parses "compute total for _" into segments, "_" being a hole.</summary>
     public static Pattern Parse(string pattern)
@@ -494,7 +546,17 @@ internal sealed class Pattern : IEquatable<Pattern>
     }
 }
 
-internal sealed record Operator(int BindingPower, bool IsLeftAssociative = true);
+/// <summary>
+///     One operator: where it binds, which way it groups, and what it does.
+/// </summary>
+///
+/// <remarks>
+///     Precedence and meaning together and not in two tables that have to agree.
+///     <see cref="Apply"/> is required, so an operator cannot be given a binding
+///     power without also being given a meaning — which is the failure the old
+///     key-set test could only report after the fact.
+/// </remarks>
+internal sealed record Operator(int BindingPower, Func<object, object, object> Apply, bool IsLeftAssociative = true);
 
 /// <summary>Names and patterns in scope, plus the fixed operator table.</summary>
 internal sealed class SymbolTable
@@ -510,18 +572,20 @@ internal sealed class SymbolTable
     /// </summary>
     ///
     /// <remarks>
+    ///     <para>
+    ///     Seeded from <see cref="Runtime.Builtin.Operators"/>, which is the one
+    ///     table. A copy rather than the table itself because a scope may add to
+    ///     it — the resolver's own tests do — and adding to the language's
+    ///     definition from a scope would be a different thing entirely.
+    ///     </para>
+    ///     <para>
     ///     Every entry must be one the lexer can actually produce. <c>Symbol.Lex</c>
     ///     advances a single character, so anything longer needs a
     ///     <c>Symbol.Special</c> of its own — otherwise the entry is dead and the
     ///     statements using it silently fail to resolve.
+    ///     </para>
     /// </remarks>
-    public Dictionary<string, Operator> Operators { get; } = new()
-    {
-        ["+"] = new(10),
-        ["-"] = new(10),
-        ["*"] = new(20),
-        ["/"] = new(20),
-    };
+    public Dictionary<string, Operator> Operators { get; } = new(Runtime.Builtin.Operators);
 
     /// <summary>
     ///     Folds an enclosing scope in, so an inner scope is a flat table rather
@@ -652,6 +716,13 @@ internal readonly record struct Resolution(ResolutionKind Kind, int Cost, IReadO
 {
     public static readonly Resolution NoParse = new(ResolutionKind.NoParse, 0, []);
 
+    /// <summary>
+    ///     Past what will be resolved at once. Distinct from a failure to parse,
+    ///     because the statement may well be perfectly good and nothing here
+    ///     found out.
+    /// </summary>
+    public static readonly Resolution TooLong = new(ResolutionKind.TooLong, 0, []);
+
     public static Resolution Resolved(int cost, Node tree)
         => new(ResolutionKind.Resolved, cost, [tree.ToString()]) { Tree = tree };
 
@@ -677,6 +748,8 @@ internal readonly record struct Resolution(ResolutionKind Kind, int Cost, IReadO
     public override string ToString() => Kind switch
     {
         ResolutionKind.NoParse => "no parse",
+        ResolutionKind.TooLong => $"more than {Resolver.MaxLexemes} words and symbols in one statement, " +
+                                  "which is past what is read at once — split it",
         ResolutionKind.Resolved => $"{Cost} lookup(s): {Reading}",
         _ => Ambiguity(),
     };
@@ -690,4 +763,4 @@ internal readonly record struct Resolution(ResolutionKind Kind, int Cost, IReadO
     }
 }
 
-internal enum ResolutionKind { NoParse, Resolved, Ambiguous }
+internal enum ResolutionKind { NoParse, Resolved, Ambiguous, TooLong }

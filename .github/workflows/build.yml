@@ -23,7 +23,10 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - run: dotnet restore
+      # Locked: restore fails rather than quietly resolving a different graph
+      # than the one committed. Without it a lock file is a record of what
+      # happened once, not a constraint on what happens next.
+      - run: dotnet restore --locked-mode
 
       # Warnings are already errors in the project files; -warnaserror is here so
       # that a project added later without the setting is still gated.

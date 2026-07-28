@@ -23,14 +23,23 @@ namespace Unit;
 ///             slot that is not there
 ///         </item>
 ///         <item>allocate a cell's collections on first offer rather than at construction</item>
+///         <item>
+///             store spans triangularly: a span runs from «i» to «j» with
+///             i &lt;= j, so half of a rectangular table is spans that cannot
+///             exist and the largest table paid for that half once per binding
+///             power
+///         </item>
+///         <item>
+///             index patterns by their first word, so a span asks only the
+///             patterns that could begin at it rather than all of them
+///         </item>
 ///     </list>
 ///     <para>
 ///     A ceiling rather than a benchmark: this is a regression test, and the
 ///     number sits well above what it costs now and well below what it cost
 ///     before, so it fails on a return to the old shape and not on ordinary
-///     variation. More wins remain — triangular span storage, patterns indexed by
-///     first anchor word, a pooled table for repeated editor calls — and each
-///     should move this number down rather than leave it where it is.
+///     variation. What remains is a pooled table for repeated editor calls, which
+///     is a lifetime question rather than a shape one.
 ///     </para>
 /// </remarks>
 [Trait(nameof(Resolver), null)]
@@ -55,9 +64,57 @@ public class ResolverCost
         resolver.Resolve(lexemes);
         var megabytes = (GC.GetAllocatedBytesForCurrentThread() - before) / 1024.0 / 1024.0;
 
-        // 25 MB as this is written, 158 MB before the two changes above
-        Assert.True(megabytes < 60,
-                    $"resolving 149 lexemes allocated {megabytes:F1} MB, past the 60 MB ceiling");
+        // 15 MB as this is written. It was 158 MB before the binding-power and
+        // lazy-collection work, and 22 MB before the table went triangular — so
+        // this ceiling catches losing any of the three.
+        Assert.True(megabytes < 20,
+                    $"resolving 149 lexemes allocated {megabytes:F1} MB, past the 20 MB ceiling");
+    }
+
+    [Fact(DisplayName = "a statement past the ceiling is refused, not resolved slowly")]
+    public void AStatementPastTheCeilingIsRefusedNotResolvedSlowly()
+    {
+        // Cubic in the lexeme count, so one generated or pasted statement can ask
+        // for arbitrarily much of the table. Per-statement resolution bounds the
+        // ordinary case and not that one.
+        SymbolTable symbols = new();
+        symbols.WithNames("a");
+
+        Resolver resolver = new(symbols);
+
+        // n names with n-1 operators between them, so 2n-1 lexemes — which
+        // straddles the ceiling rather than landing on it
+        var within = Lexemes.Lex(string.Join(" + ", Enumerable.Repeat("a", Resolver.MaxLexemes / 2)));
+        var past = Lexemes.Lex(string.Join(" + ", Enumerable.Repeat("a", (Resolver.MaxLexemes / 2) + 1)));
+
+        Assert.Equal(Resolver.MaxLexemes - 1, within.Count);
+        Assert.Equal(Resolver.MaxLexemes + 1, past.Count);
+
+        Assert.Equal("Resolved", resolver.Resolve(within).Kind.ToString());
+
+        var refused = resolver.Resolve(past);
+
+        // distinct from a failure to parse: the statement may be perfectly good
+        // and nothing here found out
+        Assert.Equal("TooLong", refused.Kind.ToString());
+        Assert.Contains("split it", refused.ToString());
+    }
+
+    [Fact(DisplayName = "a pattern has a width, because matching recurses over it")]
+    public void APatternHasAWidthBecauseMatchingRecursesOverIt()
+    {
+        // Match recurses one frame per segment, and nothing else bounds that: a
+        // pattern's width comes from a declaration, which the statement ceiling
+        // does not constrain.
+        var widest = Pattern.Parse(string.Join(' ', Enumerable.Repeat("word", Pattern.MaxSegments)));
+
+        Assert.Equal(Pattern.MaxSegments, widest.Segments.Count);
+
+        var wider = string.Join(' ', Enumerable.Repeat("word", Pattern.MaxSegments + 1));
+
+        var refused = Assert.Throws<ArgumentException>(() => Pattern.Parse(wider));
+
+        Assert.Contains("at most", refused.Message);
     }
 
     [Fact(DisplayName = "only the binding powers something asks for get a slot")]
@@ -75,7 +132,8 @@ public class ResolverCost
         // silently unresolvable, which is why the resolver reads the operator
         // table rather than a constant — so this asserts the derivation, not the
         // number.
-        symbols.Operators["^"] = new Operator(25, IsLeftAssociative: false);
+        symbols.Operators["^"] = new Operator(25, Ronin.Runtime.Builtin.Lift(
+            (left, right) => System.Math.Pow((double)left, (double)right)), IsLeftAssociative: false);
         symbols.WithNames("a", "b", "c");
 
         Resolver added = new(symbols);

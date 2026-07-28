@@ -52,7 +52,7 @@ public class Evaluations
         scope.Declare(new Declaration(
             Pattern.Parse("compute total for _"),
             [["amount"]],
-            (_, bound) => Builtin.Operators["*"](bound["amount"], 2d)));
+            (_, bound) => Builtin.Operators["*"].Apply(bound["amount"], 2d)));
 
         Graph graph = new();
         graph.Var("base price", 100d);
@@ -167,7 +167,7 @@ public class Evaluations
         scope.Declare(new Declaration(
             Pattern.Parse("compute total for _"),
             [["amount"]],
-            (_, bound) => Builtin.Operators["*"](bound["amount"], 2d)));
+            (_, bound) => Builtin.Operators["*"].Apply(bound["amount"], 2d)));
 
         Graph graph = new();
         graph.Var("order", 21d);
@@ -306,7 +306,20 @@ public class Evaluations
         // two tables, one set of symbols: the resolver gives them binding power
         // and the runtime gives them meaning. Drift and a statement resolves to
         // something nothing can run.
+        // One table, so drift is not a thing that can happen rather than a
+        // thing a test notices afterwards. The old assertion compared two key
+        // sets, which would have caught a symbol added to one side and never a
+        // precedence or a meaning changed on the other — the drifts that would
+        // actually mislead. A scope may still ADD an operator, and what it may
+        // not do is add one without saying what it means.
+        SymbolTable symbols = new();
+
         Assert.Equal(new SymbolTable().Operators.Keys.Order(), Builtin.Operators.Keys.Order());
+
+        foreach (var (symbol, op) in Builtin.Operators)
+        {
+            Assert.Same(op, symbols.Operators[symbol]);
+        }
     }
 
     [Fact(DisplayName = "an operator with no implementation is an error")]
