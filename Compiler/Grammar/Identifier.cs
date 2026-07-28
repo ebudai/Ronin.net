@@ -4,6 +4,7 @@ using Ronin.Compiler;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Ronin.Grammar;
@@ -32,6 +33,51 @@ internal class Identifier : IEnumerable<Identifier.Component>
     public void Add(IEnumerable<Component> components) => Components.AddRange(components);
 
     public int Count => Components.Count;
+
+    /// <summary>The literal words of the declaration, space separated.</summary>
+    public string Words => string.Join(' ', Components.Where(component => component.AsName is not null)
+                                                     .Select(component => component.AsName.Words));
+
+    /// <summary>
+    ///     The pattern this identifier declares, and the parameter names filling
+    ///     each hole. False when it declares a plain name instead.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     An identifier alternates name words and parameter blocks, and which of
+    ///     the two a declaration is happens to be structural: a component that is
+    ///     <see cref="Parameters"/> is a hole, and the parameters inside it are
+    ///     that hole's block. So one walk produces both what the resolver needs to
+    ///     read a call and what the runtime needs to bind one.
+    /// </remarks>
+    public bool TryPattern(out Compiler.Pattern pattern, out IReadOnlyList<IReadOnlyList<string>> blocks)
+    {
+        List<string> segments = [];
+        List<IReadOnlyList<string>> holes = [];
+
+        foreach (var component in Components)
+        {
+            if (component.AsName is Name name)
+            {
+                segments.AddRange(name.Words.Split(' '));
+                continue;
+            }
+
+            segments.Add(null);
+            holes.Add([.. component.AsParameters.Select(Named)]);
+        }
+
+        pattern = holes.Count is 0 ? null : new Compiler.Pattern(segments);
+        blocks = holes;
+        return pattern is not null;
+    }
+
+    /// <summary>
+    ///     A parameter's name, or null for a form this pass does not read yet —
+    ///     a defaulted parameter is an <see cref="Association"/> rather than a
+    ///     <see cref="Datum"/> and its name sits one indirection further in.
+    /// </summary>
+    private static string Named(Parameters.Parameter parameter) => parameter.AsDatum?.Identifier.Words;
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 

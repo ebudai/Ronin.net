@@ -3,6 +3,7 @@
 using Ronin.Compiler;
 using Ronin.Lexicon;
 using System;
+using System.Linq;
 
 namespace Ronin.Grammar;
 
@@ -26,6 +27,9 @@ internal class Name
 
         return new Name { Tokens = current.AdvanceTo(parser) };
     }
+
+    /// <summary>The name as a symbol table holds it: its words, space separated.</summary>
+    public string Words => string.Join(' ', Tokens.ToArray().Select(token => token.Memory.ToString()));
 
     public override bool Equals(object obj) => (obj as Name)?.Tokens.Span.SequenceEqual(Tokens.Span) ?? false;
 

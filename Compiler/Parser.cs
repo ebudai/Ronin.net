@@ -67,15 +67,22 @@ internal struct Parser
         return advanced;
     }
     
+    /// <remarks>
+    ///     Sized by what is collected rather than by the running index, which
+    ///     counts trivia that <see cref="Advance"/> then skips — so a name built
+    ///     from a token list containing whitespace used to come back padded with
+    ///     nulls.
+    /// </remarks>
     public ReadOnlyMemory<Token> AdvanceTo(Parser parser)
     {
-        var tokens = new Token[parser.Token.RunningIndex - Token.RunningIndex];
-        int i = 0;
+        List<Token> tokens = [];
+
         while (ReferenceEquals(Token, parser.Token) is false)
         {
-            tokens[i++] = Token;
+            tokens.Add(Token);
             Advance();
         }
-        return tokens;
+
+        return tokens.ToArray();
     }
 }

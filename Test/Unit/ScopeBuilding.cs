@@ -1,0 +1,117 @@
+// Copyright © 2026 Eric Budai
+
+using Ronin.Compiler;
+using Declarations = Ronin.Grammar.Declarations;
+
+namespace Unit;
+
+/// <summary>
+///     A parsed scope becoming the resolver's scope.
+/// </summary>
+[Trait(nameof(Declarations), null)]
+public class ScopeBuilding
+{
+    private static Declarations Of(string source)
+    {
+        Lexer lexer = new(source);
+        Parser parser = new(lexer.Lex());
+
+        return Declarations.Of(parser.Parse().Scopes[0].Statements);
+    }
+
+    [Fact(DisplayName = "a declaration is a name or a pattern, structurally")]
+    public void ADeclarationIsANameOrAPatternStructurally()
+    {
+        var declared = Of("""
+            var base price => Number;
+            let tax => Number;
+            function compute total for (order => Number) { return order; }
+            """);
+
+        Assert.Empty(declared.Problems);
+
+        // the two cells, each with its shadow injected
+        Assert.Equal(["base price", "old base price", "old tax", "tax"], declared.Symbols.Names.Order());
+
+        // and the function, whose parameter block became the hole
+        var pattern = Assert.Single(declared.Symbols.Patterns);
+        Assert.Equal("compute total for (_)", pattern.ToString());
+        Assert.Equal([["order"]], declared.Blocks[pattern]);
+    }
+
+    [Fact(DisplayName = "a constant is named but gets no shadow")]
+    public void AConstantIsNamedButGetsNoShadow()
+    {
+        var declared = Of("constant pi => Number; var radius => Number;");
+
+        Assert.Equal(["old radius", "pi", "radius"], declared.Symbols.Names.Order());
+        Assert.Contains("is a constant", declared.Symbols.Explain("old pi"));
+    }
+
+    [Fact(DisplayName = "the scope it builds resolves the statements beside it")]
+    public void TheScopeItBuildsResolvesTheStatementsBesideIt()
+    {
+        // the point of the whole pass: a file's own declarations are what its
+        // statements are read against
+        var declared = Of("""
+            var base price => Number;
+            var tax => Number;
+            function compute total for (amount => Number) { return amount; }
+            """);
+
+        Resolver resolver = new(declared.Symbols);
+
+        Assert.Equal("compute total for («base price» + «tax»)",
+                     resolver.Resolve(Lexemes.Lex("compute total for base price + tax")).Reading);
+
+        // and «old» is in scope during resolution, unconditionally, because
+        // whether anything reads it is not known until after
+        Assert.Equal("(«base price» - «old base price»)",
+                     resolver.Resolve(Lexemes.Lex("base price - old base price")).Reading);
+    }
+
+    [Fact(DisplayName = "several holes become several blocks, in order")]
+    public void SeveralHolesBecomeSeveralBlocksInOrder()
+    {
+        var declared = Of("function draw (shape => Text) at (x => Number, y => Number) { return shape; }");
+
+        var pattern = Assert.Single(declared.Symbols.Patterns);
+        Assert.Equal("draw (_) at (_)", pattern.ToString());
+        Assert.Equal([["shape"], ["x", "y"]], declared.Blocks[pattern]);
+    }
+
+    [Fact(DisplayName = "a parameter it cannot name is reported, not guessed")]
+    public void AParameterItCannotNameIsReportedNotGuessed()
+    {
+        // «(order = 3)» is a defaulted parameter, which parses as an assignment
+        // rather than a declaration; producing a block with a null in it would be
+        // worse than saying so
+        var declared = Of("function compute total for (order = 3) { return order; }");
+
+        Assert.Empty(declared.Symbols.Patterns);
+
+        var problem = Assert.Single(declared.Problems);
+        Assert.Contains("1 parameter(s) this pass cannot name", problem);
+    }
+
+    [Fact(DisplayName = "a type is a name that holds no value")]
+    public void ATypeIsANameThatHoldsNoValue()
+    {
+        // named so it can be referred to, but no shadow: only a cell has a
+        // previous value
+        var declared = Of("type Dog { } var pet => Dog;");
+
+        Assert.Equal(["Dog", "old pet", "pet"], declared.Symbols.Names.Order());
+    }
+
+    [Fact(DisplayName = "statements that declare nothing declare nothing")]
+    public void StatementsThatDeclareNothingDeclareNothing()
+    {
+        // an expression mentions names, an assignment writes one, and neither
+        // introduces one
+        var declared = Of("var x => Number; x + x; x = 3;");
+
+        Assert.Equal(["old x", "x"], declared.Symbols.Names.Order());
+        Assert.Empty(declared.Symbols.Patterns);
+    }
+}

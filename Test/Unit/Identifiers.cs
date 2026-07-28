@@ -64,7 +64,12 @@ public class Identifiers : ParsingTests
         var identifier = Identifier.Parse(ref parser);
 
         Assert.Single(identifier);
-        Assert.Equal(7, identifier[0].AsName.Tokens.Length);
+
+        // four words, not seven: the whitespace between them bounds the name and
+        // is not part of it. This asserted seven while AdvanceTo sized its array
+        // by the running index, which counts the trivia it then skips.
+        Assert.Equal(4, identifier[0].AsName.Tokens.Length);
+        Assert.Equal("name all the things", identifier[0].AsName.Words);
     }
 
     [Fact(DisplayName = "equality")]
