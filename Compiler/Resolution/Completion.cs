@@ -56,9 +56,10 @@ internal sealed class Completion
 
             foreach (var name in symbols.Names)
             {
-                if (Continues(name.Split(' '), partial) is not string word) continue;
+                var words = name.Split(' ');
+                if (Continues(words, partial) is not string word) continue;
                 if (seen.Add((CandidateKind.Name, word, name)))
-                    candidates.Add(new Candidate(CandidateKind.Name, word, name, partial.Length));
+                    candidates.Add(new Candidate(CandidateKind.Name, word, name, partial.Length, words.Length));
             }
 
             foreach (var pattern in symbols.Patterns)
@@ -67,14 +68,20 @@ internal sealed class Completion
 
                 var whole = pattern.ToString();
                 if (seen.Add((CandidateKind.Pattern, word, whole)))
-                    candidates.Add(new Candidate(CandidateKind.Pattern, word, whole, partial.Length));
+                    candidates.Add(new Candidate(CandidateKind.Pattern, word, whole, partial.Length, pattern.Anchor.Count));
             }
         }
 
+        // Longest first within a rank, because that is the resolver's own bias:
+        // cost is lookups, so «base price» is one where «base» «price» is two,
+        // and the greedier reading wins. Ordering the list the same way teaches
+        // the bias instead of hiding it behind the alphabet.
+        //
         // SymbolTable.Names is a set and Patterns is unordered against it, so the
-        // list has to be sorted or the same keystroke offers a different order
-        // each run.
+        // last two keys are not decoration — without them the same keystroke
+        // offers a different order each run.
         return [.. candidates.OrderByDescending(candidate => candidate.Matched)
+                             .ThenByDescending(candidate => candidate.Words)
                              .ThenBy(candidate => candidate.Word, StringComparer.Ordinal)
                              .ThenBy(candidate => candidate.Whole, StringComparer.Ordinal)];
     }
@@ -121,4 +128,8 @@ internal enum CandidateKind { Name, Pattern }
 /// <param name="Word">The word to type.</param>
 /// <param name="Whole">The name or pattern it belongs to, for the writer to read.</param>
 /// <param name="Matched">How many already-typed words it continues.</param>
-internal readonly record struct Candidate(CandidateKind Kind, string Word, string Whole, int Matched);
+/// <param name="Words">
+///     How many literal words the whole commits — every word of a name, and a
+///     pattern's anchor, whose holes swallow spans that cannot be counted here.
+/// </param>
+internal readonly record struct Candidate(CandidateKind Kind, string Word, string Whole, int Matched, int Words);

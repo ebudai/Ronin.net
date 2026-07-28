@@ -57,8 +57,27 @@ public class Completions
 
         var candidates = After(completion, string.Empty);
 
+        // nothing is being continued, so the whole scope is on offer, longest
+        // first: a three word anchor, a two word name, then a one word name
         Assert.All(candidates, candidate => Assert.Equal(0, candidate.Matched));
-        Assert.Equal(["base", "compute", "tax"], candidates.Select(candidate => candidate.Word));
+        Assert.Equal(["compute", "base", "tax"], candidates.Select(candidate => candidate.Word));
+        Assert.Equal([3, 2, 1], candidates.Select(candidate => candidate.Words));
+    }
+
+    [Fact(DisplayName = "the greedier reading is offered first")]
+    public void TheGreedierReadingIsOfferedFirst()
+    {
+        // «cash on hand» costs one lookup where «cash» «on hand» costs two, so
+        // the resolver takes the longer name. The list is ordered to match, or it
+        // teaches the writer to expect the opposite of what they will get.
+        var completion = Scope(["cash", "cash flow", "cash on hand"], []);
+
+        var candidates = After(completion, "cash");
+
+        Assert.Equal(
+            [("on", "cash on hand"), ("flow", "cash flow")],
+            candidates.Where(candidate => candidate.Matched is 1)
+                      .Select(candidate => (candidate.Word, candidate.Whole)));
     }
 
     [Fact(DisplayName = "a symbol ends the run")]

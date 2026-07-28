@@ -160,12 +160,9 @@ internal sealed class Workbench : Window
 
         candidates.ItemsSource = new Completion(symbols)
             .After(Lexemes.Lex(line))
-            .Select(candidate => $"{candidate.Word,-18} {Marker(candidate)} {candidate.Whole}")
+            .Select(candidate => $"{candidate.Word,-18} {candidate.Matched}/{candidate.Words}  {candidate.Whole}")
             .ToArray();
     }
-
-    private static string Marker(Candidate candidate)
-        => candidate.Matched is 0 ? "  start" : $"{candidate.Matched,3} of";
 
     private void Resolve(SymbolTable symbols)
     {
