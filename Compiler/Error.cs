@@ -1,4 +1,4 @@
-﻿using Ronin.Lexicon;
+using Ronin.Lexicon;
 using System;
 using System.Collections.Generic;
 

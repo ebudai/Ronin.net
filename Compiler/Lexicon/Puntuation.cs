@@ -1,4 +1,4 @@
-﻿using Ronin.Compiler;
+using Ronin.Compiler;
 
 namespace Ronin.Lexicon;
 

@@ -1,6 +1,17 @@
 {
+  "//": [
+    "8.0.0 was not a valid SDK version: feature bands start at 1, so 8.0.100 is",
+    "the lowest real 8.0 SDK. dotnet reported the file as Invalid and ignored it,",
+    "and the build silently used whatever was installed — 10.0.110 here.",
+    "rollForward latestMajor would have defeated the pinning even once the",
+    "version was legal, since it accepts any newer major.",
+    "",
+    "10.0.100 is the band actually installed on the development machine. The",
+    "projects target net8.0 and a 10 SDK builds that; if an 8.0 SDK is wanted",
+    "instead, 8.0.100 with the same roll-forward is the equivalent line."
+  ],
   "sdk": {
-    "version": "8.0.0",
-    "rollForward": "latestMajor"
+    "version": "10.0.100",
+    "rollForward": "latestFeature"
   }
 }

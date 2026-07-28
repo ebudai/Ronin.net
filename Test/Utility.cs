@@ -1,4 +1,4 @@
-﻿using Ronin.Grammar;
+using Ronin.Grammar;
 using Ronin.Lexicon;
 
 namespace Test;

@@ -4,8 +4,8 @@ using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 
-using Type = Ronin.Grammar.Type;
 using Function = Ronin.Grammar.Function;
+using Type = Ronin.Grammar.Type;
 
 namespace Failure;
 

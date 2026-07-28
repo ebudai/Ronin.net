@@ -32,6 +32,18 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <!--
+      The collector emits a report; this enforces one. 100% line AND branch is
+      the standing discipline here — defensive code that no test reaches gets
+      removed, made an invariant, or refactored away, and the tests are what
+      stand in for it. A gate is the only thing that keeps that true, and the
+      last claim of "100%" was read off a rounded summary while a branch was
+      uncovered.
+    -->
+    <PackageReference Include="coverlet.msbuild" Version="6.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

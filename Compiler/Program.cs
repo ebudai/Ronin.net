@@ -26,9 +26,7 @@ namespace Ronin;
 [ExcludeFromCodeCoverage]
 internal static class Program
 {
-    private const string Extension = ".ron";
-
-    private static readonly string[] Skipped = [".git", "bin", "obj", "node_modules"];
+    private const string Extension = Compiler.Sources.Extension;
 
     private static int Main(string[] args)
     {
@@ -40,40 +38,27 @@ internal static class Program
             return 1;
         }
 
-        var sources = Sources(folder).ToArray();
-        if (sources.Length is 0)
+        var discovered = Compiler.Sources.Under(folder);
+
+        foreach (var unreadable in discovered.Unreadable) Console.Error.WriteLine(unreadable);
+
+        if (discovered.Files.Count is 0)
         {
             Console.Error.WriteLine($"no {Extension} files under {folder.FullName}");
             return 1;
         }
 
-        var failed = 0;
+        var failed = discovered.Unreadable.Count;
 
         // Ordered, and awaited by virtue of being a loop. Parallelism is worth
         // having here, but not before the pipeline it would parallelise exists.
-        foreach (var source in sources)
+        foreach (var source in discovered.Files)
         {
             failed += Report(source);
         }
 
-        Console.WriteLine($"{sources.Length} file(s), {failed} with problems");
+        Console.WriteLine($"{discovered.Files.Count} file(s), {failed} with problems");
         return failed is 0 ? 0 : 1;
-    }
-
-    /// <summary>Source files only, in a stable order, skipping what is not source.</summary>
-    private static IEnumerable<FileInfo> Sources(DirectoryInfo folder)
-    {
-        if (Skipped.Contains(folder.Name, StringComparer.OrdinalIgnoreCase)) yield break;
-
-        foreach (var file in folder.EnumerateFiles($"*{Extension}").OrderBy(file => file.FullName, StringComparer.Ordinal))
-        {
-            yield return file;
-        }
-
-        foreach (var nested in folder.EnumerateDirectories().OrderBy(directory => directory.Name, StringComparer.Ordinal))
-        {
-            foreach (var file in Sources(nested)) yield return file;
-        }
     }
 
     private static int Report(FileInfo file)

@@ -1,4 +1,4 @@
-﻿using Ronin.Compiler;
+using Ronin.Compiler;
 using Ronin.Lexicon;
 using System;
 using System.Collections;

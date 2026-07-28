@@ -1,11 +1,11 @@
-﻿using Ronin.Compiler;
+using Ronin.Compiler;
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using Test;
 
-using Type = Ronin.Grammar.Type;
 using Function = Ronin.Grammar.Function;
 using Literal = Ronin.Grammar.Literal;
+using Type = Ronin.Grammar.Type;
 
 namespace Integration;
 

@@ -1,0 +1,50 @@
+# Every push and every pull request, because a gate nobody runs is a convention.
+name: build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The band global.json pins. setup-dotnet honours global.json, and pinning
+      # here as well means a mismatch shows up as a setup failure rather than as
+      # a silent roll-forward — which is how 8.0.0 went unnoticed: the file was
+      # invalid, dotnet ignored it, and the build used whatever was installed.
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - run: dotnet restore
+
+      # Warnings are already errors in the project files; -warnaserror is here so
+      # that a project added later without the setting is still gated.
+      - run: dotnet build --no-restore --configuration Release -warnaserror
+
+      # 100% line AND branch. The discipline here is that defensive code no test
+      # reaches gets removed, made an invariant, or refactored away, and the
+      # tests stand in for what it did — which only holds if something checks.
+      - run: >
+          dotnet test --no-build --configuration Release
+          /p:CollectCoverage=true
+          /p:CoverletOutputFormat=cobertura
+          /p:Threshold=100
+          /p:ThresholdType=line,branch
+          /p:ThresholdStat=total
+
+      # NOT gated: dotnet format --verify-no-changes.
+      #
+      # It reports 90 WHITESPACE differences, every one of them a hand-aligned
+      # continuation line — arguments lined up under the opening bracket, «??»
+      # chains lined up under each other. `dotnet format whitespace` normalises
+      # those to a fixed indent and no .editorconfig setting permits alignment,
+      # so gating on it would mean reflowing the whole codebase away from a
+      # deliberate style. The charset, final-newline and import-ordering rules
+      # ARE satisfied and are in .editorconfig; this is the one part of the file
+      # the tool and the author disagree about.
