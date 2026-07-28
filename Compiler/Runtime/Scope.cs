@@ -97,6 +97,13 @@ internal sealed class Scope
         if (insideLet && declaration.Pure is false)
             return new Error($"«{pattern}» has effects and cannot appear in a let body");
 
+        // Zip would drop the tail of whichever side is longer: too many arguments
+        // vanish, too few leave names unbound for the body to fail on later.
+        if (arguments.Count != declaration.Blocks.Count)
+            return new Error(
+                $"«{pattern}» takes {declaration.Blocks.Count} argument(s) and was given " +
+                $"{arguments.Count}.");
+
         Dictionary<string, object> bound = [];
 
         foreach (var (block, argument) in declaration.Blocks.Zip(arguments))

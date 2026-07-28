@@ -324,7 +324,11 @@ internal sealed class Graph(int cascades = 64)
 
         var rounds = 0;
 
-        while (pending.Count is not 0 && rounds < limit)
+        // At least one round, always. Shadows advance above with no write behind
+        // them, so a «when» reading «old x» can be dirtied by nothing but the
+        // step itself — and gating the loop on pending writes meant it was
+        // dirtied and never examined.
+        while ((rounds is 0 || pending.Count is not 0) && rounds < limit)
         {
             ++rounds;
 
@@ -407,6 +411,15 @@ internal sealed class Graph(int cascades = 64)
 
     private Node Declare(Node node)
     {
+        // Replacing silently leaves every existing edge pointing at the node that
+        // was replaced, which is a graph that reads as intact and is not. The
+        // resolver already rejects a name declared twice; this is the same rule
+        // one layer down, where it can still be reached directly.
+        if (nodes.ContainsKey(node.Name))
+            throw new InitialisationFailure(
+                $"«{node.Name}» is already declared. Redeclaring would leave the edges of " +
+                "the old node pointing at nothing that is read again. Rename one of them.");
+
         nodes[node.Name] = node;
         return node;
     }

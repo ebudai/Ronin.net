@@ -226,6 +226,32 @@ public class Events
 
     // the pieces the scenarios exercise only in passing ---------------------
 
+    [Fact(DisplayName = "a step with no writes still settles and fires")]
+    public void AStepWithNoWritesStillSettlesAndFires()
+    {
+        // A shadow advances at the start of every step with no write behind it,
+        // so a «when» reading «old x» can be dirtied by the step itself. Gating
+        // the cascade loop on pending writes meant it was dirtied and never
+        // looked at.
+        Graph graph = new();
+        graph.Var("x", 1d);
+        graph.Shadow("x");
+        graph.Var("log", 0d);
+        graph.When("x settled", scope => Equals(scope.Read("x"), scope.Read("old x")),
+                   scope => scope.Write("log", Add(scope.Read("log"), 1d)));
+        graph.Prime();
+
+        graph.Write("x", 2d);
+        graph.Step();                       // old x -> 1, x -> 2: not settled
+        Assert.Equal(0d, graph.Read("log"));
+
+        // no writes at all, but «old x» catches up and the condition rises
+        graph.Step();
+
+        Assert.Contains("x settled", graph.Fired);
+        Assert.Equal(1d, graph.Read("log"));
+    }
+
     [Fact(DisplayName = "a condition that recovers from failure rises")]
     public void AConditionThatRecoversFromFailureRises()
     {

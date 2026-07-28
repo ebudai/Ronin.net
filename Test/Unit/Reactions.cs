@@ -199,6 +199,37 @@ public class Reactions
                                           [new Error("upstream")], insideLet: false));
     }
 
+    [Fact(DisplayName = "a call needs one argument per hole")]
+    public void ACallNeedsOneArgumentPerHole()
+    {
+        // Zip dropped the tail of whichever side was longer, so extra arguments
+        // vanished and missing ones left names unbound for the body to trip over
+        var scope = Declared();
+        Graph graph = new();
+
+        var many = Assert.IsType<Error>(scope.Invoke(graph, Pattern.Parse("compute total for _"),
+                                                     [1d, 2d], insideLet: false));
+        Assert.Contains("takes 1 argument(s) and was given 2", many.Message);
+
+        var few = Assert.IsType<Error>(scope.Invoke(graph, Pattern.Parse("draw _ at _"),
+                                                    ["circle"], insideLet: false));
+        Assert.Contains("takes 2 argument(s) and was given 1", few.Message);
+    }
+
+    [Fact(DisplayName = "a name may not be declared twice")]
+    public void ANameMayNotBeDeclaredTwice()
+    {
+        // replacing silently leaves the old node's edges pointing at something
+        // nothing reads again — a graph that looks intact and is not
+        Graph graph = new();
+        graph.Var("x", 1d);
+
+        var again = Assert.Throws<InitialisationFailure>(() => graph.Var("x", 2d));
+        Assert.Contains("«x» is already declared", again.Message);
+
+        Assert.Throws<InitialisationFailure>(() => graph.Let("x", _ => 3d));
+    }
+
     [Fact(DisplayName = "a call needs exactly one declaration")]
     public void ACallNeedsExactlyOneDeclaration()
     {
