@@ -45,6 +45,18 @@ public class Symbols
     [Fact(DisplayName = "text delimiter")]
     public void LexDoubleQuote() => LexSymbol(TextDelimiter.symbol);
 
+    [Fact(DisplayName = "question")]
+    public void LexQuestion()
+    {
+        LexSymbol(Question.symbol);
+
+        // Punctuation.Lex did not dispatch to Question, so '?' fell through to
+        // Symbol.Lex and came back as a bare one-character Symbol. The type is the
+        // regression, not the text.
+        Lexer lexer = new(Question.symbol.ToString());
+        Assert.IsType<Question>(Punctuation.Lex(ref lexer));
+    }
+
     [Fact(DisplayName = "returns")]
     public void LexReturns() => LexSymbol(Returns.symbol);
 

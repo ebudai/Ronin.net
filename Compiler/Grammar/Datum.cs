@@ -74,11 +74,6 @@ internal class Datum : Member
         public static new Datum Parse(ref Parser parser) => Reference.Parse(ref parser) is Reference reference ? new Unresolved { Reference = reference } : null;
     }
 
-    public class Calculated : Datum
-    {
-        public Resolution Resolution { get; init; }
-    }
-
     public class ExpectedIdentifierError : Datum, IError
     {
         public ExpectedIdentifierError(ref Parser parser) => Tokens = Unknown.Parse(ref parser).Tokens;

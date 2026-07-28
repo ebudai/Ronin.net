@@ -383,33 +383,4 @@ public class AnalysisTests : ParsingTests
         return new Identifier { components };
     }
 
-    internal static Reference Reference(params string[] words)
-    {
-        List<Reference.Component> components = new();
-        foreach (var word in words)
-        {
-            Word token = new();
-            token.SetMemory(word);
-            Name name = new() { Tokens = new[] { token } };
-            components.Add(name);
-        }
-        return Reference(components.ToArray());
-    }
-
-    internal static Reference Reference(params Reference.Component[] components) => new() { components };
-
-    internal static Member UnresolvedReference(params string[] words)
-    {
-        List<Reference.Component> components = new();
-        foreach (var word in words)
-        {
-            Word token = new();
-            token.SetMemory(word);
-            Name name = new() { Tokens = new[] { token } };
-            components.Add(name);
-        }
-        return UnresolvedReference(components.ToArray());
-    }
-
-    internal static Member UnresolvedReference(params Reference.Component[] components) => new Member.Unresolved { Reference = new() { components } };
 }

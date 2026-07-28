@@ -17,7 +17,7 @@ internal class Name
     {
         Parser parser = current;
 
-        while (parser.Token is Word or Symbol and not Punctuation) 
+        while (parser.Token is Word)
         {
             parser.Advance(); 
         }

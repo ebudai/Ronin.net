@@ -27,6 +27,10 @@ internal class Reference : IEnumerable<Reference.Component>
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
         if (components.Count is 1 && components[0].AsTemporary is not null) return null;
+
+        // symbols punctuate a reference, they are never the whole of one
+        if (components.TrueForAll(component => component.AsSymbolic is not null)) return null;
+
         current = parser;
         return new Reference { Components = components };
     }
@@ -37,64 +41,29 @@ internal class Reference : IEnumerable<Reference.Component>
 
     public Component this[int i] => Components[i];
 
-    public int Count => Components.Count;
-
-    public void Add(Name name) => Components.Add(name);
-    public void Add(IEnumerable<Component> components) => Components.AddRange(components);
-
-    public System.Index[] IndicesOf(Name name)
-    {
-        if (name is null) return null;
-
-        List<System.Index> indices = [];
-
-        for (var i = 0; i != Count; ++i)
-        {
-            if (name.Equals(this[i].AsName))
-            {
-                indices.Add(i);
-            }
-        }
-
-        return [.. indices];
-    }
-
-    public System.Index[] IndicesOf(Parameters parameters)
-    {
-        if (parameters.Mandatory.Length is 0 or 1) return null;
-
-        List<System.Index> indices = [];
-
-        for (var i = 0; i != Count; ++i)
-        {
-            if (this[i].AsTemporary is not Inputs inputs) continue;
-
-            if (inputs.Count >= parameters.Mandatory.Length && inputs.Count <= parameters.Count)
-            {
-                indices.Add(i);
-            }
-        }
-
-        return [.. indices];
-    }
-
     public class Component : Compiler.IParsable<Component>
     {
         private Component(Name name) => value = name;
         private Component(Temporary temporary) => value = temporary;
+        private Component(Symbolic symbolic) => value = symbolic;
 
         public static implicit operator Component(Name name) => new(name);
         public static implicit operator Component(Temporary value) => new(value);
+        public static implicit operator Component(Symbolic symbolic) => new(symbolic);
 
+        // Symbolic goes last: no Temporary begins with a symbol that is not
+        // punctuation, but if one ever does it should still win the value.
         public static Component Parse(ref Parser current)
         {
             if (Name.Parse(ref current) is Name name) return name;
             if (Temporary.Parse(ref current) is Temporary temporary) return temporary;
+            if (Symbolic.Parse(ref current) is Symbolic symbolic) return symbolic;
             return null;
         }
-        
+
         public Name AsName => value as Name;
         public Temporary AsTemporary => value as Temporary;
+        public Symbolic AsSymbolic => value as Symbolic;
 
         private readonly object value;
     }

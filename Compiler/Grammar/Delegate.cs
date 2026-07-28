@@ -27,20 +27,12 @@ internal class Delegate : Temporary
     {
         Parser parser = current;
 
+        // «() =>» needs no case of its own: Parameters.Parse accepts an empty
+        // aggregate, so only the bare «x =>» form falls through to here
         if (Parameters.Parse(ref parser) is not Parameters parameters)
         {
-            if (Name.Parse(ref parser) is Name name)
-            {
-                parameters = [name];
-            }
-            else if (parser.TryAdvance<Open.Parenthesis>() && parser.TryAdvance<Close.Parenthesis>())
-            {
-                parameters = [];
-            }
-            else
-            {
-                return null;
-            }
+            if (Name.Parse(ref parser) is not Name name) return null;
+            parameters = [name];
         }
 
         if (parser.TryAdvance<Returns>() is false) return null;
@@ -77,21 +69,5 @@ internal class Delegate : Temporary
 
     public class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameter, Separator, Close.Parenthesis>
     {
-        public class UnresolvedDatumError : Parameter, IError
-        {
-            public UnresolvedDatumError(Datum.Unresolved unresolved) : base(unresolved) 
-            {
-                List<Token> tokens = new();
-                foreach (var component in unresolved.Reference)
-                {
-                    // component must be a Name as it's a datum and they can't have parameters
-                    tokens.AddRange(component.AsName.Tokens.ToArray());
-                }
-                Tokens = tokens.ToArray();
-            }
-
-            public string Reason { get; } = "unresolved datum";
-            public System.ReadOnlyMemory<Token> Tokens { get; }
-        }
     }
 }

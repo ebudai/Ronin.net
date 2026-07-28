@@ -7,9 +7,8 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Grammar;
 
-internal class Scope : Statement, IContext
+internal class Scope : Statement
 {
-    public IContext Parent { get; set; }
     public Modifiers Modifiers { get; init; }
     public List<Import> Imports { get; } = new();
     public List<Statement> Statements { get; } = new();
@@ -24,21 +23,6 @@ internal class Scope : Statement, IContext
         ?? ConditionalReactive.Parse(ref current)
         ?? Iterating.Parse(ref current)
         ?? Reactive.Parse(ref current) as Scope;
-
-    public Resolution Resolve(Reference reference)
-    {
-        List<Resolution> resolutions = new();
-
-        foreach (var statement in Statements)
-        {
-            if (statement is Member member && member.Identifier.Resolve(reference) is Resolution resolution)
-            {
-                resolutions.Add(resolution);
-            }
-        }
-
-        return Resolution.From(resolutions);
-    }
 
     public class Conditional : Conditional<If> { }
     
@@ -195,6 +179,7 @@ internal class Scope : Statement, IContext
     {
         public static new Basic Parse(ref Parser current) => Aggregate<Basic, Open.Brace, Statement, Terminal, Close.Brace>.Parse(ref current);
 
+        [ExcludeFromCodeCoverage]
         public Statement this[int index] 
         {
             get => Statements[index];

@@ -48,6 +48,81 @@ public class References : ParsingTests
         }
     }
 
+    [Fact(DisplayName = "symbols are components, not part of a name")]
+    public void SymbolsAreComponents()
+    {
+        // x > 3
+        List<Token> tokens = new()
+        {
+            Word("x"),
+            Symbol(">"),
+            Number(3),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var reference = Reference.Parse(ref parser);
+
+        // three components, not one name spanning «x >» — the parser records that a
+        // symbol occurred and leaves what it means to the resolver
+        Assert.Equal(3, reference?.Span.Length);
+        Assert.NotNull(reference[0].AsName);
+        Assert.NotNull(reference[1].AsSymbolic);
+        Assert.NotNull(reference[2].AsTemporary);
+        Assert.Equal(">", reference[1].AsSymbolic.Token.Memory.ToString());
+    }
+
+    [Fact(DisplayName = "punctuation ends a reference")]
+    public void PunctuationEndsAReference()
+    {
+        // x; y   — the terminator is a boundary, not a component
+        List<Token> tokens = new()
+        {
+            Word("x"),
+            Terminal(),
+            Word("y"),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+        var reference = Reference.Parse(ref parser);
+
+        Assert.Single(reference);
+        Assert.NotNull(reference[0].AsName);
+    }
+
+    [Fact(DisplayName = "only a symbol parses as symbolic")]
+    public void OnlyASymbolParsesAsSymbolic()
+    {
+        // Reference.Component only offers Symbolic a token that is not a name and
+        // not a value, but the guard is the component's own, not the caller's.
+        List<Token> tokens = new() { Word("x"), Terminal(), Symbol("+"), new Sentinel() };
+
+        Parser parser = new(tokens.AsLinkedList());
+
+        Assert.Null(Symbolic.Parse(ref parser));   // a word is not symbolic
+        parser.Advance();
+        Assert.Null(Symbolic.Parse(ref parser));   // nor is punctuation
+        parser.Advance();
+        Assert.NotNull(Symbolic.Parse(ref parser));
+    }
+
+    [Fact(DisplayName = "symbols alone are not a reference")]
+    public void SymbolsAloneAreNotAReference()
+    {
+        // + *  — punctuating nothing
+        List<Token> tokens = new()
+        {
+            Symbol("+"),
+            Symbol("*"),
+            new Sentinel()
+        };
+
+        Parser parser = new(tokens.AsLinkedList());
+
+        Assert.Null(Reference.Parse(ref parser));
+    }
+
     [Fact(DisplayName = "enumerable")]
     public void Enumerable()
     {

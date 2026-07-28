@@ -9,7 +9,7 @@ namespace Unit;
 [Trait(nameof(Parser), null)]
 public class Identifiers : ParsingTests
 {
-    [Fact(DisplayName = "symbols")]
+    [Fact(DisplayName = "symbols end an identifier")]
     public void Symbols()
     {
         const string name = nameof(name);
@@ -29,8 +29,13 @@ public class Identifiers : ParsingTests
         Parser parser = new(tokens.AsLinkedList());
         var identifier = Identifier.Parse(ref parser);
 
+        // This asserted a single three-token name, back when Name.Parse merged
+        // symbols into the name beside them. An identifier declares something, and
+        // the operators are a fixed table the language owns, so a declaration
+        // cannot introduce one: the identifier is «name» and it ends at the «+».
         Assert.Single(identifier);
-        Assert.Equal(3, identifier[0].AsName.Tokens.Length);
+        Assert.Single(identifier[0].AsName.Tokens.ToArray());
+        Assert.Equal(name, identifier[0].AsName.Tokens.Span[0].Memory.ToString());
     }
 
     [Fact(DisplayName = "words")]
@@ -95,6 +100,25 @@ public class Identifiers : ParsingTests
         Assert.Single(second.Identifier);
 
         Assert.Equal(first.Identifier[0].AsName.Tokens.Span[0].Memory, second.Identifier[0].AsName.Tokens.Span[0].Memory);
+    }
+
+    [Fact(DisplayName = "names compare by their words")]
+    public void NamesCompareByTheirWords()
+    {
+        // Two occurrences of a name in different statements are different token
+        // objects spelling the same thing, and resolution has to see them as one.
+        Name first = new() { Tokens = new[] { Word("cash"), Word("on"), Word("hand") } };
+        Name same = new() { Tokens = new[] { Word("cash"), Word("on"), Word("hand") } };
+        Name shorter = new() { Tokens = new[] { Word("cash"), Word("on") } };
+        Name different = new() { Tokens = new[] { Word("cash"), Word("in"), Word("hand") } };
+
+        Assert.True(first.Equals(same));
+        Assert.False(first.Equals(shorter));
+        Assert.False(first.Equals(different));
+        Assert.False(first.Equals("cash on hand"));
+
+        Assert.Equal(first.GetHashCode(), same.GetHashCode());
+        Assert.NotEqual(first.GetHashCode(), different.GetHashCode());
     }
 
     [Fact(DisplayName = "enumerable")]

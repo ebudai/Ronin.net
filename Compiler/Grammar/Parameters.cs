@@ -21,21 +21,6 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.Parameter, Separator, Close.Parenthesis>
 {
-    public ReadOnlyMemory<Parameter> Mandatory { get; }
-
-    public Parameters() : base()
-    {
-        List<Parameter> parameters = [];
-        foreach (var parameter in this)
-        {
-            if (parameter.AsDatum is not Datum datum) continue;
-            if (datum.Initializer is not null) continue;
-            if (datum.Modifiers.Is<Optional>()) continue;
-            parameters.Add(parameter);
-        }
-        Mandatory = parameters.ToArray();
-    }
-
     public class Parameter : Compiler.IParsable<Parameter>
     {
         private Parameter(Datum datum) => value = datum;
@@ -52,7 +37,6 @@ internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.P
         }
 
         public Datum AsDatum => value as Datum;
-        public Association AsAssociation => value as Association;
 
         private readonly Statement value;
     }

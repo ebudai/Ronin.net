@@ -53,23 +53,6 @@ internal class Type : Member
         public Reference Reference { get; init; }
 
         public static new Type Parse(ref Parser current) => Reference.Parse(ref current) is Reference reference ? new Unresolved { Reference = reference } : null;
-
-        public Type Resolve(IContext context) => context.Resolve(Reference) switch
-        {
-            Resolution.Definite definite => definite.Member as Type ?? new Calculated { Resolution = definite },
-            Resolution.Ambiguous ambiguous => new Overloaded { Candidates = ambiguous.Candidates },
-            _ => null
-        };
-    }
-
-    public class Overloaded : Type
-    {
-        public List<Resolution> Candidates { get; init; }
-    }
-
-    internal class Calculated : Type
-    {
-        public Resolution Resolution { get; init; }
     }
 }
 
@@ -84,20 +67,4 @@ internal class Algebra : Type
 
         public static new Algebra Parse(ref Parser current) => Reference.Parse(ref current) is Reference reference ? new Unresolved { Reference = reference } : null;
     }
-
-    internal new class Overloaded : Algebra
-    {
-        public List<Resolution> Candidates { get; init; }
-    }
-
-    internal new class Calculated : Algebra
-    {
-        public Resolution Resolution { get; init; }
-    }
-}
-
-internal class Calculation : Statement
-{
-    public Member Member { get; init; }
-    public Type Owner { get; init; }
 }

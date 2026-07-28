@@ -47,7 +47,12 @@ public class Comments
         Lexer lexer = new(literal);
         var comment = Comment.Lex(ref lexer);
 
-        Assert.Equal(literal[..^2].ToArray(), comment?.Memory.ToArray());
+        // the comment ends immediately after the terminator and excludes the
+        // trailing newline. Sliced by index rather than by a fixed offset from the
+        // end, because .gitattributes normalises line endings and the newline this
+        // literal ends with is one character here and two on Windows.
+        var end = literal.IndexOf(multilineend) + multilineend.Length;
+        Assert.Equal(literal[..end].ToArray(), comment?.Memory.ToArray());
     }
 
     [Fact(DisplayName = "multiline comments can be nested")]
