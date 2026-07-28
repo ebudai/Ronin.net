@@ -89,9 +89,10 @@ internal sealed class Resolver
         }
 
         var top = expressions[0, n, 0];
-        return top.IsEmpty ? Resolution.NoParse
-             : top.Count > 1 ? Resolution.Ambiguous(top.Cost, top.Readings)
-             : Resolution.Resolved(top.Cost, top.Reading);
+        if (top.TryBest(out var best) is false) return Resolution.NoParse;
+
+        return best.Count > 1 ? Resolution.Ambiguous(best.Cost, top.Readings)
+                              : Resolution.Resolved(best.Cost, best.Reading);
     }
 
     public Resolution Resolve(string source) => Resolve(Lexeme.Split(source));
@@ -127,8 +128,7 @@ internal sealed class Resolver
         // CLOSED, which is what lets «(compute total for a) + b» resolve
         if (j - i >= 2 && lexemes[i].Kind is LexemeKind.Open && lexemes[j - 1].Kind is LexemeKind.Close)
         {
-            var inner = expressions[i + 1, j - 1, 0];
-            if (inner.IsEmpty is false) cell.Offer(1 + inner.Cost, $"⟨{inner.Reading}⟩");
+            if (expressions[i + 1, j - 1, 0].TryBest(out var inner)) cell.Offer(1 + inner.Cost, $"⟨{inner.Reading}⟩");
         }
 
         foreach (var pattern in symbols.Patterns)
@@ -167,15 +167,15 @@ internal sealed class Resolver
         {
             // trailing argument: reaches the end of the span, parsed at the
             // pattern's own binding power
-            var trailing = expressions[position, end, PatternBindingPower];
-            if (trailing.IsEmpty is false) yield return (trailing.Cost, trailing.Reading, trailing.Count);
+            if (expressions[position, end, PatternBindingPower].TryBest(out var trailing))
+                yield return (trailing.Cost, trailing.Reading, trailing.Count);
             yield break;
         }
 
         for (var split = position + 1; split <= end; ++split)
         {
-            var argument = expressions[position, split, 0];   // medial args cross any operator
-            if (argument.IsEmpty) continue;
+            // medial args cross any operator
+            if (expressions[position, split, 0].TryBest(out var argument) is false) continue;
             foreach (var (cost, reading, count) in Match(pattern, segment + 1, lexemes, split, end))
                 yield return (argument.Cost + cost, $"{argument.Reading} {reading}".TrimEnd(), argument.Count * count);
         }
@@ -211,11 +211,13 @@ internal sealed class Resolver
             // associative mirrors it. Handing both sides the higher minimum
             // forbids the operator on either, and a chain of one precedence
             // stops parsing altogether.
-            var outer = op.BindingPower;
-            var inner = op.BindingPower + 1;
-            var left = expressions[i, k, op.IsLeftAssociative ? outer : inner];
-            var right = expressions[k + 1, j, op.IsLeftAssociative ? inner : outer];
-            if (left.IsEmpty || right.IsEmpty) continue;
+            var repeats = op.BindingPower;
+            var excludes = op.BindingPower + 1;
+            var leftminimum = op.IsLeftAssociative ? repeats : excludes;
+            var rightminimum = op.IsLeftAssociative ? excludes : repeats;
+
+            if (expressions[i, k, leftminimum].TryBest(out var left) is false) continue;
+            if (expressions[k + 1, j, rightminimum].TryBest(out var right) is false) continue;
 
             cell.Offer(left.Cost + right.Cost,
                        $"({left.Reading} {lexemes[k].Text} {right.Reading})",
@@ -241,9 +243,27 @@ internal sealed class Resolver
 
         public long Count => derivations.Values.Sum();
 
-        public string Reading => IsEmpty ? string.Empty : order[0];
-
         public IReadOnlyList<string> Readings => order;
+
+        /// <summary>
+        ///     The cheapest reading, when the span has one. Every caller of this
+        ///     used to read <c>Cost</c>, <c>Reading</c> and <c>Count</c> off the
+        ///     cell behind its own <see cref="IsEmpty"/> check, so the empty case
+        ///     was tested twice and <c>Reading</c> carried a fallback that could
+        ///     not be reached. A span with no parse now has no <see cref="Best"/>
+        ///     to hand out, and the caller has to say what it does about that.
+        /// </summary>
+        public bool TryBest(out Best best)
+        {
+            if (IsEmpty)
+            {
+                best = default;
+                return false;
+            }
+
+            best = new Best(Cost, order[0], Count);
+            return true;
+        }
 
         public void Offer(int cost, string reading, long count = 1)
         {
@@ -273,6 +293,9 @@ internal sealed class Resolver
         private readonly Dictionary<string, long> derivations = new();
     }
 }
+
+/// <summary>The cheapest reading of one span, and how many derivations reach it.</summary>
+internal readonly record struct Best(int Cost, string Reading, long Count);
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close }
 
