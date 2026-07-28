@@ -88,7 +88,8 @@ internal sealed class Graph
 
     public object Read(string name)
     {
-        var node = nodes[name];
+        // an undeclared name is a value like any other failure, not a throw
+        if (nodes.TryGetValue(name, out var node) is false) return new Error($"«{name}» is not declared");
 
         // Capture the edge dynamically. A conditional depends on the branch it
         // actually took, and that changes between evaluations — read it off the

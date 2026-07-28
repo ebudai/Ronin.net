@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Ronin.Runtime;
@@ -55,6 +56,25 @@ internal static class Builtin
     /// </summary>
     public static Func<object, object, object> Lift(Func<object, object, object> operation)
         => (left, right) => left as Error ?? right as Error ?? operation(left, right);
+
+    /// <summary>
+    ///     What each operator does. The resolver's <c>SymbolTable.Operators</c>
+    ///     gives the same symbols their binding power; the two tables are separate
+    ///     and must agree, which is why a test pins that they do.
+    /// </summary>
+    public static IReadOnlyDictionary<string, Func<object, object, object>> Operators { get; }
+        = new Dictionary<string, Func<object, object, object>>
+        {
+            ["+"] = Arithmetic("+", (left, right) => left + right),
+            ["-"] = Arithmetic("-", (left, right) => left - right),
+            ["*"] = Arithmetic("*", (left, right) => left * right),
+            ["/"] = Arithmetic("/", (left, right) => left / right),
+        };
+
+    private static Func<object, object, object> Arithmetic(string symbol, Func<double, double, double> operation)
+        => Lift((left, right) => left is double first && right is double second
+                               ? operation(first, second)
+                               : new Error($"«{symbol}» needs two numbers"));
 
     /// <summary>
     ///     The only thing that inspects a value's failure without inheriting it,
