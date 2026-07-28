@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,6 +17,19 @@ namespace Ronin.Runtime;
 ///     state. Declared feedback is deliberate, visible and greppable.
 /// </param>
 internal sealed record Effects(IReadOnlySet<string> Reads, IReadOnlySet<string> Writes, bool Feedback = false);
+
+/// <summary>
+///     One cell a <c>when</c> writes, and the <c>when</c> it is charged to.
+/// </summary>
+///
+/// <param name="AttributedTo">
+///     The <c>when</c> answerable for the write, which is not always the one that
+///     performed it: a write reached through a call belongs to the <c>when</c>
+///     that made the call, because that is what the programmer can move. Today
+///     the two coincide, and the shape is here so that the effect analysis slots
+///     in without touching the consumer.
+/// </param>
+internal sealed record Write(string Cell, string AttributedTo);
 
 /// <summary>
 ///     Finds <c>when</c> cycles before anything runs.
@@ -92,6 +106,60 @@ internal static class Cascades
                $"«{string.Join("» → «", ring)}» is a cycle: each writes something the next " +
                "reads, so firing one schedules the next. Stop one of them writing what the " +
                "ring reads, or declare feedback on every when in the ring.");
+
+    /// <summary>
+    ///     Cells written by more than one <c>when</c>, which is a declaration
+    ///     error.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     <c>when</c> bodies are unordered relative to each other — they fire in
+    ///     one round and nothing says which first — so two of them writing one
+    ///     cell has no defined result. Declaration order would make it
+    ///     deterministic and silent, which is worse than an error: one write
+    ///     lands, the other vanishes, and the program looks fine.
+    ///     </para>
+    ///     <para>
+    ///     Functions are exempt and the difference is the whole justification.
+    ///     Two functions writing <c>health</c> is fine because their call sites
+    ///     impose an order; two <c>when</c>s have no such thing.
+    ///     </para>
+    ///     <para>
+    ///     Write sets are supplied rather than derived. Deriving them is a shared
+    ///     effect analysis with four consumers — this, tier-one cycles, purity,
+    ///     and error-ness — all least-fixed-points over one call graph differing
+    ///     only in the lattice. Building it inside this file would bury a general
+    ///     analysis in one consumer and leave the other three to re-derive it.
+    ///     </para>
+    /// </remarks>
+    public static IEnumerable<string> Writers(IReadOnlyDictionary<string, IReadOnlyCollection<Write>> whens)
+    {
+        Dictionary<string, SortedSet<string>> writers = [];
+
+        foreach (var (name, writes) in whens.OrderBy(entry => entry.Key, StringComparer.Ordinal))
+        {
+            foreach (var write in writes)
+            {
+                if (writers.TryGetValue(write.Cell, out var charged) is false)
+                    writers[write.Cell] = charged = new SortedSet<string>(StringComparer.Ordinal);
+
+                charged.Add(write.AttributedTo);
+            }
+        }
+
+        foreach (var (cell, charged) in writers.OrderBy(entry => entry.Key, StringComparer.Ordinal))
+        {
+            if (charged.Count < 2) continue;
+
+            yield return
+                $"«{cell}» is written by {charged.Count} whens: " +
+                string.Join(", ", charged.Select(name => $"«{name}»")) + ". " +
+                "Whens fire in one round with no order between them, so one write would " +
+                "land and the other vanish. Derive the value instead, with a let that reads " +
+                "both conditions.";
+        }
+    }
 
     private static Dictionary<string, HashSet<string>> Precedence(IReadOnlyDictionary<string, Effects> whens)
     {

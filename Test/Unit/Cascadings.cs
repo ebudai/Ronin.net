@@ -71,6 +71,60 @@ public class Cascadings
         Assert.Empty(Cascades.Cycles(whens));
     }
 
+    private static IReadOnlyDictionary<string, IReadOnlyCollection<Write>> Writing(
+        params (string When, string[] Cells)[] whens)
+        => whens.ToDictionary(
+               entry => entry.When,
+               entry => (IReadOnlyCollection<Write>)[.. entry.Cells.Select(cell => new Write(cell, entry.When))]);
+
+    [Fact(DisplayName = "two whens writing one cell is a declaration error")]
+    public void TwoWhensWritingOneCellIsADeclarationError()
+    {
+        // They fire in one round with no order between them, so one write lands
+        // and the other vanishes — and the program looks fine. Declaration order
+        // would make that deterministic and still silent, which is worse.
+        var complaint = Assert.Single(Cascades.Writers(Writing(
+            ("when player dies", ["game state", "log"]),
+            ("when timer expires", ["game state"]),
+            ("when score changes", ["score display"]))));
+
+        Assert.Equal(
+            "«game state» is written by 2 whens: «when player dies», «when timer expires». " +
+            "Whens fire in one round with no order between them, so one write would land and " +
+            "the other vanish. Derive the value instead, with a let that reads both conditions.",
+            complaint);
+    }
+
+    [Fact(DisplayName = "one when writing many cells is fine")]
+    public void OneWhenWritingManyCellsIsFine()
+    {
+        Assert.Empty(Cascades.Writers(Writing(
+            ("when player dies", ["game state", "log", "respawn timer"]))));
+    }
+
+    [Fact(DisplayName = "a write is charged to the when, not the writer")]
+    public void AWriteIsChargedToTheWhenNotTheWriter()
+    {
+        // A write reached through a call belongs to the when that made the call,
+        // because that is what the programmer can move. Two whens calling one
+        // shared function are still two writers of its cell.
+        Dictionary<string, IReadOnlyCollection<Write>> whens = new()
+        {
+            ["when player dies"] = [new Write("log", "when player dies")],
+            ["when timer expires"] = [new Write("log", "when timer expires")],
+        };
+
+        Assert.Single(Cascades.Writers(whens));
+
+        // and one when reaching a cell by two routes is charged once
+        Dictionary<string, IReadOnlyCollection<Write>> twice = new()
+        {
+            ["when player dies"] = [new Write("log", "when player dies"), new Write("log", "when player dies")],
+        };
+
+        Assert.Empty(Cascades.Writers(twice));
+    }
+
     [Fact(DisplayName = "an acyclic set reports nothing")]
     public void AnAcyclicSetReportsNothing()
     {
