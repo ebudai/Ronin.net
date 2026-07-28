@@ -111,6 +111,27 @@ public class Evaluations
         Assert.Equal(1d, evaluator.Evaluate(graph, Resolve(symbols, "c / a / a"), insideLet: false));
     }
 
+    [Fact(DisplayName = "dividing by zero is an error, not an infinity")]
+    public void DividingByZeroIsAnErrorNotAnInfinity()
+    {
+        SymbolTable symbols = new();
+        symbols.WithNames("a", "nothing at all");
+
+        Graph graph = new();
+        graph.Var("a", 2d);
+        graph.Var("nothing at all", 0d);
+
+        Evaluator evaluator = new(new Scope());
+
+        var error = Assert.IsType<Error>(
+            evaluator.Evaluate(graph, Resolve(symbols, "a / nothing at all"), insideLet: false));
+
+        Assert.Contains("cannot divide by zero", error.Message);
+
+        // the message proposes «otherwise», so the edit it proposes has to work
+        Assert.Equal(0d, Builtin.Otherwise(error, 0d));
+    }
+
     [Fact(DisplayName = "a resolved tree can be a let body")]
     public void AResolvedTreeCanBeALetBody()
     {
@@ -272,6 +293,11 @@ public class Evaluations
         var error = Assert.IsType<Error>(
             evaluator.Evaluate(graph, Resolve(symbols, "label + count"), insideLet: false));
         Assert.Contains("needs two numbers", error.Message);
+
+        // division says the same thing, though it checks for zero first
+        var divided = Assert.IsType<Error>(
+            evaluator.Evaluate(graph, Resolve(symbols, "label / count"), insideLet: false));
+        Assert.Contains("needs two numbers", divided.Message);
     }
 
     [Fact(DisplayName = "every operator the resolver knows has an implementation")]

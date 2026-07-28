@@ -87,8 +87,31 @@ internal static class Builtin
             ["+"] = Arithmetic("+", (left, right) => left + right),
             ["-"] = Arithmetic("-", (left, right) => left - right),
             ["*"] = Arithmetic("*", (left, right) => left * right),
-            ["/"] = Arithmetic("/", (left, right) => left / right),
+            ["/"] = Divide(),
         };
+
+    /// <summary>
+    ///     Division, which is the one arithmetic operation with a case that has
+    ///     no answer.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     An infinity would satisfy the hardware and then poison everything
+    ///     downstream silently, which is precisely the spreadsheet failure the
+    ///     error model exists to make visible. The error stops it here instead.
+    /// </remarks>
+    private static Func<object, object, object> Divide()
+        => Lift((left, right) => (left, right) switch
+        {
+            (double, 0d) => new Error(
+                "«/» cannot divide by zero. There is no value to return, and an infinity " +
+                "would travel silently through every reader. Guard the divisor, or supply a " +
+                "fallback with «otherwise»."),
+
+            (double first, double second) => first / second,
+
+            _ => new Error("«/» needs two numbers"),
+        });
 
     private static Func<object, object, object> Arithmetic(string symbol, Func<double, double, double> operation)
         => Lift((left, right) => left is double first && right is double second
