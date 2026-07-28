@@ -156,6 +156,36 @@ public class Resolutions
                 ["send (the report today)", "send (the report) today", "send the report (today)"]);
     }
 
+    [Fact(DisplayName = "a pattern owns its segments, and a tree owns its children")]
+    public void APatternOwnsItsSegmentsAndATreeOwnsItsChildren()
+    {
+        // Identity IS the segment sequence, and a runtime scope is keyed on it —
+        // so keeping the caller's list meant mutating that list changed the hash
+        // of a live key. The declaration became unreachable BOTH by the pattern
+        // that made it and by a freshly built equal one: not moved, stranded.
+        List<string> segments = ["compute", null];
+        Pattern pattern = new(segments);
+        Dictionary<Pattern, string> scope = new() { [pattern] = "here" };
+
+        segments[0] = "reckon";
+
+        Assert.True(scope.ContainsKey(pattern));
+        Assert.True(scope.ContainsKey(new Pattern(["compute", null])));
+        Assert.Equal("compute (_)", pattern.ToString());
+
+        // and the same for the nodes, which cache their rendering — a caller
+        // still holding the list could change what a node contains without
+        // changing what it says it contains
+        List<Node> parts = [new Node.Name("a")];
+        Node.Group group = new(parts);
+        Node.Call call = new(pattern, parts);
+
+        parts[0] = new Node.Name("b");
+
+        Assert.Equal("⟨«a»⟩", group.ToString());
+        Assert.Equal("compute «a»", call.ToString());
+    }
+
     [Fact(DisplayName = "a group of ties is still a tie, however many of them there are")]
     public void AGroupOfTiesIsStillATieHoweverManyOfThemThereAre()
     {

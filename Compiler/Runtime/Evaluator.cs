@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using Tree = Ronin.Compiler.Node;
 
 namespace Ronin.Runtime;
@@ -99,7 +100,7 @@ internal sealed class Evaluator(Scope scope)
     {
         var text = literal.Text;
 
-        if (text[0] is '"') return text[1..^1];
+        if (text[0] is '"') return Unescaped(text[1..^1]);
 
         return double.TryParse(text,
                                NumberStyles.Float | NumberStyles.AllowThousands,
@@ -107,5 +108,55 @@ internal sealed class Evaluator(Scope scope)
                                out var number)
              ? number
              : new Error($"«{text}» is a literal the interpreter does not read yet");
+    }
+
+    /// <summary>
+    ///     A text literal's value, with its escapes applied.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     The quotes were stripped and nothing else was, so the escapes the lexer
+    ///     goes to some trouble to recognise survived into the value: «"a\""» was
+    ///     four characters ending in a backslash and a quote rather than two
+    ///     ending in a quote. Every text containing one meant something other than
+    ///     what it spelled.
+    ///     </para>
+    ///     <para>
+    ///     Two escapes, because two are what the lexer knows: a quote that does
+    ///     not close the literal and the backslash that lets it not. Anything else
+    ///     is an error rather than a passed-through backslash — «\n» has no
+    ///     meaning yet, and silently making it mean backslash-n is what would stop
+    ///     it ever meaning a newline.
+    ///     </para>
+    /// </remarks>
+    private static object Unescaped(string text)
+    {
+        if (text.Contains('\\') is false) return text;
+
+        StringBuilder value = new(text.Length);
+
+        for (var i = 0; i < text.Length; ++i)
+        {
+            if (text[i] is not '\\')
+            {
+                value.Append(text[i]);
+                continue;
+            }
+
+            // the lexer cannot produce a trailing backslash: it would have
+            // escaped the closing quote, and the literal would not have closed
+            var escape = text[i + 1];
+
+            if (escape is not ('\\' or '"'))
+                return new Error($"«\\{escape}» is not an escape this language has. " +
+                                 "«\\\\» is a backslash and «\\\"» is a quote; write a backslash " +
+                                 "as «\\\\» if that is what was meant.");
+
+            value.Append(escape);
+            ++i;
+        }
+
+        return value.ToString();
     }
 }

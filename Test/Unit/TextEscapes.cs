@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using Ronin.Runtime;
 using Test;
 
 namespace Unit;
@@ -31,6 +32,40 @@ public class TextEscapes
 
         // and the plain case still works
         Assert.Equal([@"""ab""", ";"], Lex(@"""ab"";"));
+    }
+
+    [Fact(DisplayName = "an escape means something by the time it is a value")]
+    public void AnEscapeMeansSomethingByTheTimeItIsAValue()
+    {
+        // The lexer goes to real trouble to recognise these, and the evaluator
+        // stripped the quotes and nothing else — so every escape survived into
+        // the value and «"a\""» was four characters ending in backslash-quote
+        // rather than two ending in a quote.
+        Assert.Equal(@"a""b", Value(@"""a\""b"""));
+        Assert.Equal(@"a\", Value(@"""a\\"""));
+        Assert.Equal("ab", Value(@"""ab"""));
+        Assert.Equal(string.Empty, Value(@""""""));
+    }
+
+    [Fact(DisplayName = "an escape the language does not have is an error, not a backslash")]
+    public void AnEscapeTheLanguageDoesNotHaveIsAnErrorNotABackslash()
+    {
+        // «\n» has no meaning yet. Passing it through as backslash-n is what
+        // would stop it ever meaning a newline, because by then programs would
+        // depend on the literal two characters.
+        var refused = Assert.IsType<Error>(Value(@"""line\nbreak"""));
+
+        Assert.Contains(@"«\n» is not an escape", refused.Message);
+    }
+
+    private static object Value(string literal)
+    {
+        SymbolTable symbols = new();
+        Resolver resolver = new(symbols);
+
+        Assert.True(resolver.Resolve(Lexemes.Lex(literal)).TryTree(out var tree), literal);
+
+        return new Evaluator(new Ronin.Runtime.Scope()).Evaluate(new Graph(), tree, insideLet: false);
     }
 
     [Fact(DisplayName = "a running index is an offset, not a token count")]

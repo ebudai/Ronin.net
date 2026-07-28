@@ -215,6 +215,24 @@ public class Reactions
         return scope;
     }
 
+    [Fact(DisplayName = "a declaration owns its blocks")]
+    public void ADeclarationOwnsItsBlocks()
+    {
+        // Both levels are the caller's, and the inner ones are what a binding
+        // actually reads — so a caller that reused its list changed which
+        // parameter name an argument landed under, long after declaring.
+        List<string> block = ["order"];
+        List<IReadOnlyList<string>> blocks = [block];
+
+        Declaration declaration = new(Pattern.Parse("compute total for _"), blocks,
+                                      (_, arguments) => arguments["order"]);
+
+        block[0] = "something else";
+        blocks.Clear();
+
+        Assert.Equal([["order"]], declaration.Blocks);
+    }
+
     [Fact(DisplayName = "a call binds its blocks")]
     public void ACallBindsItsBlocks()
     {

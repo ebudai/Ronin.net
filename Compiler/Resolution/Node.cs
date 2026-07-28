@@ -57,7 +57,12 @@ internal abstract class Node
     /// </summary>
     internal sealed class Group(IReadOnlyList<Node> parts) : Node
     {
-        public IReadOnlyList<Node> Parts { get; } = parts;
+        /// <remarks>
+        ///     Copied: a node caches its rendering, so a caller still holding the
+        ///     list it passed could change what the node contains without
+        ///     changing what it says it contains.
+        /// </remarks>
+        public IReadOnlyList<Node> Parts { get; } = [.. parts];
 
         protected override string Render() => $"⟨{string.Join(", ", Parts)}⟩";
     }
@@ -80,7 +85,8 @@ internal abstract class Node
         public Pattern Pattern { get; } = pattern;
 
         /// <summary>One per hole in <see cref="Pattern"/>, left to right.</summary>
-        public IReadOnlyList<Node> Arguments { get; } = arguments;
+        /// <remarks>Copied, for the reason <see cref="Group.Parts"/> is.</remarks>
+        public IReadOnlyList<Node> Arguments { get; } = [.. arguments];
 
         protected override string Render()
         {

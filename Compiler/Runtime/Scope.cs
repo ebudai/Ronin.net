@@ -42,7 +42,11 @@ internal sealed class Declaration
             throw new ArgumentException($"«{pattern}» has {holes} hole(s) and {blocks.Count} block(s)", nameof(blocks));
 
         Pattern = pattern;
-        Blocks = blocks;
+
+        // deep, because both levels are the caller's and the inner ones are what
+        // a binding actually reads
+        Blocks = [.. blocks.Select(block => (IReadOnlyList<string>)[.. block])];
+
         Body = body;
         Pure = pure;
     }

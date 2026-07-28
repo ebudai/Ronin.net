@@ -440,7 +440,12 @@ internal sealed class Pattern : IEquatable<Pattern>
         if (segments[0] is null)
             throw new ArgumentException("a word pattern must begin with a word, not a hole", nameof(segments));
 
-        Segments = segments;
+        // Copied, because identity IS the segment sequence and a scope is keyed
+        // on it. Keeping the caller's list meant mutating that list changed the
+        // hash of a live key: the entry became unreachable both by the pattern
+        // that made it and by a freshly built equal one, so a declaration simply
+        // vanished from the scope with nothing to show it had.
+        Segments = [.. segments];
     }
 
     /// <summary>Parses "compute total for _" into segments, "_" being a hole.</summary>
