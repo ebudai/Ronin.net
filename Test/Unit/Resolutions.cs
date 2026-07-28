@@ -390,25 +390,27 @@ public class Resolutions
         Assert.Equal(string.Empty, Resolution.NoParse.Reading);
     }
 
-    [Fact(DisplayName = "the splitter munches decimals and multi-character symbols")]
-    public void TheSplitterMunchesDecimalsAndMultiCharacterSymbols()
+    [Fact(DisplayName = "the boundaries are the lexer's, not a second opinion")]
+    public void TheBoundariesAreTheLexersNotASecondOpinion()
     {
-        // Lexeme.Split only serves the tests; production input comes through
-        // Lexemes.ToLexemes. It still has to agree with the real lexer, so its
-        // boundary handling is pinned here — see Adaptations.AgreesWithTheSplitter.
-        Assert.Equal(
-            new[] { "3.5", "<=", "x" },
-            Lexeme.Split("3.5 <= x").Select(lexeme => lexeme.Text));
+        // What the splitter used to be asked, asked of the real lexer. It agreed
+        // on three of these and diverged on the last two — «7.» was one lexeme
+        // to it and a number followed by a point to the lexer, and «_x1» was one
+        // word to it and two lexemes to the lexer. Every resolver expectation ran
+        // through the splitter, so those two were places where the tests and the
+        // compiler disagreed and nothing said so.
+        Assert.Equal(["3.5", "<=", "x"], Text("3.5 <= x"));
+        Assert.Equal(["a", "<=", "(", "b", ")"], Text("a<=(b)"));
+        Assert.Equal(["a", "+"], Text("a +"));
 
-        // a symbol run stops at a bracket, and at the end of the source
-        Assert.Equal(
-            new[] { "a", "<=", "(", "b", ")" },
-            Lexeme.Split("a<=(b)").Select(lexeme => lexeme.Text));
+        // a lone point after a number is not part of it
+        Assert.Equal(["7", "."], Text("7."));
 
-        Assert.Equal(new[] { "a", "+" }, Lexeme.Split("a +").Select(lexeme => lexeme.Text));
-        Assert.Equal(new[] { "7." }, Lexeme.Split("7.").Select(lexeme => lexeme.Text));
-        Assert.Equal(new[] { "_x1" }, Lexeme.Split("_x1").Select(lexeme => lexeme.Text));
+        // and an underscore is not a word character
+        Assert.Equal(["_", "x1"], Text("_x1"));
     }
+
+    private static string[] Text(string source) => [.. Lexemes.Lex(source).Select(lexeme => lexeme.Text)];
 
     [Fact(DisplayName = "a resolution describes itself")]
     public void AResolutionDescribesItself()

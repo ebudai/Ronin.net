@@ -118,7 +118,20 @@ internal sealed class Resolver
                               : Resolution.Resolved(best.Cost, best.Node);
     }
 
-    public Resolution Resolve(string source) => Resolve(Lexeme.Split(source));
+    /// <summary>
+    ///     Lexes and resolves in one step, through the real lexer.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     This used to call a splitter written beside <see cref="Lexeme"/> for
+    ///     the tests, which made it a second lexer — and it diverged, most
+    ///     sharply on symbols: it munched «&lt;=» into one lexeme where
+    ///     <c>Symbol.Lex</c> advances a single character, which is the very
+    ///     divergence the operator table warns about. Every resolver test went
+    ///     through it, so twenty-three expectations said something about the
+    ///     splitter and only something about the compiler by agreement.
+    /// </remarks>
+    public Resolution Resolve(string source) => Resolve(Lexemes.Lex(source));
 
     private static Cell[,] NewTable(int n)
     {
@@ -419,45 +432,6 @@ internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
 
 internal readonly record struct Lexeme(LexemeKind Kind, string Text)
 {
-    /// <summary>
-    ///     Convenience splitter for tests and scratch work. Production input
-    ///     comes from <c>Lexer</c> via <c>LexemeExtensions.ToLexemes</c>, which
-    ///     already classifies words and symbols separately.
-    /// </summary>
-    public static List<Lexeme> Split(string source)
-    {
-        List<Lexeme> lexemes = [];
-        var i = 0;
-        while (i < source.Length)
-        {
-            var c = source[i];
-            if (char.IsWhiteSpace(c)) { ++i; continue; }
-
-            if (c is '(') { lexemes.Add(new(LexemeKind.Open, "(")); ++i; continue; }
-            if (c is ')') { lexemes.Add(new(LexemeKind.Close, ")")); ++i; continue; }
-            if (c is ',') { lexemes.Add(new(LexemeKind.Separator, ",")); ++i; continue; }
-
-            var start = i;
-            if (char.IsDigit(c))
-            {
-                while (i < source.Length && (char.IsDigit(source[i]) || source[i] is '.')) ++i;
-                lexemes.Add(new(LexemeKind.Number, source[start..i]));
-                continue;
-            }
-            if (char.IsLetter(c) || c is '_')
-            {
-                while (i < source.Length && (char.IsLetterOrDigit(source[i]) || source[i] is '_')) ++i;
-                lexemes.Add(new(LexemeKind.Word, source[start..i]));
-                continue;
-            }
-            while (i < source.Length
-                && char.IsWhiteSpace(source[i]) is false
-                && char.IsLetterOrDigit(source[i]) is false
-                && source[i] is not ('(' or ')' or ',')) ++i;
-            lexemes.Add(new(LexemeKind.Symbol, source[start..i]));
-        }
-        return lexemes;
-    }
 }
 
 /// <summary>A word pattern. A null segment is a hole.</summary>

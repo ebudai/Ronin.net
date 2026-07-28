@@ -11,34 +11,15 @@ namespace Unit;
 /// </summary>
 ///
 /// <remarks>
-///     The load-bearing test is <see cref="AgreesWithTheSplitter"/>. Every
-///     expectation in <c>Resolutions</c> was verified against the Python reference
-///     through <c>Lexeme.Split</c>, so those 23 tests only say something about the
-///     real compiler if the real lexer produces the same lexemes the splitter does.
+///     Every expectation in <c>Resolutions</c> was verified against the Python
+///     reference through a splitter written beside <c>Lexeme</c>, so those tests
+///     said something about the compiler only by agreement with a second lexer.
+///     The splitter is gone and they go through this, so the agreement is now the
+///     absence of anything to disagree with.
 /// </remarks>
 [Trait(nameof(Resolver), null)]
 public class Adaptations : ParsingTests
 {
-    [Theory(DisplayName = "agrees with the splitter")]
-    [InlineData("base price + tax")]
-    [InlineData("sum of list")]
-    [InlineData("send hello to alice")]
-    [InlineData("print sum of sum of list")]
-    [InlineData("compute total for order")]
-    [InlineData("send the report today")]
-    [InlineData("send a + b to c")]
-    [InlineData("compute total for a + b")]
-    [InlineData("compute total for (a) + b")]
-    [InlineData("(compute total for a) + b")]
-    [InlineData("print a + b * c")]
-    [InlineData("print 42")]
-    [InlineData("sum of (list)")]
-    [InlineData("sum (of list)")]
-    [InlineData("compute total for (a + b)")]
-    [InlineData("data + sum of x")]
-    public void AgreesWithTheSplitter(string source)
-        => Assert.Equal(Lexeme.Split(source), Lexemes.Lex(source));
-
     [Fact(DisplayName = "brackets are open and close, not symbols")]
     public void BracketsAreOpenAndClose()
     {

@@ -18,7 +18,7 @@ public class Completions
     }
 
     private static IReadOnlyList<Candidate> After(Completion completion, string typed)
-        => completion.After(Lexeme.Split(typed));
+        => completion.After(Lexemes.Lex(typed));
 
     [Fact(DisplayName = "continuing a name outranks starting one")]
     public void ContinuingANameOutranksStartingOne()
