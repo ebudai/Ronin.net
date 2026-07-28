@@ -28,10 +28,26 @@ internal class Keyword : Word
         // A keyword needs a boundary after it, or «iffy» would lex as «if».
         // Reaching the end of the source IS a boundary — reading one past it to
         // check was an IndexOutOfRangeException for a file ending in «if».
-        if (lexer.Length > keyword.Length && char.IsWhiteSpace(lexer[keyword.Length]) is false) return null;
+        //
+        // The boundary is whatever ENDS A WORD, not whitespace alone. Requiring
+        // whitespace made a keyword stop being one whenever punctuation followed
+        // it: «var if=>Number» declared a name «if», «type in;» declared a type
+        // called «in», and adding a space changed what the file meant. Word.Lex
+        // stops at symbols and punctuation, so a keyword has to as well or the
+        // two disagree about where a token ends.
+        if (lexer.Length > keyword.Length && Continues(lexer[keyword.Length])) return null;
 
         return new T { Memory = lexer.AdvanceBy(keyword.Length) };
     }
+
+    /// <summary>
+    ///     Whether a character would carry on a word, which is exactly what
+    ///     <see cref="Word.Lex"/> consumes.
+    /// </summary>
+    private static bool Continues(char character)
+        => char.IsWhiteSpace(character) is false
+        && char.IsSymbol(character) is false
+        && char.IsPunctuation(character) is false;
 }
 
 internal class Type : Keyword

@@ -36,15 +36,11 @@ public class Progress
     /// </summary>
     ///
     /// <remarks>
-    ///     Surviving is ALL this asserts. Membership here does not mean an input
-    ///     is rejected — «for ;» and «for each ;» are in the list and compile
-    ///     clean, because «for» is not a keyword this language has: the lexer
-    ///     knows «iterate» while the specification documents «for each ... in
-    ///     ...». Calling the list «malformed» implied a diagnostic nothing here
-    ///     checks, which is the same shape of mistake as a test asserting a bug.
-    ///     Whether those two lines should be errors is a language decision and is
-    ///     open; what is not open is that this test cannot be read as having made
-    ///     it. Findings are asserted in Compilations, per input, by kind.
+    ///     Surviving is ALL this asserts, and membership here does not mean an
+    ///     input is rejected. It once did imply that — the list was called
+    ///     «malformed» while «for ;» and «for each ;» compiled clean — which is
+    ///     the same shape of mistake as a test asserting a bug. Findings are
+    ///     asserted in Compilations and LoopSyntax, per input, by kind.
     /// </remarks>
     public static TheoryData<string> Survivable =>
     [
@@ -72,6 +68,8 @@ public class Progress
         "when changing ;",
         "for ;",
         "for each ;",
+        "for each x in ;",
+        "in ;",
         "= 5;",
         "+;",
         ";;;;",
