@@ -13,10 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # The band global.json pins. setup-dotnet honours global.json, and pinning
-      # here as well means a mismatch shows up as a setup failure rather than as
-      # a silent roll-forward — which is how 8.0.0 went unnoticed: the file was
-      # invalid, dotnet ignored it, and the build used whatever was installed.
+      # The same floor global.json sets: any 10.0 SDK. That is a compatibility
+      # policy and not a pin, which is the intent — see the note in global.json.
+      # Saying it in both places means a disagreement between them shows up as a
+      # setup failure rather than a silent roll-forward, which is how 8.0.0 went
+      # unnoticed: the file was invalid, dotnet ignored it, and the build used
+      # whatever happened to be installed.
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
