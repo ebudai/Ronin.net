@@ -55,7 +55,12 @@ internal class Datum : Member
 
         if (Identifier.Parse(ref parser) is not Identifier identifier)
         {
-            return mutability is null ? null : new ExpectedIdentifierError(ref parser);
+            if (mutability is null) return null;
+
+            // «var +;» consumed «var» and nothing else, and the error node was
+            // built from the LOCAL parser — so the caller was left sitting on
+            // «var» and Module.Parse asked for the same statement forever
+            return new ExpectedIdentifierError { Tokens = Parser.Recover(ref current, parser) };
         }
 
         Modifiers modifiers = null;
@@ -64,12 +69,30 @@ internal class Datum : Member
         {
             modifiers = Modifiers.Parse(ref parser);
             type = Type.Unresolved.Parse(ref parser);
+
+            // A consumed «=>» commits to a type — but only once the statement
+            // has announced what it is. «function» and «type» announce
+            // themselves with a keyword of their own and so are committed
+            // already; a datum does it with «var», «let» or «constant». Without
+            // one, «reactive => 44.3» is a production that does not match and
+            // has to let the next one try, while «var x => = 1» is a
+            // declaration whose type was started and abandoned.
+            if (type is null && mutability is not null)
+            {
+                return new ExpectedTypeError { Tokens = Parser.Recover(ref current, parser) };
+            }
         }
 
         Value initializer = null;
         if (parser.TryAdvance<Assign>())
         {
             initializer = Value.Parse(ref parser);
+
+            // and a consumed «=» commits to a value, on the same condition
+            if (initializer is null && mutability is not null)
+            {
+                return new ExpectedValueError { Tokens = Parser.Recover(ref current, parser) };
+            }
         }
 
         if (declaring && type is null)
@@ -97,9 +120,19 @@ internal class Datum : Member
 
     public class ExpectedIdentifierError : Datum, IError
     {
-        public ExpectedIdentifierError(ref Parser parser) => Tokens = Unknown.Parse(ref parser).Tokens;
-
         public string Reason { get; } = "expected identifier";
         public ReadOnlyMemory<Token> Tokens { get; init; }
-    }    
+    }
+
+    public class ExpectedTypeError : Datum, IError
+    {
+        public string Reason { get; } = $"expected a type after '{Returns.symbol}'";
+        public ReadOnlyMemory<Token> Tokens { get; init; }
+    }
+
+    public class ExpectedValueError : Datum, IError
+    {
+        public string Reason { get; } = $"expected a value after '{Assign.symbol}'";
+        public ReadOnlyMemory<Token> Tokens { get; init; }
+    }
 }

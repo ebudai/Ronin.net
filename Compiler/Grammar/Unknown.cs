@@ -15,15 +15,10 @@ internal class Unknown : Statement
 
     public static new Unknown Parse(ref Parser current)
     {
-        Parser parser = current;
+        var tokens = Parser.Recover(ref current, current);
 
-        while (parser.Token is not Sentinel and not Terminal and not Separator and not Close)
-        {
-            parser.Advance();
-        }
-
-        if (ReferenceEquals(current.Token, parser.Token)) return null;
-
-        return new Unknown { Tokens = current.AdvanceTo(parser) };
+        // consuming nothing is not an unknown statement, it is no statement —
+        // and returning one anyway is what would stall the loop above it
+        return tokens.Length is 0 ? null : new Unknown { Tokens = tokens };
     }
 }

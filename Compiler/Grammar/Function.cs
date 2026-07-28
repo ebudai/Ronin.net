@@ -28,7 +28,7 @@ internal class Function : Member
 
         if (Identifier.Parse(ref parser) is not Identifier identifier)
         {
-            return new ExpectedIdentifierError { Tokens = current.AdvanceTo(parser) };
+            return new ExpectedIdentifierError { Tokens = Parser.Recover(ref current, parser) };
         }
 
         Modifiers modifiers = null;
@@ -36,12 +36,22 @@ internal class Function : Member
         if (parser.TryAdvance<Returns>())
         {
             modifiers = Modifiers.Parse(ref parser);
-            returns = Type.Unresolved.Parse(ref parser);
+
+            // A consumed «=>» commits. Leaving the type optional afterwards made
+            // «function f => {}» a function with no return type rather than one
+            // missing it, so the mistake became indistinguishable from the
+            // untyped form the language already has.
+            if (Type.Unresolved.Parse(ref parser) is not Type declared)
+            {
+                return new ExpectedTypeError { Tokens = Parser.Recover(ref current, parser) };
+            }
+
+            returns = declared;
         }
 
         if (Scope.Definition.Parse(ref parser) is not Scope definition)
         {
-            return new ExpectedDefinitionError { Tokens = current.AdvanceTo(parser) };
+            return new ExpectedDefinitionError { Tokens = Parser.Recover(ref current, parser) };
         }
 
         current = parser;
@@ -64,6 +74,12 @@ internal class Function : Member
     public class ExpectedDefinitionError : Function, IError
     {
         public string Reason { get; } = "expected definition";
+        public System.ReadOnlyMemory<Token> Tokens { get; init; }
+    }
+
+    public class ExpectedTypeError : Function, IError
+    {
+        public string Reason { get; } = $"expected a type after '{Lexicon.Returns.symbol}'";
         public System.ReadOnlyMemory<Token> Tokens { get; init; }
     }
 }

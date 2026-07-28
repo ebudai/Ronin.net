@@ -71,17 +71,17 @@ internal class Scope : Statement
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
-                return new ExpectedIterableError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedIterableError { Tokens = Parser.Recover(ref current, parser) };
             }
 
             if (parser.TryAdvance<Returns>() is false)
             {
-                return new ExpectedReturnsSymbolError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedReturnsSymbolError { Tokens = Parser.Recover(ref current, parser) };
             }
 
             if (Name.Parse(ref parser) is not Name name)
             {
-                return new ExpectedNameError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedNameError { Tokens = Parser.Recover(ref current, parser) };
             }
 
             if (Definition.Parse(ref parser) is not Scope definition) return null;
@@ -135,14 +135,14 @@ internal class Scope : Statement
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
-                return new ExpectedTargetError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedTargetError { Tokens = Parser.Recover(ref current, parser) };
             }
 
             var trigger = keyword.ToLexemes(parser.Token).Render();
 
             if (Definition.Parse(ref parser) is not Scope definition)
             {
-                return new ExpectedDefinitionError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedDefinitionError { Tokens = Parser.Recover(ref current, parser) };
             }
 
             current = parser;
@@ -175,16 +175,38 @@ internal class Scope : Statement
         {
             Parser parser = current;
             Statement definition = null;
+
             if (parser.TryAdvance<Returns>())
             {
-                definition = Value.Parse(ref parser);
+                // A consumed «=>» commits to a value. Falling through to the
+                // block form when none followed made «function f => {}» a
+                // function whose body is «{}» and whose «=>» simply evaporated.
+                //
+                // The error goes where the value should have been rather than in
+                // place of the definition itself: a scope is folded into its
+                // parent by its STATEMENTS, so a definition that is an error
+                // hands up an empty list and takes the error with it.
+                if (Value.Parse(ref parser) is not Value value)
+                {
+                    var missing = new ExpectedValueError { Tokens = Parser.Recover(ref current, parser) };
+                    return new Definition(new Scope { Statements = { missing } });
+                }
+
+                definition = value;
             }
+
             definition ??= Basic.Parse(ref parser);
 
             if (definition is null) return null;
 
             current = parser;
             return new(definition as Scope ?? new Scope { Statements = { definition } });
+        }
+
+        public class ExpectedValueError : Statement, IError
+        {
+            public string Reason { get; } = $"expected a value after '{Returns.symbol}'";
+            public ReadOnlyMemory<Token> Tokens { get; init; }
         }
     }
 
@@ -239,7 +261,7 @@ internal class Scope : Statement
 
             if (Member.Unresolved.Parse(ref parser) is not Member condition)
             {
-                return new ExpectedConditionError { Tokens = current.AdvanceTo(parser) };
+                return new ExpectedConditionError { Tokens = Parser.Recover(ref current, parser) };
             }
 
             var trigger = keyword.ToLexemes(parser.Token).Render();

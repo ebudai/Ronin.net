@@ -29,7 +29,19 @@ internal class Type : Member
 
         if (Identifier.Parse(ref parser) is not Identifier name) return null;
 
-        Algebra algebra = parser.TryAdvance<Assign>() ? Algebra.Unresolved.Parse(ref parser) : null;
+        Algebra algebra = null;
+        if (parser.TryAdvance<Assign>())
+        {
+            // A consumed «=» commits to an algebra, so «type T = ;» is a type
+            // whose definition was started and abandoned rather than one of the
+            // plain types the language also has.
+            if (Algebra.Unresolved.Parse(ref parser) is not Algebra declared)
+            {
+                return new ExpectedAlgebraError { Tokens = Parser.Recover(ref current, parser) };
+            }
+
+            algebra = declared;
+        }
 
         var definition = Definition.Parse(ref parser);
 
@@ -45,7 +57,13 @@ internal class Type : Member
 
     public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace>
     {
-        
+
+    }
+
+    public class ExpectedAlgebraError : Type, IError
+    {
+        public string Reason { get; } = $"expected a type after '{Assign.symbol}'";
+        public System.ReadOnlyMemory<Token> Tokens { get; init; }
     }
 
     public new class Unresolved : Type

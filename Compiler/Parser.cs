@@ -20,6 +20,46 @@ internal struct Parser
 
     public readonly bool IsNotFinished => Token is not Sentinel;
 
+    /// <summary>
+    ///     Whether the parser sits where a statement can be resumed from, which
+    ///     is as far as recovery ever scans.
+    /// </summary>
+    public readonly bool IsAtBoundary => Token is Sentinel or Terminal or Separator or Close;
+
+    /// <summary>
+    ///     The tokens an error node carries — everything the caller had not
+    ///     consumed, through to the end of the statement — with the caller left
+    ///     past all of it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     One place for what every error production had been doing slightly
+    ///     differently. Three spellings had grown up: advance the caller to where
+    ///     the local parser stopped, rescan from the caller with
+    ///     <see cref="Unknown"/>, or — in one case — scan a local copy and never
+    ///     assign the caller at all.
+    ///     </para>
+    ///     <para>
+    ///     That last one is why this exists rather than a convention. A
+    ///     production returning a node without consuming a token leaves its
+    ///     caller exactly where it was, so <c>Module.Parse</c> reparses the same
+    ///     token forever and appends a fresh error statement every time round:
+    ///     «var +;» was not a hang but an out-of-memory, and a one-line malformed
+    ///     file could take a machine down. Recovering and advancing the caller
+    ///     are the same act here, which is what makes the other thing
+    ///     unspellable.
+    ///     </para>
+    /// </remarks>
+    public static ReadOnlyMemory<Token> Recover(ref Parser current, Parser stopped)
+    {
+        // to the end of the statement, so that what failed is reported once and
+        // the next parse starts at a boundary rather than inside the wreckage
+        while (stopped.IsAtBoundary is false) stopped.Advance();
+
+        return current.AdvanceTo(stopped);
+    }
+
     public Module Parse() => Module.Parse(ref this);
 
     public List<T> ParseRepeating<T>() where T : IParsable<T>
