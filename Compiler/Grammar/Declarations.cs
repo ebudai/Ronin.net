@@ -35,13 +35,37 @@ internal sealed class Declarations
     public IReadOnlyList<string> Problems => problems;
 
     /// <summary>
-    ///     The declarations of one scope. Nested scopes are not descended into:
-    ///     what an inner scope can see of an outer one is a scoping question that
-    ///     has not been settled, and guessing at it here would bake in an answer.
+    ///     The declarations of one scope, folded into everything the enclosing
+    ///     scopes declared.
     /// </summary>
-    public static Declarations Of(IEnumerable<Statement> statements)
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Inward yes, outward no. An inner scope sees every enclosing
+    ///     declaration at any position — the pre-pass already makes order
+    ///     irrelevant within a scope and nesting inherits that — while nothing an
+    ///     inner scope declares is visible to a sibling or a parent. That
+    ///     direction matters more here than in most languages, because a pattern
+    ///     declaration is a grammar production: escaping ones would let a nested
+    ///     function change the grammar of its siblings' bodies, and scopes would
+    ///     have to resolve inside-out.
+    ///     </para>
+    ///     <para>
+    ///     The result is flat. Shadowing being an error is what allows that, and
+    ///     it is why a lookup stays one probe rather than a walk up N levels.
+    ///     </para>
+    /// </remarks>
+    public static Declarations Of(IEnumerable<Statement> statements, Declarations enclosing = null)
     {
         Declarations declarations = new();
+
+        if (enclosing is not null)
+        {
+            declarations.Symbols.Merging(enclosing.Symbols);
+            declarations.inherited.UnionWith(enclosing.Symbols.Names);
+
+            foreach (var (pattern, blocks) in enclosing.Blocks) declarations.Blocks[pattern] = blocks;
+        }
 
         foreach (var statement in statements) declarations.Declare(statement);
 
@@ -82,13 +106,32 @@ internal sealed class Declarations
     {
         var name = member.Identifier.Words;
 
+        if (name.StartsWith(SymbolTable.Shadowed, System.StringComparison.Ordinal))
+        {
+            problems.Add($"«{name}» begins with the reserved word «{SymbolTable.Old}», which is " +
+                         "injected rather than declared. Respell it.");
+            return;
+        }
+
+        if (Symbols.Names.Contains(name))
+        {
+            problems.Add(
+                $"«{name}» is already declared {Where(name)}. Shadowing is not allowed, because " +
+                "reading a value has to tell you where it came from, and the compiler cannot flag " +
+                "the ambiguity when both readings are legal. Rename this one.");
+            return;
+        }
+
         if (member is Datum { Mutability: Constant }) Symbols.Constants(name);
         else if (member is Datum) Symbols.Declaring(name);
         else Symbols.WithNames(name);
     }
 
+    private string Where(string name) => inherited.Contains(name) ? "in an enclosing scope" : "in this scope";
+
     /// <summary>The parameter names of each declared pattern, by hole.</summary>
     public Dictionary<Compiler.Pattern, IReadOnlyList<IReadOnlyList<string>>> Blocks { get; } = [];
 
     private readonly List<string> problems = [];
+    private readonly HashSet<string> inherited = [];
 }

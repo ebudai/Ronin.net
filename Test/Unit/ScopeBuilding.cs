@@ -94,6 +94,113 @@ public class ScopeBuilding
         Assert.Contains("1 parameter(s) this pass cannot name", problem);
     }
 
+    private static Declarations Nested(string outer, string inner)
+    {
+        Lexer lexer = new(outer);
+        Parser parser = new(lexer.Lex());
+        var enclosing = Declarations.Of(parser.Parse().Scopes[0].Statements);
+
+        Lexer within = new(inner);
+        Parser nested = new(within.Lex());
+        return Declarations.Of(nested.Parse().Scopes[0].Statements, enclosing);
+    }
+
+    [Fact(DisplayName = "an inner scope sees the enclosing one, flattened")]
+    public void AnInnerScopeSeesTheEnclosingOneFlattened()
+    {
+        // Inward yes: a lookup is one probe against a merged table rather than a
+        // walk up the chain, which is what banning shadowing buys.
+        var declared = Nested("var base price => Number;", "var discount => Number;");
+
+        Assert.Empty(declared.Problems);
+        Assert.Equal(["base price", "discount", "old base price", "old discount"],
+                     declared.Symbols.Names.Order());
+
+        Assert.Equal("(«base price» - «discount»)",
+                     new Resolver(declared.Symbols).Resolve(Lexemes.Lex("base price - discount")).Reading);
+    }
+
+    [Fact(DisplayName = "an inner scope inherits patterns and constants too")]
+    public void AnInnerScopeInheritsPatternsAndConstantsToo()
+    {
+        // everything the enclosing scope declared, not only its cells: the inner
+        // scope can call the outer function and read the outer constant, and the
+        // constant is still known to be one
+        var declared = Nested("""
+            constant pi => Number;
+            function area of (radius => Number) { return radius; }
+            """,
+            "var wheel => Number;");
+
+        Assert.Empty(declared.Problems);
+
+        var pattern = Assert.Single(declared.Symbols.Patterns);
+        Assert.Equal([["radius"]], declared.Blocks[pattern]);
+
+        Assert.Equal("area of «wheel»",
+                     new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);
+
+        // inherited constants stay constants, so «old pi» still explains itself
+        Assert.Contains("is a constant", declared.Symbols.Explain("old pi"));
+    }
+
+    [Fact(DisplayName = "nothing an inner scope declares escapes it")]
+    public void NothingAnInnerScopeDeclaresEscapesIt()
+    {
+        // outward no, because a pattern declaration is a grammar production and
+        // an escaping one would change the grammar of its siblings' bodies
+        Lexer lexer = new("var outer thing => Number;");
+        Parser parser = new(lexer.Lex());
+        var enclosing = Declarations.Of(parser.Parse().Scopes[0].Statements);
+
+        Lexer within = new("var inner thing => Number;");
+        Parser nested = new(within.Lex());
+        Declarations.Of(nested.Parse().Scopes[0].Statements, enclosing);
+
+        Assert.DoesNotContain("inner thing", enclosing.Symbols.Names);
+    }
+
+    [Fact(DisplayName = "shadowing an enclosing name is rejected where it is written")]
+    public void ShadowingAnEnclosingNameIsRejectedWhereItIsWritten()
+    {
+        var declared = Nested("var total => Number;", "var total => Number;");
+
+        var problem = Assert.Single(declared.Problems);
+        Assert.Contains("«total» is already declared in an enclosing scope", problem);
+
+        // and a repeat within one scope says so differently
+        var twice = Of("var total => Number; var total => Number;");
+        Assert.Contains("in this scope", Assert.Single(twice.Problems));
+    }
+
+    [Fact(DisplayName = "a name may not be spelled like an injected one")]
+    public void ANameMayNotBeSpelledLikeAnInjectedOne()
+    {
+        var declared = Of("var old total => Number;");
+
+        Assert.Contains("reserved word «old»", Assert.Single(declared.Problems));
+    }
+
+    [Fact(DisplayName = "an inner pattern that breaks an outer name is the one rejected")]
+    public void AnInnerPatternThatBreaksAnOuterNameIsTheOneRejected()
+    {
+        // R5 applies to the merged table, so an inner declaration can invalidate
+        // an outer one — and the later declaration is the site of the mistake.
+        //
+        // Glue is the literal words AFTER the first hole, so «send (_) to (_)»
+        // makes «to» glue while «compute total for (_)» makes nothing glue at
+        // all: every word of it is anchor.
+        var declared = Nested("var hello to alice => Number;",
+                              "function send (x => Number) to (y => Number) { return x; }");
+
+        var complaint = Assert.Single(declared.Symbols.Validate(),
+                                      problem => problem.Contains("«hello to alice»"));
+
+        Assert.Contains("«to»", complaint);
+        Assert.Contains("«send (_) to (_)»", complaint);
+        Assert.Contains("later declaration", complaint);
+    }
+
     [Fact(DisplayName = "a type is a name that holds no value")]
     public void ATypeIsANameThatHoldsNoValue()
     {

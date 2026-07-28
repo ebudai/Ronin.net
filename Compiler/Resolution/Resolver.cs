@@ -484,6 +484,27 @@ internal sealed class SymbolTable
         ["/"] = new(20),
     };
 
+    /// <summary>
+    ///     Folds an enclosing scope in, so an inner scope is a flat table rather
+    ///     than a chain to walk.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     This is what banning shadowing buys. The resolver does a lookup per
+    ///     position per span, and a merged table keeps each one a single probe
+    ///     instead of a walk up N levels — so the table is built once on entering
+    ///     a scope and the DP never learns that nesting exists.
+    /// </remarks>
+    public SymbolTable Merging(SymbolTable enclosing)
+    {
+        foreach (var name in enclosing.Names) Names.Add(name);
+        foreach (var name in enclosing.constants) constants.Add(name);
+
+        Patterns.AddRange(enclosing.Patterns);
+
+        return this;
+    }
+
     /// <summary>The scope as it is, without the injection a declaration performs.</summary>
     public SymbolTable WithNames(params string[] names)
     {
@@ -621,8 +642,13 @@ internal sealed class SymbolTable
         {
             var words = name.Split(' ');
             if (words.Length < 2) continue;
-            foreach (var word in words.Where(glue.Contains))
-                yield return $"name «{name}» contains pattern glue «{word}»";
+            foreach (var pattern in Patterns.Where(p => p.Glue.Any(words.Contains)))
+            {
+                var word = pattern.Glue.First(words.Contains);
+                yield return $"name «{name}» contains «{word}», which is glue in «{pattern}». " +
+                             "One of the two has to be respelled, and it is the later declaration " +
+                             "that has to give way.";
+            }
         }
     }
 }
