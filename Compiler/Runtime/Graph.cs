@@ -53,6 +53,12 @@ internal sealed class Node
     /// <summary>Set while the body runs, so re-entering it is a detected cycle.</summary>
     public bool Evaluating { get; set; }
 
+    /// <summary>When this node's value last actually changed.</summary>
+    public long Changed { get; set; }
+
+    /// <summary>Where the clock stood when its body last ran.</summary>
+    public long Evaluated { get; set; }
+
     /// <summary>
     ///     What this node read last time it ran. Recorded during evaluation, never
     ///     read off the tree.
@@ -319,6 +325,7 @@ internal sealed class Graph(int cascades = 64)
             if (Equals(shadow.Value, source.Value)) continue;
 
             shadow.Value = source.Value;
+            shadow.Changed = ++clock;
             MarkDirty(shadow);
         }
 
@@ -355,6 +362,7 @@ internal sealed class Graph(int cascades = 64)
             if (Equals(node.Value, value)) continue;
 
             node.Value = value;
+            node.Changed = ++clock;
             MarkDirty(node);
         }
 
@@ -426,6 +434,17 @@ internal sealed class Graph(int cascades = 64)
 
     private void Recompute(Node node)
     {
+        // CUTOFF. Dirty means "something upstream might have changed", not "did".
+        // A coarse value derived from a fine one changes far less often than its
+        // source, and without this every intermediate that recomputes to the same
+        // value wakes everything below it — the wave runs to the leaves whether
+        // or not anything moved.
+        if (Settled(node))
+        {
+            node.Dirty = false;
+            return;
+        }
+
         // Clear the old edges first, or a stale dependency keeps the node dirty
         // forever once a conditional switches branches.
         foreach (var dependency in node.Dependencies) nodes[dependency].Dependents.Remove(node.Name);
@@ -467,9 +486,50 @@ internal sealed class Graph(int cascades = 64)
 
         if (adopted is not null && value is not Fault) value = adopted;
 
+        // the clock moves only on a real change, which is what lets a dependent
+        // compare its own last run against it
+        if (Equals(node.Value, value) is false) node.Changed = ++clock;
+
         node.Value = value;
+        node.Evaluated = clock;
         node.Dirty = false;
         trace.Add(node.Name);
+    }
+
+    /// <summary>
+    ///     Whether everything this node read is still what it was, so its cached
+    ///     value stands and its body need not run.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Bringing each dependency up to date first is what makes the answer
+    ///     trustworthy — a dependency that is itself only dirty has to settle
+    ///     before its stamp means anything.
+    ///     </para>
+    ///     <para>
+    ///     Equality here is the language's, which is cheap for a scalar and O(n)
+    ///     for an array. When array-valued cells arrive, cutting off on a full
+    ///     comparison can cost more than the recompute it saves, and they will
+    ///     want a digest or no cutoff at all.
+    ///     </para>
+    /// </remarks>
+    private bool Settled(Node node)
+    {
+        // never having run is not the same as having read nothing
+        if (node.Dependencies.Count is 0) return false;
+
+        foreach (var name in node.Dependencies)
+        {
+            // Read rather than Recompute: it settles a dirty dependency and
+            // still answers for a cycle, and no edge is recorded because this
+            // runs before the node is pushed onto the reading stack.
+            Read(name);
+
+            if (nodes[name].Changed > node.Evaluated) return false;
+        }
+
+        return true;
     }
 
     private void MarkDirty(Node node)
@@ -522,6 +582,7 @@ internal sealed class Graph(int cascades = 64)
     private int handling;
     private readonly List<string> trace = [];
     private readonly List<string> fired = [];
+    private long clock;
 }
 
 /// <summary>

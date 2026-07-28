@@ -88,6 +88,60 @@ public class Reactions
         Assert.Contains("only its body may set it", violation.Message);
     }
 
+    [Fact(DisplayName = "a value that recomputes unchanged stops the wave")]
+    public void AValueThatRecomputesUnchangedStopsTheWave()
+    {
+        // Dirty means "something upstream might have changed", not "did". A
+        // coarse value derived from a fine one changes far less often than its
+        // source, and without cutoff every intermediate that recomputes to the
+        // same value wakes everything below it.
+        Graph graph = new();
+        graph.Var("mouse", 0d);
+        graph.Let("coarse", scope => Math.Floor((double)scope.Read("mouse") / 10d));
+
+        var ran = 0;
+        graph.Let("expensive", scope =>
+        {
+            ++ran;
+            return Multiply(scope.Read("coarse"), 2d);
+        });
+
+        Assert.Equal(0d, graph.Read("expensive"));
+        Assert.Equal(1, ran);
+
+        // fifty-nine one-pixel moves, across which «coarse» changes five times
+        for (var pixel = 1; pixel <= 59; ++pixel)
+        {
+            graph.Write("mouse", (double)pixel);
+            graph.Step();
+            graph.Read("expensive");
+        }
+
+        Assert.Equal(10d, graph.Read("expensive"));
+
+        // «coarse» recomputed every step and had to; «expensive» ran only when
+        // its own input moved
+        Assert.Equal(6, ran);
+    }
+
+    [Fact(DisplayName = "cutoff does not outlive a real change")]
+    public void CutoffDoesNotOutliveARealChange()
+    {
+        // the failure mode of a stamp scheme is a node that settles and then
+        // never wakes again, so the same graph is driven past several changes
+        Graph graph = new();
+        graph.Var("x", 0d);
+        graph.Let("doubled", scope => Multiply(scope.Read("x"), 2d));
+        graph.Let("quadrupled", scope => Multiply(scope.Read("doubled"), 2d));
+
+        foreach (var value in new[] { 1d, 1d, 2d, 2d, 3d })
+        {
+            graph.Write("x", value);
+            graph.Step();
+            Assert.Equal(value * 4d, graph.Read("quadrupled"));
+        }
+    }
+
     // 3 -------------------------------------------------------------------
 
     [Fact(DisplayName = "dependencies are recorded, never read off the tree")]
