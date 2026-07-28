@@ -22,6 +22,31 @@ public class Events
     private static readonly Func<object, object, object> Exceeds
         = Builtin.Lift((left, right) => (double)left > (double)right);
 
+    [Fact(DisplayName = "a rejected when leaves the graph as it found it")]
+    public void ARejectedWhenLeavesTheGraphAsItFoundIt()
+    {
+        // The trigger was recorded before Let had a chance to reject the name, so
+        // a duplicate declaration threw AND replaced the original's body and
+        // mode. The declaration looked refused and the graph had already taken
+        // it: firing the original condition ran the code that had just been
+        // rejected.
+        Graph graph = new();
+        graph.Var("armed", false);
+        List<string> ran = [];
+
+        graph.When("on armed", scope => scope.Read("armed"), _ => ran.Add("original"));
+
+        Assert.Throws<InitialisationFailure>(
+            () => graph.When("on armed", scope => scope.Read("armed"), _ => ran.Add("rejected"),
+                             TriggerMode.Changes));
+
+        graph.Prime();
+        graph.Write("armed", true);
+        graph.Step();
+
+        Assert.Equal(["original"], ran);
+    }
+
     // 1 -------------------------------------------------------------------
 
     [Fact(DisplayName = "a condition fires on the edge, not while it holds")]

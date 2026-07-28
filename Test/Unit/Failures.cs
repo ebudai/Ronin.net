@@ -125,6 +125,64 @@ public class Failures
         Assert.Equal(0d, graph.Read("correct"));
     }
 
+    [Fact(DisplayName = "a defect in an effect body does not end the session")]
+    public void ADefectInAnEffectBodyDoesNotEndTheSession()
+    {
+        // A let body's defect became a Fault and the program survived; an effect
+        // body was called straight and its exception left through Step. Always
+        // running has to mean the runtime, not only the pure half of it.
+        Graph graph = new();
+        graph.Var("armed", false);
+        graph.Var("log", 0d);
+        graph.When("on armed", scope => scope.Read("armed"), _ => throw new InvalidOperationException("bug"));
+        graph.When("also on armed", scope => scope.Read("armed"), scope => scope.Write("log", 1d));
+        graph.Prime();
+
+        graph.Write("armed", true);
+        graph.Step();
+
+        var fault = Assert.Single(graph.Faults);
+        Assert.Contains("«on armed»", fault.Message);
+        Assert.Contains("InvalidOperationException", fault.Message);
+
+        // the other body still ran, because one bad when is not the session
+        Assert.Equal(1d, graph.Read("log"));
+
+        // and the fault belongs to the step that produced it
+        graph.Write("armed", false);
+        graph.Step();
+        Assert.Empty(graph.Faults);
+    }
+
+    [Fact(DisplayName = "a failed effect body applies none of its writes")]
+    public void AFailedEffectBodyAppliesNoneOfItsWrites()
+    {
+        // Landing the writes queued before the failure shows the graph a state no
+        // body ever intended, which is the same hazard settling before firing
+        // exists to prevent. Unlike a let, an effect body cannot be run again, so
+        // there is nothing to recover by keeping them.
+        Graph graph = new();
+        graph.Var("armed", false);
+        graph.Var("first", 0d);
+        graph.Var("second", 0d);
+        graph.When("on armed", scope => scope.Read("armed"), scope =>
+        {
+            scope.Write("first", 1d);
+            throw new InvalidOperationException("halfway");
+        });
+        graph.When("also on armed", scope => scope.Read("armed"), scope => scope.Write("second", 2d));
+        graph.Prime();
+
+        graph.Write("armed", true);
+        graph.Step();
+
+        Assert.Single(graph.Faults);
+
+        // all or none — and a body that succeeded in the same round keeps its own
+        Assert.Equal(0d, graph.Read("first"));
+        Assert.Equal(2d, graph.Read("second"));
+    }
+
     [Fact(DisplayName = "handling protects the expression it wraps and nothing deeper")]
     public void HandlingProtectsTheExpressionItWrapsAndNothingDeeper()
     {

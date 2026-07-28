@@ -156,6 +156,31 @@ public class Resolutions
                 ["send (the report today)", "send (the report) today", "send the report (today)"]);
     }
 
+    [Fact(DisplayName = "a group of ties is still a tie, however many of them there are")]
+    public void AGroupOfTiesIsStillATieHoweverManyOfThemThereAre()
+    {
+        // Match and Expression saturated every multiplication; Group saturated
+        // once, at the end, over a raw product across its parts. Sixty-three
+        // independently ambiguous parts reached 2^63, which wraps to negative,
+        // reads as fewer than two derivations, and returns a genuine tie as
+        // Resolved — a statement with sixty-three ambiguities each silently
+        // decided.
+        SymbolTable symbols = new();
+        symbols.WithNames("list", "of list").WithPatterns("sum _", "sum of _");
+
+        Resolver resolver = new(symbols);
+
+        // 63 is where it wrapped, and one is the control. The span between them
+        // costs seconds rather than milliseconds, which is finding 17 showing
+        // through: the table is cubic in the token count and allocated eagerly.
+        foreach (var parts in (int[])[1, 63])
+        {
+            var group = "(" + string.Join(", ", Enumerable.Repeat("sum of list", parts)) + ")";
+
+            Assert.Equal("Ambiguous", resolver.Resolve(group).Kind.ToString());
+        }
+    }
+
     private static void Repairs(string[] names, string[] patterns, string ambiguous, string[] repairs)
     {
         SymbolTable symbols = new();

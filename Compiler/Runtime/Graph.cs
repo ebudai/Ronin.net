@@ -130,8 +130,15 @@ internal sealed class Graph(int cascades = 64)
     public Node When(string name, Func<Graph, object> trigger, Action<Graph> body,
                      TriggerMode mode = TriggerMode.BecomesTrue)
     {
+        // Declare first. Recording the trigger before Let had a chance to reject
+        // the name meant a refused duplicate still replaced the original's body
+        // and mode: the declaration threw, and firing the original condition
+        // afterwards ran the code that had just been rejected.
+        var node = Let(name, trigger);
+
         whens[name] = new Trigger(body, mode);
-        return Let(name, trigger);
+
+        return node;
     }
 
     /// <summary>
@@ -172,6 +179,14 @@ internal sealed class Graph(int cascades = 64)
     /// <summary>What fired during the last <see cref="Step"/>, in order.</summary>
     public IReadOnlyList<string> Fired => fired;
 
+    /// <summary>
+    ///     Effect bodies that failed during the last <see cref="Step"/>. A
+    ///     <c>let</c> keeps its fault as its value, where the next reader finds
+    ///     it; a <c>when</c> has no value and no reader, so its faults collect
+    ///     here instead of vanishing.
+    /// </summary>
+    public IReadOnlyList<Fault> Faults => faults;
+
     /// <summary>What recomputed since the last <see cref="Step"/> or <see cref="Forget"/>.</summary>
     public IReadOnlyList<string> Trace => trace;
 
@@ -208,6 +223,8 @@ internal sealed class Graph(int cascades = 64)
                 "A constant is evaluated once, so that error can never clear and every " +
                 "reader would inherit it permanently. Fix the initialiser, or make it a " +
                 "let so it can recover.");
+
+        Unique(name);
 
         constants[name] = value;
     }
@@ -306,7 +323,9 @@ internal sealed class Graph(int cascades = 64)
         if (reading.Count is not 0)
             throw new PurityViolation($"«{reading[^1].Name}» is a let and may not assign «{name}»");
 
-        pending[name] = value;
+        // staged while a when body is running, so that a defect part way through
+        // it takes every write with it rather than landing half of them
+        if (staged is null) pending[name] = value; else staged[name] = value;
     }
 
     /// <summary>
@@ -331,6 +350,7 @@ internal sealed class Graph(int cascades = 64)
     {
         trace.Clear();
         fired.Clear();
+        faults.Clear();
 
         // Before any pending write applies and once for the whole turn, so «old
         // x» is the previous step's value consistently — including across every
@@ -417,10 +437,47 @@ internal sealed class Graph(int cascades = 64)
         return triggered;
     }
 
+    /// <summary>
+    ///     Runs one <c>when</c> body, staging its writes so that a defect inside
+    ///     it discards them all.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     A <c>let</c> body's defect became a <see cref="Fault"/> and the session
+    ///     survived it; an effect body was called straight and its exception left
+    ///     through <see cref="Step"/>, ending the program. Always-running has to
+    ///     mean the runtime and not only the pure half of it.
+    ///     </para>
+    ///     <para>
+    ///     Landing the writes queued before the failure would show the graph a
+    ///     state no body ever intended — the same hazard that settling before
+    ///     firing exists to prevent — and unlike a <c>let</c>, an effect body
+    ///     cannot simply be run again, so there is nothing to be recovered by
+    ///     keeping them. All or none, and the fault says which body.
+    ///     </para>
+    /// </remarks>
     private void Fire(string name)
     {
         fired.Add(name);
-        whens[name].Body(this);
+
+        staged = [];
+
+        try
+        {
+            whens[name].Body(this);
+
+            foreach (var (cell, value) in staged) pending[cell] = value;
+        }
+        catch (Exception defect)
+        {
+            faults.Add(new Fault($"«{name}» failed and none of its writes were applied: " +
+                                 $"{defect.GetType().Name}: {defect.Message}"));
+        }
+        finally
+        {
+            staged = null;
+        }
     }
 
     private RunawayCascade Runaway(int rounds)
@@ -435,17 +492,39 @@ internal sealed class Graph(int cascades = 64)
 
     private Node Declare(Node node)
     {
-        // Replacing silently leaves every existing edge pointing at the node that
-        // was replaced, which is a graph that reads as intact and is not. The
-        // resolver already rejects a name declared twice; this is the same rule
-        // one layer down, where it can still be reached directly.
-        if (nodes.ContainsKey(node.Name))
-            throw new InitialisationFailure(
-                $"«{node.Name}» is already declared. Redeclaring would leave the edges of " +
-                "the old node pointing at nothing that is read again. Rename one of them.");
+        Unique(node.Name);
 
         nodes[node.Name] = node;
         return node;
+    }
+
+    /// <summary>
+    ///     One name, one declaration — across both stores.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Replacing a node silently leaves every existing edge pointing at the
+    ///     node that was replaced, which is a graph that reads as intact and is
+    ///     not. The resolver already rejects a name declared twice; this is the
+    ///     same rule one layer down, where it can still be reached directly.
+    ///     </para>
+    ///     <para>
+    ///     Spanning both stores is what a constant not being a node costs. Only
+    ///     nodes were checked, and <see cref="Read"/> consults constants first —
+    ///     so a constant declared over a var shadowed it outright, with the node
+    ///     and all its edges still there and no longer reachable by name.
+    ///     Declaring a node over a constant is the same hole from the other side.
+    ///     </para>
+    /// </remarks>
+    private void Unique(string name)
+    {
+        if (nodes.ContainsKey(name) is false && constants.ContainsKey(name) is false) return;
+
+        throw new InitialisationFailure(
+            $"«{name}» is already declared. A second declaration would leave the first " +
+            "unreachable by name while its edges still exist — and a constant hides a node " +
+            "outright, because a read finds the constant first. Rename one of them.");
     }
 
     private void Recompute(Node node)
@@ -610,10 +689,12 @@ internal sealed class Graph(int cascades = 64)
     private readonly Dictionary<Node, Node> shadows = [];
     private readonly Dictionary<string, Trigger> whens = [];
     private readonly Dictionary<string, object> pending = [];
+    private Dictionary<string, object> staged;
     private readonly List<Node> reading = [];
     private readonly List<Adoption> adopting = [];
     private readonly List<string> trace = [];
     private readonly List<string> fired = [];
+    private readonly List<Fault> faults = [];
     private long clock;
 }
 

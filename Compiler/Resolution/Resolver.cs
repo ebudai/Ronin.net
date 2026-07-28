@@ -177,12 +177,19 @@ internal sealed class Resolver
             if (expressions[start, end, 0].TryBest(out var part) is false) return;
 
             cost += part.Cost;
-            count *= part.Count;
+
+            // Saturate every step, as Match and Expression already do. Saturating
+            // only at the end left a raw product across the parts, and a group of
+            // 63 independently ambiguous parts reached 2^63 — which wraps to
+            // negative, is duly reported as fewer than two derivations, and
+            // returns a genuine tie as Resolved.
+            count = Cell.Saturating(count * part.Count);
+
             parts.Add(part.Node);
             start = end + 1;
         }
 
-        cell.Offer(1 + cost, new Node.Group(parts), Cell.Saturating(count));
+        cell.Offer(1 + cost, new Node.Group(parts), count);
     }
 
     private static bool AllWords(IReadOnlyList<Lexeme> lexemes, int i, int j)

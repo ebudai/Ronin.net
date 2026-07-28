@@ -45,6 +45,29 @@ public class Constants
         Assert.Throws<KeyNotFoundException>(() => graph["pi"]);
     }
 
+    [Fact(DisplayName = "a name is declared once across both stores")]
+    public void ANameIsDeclaredOnceAcrossBothStores()
+    {
+        // A constant is not a node, and only nodes were checked — so a constant
+        // declared over a var hid it outright: Read consults constants first, and
+        // the node and all its edges were still there, no longer reachable by
+        // name. Not a value that lost a race, a graph with a piece of it walled
+        // off.
+        Graph over = new();
+        over.Var("x", 1d);
+
+        Assert.Throws<InitialisationFailure>(() => over.Constant("x", 2d));
+        Assert.Equal(1d, over.Read("x"));
+
+        // and the same hole from the other side
+        Graph under = new();
+        under.Constant("pi", 3.14d);
+
+        Assert.Throws<InitialisationFailure>(() => under.Var("pi", 3d));
+        Assert.Throws<InitialisationFailure>(() => under.Constant("pi", 3d));
+        Assert.Equal(3.14d, under.Read("pi"));
+    }
+
     [Fact(DisplayName = "a constant whose initialiser failed stops the program")]
     public void AConstantWhoseInitialiserFailedStopsTheProgram()
     {
