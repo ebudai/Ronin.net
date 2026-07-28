@@ -100,10 +100,19 @@ internal sealed class Graph(int cascades = 64)
     /// </summary>
     ///
     /// <remarks>
+    ///     <para>
     ///     A <c>when</c> is a <c>let</c> nobody reads and that is allowed to have
     ///     effects. Nobody reading it is exactly why it cannot be pulled. The
     ///     trigger is an ordinary derived node — it caches, it tracks
     ///     dependencies, it is pulled during settle — and the body hangs off it.
+    ///     </para>
+    ///     <para>
+    ///     A <see cref="TriggerMode.BecomesTrue"/> trigger is a condition and so
+    ///     is a boolean, which the frontend is responsible for: a condition that
+    ///     is not one is a type error and has no meaning to invent here. The one
+    ///     value it can hold that is neither true nor false is a failure, and
+    ///     that is handled where it arises rather than guessed at.
+    ///     </para>
     /// </remarks>
     public Node When(string name, Func<Graph, object> trigger, Action<Graph> body,
                      TriggerMode mode = TriggerMode.BecomesTrue)

@@ -226,25 +226,32 @@ public class Events
 
     // the pieces the scenarios exercise only in passing ---------------------
 
-    [Fact(DisplayName = "anything that is not true can rise to true")]
-    public void AnythingThatIsNotTrueCanRiseToTrue()
+    [Fact(DisplayName = "a condition that recovers from failure rises")]
+    public void AConditionThatRecoversFromFailureRises()
     {
-        // «becomes true» is an edge on a condition, so the edge is from not-true
-        // to true rather than from false to true. A value that is not a boolean
-        // has not become true and cannot masquerade as though it had — whether a
-        // non-boolean condition should be a louder error is open.
+        // A condition is a boolean by construction, so the edge would be false to
+        // true — except that a failed condition is neither, and its failure
+        // becomes the baseline. Recovering to true is therefore an edge from
+        // not-true to true, and it fires. The alternative swallows the first real
+        // crossing after any upstream failure, which is the worst possible
+        // moment to go quiet.
         Graph graph = new();
-        graph.Var("step", 0d);
-        graph.Var("fired", 0d);
-        graph.When("odd shape",
-                   scope => (double)scope.Read("step") is 0d ? "not a condition" : (object)true,
-                   scope => scope.Write("fired", Add(scope.Read("fired"), 1d)));
-        graph.Prime();
+        graph.Var("divisor", 0d);
+        graph.Var("alarms", 0d);
+        graph.Let("ratio", scope => (double)scope.Read("divisor") is 0d
+                                  ? new Error("divide by zero")
+                                  : 100d / (double)scope.Read("divisor"));
+        graph.When("ratio is small",
+                   scope => Exceeds(10d, scope.Read("ratio")),
+                   scope => scope.Write("alarms", Add(scope.Read("alarms"), 1d)));
 
-        graph.Write("step", 1d);
+        graph.Prime();
+        Assert.IsType<Error>(graph.Read("ratio"));
+
+        graph.Write("divisor", 50d);
         graph.Step();
 
-        Assert.Equal(1d, graph.Read("fired"));
+        Assert.Equal(1d, graph.Read("alarms"));
     }
 
     [Fact(DisplayName = "a failing trigger fires nothing")]
