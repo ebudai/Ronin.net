@@ -143,6 +143,9 @@ for the prescribed change. The applicable measurement:
 | 16 | 100 | 0.106 | 0.422 | 0.25× |
 | 256 | 1000 | 1.581 | 1.185 | 1.33× |
 
+Measured by `write_path.c`, and independently reproduced on other hardware: the
+absolute microseconds differ, the ratios do not.
+
 The map wins by 4–50× at realistic write counts, and the reason is structural: a
 global index flip has to carry every unwritten var across the flip, so the step
 is O(vars) where the map is O(writes). A frame writes a handful of sources and
