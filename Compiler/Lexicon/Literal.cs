@@ -74,9 +74,16 @@ internal class Text : Literal
     {
         if (lexer.IsEmpty || lexer[0] is not TextDelimiter.symbol) return null;
 
+        var escaped = false;
+
         for (var i = 1; i < lexer.Length; ++i)
         {
-            if (lexer[i] is TextDelimiter.symbol && lexer[i - 1] is not '\\') return new Text { Memory = lexer.AdvanceBy(i + 1) };
+            // Counting the run matters: «\\» is an escaped backslash, so the quote
+            // after it closes the text. Looking only at the previous character
+            // read that as an escaped quote and ran on to the next one.
+            if (escaped) { escaped = false; continue; }
+            if (lexer[i] is '\\') { escaped = true; continue; }
+            if (lexer[i] is TextDelimiter.symbol) return new Text { Memory = lexer.AdvanceBy(i + 1) };
         }
 
         return null;

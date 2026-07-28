@@ -80,6 +80,16 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
     [ExcludeFromCodeCoverage] public void CopyTo(TElement[] array, int arrayIndex) => Values.CopyTo(array, arrayIndex);
     [ExcludeFromCodeCoverage] public bool Remove(TElement item) => Values.Remove(item);
     [ExcludeFromCodeCoverage] public override bool Equals(object obj) => (obj as IEnumerable<TElement>)?.SequenceEqual(Values) ?? false;
-    [ExcludeFromCodeCoverage] public override int GetHashCode() => Values.GetHashCode();
+    /// <remarks>
+    ///     Over the elements, because <see cref="Equals"/> compares them. The
+    ///     backing list's identity hash meant equal aggregates hashed differently.
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
+    public override int GetHashCode()
+    {
+        System.HashCode hash = new();
+        foreach (var value in Values) hash.Add(value);
+        return hash.ToHashCode();
+    }
     #endregion
 }

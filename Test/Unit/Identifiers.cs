@@ -107,13 +107,20 @@ public class Identifiers : ParsingTests
         Assert.Equal(first.Identifier[0].AsName.Tokens.Span[0].Memory, second.Identifier[0].AsName.Tokens.Span[0].Memory);
     }
 
+    /// <summary>A string with the same characters and a different identity.</summary>
+    private static string Rebuilt(string text) => new(text.ToCharArray());
+
     [Fact(DisplayName = "names compare by their words")]
     public void NamesCompareByTheirWords()
     {
         // Two occurrences of a name in different statements are different token
         // objects spelling the same thing, and resolution has to see them as one.
+        // Built from distinct string instances on purpose. This asserted hash
+        // equality and passed by accident while the hash compared the backing
+        // memory object rather than its characters — interning arranged for two
+        // names written as the same literal to share one instance.
         Name first = new() { Tokens = new[] { Word("cash"), Word("on"), Word("hand") } };
-        Name same = new() { Tokens = new[] { Word("cash"), Word("on"), Word("hand") } };
+        Name same = new() { Tokens = new[] { Word(Rebuilt("cash")), Word(Rebuilt("on")), Word(Rebuilt("hand")) } };
         Name shorter = new() { Tokens = new[] { Word("cash"), Word("on") } };
         Name different = new() { Tokens = new[] { Word("cash"), Word("in"), Word("hand") } };
 
