@@ -2,10 +2,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Ronin.Runtime;
 
 internal enum NodeKind { Var, Let }
+
+/// <summary>
+///     When a <c>when</c> fires. Edge triggered in both cases, never level
+///     triggered: firing every step while a condition merely holds is almost
+///     never wanted and is very hard to notice you have.
+/// </summary>
+internal enum TriggerMode
+{
+    /// <summary>On the false to true edge only.</summary>
+    BecomesTrue,
+
+    /// <summary>Whenever the value differs from the last settled one.</summary>
+    Changes,
+}
 
 /// <summary>
 ///     One <c>var</c>, <c>let</c> or resource in the dependency graph.
@@ -65,7 +81,7 @@ internal sealed class Node
 ///     It is enforced here, not assumed.
 ///     </para>
 /// </remarks>
-internal sealed class Graph
+internal sealed class Graph(int cascades = 64)
 {
     /// <summary>
     ///     A source. Its initialiser is evaluated once, now, so declaration order
@@ -79,7 +95,36 @@ internal sealed class Graph
     /// </summary>
     public Node Let(string name, Func<Graph, object> body) => Declare(new Node(name, NodeKind.Let, body, null, dirty: true));
 
+    /// <summary>
+    ///     A sink: effectful, produces no value, and pushed rather than pulled.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A <c>when</c> is a <c>let</c> nobody reads and that is allowed to have
+    ///     effects. Nobody reading it is exactly why it cannot be pulled. The
+    ///     trigger is an ordinary derived node — it caches, it tracks
+    ///     dependencies, it is pulled during settle — and the body hangs off it.
+    /// </remarks>
+    public Node When(string name, Func<Graph, object> trigger, Action<Graph> body,
+                     TriggerMode mode = TriggerMode.BecomesTrue)
+    {
+        whens[name] = new Trigger(body, mode);
+        return Let(name, trigger);
+    }
+
+    /// <summary>
+    ///     Establishes each trigger's baseline without firing anything, because a
+    ///     condition that is already true at startup has not become true.
+    /// </summary>
+    public void Prime()
+    {
+        foreach (var (name, trigger) in whens) trigger.Previous = Read(name);
+    }
+
     public Node this[string name] => nodes[name];
+
+    /// <summary>What fired during the last <see cref="Step"/>, in order.</summary>
+    public IReadOnlyList<string> Fired => fired;
 
     /// <summary>What recomputed since the last <see cref="Step"/> or <see cref="Forget"/>.</summary>
     public IReadOnlyList<string> Trace => trace;
@@ -120,7 +165,7 @@ internal sealed class Graph
     {
         var node = nodes[name];
 
-        if (node.Kind is not NodeKind.Var) throw new PurityViolation($"«{name}» is a let; only its body may set it");
+        if (node.Kind is not NodeKind.Var) throw new PurityViolation($"«{name}» is derived; only its body may set it");
 
         if (reading.Count is not 0)
             throw new PurityViolation($"«{reading[^1].Name}» is a let and may not assign «{name}»");
@@ -129,13 +174,48 @@ internal sealed class Graph
     }
 
     /// <summary>
-    ///     One propagation step. Every write since the last one becomes visible at
-    ///     the same instant, and only then are dependents marked.
+    ///     One turn, which is three phases and possibly several rounds of them:
+    ///     propagate the writes, settle the graph, then fire what triggered.
     /// </summary>
-    public void Step()
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Firing after settling is what stops a <c>when</c> observing a half
+    ///     updated graph. A fired body's writes land in the next round's pending
+    ///     set and never the current one — otherwise one body's write would be
+    ///     visible to a body firing after it in the same round, and the
+    ///     consistent-generation guarantee is gone.
+    ///     </para>
+    ///     <para>
+    ///     Returns the number of rounds it took, which is one for a turn that
+    ///     fired nothing.
+    ///     </para>
+    /// </remarks>
+    public int Step()
     {
         trace.Clear();
+        fired.Clear();
 
+        var rounds = 0;
+
+        while (pending.Count is not 0 && rounds < limit)
+        {
+            ++rounds;
+
+            Propagate();
+
+            // settle is an ordinary pull, so a trigger reading derived values
+            // gets consistent ones
+            foreach (var name in Triggered()) Fire(name);
+        }
+
+        if (pending.Count is not 0) throw Runaway(rounds);
+
+        return rounds;
+    }
+
+    private void Propagate()
+    {
         foreach (var (name, value) in pending)
         {
             var node = nodes[name];
@@ -149,6 +229,54 @@ internal sealed class Graph
         }
 
         pending.Clear();
+    }
+
+    private List<string> Triggered()
+    {
+        List<string> triggered = [];
+
+        foreach (var (name, trigger) in whens)
+        {
+            var value = Read(name);
+
+            // a failing trigger is not a firing one, and it still updates the
+            // baseline so that recovering does not read as an edge
+            if (value is Error)
+            {
+                trigger.Previous = value;
+                continue;
+            }
+
+            var previous = trigger.Previous;
+            trigger.Previous = value;
+
+            // the first observation establishes a baseline rather than an edge
+            if (ReferenceEquals(previous, Unobserved)) continue;
+
+            var fires = trigger.Mode is TriggerMode.Changes
+                      ? Equals(value, previous) is false
+                      : value is true && previous is not true;
+
+            if (fires) triggered.Add(name);
+        }
+
+        return triggered;
+    }
+
+    private void Fire(string name)
+    {
+        fired.Add(name);
+        whens[name].Body(this);
+    }
+
+    private RunawayCascade Runaway(int rounds)
+    {
+        var culprits = string.Join(", ", fired.TakeLast(3).Distinct().Select(name => $"«{name}»"));
+
+        return new RunawayCascade(
+            $"the graph did not settle after {rounds} rounds; last fired: {culprits}. " +
+            "A when body is writing a var its own trigger reads, so every firing schedules " +
+            "the next. Stop the body writing once the condition it acts on is satisfied.");
     }
 
     private Node Declare(Node node)
@@ -202,8 +330,27 @@ internal sealed class Graph
         }
     }
 
+    /// <summary>Distinguishes "not observed yet" from any value a trigger may hold.</summary>
+    private static readonly object Unobserved = new();
+
+    private sealed class Trigger(Action<Graph> body, TriggerMode mode)
+    {
+        public Action<Graph> Body { get; } = body;
+        public TriggerMode Mode { get; } = mode;
+        public object Previous { get; set; } = Unobserved;
+    }
+
+    private readonly int limit = cascades;
     private readonly Dictionary<string, Node> nodes = [];
+    private readonly Dictionary<string, Trigger> whens = [];
     private readonly Dictionary<string, object> pending = [];
     private readonly List<Node> reading = [];
     private readonly List<string> trace = [];
+    private readonly List<string> fired = [];
 }
+
+/// <summary>
+///     A turn that never settled, because firing kept scheduling more firing.
+/// </summary>
+[ExcludeFromCodeCoverage]
+internal sealed class RunawayCascade(string message) : Exception(message);
