@@ -19,16 +19,14 @@ namespace Unit;
 ///     </para>
 ///     <para>
 ///     They also wrote «iterate cars =&gt; var car», and passed because
-///     <c>Name.Parse</c> swallowed the «var» into a two-word name «var car». The
-///     implemented grammar is «iterate &lt;iterable&gt; =&gt; &lt;name&gt;
-///     &lt;body&gt;», with no mutability in it, so the tests were asserting a
-///     spelling the grammar does not have.
+///     <c>Name.Parse</c> swallowed the «var» into a two-word name «var car» — a
+///     spelling the grammar never had.
 ///     </para>
 ///     <para>
-///     Which spelling the language SHOULD have is open — the specification
-///     documents «for each ... in ...» and the lexer knows «iterate» — and these
-///     assert what is implemented today so that the change, when it is decided,
-///     shows up here as a diff rather than as silence.
+///     The spelling is «for each &lt;name&gt; in &lt;expression&gt;
+///     &lt;body&gt;», decided in LOOPSYNTAX.md. It is safe only because a name
+///     may not contain «in», so a loop header has exactly one and the split needs
+///     no scoring; see LoopSyntax for the case that proves it.
 ///     </para>
 /// </remarks>
 [Trait(nameof(Parser), null)]
@@ -49,7 +47,7 @@ public class IteratingScopes
     [Fact(DisplayName = "a loop over a name, with a block body")]
     public void ALoopOverANameWithABlockBody()
     {
-        var loop = Assert.IsType<Scope.Iterating>(Only("iterate cars => car { car speed = 9000; }\n"));
+        var loop = Assert.IsType<Scope.Iterating>(Only("for each car in cars { car speed = 9000; }\n"));
 
         Assert.NotNull(loop.Iterable);
         Assert.Equal("car", loop.Current.Words);
@@ -60,7 +58,7 @@ public class IteratingScopes
     [Fact(DisplayName = "a loop is still a loop when its body is one statement")]
     public void ALoopIsStillALoopWhenItsBodyIsOneStatement()
     {
-        var loop = Assert.IsType<Scope.Iterating>(Only("iterate values => value { value = 1; }\n"));
+        var loop = Assert.IsType<Scope.Iterating>(Only("for each value in values { value = 1; }\n"));
 
         Assert.NotNull(loop.Iterable);
         Assert.Equal("value", loop.Current.Words);
@@ -77,7 +75,7 @@ public class IteratingScopes
         // Whether the AST came out right depended on what followed the arrow:
         // «if ready => 1» stayed a conditional, because a number cannot be
         // mistaken for a type.
-        Assert.IsType<Scope.Iterating>(Only("iterate banks => bank { return bank; }\n"));
+        Assert.IsType<Scope.Iterating>(Only("for each bank in banks { return bank; }\n"));
         Assert.IsType<Function>(Only("function f => Number { return 1; }\n"));
         Assert.IsType<Scope.Conditional<If>>(Only("if ready => result;\n"));
         Assert.IsType<Scope.Conditional<While>>(Only("while ready => result;\n"));

@@ -11,7 +11,8 @@ internal class Keyword : Word
         ?? Mutability.Lex(ref lexer)
         ?? Type.Lex(ref lexer)
         ?? Extend.Lex(ref lexer)
-        ?? Iterate.Lex(ref lexer)
+        ?? ForEach.Lex(ref lexer)
+        ?? In.Lex(ref lexer)
         ?? Function.Lex(ref lexer)
         ?? Import.Lex(ref lexer)
         ?? PartOf.Lex(ref lexer)
@@ -47,11 +48,45 @@ internal class Extend : Keyword
     public static new Extend Lex(ref Lexer lexer) => Lex<Extend>(ref lexer, keyword);
 }
 
-internal class Iterate : Keyword
+/// <summary>
+///     Opens a loop: «for each bank in banks».
+/// </summary>
+///
+/// <remarks>
+///     One token spelling two words, as <see cref="PartOf"/> already is, so that
+///     «for» on its own stays an ordinary word — «compute total for order» is a
+///     pattern the language wants and reserving «for» would take it away.
+/// </remarks>
+internal class ForEach : Keyword
 {
-    internal const string keyword = "iterate";
+    internal const string keyword = "for each";
 
-    public static new Iterate Lex(ref Lexer lexer) => Lex<Iterate>(ref lexer, keyword);
+    public static new ForEach Lex(ref Lexer lexer) => Lex<ForEach>(ref lexer, keyword);
+}
+
+/// <summary>
+///     Separates a loop's variable from what it walks.
+/// </summary>
+///
+/// <remarks>
+///     <para>
+///     Reserved outright, which is the stronger of the two options the design
+///     note left open. R5 alone would reserve «in» only inside multi-word names
+///     and leave «var in» legal; a keyword reserves it everywhere, and makes the
+///     rule one sentence rather than a rule with an exception.
+///     </para>
+///     <para>
+///     It also makes the loop header split structurally rather than by scoring.
+///     «for each bank in banks» has exactly one «in» and the parser knows which,
+///     without needing the symbol table — and R5 keeps a second one from ever
+///     appearing, which is what the design note proves is load-bearing.
+///     </para>
+/// </remarks>
+internal class In : Keyword
+{
+    internal const string keyword = "in";
+
+    public static new In Lex(ref Lexer lexer) => Lex<In>(ref lexer, keyword);
 }
 
 internal class Function : Keyword

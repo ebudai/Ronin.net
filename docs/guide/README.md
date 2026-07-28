@@ -2,7 +2,7 @@
 ## Overview
 A Ronin program consists of one or more **module**s which contain one or more **scope**s and a **name**.  Each scope contains one or more **statement**s.  Top-level statements are part of an implicit scope, and are run once on that module's import.  Implicit scopes with no name are part of the **global module**.
 
-During compilation, each file is considered independently.  All files in the specified (defaulting to the current) directory and all subdirectories are compiled.  Only files with a .ronin extension will be processed directly, though data files can be used as type and data providers.
+During compilation, each file is considered independently.  All files in the specified (defaulting to the current) directory and all subdirectories are compiled.  Only files with a .ron extension will be processed directly, though data files can be used as type and data providers.
 
 ## Identifiers
 Identifiers can contain any number of **names** and **parameter blocks** in any order.  An identifier must contain at least one of either of these.  An identifier must be unique within its own **context** and all ancestor contexts (ie: no shadowing).  If the first component of an identifier is a word, that word cannot be a **keyword**.
@@ -15,7 +15,8 @@ Identifiers can contain any number of **names** and **parameter blocks** in any 
 `global`\
 `if`\
 `import`\
-`iterate`\
+`for each`\
+`in`\
 `hidden`\
 `let`\
 `optional`\

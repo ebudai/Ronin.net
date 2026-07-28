@@ -35,8 +35,17 @@ internal sealed class Declarations
     /// <summary>
     ///     What could not be declared, and what the scope-wide rules rejected.
     /// </summary>
-    public IReadOnlyList<Finding> Problems => found ??= [.. problems.Concat(Rules.Validate(symbols, [.. shapes.SelectMany(
-        shape => shape.Value.Select(shaped => new Shape(shape.Key, shaped.Span, shaped.Inherited)))]))];
+    /// <remarks>
+    ///     The grammar's own patterns join the declared ones, because R5 and R6
+    ///     are about what is IN SCOPE and those are in every scope. Marked
+    ///     inherited so that provenance blames the declaration a programmer
+    ///     wrote rather than the language they wrote it in.
+    /// </remarks>
+    public IReadOnlyList<Finding> Problems => found ??= [.. problems.Concat(Rules.Validate(symbols,
+        [
+            .. SymbolTable.Builtins.Select(pattern => new Shape(pattern, source.Span(0, 0), Inherited: true)),
+            .. shapes.SelectMany(shape => shape.Value.Select(shaped => new Shape(shape.Key, shaped.Span, shaped.Inherited))),
+        ]))];
 
     /// <summary>
     ///     The declarations of one scope, folded into everything the enclosing
@@ -59,7 +68,15 @@ internal sealed class Declarations
     ///     it is why a lookup stays one probe rather than a walk up N levels.
     ///     </para>
     /// </remarks>
-    public static Declarations Of(IEnumerable<Statement> statements, SourceText source, Declarations enclosing = null)
+    /// <param name="variable">
+    ///     A loop's variable, which is declared in the body and nowhere else.
+    ///     It is a declaration site like any other and must be checked like one:
+    ///     R5 rejecting «order in transit» is the whole reason «for each ... in
+    ///     ...» is safe to spell, and a loop variable that skipped the check
+    ///     would be the one hole in it.
+    /// </param>
+    public static Declarations Of(IEnumerable<Statement> statements, SourceText source,
+                                  Declarations enclosing = null, Identifier variable = null)
     {
         Declarations declarations = new() { source = source };
 
@@ -81,6 +98,8 @@ internal sealed class Declarations
             declarations.symbols.AddRange(enclosing.symbols.Select(symbol => symbol with { Inherited = true }));
         }
 
+        if (variable is not null) declarations.Bind(variable);
+
         foreach (var statement in statements) declarations.Declare(statement);
 
         // After every statement, because a shape is over-declared by its set and
@@ -98,6 +117,51 @@ internal sealed class Declarations
         }
 
         return declarations;
+    }
+
+    /// <summary>Declares a loop's variable into the body it is bound in.</summary>
+    ///
+    /// <remarks>
+    ///     Through the same refusal a written declaration goes through, because
+    ///     it collides the same way: an outer «bank» and a loop over «bank» is
+    ///     shadowing, which is a finding, and not a redeclaration, which throws.
+    /// </remarks>
+    private void Bind(Identifier variable)
+    {
+        var name = variable.Words;
+        var span = variable.Span(source);
+
+        if (Refused(name, span)) return;
+
+        written[name] = span;
+        Symbols.Declaring(name);
+
+        symbols.Add(new Declared(name, span));
+        symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name));
+    }
+
+    /// <summary>
+    ///     Whether a name cannot be introduced here, having said why.
+    /// </summary>
+    private bool Refused(string name, Span span)
+    {
+        // No related span: a reserved word has no prior declaration to point at,
+        // and pointing anywhere would be inventing one.
+        if (name.StartsWith(SymbolTable.Shadowed, System.StringComparison.Ordinal))
+        {
+            problems.Add(new ReservedPrefix(span, name, SymbolTable.Old));
+            return true;
+        }
+
+        if (Symbols.Names.Contains(name) is false) return false;
+
+        var shadowed = new Shadowed(span, name, Where(name));
+
+        // the site being shadowed, which may be in another file entirely
+        if (written.TryGetValue(name, out var first)) shadowed.Alongside(first, "first declared here");
+
+        problems.Add(shadowed);
+        return true;
     }
 
     private void Declare(Statement statement)
@@ -155,24 +219,7 @@ internal sealed class Declarations
 
         var span = member.Identifier.Span(source);
 
-        // No related span: a reserved word has no prior declaration to point at,
-        // and pointing anywhere would be inventing one.
-        if (name.StartsWith(SymbolTable.Shadowed, System.StringComparison.Ordinal))
-        {
-            problems.Add(new ReservedPrefix(span, name, SymbolTable.Old));
-            return;
-        }
-
-        if (Symbols.Names.Contains(name))
-        {
-            var shadowed = new Shadowed(span, name, Where(name));
-
-            // the site being shadowed, which may be in another file entirely
-            if (written.TryGetValue(name, out var first)) shadowed.Alongside(first, "first declared here");
-
-            problems.Add(shadowed);
-            return;
-        }
+        if (Refused(name, span)) return;
 
         written[name] = span;
 

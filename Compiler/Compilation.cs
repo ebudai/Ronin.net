@@ -89,15 +89,16 @@ internal sealed class Compilation
     ///     which sees this one, because a merged table is what makes a lookup one
     ///     probe rather than a walk up the chain.
     /// </summary>
-    private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing)
+    private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
+                               Identifier variable = null)
     {
-        var declared = Declarations.Of(statements, Source, enclosing);
+        var declared = Declarations.Of(statements, Source, enclosing, variable);
 
         foreach (var problem in declared.Problems) Add(problem);
 
         foreach (var body in statements.SelectMany(Bodies))
         {
-            Scope(body, declared);
+            Scope(body.Statements, declared, body.Variable);
         }
 
         return declared;
@@ -109,18 +110,36 @@ internal sealed class Compilation
     ///     language where a declaration is a grammar production is the difference
     ///     between nesting and rewriting a sibling's syntax.
     /// </summary>
-    private static IEnumerable<IReadOnlyList<Statement>> Bodies(Statement statement)
+    private static IEnumerable<Body> Bodies(Statement statement)
     {
         // An error node is a Function or a Type or a Scope too, and carries none
         // of the parts the real one would, so each of these can be absent.
         switch (statement)
         {
-            case Grammar.Function { Definition.Statements: { } body }: yield return body; break;
-            case Grammar.Type { Members: { } members }: yield return [.. members]; break;
-            case Grammar.Scope scope: yield return scope.Statements; break;
-            default: break;
+            case Grammar.Function { Definition.Statements: { } body }:
+                yield return new Body(body, null);
+                break;
+
+            case Grammar.Type { Members: { } members }:
+                yield return new Body([.. members], null);
+                break;
+
+            // a loop binds its variable in its body and nowhere else
+            case Grammar.Scope.Iterating loop:
+                yield return new Body(loop.Statements, loop.Current);
+                break;
+
+            case Grammar.Scope scope:
+                yield return new Body(scope.Statements, null);
+                break;
+
+            default:
+                break;
         }
     }
+
+    /// <summary>One nested scope: what is in it, and what it binds on entry.</summary>
+    private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable);
 
     /// <summary>
     ///     Every error node anywhere in the tree.

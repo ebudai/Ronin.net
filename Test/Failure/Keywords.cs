@@ -45,7 +45,7 @@ public class Keywords
             $"{Compiled.keyword}ing",
             $"{Constant.keyword}s",
             $"{Ronin.Lexicon.Type.keyword}s",
-            $"{Iterate.keyword}ing",
+            $"{ForEach.keyword}ing",
             $"{Function.keyword}s",
             $"{Import.keyword}s",
             $"{Optional.keyword}s",

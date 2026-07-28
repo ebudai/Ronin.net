@@ -52,21 +52,12 @@ public class Scopes : ParsingTests
     [Fact(DisplayName = "iterative missing definition")]
     public void IterativeMissingDefinition()
     {
-        // iterate things => thing;
+        // «for each thing in things;» — a header with no body is not a loop, and
+        // there is no error node for it because a scope that will not parse is a
+        // production declining rather than a mistake it can name.
+        Lexer lexer = new("for each thing in things;\n");
+        Parser parser = new(lexer.Lex());
 
-        List<Token> tokens = new()
-        {
-            Keyword.Iterate(),
-            Word("things"),
-            Returns(),
-            Word("thing"),
-            Terminal(),
-            new Sentinel()
-        };
-
-        Parser parser = new(tokens.AsLinkedList());
-        var scope = Scope.Parse(ref parser);
-
-        Assert.Null(scope);
+        Assert.Null(Scope.Parse(ref parser));
     }
 }

@@ -38,9 +38,14 @@ Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded
 - condition is a ***reference***
 - body is a ***definition***
 ### 4.5.4 Iterating
-`for each` *loop variable* `in` *body*
+`for each` *loop variable* `in` *collection* *body*
 - loop variable is a ***words***
+- collection is a ***reference***
 - body is a ***definition***
+
+`in` is a reserved word and may not appear in any name.  A multi-word name
+containing it would make the split point in a loop header ambiguous — and the
+competing readings do not tie, so nothing would report it.
 ### 4.5.5 Reactive
 `when` (*condition* | *name*) *body*
 - condition is a ***reference***

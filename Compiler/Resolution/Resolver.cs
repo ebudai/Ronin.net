@@ -598,6 +598,33 @@ internal sealed class SymbolTable
     public List<Pattern> Patterns { get; } = [];
 
     /// <summary>
+    ///     Patterns the grammar provides, in every scope, always.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Here for their GLUE. «for each (_) in (_)» is why «in» may not appear
+    ///     in a multi-word name, and that reservation is what makes a loop header
+    ///     have exactly one «in» and therefore exactly one reading — see
+    ///     LOOPSYNTAX.md, which shows the alternative is not a tie but a
+    ///     strictly-cheaper wrong reading that nothing flags.
+    ///     </para>
+    ///     <para>
+    ///     Not in <see cref="Patterns"/>, because today the loop is a grammar
+    ///     production and the resolver never sees a loop header. The reserved
+    ///     glue set is therefore larger than the pattern table, and will stop
+    ///     being so when the resolver takes the loop over.
+    ///     </para>
+    ///     <para>
+    ///     Spelled in the LEXER's words and not the reader's: «for each» is one
+    ///     token, as «part of» is, so it is one segment. A pattern is matched
+    ///     against lexemes, so its segments have to be things the lexer can
+    ///     produce — «for» and «each» as two segments would never match anything.
+    ///     </para>
+    /// </remarks>
+    public static IReadOnlyList<Pattern> Builtins { get; } = [new Pattern(["for each", null, "in", null])];
+
+    /// <summary>
     ///     Fixed at language design time. No user defined operators, which is
     ///     what keeps symbol lexing context free and disarms the maximal munch
     ///     trap that «a&lt;-b» represents in Haskell.

@@ -67,21 +67,25 @@ internal class Scope : Statement
 
             var modifiers = Modifiers.Parse(ref parser);
 
-            if (parser.TryAdvance<Iterate>() is false) return null;
+            if (parser.TryAdvance<ForEach>() is false) return null;
+
+            // «for each <name> in <expression> <body>». The variable comes first
+            // because that is how the sentence reads, and «in» is a keyword so
+            // the split needs no scoring — see LOOPSYNTAX.md for why a second
+            // «in» in the header can never arise.
+            if (Name.Parse(ref parser) is not Name name)
+            {
+                return new ExpectedNameError { Tokens = Parser.Recover(ref current, parser) };
+            }
+
+            if (parser.TryAdvance<In>() is false)
+            {
+                return new ExpectedInError { Tokens = Parser.Recover(ref current, parser) };
+            }
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
                 return new ExpectedIterableError { Tokens = Parser.Recover(ref current, parser) };
-            }
-
-            if (parser.TryAdvance<Returns>() is false)
-            {
-                return new ExpectedReturnsSymbolError { Tokens = Parser.Recover(ref current, parser) };
-            }
-
-            if (Name.Parse(ref parser) is not Name name)
-            {
-                return new ExpectedNameError { Tokens = Parser.Recover(ref current, parser) };
             }
 
             if (Definition.Parse(ref parser) is not Scope definition) return null;
@@ -101,9 +105,9 @@ internal class Scope : Statement
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
 
-        public class ExpectedReturnsSymbolError : Iterating, IError
+        public class ExpectedInError : Iterating, IError
         {
-            public string Reason { get; } = $"expected '{Returns.symbol}'";
+            public string Reason { get; } = $"expected '{In.keyword}'";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
 

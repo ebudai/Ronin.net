@@ -16,7 +16,8 @@ public class Keywords
     private const string optional = Optional.keyword;
     private const string partof = PartOf.keyword;
     private const string import = Import.keyword;
-    private const string @foreach = Iterate.keyword;
+    private const string @foreach = ForEach.keyword;
+    private const string within = In.keyword;
     private const string extends = Extend.keyword;
     private const string @if = If.keyword;
     private const string let = Let.keyword;
@@ -138,10 +139,10 @@ public class Keywords
     [Fact(DisplayName = @foreach)]
     public void ForEachKeyword()
     {
-        const string sourcecode = "iterate all the things => thing { sorgaxulate thing; }";
+        const string sourcecode = "for each thing in all the things { sorgaxulate thing; }";
 
         Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Iterate;
+        var keyword = Keyword.Lex(ref lexer) as ForEach;
 
         Assert.Equal(@foreach, keyword?.Memory.ToString());
     }

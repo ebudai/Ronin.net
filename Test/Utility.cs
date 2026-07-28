@@ -300,11 +300,18 @@ public class ParsingTests
             return optional;
         }
 
-        internal static Iterate Iterate()
+        internal static ForEach ForEach()
         {
-            Iterate iterate = new();
-            iterate.SetMemory(Ronin.Lexicon.Iterate.keyword);
-            return iterate;
+            ForEach forEach = new();
+            forEach.SetMemory(Ronin.Lexicon.ForEach.keyword);
+            return forEach;
+        }
+
+        internal static In In()
+        {
+            In within = new();
+            within.SetMemory(Ronin.Lexicon.In.keyword);
+            return within;
         }
 
         internal static If If()

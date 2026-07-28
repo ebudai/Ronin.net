@@ -32,18 +32,18 @@ internal class Name
     ///     mistaken for a type.
     ///     </para>
     ///     <para>
-    ///     The first word only. A keyword in the middle of a phrase announces
-    ///     nothing and steals nothing, and modifiers are excluded outright
-    ///     because «var hidden cost» is a name the language already accepts.
-    /// </para>
+    ///     Anywhere in the name, not just at the front, because «in» has to split
+    ///     a loop header: «for each bank in banks» is one name, one keyword and
+    ///     one expression, and a name that swallowed the «in» would leave the
+    ///     loop unparseable. Modifiers are the exception — «var hidden cost» is a
+    ///     name the language already accepts.
+    ///     </para>
     /// </remarks>
     public static Name Parse(ref Parser current)
     {
         Parser parser = current;
 
-        if (parser.Token is Keyword and not Modifier) return null;
-
-        while (parser.Token is Word)
+        while (parser.Token is Word && parser.Token is not Keyword or Modifier)
         {
             parser.Advance();
         }
