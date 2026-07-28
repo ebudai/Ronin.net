@@ -224,9 +224,9 @@ internal sealed class Graph(int cascades = 64)
         // A fault arms adoption too: a body that reads one and ignores it would
         // otherwise return a normal value and hide the defect, which is the same
         // hole adoption exists to close.
-        if (read is Error failure && adopting.Count is not 0 && handling is 0)
+        if (read is Error failure && adopting.Count is not 0 && adopting[^1].Handling is 0)
         {
-            adopting[^1] ??= failure;
+            adopting[^1].Error ??= failure;
         }
 
         return read;
@@ -237,11 +237,27 @@ internal sealed class Graph(int cascades = 64)
     ///     needs: it is the one thing that inspects a failure without inheriting
     ///     it, so the graph must not inherit it on its behalf either.
     /// </summary>
+    ///
+    /// <remarks>
+    ///     Suppression belongs to the frame being evaluated and not to the graph.
+    ///     A dirty <c>let</c> recomputed during this read opens a frame of its
+    ///     own and must adopt normally inside it — one graph-wide counter
+    ///     disarmed that too, so a nested body could read an error, ignore it and
+    ///     return a value, and the handler would see the value where a failure had
+    ///     passed through. <c>otherwise</c> protects the expression it wraps and
+    ///     nothing deeper.
+    /// </remarks>
     public T Handling<T>(Func<T> read)
     {
-        ++handling;
+        // Adoption only arms inside a recompute, so «otherwise» outside every
+        // body — in a var initialiser, or in a when — has nothing to suppress.
+        if (adopting.Count is 0) return read();
+
+        var frame = adopting[^1];
+
+        ++frame.Handling;
         try { return read(); }
-        finally { --handling; }
+        finally { --frame.Handling; }
     }
 
     private object Reading(string name)
@@ -453,7 +469,7 @@ internal sealed class Graph(int cascades = 64)
         node.Evaluating = true;
         reading.Add(node);
 
-        adopting.Add(null);
+        adopting.Add(new Adoption());
 
         object value;
         try
@@ -481,7 +497,7 @@ internal sealed class Graph(int cascades = 64)
         // body may still have run: because a let body is pure, running one and
         // throwing the result away has no observable effect, which is what makes
         // this equal to the guarantee the design states.
-        var adopted = adopting[^1];
+        var adopted = adopting[^1].Error;
         adopting.RemoveAt(adopting.Count - 1);
 
         if (adopted is not null && value is not Fault) value = adopted;
@@ -547,6 +563,23 @@ internal sealed class Graph(int cascades = 64)
         }
     }
 
+    /// <summary>
+    ///     One body's adoption state: the failure it has inherited so far, and
+    ///     whether <c>otherwise</c> is protecting the read currently running.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The two live together because they scope together. Keeping the
+    ///     suppression on the graph while the adopted error was per body is what
+    ///     let one <c>otherwise</c> disarm every nested recompute.
+    /// </remarks>
+    private sealed class Adoption
+    {
+        public Error Error { get; set; }
+
+        public int Handling { get; set; }
+    }
+
     /// <summary>Distinguishes "not observed yet" from any value a trigger may hold.</summary>
     private static readonly object Unobserved = new();
 
@@ -578,8 +611,7 @@ internal sealed class Graph(int cascades = 64)
     private readonly Dictionary<string, Trigger> whens = [];
     private readonly Dictionary<string, object> pending = [];
     private readonly List<Node> reading = [];
-    private readonly List<Error> adopting = [];
-    private int handling;
+    private readonly List<Adoption> adopting = [];
     private readonly List<string> trace = [];
     private readonly List<string> fired = [];
     private long clock;

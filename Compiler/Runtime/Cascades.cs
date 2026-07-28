@@ -64,50 +64,162 @@ internal sealed record Write(string Cell, string AttributedTo);
 internal static class Cascades
 {
     /// <summary>
-    ///     Every ring, each given whole and starting from its lowest-sorting
-    ///     member so the same ring reads the same way every run.
+    ///     Every ring, each given whole and starting from a participant that did
+    ///     not declare feedback, so the same ring reads the same way every run and
+    ///     the caret lands on a declaration that can actually clear it.
     /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Legality is a property of the strongly connected COMPONENT rather than
+    ///     of the individual rings, and that distinction is a safety rule and not
+    ///     a presentation choice. A back-edge walk finds one ring per back edge
+    ///     and then settles everything it has been through, so a second ring
+    ///     through an already-settled node is never seen: with «a» and «b»
+    ///     declaring feedback and «c» not, «a → b → a» is found and allowed, «b»
+    ///     settles, and «a → c → b → a» is missed entirely. «c» joins a feedback
+    ///     ring without opting into one and nothing complains.
+    ///     </para>
+    ///     <para>
+    ///     Every member of a component lies on a ring with every other member, so
+    ///     demanding feedback of all of them is exactly the rule as stated — and
+    ///     it costs one linear pass, where enumerating elementary cycles is
+    ///     exponential in the worst case for an answer nobody needs.
+    ///     </para>
+    /// </remarks>
     public static IReadOnlyList<IReadOnlyList<string>> Cycles(IReadOnlyDictionary<string, Effects> whens)
     {
         var edges = Precedence(whens);
 
         List<IReadOnlyList<string>> rings = [];
-        HashSet<string> settled = [];
-        HashSet<string> walking = [];
-        List<string> path = [];
 
-        void Visit(string node)
+        foreach (var component in Components(edges, whens.Keys))
         {
-            walking.Add(node);
-            path.Add(node);
+            // One member is a component whether or not it is in a ring, so the
+            // self-edge is what separates «writes what it reads» from «writes
+            // something nobody reads back».
+            if (component.Count is 1 && edges[component[0]].Contains(component[0]) is false) continue;
 
-            foreach (var next in edges[node].Order())
-            {
-                if (walking.Contains(next)) rings.Add([.. path[path.IndexOf(next)..], next]);
-                else if (settled.Contains(next) is false) Visit(next);
-            }
+            // a ring every member opted into is the feature, not the bug
+            var offender = component.Where(name => whens[name].Feedback is false)
+                                    .Order(StringComparer.Ordinal)
+                                    .FirstOrDefault();
 
-            path.RemoveAt(path.Count - 1);
-            walking.Remove(node);
-            settled.Add(node);
+            if (offender is null) continue;
+
+            rings.Add(Ring(edges, component, offender));
         }
 
-        foreach (var node in whens.Keys.Order())
-        {
-            if (settled.Contains(node) is false) Visit(node);
-        }
-
-        // a ring every member opted into is the feature, not the bug
-        return [.. rings.Where(ring => ring.Any(name => whens[name].Feedback is false))];
+        return [.. rings.OrderBy(ring => ring[0], StringComparer.Ordinal)];
     }
 
     /// <summary>
-    ///     The rings as something to show a programmer. Each names its whole ring:
-    ///     the three-hop case is unreadable if only one participant is named.
+    ///     The shortest ring through <paramref name="from"/>, closed so that it
+    ///     reads «a» → «b» → «a».
     /// </summary>
+    ///
+    /// <remarks>
+    ///     A component is a set and a person needs a path, so one ring stands for
+    ///     it — the shortest, because the message has to be read, and through the
+    ///     participant that did not declare feedback, because that is the one
+    ///     declaration the programmer can change to clear it.
+    /// </remarks>
+    private static IReadOnlyList<string> Ring(Dictionary<string, HashSet<string>> edges,
+                                              List<string> component, string from)
+    {
+        HashSet<string> within = [.. component];
+        Dictionary<string, string> came = new() { [from] = null };
+        Queue<string> queue = new([from]);
+        List<string> closes = [];
+
+        while (queue.Count is not 0)
+        {
+            var node = queue.Dequeue();
+
+            if (edges[node].Contains(from)) closes.Add(node);
+
+            foreach (var next in edges[node].Where(within.Contains).Order(StringComparer.Ordinal))
+            {
+                if (came.TryAdd(next, node)) queue.Enqueue(next);
+            }
+        }
+
+        // Breadth first, so the first to close back is the nearest. Every member
+        // of a component reaches every other by definition, so one of them always
+        // closes — an empty sequence here would be a defect in the component
+        // finder rather than a case to handle, and is left to throw as one.
+        List<string> ring = [closes[0]];
+        while (came[ring[^1]] is not null) ring.Add(came[ring[^1]]);
+
+        ring.Reverse();
+        ring.Add(from);
+
+        return ring;
+    }
+
+    /// <summary>
+    ///     The strongly connected components, by Tarjan, deterministically
+    ///     ordered.
+    /// </summary>
+    private static List<List<string>> Components(Dictionary<string, HashSet<string>> edges,
+                                                 IEnumerable<string> nodes)
+    {
+        Dictionary<string, int> index = [];
+        Dictionary<string, int> low = [];
+        HashSet<string> stacked = [];
+        Stack<string> stack = new();
+        List<List<string>> components = [];
+        var counter = 0;
+
+        void Strong(string node)
+        {
+            index[node] = low[node] = counter++;
+            stack.Push(node);
+            stacked.Add(node);
+
+            foreach (var next in edges[node].Order(StringComparer.Ordinal))
+            {
+                // an edge into a component already closed says nothing about
+                // this one, which is the case a back-edge walk conflates
+                if (index.ContainsKey(next) is false)
+                {
+                    Strong(next);
+                    low[node] = Math.Min(low[node], low[next]);
+                }
+                else if (stacked.Contains(next))
+                {
+                    low[node] = Math.Min(low[node], index[next]);
+                }
+            }
+
+            if (low[node] != index[node]) return;
+
+            List<string> component = [];
+            string member;
+
+            do
+            {
+                member = stack.Pop();
+                stacked.Remove(member);
+                component.Add(member);
+            }
+            while (member != node);
+
+            components.Add(component);
+        }
+
+        foreach (var node in nodes.Order(StringComparer.Ordinal))
+        {
+            if (index.ContainsKey(node) is false) Strong(node);
+        }
+
+        return components;
+    }
+
     /// <summary>
     ///     The rings as findings. Each names its whole ring, because the three-hop
-    ///     case is unreadable when only one participant is named.
+    ///     case is unreadable when only one participant is named, and each is
+    ///     primary at the participant that did not declare feedback.
     /// </summary>
     public static IEnumerable<Finding> Diagnose(IReadOnlyDictionary<Triggering, Effects> whens)
     {

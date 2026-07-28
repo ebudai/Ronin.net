@@ -137,6 +137,46 @@ public class Cascadings
         Assert.Empty(Cascades.Writers(twice));
     }
 
+    [Fact(DisplayName = "a ring reachable only past a settled participant is still found")]
+    public void ARingReachableOnlyPastASettledParticipantIsStillFound()
+    {
+        // The bypass a back-edge walk leaves open. «a → b → a» is found first and
+        // allowed, because both declared feedback; the walk then settles «b» and
+        // never revisits it, so «a → c → b → a» is never seen at all — and «c»
+        // sits in a feedback ring it never opted into with nothing said.
+        //
+        // Legality belongs to the component, not to the individual rings: every
+        // member of one is in a ring with every other, so «c» being in it is the
+        // whole question.
+        Dictionary<string, Effects> whens = new()
+        {
+            ["a"] = Does(["ra"], ["rb", "rc"], feedback: true),
+            ["b"] = Does(["rb"], ["ra"], feedback: true),
+            ["c"] = Does(["rc"], ["rb"]),
+        };
+
+        // named from «c», because that is the one declaration that clears it
+        Assert.Equal([["c", "b", "a", "c"]], Cascades.Cycles(whens));
+
+        // and declaring feedback on it is the edit the message asks for
+        whens["c"] = Does(["rc"], ["rb"], feedback: true);
+        Assert.Empty(Cascades.Cycles(whens));
+    }
+
+    [Fact(DisplayName = "reaching one when by two routes is not a ring")]
+    public void ReachingOneWhenByTwoRoutesIsNotARing()
+    {
+        // A diamond has an edge into something already finished with, which is
+        // the case a back-edge walk cannot tell from an edge back into the walk
+        // itself. Nothing here is cyclic.
+        Assert.Empty(Cascades.Cycles(new Dictionary<string, Effects>
+        {
+            ["source"] = Does(["in"], ["left", "right"]),
+            ["long way"] = Does(["right"], ["left"]),
+            ["sink"] = Does(["left"], ["out"]),
+        }));
+    }
+
     [Fact(DisplayName = "an acyclic set reports nothing")]
     public void AnAcyclicSetReportsNothing()
     {

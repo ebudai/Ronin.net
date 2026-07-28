@@ -208,6 +208,19 @@ public class Findings
         Assert.Equal(8, caret.Offset);
     }
 
+    [Fact(DisplayName = "a source text with no text is refused at construction")]
+    public void ASourceTextWithNoTextIsRefusedAtConstruction()
+    {
+        // The one guard here that nothing reached. A span means nothing without
+        // the text it points into, and letting one be built anyway defers the
+        // failure to whichever diagnostic later asks for a line number — which is
+        // the furthest possible point from the mistake.
+        Assert.Throws<ArgumentNullException>(() => new SourceText(null));
+
+        // a path is genuinely optional: a buffer in an editor has none
+        Assert.Null(new SourceText(string.Empty).Path);
+    }
+
     [Fact(DisplayName = "a declaration knows where it was written")]
     public void ADeclarationKnowsWhereItWasWritten()
     {

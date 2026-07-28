@@ -125,6 +125,42 @@ public class Failures
         Assert.Equal(0d, graph.Read("correct"));
     }
 
+    [Fact(DisplayName = "handling protects the expression it wraps and nothing deeper")]
+    public void HandlingProtectsTheExpressionItWrapsAndNothingDeeper()
+    {
+        // Suppression scoped to the graph rather than to the frame let one
+        // «otherwise» disarm every nested recompute: «sloppy» recomputes while
+        // «outer» is handling, so its own adoption was off too, it kept the 42 it
+        // returned after ignoring the error, and the handler saw a perfectly good
+        // value where a failure had passed straight through it.
+        Graph graph = new();
+        graph.Let("ratio", _ => new Error("divide by zero"));
+        graph.Let("sloppy", scope =>
+        {
+            scope.Read("ratio");
+            return 42d;
+        });
+        graph.Let("outer", scope => Builtin.Otherwise(scope.Handling(() => scope.Read("sloppy")), "fallback"));
+
+        Assert.Equal("fallback", graph.Read("outer"));
+
+        // and the nested body kept the error it tried to discard, which is what
+        // gave the handler something to catch
+        Assert.IsType<Error>(graph.Read("sloppy"));
+    }
+
+    [Fact(DisplayName = "otherwise outside every body has nothing to suppress")]
+    public void OtherwiseOutsideEveryBodyHasNothingToSuppress()
+    {
+        // Adoption arms only inside a recompute, so a handled read taken from a
+        // var initialiser or a when body has no frame to protect — and must still
+        // hand back the value rather than lose it on the way past.
+        Graph graph = new();
+        graph.Var("parsed", new Error("bad input"));
+
+        Assert.Equal(0d, Builtin.Otherwise(graph.Handling(() => graph.Read("parsed")), 0d));
+    }
+
     [Fact(DisplayName = "a fault is not overwritten by adoption")]
     public void AFaultIsNotOverwrittenByAdoption()
     {
