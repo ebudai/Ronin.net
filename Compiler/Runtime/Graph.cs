@@ -171,8 +171,46 @@ internal sealed class Graph(int cascades = 64)
 
     public void Forget() => trace.Clear();
 
+    /// <summary>
+    ///     A value evaluated once at initialisation and thereafter
+    ///     indistinguishable from a literal.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     A constant is deliberately <em>not</em> a node. It can never change, so
+    ///     it can never mark anything dirty, and every edge into one would be an
+    ///     edge that can never fire: memory held and marking done for an
+    ///     impossible event. Colours, tuning values, layout metrics and string
+    ///     tables are numerous and read constantly, so those edges would be most
+    ///     of the graph and none of the behaviour.
+    ///     </para>
+    ///     <para>
+    ///     There is no write path to refuse, no dirty set to appear in, and no
+    ///     ring to join.
+    ///     </para>
+    /// </remarks>
+    public void Constant(string name, object value)
+    {
+        // An error here can never clear, because nothing recomputes a constant.
+        // It would latch and every reader would inherit it for the life of the
+        // program, so this stops the program instead. Same argument that decided
+        // a shadow seeds with nothing.
+        if (value is Error failure)
+            throw new InitialisationFailure(
+                $"«{name}» is a constant and its initialiser failed: {failure.Message}. " +
+                "A constant is evaluated once, so that error can never clear and every " +
+                "reader would inherit it permanently. Fix the initialiser, or make it a " +
+                "let so it can recover.");
+
+        constants[name] = value;
+    }
+
     public object Read(string name)
     {
+        // Before the edge is recorded, because reading a constant creates none.
+        if (constants.TryGetValue(name, out var constant)) return constant;
+
         // an undeclared name is a value like any other failure, not a throw
         if (nodes.TryGetValue(name, out var node) is false) return new Error($"«{name}» is not declared");
 
@@ -414,6 +452,7 @@ internal sealed class Graph(int cascades = 64)
 
     private readonly int limit = cascades;
     private readonly Dictionary<string, Node> nodes = [];
+    private readonly Dictionary<string, object> constants = [];
     private readonly Dictionary<Node, Node> shadows = [];
     private readonly Dictionary<string, Trigger> whens = [];
     private readonly Dictionary<string, object> pending = [];
@@ -427,3 +466,9 @@ internal sealed class Graph(int cascades = 64)
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal sealed class RunawayCascade(string message) : Exception(message);
+
+/// <summary>
+///     A program that cannot start, as distinct from one that computed a failure.
+/// </summary>
+[ExcludeFromCodeCoverage]
+internal sealed class InitialisationFailure(string message) : Exception(message);

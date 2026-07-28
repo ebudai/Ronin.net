@@ -538,6 +538,44 @@ internal sealed class SymbolTable
         return this;
     }
 
+    /// <summary>
+    ///     Declares constants, which are named but get no shadow.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     «old x» is the previous generation's value, and for a constant that is
+    ///     provably the current one — so «old pi» would not merely be useless, it
+    ///     would be a synonym that looks like it means something. Leaving it
+    ///     unresolved lets <see cref="Explain"/> say why instead.
+    /// </remarks>
+    public SymbolTable Constants(params string[] names)
+    {
+        foreach (var name in names)
+        {
+            Names.Add(name);
+            constants.Add(name);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    ///     Why a name that looks like it should be in scope is not, when there is
+    ///     something better to say than that it is missing.
+    /// </summary>
+    public string Explain(string name)
+    {
+        if (name.StartsWith(Shadowed, System.StringComparison.Ordinal) is false) return null;
+
+        var cell = name[Shadowed.Length..];
+        if (constants.Contains(cell) is false) return null;
+
+        return $"no name «{name}» in scope. «{cell}» is a constant, so it has no previous " +
+               $"value — use «{cell}».";
+    }
+
+    private readonly HashSet<string> constants = [];
+
     /// <summary>The prefix a declaration injects, and the reserved word it is built from.</summary>
     internal const string Old = "old";
     internal const string Shadowed = Old + " ";
