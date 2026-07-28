@@ -50,6 +50,29 @@ internal sealed class Resolver
 
         this.symbols = symbols;
         PatternBindingPower = patternBindingPower;
+
+        // The minimum binding powers the recurrences can ever ASK for, which is
+        // a handful and not a range. A table indexed 0..31 spent five sixths of
+        // itself on levels nothing queries — «E[i, j, 13]» is reachable only if
+        // some operator binds at 13, and none does.
+        //
+        // Derived from the operator table rather than written down: an operator
+        // added at a new level would otherwise index a slot that does not exist,
+        // and the statements using it would silently fail to resolve.
+        SortedSet<int> reachable = [0, PatternBindingPower];
+
+        foreach (var op in symbols.Operators.Values)
+        {
+            // the side that may repeat the operator takes its own power, the
+            // side that may not takes one more
+            reachable.Add(op.BindingPower);
+            reachable.Add(op.BindingPower + 1);
+        }
+
+        minima = [.. reachable];
+        slots = new int[MaxBindingPower + 2];
+
+        for (var slot = 0; slot < minima.Length; ++slot) slots[minima[slot]] = slot;
     }
 
     /// <summary>
@@ -69,11 +92,11 @@ internal sealed class Resolver
         var n = lexemes.Count;
         closed = NewTable(n);
         open = NewTable(n);
-        expressions = new Cell[n + 1, n + 1, MaxBindingPower + 2];
+        expressions = new Cell[n + 1, n + 1, minima.Length];
         for (var i = 0; i <= n; ++i)
             for (var j = 0; j <= n; ++j)
-                for (var m = 0; m <= MaxBindingPower + 1; ++m)
-                    expressions[i, j, m] = new Cell();
+                for (var slot = 0; slot < minima.Length; ++slot)
+                    expressions[i, j, slot] = new Cell();
 
         for (var width = 1; width <= n; ++width)
         {
@@ -84,11 +107,11 @@ internal sealed class Resolver
 
                 // descending so that a narrower minimum is filled after the
                 // wider ones it may draw on at the same span
-                for (var m = MaxBindingPower + 1; m >= 0; --m) Expression(lexemes, i, j, m);
+                for (var slot = minima.Length - 1; slot >= 0; --slot) Expression(lexemes, i, j, minima[slot]);
             }
         }
 
-        var top = expressions[0, n, 0];
+        var top = Expressions(0, n, 0);
         if (top.TryBest(out var best) is false) return Resolution.NoParse;
 
         return best.Count > 1 ? Resolution.Ambiguous(best.Cost, top.Readings)
@@ -174,7 +197,7 @@ internal sealed class Resolver
         foreach (var end in separators.Append(to))
         {
             // an empty part — «(a,)» or «()» — is not a substatement at all
-            if (expressions[start, end, 0].TryBest(out var part) is false) return;
+            if (Expressions(start, end, 0).TryBest(out var part) is false) return;
 
             cost += part.Cost;
 
@@ -227,7 +250,7 @@ internal sealed class Resolver
         {
             // trailing argument: reaches the end of the span, parsed at the
             // pattern's own binding power
-            if (expressions[position, end, PatternBindingPower].TryBest(out var trailing))
+            if (Expressions(position, end, PatternBindingPower).TryBest(out var trailing))
                 yield return (trailing.Cost, [trailing.Node], trailing.Count);
             yield break;
         }
@@ -235,7 +258,7 @@ internal sealed class Resolver
         for (var split = position + 1; split <= end; ++split)
         {
             // medial args cross any operator
-            if (expressions[position, split, 0].TryBest(out var argument) is false) continue;
+            if (Expressions(position, split, 0).TryBest(out var argument) is false) continue;
             foreach (var (cost, arguments, count) in Match(pattern, segment + 1, lexemes, split, end))
                 yield return (argument.Cost + cost, [argument.Node, .. arguments], Cell.Saturating(argument.Count * count));
         }
@@ -243,7 +266,7 @@ internal sealed class Resolver
 
     private void Expression(IReadOnlyList<Lexeme> lexemes, int i, int j, int minimum)
     {
-        var cell = expressions[i, j, minimum];
+        var cell = Expressions(i, j, minimum);
         cell.Merge(closed[i, j]);
 
         // an open pattern call returns at PatternBindingPower, so it is only
@@ -276,8 +299,8 @@ internal sealed class Resolver
             var leftminimum = op.IsLeftAssociative ? repeats : excludes;
             var rightminimum = op.IsLeftAssociative ? excludes : repeats;
 
-            if (expressions[i, k, leftminimum].TryBest(out var left) is false) continue;
-            if (expressions[k + 1, j, rightminimum].TryBest(out var right) is false) continue;
+            if (Expressions(i, k, leftminimum).TryBest(out var left) is false) continue;
+            if (Expressions(k + 1, j, rightminimum).TryBest(out var right) is false) continue;
 
             cell.Offer(left.Cost + right.Cost,
                        new Node.Operation(left.Node, lexemes[k].Text, right.Node),
@@ -285,6 +308,14 @@ internal sealed class Resolver
         }
     }
 
+    /// <summary>
+    ///     The cell for a span at a minimum binding power. Only the minima the
+    ///     recurrences can ask for have a slot, so this maps one to the other.
+    /// </summary>
+    private Cell Expressions(int i, int j, int minimum) => expressions[i, j, slots[minimum]];
+
+    private readonly int[] minima;
+    private readonly int[] slots;
     private readonly SymbolTable symbols;
     private Cell[,] closed;
     private Cell[,] open;
@@ -299,7 +330,7 @@ internal sealed class Resolver
     {
         public int Cost { get; private set; } = int.MaxValue;
 
-        public bool IsEmpty => order.Count is 0;
+        public bool IsEmpty => order is null;
 
         /// <summary>
         ///     How many derivations reach the cheapest cost, saturating at two.
@@ -348,6 +379,14 @@ internal sealed class Resolver
             if (IsEmpty || cost < Cost)
             {
                 Cost = cost;
+
+                // On first offer, not at construction. Most cells in the table
+                // are never offered anything — a span that is not an expression
+                // still gets one per binding power — so eagerly allocating both
+                // collections was two objects per cell for nothing.
+                order ??= [];
+                derivations ??= [];
+
                 order.Clear();
                 derivations.Clear();
                 order.Add(node);
@@ -367,8 +406,9 @@ internal sealed class Resolver
 
         // Dictionary is NOT insertion ordered in .NET, and the chosen reading must
         // be deterministic, so order is tracked explicitly alongside the counts.
-        private readonly List<Node> order = [];
-        private readonly Dictionary<string, long> derivations = new();
+        // Both are null until something is offered, which is what «IsEmpty» reads.
+        private List<Node> order;
+        private Dictionary<string, long> derivations;
     }
 }
 
