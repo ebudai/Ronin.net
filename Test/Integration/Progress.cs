@@ -119,8 +119,14 @@ public class Progress
         Lexer lexer = new(source);
         Parser parser = new(lexer.Lex());
 
-        Assert.IsType<Module.UnexpectedInputError>(parser.Parse());
+        parser.Parse();
+
         Assert.False(parser.IsNotFinished);
+
+        // and the file is refused rather than merely survived
+        var finding = Assert.Single(Compilation.Of(new SourceText(source)).Findings);
+
+        Assert.Equal(FindingKind.Malformed, finding.Kind);
     }
 
     [Fact(DisplayName = "nesting a program actually has is still parsed")]

@@ -35,12 +35,16 @@ jobs:
       # The discipline is that defensive code no test reaches gets removed, made
       # an invariant, or refactored away, and the tests stand in for what it did
       # — which only holds if something checks.
+      #
+      # ThresholdType is %2C and not a bare comma: MSBuild reads a comma as a
+      # property separator and exits with MSB1006 before running a single test,
+      # so the gate meant to enforce all of the above never ran at all.
       - run: >
           dotnet test --no-build --configuration Release
           /p:CollectCoverage=true
           /p:CoverletOutputFormat=cobertura
           /p:Threshold=100
-          /p:ThresholdType=line,branch
+          /p:ThresholdType=line%2Cbranch
           /p:ThresholdStat=total
 
       # NOT gated: dotnet format --verify-no-changes.

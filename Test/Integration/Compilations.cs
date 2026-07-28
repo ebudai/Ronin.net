@@ -121,10 +121,22 @@ public class Compilations
     public void AScopeThatIsNotAFunctionOrATypeIsWalkedTo()
     {
         // A bare block, a conditional and a loop are all scopes in their own
-        // right, and each carries statements the walk has to reach.
-        Assert.Equal(FindingKind.Malformed, Single("{ function ; }\n"));
-        Assert.Equal(FindingKind.Malformed, Single("if ready { function ; }\n"));
-        Assert.Equal(FindingKind.Malformed, Single("while ready { function ; }\n"));
+        // right, and each carries declarations the walk has to reach. Well-formed
+        // source, because a malformed file stops before declarations are built at
+        // all — the scoping walk and the error walk are answering different
+        // questions and have to be asked separately.
+        foreach (var nested in (string[])
+                 [
+                     "var total => Number;\n{ var total => Number; }\n",
+                     "var total => Number;\nif ready { var total => Number; }\n",
+                     "var total => Number;\nwhile ready { var total => Number; }\n",
+                 ])
+        {
+            var finding = Assert.Single(Of(nested));
+
+            Assert.Equal(FindingKind.Shadowed, finding.Kind);
+            Assert.Equal("in an enclosing scope", finding["where"]);
+        }
     }
 
     [Fact(DisplayName = "a declaration with no body is not a body with no declarations")]
@@ -137,6 +149,51 @@ public class Compilations
 
         // the error node whose Definition was never built
         Assert.Equal(FindingKind.Malformed, Single("function ;\n"));
+    }
+
+    [Theory(DisplayName = "an error anywhere in the tree is found")]
+    // in a declaration's own parameter block, reached only through the
+    // identifier — these two killed the process, because declaration building
+    // dereferenced a parameter that had no identifier to give
+    [InlineData("function f (var +) {}\n")]
+    [InlineData("var f (var +) => Number;\n")]
+    // in a delegate's parameters
+    [InlineData("var callback = (var +) => {};\n")]
+    // in a lookup, and in an input block — an association whose value is missing
+    [InlineData("var value = { key = };\n")]
+    [InlineData("var value = (key = );\n")]
+    public void AnErrorAnywhereInTheTreeIsFound(string source)
+    {
+        // The walk this replaces descended scope bodies and carried a comment
+        // saying an error could only ever be in a statement position. A lookup
+        // holds associations, a delegate holds parameters, and an identifier
+        // holds parameter blocks — all of them can hold a recovery node, and
+        // none of them is a statement position.
+        Assert.Equal(FindingKind.Malformed, Single(source));
+    }
+
+    [Fact(DisplayName = "unrecognisable input is a problem, not a statement")]
+    public void UnrecognisableInputIsAProblemNotAStatement()
+    {
+        // Recovery is not acceptance. Unknown held its tokens and implemented no
+        // error contract, so the catch-all that keeps the parser moving was also
+        // the one that made anything at all legal.
+        Assert.Equal(FindingKind.Malformed, Single("+;\n"));
+    }
+
+    [Fact(DisplayName = "one mistake is one finding, brace and all")]
+    public void OneMistakeIsOneFindingBraceAndAll()
+    {
+        // Recovery stopped at the first closer, so «function f => {}» consumed
+        // its «{» and left the «}» for the unexpected-input path: a missing type
+        // AND a stray brace, from one mistake, under a message promising the rest
+        // of the statement had been skipped.
+        Assert.Equal(FindingKind.Malformed, Single("function f => {}\n"));
+
+        foreach (var dangling in (string[])["var x => = 1;\n", "var x => ;\n", "var x = ;\n", "type T = ;\n"])
+        {
+            Assert.Single(Of(dangling));
+        }
     }
 
     [Fact(DisplayName = "input no statement accounts for is still reported")]

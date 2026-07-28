@@ -128,9 +128,21 @@ internal struct Parser
     /// </remarks>
     public static ReadOnlyMemory<Token> Recover(ref Parser current, Parser stopped)
     {
-        // to the end of the statement, so that what failed is reported once and
-        // the next parse starts at a boundary rather than inside the wreckage
-        while (stopped.IsAtBoundary is false) stopped.Advance();
+        var depth = 0;
+
+        // To the end of the statement, so what failed is reported once and the
+        // next parse starts at a boundary rather than inside the wreckage — and
+        // a group crossed on the way is taken whole. Stopping at the first
+        // closer meant «function f => {}» consumed its «{» and left the «}»
+        // behind, so one mistake produced a missing type AND unexpected input,
+        // which is precisely what the message promises it will not do.
+        while (stopped.Token is not Sentinel && (depth is not 0 || stopped.IsAtBoundary is false))
+        {
+            if (stopped.Token is Open) ++depth;
+            else if (stopped.Token is Close) --depth;
+
+            stopped.Advance();
+        }
 
         return current.AdvanceTo(stopped);
     }

@@ -28,6 +28,9 @@ internal static class Program
 {
     private const string Extension = Compiler.Sources.Extension;
 
+    /// <summary>Files discovered but refused, which is not the same as files with problems.</summary>
+    private static int unreadable;
+
     private static int Main(string[] args)
     {
         var folder = new DirectoryInfo(args is null or { Length: 0 } ? "." : args[0]);
@@ -48,7 +51,7 @@ internal static class Program
             return 1;
         }
 
-        var failed = discovered.Unreadable.Count;
+        var failed = 0;
 
         // Ordered, and awaited by virtue of being a loop. Parallelism is worth
         // having here, but not before the pipeline it would parallelise exists.
@@ -57,8 +60,15 @@ internal static class Program
             failed += Report(source);
         }
 
-        Console.WriteLine($"{discovered.Files.Count} file(s), {failed} with problems");
-        return failed is 0 ? 0 : 1;
+        // Counted apart from files with problems, which is not the same thing:
+        // adding them together could report more files with problems than files
+        // discovered, since a directory nobody can read holds no files at all.
+        var refused = discovered.Unreadable.Count + unreadable;
+
+        Console.WriteLine($"{discovered.Files.Count} file(s), {failed} with problems" +
+                          (refused is 0 ? string.Empty : $", {refused} unreadable"));
+
+        return failed is 0 && refused is 0 ? 0 : 1;
     }
 
     private static int Report(FileInfo file)
@@ -68,10 +78,15 @@ internal static class Program
         {
             text = File.ReadAllText(file.FullName);
         }
-        catch (IOException unreadable)
+        // The same refusal set the discovery walk uses. Only IOException was
+        // caught here, and a file whose permissions forbid reading raises
+        // UnauthorizedAccessException, which is not one — so a single file
+        // nobody could open ended the whole project scan.
+        catch (Exception refused) when (refused is IOException or UnauthorizedAccessException)
         {
-            Console.Error.WriteLine($"{file.FullName}: {unreadable.Message}");
-            return 1;
+            Console.Error.WriteLine($"{file.FullName}: {refused.Message}");
+            ++unreadable;
+            return 0;
         }
 
         var compilation = Compilation.Of(new SourceText(text, file.FullName));

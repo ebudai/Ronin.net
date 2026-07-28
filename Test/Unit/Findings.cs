@@ -238,6 +238,10 @@ public class Findings
         Assert.Throws<ArgumentOutOfRangeException>(() => source.Span(0, -1));
         Assert.Throws<ArgumentOutOfRangeException>(() => source.Span(10, 5));
 
+        // and a length large enough to wrap the addition, which «offset + length
+        // > Text.Length» let straight through the check meant to stop it
+        Assert.Throws<ArgumentOutOfRangeException>(() => source.Span(1, int.MaxValue));
+
         // the end of the text is a legal position: it is where «expected a type
         // after «=>»» points when the file simply stops
         Assert.Equal((2, 7), source.At(source.Span(source.Text.Length, 0).Offset));

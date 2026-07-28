@@ -7,14 +7,28 @@ internal static class Utility
 {
     internal static void SetMemory<T>(this T value, string args) where T : Token => typeof(T).GetProperty(nameof(Token.Memory)).SetMethod.Invoke(value, new object[] { args.AsMemory() });
 
+    /// <remarks>
+    ///     Terminated with a <see cref="Sentinel"/>, because <c>Lexer.Lex</c>
+    ///     always is. A chain that simply stopped meant every hand-built list ran
+    ///     off the end into a null token instead of a sentinel — the parser's
+    ///     «finished» check is «is not Sentinel», so it read null as more input
+    ///     and dereferenced it. Test data that ends differently from the lexer is
+    ///     test data that answers a question nobody asked.
+    /// </remarks>
     internal static Token AsLinkedList(this List<Token> tokens)
     {
         if (tokens.Count is 0) return null;
+
         var list = tokens[0];
         foreach (var token in tokens.Skip(1))
         {
             list = list.Append(token);
         }
+
+        Sentinel end = new();
+        end.SetMemory(string.Empty);
+        list.Append(end);
+
         return tokens[0];
     }
 

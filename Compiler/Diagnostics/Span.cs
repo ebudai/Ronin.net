@@ -72,7 +72,11 @@ internal sealed class SourceText(string text, string path = null)
             throw new ArgumentOutOfRangeException(nameof(offset), offset,
                                                   $"outside a text of {Text.Length} characters");
 
-        if (length < 0 || offset + length > Text.Length)
+        // «Text.Length - offset» and not «offset + length», which wraps
+        // negative for a large enough length and lets an invalid span through
+        // the check meant to stop exactly that. Offset is already validated, so
+        // the subtraction cannot wrap.
+        if (length < 0 || length > Text.Length - offset)
             throw new ArgumentOutOfRangeException(nameof(length), length,
                                                   $"reaches past the end of a text of {Text.Length} characters");
 
