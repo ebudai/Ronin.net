@@ -215,9 +215,12 @@ internal sealed class Graph(int cascades = 64)
 
         // Arms adoption. A body cannot be stopped mid-flight, so instead the
         // first error it reads is remembered and applied to whatever it returns.
-        if (read is Error and not Fault && adopting.Count is not 0 && handling is 0)
+        // A fault arms adoption too: a body that reads one and ignores it would
+        // otherwise return a normal value and hide the defect, which is the same
+        // hole adoption exists to close.
+        if (read is Error failure && adopting.Count is not 0 && handling is 0)
         {
-            adopting[^1] ??= (Error)read;
+            adopting[^1] ??= failure;
         }
 
         return read;

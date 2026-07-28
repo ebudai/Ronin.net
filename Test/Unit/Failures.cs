@@ -90,6 +90,41 @@ public class Failures
         Assert.Same(fault, Builtin.Otherwise(fault, 0d));
     }
 
+    [Fact(DisplayName = "a fault propagates to whoever read it")]
+    public void AFaultPropagatesToWhoeverReadIt()
+    {
+        // ignoring a fault must not launder it into a value, for the same reason
+        // ignoring an error must not
+        Graph graph = new();
+        graph.Let("buggy", _ => throw new InvalidOperationException("interpreter bug"));
+        graph.Let("ignores", scope =>
+        {
+            scope.Read("buggy");
+            return 42d;
+        });
+
+        Assert.IsType<Fault>(graph.Read("ignores"));
+    }
+
+    [Fact(DisplayName = "a plain read defeats otherwise, and handling is why")]
+    public void APlainReadDefeatsOtherwiseAndHandlingIsWhy()
+    {
+        // The hazard, not just the fix: read plainly and adoption overrides the
+        // fallback with the very error otherwise just handled. Anyone
+        // "simplifying" the call site would silently break the one thing that
+        // catches, so the failure is pinned here beside the remedy.
+        Graph graph = new();
+        graph.Var("parsed", Nothing.Instance);
+        graph.Let("naive", scope => Builtin.Otherwise(scope.Read("parsed"), 0d));
+        graph.Let("correct", scope => Builtin.Otherwise(scope.Handling(() => scope.Read("parsed")), 0d));
+
+        graph.Write("parsed", new Error("bad input"));
+        graph.Step();
+
+        Assert.IsType<Error>(graph.Read("naive"));
+        Assert.Equal(0d, graph.Read("correct"));
+    }
+
     [Fact(DisplayName = "a fault is not overwritten by adoption")]
     public void AFaultIsNotOverwrittenByAdoption()
     {
