@@ -136,16 +136,89 @@ public class Resolutions
     [Fact(DisplayName = "bracketing repairs every tie")]
     public void BracketingRepairsEveryTie()
     {
-        // The repair must be able to express EVERY competing reading, or the
-        // language has programs nobody can write.
+        // The ambiguity message tells the writer to bracket, so the edit it
+        // proposes has to actually resolve the case: a fix suggestion that does
+        // not work is worse than none. Every ambiguous case in the corpus is
+        // repaired here, and the repairs must reach as many distinct readings as
+        // there were competitors — otherwise the language has programs nobody
+        // can write.
+        Repairs(["list", "of list"], ["sum of _", "sum _"],
+                "sum of list",
+                ["sum of (list)", "sum (of list)"]);
+
+        Repairs(["order", "total", "total for order"], ["compute _", "compute total for _"],
+                "compute total for order",
+                ["compute total for (order)", "compute (total for order)"]);
+
+        Repairs(["report", "the report", "the report today", "today"],
+                ["send _", "send _ today", "send the report _"],
+                "send the report today",
+                ["send (the report today)", "send (the report) today", "send the report (today)"]);
+    }
+
+    private static void Repairs(string[] names, string[] patterns, string ambiguous, string[] repairs)
+    {
         SymbolTable symbols = new();
-        symbols.WithNames("list", "of list").WithPatterns("sum of _", "sum _");
+        symbols.WithNames(names).WithPatterns(patterns);
 
         Resolver resolver = new(symbols);
-        Assert.Equal("Ambiguous", resolver.Resolve("sum of list").Kind.ToString());
 
-        Assert.Equal("Resolved", resolver.Resolve("sum of (list)").Kind.ToString());
-        Assert.Equal("Resolved", resolver.Resolve("sum (of list)").Kind.ToString());
+        var tie = resolver.Resolve(ambiguous);
+        Assert.Equal("Ambiguous", tie.Kind.ToString());
+
+        HashSet<string> reached = [];
+        foreach (var repair in repairs)
+        {
+            var resolution = resolver.Resolve(repair);
+            Assert.Equal("Resolved", resolution.Kind.ToString());
+            reached.Add(resolution.Reading);
+        }
+
+        Assert.Equal(tie.Readings.Count, reached.Count);
+    }
+
+    [Fact(DisplayName = "a pattern is its segments, not its rendering")]
+    public void APatternIsItsSegmentsNotItsRendering()
+    {
+        // Identity has to be structural, or a scope keyed on patterns collides
+        // silently the first time the rendering changes for presentation.
+        var first = Pattern.Parse("compute total for _");
+        var same = Pattern.Parse("compute total for _");
+        var different = Pattern.Parse("compute total of _");
+
+        Assert.True(first.Equals(same));
+        Assert.False(first.Equals(different));
+        Assert.False(first.Equals((Pattern)null));
+        Assert.False(first.Equals(first.ToString()));
+
+        Assert.Equal(first.GetHashCode(), same.GetHashCode());
+        Assert.NotEqual(first.GetHashCode(), different.GetHashCode());
+    }
+
+    [Fact(DisplayName = "a group holds one part or several")]
+    public void AGroupHoldsOnePartOrSeveral()
+    {
+        SymbolTable symbols = new();
+        symbols.WithNames("a", "b").WithPatterns("draw _ at _");
+
+        Resolver resolver = new(symbols);
+
+        Assert.Equal("draw «a» at ⟨«b»⟩", resolver.Resolve("draw a at (b)").Reading);
+        Assert.Equal("draw «a» at ⟨«a», «b»⟩", resolver.Resolve("draw a at (a, b)").Reading);
+
+        // the bracket is one lookup either way, so the second costs exactly the
+        // extra name it contains
+        Assert.Equal(4, resolver.Resolve("draw a at (b)").Cost);
+        Assert.Equal(5, resolver.Resolve("draw a at (a, b)").Cost);
+
+        // a separator inside a nested bracket belongs to the inner group and must
+        // not split the outer one
+        Assert.Equal("draw «a» at ⟨⟨«a», «b»⟩, «b»⟩", resolver.Resolve("draw a at ((a, b), b)").Reading);
+        Assert.Equal(7, resolver.Resolve("draw a at ((a, b), b)").Cost);
+
+        // a part has to be a substatement, so there is no empty one
+        Assert.Equal("NoParse", resolver.Resolve("draw a at (b,)").Kind.ToString());
+        Assert.Equal("NoParse", resolver.Resolve("draw a at ()").Kind.ToString());
     }
 
     [Theory(DisplayName = "bracket cost is ranking neutral")]

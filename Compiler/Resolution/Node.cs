@@ -50,12 +50,16 @@ internal abstract class Node
         protected override string Render() => $"«{Words}»";
     }
 
-    /// <summary>A bracketed substatement. One lookup however large it is.</summary>
-    internal sealed class Group(Node inner) : Node
+    /// <summary>
+    ///     A bracketed substatement. One lookup however large it is, and one part
+    ///     unless separators divided it — «(x, y)» is a group of two, which is how
+    ///     a parameter block of two receives its arguments.
+    /// </summary>
+    internal sealed class Group(IReadOnlyList<Node> parts) : Node
     {
-        public Node Inner { get; } = inner;
+        public IReadOnlyList<Node> Parts { get; } = parts;
 
-        protected override string Render() => $"⟨{Inner}⟩";
+        protected override string Render() => $"⟨{string.Join(", ", Parts)}⟩";
     }
 
     /// <summary>An operator applied to two operands. Free: no table is consulted.</summary>

@@ -128,7 +128,7 @@ internal sealed class Resolver
         // CLOSED, which is what lets «(compute total for a) + b» resolve
         if (j - i >= 2 && lexemes[i].Kind is LexemeKind.Open && lexemes[j - 1].Kind is LexemeKind.Close)
         {
-            if (expressions[i + 1, j - 1, 0].TryBest(out var inner)) cell.Offer(1 + inner.Cost, new Node.Group(inner.Node));
+            Group(lexemes, cell, i + 1, j - 1);
         }
 
         foreach (var pattern in symbols.Patterns)
@@ -137,6 +137,52 @@ internal sealed class Resolver
             foreach (var (cost, arguments, count) in Match(pattern, 0, lexemes, i, j))
                 target.Offer(1 + cost, new Node.Call(pattern, arguments), count);
         }
+    }
+
+    /// <summary>
+    ///     Offers the contents of a bracketed span as one substatement, split on
+    ///     the separators at its own depth.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     «(x, y)» is a group of two where «(x)» is a group of one, and the two
+    ///     are the same shape — which is what lets a parameter block of two bind
+    ///     to a hole while the resolver stays ignorant of arity. It costs one
+    ///     lookup either way, because it is one bracketed substatement.
+    /// </remarks>
+    private void Group(IReadOnlyList<Lexeme> lexemes, Cell cell, int from, int to)
+    {
+        List<int> separators = [];
+        var depth = 0;
+
+        for (var k = from; k < to; ++k)
+        {
+            switch (lexemes[k].Kind)
+            {
+                case LexemeKind.Open: ++depth; break;
+                case LexemeKind.Close: --depth; break;
+                case LexemeKind.Separator when depth is 0: separators.Add(k); break;
+                default: break;
+            }
+        }
+
+        var cost = 0;
+        var count = 1L;
+        List<Node> parts = [];
+        var start = from;
+
+        foreach (var end in separators.Append(to))
+        {
+            // an empty part — «(a,)» or «()» — is not a substatement at all
+            if (expressions[start, end, 0].TryBest(out var part) is false) return;
+
+            cost += part.Cost;
+            count *= part.Count;
+            parts.Add(part.Node);
+            start = end + 1;
+        }
+
+        cell.Offer(1 + cost, new Node.Group(parts), count);
     }
 
     private static bool AllWords(IReadOnlyList<Lexeme> lexemes, int i, int j)
@@ -309,7 +355,7 @@ internal sealed class Resolver
 /// <summary>The cheapest reading of one span, and how many derivations reach it.</summary>
 internal readonly record struct Best(int Cost, Node Node, long Count);
 
-internal enum LexemeKind { Word, Number, Symbol, Open, Close }
+internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
 
 internal readonly record struct Lexeme(LexemeKind Kind, string Text)
 {
@@ -329,6 +375,7 @@ internal readonly record struct Lexeme(LexemeKind Kind, string Text)
 
             if (c is '(') { lexemes.Add(new(LexemeKind.Open, "(")); ++i; continue; }
             if (c is ')') { lexemes.Add(new(LexemeKind.Close, ")")); ++i; continue; }
+            if (c is ',') { lexemes.Add(new(LexemeKind.Separator, ",")); ++i; continue; }
 
             var start = i;
             if (char.IsDigit(c))
@@ -346,7 +393,7 @@ internal readonly record struct Lexeme(LexemeKind Kind, string Text)
             while (i < source.Length
                 && char.IsWhiteSpace(source[i]) is false
                 && char.IsLetterOrDigit(source[i]) is false
-                && source[i] is not ('(' or ')')) ++i;
+                && source[i] is not ('(' or ')' or ',')) ++i;
             lexemes.Add(new(LexemeKind.Symbol, source[start..i]));
         }
         return lexemes;
@@ -354,7 +401,13 @@ internal readonly record struct Lexeme(LexemeKind Kind, string Text)
 }
 
 /// <summary>A word pattern. A null segment is a hole.</summary>
-internal sealed class Pattern
+///
+/// <remarks>
+///     Identity is the segment sequence, not the rendering. Keying a scope on
+///     <see cref="ToString"/> would work until someone wanted a prettier display
+///     form, and the failure mode of that divergence is silent scope collisions.
+/// </remarks>
+internal sealed class Pattern : IEquatable<Pattern>
 {
     public Pattern(IReadOnlyList<string> segments)
     {
@@ -389,6 +442,17 @@ internal sealed class Pattern
     public IEnumerable<string> Glue => Segments.Skip(Anchor.Count).Where(s => s is not null);
 
     public override string ToString() => string.Join(' ', Segments.Select(s => s ?? "(_)"));
+
+    public bool Equals(Pattern other) => other is not null && Segments.SequenceEqual(other.Segments);
+
+    public override bool Equals(object obj) => Equals(obj as Pattern);
+
+    public override int GetHashCode()
+    {
+        HashCode hash = new();
+        foreach (var segment in Segments) hash.Add(segment);
+        return hash.ToHashCode();
+    }
 }
 
 internal sealed record Operator(int BindingPower, bool IsLeftAssociative = true);

@@ -41,7 +41,7 @@ internal sealed class Evaluator(Scope scope)
             Tree.Name name => graph.Read(name.Words),
 
             // brackets cost a lookup to the resolver and mean nothing here
-            Tree.Group group => Evaluate(graph, group.Inner, insideLet),
+            Tree.Group group => Grouped(graph, group, insideLet),
 
             Tree.Operation operation => Apply(graph, operation, insideLet),
 
@@ -61,6 +61,16 @@ internal sealed class Evaluator(Scope scope)
 
         return graph => Evaluate(graph, tree, insideLet: true);
     }
+
+    /// <summary>
+    ///     A group of one is just its contents. A group of several is the list a
+    ///     parameter block of the same size destructures, so the brackets that
+    ///     could not be dropped are exactly the ones that carry meaning.
+    /// </summary>
+    private object Grouped(Graph graph, Tree.Group group, bool insideLet)
+        => group.Parts.Count is 1
+         ? Evaluate(graph, group.Parts[0], insideLet)
+         : group.Parts.Select(part => Evaluate(graph, part, insideLet)).ToArray();
 
     private object Apply(Graph graph, Tree.Operation operation, bool insideLet)
     {

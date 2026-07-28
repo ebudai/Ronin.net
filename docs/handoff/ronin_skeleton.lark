@@ -1,0 +1,63 @@
+// Ronin — the context-free skeleton.
+//
+// Everything a standard EBNF-consuming parser generator CAN do for you. The
+// declaration and block structure of Ronin is an ordinary context-free grammar
+// and a generator handles it fine.
+//
+// The one hole is `statement_body`: the span of tokens making up an expression.
+// That is deliberately left unparsed here, because it CANNOT be expressed as a
+// production — see ebnf_boundary.py for why. The resolver takes that span.
+
+start: item*
+
+?item: module_decl
+     | import_decl
+     | type_decl
+     | function_decl
+     | data_decl
+
+module_decl:   "part" "of" name ";"
+import_decl:   "import" [name "="] name ";"
+
+data_decl:     modifier* kind name [returns type_ref] ["=" body] ";"
+kind:          "var" | "let" | "const"
+modifier:      "hidden" | "shared" | "global" | "optional" | "compiled"
+
+function_decl: "function" identifier [returns type_ref] ("=" body ";" | block)
+
+type_decl:     "type" identifier "=" algebra (block | ";")
+             | "type" identifier block
+algebra:       type_ref (("and" | "or") type_ref)*
+
+// An identifier alternates name words and parameter blocks in any order --
+// this part IS context-free, because a declaration's shape is written down
+// rather than inferred.
+identifier:    id_part+
+?id_part:      name | parameters
+parameters:    "(" [parameter ("," parameter)*] ["," ] ")"
+parameter:     modifier* [kind] name [returns type_ref] ["=" body]
+
+block:         "{" statement* "}"
+statement:     data_decl
+             | function_decl
+             | control
+             | body ";"
+
+control:       "if" body block ["else" block] ";"
+             | "while" body block
+             | "when" body block
+             | "iterate" body returns name block
+
+type_ref:      name | "[" type_ref "]"
+name:          WORD+
+returns:       "=>"
+
+// THE HOLE. A generator cannot go inside this; the resolver does.
+body:          /[^;{}]+/
+
+WORD:          /[a-zA-Z_][a-zA-Z0-9_]*/
+COMMENT:       /\/\/[^\n]*/ | /\/\*(.|\n)*?\*\//
+
+%import common.WS
+%ignore WS
+%ignore COMMENT

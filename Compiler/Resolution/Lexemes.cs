@@ -65,6 +65,9 @@ internal static class Lexemes
         Open => LexemeKind.Open,
         Close => LexemeKind.Close,
 
+        // a separator divides a group; it is never an operand or an operator
+        Separator => LexemeKind.Separator,
+
         // Date and Text are free atoms for exactly the reason Numeric is: a literal
         // denotes itself, so it costs no symbol table lookup. LexemeKind.Number is
         // named for the only literal the standalone splitter can produce.

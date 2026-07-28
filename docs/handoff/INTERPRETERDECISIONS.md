@@ -124,10 +124,37 @@ dependency's error state without inheriting it (scenario 7).
 
 **One propagation step per batch.** All writes since the last step land
 together, then dependents recompute. A reader can never see new `width` with old
-`height` (scenario 8). Double-buffer it: writes go to the back buffer, the step
-flips one index for the whole graph, and reads stay plain loads. That measured
-identical to a plain load and 3.6× faster than the queue alternative, and it's
-the only one of the three that preserves cross-var consistency by construction.
+`height` (scenario 8).
+
+~~Double-buffer it: writes go to the back buffer, the step flips one index for
+the whole graph, and reads stay plain loads. That measured identical to a plain
+load and 3.6× faster than the queue alternative.~~
+
+**Corrected.** The 3.6× came from `propagation.c`, which compared a FIFO ring
+buffer against a double buffer — neither of which `reactive_core.py` implements.
+It uses a pending map holding only the latest value per var, which is
+latest-value semantics like the double buffer, so the figure was never evidence
+for the prescribed change. The applicable measurement:
+
+| writes | reads | map (µs) | dbuf (µs) | map/dbuf |
+|---|---|---|---|---|
+| 1 | 10 | 0.008 | 0.400 | 0.02× |
+| 4 | 100 | 0.070 | 0.426 | 0.16× |
+| 16 | 100 | 0.106 | 0.422 | 0.25× |
+| 256 | 1000 | 1.581 | 1.185 | 1.33× |
+
+The map wins by 4–50× at realistic write counts, and the reason is structural: a
+global index flip has to carry every unwritten var across the flip, so the step
+is O(vars) where the map is O(writes). A frame writes a handful of sources and
+reads many derived values — the top rows. Double buffering only pays once writes
+approach the size of the graph. A generation-stamped buffer would avoid the
+carry, but the thing tracking which vars changed is a dirty set, which is what
+the pending map already is.
+
+**Keep the map.** The genuine reason to double-buffer is readers running
+concurrently with propagation, and parallel evaluation is deferred. Revisit when
+it lands, at which point the question is a generation stamp rather than a global
+flip.
 
 ---
 

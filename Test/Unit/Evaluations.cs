@@ -103,6 +103,43 @@ public class Evaluations
         Assert.Equal(50d, evaluator.Evaluate(graph, Resolve(symbols, "compute total for order + 4"), insideLet: false));
     }
 
+    [Fact(DisplayName = "a group of two binds a parameter block of two")]
+    public void AGroupOfTwoBindsAParameterBlockOfTwo()
+    {
+        // the whole reason a hole is a block and not a parameter: the resolver
+        // hands over one argument per hole and never learns about arity
+        SymbolTable symbols = new();
+        symbols.WithNames("circle", "here").WithPatterns("draw _ at _");
+
+        Scope scope = new();
+        scope.Declare(new Declaration(
+            Pattern.Parse("draw _ at _"),
+            [["shape"], ["x", "y"]],
+            (_, bound) => $"{bound["shape"]}@{bound["x"]},{bound["y"]}"));
+
+        Graph graph = new();
+        graph.Var("circle", "circle");
+        graph.Var("here", 9d);
+
+        Evaluator evaluator = new(scope);
+
+        Assert.Equal("circle@3,4",
+                     evaluator.Evaluate(graph, Resolve(symbols, "draw circle at (3, 4)"), insideLet: false));
+
+        // the parts are expressions, not literals
+        Assert.Equal("circle@10,9",
+                     evaluator.Evaluate(graph, Resolve(symbols, "draw circle at (here + 1, here)"), insideLet: false));
+
+        // brackets may be dropped for one parameter and never for two
+        var unbracketed = Assert.IsType<Error>(
+            evaluator.Evaluate(graph, Resolve(symbols, "draw circle at here"), insideLet: false));
+        Assert.Contains("a single argument", unbracketed.Message);
+
+        var wrong = Assert.IsType<Error>(
+            evaluator.Evaluate(graph, Resolve(symbols, "draw circle at (here, here, here)"), insideLet: false));
+        Assert.Contains("was given 3", wrong.Message);
+    }
+
     [Fact(DisplayName = "an effectful call is refused inside a let body")]
     public void AnEffectfulCallIsRefusedInsideALetBody()
     {

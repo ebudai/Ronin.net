@@ -75,8 +75,8 @@ internal sealed class Scope
     {
         ArgumentNullException.ThrowIfNull(declaration);
 
-        var shape = declaration.Pattern.ToString();
-        if (declarations.TryGetValue(shape, out var overloads) is false) declarations[shape] = overloads = [];
+        if (declarations.TryGetValue(declaration.Pattern, out var overloads) is false)
+            declarations[declaration.Pattern] = overloads = [];
 
         overloads.Add(declaration);
     }
@@ -86,7 +86,7 @@ internal sealed class Scope
         ArgumentNullException.ThrowIfNull(pattern);
         ArgumentNullException.ThrowIfNull(arguments);
 
-        if (declarations.TryGetValue(pattern.ToString(), out var overloads) is false)
+        if (declarations.TryGetValue(pattern, out var overloads) is false)
             return new Error($"no declaration for «{pattern}»");
 
         if (overloads.Count > 1) return new Error($"«{pattern}» is ambiguous after type filtering");
@@ -125,5 +125,5 @@ internal sealed class Scope
         return declaration.Body(graph, bound);
     }
 
-    private readonly Dictionary<string, List<Declaration>> declarations = [];
+    private readonly Dictionary<Pattern, List<Declaration>> declarations = [];
 }
