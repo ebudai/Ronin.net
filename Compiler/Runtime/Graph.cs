@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using Ronin.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -7,7 +8,7 @@ using System.Linq;
 
 namespace Ronin.Runtime;
 
-internal enum NodeKind { Var, Let }
+internal enum NodeKind { Var, Let, Shadow }
 
 /// <summary>
 ///     When a <c>when</c> fires. Edge triggered in both cases, never level
@@ -93,7 +94,13 @@ internal sealed class Graph(int cascades = 64)
     ///     A derived node. The body is not evaluated at declaration — it runs on
     ///     first read, and again when a dependency changed and someone asks.
     /// </summary>
-    public Node Let(string name, Func<Graph, object> body) => Declare(new Node(name, NodeKind.Let, body, null, dirty: true));
+    /// <remarks>
+    ///     The cache seeds with <see cref="Nothing"/> rather than nothing at all,
+    ///     because a shadow taken before the body has ever run copies that cache,
+    ///     and a shadow must seed with nothing and never with a null or an error.
+    /// </remarks>
+    public Node Let(string name, Func<Graph, object> body)
+        => Declare(new Node(name, NodeKind.Let, body, Nothing.Instance, dirty: true));
 
     /// <summary>
     ///     A sink: effectful, produces no value, and pushed rather than pulled.
@@ -130,6 +137,30 @@ internal sealed class Graph(int cascades = 64)
         foreach (var (name, trigger) in whens) trigger.Previous = Read(name);
     }
 
+    /// <summary>
+    ///     The previous step's value of <paramref name="name"/>, allocated on
+    ///     first request.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Seeded with <see cref="Nothing"/> and never with an error, because an
+    ///     error seed latches: the cell errors, so next step its shadow is still
+    ///     an error, permanently. The shadow's <c>optional</c> typing then makes a
+    ///     missing seed a compile error and <c>otherwise</c> supplies it, which
+    ///     needs no new checking.
+    /// </remarks>
+    public Node Shadow(string name)
+    {
+        var source = nodes[name];
+        var shadowed = SymbolTable.Shadowed + name;
+
+        if (nodes.TryGetValue(shadowed, out var shadow)) return shadow;
+
+        shadow = Declare(new Node(shadowed, NodeKind.Shadow, null, Nothing.Instance, dirty: false));
+        shadows[source] = shadow;
+        return shadow;
+    }
+
     public Node this[string name] => nodes[name];
 
     /// <summary>What fired during the last <see cref="Step"/>, in order.</summary>
@@ -156,7 +187,8 @@ internal sealed class Graph(int cascades = 64)
             node.Dependents.Add(reader.Name);
         }
 
-        if (node.Kind is NodeKind.Var) return node.Value;
+        // a var holds its value and a shadow is handed one; only a let derives it
+        if (node.Kind is not NodeKind.Let) return node.Value;
 
         // detected by re-entry, so no static analysis is required
         if (node.Evaluating) return new Error($"cycle through «{node.Name}»");
@@ -174,7 +206,12 @@ internal sealed class Graph(int cascades = 64)
     {
         var node = nodes[name];
 
-        if (node.Kind is not NodeKind.Var) throw new PurityViolation($"«{name}» is derived; only its body may set it");
+        if (node.Kind is NodeKind.Shadow)
+            throw new PurityViolation(
+                $"«{name}» is the previous value of «{name[SymbolTable.Shadowed.Length..]}» and moves " +
+                "only when the step does; write the cell it shadows instead");
+
+        if (node.Kind is NodeKind.Let) throw new PurityViolation($"«{name}» is derived; only its body may set it");
 
         if (reading.Count is not 0)
             throw new PurityViolation($"«{reading[^1].Name}» is a let and may not assign «{name}»");
@@ -204,6 +241,18 @@ internal sealed class Graph(int cascades = 64)
     {
         trace.Clear();
         fired.Clear();
+
+        // Before any pending write applies and once for the whole turn, so «old
+        // x» is the previous step's value consistently — including across every
+        // cascade round, which must not see it move. This is where a step
+        // boundary falls, and Trigger.Previous has to agree with it.
+        foreach (var (source, shadow) in shadows)
+        {
+            if (Equals(shadow.Value, source.Value)) continue;
+
+            shadow.Value = source.Value;
+            MarkDirty(shadow);
+        }
 
         var rounds = 0;
 
@@ -342,6 +391,20 @@ internal sealed class Graph(int cascades = 64)
     /// <summary>Distinguishes "not observed yet" from any value a trigger may hold.</summary>
     private static readonly object Unobserved = new();
 
+    /// <summary>
+    ///     A <c>when</c>'s body and the last value its trigger settled at.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <see cref="Previous"/> is a second implementation of what <c>old</c>
+    ///     already means — «when C» fires when <c>C and not old C</c>, and «when y
+    ///     changes» fires when <c>y is not old y</c>. Both are now expressible in
+    ///     the language, so a rewrite of <c>when</c> should desugar rather than
+    ///     keep this field. Until then the two must agree about where a step
+    ///     boundary falls, which is asserted by
+    ///     <c>Shadows.AChangesTriggerFiresExactlyWhenOldDisagrees</c>; see the
+    ///     shadow copy at the top of <see cref="Step"/> for the other half.
+    /// </remarks>
     private sealed class Trigger(Action<Graph> body, TriggerMode mode)
     {
         public Action<Graph> Body { get; } = body;
@@ -351,6 +414,7 @@ internal sealed class Graph(int cascades = 64)
 
     private readonly int limit = cascades;
     private readonly Dictionary<string, Node> nodes = [];
+    private readonly Dictionary<Node, Node> shadows = [];
     private readonly Dictionary<string, Trigger> whens = [];
     private readonly Dictionary<string, object> pending = [];
     private readonly List<Node> reading = [];

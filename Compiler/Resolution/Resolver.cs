@@ -484,11 +484,63 @@ internal sealed class SymbolTable
         ["/"] = new(20),
     };
 
+    /// <summary>The scope as it is, without the injection a declaration performs.</summary>
     public SymbolTable WithNames(params string[] names)
     {
         foreach (var name in names) Names.Add(name);
         return this;
     }
+
+    /// <summary>
+    ///     Declares cells, each of which injects its shadow into the same scope.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     «old x» is an injected NAME rather than an operator or a pattern, and
+    ///     that is what makes it cost nothing: a name is already an atom and an
+    ///     atom is already an operand at every binding level. Spelling it as a
+    ///     word pattern would make «old» swallow the rest of the expression, and
+    ///     spelling it as a prefix operator would need a new atom kind, a binding
+    ///     power, and an exemption so that reading «old x» does not put an edge on
+    ///     «x». Injection gets that last one free, because «old x» IS a different
+    ///     cell — «let smoothed = old smoothed * 0.9 + reading * 0.1» is not a
+    ///     self-cycle by construction rather than by exemption.
+    ///     </para>
+    ///     <para>
+    ///     Injection is unconditional and allocation is not. Whether anything
+    ///     reads «old x» is unknown until resolution has finished, but the name
+    ///     has to be in scope during it, so the symbol always appears and
+    ///     <c>Graph.Shadow</c> allocates only where a reference was found.
+    ///     </para>
+    /// </remarks>
+    public SymbolTable Declaring(params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (name.StartsWith(Shadowed, StringComparison.Ordinal))
+                throw new ArgumentException(
+                    $"«{name}» begins with the reserved word «{Old}». There is no «old old x»: " +
+                    "injection applies to declared cells and never to injected ones, so a second " +
+                    "generation has to be captured by declaring a let for it.", nameof(names));
+
+            var shadow = Shadowed + name;
+
+            if (Names.Contains(shadow))
+                throw new ArgumentException(
+                    $"«{shadow}» is already in scope, and declaring «{name}» injects it. " +
+                    "Rename whichever of the two you own.", nameof(names));
+
+            Names.Add(name);
+            Names.Add(shadow);
+        }
+
+        return this;
+    }
+
+    /// <summary>The prefix a declaration injects, and the reserved word it is built from.</summary>
+    internal const string Old = "old";
+    internal const string Shadowed = Old + " ";
 
     public SymbolTable WithPatterns(params string[] patterns)
     {
@@ -514,6 +566,14 @@ internal sealed class SymbolTable
                 if (a.Anchor.SequenceEqual(b.Anchor.Take(a.Anchor.Count)))
                     yield return $"anchor of «{a}» is a prefix of «{b}»; one must be respelled";
             }
+        }
+
+        // «old» is reserved: one pattern using it as a segment would put it in
+        // the glue set, and R5 would then reject every injected name in scope
+        foreach (var pattern in Patterns)
+        {
+            if (pattern.Segments.Contains(Old))
+                yield return $"«{pattern}» uses the reserved word «{Old}» as a segment; respell that segment";
         }
 
         // R5: a multi-word name may not contain pattern glue, or introducing a
