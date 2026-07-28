@@ -40,7 +40,7 @@ namespace Ronin.Compiler;
 internal sealed class Resolver
 {
     /// <summary>Highest binding power the table indexes. Must exceed every operator.</summary>
-    private const int MaxBindingPower = 30;
+    public const int MaxBindingPower = 30;
 
     /// <summary>
     ///     The longest statement that will be resolved. Far past anything anyone
@@ -555,8 +555,40 @@ internal sealed class Pattern : IEquatable<Pattern>
 ///     <see cref="Apply"/> is required, so an operator cannot be given a binding
 ///     power without also being given a meaning — which is the failure the old
 ///     key-set test could only report after the fact.
+///
+///     A class and not a record: what matters is which operator object resolution
+///     chose, since that is the one evaluation applies, and identity says that
+///     where value equality would not.
 /// </remarks>
-internal sealed record Operator(int BindingPower, Func<object, object, object> Apply, bool IsLeftAssociative = true);
+internal sealed class Operator
+{
+    public Operator(int bindingPower, Func<object, object, object> apply, bool isLeftAssociative = true)
+    {
+        // Checked here rather than assumed. The table is mutable so that a scope
+        // can add an operator, and every one of these failed far from the
+        // insertion that caused it: a binding power outside the indexed range
+        // came back as a raw IndexOutOfRangeException while CONSTRUCTING a
+        // resolver, and a null implementation resolved perfectly well and then
+        // threw inside the evaluator. The comment already said an implementation
+        // was required; now something says so.
+        if (bindingPower < 0 || bindingPower > Resolver.MaxBindingPower)
+            throw new ArgumentOutOfRangeException(nameof(bindingPower), bindingPower,
+                                                  $"a binding power runs from 0 to {Resolver.MaxBindingPower}");
+
+        ArgumentNullException.ThrowIfNull(apply);
+
+        BindingPower = bindingPower;
+        Apply = apply;
+        IsLeftAssociative = isLeftAssociative;
+    }
+
+    public int BindingPower { get; }
+
+    /// <summary>What the operator does. Required, so resolution and evaluation cannot disagree about whether it has a meaning.</summary>
+    public Func<object, object, object> Apply { get; }
+
+    public bool IsLeftAssociative { get; }
+}
 
 /// <summary>Names and patterns in scope, plus the fixed operator table.</summary>
 internal sealed class SymbolTable

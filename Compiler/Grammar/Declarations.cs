@@ -108,11 +108,16 @@ internal sealed class Declarations
 
         if (member.Identifier.TryPattern(out var pattern, out var blocks) is false)
         {
-            // Too wide is not "not a pattern": it has holes, so it is a pattern
-            // declaration and it is one this will not match. Saying so is the
-            // whole point of the ceiling — a bound that refuses hostile input by
+            // Too wide is not "not a pattern": it HAS holes, so it is a pattern
+            // declaration and one this will not match. Saying so is the whole
+            // point of the ceiling — a bound that refuses hostile input by
             // terminating the compiler is not a bound.
-            if (member.Identifier.Width > Compiler.Pattern.MaxSegments)
+            //
+            // Asked of a pattern only. The limit exists because matching recurses
+            // once per segment, and a plain name never enters that matcher:
+            // deciding on width alone told someone with a 129-word name that a
+            // pattern may have at most 128, which is true and not about them.
+            if (member.Identifier.IsPattern && member.Identifier.Width > Compiler.Pattern.MaxSegments)
             {
                 problems.Add(new PatternTooWide(member.Identifier.Span(source),
                                                 member.Identifier.Words,

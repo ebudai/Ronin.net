@@ -377,7 +377,7 @@ public class Resolutions
         SymbolTable symbols = new();
         symbols.WithNames("a", "b", "c");
         symbols.Operators["^"] = new Operator(25, Ronin.Runtime.Builtin.Lift(
-            (left, right) => System.Math.Pow((double)left, (double)right)), IsLeftAssociative: false);
+            (left, right) => System.Math.Pow((double)left, (double)right)), isLeftAssociative: false);
 
         Resolver resolver = new(symbols);
 

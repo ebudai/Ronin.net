@@ -193,6 +193,23 @@ public class Compilations
         Assert.Equal(Ronin.Compiler.Pattern.MaxSegments, refused.Most);
     }
 
+    [Fact(DisplayName = "a wide plain name is not a wide pattern")]
+    public void AWidePlainNameIsNotAWidePattern()
+    {
+        // Having holes is what makes something a pattern, and it is the only
+        // thing that does. Deciding by width alone told someone with a 129-word
+        // NAME that "a pattern may have at most 128" — true, and not about them,
+        // and quoting a limit on a matcher their declaration never enters.
+        var name = string.Join(' ', Enumerable.Repeat("word", Ronin.Compiler.Pattern.MaxSegments + 1));
+
+        Assert.Empty(Of($"var {name} => Number;\n"));
+
+        // while the same width WITH a hole in it is still refused
+        var pattern = string.Concat(Enumerable.Repeat("word ", Ronin.Compiler.Pattern.MaxSegments));
+
+        Assert.IsType<PatternTooWide>(Assert.Single(Of($"function {pattern}(x => Number) {{}}\n")));
+    }
+
     [Fact(DisplayName = "compiling two files at once does not corrupt the walk")]
     public void CompilingTwoFilesAtOnceDoesNotCorruptTheWalk()
     {

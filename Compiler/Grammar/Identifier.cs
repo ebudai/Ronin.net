@@ -85,13 +85,24 @@ internal class Identifier : IEnumerable<Identifier.Component>
         // introduced to refuse hostile input would have become a fatal path of
         // its own.
         Width = segments.Count;
+        IsPattern = holes.Count is not 0;
 
-        pattern = holes.Count is 0 || segments.Count > Compiler.Pattern.MaxSegments
-                ? null
-                : new Compiler.Pattern(segments);
+        // Having holes is what makes it a pattern, and it is the ONLY thing that
+        // does. Deciding by width alone reported a 129-word plain NAME as a
+        // pattern too wide, quoting a limit on a matcher it will never enter.
+        if (holes.Count is 0)
+        {
+            pattern = null;
+            return false;
+        }
+
+        pattern = segments.Count > Compiler.Pattern.MaxSegments ? null : new Compiler.Pattern(segments);
 
         return pattern is not null;
     }
+
+    /// <summary>Whether the last <see cref="TryPattern"/> saw a parameter block.</summary>
+    public bool IsPattern { get; private set; }
 
     /// <summary>
     ///     How many words and holes the last <see cref="TryPattern"/> counted,

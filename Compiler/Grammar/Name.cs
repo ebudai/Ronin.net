@@ -14,13 +14,38 @@ internal class Name
 {
     public ReadOnlyMemory<Token> Tokens { get; init; }
 
+    /// <remarks>
+    ///     <para>
+    ///     A name may not BEGIN with a keyword that announces a production. Every
+    ///     <see cref="Keyword"/> is a <see cref="Word"/>, so nothing stopped one
+    ///     being swallowed — and because <c>Member.Parse</c> tries a datum before
+    ///     a function, and a datum needs no mutability once it has a type,
+    ///     «function f =&gt; Number { return 1; }» satisfied the datum production
+    ///     first as a two-word name «function f» of type «Number». It won. So did
+    ///     «if ready =&gt; result», «when changing ready =&gt; result» and
+    ///     «iterate banks =&gt; bank», each becoming a declaration of something
+    ///     named after the keyword that introduced it, with no findings.
+    ///     </para>
+    ///     <para>
+    ///     Whether the AST came out right depended on what followed the arrow:
+    ///     «if ready =&gt; 1» stayed a conditional because a number cannot be
+    ///     mistaken for a type.
+    ///     </para>
+    ///     <para>
+    ///     The first word only. A keyword in the middle of a phrase announces
+    ///     nothing and steals nothing, and modifiers are excluded outright
+    ///     because «var hidden cost» is a name the language already accepts.
+    /// </para>
+    /// </remarks>
     public static Name Parse(ref Parser current)
     {
         Parser parser = current;
 
+        if (parser.Token is Keyword and not Modifier) return null;
+
         while (parser.Token is Word)
         {
-            parser.Advance(); 
+            parser.Advance();
         }
 
         if (ReferenceEquals(parser.Token, current.Token)) return null;

@@ -117,6 +117,28 @@ public class ResolverCost
         Assert.Contains("at most", refused.Message);
     }
 
+    [Fact(DisplayName = "an operator is refused where it is written, not where it is used")]
+    public void AnOperatorIsRefusedWhereItIsWrittenNotWhereItIsUsed()
+    {
+        // The table is mutable so a scope can add an operator, and every invalid
+        // entry failed far from the insertion that caused it: a binding power
+        // outside the indexed range came back as a raw IndexOutOfRangeException
+        // while CONSTRUCTING a resolver, and a null implementation resolved
+        // perfectly well and then threw inside the evaluator.
+        object apply(object left, object right) => left;
+
+        foreach (var power in (int[])[-1, Resolver.MaxBindingPower + 1, int.MaxValue])
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new Operator(power, apply));
+        }
+
+        Assert.Throws<ArgumentNullException>(() => new Operator(10, null));
+
+        // and the range's own edges are legal
+        Assert.Equal(0, new Operator(0, apply).BindingPower);
+        Assert.Equal(Resolver.MaxBindingPower, new Operator(Resolver.MaxBindingPower, apply).BindingPower);
+    }
+
     [Fact(DisplayName = "only the binding powers something asks for get a slot")]
     public void OnlyTheBindingPowersSomethingAsksForGetASlot()
     {
@@ -133,7 +155,7 @@ public class ResolverCost
         // table rather than a constant — so this asserts the derivation, not the
         // number.
         symbols.Operators["^"] = new Operator(25, Ronin.Runtime.Builtin.Lift(
-            (left, right) => System.Math.Pow((double)left, (double)right)), IsLeftAssociative: false);
+            (left, right) => System.Math.Pow((double)left, (double)right)), isLeftAssociative: false);
         symbols.WithNames("a", "b", "c");
 
         Resolver added = new(symbols);
