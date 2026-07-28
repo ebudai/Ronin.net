@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using Ronin.Compiler;
 using Ronin.Runtime;
 
 namespace Unit;
@@ -11,6 +12,13 @@ namespace Unit;
 [Trait(nameof(Cascades), null)]
 public class Cascadings
 {
+    /// <summary>
+    ///     Spans for a rule test, which reads names and never their positions.
+    /// </summary>
+    private static readonly SourceText Nowhere = new(string.Empty);
+
+    private static Triggering When(string name) => new(name, Nowhere.Span(0, 0));
+
     private static Effects Does(string[] reads, string[] writes, bool feedback = false)
         => new(new HashSet<string>(reads), new HashSet<string>(writes), feedback);
 
@@ -24,6 +32,9 @@ public class Cascadings
         ["on respawn"] = Does(["respawn timer"], ["health"]),
         ["layout settle"] = Does(["box sizes"], ["box sizes"], feedback: settling),
     };
+
+    private static Dictionary<Triggering, Effects> Triggered(bool settling = false)
+        => Sample(settling).ToDictionary(entry => When(entry.Key), entry => entry.Value);
 
     [Fact(DisplayName = "every ring is found, whole, before anything runs")]
     public void EveryRingIsFoundWholeBeforeAnythingRuns()
@@ -71,10 +82,10 @@ public class Cascadings
         Assert.Empty(Cascades.Cycles(whens));
     }
 
-    private static IReadOnlyDictionary<string, IReadOnlyCollection<Write>> Writing(
+    private static IReadOnlyDictionary<Triggering, IReadOnlyCollection<Write>> Writing(
         params (string When, string[] Cells)[] whens)
         => whens.ToDictionary(
-               entry => entry.When,
+               entry => When(entry.When),
                entry => (IReadOnlyCollection<Write>)[.. entry.Cells.Select(cell => new Write(cell, entry.When))]);
 
     [Fact(DisplayName = "two whens writing one cell is a declaration error")]
@@ -88,11 +99,12 @@ public class Cascadings
             ("when timer expires", ["game state"]),
             ("when score changes", ["score display"]))));
 
-        Assert.Equal(
-            "«game state» is written by 2 whens: «when player dies», «when timer expires». " +
-            "Whens fire in one round with no order between them, so one write would land and " +
-            "the other vanish. Derive the value instead, with a let that reads both conditions.",
-            complaint);
+        Assert.Equal(FindingKind.ManyWriters, complaint.Kind);
+        Assert.Equal("game state", complaint["cell"]);
+        Assert.Equal("2", complaint["count"]);
+
+        // one span per writer, so both sites are named
+        Assert.Single(complaint.Related);
     }
 
     [Fact(DisplayName = "one when writing many cells is fine")]
@@ -108,18 +120,18 @@ public class Cascadings
         // A write reached through a call belongs to the when that made the call,
         // because that is what the programmer can move. Two whens calling one
         // shared function are still two writers of its cell.
-        Dictionary<string, IReadOnlyCollection<Write>> whens = new()
+        Dictionary<Triggering, IReadOnlyCollection<Write>> whens = new()
         {
-            ["when player dies"] = [new Write("log", "when player dies")],
-            ["when timer expires"] = [new Write("log", "when timer expires")],
+            [When("when player dies")] = [new Write("log", "when player dies")],
+            [When("when timer expires")] = [new Write("log", "when timer expires")],
         };
 
         Assert.Single(Cascades.Writers(whens));
 
         // and one when reaching a cell by two routes is charged once
-        Dictionary<string, IReadOnlyCollection<Write>> twice = new()
+        Dictionary<Triggering, IReadOnlyCollection<Write>> twice = new()
         {
-            ["when player dies"] = [new Write("log", "when player dies"), new Write("log", "when player dies")],
+            [When("when player dies")] = [new Write("log", "when player dies"), new Write("log", "when player dies")],
         };
 
         Assert.Empty(Cascades.Writers(twice));
@@ -135,22 +147,22 @@ public class Cascadings
         };
 
         Assert.Empty(Cascades.Cycles(whens));
-        Assert.Empty(Cascades.Diagnose(whens));
+        Assert.Empty(Cascades.Diagnose(whens.ToDictionary(entry => When(entry.Key), entry => entry.Value)));
     }
 
     [Fact(DisplayName = "the diagnosis names the whole ring")]
     public void TheDiagnosisNamesTheWholeRing()
     {
-        var complaint = Assert.Single(Cascades.Diagnose(new Dictionary<string, Effects>
+        var complaint = Assert.Single(Cascades.Diagnose(new Dictionary<Triggering, Effects>
         {
-            ["ping"] = Does(["pong count"], ["ping count"]),
-            ["pong"] = Does(["ping count"], ["pong count"]),
+            [When("ping")] = Does(["pong count"], ["ping count"]),
+            [When("pong")] = Does(["ping count"], ["pong count"]),
         }));
 
-        Assert.Equal(
-            "«ping» → «pong» → «ping» is a cycle: each writes something the next reads, so " +
-            "firing one schedules the next. Stop one of them writing what the ring reads, " +
-            "or declare feedback on every when in the ring.",
-            complaint);
+        Assert.Equal(FindingKind.CascadeRing, complaint.Kind);
+        Assert.Equal("ping» → «pong» → «ping", complaint["ring"]);
+
+        // «ping» opens and closes the ring, so only «pong» is named beside it
+        Assert.Single(complaint.Related);
     }
 }

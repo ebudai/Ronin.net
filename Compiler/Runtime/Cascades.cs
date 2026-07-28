@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using Ronin.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,9 @@ namespace Ronin.Runtime;
 ///     state. Declared feedback is deliberate, visible and greppable.
 /// </param>
 internal sealed record Effects(IReadOnlySet<string> Reads, IReadOnlySet<string> Writes, bool Feedback = false);
+
+/// <summary>A <c>when</c> as declared, and where.</summary>
+internal readonly record struct Triggering(string Name, Span Span);
 
 /// <summary>
 ///     One cell a <c>when</c> writes, and the <c>when</c> it is charged to.
@@ -101,11 +105,32 @@ internal static class Cascades
     ///     The rings as something to show a programmer. Each names its whole ring:
     ///     the three-hop case is unreadable if only one participant is named.
     /// </summary>
-    public static IEnumerable<string> Diagnose(IReadOnlyDictionary<string, Effects> whens)
-        => Cycles(whens).Select(ring =>
-               $"«{string.Join("» → «", ring)}» is a cycle: each writes something the next " +
-               "reads, so firing one schedules the next. Stop one of them writing what the " +
-               "ring reads, or declare feedback on every when in the ring.");
+    /// <summary>
+    ///     The rings as findings. Each names its whole ring, because the three-hop
+    ///     case is unreadable when only one participant is named.
+    /// </summary>
+    public static IEnumerable<Finding> Diagnose(IReadOnlyDictionary<Triggering, Effects> whens)
+    {
+        var declared = whens.Keys.ToDictionary(when => when.Name, when => when.Span);
+        var effects = whens.ToDictionary(when => when.Key.Name, when => when.Value);
+
+        foreach (var ring in Cycles(effects))
+        {
+            var finding = new Finding(FindingKind.CascadeRing, declared[ring[0]])
+                .Naming("ring", string.Join("» → «", ring));
+
+            // every participant, since the ring is what is wrong and no one of
+            // them is more at fault than the others
+            // distinct BEFORE skipping: a ring closes on its first member, so
+            // skipping one still leaves it in the tail as its own related span
+            foreach (var name in ring.Distinct().Skip(1))
+            {
+                finding.Alongside(declared[name], "also in the ring");
+            }
+
+            yield return finding;
+        }
+    }
 
     /// <summary>
     ///     Cells written by more than one <c>when</c>, which is a declaration
@@ -133,12 +158,15 @@ internal static class Cascades
     ///     analysis in one consumer and leave the other three to re-derive it.
     ///     </para>
     /// </remarks>
-    public static IEnumerable<string> Writers(IReadOnlyDictionary<string, IReadOnlyCollection<Write>> whens)
+    public static IEnumerable<Finding> Writers(IReadOnlyDictionary<Triggering, IReadOnlyCollection<Write>> whens)
     {
         Dictionary<string, SortedSet<string>> writers = [];
+        Dictionary<string, Span> declared = [];
 
-        foreach (var (name, writes) in whens.OrderBy(entry => entry.Key, StringComparer.Ordinal))
+        foreach (var (when, writes) in whens.OrderBy(entry => entry.Key.Name, StringComparer.Ordinal))
         {
+            declared[when.Name] = when.Span;
+
             foreach (var write in writes)
             {
                 if (writers.TryGetValue(write.Cell, out var charged) is false)
@@ -152,12 +180,13 @@ internal static class Cascades
         {
             if (charged.Count < 2) continue;
 
-            yield return
-                $"«{cell}» is written by {charged.Count} whens: " +
-                string.Join(", ", charged.Select(name => $"«{name}»")) + ". " +
-                "Whens fire in one round with no order between them, so one write would " +
-                "land and the other vanish. Derive the value instead, with a let that reads " +
-                "both conditions.";
+            var finding = new Finding(FindingKind.ManyWriters, declared[charged.First()])
+                .Naming("cell", cell)
+                .Naming("count", charged.Count.ToString());
+
+            foreach (var name in charged.Skip(1)) finding.Alongside(declared[name], "also writes it");
+
+            yield return finding;
         }
     }
 

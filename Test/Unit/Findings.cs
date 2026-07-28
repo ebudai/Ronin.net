@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Runtime;
 
 namespace Unit;
 
@@ -60,6 +61,30 @@ public class Findings
                 yield return finding;
             }
         }
+
+        // The cascade and initialisation rules take supplied data rather than
+        // source, so their examples are supplied too — still produced by the
+        // rule, which is what the totality test is asking.
+        SourceText nowhere = new(string.Empty);
+        Triggering when(string name) => new(name, nowhere.Span(0, 0));
+
+        yield return Cascades.Diagnose(new Dictionary<Triggering, Effects>
+        {
+            [when("when ping arrives")] = new(new HashSet<string> { "pong count" }, new HashSet<string> { "ping count" }),
+            [when("when pong arrives")] = new(new HashSet<string> { "ping count" }, new HashSet<string> { "pong count" }),
+        }).Single();
+
+        yield return Cascades.Writers(new Dictionary<Triggering, IReadOnlyCollection<Write>>
+        {
+            [when("when player dies")] = [new Write("game state", "when player dies")],
+            [when("when timer expires")] = [new Write("game state", "when timer expires")],
+        }).Single();
+
+        yield return Initialisation.Diagnose(new Dictionary<Declared, IReadOnlySet<string>>
+        {
+            [new Declared("difficulty", nowhere.Span(0, 0))] = new HashSet<string> { "max health" },
+            [new Declared("max health", nowhere.Span(0, 0))] = new HashSet<string> { "difficulty" },
+        }).Single();
     }
 
     [Fact(DisplayName = "every kind renders")]
@@ -143,6 +168,15 @@ public class Findings
 
             Player.ron:1:5: «old smoothed», injected by «smoothed», collides with pattern glue «smoothed» from «apply (_) smoothed (_)». Rename «smoothed», or respell the pattern.
                 Player.ron:2:10: which makes it glue
+
+            source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
+                source:1:1: also in the ring
+
+            source:1:1: «game state» is written by 2 whens. Whens fire in one round with no order between them, so one write would land and the other vanish. Derive the value instead, with a let that reads both conditions.
+                source:1:1: also writes it
+
+            source:1:1: «difficulty» → «max health» → «difficulty» is a cycle: each initialiser reads the one before it, so none of them can be evaluated first. Break the ring by giving one of them a value that does not depend on the others.
+                source:1:1: also in the ring
             """,
             rendered);
     }

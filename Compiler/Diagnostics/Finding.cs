@@ -32,6 +32,15 @@ internal enum FindingKind
 
     /// <summary>The same, for a name the compiler injected.</summary>
     GlueInInjectedName,
+
+    /// <summary>A ring of whens, each writing something the next reads.</summary>
+    CascadeRing,
+
+    /// <summary>A cell written by more than one when.</summary>
+    ManyWriters,
+
+    /// <summary>A ring of initialisers, each reading the one before it.</summary>
+    InitialisationRing,
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -142,9 +151,24 @@ internal static class Diagnostics
             "already worked, so one of the two has to be respelled — and it is the later " +
             "declaration that gives way.",
 
-        _ => $"«{finding["name"]}», injected by «{finding["injector"]}», collides with pattern " +
-             $"glue «{finding["word"]}» from «{finding["pattern"]}». Rename " +
-             $"«{finding["injector"]}», or respell the pattern.",
+        FindingKind.GlueInInjectedName =>
+            $"«{finding["name"]}», injected by «{finding["injector"]}», collides with pattern " +
+            $"glue «{finding["word"]}» from «{finding["pattern"]}». Rename " +
+            $"«{finding["injector"]}», or respell the pattern.",
+
+        FindingKind.CascadeRing =>
+            $"«{finding["ring"]}» is a cycle: each writes something the next reads, so firing " +
+            "one schedules the next. Stop one of them writing what the ring reads, or declare " +
+            "feedback on every when in the ring.",
+
+        FindingKind.ManyWriters =>
+            $"«{finding["cell"]}» is written by {finding["count"]} whens. Whens fire in one " +
+            "round with no order between them, so one write would land and the other vanish. " +
+            "Derive the value instead, with a let that reads both conditions.",
+
+        _ => $"«{finding["ring"]}» is a cycle: each initialiser reads the one before it, so none " +
+             "of them can be evaluated first. Break the ring by giving one of them a value that " +
+             "does not depend on the others.",
     };
 
     /// <summary>The sentence with its spans, as a build would print it.</summary>

@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using Ronin.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -77,9 +78,25 @@ internal static class Initialisation
                entry => entry.Key,
                entry => new Effects(entry.Value, new HashSet<string> { entry.Key })));
 
-    public static IEnumerable<string> Diagnose(IReadOnlyDictionary<string, IReadOnlySet<string>> initialisers)
-        => Cycles(initialisers).Select(ring =>
-               $"«{string.Join("» → «", ring)}» is a cycle: each initialiser reads the one " +
-               "before it, so none of them can be evaluated first. Break the ring by giving " +
-               "one of them a value that does not depend on the others.");
+    /// <summary>The rings as findings, each naming every initialiser in it.</summary>
+    public static IEnumerable<Finding> Diagnose(IReadOnlyDictionary<Declared, IReadOnlySet<string>> initialisers)
+    {
+        var declared = initialisers.Keys.ToDictionary(cell => cell.Name, cell => cell.Span);
+        var reads = initialisers.ToDictionary(cell => cell.Key.Name, cell => cell.Value);
+
+        foreach (var ring in Cycles(reads))
+        {
+            var finding = new Finding(FindingKind.InitialisationRing, declared[ring[0]])
+                .Naming("ring", string.Join("» → «", ring));
+
+            // distinct BEFORE skipping: a ring closes on its first member, so
+            // skipping one still leaves it in the tail as its own related span
+            foreach (var name in ring.Distinct().Skip(1))
+            {
+                finding.Alongside(declared[name], "also in the ring");
+            }
+
+            yield return finding;
+        }
+    }
 }

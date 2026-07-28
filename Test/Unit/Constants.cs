@@ -11,6 +11,8 @@ namespace Unit;
 [Trait(nameof(Graph), null)]
 public class Constants
 {
+    private static readonly SourceText Nowhere = new(string.Empty);
+
     private static IReadOnlySet<string> Reads(params string[] names) => new HashSet<string>(names);
 
     [Fact(DisplayName = "reading a constant creates no edge")]
@@ -125,12 +127,15 @@ public class Constants
         Assert.False(Initialisation.TryOrder(initialisers, out var order));
         Assert.Empty(order);
 
-        var complaint = Assert.Single(Initialisation.Diagnose(initialisers));
-        Assert.Equal(
-            "«difficulty» → «initial health» → «health» → «max health» → «difficulty» is a cycle: " +
-            "each initialiser reads the one before it, so none of them can be evaluated first. " +
-            "Break the ring by giving one of them a value that does not depend on the others.",
-            complaint);
+        var complaint = Assert.Single(Initialisation.Diagnose(
+            initialisers.ToDictionary(entry => new Declared(entry.Key, Nowhere.Span(0, 0)), entry => entry.Value)));
+
+        Assert.Equal(FindingKind.InitialisationRing, complaint.Kind);
+        Assert.Equal("difficulty» → «initial health» → «health» → «max health» → «difficulty",
+                     complaint["ring"]);
+
+        // four hops, three declaration kinds — every one of them named
+        Assert.Equal(3, complaint.Related.Count);
     }
 
     [Fact(DisplayName = "reading outside the set places nothing")]
