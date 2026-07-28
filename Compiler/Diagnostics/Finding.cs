@@ -41,6 +41,9 @@ internal enum FindingKind
 
     /// <summary>A ring of initialisers, each reading the one before it.</summary>
     InitialisationRing,
+
+    /// <summary>Input the grammar could not account for.</summary>
+    Malformed,
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -119,56 +122,72 @@ internal sealed class Finding(FindingKind kind, Span primary)
 /// </remarks>
 internal static class Diagnostics
 {
-    public static string Render(Finding finding) => finding.Kind switch
+    /// <summary>
+    ///     Whether a kind has a message. Asked of every value of the enum by the
+    ///     totality test, which is the whole reason this is a lookup rather than
+    ///     a switch: a switch needs a default arm, the default arm is a message,
+    ///     and a kind added later would then quietly inherit whichever sentence
+    ///     happened to be sitting there.
+    /// </summary>
+    public static bool Renders(FindingKind kind) => Messages.ContainsKey(kind);
+
+    public static string Render(Finding finding) => Messages[finding.Kind](finding);
+
+    private static readonly System.Collections.Generic.Dictionary<FindingKind, System.Func<Finding, string>> Messages = new()
     {
-        FindingKind.Shadowed =>
+        [FindingKind.Malformed] = finding =>
+            $"{finding["reason"]}. «{finding["text"]}» could not be read, and the rest of the " +
+            "statement was skipped so that one mistake is reported once.",
+
+        [FindingKind.Shadowed] = finding =>
             $"«{finding["name"]}» is already declared {finding["where"]}. Shadowing is not " +
             "allowed, because reading a value has to tell you where it came from, and the " +
             "compiler cannot flag the ambiguity when both readings are legal. Rename this one.",
 
-        FindingKind.ReservedPrefix =>
+        [FindingKind.ReservedPrefix] = finding =>
             $"«{finding["name"]}» begins with the reserved word «{finding["word"]}», which is " +
             "injected rather than declared. Respell it.",
 
-        FindingKind.Overloaded =>
+        [FindingKind.Overloaded] = finding =>
             $"«{finding["pattern"]}» has {finding["count"]} declarations and type-directed " +
             "selection is not implemented, so there is no way to choose between them yet. " +
             "Give them different shapes for now.",
 
-        FindingKind.AnchorPrefix =>
+        [FindingKind.AnchorPrefix] = finding =>
             $"the anchor of «{finding["prefix"]}» begins that of «{finding["pattern"]}», so a " +
             "statement can read as either and no bracketing tells them apart. Respell one of " +
             "them.",
 
-        FindingKind.ReservedSegment =>
+        [FindingKind.ReservedSegment] = finding =>
             $"«{finding["pattern"]}» uses the reserved word «{finding["word"]}» as a segment, " +
             "which would make it glue and reject every injected name in scope. Respell that " +
             "segment.",
 
-        FindingKind.GlueInName =>
+        [FindingKind.GlueInName] = finding =>
             $"«{finding["name"]}» contains «{finding["word"]}», which is glue in " +
             $"«{finding["pattern"]}». A name containing glue silently re-reads statements that " +
             "already worked, so one of the two has to be respelled — and it is the later " +
             "declaration that gives way.",
 
-        FindingKind.GlueInInjectedName =>
+        [FindingKind.GlueInInjectedName] = finding =>
             $"«{finding["name"]}», injected by «{finding["injector"]}», collides with pattern " +
             $"glue «{finding["word"]}» from «{finding["pattern"]}». Rename " +
             $"«{finding["injector"]}», or respell the pattern.",
 
-        FindingKind.CascadeRing =>
+        [FindingKind.CascadeRing] = finding =>
             $"«{finding["ring"]}» is a cycle: each writes something the next reads, so firing " +
             "one schedules the next. Stop one of them writing what the ring reads, or declare " +
             "feedback on every when in the ring.",
 
-        FindingKind.ManyWriters =>
+        [FindingKind.ManyWriters] = finding =>
             $"«{finding["cell"]}» is written by {finding["count"]} whens. Whens fire in one " +
             "round with no order between them, so one write would land and the other vanish. " +
             "Derive the value instead, with a let that reads both conditions.",
 
-        _ => $"«{finding["ring"]}» is a cycle: each initialiser reads the one before it, so none " +
-             "of them can be evaluated first. Break the ring by giving one of them a value that " +
-             "does not depend on the others.",
+        [FindingKind.InitialisationRing] = finding =>
+            $"«{finding["ring"]}» is a cycle: each initialiser reads the one before it, so none " +
+            "of them can be evaluated first. Break the ring by giving one of them a value that " +
+            "does not depend on the others.",
     };
 
     /// <summary>The sentence with its spans, as a build would print it.</summary>

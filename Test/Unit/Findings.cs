@@ -50,13 +50,13 @@ public class Findings
                      function apply (x => Number) smoothed (y => Number) { return x; }
 
                      """,
+                     "var x => = 1;\n",
                  })
         {
-            SourceText text = new(source, "Player.ron");
-            Lexer lexer = new(source);
-            Parser parser = new(lexer.Lex());
-
-            foreach (var finding in Ronin.Grammar.Declarations.Of(parser.Parse().Scopes[0].Statements, text).Problems)
+            // Through the whole pipeline rather than one phase of it, so an
+            // example is what a build would actually print — which is how the
+            // parse errors turned out never to be printed at all.
+            foreach (var finding in Compilation.Of(new SourceText(source, "Player.ron")).Findings)
             {
                 yield return finding;
             }
@@ -98,6 +98,7 @@ public class Findings
         foreach (var kind in Enum.GetValues<FindingKind>())
         {
             Assert.True(examples.ContainsKey(kind), $"{kind} is not produced by any rule");
+            Assert.True(Diagnostics.Renders(kind), $"{kind} has no message");
 
             var rendered = Diagnostics.Render(examples[kind]);
 
@@ -168,6 +169,8 @@ public class Findings
 
             Player.ron:1:5: «old smoothed», injected by «smoothed», collides with pattern glue «smoothed» from «apply (_) smoothed (_)». Rename «smoothed», or respell the pattern.
                 Player.ron:2:10: which makes it glue
+
+            Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

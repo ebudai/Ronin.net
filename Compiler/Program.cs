@@ -89,30 +89,17 @@ internal static class Program
             return 1;
         }
 
-        SourceText source = new(text, file.FullName);
+        var compilation = Compilation.Of(new SourceText(text, file.FullName));
 
-        Lexer lexer = new(text);
-        Parser parser = new(lexer.Lex());
-        var module = parser.Parse();
-
-        if (module is Module.UnexpectedInputError unexpected)
-        {
-            Console.Error.WriteLine($"{file.FullName}: {unexpected.Reason} at «{unexpected.Tokens.Span[0].ToLexemes().Render()}»");
-            return 1;
-        }
-
-        var declared = Declarations.Of(module.Scopes[0].Statements, source);
-
-        var problems = declared.Problems.ToArray();
-
-        foreach (var problem in problems)
+        foreach (var problem in compilation.Findings)
         {
             Console.Error.WriteLine(Diagnostics.Report(problem));
         }
 
-        Console.WriteLine($"{file.FullName}: {module.Scopes[0].Statements.Count} statement(s), " +
-                          $"{declared.Symbols.Names.Count} name(s), {declared.Symbols.Patterns.Count} pattern(s)");
+        Console.WriteLine($"{file.FullName}: {compilation.Module.Scopes[0].Statements.Count} statement(s), " +
+                          $"{compilation.Declarations.Symbols.Names.Count} name(s), " +
+                          $"{compilation.Declarations.Symbols.Patterns.Count} pattern(s)");
 
-        return problems.Length is 0 ? 0 : 1;
+        return compilation.Findings.Count is 0 ? 0 : 1;
     }
 }
