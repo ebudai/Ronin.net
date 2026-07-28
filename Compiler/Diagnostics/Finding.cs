@@ -180,9 +180,9 @@ internal static class Diagnostics
             "feedback on every when in the ring.",
 
         [FindingKind.ManyWriters] = finding =>
-            $"«{finding["cell"]}» is written by {finding["count"]} whens. Whens fire in one " +
-            "round with no order between them, so one write would land and the other vanish. " +
-            "Derive the value instead, with a let that reads both conditions.",
+            $"«{finding["cell"]}» is written by {finding["count"]} whens — «{finding["writers"]}». " +
+            "Whens fire in one round with no order between them, so one write would land and the " +
+            "other vanish. Derive the value instead, with a let that reads both conditions.",
 
         [FindingKind.InitialisationRing] = finding =>
             $"«{finding["ring"]}» is a cycle: each initialiser reads the one before it, so none " +

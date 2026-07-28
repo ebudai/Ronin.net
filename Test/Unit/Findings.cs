@@ -120,23 +120,35 @@ public class Findings
     [Fact(DisplayName = "a report stays readable at the width of a cascade ring")]
     public void AReportStaysReadableAtTheWidthOfACascadeRing()
     {
-        // A ring names every participant, so six related spans is the shape to
-        // check before the cascade rules convert — one indented line each, and
-        // the sentence stays on the first.
-        SourceText source = new(string.Join("\n", Enumerable.Range(0, 7).Select(i => $"line {i}")));
+        // Built by the cascade rule, from a seven-hop ring. This used to
+        // construct an Overloaded finding by hand and count its related lines,
+        // which is a test of Report and not of anything about a ring: it did not
+        // call Diagnose, contained no ring message, and could not have failed if
+        // the ring rule stopped naming every participant.
+        var names = Enumerable.Range(0, 7).Select(number => $"when {number} fires").ToArray();
+        SourceText source = new(string.Join("\n", names));
 
-        var finding = new Finding(FindingKind.Overloaded, source.Span(0, 4))
-            .Naming("pattern", "area of (_)")
-            .Naming("count", "7");
+        Dictionary<Triggering, Effects> ring = [];
 
-        foreach (var line in Enumerable.Range(1, 6)) finding.Alongside(source.Span(line * 7, 4), "also declared here");
+        for (var hop = 0; hop < 7; ++hop)
+        {
+            // each writes what the next one reads, and the seventh closes on the
+            // first
+            ring[new Triggering(names[hop], source.Span(source.Text.IndexOf(names[hop], StringComparison.Ordinal), 4))] =
+                new(new HashSet<string> { $"cell {hop}" }, new HashSet<string> { $"cell {(hop + 1) % 7}" });
+        }
+
+        var finding = Assert.Single(Cascades.Diagnose(ring));
 
         var lines = Diagnostics.Report(finding).Split(Environment.NewLine);
 
+        // one line for the sentence, then one per other participant — the whole
+        // ring named, because naming one of seven is unreadable
         Assert.Equal(7, lines.Length);
-        Assert.StartsWith("source:1:1: «area of (_)»", lines[0]);
+        Assert.StartsWith("source:1:1: «when 0 fires» → «when 1 fires» →", lines[0]);
+        Assert.Contains("→ «when 6 fires» → «when 0 fires» is a cycle", lines[0]);
         Assert.All(lines.Skip(1), line => Assert.StartsWith("    source:", line));
-        Assert.Equal("    source:7:1: also declared here", lines[^1]);
+        Assert.Equal("    source:7:1: also in the ring", lines[^1]);
     }
 
     [Fact(DisplayName = "the wording of every kind, as a person reads it")]
@@ -160,23 +172,23 @@ public class Findings
                 Player.ron:2:10: also declared here
 
             Player.ron:2:10: the anchor of «b (_)» begins that of «b b (_)», so a statement can read as either and no bracketing tells them apart. Respell one of them.
-                Player.ron:1:10: the anchor this one begins with
+                Player.ron:1:10: the anchor it collides with
 
             Player.ron:1:10: «recall (_) old (_)» uses the reserved word «old» as a segment, which would make it glue and reject every injected name in scope. Respell that segment.
 
-            Player.ron:1:5: «hello to alice» contains «to», which is glue in «send (_) to (_)». A name containing glue silently re-reads statements that already worked, so one of the two has to be respelled — and it is the later declaration that gives way.
-                Player.ron:2:10: which makes it glue
+            Player.ron:2:10: «hello to alice» contains «to», which is glue in «send (_) to (_)». A name containing glue silently re-reads statements that already worked, so one of the two has to be respelled — and it is the later declaration that gives way.
+                Player.ron:1:5: the name it collides with
 
-            Player.ron:1:5: «old smoothed», injected by «smoothed», collides with pattern glue «smoothed» from «apply (_) smoothed (_)». Rename «smoothed», or respell the pattern.
-                Player.ron:2:10: which makes it glue
+            Player.ron:2:10: «old smoothed», injected by «smoothed», collides with pattern glue «smoothed» from «apply (_) smoothed (_)». Rename «smoothed», or respell the pattern.
+                Player.ron:1:5: the name it collides with
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring
 
-            source:1:1: «game state» is written by 2 whens. Whens fire in one round with no order between them, so one write would land and the other vanish. Derive the value instead, with a let that reads both conditions.
-                source:1:1: also writes it
+            source:1:1: «game state» is written by 2 whens — «when player dies» and «when timer expires». Whens fire in one round with no order between them, so one write would land and the other vanish. Derive the value instead, with a let that reads both conditions.
+                source:1:1: «when timer expires» also writes it
 
             source:1:1: «difficulty» → «max health» → «difficulty» is a cycle: each initialiser reads the one before it, so none of them can be evaluated first. Break the ring by giving one of them a value that does not depend on the others.
                 source:1:1: also in the ring
@@ -209,6 +221,26 @@ public class Findings
 
         Assert.Equal(0, caret.Length);
         Assert.Equal(8, caret.Offset);
+    }
+
+    [Fact(DisplayName = "a span outside its text is refused where it is built")]
+    public void ASpanOutsideItsTextIsRefusedWhereItIsBuilt()
+    {
+        // A malformed span produces a plausible-looking line and column rather
+        // than a failure, so the mistake surfaces as a diagnostic pointing
+        // somewhere odd — and the thing that computed the offset is nowhere in
+        // sight by then. A token offset taken from the wrong source and a length
+        // measured in bytes both arrive this way.
+        SourceText source = new("first\nsecond");
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => source.Span(-1, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => source.Span(13, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => source.Span(0, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => source.Span(10, 5));
+
+        // the end of the text is a legal position: it is where «expected a type
+        // after «=>»» points when the file simply stops
+        Assert.Equal((2, 7), source.At(source.Span(source.Text.Length, 0).Offset));
     }
 
     [Fact(DisplayName = "a source text with no text is refused at construction")]

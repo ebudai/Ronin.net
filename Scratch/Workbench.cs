@@ -152,8 +152,8 @@ internal sealed class Workbench : Window
                new Declared(SymbolTable.Shadowed + name, blank.Span(0, 0), name),
            });
 
-    private IReadOnlyCollection<(Pattern, Span)> Shapes(SymbolTable symbols)
-        => [.. symbols.Patterns.Select(pattern => (pattern, blank.Span(0, 0)))];
+    private IReadOnlyCollection<Shape> Shapes(SymbolTable symbols)
+        => [.. symbols.Patterns.Select(pattern => new Shape(pattern, blank.Span(0, 0)))];
 
     private readonly SourceText blank = new(string.Empty);
 

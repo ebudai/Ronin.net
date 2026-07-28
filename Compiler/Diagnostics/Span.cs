@@ -53,7 +53,31 @@ internal sealed class SourceText(string text, string path = null)
 
     public string Path { get; } = path;
 
-    public Span Span(int offset, int length) => new(this, offset, length);
+    /// <summary>
+    ///     A stretch of this text.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Bounds checked here rather than where a line number is asked for. A
+    ///     span built from an offset that is not in the text is a defect in
+    ///     whatever computed it — a token offset taken from the wrong source, a
+    ///     length measured in bytes — and it produces a plausible-looking
+    ///     location instead of a failure, which is the hardest kind to trace back.
+    ///     An offset AT the end is legal and common: it is where «expected a type
+    ///     after «=&gt;»» points when the file simply stops.
+    /// </remarks>
+    public Span Span(int offset, int length)
+    {
+        if (offset < 0 || offset > Text.Length)
+            throw new ArgumentOutOfRangeException(nameof(offset), offset,
+                                                  $"outside a text of {Text.Length} characters");
+
+        if (length < 0 || offset + length > Text.Length)
+            throw new ArgumentOutOfRangeException(nameof(length), length,
+                                                  $"reaches past the end of a text of {Text.Length} characters");
+
+        return new(this, offset, length);
+    }
 
     /// <summary>
     ///     The one-based line and column of an offset. The line table is built on

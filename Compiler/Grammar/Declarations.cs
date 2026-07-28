@@ -35,8 +35,8 @@ internal sealed class Declarations
     /// <summary>
     ///     What could not be declared, and what the scope-wide rules rejected.
     /// </summary>
-    public IEnumerable<Finding> Problems => problems.Concat(Rules.Validate(symbols, [.. shapes.SelectMany(
-        shape => shape.Value.Select(span => (shape.Key, span)))]));
+    public IReadOnlyList<Finding> Problems => found ??= [.. problems.Concat(Rules.Validate(symbols, [.. shapes.SelectMany(
+        shape => shape.Value.Select(shaped => new Shape(shape.Key, shaped.Span, shaped.Inherited)))]))];
 
     /// <summary>
     ///     The declarations of one scope, folded into everything the enclosing
@@ -70,9 +70,15 @@ internal sealed class Declarations
 
             foreach (var (pattern, declared) in enclosing.Overloads) declarations.Overloads[pattern] = [.. declared];
             foreach (var (name, span) in enclosing.written) declarations.written[name] = span;
-            foreach (var (pattern, spans) in enclosing.shapes) declarations.shapes[pattern] = [.. spans];
 
-            declarations.symbols.AddRange(enclosing.symbols);
+            // Stamped on the way in, because it is the only provenance the rules
+            // can have: they run over a merged table, where both sides of a
+            // collision are simply "in scope" and nothing else says which was
+            // written first.
+            foreach (var (pattern, spans) in enclosing.shapes)
+                declarations.shapes[pattern] = [.. spans.Select(shaped => shaped with { Inherited = true })];
+
+            declarations.symbols.AddRange(enclosing.symbols.Select(symbol => symbol with { Inherited = true }));
         }
 
         foreach (var statement in statements) declarations.Declare(statement);
@@ -84,11 +90,11 @@ internal sealed class Declarations
         {
             if (spans.Count < 2) continue;
 
-            var finding = new Finding(FindingKind.Overloaded, spans[0])
+            var finding = new Finding(FindingKind.Overloaded, spans[0].Span)
                 .Naming("pattern", pattern.ToString())
-                .Naming("count", spans.Count.ToString());
+                .Naming("count", spans.Count.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
-            foreach (var span in spans.Skip(1)) finding.Alongside(span, "also declared here");
+            foreach (var shaped in spans.Skip(1)) finding.Alongside(shaped.Span, "also declared here");
 
             declarations.problems.Add(finding);
         }
@@ -120,7 +126,7 @@ internal sealed class Declarations
 
         if (shapes.TryGetValue(pattern, out var spans) is false) shapes[pattern] = spans = [];
 
-        spans.Add(member.Identifier.Span(source));
+        spans.Add(new Shape(pattern, member.Identifier.Span(source)));
     }
 
     /// <summary>
@@ -195,7 +201,8 @@ internal sealed class Declarations
 
     private readonly List<Finding> problems = [];
     private readonly Dictionary<string, Span> written = [];
-    private readonly Dictionary<Compiler.Pattern, List<Span>> shapes = [];
+    private readonly Dictionary<Compiler.Pattern, List<Shape>> shapes = [];
+    private IReadOnlyList<Finding> found;
     private readonly List<Declared> symbols = [];
     private SourceText source;
     private readonly HashSet<string> inherited = [];

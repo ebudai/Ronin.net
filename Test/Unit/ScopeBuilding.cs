@@ -231,6 +231,49 @@ public class ScopeBuilding
         Assert.Equal("hello to alice", complaint["name"]);
         Assert.Equal("to", complaint["word"]);
         Assert.Equal("send (_) to (_)", complaint["pattern"]);
+
+        // And the caret is on the inner pattern, not the outer name. This
+        // asserted the kind and the symbols and never the span, so the message
+        // could say «it is the later declaration that gives way» while pointing
+        // at a file that had not changed and could not be fixed.
+        var pattern = Assert.Single(complaint.Related);
+
+        Assert.Equal("function send (x => Number) to (y => Number) { return x; }".IndexOf("send"),
+                     complaint.Primary.Offset);
+        Assert.Equal("var hello to alice => Number;".IndexOf("hello"), pattern.Span.Offset);
+        Assert.Equal("the name it collides with", pattern.Label);
+    }
+
+    [Fact(DisplayName = "the later of the two is blamed whichever kind it is")]
+    public void TheLaterOfTheTwoIsBlamedWhicheverKindItIs()
+    {
+        // The pattern first this time, so it is the NAME that arrives and breaks
+        // things — and the caret has to move with it. Blaming a fixed one of the
+        // two made the message's "it is the later declaration that gives way"
+        // true half the time by coincidence.
+        const string source = """
+                              function send (x => Number) to (y => Number) { return x; }
+                              var hello to alice => Number;
+
+                              """;
+
+        var declared = Of(source);
+
+        var complaint = Assert.Single(declared.Problems, finding => finding.Kind is FindingKind.GlueInName);
+
+        Assert.Equal(source.IndexOf("hello", StringComparison.Ordinal), complaint.Primary.Offset);
+        Assert.Equal("which makes it glue", Assert.Single(complaint.Related).Label);
+
+        // and an enclosing declaration is earlier than anything nested inside it,
+        // wherever it sits in the file
+        var nested = Nested("function send (x => Number) to (y => Number) { return x; }",
+                            "var hello to alice => Number;");
+
+        var inner = Assert.Single(nested.Problems, finding => finding.Kind is FindingKind.GlueInName);
+
+        Assert.Equal("var hello to alice => Number;".IndexOf("hello", StringComparison.Ordinal),
+                     inner.Primary.Offset);
+        Assert.Equal("which makes it glue", Assert.Single(inner.Related).Label);
     }
 
     [Fact(DisplayName = "a type is a name that holds no value")]

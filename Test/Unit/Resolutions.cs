@@ -291,7 +291,7 @@ public class Resolutions
     private static Declared Declares(string name, string injectedBy = null)
         => new(name, Nowhere.Span(0, 0), injectedBy);
 
-    private static (Pattern, Span) Shape(string pattern) => (Pattern.Parse(pattern), Nowhere.Span(0, 0));
+    private static Ronin.Compiler.Shape Shape(string pattern) => new(Pattern.Parse(pattern), Nowhere.Span(0, 0));
 
     [Fact(DisplayName = "anchor runs must be prefix free")]
     public void AnchorRunsMustBePrefixFree()

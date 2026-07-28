@@ -15,7 +15,18 @@ namespace Ronin.Compiler;
 ///     origin — which is also the only thing a diagnostic can ask anyone to
 ///     change, since «old smoothed» is not the programmer's to rename.
 /// </param>
-internal readonly record struct Declared(string Name, Span Span, string InjectedBy = null);
+/// <param name="Inherited">
+///     Whether this came from an enclosing scope, which is the provenance the
+///     rules need and the only kind available: the rules run over a merged
+///     table, so both sides of a collision are simply "in scope" by the time they
+///     meet. An enclosing declaration was written before anything nested inside
+///     it, so this orders the two whenever they are in different scopes — and
+///     within one scope, where they were written does.
+/// </param>
+internal readonly record struct Declared(string Name, Span Span, string InjectedBy = null, bool Inherited = false);
+
+/// <summary>A pattern as declared, and where.</summary>
+internal readonly record struct Shape(Pattern Pattern, Span Span, bool Inherited = false);
 
 /// <summary>
 ///     The scope-wide rules, checked over what was declared rather than over the
@@ -38,7 +49,7 @@ internal readonly record struct Declared(string Name, Span Span, string Injected
 internal static class Rules
 {
     public static IEnumerable<Finding> Validate(IReadOnlyCollection<Declared> names,
-                                                IReadOnlyCollection<(Pattern Pattern, Span Span)> patterns)
+                                                IReadOnlyCollection<Shape> patterns)
     {
         foreach (var finding in Anchors(patterns)) yield return finding;
         foreach (var finding in Reserved(patterns)) yield return finding;
@@ -46,23 +57,41 @@ internal static class Rules
     }
 
     /// <summary>
+    ///     Whether the first of two declarations is the later one, which is the
+    ///     one a message asks to give way.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Every one of these rules names two declarations, and the caret used to
+    ///     go on whichever the loop happened to hold — the name for R5, the longer
+    ///     anchor for R6 — regardless of which was new. So a legal outer name
+    ///     invalidated by an inner pattern reported the outer file, while the
+    ///     message told the reader it was the later declaration that gives way.
+    /// </remarks>
+    private static bool IsLater(bool inherited, Span span, bool otherInherited, Span otherSpan)
+        => inherited == otherInherited ? span.Offset > otherSpan.Offset : otherInherited;
+
+    /// <summary>
     ///     R6. Anchor runs must be prefix free, or «b (_)» and «b b (_)» tie on
     ///     «b b b a» with no name involved at all — a tie no bracketing repairs.
     /// </summary>
-    private static IEnumerable<Finding> Anchors(IReadOnlyCollection<(Pattern Pattern, Span Span)> patterns)
+    private static IEnumerable<Finding> Anchors(IReadOnlyCollection<Shape> patterns)
     {
-        foreach (var (pattern, span) in patterns)
+        foreach (var shorter in patterns)
         {
-            foreach (var (other, elsewhere) in patterns)
+            foreach (var longer in patterns)
             {
-                if (ReferenceEquals(pattern, other)) continue;
-                if (pattern.Anchor.Count >= other.Anchor.Count) continue;
-                if (pattern.Anchor.SequenceEqual(other.Anchor.Take(pattern.Anchor.Count)) is false) continue;
+                if (ReferenceEquals(shorter.Pattern, longer.Pattern)) continue;
+                if (shorter.Pattern.Anchor.Count >= longer.Pattern.Anchor.Count) continue;
+                if (shorter.Pattern.Anchor.SequenceEqual(longer.Pattern.Anchor.Take(shorter.Pattern.Anchor.Count)) is false) continue;
 
-                yield return new Finding(FindingKind.AnchorPrefix, elsewhere)
-                    .Naming("pattern", other.ToString())
-                    .Naming("prefix", pattern.ToString())
-                    .Alongside(span, "the anchor this one begins with");
+                var later = IsLater(longer.Inherited, longer.Span, shorter.Inherited, shorter.Span) ? longer : shorter;
+                var earlier = ReferenceEquals(later.Pattern, longer.Pattern) ? shorter : longer;
+
+                yield return new Finding(FindingKind.AnchorPrefix, later.Span)
+                    .Naming("pattern", longer.Pattern.ToString())
+                    .Naming("prefix", shorter.Pattern.ToString())
+                    .Alongside(earlier.Span, "the anchor it collides with");
             }
         }
     }
@@ -71,9 +100,9 @@ internal static class Rules
     ///     One pattern using «old» as a segment would put it in the glue set, and
     ///     R5 would then reject every injected name in scope.
     /// </summary>
-    private static IEnumerable<Finding> Reserved(IReadOnlyCollection<(Pattern Pattern, Span Span)> patterns)
+    private static IEnumerable<Finding> Reserved(IReadOnlyCollection<Shape> patterns)
     {
-        foreach (var (pattern, span) in patterns)
+        foreach (var (pattern, span, _) in patterns)
         {
             if (pattern.Segments.Contains(SymbolTable.Old) is false) continue;
 
@@ -88,7 +117,7 @@ internal static class Rules
     ///     name silently re-resolves statements that already worked.
     /// </summary>
     private static IEnumerable<Finding> Glue(IReadOnlyCollection<Declared> names,
-                                             IReadOnlyCollection<(Pattern Pattern, Span Span)> patterns)
+                                             IReadOnlyCollection<Shape> patterns)
     {
         // A shadow is a multi-word name, so injected names are examined too, and
         // they must be: R5 never looks at a one-word declaration, so a collision
@@ -97,17 +126,27 @@ internal static class Rules
 
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
         {
-            if (offending[declared.Name] is not (Pattern pattern, Span where)) continue;
+            if (offending[declared.Name] is not Shape offender) continue;
 
-            var word = pattern.Glue.First(declared.Name.Split(' ').Contains);
+            var word = offender.Pattern.Glue.First(declared.Name.Split(' ').Contains);
+
+            // Whichever was written later is the one being asked to give way, and
+            // that is where the caret goes. An inner pattern can invalidate a
+            // name declared in an enclosing scope, and blaming the outer file for
+            // it is both wrong and unactionable — nothing in that file changed.
+            var blamed = IsLater(declared.Inherited, declared.Span, offender.Inherited, offender.Span);
+
+            var primary = blamed ? declared.Span : offender.Span;
+            var related = blamed ? offender.Span : declared.Span;
+            var label = blamed ? "which makes it glue" : "the name it collides with";
 
             if (declared.InjectedBy is null)
             {
-                yield return new Finding(FindingKind.GlueInName, declared.Span)
+                yield return new Finding(FindingKind.GlueInName, primary)
                     .Naming("name", declared.Name)
                     .Naming("word", word)
-                    .Naming("pattern", pattern.ToString())
-                    .Alongside(where, "which makes it glue");
+                    .Naming("pattern", offender.Pattern.ToString())
+                    .Alongside(related, label);
 
                 continue;
             }
@@ -117,16 +156,26 @@ internal static class Rules
             // too, which is what «injected by» means.
             if (offending[declared.InjectedBy] is not null) continue;
 
-            yield return new Finding(FindingKind.GlueInInjectedName, declared.Span)
+            yield return new Finding(FindingKind.GlueInInjectedName, primary)
                 .Naming("name", declared.Name)
                 .Naming("injector", declared.InjectedBy)
                 .Naming("word", word)
-                .Naming("pattern", pattern.ToString())
-                .Alongside(where, "which makes it glue");
+                .Naming("pattern", offender.Pattern.ToString())
+                .Alongside(related, label);
         }
     }
 
-    private static (Pattern Pattern, Span Span)? Offender(string name, IReadOnlyCollection<(Pattern Pattern, Span Span)> patterns)
+    /// <summary>
+    ///     The first pattern whose glue this name contains.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     First and not all of them: a name colliding with three patterns is one
+    ///     name to respell, and three findings saying so would be three copies of
+    ///     one mistake. Repairing it can uncover the next, which is the accepted
+    ///     cost — the alternative is a wall of messages with one fix between them.
+    /// </remarks>
+    private static Shape? Offender(string name, IReadOnlyCollection<Shape> patterns)
     {
         var words = name.Split(' ');
         if (words.Length < 2) return null;

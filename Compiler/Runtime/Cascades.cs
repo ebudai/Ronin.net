@@ -294,9 +294,12 @@ internal static class Cascades
 
             var finding = new Finding(FindingKind.ManyWriters, declared[charged.First()])
                 .Naming("cell", cell)
-                .Naming("count", charged.Count.ToString());
+                .Naming("count", charged.Count.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                .Naming("writers", string.Join("» and «", charged));
 
-            foreach (var name in charged.Skip(1)) finding.Alongside(declared[name], "also writes it");
+            // named, not merely pointed at: a related span alone reads as
+            // «source:4:1: also writes it», which is a place and not a culprit
+            foreach (var name in charged.Skip(1)) finding.Alongside(declared[name], $"«{name}» also writes it");
 
             yield return finding;
         }
