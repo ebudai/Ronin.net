@@ -44,14 +44,26 @@ internal static class Lexemes
     ///     hand-built token lists in the tests carry <c>Whitespace</c>, so it is
     ///     dropped here too.
     /// </summary>
-    public static List<Lexeme> ToLexemes(this Token head)
+    public static List<Lexeme> ToLexemes(this Token head) => head.ToLexemes(null);
+
+    /// <summary>
+    ///     Walks from <paramref name="head"/> up to but not including
+    ///     <paramref name="end"/>, which is how a parsed span is adapted: the
+    ///     parser stopped somewhere, and that token is the boundary rather than
+    ///     part of the span. A null end walks to the sentinel.
+    /// </summary>
+    public static List<Lexeme> ToLexemes(this Token head, Token end)
     {
         List<Lexeme> lexemes = [];
-        for (var token = head; token is not null and not Sentinel; token = token.Next as Token)
+
+        for (var token = head;
+             token is not null and not Sentinel && ReferenceEquals(token, end) is false;
+             token = token.Next as Token)
         {
             if (token is Trivium) continue;
             lexemes.Add(new Lexeme(KindOf(token), token.Memory.ToString()));
         }
+
         return lexemes;
     }
 

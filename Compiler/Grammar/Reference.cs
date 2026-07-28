@@ -18,6 +18,24 @@ internal class Reference : IEnumerable<Reference.Component>
 
     private List<Component> Components { get; init; }
 
+    /// <summary>The first token of the span, and the one parsing stopped at.</summary>
+    private Token Start { get; init; }
+    private Token End { get; init; }
+
+    /// <summary>
+    ///     The span as the resolver takes it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     This is the join between the two halves of the frontend. The parser
+    ///     decides where a statement's expression begins and ends — it knows
+    ///     because punctuation bounds it — and hands the run over without having
+    ///     decided anything about its shape. What the words mean is the resolver's
+    ///     question, and it needs the whole span to answer it, since a name is a
+    ///     span rather than a token.
+    /// </remarks>
+    public List<Lexeme> ToLexemes() => Start.ToLexemes(End);
+
     public static Reference Parse(ref Parser current)
     {
         Parser parser = current;
@@ -31,8 +49,15 @@ internal class Reference : IEnumerable<Reference.Component>
         // symbols punctuate a reference, they are never the whole of one
         if (components.TrueForAll(component => component.AsSymbolic is not null)) return null;
 
+        Reference reference = new()
+        {
+            Components = components,
+            Start = current.Token,
+            End = parser.Token,
+        };
+
         current = parser;
-        return new Reference { Components = components };
+        return reference;
     }
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();

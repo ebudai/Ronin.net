@@ -2,6 +2,11 @@
 
 using Ronin.Compiler;
 using Ronin.Runtime;
+
+// Grammar is not imported wholesale: Scope means one thing to the parser and
+// another to the runtime, and this file wants the runtime's.
+using Member = Ronin.Grammar.Member;
+using Reference = Ronin.Grammar.Reference;
 using Tree = Ronin.Compiler.Node;
 
 namespace Unit;
@@ -16,6 +21,57 @@ public class Evaluations
     {
         Assert.True(new Resolver(symbols).Resolve(Lexemes.Lex(source)).TryTree(out var tree), source);
         return tree;
+    }
+
+    [Fact(DisplayName = "a parsed statement resolves and runs")]
+    public void AParsedStatementResolvesAndRuns()
+    {
+        // The whole frontend, continuous: characters to a value, with the parser
+        // deciding where the expression is and the resolver deciding what it
+        // means. Nothing here hands the resolver a string.
+        const string source = "compute total for base price + tax;";
+
+        Lexer lexer = new(source);
+        Parser parser = new(lexer.Lex());
+        var module = parser.Parse();
+
+        var statement = Assert.IsType<Member.Unresolved>(Assert.Single(module.Scopes[0].Statements));
+
+        // the parser committed to no shape — «compute total for base price» is
+        // still one greedy run of words at this point
+        Assert.Equal(3, statement.Reference.Span.Length);
+
+        SymbolTable symbols = new();
+        symbols.WithNames("base price", "tax").WithPatterns("compute total for _");
+
+        var resolution = new Resolver(symbols).Resolve(statement.Reference.ToLexemes());
+        Assert.Equal("compute total for («base price» + «tax»)", resolution.Reading);
+        Assert.True(resolution.TryTree(out var tree));
+
+        Scope scope = new();
+        scope.Declare(new Declaration(
+            Pattern.Parse("compute total for _"),
+            [["amount"]],
+            (_, bound) => Builtin.Operators["*"](bound["amount"], 2d)));
+
+        Graph graph = new();
+        graph.Var("base price", 100d);
+        graph.Var("tax", 20d);
+
+        Assert.Equal(240d, new Evaluator(scope).Evaluate(graph, tree, insideLet: false));
+    }
+
+    [Fact(DisplayName = "a reference span stops at its punctuation")]
+    public void AReferenceSpanStopsAtItsPunctuation()
+    {
+        // the terminator bounds the span and is not part of it, which is what
+        // lets the parser hand over a run the resolver can score whole
+        Lexer lexer = new("x > 3; y");
+        Parser parser = new(lexer.Lex());
+
+        var reference = Reference.Parse(ref parser);
+
+        Assert.Equal(["x", ">", "3"], reference.ToLexemes().Select(lexeme => lexeme.Text));
     }
 
     [Fact(DisplayName = "a resolved statement evaluates against the graph")]
