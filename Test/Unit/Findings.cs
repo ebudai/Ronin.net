@@ -10,34 +10,91 @@ namespace Unit;
 [Trait(nameof(Diagnostics), null)]
 public class Findings
 {
-    private static Finding Example(FindingKind kind)
+    /// <summary>
+    ///     One of each kind, produced by the rules rather than assembled here.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     This used to build a single finding carrying every role and a related
+    ///     span, which meant the golden file showed «first declared here» on a
+    ///     reserved-word finding that has no prior site to point at — and no rule
+    ///     had ever decided which span was related, because nothing but this
+    ///     method populated one. Hand-built data standing in for the real path,
+    ///     which is the same fault as a token chain standing in for source.
+    /// </remarks>
+    private static IEnumerable<Finding> Examples()
     {
-        SourceText source = new("var total => Number;\nvar total => Number;\n", "Player.ron");
-        Finding finding = new(kind, source.Span(25, 5));
+        foreach (var source in new[]
+                 {
+                     "var total => Number;\nvar total => Number;\n",
+                     "var old total => Number;\n",
+                     """
+                     function area of (radius => Number) { return radius; }
+                     function area of (shape => Text) { return shape; }
 
-        // every role any renderer reads, so the totality test can build one of
-        // each kind without knowing which roles it needs
-        return finding
-            .Naming("name", "total")
-            .Naming("where", "in an enclosing scope")
-            .Naming("word", "old")
-            .Naming("pattern", "area of (_)")
-            .Naming("count", "2")
-            .Alongside(source.Span(4, 5), "first declared here");
+                     """,
+                 })
+        {
+            SourceText text = new(source, "Player.ron");
+            Lexer lexer = new(source);
+            Parser parser = new(lexer.Lex());
+
+            foreach (var finding in Ronin.Grammar.Declarations.Of(parser.Parse().Scopes[0].Statements, text).Problems)
+            {
+                yield return finding;
+            }
+        }
     }
 
     [Fact(DisplayName = "every kind renders")]
     public void EveryKindRenders()
     {
         // A kind that ships with no message is invisible until a user hits it,
-        // so the enum itself is the test list.
+        // so the enum itself is the test list — and every kind must be reachable
+        // from a rule, or the golden file is describing something nothing emits.
+        var examples = Examples().ToDictionary(finding => finding.Kind);
+
         foreach (var kind in Enum.GetValues<FindingKind>())
         {
-            var rendered = Diagnostics.Render(Example(kind));
+            Assert.True(examples.ContainsKey(kind), $"{kind} is not produced by any rule");
+
+            var rendered = Diagnostics.Render(examples[kind]);
 
             Assert.False(string.IsNullOrWhiteSpace(rendered), $"{kind} renders nothing");
             Assert.DoesNotContain("{", rendered);
         }
+    }
+
+    [Fact(DisplayName = "a reserved word points at nothing else")]
+    public void AReservedWordPointsAtNothingElse()
+    {
+        // there is no prior declaration of «old total», so there is nowhere to
+        // point, and pointing anywhere would be inventing a site
+        var reserved = Examples().Single(finding => finding.Kind is FindingKind.ReservedPrefix);
+
+        Assert.Empty(reserved.Related);
+    }
+
+    [Fact(DisplayName = "a report stays readable at the width of a cascade ring")]
+    public void AReportStaysReadableAtTheWidthOfACascadeRing()
+    {
+        // A ring names every participant, so six related spans is the shape to
+        // check before the cascade rules convert — one indented line each, and
+        // the sentence stays on the first.
+        SourceText source = new(string.Join("\n", Enumerable.Range(0, 7).Select(i => $"line {i}")));
+
+        var finding = new Finding(FindingKind.Overloaded, source.Span(0, 4))
+            .Naming("pattern", "area of (_)")
+            .Naming("count", "7");
+
+        foreach (var line in Enumerable.Range(1, 6)) finding.Alongside(source.Span(line * 7, 4), "also declared here");
+
+        var lines = Diagnostics.Report(finding).Split(Environment.NewLine);
+
+        Assert.Equal(7, lines.Length);
+        Assert.StartsWith("source:1:1: «area of (_)»", lines[0]);
+        Assert.All(lines.Skip(1), line => Assert.StartsWith("    source:", line));
+        Assert.Equal("    source:7:1: also declared here", lines[^1]);
     }
 
     [Fact(DisplayName = "the wording of every kind, as a person reads it")]
@@ -48,18 +105,17 @@ public class Findings
         // nothing at all, and a rule test does not break when only the English
         // changed.
         var rendered = string.Join(Environment.NewLine + Environment.NewLine,
-                                   Enum.GetValues<FindingKind>().Select(kind => Diagnostics.Report(Example(kind))));
+                                   Examples().Select(Diagnostics.Report));
 
         Assert.Equal(
             """
-            Player.ron:2:5: «total» is already declared in an enclosing scope. Shadowing is not allowed, because reading a value has to tell you where it came from, and the compiler cannot flag the ambiguity when both readings are legal. Rename this one.
+            Player.ron:2:5: «total» is already declared in this scope. Shadowing is not allowed, because reading a value has to tell you where it came from, and the compiler cannot flag the ambiguity when both readings are legal. Rename this one.
                 Player.ron:1:5: first declared here
 
-            Player.ron:2:5: «total» begins with the reserved word «old», which is injected rather than declared. Respell it.
-                Player.ron:1:5: first declared here
+            Player.ron:1:5: «old total» begins with the reserved word «old», which is injected rather than declared. Respell it.
 
-            Player.ron:2:5: «area of (_)» has 2 declarations and type-directed selection is not implemented, so there is no way to choose between them yet. Give them different shapes for now.
-                Player.ron:1:5: first declared here
+            Player.ron:1:10: «area of (_)» has 2 declarations and type-directed selection is not implemented, so there is no way to choose between them yet. Give them different shapes for now.
+                Player.ron:2:10: also declared here
             """,
             rendered);
     }

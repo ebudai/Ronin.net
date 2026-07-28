@@ -51,9 +51,13 @@ internal readonly record struct Labelled(Span Span, string Label);
 ///     </para>
 ///     <para>
 ///     A machine-applicable fix belongs here too and is not here yet: none of the
-///     findings so far has a repair anyone but the author can choose, since
-///     renaming needs a name. The first one that does — inserting the space an
-///     unspaced separator wants, say — is what should bring it.
+///     findings <em>so far</em> has a repair anyone but the author can choose,
+///     since renaming needs a name. Two coming ones do, and either should bring
+///     it — inserting the space an unspaced separator wants, and, more valuably,
+///     the repair for a tie. The resolver has already enumerated the competing
+///     readings by the time it reports one, and bracketing recovers each of them
+///     with no authoring judgement at all, so a tie can offer every reading as a
+///     one-click alternative.
 ///     </para>
 /// </remarks>
 internal sealed class Finding(FindingKind kind, Span primary)

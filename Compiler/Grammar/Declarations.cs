@@ -66,9 +66,27 @@ internal sealed class Declarations
             declarations.inherited.UnionWith(enclosing.Symbols.Names);
 
             foreach (var (pattern, declared) in enclosing.Overloads) declarations.Overloads[pattern] = [.. declared];
+            foreach (var (name, span) in enclosing.written) declarations.written[name] = span;
+            foreach (var (pattern, spans) in enclosing.shapes) declarations.shapes[pattern] = [.. spans];
         }
 
         foreach (var statement in statements) declarations.Declare(statement);
+
+        // After every statement, because a shape is over-declared by its set and
+        // not by any one member of it — and the last declaration is as much a
+        // participant as the first.
+        foreach (var (pattern, spans) in declarations.shapes)
+        {
+            if (spans.Count < 2) continue;
+
+            var finding = new Finding(FindingKind.Overloaded, spans[0])
+                .Naming("pattern", pattern.ToString())
+                .Naming("count", spans.Count.ToString());
+
+            foreach (var span in spans.Skip(1)) finding.Alongside(span, "also declared here");
+
+            declarations.problems.Add(finding);
+        }
 
         return declarations;
     }
@@ -95,12 +113,9 @@ internal sealed class Declarations
 
         declared.Add(blocks);
 
-        if (declared.Count > 1)
-        {
-            problems.Add(new Finding(FindingKind.Overloaded, member.Identifier.Span(source))
-                .Naming("pattern", pattern.ToString())
-                .Naming("count", declared.Count.ToString()));
-        }
+        if (shapes.TryGetValue(pattern, out var spans) is false) shapes[pattern] = spans = [];
+
+        spans.Add(member.Identifier.Span(source));
     }
 
     /// <summary>
@@ -111,9 +126,13 @@ internal sealed class Declarations
     {
         var name = member.Identifier.Words;
 
+        var span = member.Identifier.Span(source);
+
+        // No related span: a reserved word has no prior declaration to point at,
+        // and pointing anywhere would be inventing one.
         if (name.StartsWith(SymbolTable.Shadowed, System.StringComparison.Ordinal))
         {
-            problems.Add(new Finding(FindingKind.ReservedPrefix, member.Identifier.Span(source))
+            problems.Add(new Finding(FindingKind.ReservedPrefix, span)
                 .Naming("name", name)
                 .Naming("word", SymbolTable.Old));
             return;
@@ -121,11 +140,18 @@ internal sealed class Declarations
 
         if (Symbols.Names.Contains(name))
         {
-            problems.Add(new Finding(FindingKind.Shadowed, member.Identifier.Span(source))
+            var shadowed = new Finding(FindingKind.Shadowed, span)
                 .Naming("name", name)
-                .Naming("where", Where(name)));
+                .Naming("where", Where(name));
+
+            // the site being shadowed, which may be in another file entirely
+            if (written.TryGetValue(name, out var first)) shadowed.Alongside(first, "first declared here");
+
+            problems.Add(shadowed);
             return;
         }
+
+        written[name] = span;
 
         if (member is Datum { Mutability: Constant }) Symbols.Constants(name);
         else if (member is Datum) Symbols.Declaring(name);
@@ -147,6 +173,8 @@ internal sealed class Declarations
     public Dictionary<Compiler.Pattern, List<Blocks>> Overloads { get; } = [];
 
     private readonly List<Finding> problems = [];
+    private readonly Dictionary<string, Span> written = [];
+    private readonly Dictionary<Compiler.Pattern, List<Span>> shapes = [];
     private SourceText source;
     private readonly HashSet<string> inherited = [];
 }
