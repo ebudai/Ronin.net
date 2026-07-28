@@ -27,9 +27,14 @@ jobs:
       # that a project added later without the setting is still gated.
       - run: dotnet build --no-restore --configuration Release -warnaserror
 
-      # 100% line AND branch. The discipline here is that defensive code no test
-      # reaches gets removed, made an invariant, or refactored away, and the
-      # tests stand in for what it did — which only holds if something checks.
+      # 100% line AND branch, in Release, which is the stricter of the two:
+      # Debug and Release do not count branches the same way, and Release found
+      # an unreachable guard that Debug reported as covered. Check Release
+      # locally too, or the gate will disagree with you.
+      #
+      # The discipline is that defensive code no test reaches gets removed, made
+      # an invariant, or refactored away, and the tests stand in for what it did
+      # — which only holds if something checks.
       - run: >
           dotnet test --no-build --configuration Release
           /p:CollectCoverage=true

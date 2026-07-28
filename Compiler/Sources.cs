@@ -58,47 +58,34 @@ internal static class Sources
         // is either already under this folder, or is not this project's source.
         if (folder.LinkTarget is not null) return;
 
-        if (Entries(() => folder.EnumerateFiles($"*{Extension}"), folder, unreadable) is not { } found) return;
+        FileInfo[] found;
+        DirectoryInfo[] nested;
 
-        files.AddRange(found.OrderBy(file => file.FullName, StringComparer.Ordinal));
-
-        if (Entries(folder.EnumerateDirectories, folder, unreadable) is not { } nested) return;
-
-        foreach (var directory in nested.OrderBy(directory => directory.Name, StringComparer.Ordinal))
-        {
-            Walk(directory, files, unreadable);
-        }
-    }
-
-    /// <summary>
-    ///     One directory's entries, or nothing if it will not be read.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     <para>
-    ///     A thunk and not a sequence, because the refusal arrives when the
-    ///     enumerator opens the directory — which is inside
-    ///     <c>EnumerateFiles</c> itself, before anything is walked. Taking the
-    ///     sequence as an argument would build it at the call site and throw
-    ///     outside this try.
-    ///     </para>
-    ///     <para>
-    ///     Only <see cref="IOException"/> was caught, and a directory whose
-    ///     permissions forbid reading raises
-    ///     <see cref="UnauthorizedAccessException"/>, which is not one — so the
-    ///     executable died on a folder it merely could not look at.
-    ///     </para>
-    /// </remarks>
-    private static T[] Entries<T>(Func<IEnumerable<T>> entries, DirectoryInfo folder, List<string> unreadable)
-    {
+        // Both enumerations in one attempt. They open the same directory with the
+        // same permissions, so a second guard around the second one is a branch
+        // nothing can reach — and each has to be materialised INSIDE the try,
+        // because the refusal arrives when the enumerator opens the directory
+        // rather than while it is walked.
+        //
+        // Only IOException was caught, and permissions raise
+        // UnauthorizedAccessException, which is not one — so the executable died
+        // on a folder it merely could not look at.
         try
         {
-            return [.. entries()];
+            found = [.. folder.EnumerateFiles($"*{Extension}")];
+            nested = [.. folder.EnumerateDirectories()];
         }
         catch (Exception refused) when (refused is IOException or UnauthorizedAccessException)
         {
             unreadable.Add($"{folder.FullName}: {refused.Message}");
-            return null;
+            return;
+        }
+
+        files.AddRange(found.OrderBy(file => file.FullName, StringComparer.Ordinal));
+
+        foreach (var directory in nested.OrderBy(directory => directory.Name, StringComparer.Ordinal))
+        {
+            Walk(directory, files, unreadable);
         }
     }
 }
