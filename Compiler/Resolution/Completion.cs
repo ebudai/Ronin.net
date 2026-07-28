@@ -1,0 +1,124 @@
+// Copyright © 2026 Eric Budai
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Ronin.Compiler;
+
+/// <summary>
+///     What could continue a statement that is still being typed.
+/// </summary>
+///
+/// <remarks>
+///     <para>
+///     <see cref="Resolver"/> scores a finished statement. This answers the
+///     writer's question instead — the words so far are a prefix of what, and
+///     what comes next? It does not score anything, because a half-typed
+///     statement has no cost to compare: every continuation is offered and the
+///     resolver decides once the statement is complete.
+///     </para>
+///     <para>
+///     Names and pattern anchors are both runs of consecutive words, so only a
+///     suffix of the trailing word run can be partway through one. Every suffix
+///     is tried, longest first, because the earlier words may belong to
+///     something already finished: after «send hello», «hello» is a complete
+///     argument to «send _» and also a prefix of the name «hello to alice».
+///     </para>
+/// </remarks>
+internal sealed class Completion
+{
+    public Completion(SymbolTable symbols)
+    {
+        ArgumentNullException.ThrowIfNull(symbols);
+
+        this.symbols = symbols;
+    }
+
+    /// <summary>
+    ///     Every word that could come next, most specific first. A candidate that
+    ///     continues four typed words outranks one that continues none, which is
+    ///     what keeps the list readable — the tail of it is always "or start
+    ///     something new".
+    /// </summary>
+    public IReadOnlyList<Candidate> After(IReadOnlyList<Lexeme> lexemes)
+    {
+        ArgumentNullException.ThrowIfNull(lexemes);
+
+        var typed = TrailingWords(lexemes);
+
+        List<Candidate> candidates = [];
+        HashSet<(CandidateKind, string, string)> seen = [];
+
+        for (var start = 0; start <= typed.Length; ++start)
+        {
+            var partial = typed[start..];
+
+            foreach (var name in symbols.Names)
+            {
+                if (Continues(name.Split(' '), partial) is not string word) continue;
+                if (seen.Add((CandidateKind.Name, word, name)))
+                    candidates.Add(new Candidate(CandidateKind.Name, word, name, partial.Length));
+            }
+
+            foreach (var pattern in symbols.Patterns)
+            {
+                if (Continues(pattern.Anchor, partial) is not string word) continue;
+
+                var whole = pattern.ToString();
+                if (seen.Add((CandidateKind.Pattern, word, whole)))
+                    candidates.Add(new Candidate(CandidateKind.Pattern, word, whole, partial.Length));
+            }
+        }
+
+        // SymbolTable.Names is a set and Patterns is unordered against it, so the
+        // list has to be sorted or the same keystroke offers a different order
+        // each run.
+        return [.. candidates.OrderByDescending(candidate => candidate.Matched)
+                             .ThenBy(candidate => candidate.Word, StringComparer.Ordinal)
+                             .ThenBy(candidate => candidate.Whole, StringComparer.Ordinal)];
+    }
+
+    /// <summary>
+    ///     The word that would extend <paramref name="partial"/> one step toward
+    ///     <paramref name="whole"/>, or null when it is not on the way there.
+    /// </summary>
+    private static string Continues(IReadOnlyList<string> whole, IReadOnlyList<string> partial)
+    {
+        if (whole.Count <= partial.Count) return null;
+
+        for (var i = 0; i != partial.Count; ++i)
+        {
+            if (whole[i] != partial[i]) return null;
+        }
+
+        return whole[partial.Count];
+    }
+
+    /// <summary>
+    ///     The run of words the caret is sitting at the end of. A symbol, bracket
+    ///     or literal ends it, since nothing spanning one can be a single name.
+    /// </summary>
+    private static string[] TrailingWords(IReadOnlyList<Lexeme> lexemes)
+    {
+        var start = lexemes.Count;
+        while (start > 0 && lexemes[start - 1].Kind is LexemeKind.Word) --start;
+
+        var words = new string[lexemes.Count - start];
+        for (var i = 0; i != words.Length; ++i) words[i] = lexemes[start + i].Text;
+        return words;
+    }
+
+    private readonly SymbolTable symbols;
+}
+
+internal enum CandidateKind { Name, Pattern }
+
+/// <summary>
+///     One word that could come next, and what it would be part of.
+/// </summary>
+///
+/// <param name="Word">The word to type.</param>
+/// <param name="Whole">The name or pattern it belongs to, for the writer to read.</param>
+/// <param name="Matched">How many already-typed words it continues.</param>
+internal readonly record struct Candidate(CandidateKind Kind, string Word, string Whole, int Matched);
