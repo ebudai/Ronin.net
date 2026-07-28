@@ -36,7 +36,31 @@ public class ScopeBuilding
         // and the function, whose parameter block became the hole
         var pattern = Assert.Single(declared.Symbols.Patterns);
         Assert.Equal("compute total for (_)", pattern.ToString());
-        Assert.Equal([["order"]], declared.Blocks[pattern]);
+        Assert.Equal([["order"]], Assert.Single(declared.Overloads[pattern]));
+    }
+
+    [Fact(DisplayName = "overloads are one shape, not one ambiguity")]
+    public void OverloadsAreOneShapeNotOneAmbiguity()
+    {
+        // Two declarations sharing a shape are two things a call could mean, not
+        // two ways to read it. Inserting both made every call to an overloaded
+        // shape come back ambiguous, which is R3 answering a question nobody
+        // asked it.
+        var declared = Of("""
+            var wheel => Number;
+            function area of (radius => Number) { return radius; }
+            function area of (shape => Text) { return shape; }
+            """);
+
+        var pattern = Assert.Single(declared.Symbols.Patterns);
+        Assert.Equal(2, declared.Overloads[pattern].Count);
+
+        Assert.Equal("area of «wheel»",
+                     new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);
+
+        // and the thing that is actually missing says so
+        Assert.Contains("type-directed selection is not implemented",
+                        Assert.Single(declared.Problems));
     }
 
     [Fact(DisplayName = "a constant is named but gets no shadow")]
@@ -77,7 +101,7 @@ public class ScopeBuilding
 
         var pattern = Assert.Single(declared.Symbols.Patterns);
         Assert.Equal("draw (_) at (_)", pattern.ToString());
-        Assert.Equal([["shape"], ["x", "y"]], declared.Blocks[pattern]);
+        Assert.Equal([["shape"], ["x", "y"]], Assert.Single(declared.Overloads[pattern]));
     }
 
     [Fact(DisplayName = "a parameter it cannot name is reported, not guessed")]
@@ -135,7 +159,7 @@ public class ScopeBuilding
         Assert.Empty(declared.Problems);
 
         var pattern = Assert.Single(declared.Symbols.Patterns);
-        Assert.Equal([["radius"]], declared.Blocks[pattern]);
+        Assert.Equal([["radius"]], Assert.Single(declared.Overloads[pattern]));
 
         Assert.Equal("area of «wheel»",
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);

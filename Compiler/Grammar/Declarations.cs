@@ -4,6 +4,7 @@ using Ronin.Compiler;
 using Ronin.Lexicon;
 using System.Collections.Generic;
 using System.Linq;
+using Blocks = System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<string>>;
 
 namespace Ronin.Grammar;
 
@@ -64,7 +65,7 @@ internal sealed class Declarations
             declarations.Symbols.Merging(enclosing.Symbols);
             declarations.inherited.UnionWith(enclosing.Symbols.Names);
 
-            foreach (var (pattern, blocks) in enclosing.Blocks) declarations.Blocks[pattern] = blocks;
+            foreach (var (pattern, declared) in enclosing.Overloads) declarations.Overloads[pattern] = [.. declared];
         }
 
         foreach (var statement in statements) declarations.Declare(statement);
@@ -94,8 +95,23 @@ internal sealed class Declarations
             return;
         }
 
-        Symbols.Patterns.Add(pattern);
-        Blocks[pattern] = blocks;
+        // A shape goes into the table ONCE. Two declarations sharing one are two
+        // things a call could mean, not two ways to read it — inserting both made
+        // R3's tie machinery answer a question it was never asked, so every call
+        // to an overloaded shape came back ambiguous.
+        if (Symbols.Patterns.Contains(pattern) is false) Symbols.Patterns.Add(pattern);
+
+        if (Overloads.TryGetValue(pattern, out var declared) is false) Overloads[pattern] = declared = [];
+
+        declared.Add(blocks);
+
+        if (declared.Count is 2)
+        {
+            problems.Add(
+                $"«{pattern}» has more than one declaration and type-directed selection is " +
+                "not implemented, so there is no way to choose between them yet. Give them " +
+                "different shapes for now.");
+        }
     }
 
     /// <summary>
@@ -129,8 +145,17 @@ internal sealed class Declarations
 
     private string Where(string name) => inherited.Contains(name) ? "in an enclosing scope" : "in this scope";
 
-    /// <summary>The parameter names of each declared pattern, by hole.</summary>
-    public Dictionary<Compiler.Pattern, IReadOnlyList<IReadOnlyList<string>>> Blocks { get; } = [];
+    /// <summary>
+    ///     Every declaration of each shape, each as its parameter names by hole.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A list because overloads share a shape and are separated later by type.
+    ///     Overload choice is a phase after resolution — enumerate, type-filter,
+    ///     rank by lookup, tie is an error — and not something the resolver can
+    ///     see, which is why the shape reaches it only once.
+    /// </remarks>
+    public Dictionary<Compiler.Pattern, List<Blocks>> Overloads { get; } = [];
 
     private readonly List<string> problems = [];
     private readonly HashSet<string> inherited = [];

@@ -182,7 +182,7 @@ internal sealed class Resolver
             start = end + 1;
         }
 
-        cell.Offer(1 + cost, new Node.Group(parts), count);
+        cell.Offer(1 + cost, new Node.Group(parts), Cell.Saturating(count));
     }
 
     private static bool AllWords(IReadOnlyList<Lexeme> lexemes, int i, int j)
@@ -230,7 +230,7 @@ internal sealed class Resolver
             // medial args cross any operator
             if (expressions[position, split, 0].TryBest(out var argument) is false) continue;
             foreach (var (cost, arguments, count) in Match(pattern, segment + 1, lexemes, split, end))
-                yield return (argument.Cost + cost, [argument.Node, .. arguments], argument.Count * count);
+                yield return (argument.Cost + cost, [argument.Node, .. arguments], Cell.Saturating(argument.Count * count));
         }
     }
 
@@ -274,7 +274,7 @@ internal sealed class Resolver
 
             cell.Offer(left.Cost + right.Cost,
                        new Node.Operation(left.Node, lexemes[k].Text, right.Node),
-                       left.Count * right.Count);
+                       Cell.Saturating(left.Count * right.Count));
         }
     }
 
@@ -294,7 +294,17 @@ internal sealed class Resolver
 
         public bool IsEmpty => order.Count is 0;
 
-        public long Count => derivations.Values.Sum();
+        /// <summary>
+        ///     How many derivations reach the cheapest cost, saturating at two.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     The only question ever asked of this is unique-versus-ambiguous, so
+        ///     counting past two buys nothing and costs correctness: unbounded
+        ///     multiplication across spans can wrap, and a genuinely ambiguous
+        ///     parse that wraps to one is reported as resolved.
+        /// </remarks>
+        public long Count => Saturating(derivations.Values.Sum());
 
         public IEnumerable<string> Readings => order.Select(node => node.ToString());
 
@@ -321,6 +331,9 @@ internal sealed class Resolver
         // Keyed by rendering rather than by node: two derivations that read the
         // same way ARE the same reading, and counting them separately would
         // report a tie between a statement and itself.
+        /// <summary>Two is as many as anything needs to be counted.</summary>
+        public static long Saturating(long count) => count < 2 ? count : 2;
+
         public void Offer(int cost, Node node, long count = 1)
         {
             var reading = node.ToString();
@@ -336,7 +349,7 @@ internal sealed class Resolver
             }
             if (cost != Cost) return;
             if (derivations.ContainsKey(reading) is false) order.Add(node);
-            derivations[reading] = derivations.GetValueOrDefault(reading) + count;
+            derivations[reading] = Saturating(derivations.GetValueOrDefault(reading) + count);
         }
 
         public void Merge(Cell other)
