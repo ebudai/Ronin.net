@@ -45,6 +45,25 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
 
         if (parser.TryAdvance<TOpen>() is false) return null;
 
+        // Every kind of nesting in the grammar comes through here, so this is
+        // where it is bounded. A file of fifty thousand open braces recursed
+        // straight through the stack, and a StackOverflowException cannot be
+        // caught — no error handling downstream could have turned it into a
+        // diagnostic.
+        if (Parser.Nest() is false) return null;
+
+        try
+        {
+            return Parsed(ref current, ref parser);
+        }
+        finally
+        {
+            Parser.Unnest();
+        }
+    }
+
+    private static TParent Parsed(ref Parser current, ref Parser parser)
+    {
         TParent values = [];
         var closed = false;
 

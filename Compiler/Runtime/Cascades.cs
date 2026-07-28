@@ -161,59 +161,82 @@ internal static class Cascades
     ///     The strongly connected components, by Tarjan, deterministically
     ///     ordered.
     /// </summary>
+    /// <remarks>
+    ///     Iterative, because the depth here is the program's rather than this
+    ///     algorithm's: a chain of a thousand whens each writing what the next
+    ///     reads is a thousand stack frames, and a long enough one ends the
+    ///     process with a StackOverflowException — which cannot be caught, so it
+    ///     is the one failure a diagnostic pass cannot report.
+    ///
+    ///     The frame carries the neighbours already walked, which is what
+    ///     recursion was keeping in the loop variable, and each node is visited
+    ///     twice: once to descend, once to fold the child's low link back.
+    /// </remarks>
     private static List<List<string>> Components(Dictionary<string, HashSet<string>> edges,
                                                  IEnumerable<string> nodes)
     {
         Dictionary<string, int> index = [];
         Dictionary<string, int> low = [];
         HashSet<string> stacked = [];
-        Stack<string> stack = new();
+        Stack<string> component = new();
+        Stack<(string Node, IEnumerator<string> Neighbours)> walking = new();
         List<List<string>> components = [];
         var counter = 0;
 
-        void Strong(string node)
+        foreach (var start in nodes.Order(StringComparer.Ordinal))
         {
-            index[node] = low[node] = counter++;
-            stack.Push(node);
-            stacked.Add(node);
+            if (index.ContainsKey(start)) continue;
 
-            foreach (var next in edges[node].Order(StringComparer.Ordinal))
+            Open(start);
+
+            while (walking.Count is not 0)
             {
-                // an edge into a component already closed says nothing about
-                // this one, which is the case a back-edge walk conflates
-                if (index.ContainsKey(next) is false)
+                var (node, neighbours) = walking.Peek();
+
+                if (neighbours.MoveNext())
                 {
-                    Strong(next);
-                    low[node] = Math.Min(low[node], low[next]);
+                    var next = neighbours.Current;
+
+                    // an edge into a component already closed says nothing about
+                    // this one, which is the case a back-edge walk conflates
+                    if (index.ContainsKey(next) is false) Open(next);
+                    else if (stacked.Contains(next)) low[node] = Math.Min(low[node], index[next]);
+
+                    continue;
                 }
-                else if (stacked.Contains(next))
+
+                walking.Pop();
+
+                // fold this node's low link into its parent's, which is what the
+                // return from the recursive call used to do
+                if (walking.Count is not 0) low[walking.Peek().Node] = Math.Min(low[walking.Peek().Node], low[node]);
+
+                if (low[node] != index[node]) continue;
+
+                List<string> closed = [];
+                string member;
+
+                do
                 {
-                    low[node] = Math.Min(low[node], index[next]);
+                    member = component.Pop();
+                    stacked.Remove(member);
+                    closed.Add(member);
                 }
+                while (member != node);
+
+                components.Add(closed);
             }
-
-            if (low[node] != index[node]) return;
-
-            List<string> component = [];
-            string member;
-
-            do
-            {
-                member = stack.Pop();
-                stacked.Remove(member);
-                component.Add(member);
-            }
-            while (member != node);
-
-            components.Add(component);
-        }
-
-        foreach (var node in nodes.Order(StringComparer.Ordinal))
-        {
-            if (index.ContainsKey(node) is false) Strong(node);
         }
 
         return components;
+
+        void Open(string node)
+        {
+            index[node] = low[node] = counter++;
+            component.Push(node);
+            stacked.Add(node);
+            walking.Push((node, edges[node].Order(StringComparer.Ordinal).GetEnumerator()));
+        }
     }
 
     /// <summary>
@@ -305,14 +328,43 @@ internal static class Cascades
         }
     }
 
+    /// <summary>
+    ///     Who precedes whom: one <c>when</c> comes before another when it writes
+    ///     something the other reads.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Indexed by cell rather than compared pairwise. Asking every <c>when</c>
+    ///     whether its writes overlap every other <c>when</c>'s reads is quadratic
+    ///     in the declarations for an answer that is linear in the edges, and at a
+    ///     few thousand whens the check cost more than everything it fed.
+    /// </remarks>
     private static Dictionary<string, HashSet<string>> Precedence(IReadOnlyDictionary<string, Effects> whens)
     {
+        Dictionary<string, List<string>> readers = [];
+
+        foreach (var (name, effects) in whens)
+        {
+            foreach (var read in effects.Reads)
+            {
+                if (readers.TryGetValue(read, out var reading) is false) readers[read] = reading = [];
+
+                reading.Add(name);
+            }
+        }
+
         Dictionary<string, HashSet<string>> edges = [];
 
         foreach (var (name, effects) in whens)
         {
-            edges[name] = [.. whens.Where(other => effects.Writes.Overlaps(other.Value.Reads))
-                                   .Select(other => other.Key)];
+            HashSet<string> precedes = [];
+
+            foreach (var write in effects.Writes)
+            {
+                if (readers.TryGetValue(write, out var reading)) precedes.UnionWith(reading);
+            }
+
+            edges[name] = precedes;
         }
 
         return edges;

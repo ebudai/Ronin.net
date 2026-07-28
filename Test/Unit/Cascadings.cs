@@ -177,6 +177,35 @@ public class Cascadings
         }));
     }
 
+    [Fact(DisplayName = "a very long chain of whens is analysed, not crashed on")]
+    public void AVeryLongChainOfWhensIsAnalysedNotCrashedOn()
+    {
+        // The depth here is the program's rather than the algorithm's, and both
+        // the component walk and the initialisation ordering recursed down it —
+        // so a long enough chain ended the process with a StackOverflowException,
+        // the one failure a diagnostic pass cannot report because it cannot be
+        // caught.
+        Dictionary<string, Effects> whens = [];
+        Dictionary<string, IReadOnlySet<string>> initialisers = [];
+
+        for (var hop = 0; hop < 50_000; ++hop)
+        {
+            whens[$"when {hop}"] = Does([$"cell {hop}"], [$"cell {hop + 1}"]);
+            initialisers[$"value {hop}"] = new HashSet<string>(hop is 0 ? [] : [$"value {hop - 1}"]);
+        }
+
+        // a chain is not a ring, however long it is
+        Assert.Empty(Cascades.Cycles(whens));
+
+        Assert.True(Initialisation.TryOrder(initialisers, out var order));
+        Assert.Equal("value 0", order[0]);
+        Assert.Equal("value 49999", order[^1]);
+
+        // and closing it into one ring is still found
+        whens["when 49999"] = Does(["cell 49999"], ["cell 0"]);
+        Assert.Single(Cascades.Cycles(whens));
+    }
+
     [Fact(DisplayName = "an acyclic set reports nothing")]
     public void AnAcyclicSetReportsNothing()
     {

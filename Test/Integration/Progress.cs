@@ -106,6 +106,65 @@ public class Progress
         Assert.NotSame(before, parser.Token);
     }
 
+    [Fact(DisplayName = "a file too deeply nested to parse is refused, not crashed on")]
+    public void AFileTooDeeplyNestedToParseIsRefusedNotCrashedOn()
+    {
+        // Nesting is the grammar's only unbounded recursion. Fifty thousand open
+        // braces recursed straight through the stack, and a StackOverflowException
+        // cannot be caught — so no error handling downstream could have turned it
+        // into a diagnostic. It took the audit's test host with it, and mine.
+        var source = string.Concat(Enumerable.Repeat("{", 50_000))
+                   + string.Concat(Enumerable.Repeat("}", 50_000));
+
+        Lexer lexer = new(source);
+        Parser parser = new(lexer.Lex());
+
+        Assert.IsType<Module.UnexpectedInputError>(parser.Parse());
+        Assert.False(parser.IsNotFinished);
+    }
+
+    [Fact(DisplayName = "nesting a program actually has is still parsed")]
+    public void NestingAProgramActuallyHasIsStillParsed()
+    {
+        // The ceiling has to be past anything written on purpose, or it is a
+        // language restriction wearing a safety hat.
+        var source = string.Concat(Enumerable.Range(0, 200).Select(level => $"function f{level} {{ "))
+                   + "return 1; "
+                   + string.Concat(Enumerable.Repeat("} ", 200));
+
+        Lexer lexer = new(source);
+        Parser parser = new(lexer.Lex());
+
+        var module = parser.Parse();
+
+        Assert.IsNotType<Module.UnexpectedInputError>(module);
+        Assert.Single(module.Scopes[0].Statements);
+    }
+
+    [Fact(DisplayName = "total work is bounded too, not only depth")]
+    public void TotalWorkIsBoundedTooNotOnlyDepth()
+    {
+        // Depth alone does not bound the work. Three productions open on «{» and
+        // each re-parses the whole nested body before it can tell whether it
+        // matched, so a brace nest costs exponentially in its depth: twelve
+        // levels took ten seconds with the depth ceiling doing nothing about it.
+        //
+        // This is a backstop over a real defect, not a designed limit — see
+        // Parser.MaxGroups. Ten levels of nested braces is where it currently
+        // bites, and every other kind of nesting is unaffected.
+        var source = "var d = " + string.Concat(Enumerable.Repeat("{", 12)) + "1"
+                   + string.Concat(Enumerable.Repeat("}", 12)) + ";";
+
+        Lexer lexer = new(source);
+        Parser parser = new(lexer.Lex());
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        parser.Parse();
+
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+                    $"a twelve-deep brace nest took {stopwatch.Elapsed}");
+    }
+
     [Fact(DisplayName = "recovery runs to the end of the statement, not to the first surprise")]
     public void RecoveryRunsToTheEndOfTheStatement()
     {

@@ -279,9 +279,19 @@ internal sealed class Graph(int cascades = 64)
 
     private object Reading(string name)
     {
-
         // an undeclared name is a value like any other failure, not a throw
         if (nodes.TryGetValue(name, out var node) is false) return new Error($"«{name}» is not declared");
+
+        // A pull is demand driven, so a chain of derived values is a chain of
+        // stack frames — and a deep enough one took the process out with a
+        // StackOverflowException, which cannot be caught and ends the session
+        // that always-running exists to protect. A value says so instead, and
+        // behaves like every other failure: it adopts, «otherwise» catches it,
+        // and the graph carries on.
+        if (reading.Count >= Depth)
+            return new Error($"«{name}» is more than {Depth} derivations deep. That is past what " +
+                             "can be evaluated at once — break the chain with a var, or derive " +
+                             "fewer intermediate values.");
 
         // Capture the edge dynamically. A conditional depends on the branch it
         // actually took, and that changes between evaluations — read it off the
@@ -627,18 +637,35 @@ internal sealed class Graph(int cascades = 64)
         return true;
     }
 
+    /// <summary>
+    ///     Pushes the dirty mark through everything downstream.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Iterative, because this walks a graph whose depth is the program's and
+    ///     not the runtime's. Recursing down a long chain of derived values put a
+    ///     frame on the stack per link, and a deep enough one ended the process
+    ///     with a StackOverflowException — the one failure that cannot be caught
+    ///     and so cannot be survived.
+    /// </remarks>
     private void MarkDirty(Node node)
     {
-        foreach (var name in node.Dependents)
+        Stack<Node> pending = new();
+        pending.Push(node);
+
+        while (pending.Count is not 0)
         {
-            var dependent = nodes[name];
+            foreach (var name in pending.Pop().Dependents)
+            {
+                var dependent = nodes[name];
 
-            // already marked means its own dependents are too, so descending
-            // again is pure rework
-            if (dependent.Dirty) continue;
+                // already marked means its own dependents are too, so descending
+                // again is pure rework — and is what bounds this walk
+                if (dependent.Dirty) continue;
 
-            dependent.Dirty = true;
-            MarkDirty(dependent);
+                dependent.Dirty = true;
+                pending.Push(dependent);
+            }
         }
     }
 
@@ -682,6 +709,13 @@ internal sealed class Graph(int cascades = 64)
         public TriggerMode Mode { get; } = mode;
         public object Previous { get; set; } = Unobserved;
     }
+
+    /// <summary>
+    ///     How deep a pull may go before it is a failure rather than a
+    ///     computation. Well under what the stack holds, so the message arrives
+    ///     instead of the crash.
+    /// </summary>
+    private const int Depth = 512;
 
     private readonly int limit = cascades;
     private readonly Dictionary<string, Node> nodes = [];

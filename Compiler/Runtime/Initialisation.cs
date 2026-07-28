@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using Ronin.Compiler;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,23 +45,38 @@ internal static class Initialisation
         List<string> ordered = [];
         HashSet<string> placed = [];
 
-        void Place(string name)
+        // Iterative, because the depth here is the program's: a chain of a
+        // thousand constants each reading the one before it is a thousand stack
+        // frames, and a long enough one ends the process with a
+        // StackOverflowException rather than a diagnostic. The flag on the stack
+        // is what a post-order needs — visit the reads, then place the reader.
+        Stack<(string Name, bool Placing)> pending = new();
+
+        foreach (var name in initialisers.Keys.OrderDescending(StringComparer.Ordinal))
         {
-            placed.Add(name);
+            pending.Push((name, false));
+        }
+
+        while (pending.Count is not 0)
+        {
+            var (name, placing) = pending.Pop();
+
+            if (placing)
+            {
+                ordered.Add(name);
+                continue;
+            }
+
+            if (placed.Add(name) is false) continue;
+
+            pending.Push((name, true));
 
             // a read of something outside the set is a read of something already
             // there — a literal, a pattern call, a name from an enclosing scope
-            foreach (var read in initialisers[name].Order())
+            foreach (var read in initialisers[name].OrderDescending(StringComparer.Ordinal))
             {
-                if (initialisers.ContainsKey(read) && placed.Contains(read) is false) Place(read);
+                if (initialisers.ContainsKey(read) && placed.Contains(read) is false) pending.Push((read, false));
             }
-
-            ordered.Add(name);
-        }
-
-        foreach (var name in initialisers.Keys.Order())
-        {
-            if (placed.Contains(name) is false) Place(name);
         }
 
         order = ordered;

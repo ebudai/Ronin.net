@@ -27,6 +27,81 @@ internal struct Parser
     public readonly bool IsAtBoundary => Token is Sentinel or Terminal or Separator or Close;
 
     /// <summary>
+    ///     How deep the grammar may nest before a file is refused rather than
+    ///     parsed. Far past anything written on purpose, far short of what the
+    ///     stack holds.
+    /// </summary>
+    public const int MaxNesting = 256;
+
+    /// <summary>
+    ///     How many nested groups one file may parse in total, however they are
+    ///     arranged.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Depth alone does not bound the work. Three productions open on «{» —
+    ///     <see cref="Lookup"/>, <see cref="List"/>, and <see cref="Association"/>
+    ///     through the value inside a lookup — and each re-parses the whole nested
+    ///     body before it can tell whether it matched, so the cost of a brace
+    ///     nest is exponential in its depth — twelve levels of «{» took ten
+    ///     seconds — and a depth ceiling of 256 does nothing about that. Making
+    ///     the TOTAL the limit rather than the shape is what stops a hostile file
+    ///     quickly whatever it looks like.
+    ///
+    ///     The number is a symptom, not a design: it buys roughly half a second
+    ///     of worst-case parsing, which is about ten levels of nested braces and
+    ///     unbounded depth of anything else. The fix is for «{...}» to be ONE
+    ///     production that parses its contents once and then decides whether it
+    ///     holds associations or values — at which point this stops binding on
+    ///     anything anyone would write.
+    /// </remarks>
+    public const int MaxGroups = 1_000_000;
+
+    /// <summary>
+    ///     Enters one level of nesting, or refuses.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Nesting is the grammar's only unbounded recursion, and every kind of it
+    ///     — braces, brackets, parameter blocks, lists — comes through
+    ///     <see cref="Aggregate{TParent, TOpen, TElement, TSeparator, TClose}"/>,
+    ///     which is why one guard here covers all of it. A file of fifty thousand
+    ///     open braces ended the process with a StackOverflowException, which
+    ///     cannot be caught, so nothing downstream could have reported it: it took
+    ///     the audit's own test host with it.
+    ///     </para>
+    ///     <para>
+    ///     Thread static rather than a field on this struct, because a parser is
+    ///     copied at every production and assigned back only on success — a depth
+    ///     carried in the copy would be restored by backtracking on some paths and
+    ///     inherited by the caller on others.
+    ///     </para>
+    /// </remarks>
+    public static bool Nest()
+    {
+        if (nesting >= MaxNesting || ++groups > MaxGroups) return false;
+
+        ++nesting;
+        return true;
+    }
+
+    public static void Unnest() => --nesting;
+
+    /// <summary>Starts a fresh budget. One file's work is its own.</summary>
+    private static void Budget()
+    {
+        nesting = 0;
+        groups = 0;
+    }
+
+    [ThreadStatic]
+    private static int nesting;
+
+    [ThreadStatic]
+    private static int groups;
+
+    /// <summary>
     ///     The tokens an error node carries — everything the caller had not
     ///     consumed, through to the end of the statement — with the caller left
     ///     past all of it.
@@ -60,7 +135,12 @@ internal struct Parser
         return current.AdvanceTo(stopped);
     }
 
-    public Module Parse() => Module.Parse(ref this);
+    public Module Parse()
+    {
+        Budget();
+
+        return Module.Parse(ref this);
+    }
 
     public List<T> ParseRepeating<T>() where T : IParsable<T>
     {

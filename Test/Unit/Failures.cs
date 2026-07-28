@@ -125,6 +125,58 @@ public class Failures
         Assert.Equal(0d, graph.Read("correct"));
     }
 
+    [Fact(DisplayName = "a chain too deep to evaluate is a failure, not a crash")]
+    public void AChainTooDeepToEvaluateIsAFailureNotACrash()
+    {
+        // A pull is demand driven, so a chain of derived values is a chain of
+        // stack frames. Fifty thousand of them took the whole process out with a
+        // StackOverflowException, which cannot be caught — so it ended the
+        // session that always-running exists to protect, and took the test host
+        // with it when the audit tried it.
+        Graph graph = new();
+        graph.Var("source", 1d);
+
+        for (var link = 0; link < 50_000; ++link)
+        {
+            var previous = link is 0 ? "source" : $"link {link - 1}";
+            graph.Let($"link {link}", scope => scope.Read(previous));
+        }
+
+        var deep = Assert.IsType<Error>(graph.Read("link 49999"));
+        Assert.Contains("derivations deep", deep.Message);
+
+        // and it is an ordinary failure, so it can be handled like one
+        graph.Let("guarded", scope => Builtin.Otherwise(scope.Handling(() => scope.Read("link 49999")), "too deep"));
+        Assert.Equal("too deep", graph.Read("guarded"));
+
+        // the shallow end of the same chain still evaluates
+        Assert.Equal(1d, graph.Read("link 0"));
+    }
+
+    [Fact(DisplayName = "a long chain can still be marked dirty")]
+    public void ALongChainCanStillBeMarkedDirty()
+    {
+        // MarkDirty walks the same depth the program has, and recursing put a
+        // frame on the stack per link — so writing a var at the head of a long
+        // enough chain crashed before anything was even read.
+        Graph graph = new();
+        graph.Var("source", 1d);
+
+        for (var link = 0; link < 50_000; ++link)
+        {
+            var previous = link is 0 ? "source" : $"link {link - 1}";
+            graph.Let($"link {link}", scope => scope.Read(previous));
+        }
+
+        // read the shallow end so the edges exist to be walked
+        Assert.Equal(1d, graph.Read("link 400"));
+
+        graph.Write("source", 2d);
+        graph.Step();
+
+        Assert.Equal(2d, graph.Read("link 400"));
+    }
+
     [Fact(DisplayName = "a defect in an effect body does not end the session")]
     public void ADefectInAnEffectBodyDoesNotEndTheSession()
     {
