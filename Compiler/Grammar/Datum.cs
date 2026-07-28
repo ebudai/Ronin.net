@@ -26,7 +26,28 @@ internal class Datum : Member
     public Type Type { get; set; }
     public Value Initializer { get; set; }
 
-    public static new Datum Parse(ref Parser current)
+    /// <summary>
+    ///     A datum in statement position, where a bare identifier is an
+    ///     expression rather than a declaration.
+    /// </summary>
+    public static new Datum Parse(ref Parser current) => Parse(ref current, declaring: true);
+
+    /// <summary>
+    ///     A datum in parameter position, where the statement guard does not
+    ///     apply.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The guard below is not misplaced, it is position-specific: in a body
+    ///     it is what keeps «order = 3» an assignment rather than a declaration,
+    ///     so relaxing it there would reinterpret every assignment in the
+    ///     language. A parameter has no such competition — «(the ball)» and
+    ///     «(order = 3)» are declarations and nothing else — so it needs its own
+    ///     path rather than a loosening of the shared one.
+    /// </remarks>
+    public static Datum Parameter(ref Parser current) => Parse(ref current, declaring: false);
+
+    private static Datum Parse(ref Parser current, bool declaring)
     {
         Parser parser = current;
 
@@ -51,7 +72,7 @@ internal class Datum : Member
             initializer = Value.Parse(ref parser);
         }
 
-        if (type is null)
+        if (declaring && type is null)
         {
             if (mutability is null || initializer is null) return null;
         }

@@ -72,12 +72,8 @@ internal class Identifier : IEnumerable<Identifier.Component>
         return pattern is not null;
     }
 
-    /// <summary>
-    ///     A parameter's name, or null for a form this pass does not read yet —
-    ///     a defaulted parameter is an <see cref="Association"/> rather than a
-    ///     <see cref="Datum"/> and its name sits one indirection further in.
-    /// </summary>
-    private static string Named(Parameters.Parameter parameter) => parameter.AsDatum?.Identifier.Words;
+    /// <summary>A parameter's name, which every parameter has.</summary>
+    private static string Named(Parameters.Parameter parameter) => parameter.AsDatum.Identifier.Words;
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 

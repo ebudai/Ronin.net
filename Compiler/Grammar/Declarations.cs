@@ -85,16 +85,6 @@ internal sealed class Declarations
             return;
         }
 
-        var unnamed = blocks.SelectMany(block => block).Count(name => name is null);
-        if (unnamed is not 0)
-        {
-            problems.Add(
-                $"«{pattern}» has {unnamed} parameter(s) this pass cannot name. A defaulted " +
-                "parameter is written as an assignment rather than a declaration, and reading " +
-                "its name is not implemented — give it a type for now.");
-            return;
-        }
-
         // A shape goes into the table ONCE. Two declarations sharing one are two
         // things a call could mean, not two ways to read it — inserting both made
         // R3's tie machinery answer a question it was never asked, so every call

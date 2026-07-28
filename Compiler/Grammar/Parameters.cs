@@ -21,23 +21,32 @@ namespace Ronin.Grammar;
 /// </example>
 internal class Parameters : Aggregate<Parameters, Open.Parenthesis, Parameters.Parameter, Separator, Close.Parenthesis>
 {
+    /// <summary>
+    ///     A parameter is a declaration and nothing else.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     It used to fall through to <see cref="Association"/>, because
+    ///     <c>Datum.Parse</c> rejected «order = 3» on a guard that belongs to
+    ///     statement position. With the parameter path in place that fallback is
+    ///     unreachable — and it was never right, since an association here has a
+    ///     name the binder cannot see.
+    /// </remarks>
     public class Parameter : Compiler.IParsable<Parameter>
     {
-        private Parameter(Datum datum) => value = datum;
-        private Parameter(Association association) => value = association;
+        private Parameter(Datum datum) => AsDatum = datum;
 
         public static implicit operator Parameter(Datum datum) => new(datum);
-        public static implicit operator Parameter(Association association) => new(association);
 
+        // Not a ternary: «is Datum d ? d : null» types as Datum and then converts
+        // the RESULT, wrapping a null datum in a non-null Parameter.
         public static Parameter Parse(ref Parser current)
         {
-            if (Datum.Parse(ref current) is Datum datum) return datum;
-            if (Association.Parse(ref current) is Association association) return association;
-            return null;
+            if (Datum.Parameter(ref current) is not Datum datum) return null;
+
+            return datum;
         }
 
-        public Datum AsDatum => value as Datum;
-
-        private readonly Statement value;
+        public Datum AsDatum { get; }
     }
 }

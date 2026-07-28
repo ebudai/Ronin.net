@@ -104,18 +104,22 @@ public class ScopeBuilding
         Assert.Equal([["shape"], ["x", "y"]], Assert.Single(declared.Overloads[pattern]));
     }
 
-    [Fact(DisplayName = "a parameter it cannot name is reported, not guessed")]
-    public void AParameterItCannotNameIsReportedNotGuessed()
+    [Fact(DisplayName = "a parameter may be bare or defaulted")]
+    public void AParameterMayBeBareOrDefaulted()
     {
-        // «(order = 3)» is a defaulted parameter, which parses as an assignment
-        // rather than a declaration; producing a block with a null in it would be
-        // worse than saying so
-        var declared = Of("function compute total for (order = 3) { return order; }");
+        // Both were rejected while parameters shared the statement guard, which
+        // is what keeps «order = 3» an assignment in a body. In parameter
+        // position there is nothing to be confused with.
+        var defaulted = Of("function compute total for (order = 3) { return order; }");
 
-        Assert.Empty(declared.Symbols.Patterns);
+        Assert.Empty(defaulted.Problems);
+        Assert.Equal([["order"]], Assert.Single(defaulted.Overloads[Assert.Single(defaulted.Symbols.Patterns)]));
 
-        var problem = Assert.Single(declared.Problems);
-        Assert.Contains("1 parameter(s) this pass cannot name", problem);
+        // «function fetch (the ball)» is the guide's own example
+        var bare = Of("function fetch (the ball) { return the ball; }");
+
+        Assert.Empty(bare.Problems);
+        Assert.Equal([["the ball"]], Assert.Single(bare.Overloads[Assert.Single(bare.Symbols.Patterns)]));
     }
 
     private static Declarations Nested(string outer, string inner)

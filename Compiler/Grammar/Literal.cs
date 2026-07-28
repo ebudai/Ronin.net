@@ -26,7 +26,12 @@ internal class Literal : Temporary
     {
         Parser parser = current;
 
-        if (parser.TryAdvanceMany<Lexicon.Literal>() is false) return null;
+        // Exactly one. Juxtaposition can never be meaningful between two
+        // literals — a pattern must begin with a word, so none can ever match
+        // «1 2» — and the resolver agrees: two atoms with no operator between
+        // them does not parse. A multi-token literal like a date is the lexer's
+        // business and arrives as one token already.
+        if (parser.TryAdvance<Lexicon.Literal>() is false) return null;
 
         return new Literal { Tokens = current.AdvanceTo(parser) };
     }
