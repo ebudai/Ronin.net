@@ -177,6 +177,24 @@ public class Resolutions
         Assert.Equal(tie.Readings.Count, reached.Count);
     }
 
+    [Theory(DisplayName = "anchor and glue decompose a pattern")]
+    [InlineData("apply _ smoothed _", "apply", "smoothed")]
+    [InlineData("compute total for _", "compute total for", "")]
+    [InlineData("send _ to _", "send", "to")]
+    [InlineData("sum of _", "sum of", "")]
+    public void AnchorAndGlueDecomposeAPattern(string source, string anchor, string glue)
+    {
+        // The two scope rules read off this split and neither is obvious by
+        // eye: R6 compares anchors, R5 reserves glue. A design note once claimed
+        // «compute total for (_)» made «for» glue — it does not, because every
+        // word of it precedes the hole — and the example reached a test, where
+        // it passed vacuously, since an example that cannot fire cannot fail.
+        var pattern = Pattern.Parse(source);
+
+        Assert.Equal(anchor, string.Join(' ', pattern.Anchor));
+        Assert.Equal(glue, string.Join(' ', pattern.Glue));
+    }
+
     [Fact(DisplayName = "a pattern is its segments, not its rendering")]
     public void APatternIsItsSegmentsNotItsRendering()
     {

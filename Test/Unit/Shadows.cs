@@ -122,6 +122,53 @@ public class Shadows
         Assert.Contains("«old»", complaint);
     }
 
+    [Fact(DisplayName = "a shadow is checked by R5 even when its source is not")]
+    public void AShadowIsCheckedByR5EvenWhenItsSourceIsNot()
+    {
+        // R5 only examines multi-word names, so a one-word declaration is never
+        // checked — but its two-word shadow is, and this conflict is reachable
+        // only through the shadow. Suppressing injected names would hide it.
+        SymbolTable symbols = new();
+        symbols.Declaring("smoothed").WithPatterns("apply _ smoothed _");
+
+        var complaint = Assert.Single(symbols.Validate());
+
+        // named against the two things the programmer controls, since «old
+        // smoothed» is not one of them
+        Assert.Equal(
+            "«old smoothed», injected by «smoothed», collides with pattern glue «smoothed» " +
+            "from «apply (_) smoothed (_)». Rename «smoothed», or respell the pattern.",
+            complaint);
+    }
+
+    [Fact(DisplayName = "one mistake reports once when both halves fail")]
+    public void OneMistakeReportsOnceWhenBothHalvesFail()
+    {
+        // «hello to alice» and «old hello to alice» both contain the glue, but
+        // there is one fix, so the shadow's complaint adds nothing
+        SymbolTable symbols = new();
+        symbols.Declaring("hello to alice").WithPatterns("send _ to _");
+
+        var complaint = Assert.Single(symbols.Validate());
+
+        Assert.Contains("name «hello to alice»", complaint);
+        Assert.DoesNotContain("old hello to alice", complaint);
+    }
+
+    [Fact(DisplayName = "a name that only looks injected is an ordinary name")]
+    public void ANameThatOnlyLooksInjectedIsAnOrdinaryName()
+    {
+        // WithNames is the raw scope and injects nothing, so «old growth» with no
+        // «growth» beside it was written by someone rather than generated — and
+        // it is theirs to rename, so it gets the ordinary message
+        SymbolTable symbols = new();
+        symbols.WithNames("old growth").WithPatterns("apply _ growth _");
+
+        var complaint = Assert.Single(symbols.Validate());
+
+        Assert.StartsWith("name «old growth» contains «growth»", complaint);
+    }
+
     [Fact(DisplayName = "a collision with an injected name is a declaration error")]
     public void ACollisionWithAnInjectedNameIsADeclarationError()
     {

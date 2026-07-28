@@ -636,19 +636,52 @@ internal sealed class SymbolTable
         }
 
         // R5: a multi-word name may not contain pattern glue, or introducing a
-        // name silently re-resolves statements that already worked
-        var glue = Patterns.SelectMany(p => p.Glue).ToHashSet();
-        foreach (var name in Names)
+        // name silently re-resolves statements that already worked.
+        //
+        // A shadow is a multi-word name, so this examines injected names too, and
+        // it must: R5 never looks at a one-word declaration, so «apply (_)
+        // smoothed (_)» against «let smoothed» is reachable ONLY through «old
+        // smoothed». Suppressing injected names wholesale would hide it. What is
+        // suppressed is the second complaint when the source failed as well,
+        // because then it is one mistake with one fix.
+        var offenders = Names.ToDictionary(name => name, Offender);
+
+        foreach (var name in Names.Order(StringComparer.Ordinal))
         {
-            var words = name.Split(' ');
-            if (words.Length < 2) continue;
-            foreach (var pattern in Patterns.Where(p => p.Glue.Any(words.Contains)))
+            if (offenders[name] is not Pattern pattern) continue;
+
+            var word = pattern.Glue.First(name.Split(' ').Contains);
+            var source = Injector(name);
+
+            if (source is null)
             {
-                var word = pattern.Glue.First(words.Contains);
                 yield return $"name «{name}» contains «{word}», which is glue in «{pattern}». " +
                              "One of the two has to be respelled, and it is the later declaration " +
                              "that has to give way.";
+                continue;
             }
+
+            if (offenders[source] is not null) continue;
+
+            // phrased against the two things the programmer controls, because the
+            // injected name is not one of them
+            yield return $"«{name}», injected by «{source}», collides with pattern glue «{word}» " +
+                         $"from «{pattern}». Rename «{source}», or respell the pattern.";
+        }
+
+        Pattern Offender(string name)
+        {
+            var words = name.Split(' ');
+            return words.Length < 2 ? null : Patterns.FirstOrDefault(pattern => pattern.Glue.Any(words.Contains));
+        }
+
+        /// <summary>The declaration that injected this name, when it is a shadow.</summary>
+        string Injector(string name)
+        {
+            if (name.StartsWith(Shadowed, StringComparison.Ordinal) is false) return null;
+
+            var source = name[Shadowed.Length..];
+            return Names.Contains(source) ? source : null;
         }
     }
 }
