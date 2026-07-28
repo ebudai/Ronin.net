@@ -281,7 +281,11 @@ public class Reactions
     {
         Graph graph = new();
         graph.Var("parsed", Nothing.Instance);
-        graph.Let("count", scope => Builtin.Otherwise(scope.Read("parsed"), 0d));
+
+        // read through Handling, because otherwise is the one thing that
+        // inspects a failure without inheriting it — so the graph must not
+        // inherit it on its behalf either
+        graph.Let("count", scope => Builtin.Otherwise(scope.Handling(() => scope.Read("parsed")), 0d));
 
         Assert.Equal(0d, graph.Read("count"));
 

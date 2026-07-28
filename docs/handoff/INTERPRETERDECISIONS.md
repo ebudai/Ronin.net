@@ -116,8 +116,22 @@ entry; if you re-enter it, that's a cycle — return an error value naming the
 node (scenario 5). No static analysis required.
 
 **Errors are values that flow through the graph, exactly like `#DIV/0!` in a
-spreadsheet.** A node whose dependency is an error becomes an error *without
-running its body*. Fix the source and dirty marking recomputes everything
+spreadsheet.** ~~A node whose dependency is an error becomes an error *without
+running its body*.~~
+
+**Corrected.** That is not achievable: an opaque callable cannot be aborted
+without exceptions. The achievable guarantee is **adoption** — a node that reads
+an error adopts it, and whatever its body returns is discarded. The body may
+still execute, but because `let` bodies are **pure**, running one and throwing
+the result away has no observable effect, which is what makes the weaker
+guarantee equal to the stated one. Purity is load-bearing here rather than
+incidental; without it, "the body may still execute" would be a hole.
+
+Adoption and `lift` are both needed and neither covers the other. `lift` keeps
+an error inert *inside* a body so its arithmetic never raises; adoption
+guarantees the node inherits the error whatever the body chose to do with it —
+including ignoring it entirely, where no operator is involved and `lift` never
+sees anything. Fix the source and dirty marking recomputes everything
 downstream, clearing it (scenario 6). Every builtin lifts to propagate errors;
 `otherwise` is the single exception, and the only thing that inspects a
 dependency's error state without inheriting it (scenario 7).

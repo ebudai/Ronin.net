@@ -17,11 +17,30 @@ namespace Ronin.Runtime;
 ///     failure. Fixing the source dirties everything downstream and the error
 ///     clears itself.
 /// </remarks>
-internal sealed class Error(string message)
+internal class Error(string message)
 {
     public string Message { get; } = message;
 
     public override string ToString() => $"error({Message})";
+}
+
+/// <summary>
+///     A defect in the interpreter, as distinct from a failure in the program.
+/// </summary>
+///
+/// <remarks>
+///     Caught so a live session survives one bad node, and tagged so it can never
+///     be mistaken for a result. Catching everything and calling it an
+///     <see cref="Error"/> would make the interpreter undebuggable — every null
+///     reference in the evaluator would surface as a user-facing spreadsheet
+///     error, indistinguishable from a real division by zero. And
+///     <see cref="Builtin.Otherwise"/> must not catch one: a fallback for a
+///     program error is a fallback, a fallback for an interpreter bug is a
+///     hidden crash.
+/// </remarks>
+internal sealed class Fault(string message) : Error(message)
+{
+    public override string ToString() => $"fault({Message})";
 }
 
 /// <summary>The absence of a value, distinct from an <see cref="Error"/>.</summary>
@@ -82,5 +101,7 @@ internal static class Builtin
     ///     This is the whole ergonomic replacement for testing every use site.
     /// </summary>
     public static object Otherwise(object value, object fallback)
-        => value is Error or Nothing ? fallback : value;
+        => value is Fault ? value
+         : value is Error or Nothing ? fallback
+         : value;
 }

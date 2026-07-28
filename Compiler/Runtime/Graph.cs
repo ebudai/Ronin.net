@@ -211,6 +211,33 @@ internal sealed class Graph(int cascades = 64)
         // Before the edge is recorded, because reading a constant creates none.
         if (constants.TryGetValue(name, out var constant)) return constant;
 
+        var read = Reading(name);
+
+        // Arms adoption. A body cannot be stopped mid-flight, so instead the
+        // first error it reads is remembered and applied to whatever it returns.
+        if (read is Error and not Fault && adopting.Count is not 0 && handling is 0)
+        {
+            adopting[^1] ??= (Error)read;
+        }
+
+        return read;
+    }
+
+    /// <summary>
+    ///     Evaluates without arming adoption, which is what <c>otherwise</c>
+    ///     needs: it is the one thing that inspects a failure without inheriting
+    ///     it, so the graph must not inherit it on its behalf either.
+    /// </summary>
+    public T Handling<T>(Func<T> read)
+    {
+        ++handling;
+        try { return read(); }
+        finally { --handling; }
+    }
+
+    private object Reading(string name)
+    {
+
         // an undeclared name is a value like any other failure, not a throw
         if (nodes.TryGetValue(name, out var node) is false) return new Error($"«{name}» is not declared");
 
@@ -391,6 +418,8 @@ internal sealed class Graph(int cascades = 64)
         node.Evaluating = true;
         reading.Add(node);
 
+        adopting.Add(null);
+
         object value;
         try
         {
@@ -400,11 +429,27 @@ internal sealed class Graph(int cascades = 64)
         {
             value = new Error(violation.Message);
         }
+        catch (Exception defect)
+        {
+            // survivable, because always-running means one bad node must not end
+            // the session — but tagged, so it can never pass for a result
+            value = new Fault($"{defect.GetType().Name}: {defect.Message}");
+        }
         finally
         {
             reading.RemoveAt(reading.Count - 1);
             node.Evaluating = false;
         }
+
+        // ADOPTION. An error read while evaluating wins over whatever the body
+        // chose to do with it, so a body that ignores one cannot discard it. The
+        // body may still have run: because a let body is pure, running one and
+        // throwing the result away has no observable effect, which is what makes
+        // this equal to the guarantee the design states.
+        var adopted = adopting[^1];
+        adopting.RemoveAt(adopting.Count - 1);
+
+        if (adopted is not null && value is not Fault) value = adopted;
 
         node.Value = value;
         node.Dirty = false;
@@ -457,6 +502,8 @@ internal sealed class Graph(int cascades = 64)
     private readonly Dictionary<string, Trigger> whens = [];
     private readonly Dictionary<string, object> pending = [];
     private readonly List<Node> reading = [];
+    private readonly List<Error> adopting = [];
+    private int handling;
     private readonly List<string> trace = [];
     private readonly List<string> fired = [];
 }
