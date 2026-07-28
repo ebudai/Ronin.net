@@ -13,10 +13,11 @@ public class ScopeBuilding
 {
     private static Declarations Of(string source)
     {
+        SourceText text = new(source);
         Lexer lexer = new(source);
         Parser parser = new(lexer.Lex());
 
-        return Declarations.Of(parser.Parse().Scopes[0].Statements);
+        return Declarations.Of(parser.Parse().Scopes[0].Statements, text);
     }
 
     [Fact(DisplayName = "a declaration is a name or a pattern, structurally")]
@@ -59,8 +60,11 @@ public class ScopeBuilding
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);
 
         // and the thing that is actually missing says so
-        Assert.Contains("type-directed selection is not implemented",
-                        Assert.Single(declared.Problems));
+        var problem = Assert.Single(declared.Problems);
+
+        Assert.Equal(FindingKind.Overloaded, problem.Kind);
+        Assert.Equal("area of (_)", problem["pattern"]);
+        Assert.Equal("2", problem["count"]);
     }
 
     [Fact(DisplayName = "a constant is named but gets no shadow")]
@@ -124,13 +128,13 @@ public class ScopeBuilding
 
     private static Declarations Nested(string outer, string inner)
     {
-        Lexer lexer = new(outer);
-        Parser parser = new(lexer.Lex());
-        var enclosing = Declarations.Of(parser.Parse().Scopes[0].Statements);
+        var enclosing = Of(outer);
 
+        SourceText text = new(inner);
         Lexer within = new(inner);
         Parser nested = new(within.Lex());
-        return Declarations.Of(nested.Parse().Scopes[0].Statements, enclosing);
+
+        return Declarations.Of(nested.Parse().Scopes[0].Statements, text, enclosing);
     }
 
     [Fact(DisplayName = "an inner scope sees the enclosing one, flattened")]
@@ -177,13 +181,8 @@ public class ScopeBuilding
     {
         // outward no, because a pattern declaration is a grammar production and
         // an escaping one would change the grammar of its siblings' bodies
-        Lexer lexer = new("var outer thing => Number;");
-        Parser parser = new(lexer.Lex());
-        var enclosing = Declarations.Of(parser.Parse().Scopes[0].Statements);
-
-        Lexer within = new("var inner thing => Number;");
-        Parser nested = new(within.Lex());
-        Declarations.Of(nested.Parse().Scopes[0].Statements, enclosing);
+        var enclosing = Of("var outer thing => Number;");
+        Nested("var outer thing => Number;", "var inner thing => Number;");
 
         Assert.DoesNotContain("inner thing", enclosing.Symbols.Names);
     }
@@ -194,11 +193,14 @@ public class ScopeBuilding
         var declared = Nested("var total => Number;", "var total => Number;");
 
         var problem = Assert.Single(declared.Problems);
-        Assert.Contains("«total» is already declared in an enclosing scope", problem);
+
+        Assert.Equal(FindingKind.Shadowed, problem.Kind);
+        Assert.Equal("total", problem["name"]);
+        Assert.Equal("in an enclosing scope", problem["where"]);
 
         // and a repeat within one scope says so differently
-        var twice = Of("var total => Number; var total => Number;");
-        Assert.Contains("in this scope", Assert.Single(twice.Problems));
+        var twice = Assert.Single(Of("var total => Number; var total => Number;").Problems);
+        Assert.Equal("in this scope", twice["where"]);
     }
 
     [Fact(DisplayName = "a name may not be spelled like an injected one")]
@@ -206,7 +208,10 @@ public class ScopeBuilding
     {
         var declared = Of("var old total => Number;");
 
-        Assert.Contains("reserved word «old»", Assert.Single(declared.Problems));
+        var problem = Assert.Single(declared.Problems);
+
+        Assert.Equal(FindingKind.ReservedPrefix, problem.Kind);
+        Assert.Equal("old total", problem["name"]);
     }
 
     [Fact(DisplayName = "an inner pattern that breaks an outer name is the one rejected")]

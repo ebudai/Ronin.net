@@ -34,6 +34,16 @@ internal class Identifier : IEnumerable<Identifier.Component>
 
     public int Count => Components.Count;
 
+    /// <summary>Where the declaration was written.</summary>
+    public Span Span(SourceText source)
+    {
+        var names = Components.Where(component => component.AsName is not null).ToArray();
+        var first = names[0].AsName.Span(source);
+        var last = names[^1].AsName.Span(source);
+
+        return source.Span(first.Offset, last.Offset - first.Offset + last.Length);
+    }
+
     /// <summary>The literal words of the declaration, space separated.</summary>
     public string Words => string.Join(' ', Components.Where(component => component.AsName is not null)
                                                      .Select(component => component.AsName.Words));

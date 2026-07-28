@@ -28,6 +28,15 @@ internal class Name
         return new Name { Tokens = current.AdvanceTo(parser) };
     }
 
+    /// <summary>Where it was written, given the text the tokens came from.</summary>
+    public Span Span(SourceText source)
+    {
+        var first = Tokens.Span[0];
+        var last = Tokens.Span[^1];
+
+        return source.Span(first.Offset, last.Offset - first.Offset + last.Memory.Length);
+    }
+
     /// <summary>The name as a symbol table holds it: its words, space separated.</summary>
     public string Words => string.Join(' ', Tokens.ToArray().Select(token => token.Memory.ToString()));
 

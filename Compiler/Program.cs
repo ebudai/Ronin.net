@@ -89,6 +89,8 @@ internal static class Program
             return 1;
         }
 
+        SourceText source = new(text, file.FullName);
+
         Lexer lexer = new(text);
         Parser parser = new(lexer.Lex());
         var module = parser.Parse();
@@ -99,9 +101,14 @@ internal static class Program
             return 1;
         }
 
-        var declared = Declarations.Of(module.Scopes[0].Statements);
+        var declared = Declarations.Of(module.Scopes[0].Statements, source);
 
-        foreach (var problem in declared.Problems.Concat(declared.Symbols.Validate()))
+        foreach (var problem in declared.Problems)
+        {
+            Console.Error.WriteLine(Diagnostics.Report(problem));
+        }
+
+        foreach (var problem in declared.Symbols.Validate())
         {
             Console.Error.WriteLine($"{file.FullName}: {problem}");
         }

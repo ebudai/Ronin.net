@@ -33,7 +33,7 @@ internal sealed class Declarations
     public SymbolTable Symbols { get; } = new();
 
     /// <summary>What could not be declared, in the order it was found.</summary>
-    public IReadOnlyList<string> Problems => problems;
+    public IReadOnlyList<Finding> Problems => problems;
 
     /// <summary>
     ///     The declarations of one scope, folded into everything the enclosing
@@ -56,9 +56,9 @@ internal sealed class Declarations
     ///     it is why a lookup stays one probe rather than a walk up N levels.
     ///     </para>
     /// </remarks>
-    public static Declarations Of(IEnumerable<Statement> statements, Declarations enclosing = null)
+    public static Declarations Of(IEnumerable<Statement> statements, SourceText source, Declarations enclosing = null)
     {
-        Declarations declarations = new();
+        Declarations declarations = new() { source = source };
 
         if (enclosing is not null)
         {
@@ -95,12 +95,11 @@ internal sealed class Declarations
 
         declared.Add(blocks);
 
-        if (declared.Count is 2)
+        if (declared.Count > 1)
         {
-            problems.Add(
-                $"«{pattern}» has more than one declaration and type-directed selection is " +
-                "not implemented, so there is no way to choose between them yet. Give them " +
-                "different shapes for now.");
+            problems.Add(new Finding(FindingKind.Overloaded, member.Identifier.Span(source))
+                .Naming("pattern", pattern.ToString())
+                .Naming("count", declared.Count.ToString()));
         }
     }
 
@@ -114,17 +113,17 @@ internal sealed class Declarations
 
         if (name.StartsWith(SymbolTable.Shadowed, System.StringComparison.Ordinal))
         {
-            problems.Add($"«{name}» begins with the reserved word «{SymbolTable.Old}», which is " +
-                         "injected rather than declared. Respell it.");
+            problems.Add(new Finding(FindingKind.ReservedPrefix, member.Identifier.Span(source))
+                .Naming("name", name)
+                .Naming("word", SymbolTable.Old));
             return;
         }
 
         if (Symbols.Names.Contains(name))
         {
-            problems.Add(
-                $"«{name}» is already declared {Where(name)}. Shadowing is not allowed, because " +
-                "reading a value has to tell you where it came from, and the compiler cannot flag " +
-                "the ambiguity when both readings are legal. Rename this one.");
+            problems.Add(new Finding(FindingKind.Shadowed, member.Identifier.Span(source))
+                .Naming("name", name)
+                .Naming("where", Where(name)));
             return;
         }
 
@@ -147,6 +146,7 @@ internal sealed class Declarations
     /// </remarks>
     public Dictionary<Compiler.Pattern, List<Blocks>> Overloads { get; } = [];
 
-    private readonly List<string> problems = [];
+    private readonly List<Finding> problems = [];
+    private SourceText source;
     private readonly HashSet<string> inherited = [];
 }
