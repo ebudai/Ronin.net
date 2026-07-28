@@ -1,65 +1,114 @@
-﻿// Copyright © 2023 Eric Budai
+// Copyright © 2026 Eric Budai
 
 using Ronin.Compiler;
 using Ronin.Grammar;
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Threading;
+using System.Linq;
 
 namespace Ronin;
 
+/// <summary>
+///     Lex and parse every source file under a folder, deterministically.
+/// </summary>
+///
+/// <remarks>
+///     It queued its work on the thread pool and never waited, so the process
+///     could exit before a single file finished; it recursed into every
+///     directory and handed every filesystem entry to File.ReadAllText,
+///     including .git, bin and obj; and it dropped what it parsed into a bag
+///     nothing read. The phases beyond parsing — declaration building, name
+///     resolution, type-directed overload selection, imports, lowering — are not
+///     connected yet, and this says so rather than implying otherwise.
+/// </remarks>
 [ExcludeFromCodeCoverage]
 internal static class Program
 {
-    private const string debug = nameof(debug);
+    private const string Extension = ".ron";
 
-    static void Main(string[] args)
+    private static readonly string[] Skipped = [".git", "bin", "obj", "node_modules"];
+
+    private static int Main(string[] args)
     {
-        string foldername = args is null or { Length: 0 } ? "." : args[0];
-        
-        DirectoryInfo folder = new(foldername);
+        var folder = new DirectoryInfo(args is null or { Length: 0 } ? "." : args[0]);
+
         if (folder.Exists is false)
         {
-            Console.WriteLine($"{folder.FullName} does not exist");
-            return;
+            Console.Error.WriteLine($"{folder.FullName} does not exist");
+            return 1;
         }
 
-        ConcurrentBag<Module> modules = [];
-        Parse(folder, modules);
-    }
-    
-
-    private static void Parse(DirectoryInfo folder, ConcurrentBag<Module> modules)
-    {
-        var infos = folder.EnumerateFileSystemInfos();
-        foreach (var info in infos)
+        var sources = Sources(folder).ToArray();
+        if (sources.Length is 0)
         {
-            if (info is DirectoryInfo subfolder)
-            {
-                Parse(subfolder, modules);
-                continue;
-            }
+            Console.Error.WriteLine($"no {Extension} files under {folder.FullName}");
+            return 1;
+        }
 
-            var file = info as FileInfo;
-            ThreadPool.UnsafeQueueUserWorkItem(static state => state.modules.Add(Parse(state.file)), (file, modules), preferLocal: true);
+        var failed = 0;
+
+        // Ordered, and awaited by virtue of being a loop. Parallelism is worth
+        // having here, but not before the pipeline it would parallelise exists.
+        foreach (var source in sources)
+        {
+            failed += Report(source);
+        }
+
+        Console.WriteLine($"{sources.Length} file(s), {failed} with problems");
+        return failed is 0 ? 0 : 1;
+    }
+
+    /// <summary>Source files only, in a stable order, skipping what is not source.</summary>
+    private static IEnumerable<FileInfo> Sources(DirectoryInfo folder)
+    {
+        if (Skipped.Contains(folder.Name, StringComparer.OrdinalIgnoreCase)) yield break;
+
+        foreach (var file in folder.EnumerateFiles($"*{Extension}").OrderBy(file => file.FullName, StringComparer.Ordinal))
+        {
+            yield return file;
+        }
+
+        foreach (var nested in folder.EnumerateDirectories().OrderBy(directory => directory.Name, StringComparer.Ordinal))
+        {
+            foreach (var file in Sources(nested)) yield return file;
         }
     }
 
-    private static Module Parse(FileInfo file)
+    private static int Report(FileInfo file)
     {
-        string sourcecode = File.ReadAllText(file.FullName);
-        Lexer lexer = new(sourcecode);
-        var tokens = lexer.Lex();
-        Parser parser = new(tokens);
-        return parser.Parse();
-    }
-}
+        string text;
+        try
+        {
+            text = File.ReadAllText(file.FullName);
+        }
+        catch (IOException unreadable)
+        {
+            Console.Error.WriteLine($"{file.FullName}: {unreadable.Message}");
+            return 1;
+        }
 
-[Flags]
-internal enum ProgramOptions
-{
-    None = 0,
-    Debug = 1 << 0,
+        Lexer lexer = new(text);
+        Parser parser = new(lexer.Lex());
+        var module = parser.Parse();
+
+        if (module is Module.UnexpectedInputError unexpected)
+        {
+            Console.Error.WriteLine($"{file.FullName}: {unexpected.Reason} at «{unexpected.Tokens.Span[0].ToLexemes().Render()}»");
+            return 1;
+        }
+
+        var declared = Declarations.Of(module.Scopes[0].Statements);
+
+        foreach (var problem in declared.Problems.Concat(declared.Symbols.Validate()))
+        {
+            Console.Error.WriteLine($"{file.FullName}: {problem}");
+        }
+
+        Console.WriteLine($"{file.FullName}: {module.Scopes[0].Statements.Count} statement(s), " +
+                          $"{declared.Symbols.Names.Count} name(s), {declared.Symbols.Patterns.Count} pattern(s)");
+
+        return declared.Problems.Count is 0 ? 0 : 1;
+    }
 }
