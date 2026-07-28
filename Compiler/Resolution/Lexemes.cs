@@ -2,6 +2,7 @@
 
 using Ronin.Lexicon;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Ronin.Compiler;
 
@@ -65,6 +66,41 @@ internal static class Lexemes
         }
 
         return lexemes;
+    }
+
+    /// <summary>
+    ///     A span as one line of canonical text.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Not the original source: trivia is gone by the time anything holds a
+    ///     token, so «x>6» and «x  >  6» both render «x > 6». That is the better
+    ///     property for a name — one spelling per meaning, still greppable — and
+    ///     it is what makes a trigger usable as an identifier.
+    /// </remarks>
+    public static string Render(this IReadOnlyList<Lexeme> lexemes)
+    {
+        StringBuilder rendering = new();
+
+        for (var i = 0; i != lexemes.Count; ++i)
+        {
+            if (Spaced(lexemes, i)) rendering.Append(' ');
+            rendering.Append(lexemes[i].Text);
+        }
+
+        return rendering.ToString();
+    }
+
+    /// <summary>Whether a space belongs before the lexeme at <paramref name="i"/>.</summary>
+    private static bool Spaced(IReadOnlyList<Lexeme> lexemes, int i)
+    {
+        if (i is 0) return false;
+
+        // «(a, b)» rather than «( a , b )»: a bracket hugs its contents and a
+        // separator hugs what it follows
+        if (lexemes[i].Kind is LexemeKind.Close or LexemeKind.Separator) return false;
+
+        return lexemes[i - 1].Kind is not LexemeKind.Open;
     }
 
     /// <remarks>

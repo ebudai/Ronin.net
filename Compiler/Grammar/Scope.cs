@@ -16,13 +16,18 @@ internal class Scope : Statement
     public Scope() { }
     private Scope(Scope scope) => Statements = scope.Statements;
 
+    // Reactive before ConditionalReactive: both open with «when», and the
+    // conditional form reports a missing condition with an error node rather
+    // than a null, which commits the alternation. Tried the other way round,
+    // «when changing x» is read as a «when» whose condition is missing and the
+    // reactive form is never reached at all.
     public static new Scope Parse(ref Parser current)
         => Basic.Parse(ref current)
         ?? Applicative.Parse(ref current)
         ?? Conditional.Parse(ref current)
+        ?? Reactive.Parse(ref current)
         ?? ConditionalReactive.Parse(ref current)
-        ?? Iterating.Parse(ref current)
-        ?? Reactive.Parse(ref current) as Scope;
+        ?? Iterating.Parse(ref current) as Scope;
 
     public class Conditional : Conditional<If> { }
     
@@ -112,6 +117,9 @@ internal class Scope : Statement
     {
         public Datum Target { get; init; }
 
+        /// <inheritdoc cref="Conditional{T}.Trigger"/>
+        public string Trigger { get; init; }
+
         private Reactive() { }
         private Reactive(Scope scope) : base(scope) { }
 
@@ -121,12 +129,15 @@ internal class Scope : Statement
 
             var modifiers = Modifiers.Parse(ref parser);
 
+            var keyword = parser.Token;
             if (parser.TryAdvance<When>() is false || parser.TryAdvance<Changing>() is false) return null;
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
                 return new ExpectedTargetError { Tokens = current.AdvanceTo(parser) };
             }
+
+            var trigger = keyword.ToLexemes(parser.Token).Render();
 
             if (Definition.Parse(ref parser) is not Scope definition)
             {
@@ -137,7 +148,8 @@ internal class Scope : Statement
             return new Reactive(definition)
             {
                 Modifiers = modifiers,
-                Target = datum
+                Target = datum,
+                Trigger = trigger
             };
         }
 
@@ -205,6 +217,13 @@ internal class Scope : Statement
     {
         public Member Condition { get; init; }
 
+        /// <summary>
+        ///     The clause as written, from the keyword to the block, rendered
+        ///     canonically. For a <c>when</c> this is its name — see
+        ///     <see cref="Triggers"/> for why that needs no syntax.
+        /// </summary>
+        public string Trigger { get; init; }
+
         protected Conditional() { }
         protected Conditional(Scope scope) : base(scope) { }
 
@@ -214,6 +233,7 @@ internal class Scope : Statement
 
             var modifiers = Modifiers.Parse(ref parser);
 
+            var keyword = parser.Token;
             if (parser.TryAdvance<T>() is false) return null;
 
             if (Member.Unresolved.Parse(ref parser) is not Member condition)
@@ -221,13 +241,16 @@ internal class Scope : Statement
                 return new ExpectedConditionError { Tokens = current.AdvanceTo(parser) };
             }
 
+            var trigger = keyword.ToLexemes(parser.Token).Render();
+
             if (Definition.Parse(ref parser) is not Scope definition) return null;
 
             current = parser;
             return new Conditional<T>(definition)
             {
                 Modifiers = modifiers,
-                Condition = condition
+                Condition = condition,
+                Trigger = trigger
             };
         }
 
