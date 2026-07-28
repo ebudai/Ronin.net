@@ -241,13 +241,13 @@ internal sealed class Resolver
 
         public long Count => derivations.Values.Sum();
 
-        public string Reading => order.Count is 0 ? string.Empty : order[0];
+        public string Reading => IsEmpty ? string.Empty : order[0];
 
         public IReadOnlyList<string> Readings => order;
 
         public void Offer(int cost, string reading, long count = 1)
         {
-            if (order.Count is 0 || cost < Cost)
+            if (IsEmpty || cost < Cost)
             {
                 Cost = cost;
                 order.Clear();
