@@ -92,7 +92,7 @@ internal sealed class Resolver
         if (top.TryBest(out var best) is false) return Resolution.NoParse;
 
         return best.Count > 1 ? Resolution.Ambiguous(best.Cost, top.Readings)
-                              : Resolution.Resolved(best.Cost, best.Reading);
+                              : Resolution.Resolved(best.Cost, best.Node);
     }
 
     public Resolution Resolve(string source) => Resolve(Lexeme.Split(source));
@@ -116,26 +116,26 @@ internal sealed class Resolver
     {
         var cell = closed[i, j];
 
-        if (j - i is 1 && lexemes[i].Kind is LexemeKind.Number) cell.Offer(0, lexemes[i].Text);
+        if (j - i is 1 && lexemes[i].Kind is LexemeKind.Number) cell.Offer(0, new Node.Literal(lexemes[i].Text));
 
         if (AllWords(lexemes, i, j))
         {
             var name = string.Join(' ', Enumerable.Range(i, j - i).Select(k => lexemes[k].Text));
-            if (symbols.Names.Contains(name)) cell.Offer(1, $"«{name}»");
+            if (symbols.Names.Contains(name)) cell.Offer(1, new Node.Name(name));
         }
 
         // a bracketed substatement is one lookup however large it is, and it is
         // CLOSED, which is what lets «(compute total for a) + b» resolve
         if (j - i >= 2 && lexemes[i].Kind is LexemeKind.Open && lexemes[j - 1].Kind is LexemeKind.Close)
         {
-            if (expressions[i + 1, j - 1, 0].TryBest(out var inner)) cell.Offer(1 + inner.Cost, $"⟨{inner.Reading}⟩");
+            if (expressions[i + 1, j - 1, 0].TryBest(out var inner)) cell.Offer(1 + inner.Cost, new Node.Group(inner.Node));
         }
 
         foreach (var pattern in symbols.Patterns)
         {
             var target = pattern.IsOpenEnded ? open[i, j] : cell;
-            foreach (var (cost, reading, count) in Match(pattern, 0, lexemes, i, j))
-                target.Offer(1 + cost, reading, count);
+            foreach (var (cost, arguments, count) in Match(pattern, 0, lexemes, i, j))
+                target.Offer(1 + cost, new Node.Call(pattern, arguments), count);
         }
     }
 
@@ -145,12 +145,19 @@ internal sealed class Resolver
         return true;
     }
 
-    private IEnumerable<(int Cost, string Reading, long Count)> Match(
+    /// <summary>
+    ///     Every way <paramref name="pattern"/> can cover the span, given as the
+    ///     arguments filling its holes left to right. A literal segment has to
+    ///     match but contributes no argument, which is why the words do not appear
+    ///     here at all — <see cref="Node.Call"/> puts them back by walking the
+    ///     same segments when it renders.
+    /// </summary>
+    private IEnumerable<(int Cost, IReadOnlyList<Node> Arguments, long Count)> Match(
         Pattern pattern, int segment, IReadOnlyList<Lexeme> lexemes, int position, int end)
     {
         if (segment == pattern.Segments.Count)
         {
-            if (position == end) yield return (0, string.Empty, 1);
+            if (position == end) yield return (0, [], 1);
             yield break;
         }
 
@@ -158,8 +165,8 @@ internal sealed class Resolver
         if (word is not null)
         {
             if (position < end && lexemes[position].Kind is LexemeKind.Word && lexemes[position].Text == word)
-                foreach (var (cost, reading, count) in Match(pattern, segment + 1, lexemes, position + 1, end))
-                    yield return (cost, $"{word} {reading}".TrimEnd(), count);
+                foreach (var match in Match(pattern, segment + 1, lexemes, position + 1, end))
+                    yield return match;
             yield break;
         }
 
@@ -168,7 +175,7 @@ internal sealed class Resolver
             // trailing argument: reaches the end of the span, parsed at the
             // pattern's own binding power
             if (expressions[position, end, PatternBindingPower].TryBest(out var trailing))
-                yield return (trailing.Cost, trailing.Reading, trailing.Count);
+                yield return (trailing.Cost, [trailing.Node], trailing.Count);
             yield break;
         }
 
@@ -176,8 +183,8 @@ internal sealed class Resolver
         {
             // medial args cross any operator
             if (expressions[position, split, 0].TryBest(out var argument) is false) continue;
-            foreach (var (cost, reading, count) in Match(pattern, segment + 1, lexemes, split, end))
-                yield return (argument.Cost + cost, $"{argument.Reading} {reading}".TrimEnd(), argument.Count * count);
+            foreach (var (cost, arguments, count) in Match(pattern, segment + 1, lexemes, split, end))
+                yield return (argument.Cost + cost, [argument.Node, .. arguments], argument.Count * count);
         }
     }
 
@@ -220,7 +227,7 @@ internal sealed class Resolver
             if (expressions[k + 1, j, rightminimum].TryBest(out var right) is false) continue;
 
             cell.Offer(left.Cost + right.Cost,
-                       $"({left.Reading} {lexemes[k].Text} {right.Reading})",
+                       new Node.Operation(left.Node, lexemes[k].Text, right.Node),
                        left.Count * right.Count);
         }
     }
@@ -243,7 +250,7 @@ internal sealed class Resolver
 
         public long Count => derivations.Values.Sum();
 
-        public IReadOnlyList<string> Readings => order;
+        public IEnumerable<string> Readings => order.Select(node => node.ToString());
 
         /// <summary>
         ///     The cheapest reading, when the span has one. Every caller of this
@@ -265,37 +272,42 @@ internal sealed class Resolver
             return true;
         }
 
-        public void Offer(int cost, string reading, long count = 1)
+        // Keyed by rendering rather than by node: two derivations that read the
+        // same way ARE the same reading, and counting them separately would
+        // report a tie between a statement and itself.
+        public void Offer(int cost, Node node, long count = 1)
         {
+            var reading = node.ToString();
+
             if (IsEmpty || cost < Cost)
             {
                 Cost = cost;
                 order.Clear();
                 derivations.Clear();
-                order.Add(reading);
+                order.Add(node);
                 derivations[reading] = count;
                 return;
             }
             if (cost != Cost) return;
-            if (derivations.ContainsKey(reading) is false) order.Add(reading);
+            if (derivations.ContainsKey(reading) is false) order.Add(node);
             derivations[reading] = derivations.GetValueOrDefault(reading) + count;
         }
 
         public void Merge(Cell other)
         {
             if (other.IsEmpty) return;
-            foreach (var reading in other.order) Offer(other.Cost, reading, other.derivations[reading]);
+            foreach (var node in other.order) Offer(other.Cost, node, other.derivations[node.ToString()]);
         }
 
-        // Dictionary is NOT insertion ordered in .NET, and Reading must be
-        // deterministic, so order is tracked explicitly alongside the counts.
-        private readonly List<string> order = new();
+        // Dictionary is NOT insertion ordered in .NET, and the chosen reading must
+        // be deterministic, so order is tracked explicitly alongside the counts.
+        private readonly List<Node> order = [];
         private readonly Dictionary<string, long> derivations = new();
     }
 }
 
 /// <summary>The cheapest reading of one span, and how many derivations reach it.</summary>
-internal readonly record struct Best(int Cost, string Reading, long Count);
+internal readonly record struct Best(int Cost, Node Node, long Count);
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close }
 
@@ -308,7 +320,7 @@ internal readonly record struct Lexeme(LexemeKind Kind, string Text)
     /// </summary>
     public static List<Lexeme> Split(string source)
     {
-        List<Lexeme> lexemes = new();
+        List<Lexeme> lexemes = [];
         var i = 0;
         while (i < source.Length)
         {
@@ -360,8 +372,10 @@ internal sealed class Pattern
 
     /// <summary>Parses "compute total for _" into segments, "_" being a hole.</summary>
     public static Pattern Parse(string pattern)
-        => new(pattern.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                      .Select(s => s is "_" ? null : s).ToArray());
+        => new([
+            .. pattern.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s is "_" ? null : s)
+        ]);
 
     public IReadOnlyList<string> Segments { get; }
 
@@ -369,7 +383,7 @@ internal sealed class Pattern
     public bool IsOpenEnded => Segments[^1] is null;
 
     /// <summary>The literal words before the first hole. Anchor runs must be prefix free across a scope.</summary>
-    public IReadOnlyList<string> Anchor => Segments.TakeWhile(s => s is not null).ToArray();
+    public IReadOnlyList<string> Anchor => [.. Segments.TakeWhile(s => s is not null)];
 
     /// <summary>Literal segments after the first hole. These are reserved against multi-word names.</summary>
     public IEnumerable<string> Glue => Segments.Skip(Anchor.Count).Where(s => s is not null);
@@ -382,9 +396,9 @@ internal sealed record Operator(int BindingPower, bool IsLeftAssociative = true)
 /// <summary>Names and patterns in scope, plus the fixed operator table.</summary>
 internal sealed class SymbolTable
 {
-    public HashSet<string> Names { get; } = new();
+    public HashSet<string> Names { get; } = [];
 
-    public List<Pattern> Patterns { get; } = new();
+    public List<Pattern> Patterns { get; } = [];
 
     /// <summary>
     ///     Fixed at language design time. No user defined operators, which is
@@ -453,14 +467,29 @@ internal sealed class SymbolTable
 
 internal readonly record struct Resolution(ResolutionKind Kind, int Cost, IReadOnlyCollection<string> Readings)
 {
-    public static readonly Resolution NoParse = new(ResolutionKind.NoParse, 0, Array.Empty<string>());
+    public static readonly Resolution NoParse = new(ResolutionKind.NoParse, 0, []);
 
-    public static Resolution Resolved(int cost, string reading) => new(ResolutionKind.Resolved, cost, new[] { reading });
+    public static Resolution Resolved(int cost, Node tree)
+        => new(ResolutionKind.Resolved, cost, [tree.ToString()]) { Tree = tree };
 
-    public static Resolution Ambiguous(int cost, IReadOnlyCollection<string> readings)
-        => new(ResolutionKind.Ambiguous, cost, readings.ToArray());
+    public static Resolution Ambiguous(int cost, IEnumerable<string> readings)
+        => new(ResolutionKind.Ambiguous, cost, [.. readings]);
 
     public string Reading => Readings.FirstOrDefault() ?? string.Empty;
+
+    /// <summary>
+    ///     The tree to evaluate, when the statement resolved to exactly one. A tie
+    ///     has several and no grounds to choose between them; a statement that did
+    ///     not parse has none. Neither hands one out, so an interpreter cannot walk
+    ///     a meaning the resolver never settled on.
+    /// </summary>
+    public bool TryTree(out Node tree)
+    {
+        tree = Tree;
+        return Kind is ResolutionKind.Resolved;
+    }
+
+    private Node Tree { get; init; }
 
     public override string ToString() => Kind switch
     {

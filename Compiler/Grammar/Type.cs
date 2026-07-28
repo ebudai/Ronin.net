@@ -58,8 +58,8 @@ internal class Type : Member
 
 internal class Algebra : Type
 {
-    public List<Type> Bases { get; } = new();
-    public List<Type> Unions { get; } = new();
+    public List<Type> Bases { get; } = [];
+    public List<Type> Unions { get; } = [];
 
     public new class Unresolved : Algebra
     {

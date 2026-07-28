@@ -45,7 +45,7 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
 
         if (parser.TryAdvance<TOpen>() is false) return null;
 
-        TParent values = new();
+        TParent values = [];
 
         while (parser.IsNotFinished)
         {

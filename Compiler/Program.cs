@@ -26,7 +26,7 @@ internal static class Program
             return;
         }
 
-        ConcurrentBag<Module> modules = new();
+        ConcurrentBag<Module> modules = [];
         Parse(folder, modules);
     }
     

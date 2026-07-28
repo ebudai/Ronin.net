@@ -10,8 +10,8 @@ namespace Ronin.Grammar;
 internal class Scope : Statement
 {
     public Modifiers Modifiers { get; init; }
-    public List<Import> Imports { get; } = new();
-    public List<Statement> Statements { get; } = new();
+    public List<Import> Imports { get; } = [];
+    public List<Statement> Statements { get; } = [];
 
     public Scope() { }
     private Scope(Scope scope) => Statements = scope.Statements;
@@ -85,7 +85,7 @@ internal class Scope : Statement
             {
                 Modifiers = modifiers,
                 Iterable = datum,
-                Current = new Identifier { name }
+                Current = [name]
             };
         }
 

@@ -46,7 +46,7 @@ internal static class Lexemes
     /// </summary>
     public static List<Lexeme> ToLexemes(this Token head)
     {
-        List<Lexeme> lexemes = new();
+        List<Lexeme> lexemes = [];
         for (var token = head; token is not null and not Sentinel; token = token.Next as Token)
         {
             if (token is Trivium) continue;

@@ -6,7 +6,7 @@ namespace Ronin.Grammar;
 
 internal class Module
 {
-    public List<Scope> Scopes { get; } = new();
+    public List<Scope> Scopes { get; } = [];
 
     public Module() { }
     public Module(Scope scope) => Scopes.Add(scope);

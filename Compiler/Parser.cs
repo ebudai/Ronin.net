@@ -24,7 +24,7 @@ internal struct Parser
 
     public List<T> ParseRepeating<T>() where T : IParsable<T>
     {
-        List<T> parsed = new();
+        List<T> parsed = [];
         while (IsNotFinished)
         {
             var syntax = T.Parse(ref this);
