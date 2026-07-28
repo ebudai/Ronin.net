@@ -133,9 +133,13 @@ public class ParsingTests
         return terminal;
     }
 
+    /// <remarks>
+    ///     Spaced, because that is what «, » in real source produces and an
+    ///     unspaced separator is a parse error.
+    /// </remarks>
     internal static Separator Separator()
     {
-        Separator separator = new();
+        Separator separator = new() { Spaced = true };
         separator.SetMemory(Ronin.Lexicon.Separator.symbol.ToString());
         return separator;
     }

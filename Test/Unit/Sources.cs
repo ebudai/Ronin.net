@@ -74,6 +74,59 @@ public class Sources
         Assert.Equal(["x", ";"], Lex("x; // note"));
     }
 
+    [Theory(DisplayName = "a comma between digits is part of the number")]
+    [InlineData("1,234", "1,234")]
+    [InlineData("7,000,876", "7,000,876")]
+    [InlineData("1,234.56", "1,234.56")]
+    [InlineData("2345", "2345")]                 // a bare run is a number however long
+    [InlineData("1,2345", "1")]                  // second group is not three digits
+    [InlineData("1,234,56", "1,234")]            // longest well-formed prefix
+    [InlineData("1,", "1")]                      // a trailing comma is never part of it
+    [InlineData("1,,234", "1")]                  // an empty group is not a group
+    [InlineData("1234,567", "1234")]             // a first group over three digits
+    public void ACommaBetweenDigitsIsPartOfTheNumber(string source, string number)
+        => Assert.Equal(number, Lex(source).First());
+
+    [Fact(DisplayName = "a spaced comma is two things, an unspaced one is one")]
+    public void ASpacedCommaIsTwoThingsAnUnspacedOneIsOne()
+    {
+        // how both are already written by hand, which is what makes the rule
+        // make the reader right rather than asking them to learn anything
+        Assert.Equal(["1,234"], Lex("1,234"));
+        Assert.Equal(["1", ",", "234"], Lex("1, 234"));
+
+        // so a call cannot change arity when a constant is inlined into it
+        Assert.Equal(["f", "(", "1,234", ")"], Lex("f(1,234)"));
+        Assert.Equal(["f", "(", "1", ",", "234", ")"], Lex("f(1, 234)"));
+    }
+
+    [Fact(DisplayName = "an unspaced separator is a parse error, not a symbol")]
+    public void AnUnspacedSeparatorIsAParseErrorNotASymbol()
+    {
+        // Declining to lex it as a separator would leave a bare symbol that
+        // Symbolic absorbs into the reference beside it, so «f(a,b)» would become
+        // one argument holding a stray comma rather than an error.
+        Lexer lexer = new("(a,b)");
+        Parser parser = new(lexer.Lex());
+
+        Assert.Null(Ronin.Grammar.Inputs.Parse(ref parser));
+    }
+
+    [Fact(DisplayName = "a decimal is distinguished at the lexer")]
+    public void ADecimalIsDistinguishedAtTheLexer()
+    {
+        // purely lexical — the presence of a «.» — so nothing here needs the
+        // symbol table
+        Lexer whole = new("42");
+        Assert.False(((Numeric)Numeric.Lex(ref whole)).IsDecimal);
+
+        Lexer fraction = new("4.5");
+        Assert.True(((Numeric)Numeric.Lex(ref fraction)).IsDecimal);
+
+        // a lone dot after a number is not part of it
+        Assert.Equal(["7", "."], Lex("7."));
+    }
+
     [Fact(DisplayName = "a multiline comment does not disturb what follows")]
     public void AMultilineCommentDoesNotDisturbWhatFollows()
     {

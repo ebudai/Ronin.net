@@ -64,11 +64,16 @@ public class Strictness
     [Fact(DisplayName = "a trailing separator is allowed")]
     public void ATrailingSeparatorIsAllowed()
     {
-        // the guide's own examples use one, and it makes for cleaner diffs
-        Lexer lexer = new("(a, b,)");
-        Parser parser = new(lexer.Lex());
-
+        // The guide's own examples use one, written across lines — where the
+        // newline after it satisfies the space rule. On one line «(a, b,)» does
+        // not, because the comma is unspaced.
+        Lexer spread = new("(a,\n b,\n)");
+        Parser parser = new(spread.Lex());
         Assert.Equal(2, Grammar.Inputs.Parse(ref parser)?.Count);
+
+        Lexer crammed = new("(a, b,)");
+        Parser rejected = new(crammed.Lex());
+        Assert.Null(Grammar.Inputs.Parse(ref rejected));
     }
 
     [Fact(DisplayName = "adjacent words are one name, not two elements")]

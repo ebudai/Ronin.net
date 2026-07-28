@@ -53,7 +53,7 @@ public class TriggerNames
     public void BracketsAndSeparatorsHugTheirContents()
     {
         Assert.Equal("when distance between (a, b) > 6",
-                     Trigger("when distance between (a,b)>6 { y = 1; }"));
+                     Trigger("when distance between (a, b)>6 { y = 1; }"));
     }
 
     [Fact(DisplayName = "a long trigger keeps both of its ends")]

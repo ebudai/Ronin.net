@@ -63,6 +63,12 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
 
             values.Add(syntax);
 
+            // A separator must be followed by a space, so that no unspaced comma
+            // is ever a separator and «1,234» is unambiguously one number. Without
+            // it, inlining «count = 1» into «f(count,234)» silently turns two
+            // arguments into one.
+            if (parser.Token is Separator { Spaced: false }) return null;
+
             // A trailing separator is allowed — the guide's own examples use one
             // and it makes for cleaner diffs. An omitted one is not: «(a b)» has
             // to be rejected rather than read as two elements.
