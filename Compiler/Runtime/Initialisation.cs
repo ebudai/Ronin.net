@@ -102,8 +102,7 @@ internal static class Initialisation
 
         foreach (var ring in Cycles(reads))
         {
-            var finding = new Finding(FindingKind.InitialisationRing, declared[ring[0]])
-                .Naming("ring", string.Join("» → «", ring));
+            var finding = new InitialisationRing(declared[ring[0]], string.Join("» → «", ring));
 
             // distinct BEFORE skipping: a ring closes on its first member, so
             // skipping one still leaves it in the tail as its own related span

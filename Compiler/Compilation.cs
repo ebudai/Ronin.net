@@ -238,9 +238,7 @@ internal sealed class Compilation
     private static readonly Dictionary<System.Type, System.Reflection.PropertyInfo[]> members = [];
 
     private void Malformed(IError error)
-        => Add(new Finding(FindingKind.Malformed, Where(error))
-                   .Naming("reason", error.Reason)
-                   .Naming("text", Text(error)));
+        => Add(new Malformed(Where(error), error.Reason, Text(error)));
 
     /// <summary>
     ///     Records a finding, once.
@@ -264,27 +262,14 @@ internal sealed class Compilation
     /// </summary>
     ///
     /// <remarks>
-    ///     The kind and the span are values in their own right rather than parts
-    ///     of a joined string. That string used a literal NUL byte as its
-    ///     delimiter — which compiled, and made the central file of the new
-    ///     pipeline binary to git, to grep and to every reviewer — and a joined
-    ///     key is ambiguous anyway the moment a symbol contains the delimiter,
-    ///     which in a language of multi-word names is not a remote prospect.
+    ///     The message, because it already contains every role the finding
+    ///     carries and is the thing a reader would see twice. This used to join
+    ///     the roles out of a string dictionary with a literal NUL byte — which
+    ///     compiled, and made the central file of the new pipeline binary to git,
+    ///     to grep and to every reviewer.
     /// </remarks>
-    private static (FindingKind Kind, int Offset, int Length, string Symbols) Identify(Finding finding)
-        => (finding.Kind,
-            finding.Primary.Offset,
-            finding.Primary.Length,
-            string.Join(Separator, finding.Symbols
-                                         .OrderBy(symbol => symbol.Key, System.StringComparer.Ordinal)
-                                         .Select(symbol => $"{symbol.Key}={symbol.Value}")));
-
-    /// <summary>
-    ///     Separates the symbols in an identity. Written as an escape and not as
-    ///     the byte itself: the byte version compiled perfectly well and made the
-    ///     file binary to every tool that reads source.
-    /// </summary>
-    private const char Separator = '\u001F';
+    private static (FindingKind Kind, int Offset, int Length, string Message) Identify(Finding finding)
+        => (finding.Kind, finding.Primary.Offset, finding.Primary.Length, finding.Message);
 
     /// <summary>The offending source, canonically rendered.</summary>
     ///
@@ -312,5 +297,5 @@ internal sealed class Compilation
     }
 
     private readonly List<Finding> findings = [];
-    private readonly HashSet<(FindingKind Kind, int Offset, int Length, string Symbols)> seen = [];
+    private readonly HashSet<(FindingKind Kind, int Offset, int Length, string Message)> seen = [];
 }

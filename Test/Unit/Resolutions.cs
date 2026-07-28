@@ -330,9 +330,10 @@ public class Resolutions
         // no name involved, so no naming rule can repair it.
         var complaint = Assert.Single(Rules.Validate([], [Shape("b _"), Shape("b b _")]));
 
-        Assert.Equal(FindingKind.AnchorPrefix, complaint.Kind);
-        Assert.Equal("b (_)", complaint["prefix"]);
-        Assert.Equal("b b (_)", complaint["pattern"]);
+        var anchors = Assert.IsType<AnchorPrefix>(complaint);
+
+        Assert.Equal("b (_)", anchors.Prefix);
+        Assert.Equal("b b (_)", anchors.Pattern);
     }
 
     [Fact(DisplayName = "names may not contain pattern glue")]
@@ -343,9 +344,11 @@ public class Resolutions
         var complaint = Assert.Single(Rules.Validate([Declares("hello to alice")], [Shape("send _ to _")]));
 
         Assert.Equal(FindingKind.GlueInName, complaint.Kind);
-        Assert.Equal("hello to alice", complaint["name"]);
-        Assert.Equal("to", complaint["word"]);
-        Assert.Equal("send (_) to (_)", complaint["pattern"]);
+        var glue = Assert.IsType<GlueInName>(complaint);
+
+        Assert.Equal("hello to alice", glue.Name);
+        Assert.Equal("to", glue.Word);
+        Assert.Equal("send (_) to (_)", glue.Pattern);
     }
 
     [Fact(DisplayName = "operators of one precedence chain")]

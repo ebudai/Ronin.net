@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -84,111 +85,182 @@ internal readonly record struct Labelled(Span Span, string Label);
 ///     one-click alternative.
 ///     </para>
 /// </remarks>
-internal sealed class Finding(FindingKind kind, Span primary)
+internal abstract class Finding(FindingKind kind, Span primary)
 {
     public FindingKind Kind { get; } = kind;
 
     public Span Primary { get; } = primary;
 
-    /// <summary>Named by role, so the renderer can say which is which.</summary>
-    public Dictionary<string, string> Symbols { get; } = [];
+    public IReadOnlyList<Labelled> Related => related;
 
-    public List<Labelled> Related { get; } = [];
-
-    public Finding Naming(string role, string symbol)
-    {
-        Symbols[role] = symbol;
-        return this;
-    }
+    /// <summary>The sentence a person reads.</summary>
+    public abstract string Message { get; }
 
     public Finding Alongside(Span span, string label)
     {
-        Related.Add(new Labelled(span, label));
+        related.Add(new Labelled(span, label));
         return this;
     }
 
-    public string this[string role] => Symbols[role];
+    private readonly List<Labelled> related = [];
+}
+
+/// <summary>A name already declared in this scope or an enclosing one.</summary>
+internal sealed class Shadowed(Span primary, string name, string where)
+    : Finding(FindingKind.Shadowed, primary)
+{
+    public string Name { get; } = name;
+    public string Where { get; } = where;
+
+    public override string Message
+        => $"«{Name}» is already declared {Where}. Shadowing is not allowed, because reading a " +
+           "value has to tell you where it came from, and the compiler cannot flag the ambiguity " +
+           "when both readings are legal. Rename this one.";
+}
+
+/// <summary>A name spelled like one the compiler injects.</summary>
+internal sealed class ReservedPrefix(Span primary, string name, string word)
+    : Finding(FindingKind.ReservedPrefix, primary)
+{
+    public string Name { get; } = name;
+    public string Word { get; } = word;
+
+    public override string Message
+        => $"«{Name}» begins with the reserved word «{Word}», which is injected rather than " +
+           "declared. Respell it.";
+}
+
+/// <summary>More declarations of one shape than can yet be chosen between.</summary>
+internal sealed class Overloaded(Span primary, string pattern, int count)
+    : Finding(FindingKind.Overloaded, primary)
+{
+    public string Pattern { get; } = pattern;
+    public int Count { get; } = count;
+
+    public override string Message
+        => $"«{Pattern}» has {Count.ToString(CultureInfo.InvariantCulture)} declarations and " +
+           "type-directed selection is not implemented, so there is no way to choose between them " +
+           "yet. Give them different shapes for now.";
+}
+
+/// <summary>One pattern's anchor run begins another's.</summary>
+internal sealed class AnchorPrefix(Span primary, string pattern, string prefix)
+    : Finding(FindingKind.AnchorPrefix, primary)
+{
+    public string Pattern { get; } = pattern;
+    public string Prefix { get; } = prefix;
+
+    public override string Message
+        => $"the anchor of «{Prefix}» begins that of «{Pattern}», so a statement can read as " +
+           "either and no bracketing tells them apart. Respell one of them.";
+}
+
+/// <summary>A pattern uses a reserved word as a segment.</summary>
+internal sealed class ReservedSegment(Span primary, string pattern, string word)
+    : Finding(FindingKind.ReservedSegment, primary)
+{
+    public string Pattern { get; } = pattern;
+    public string Word { get; } = word;
+
+    public override string Message
+        => $"«{Pattern}» uses the reserved word «{Word}» as a segment, which would make it glue " +
+           "and reject every injected name in scope. Respell that segment.";
+}
+
+/// <summary>A multi-word name contains a word that is glue in some pattern.</summary>
+internal sealed class GlueInName(Span primary, string name, string word, string pattern)
+    : Finding(FindingKind.GlueInName, primary)
+{
+    public string Name { get; } = name;
+    public string Word { get; } = word;
+    public string Pattern { get; } = pattern;
+
+    public override string Message
+        => $"«{Name}» contains «{Word}», which is glue in «{Pattern}». A name containing glue " +
+           "silently re-reads statements that already worked, so one of the two has to be " +
+           "respelled — and it is the later declaration that gives way.";
+}
+
+/// <summary>The same, for a name the compiler injected.</summary>
+internal sealed class GlueInInjectedName(Span primary, string name, string injector, string word, string pattern)
+    : Finding(FindingKind.GlueInInjectedName, primary)
+{
+    public string Name { get; } = name;
+    public string Injector { get; } = injector;
+    public string Word { get; } = word;
+    public string Pattern { get; } = pattern;
+
+    public override string Message
+        => $"«{Name}», injected by «{Injector}», collides with pattern glue «{Word}» from " +
+           $"«{Pattern}». Rename «{Injector}», or respell the pattern.";
+}
+
+/// <summary>A ring of whens, each writing something the next reads.</summary>
+internal sealed class CascadeRing(Span primary, string ring)
+    : Finding(FindingKind.CascadeRing, primary)
+{
+    public string Ring { get; } = ring;
+
+    public override string Message
+        => $"«{Ring}» is a cycle: each writes something the next reads, so firing one schedules " +
+           "the next. Stop one of them writing what the ring reads, or declare feedback on every " +
+           "when in the ring.";
+}
+
+/// <summary>A cell written by more than one when.</summary>
+internal sealed class ManyWriters(Span primary, string cell, IReadOnlyCollection<string> writers)
+    : Finding(FindingKind.ManyWriters, primary)
+{
+    public string Cell { get; } = cell;
+    public IReadOnlyCollection<string> Writers { get; } = [.. writers];
+
+    public override string Message
+        => $"«{Cell}» is written by {Writers.Count.ToString(CultureInfo.InvariantCulture)} whens — " +
+           $"«{string.Join("» and «", Writers)}». Whens fire in one round with no order between " +
+           "them, so one write would land and the other vanish. Derive the value instead, with a " +
+           "let that reads both conditions.";
+}
+
+/// <summary>A ring of initialisers, each reading the one before it.</summary>
+internal sealed class InitialisationRing(Span primary, string ring)
+    : Finding(FindingKind.InitialisationRing, primary)
+{
+    public string Ring { get; } = ring;
+
+    public override string Message
+        => $"«{Ring}» is a cycle: each initialiser reads the one before it, so none of them can " +
+           "be evaluated first. Break the ring by giving one of them a value that does not depend " +
+           "on the others.";
+}
+
+/// <summary>Input the grammar could not account for.</summary>
+internal sealed class Malformed(Span primary, string reason, string text)
+    : Finding(FindingKind.Malformed, primary)
+{
+    public string Reason { get; } = reason;
+    public string Text { get; } = text;
+
+    public override string Message
+        => $"{Reason}. «{Text}» could not be read, and the rest of the statement was skipped so " +
+           "that one mistake is reported once.";
 }
 
 /// <summary>
-///     Turns a finding into the sentence a person reads.
+///     Turns a finding into what a build prints.
 /// </summary>
 ///
 /// <remarks>
-///     Separate from the rules so that wording stays cheap to improve. Every
-///     message here has been revised at least once — what to bracket, whether an
-///     overflow is a mistake or a limit, which of two names to rename — and each
-///     revision used to break the test of a rule that had not changed.
+///     The wording lives on the findings themselves now, beside the roles each
+///     one needs. It used to be a lookup from kind to a lambda indexing a
+///     dictionary of strings by role — so a producer that spelled a role
+///     differently, or forgot one, produced a KeyNotFoundException at report
+///     time, and the totality test could only prove that every kind had ONE
+///     producer supplying them correctly. A kind's roles are its constructor
+///     parameters now, so a finding that cannot be rendered cannot be built.
 /// </remarks>
 internal static class Diagnostics
 {
-    /// <summary>
-    ///     Whether a kind has a message. Asked of every value of the enum by the
-    ///     totality test, which is the whole reason this is a lookup rather than
-    ///     a switch: a switch needs a default arm, the default arm is a message,
-    ///     and a kind added later would then quietly inherit whichever sentence
-    ///     happened to be sitting there.
-    /// </summary>
-    public static bool Renders(FindingKind kind) => Messages.ContainsKey(kind);
-
-    public static string Render(Finding finding) => Messages[finding.Kind](finding);
-
-    private static readonly System.Collections.Generic.Dictionary<FindingKind, System.Func<Finding, string>> Messages = new()
-    {
-        [FindingKind.Malformed] = finding =>
-            $"{finding["reason"]}. «{finding["text"]}» could not be read, and the rest of the " +
-            "statement was skipped so that one mistake is reported once.",
-
-        [FindingKind.Shadowed] = finding =>
-            $"«{finding["name"]}» is already declared {finding["where"]}. Shadowing is not " +
-            "allowed, because reading a value has to tell you where it came from, and the " +
-            "compiler cannot flag the ambiguity when both readings are legal. Rename this one.",
-
-        [FindingKind.ReservedPrefix] = finding =>
-            $"«{finding["name"]}» begins with the reserved word «{finding["word"]}», which is " +
-            "injected rather than declared. Respell it.",
-
-        [FindingKind.Overloaded] = finding =>
-            $"«{finding["pattern"]}» has {finding["count"]} declarations and type-directed " +
-            "selection is not implemented, so there is no way to choose between them yet. " +
-            "Give them different shapes for now.",
-
-        [FindingKind.AnchorPrefix] = finding =>
-            $"the anchor of «{finding["prefix"]}» begins that of «{finding["pattern"]}», so a " +
-            "statement can read as either and no bracketing tells them apart. Respell one of " +
-            "them.",
-
-        [FindingKind.ReservedSegment] = finding =>
-            $"«{finding["pattern"]}» uses the reserved word «{finding["word"]}» as a segment, " +
-            "which would make it glue and reject every injected name in scope. Respell that " +
-            "segment.",
-
-        [FindingKind.GlueInName] = finding =>
-            $"«{finding["name"]}» contains «{finding["word"]}», which is glue in " +
-            $"«{finding["pattern"]}». A name containing glue silently re-reads statements that " +
-            "already worked, so one of the two has to be respelled — and it is the later " +
-            "declaration that gives way.",
-
-        [FindingKind.GlueInInjectedName] = finding =>
-            $"«{finding["name"]}», injected by «{finding["injector"]}», collides with pattern " +
-            $"glue «{finding["word"]}» from «{finding["pattern"]}». Rename " +
-            $"«{finding["injector"]}», or respell the pattern.",
-
-        [FindingKind.CascadeRing] = finding =>
-            $"«{finding["ring"]}» is a cycle: each writes something the next reads, so firing " +
-            "one schedules the next. Stop one of them writing what the ring reads, or declare " +
-            "feedback on every when in the ring.",
-
-        [FindingKind.ManyWriters] = finding =>
-            $"«{finding["cell"]}» is written by {finding["count"]} whens — «{finding["writers"]}». " +
-            "Whens fire in one round with no order between them, so one write would land and the " +
-            "other vanish. Derive the value instead, with a let that reads both conditions.",
-
-        [FindingKind.InitialisationRing] = finding =>
-            $"«{finding["ring"]}» is a cycle: each initialiser reads the one before it, so none " +
-            "of them can be evaluated first. Break the ring by giving one of them a value that " +
-            "does not depend on the others.",
-    };
+    public static string Render(Finding finding) => finding.Message;
 
     /// <summary>The sentence with its spans, as a build would print it.</summary>
     public static string Report(Finding finding)

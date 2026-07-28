@@ -87,24 +87,36 @@ public class Findings
         }).Single();
     }
 
-    [Fact(DisplayName = "every kind renders")]
-    public void EveryKindRenders()
+    [Fact(DisplayName = "every kind is produced by a rule, and has a type of its own")]
+    public void EveryKindIsProducedByARuleAndHasATypeOfItsOwn()
     {
-        // A kind that ships with no message is invisible until a user hits it,
-        // so the enum itself is the test list — and every kind must be reachable
-        // from a rule, or the golden file is describing something nothing emits.
+        // The message half of this used to be the point: findings carried a
+        // dictionary of roles keyed by string, and a producer that misspelled one
+        // or left it out threw at report time. A kind's roles are its constructor
+        // parameters now, so a finding that cannot be rendered cannot be built —
+        // and what is left to check is that each kind is REACHABLE, because a
+        // golden file describing something nothing emits is still a fiction.
         var examples = Examples().ToDictionary(finding => finding.Kind);
+
+        var declared = typeof(Finding).Assembly
+                                      .GetTypes()
+                                      .Where(type => type.IsSubclassOf(typeof(Finding)))
+                                      .ToArray();
 
         foreach (var kind in Enum.GetValues<FindingKind>())
         {
             Assert.True(examples.ContainsKey(kind), $"{kind} is not produced by any rule");
-            Assert.True(Diagnostics.Renders(kind), $"{kind} has no message");
+
+            // one type per kind, so a kind cannot quietly share another's roles
+            Assert.Single(declared, type => type.Name == kind.ToString());
 
             var rendered = Diagnostics.Render(examples[kind]);
 
             Assert.False(string.IsNullOrWhiteSpace(rendered), $"{kind} renders nothing");
             Assert.DoesNotContain("{", rendered);
         }
+
+        Assert.Equal(Enum.GetValues<FindingKind>().Length, declared.Length);
     }
 
     [Fact(DisplayName = "a reserved word points at nothing else")]

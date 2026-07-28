@@ -100,8 +100,10 @@ public class Cascadings
             ("when score changes", ["score display"]))));
 
         Assert.Equal(FindingKind.ManyWriters, complaint.Kind);
-        Assert.Equal("game state", complaint["cell"]);
-        Assert.Equal("2", complaint["count"]);
+        var writers = Assert.IsType<ManyWriters>(complaint);
+
+        Assert.Equal("game state", writers.Cell);
+        Assert.Equal(2, writers.Writers.Count);
 
         // one span per writer, so both sites are named
         Assert.Single(complaint.Related);
@@ -229,7 +231,7 @@ public class Cascadings
         }));
 
         Assert.Equal(FindingKind.CascadeRing, complaint.Kind);
-        Assert.Equal("ping» → «pong» → «ping", complaint["ring"]);
+        Assert.Equal("ping» → «pong» → «ping", Assert.IsType<CascadeRing>(complaint).Ring);
 
         // «ping» opens and closes the ring, so only «pong» is named beside it
         Assert.Single(complaint.Related);

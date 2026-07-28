@@ -49,8 +49,10 @@ public class Compilations
                                        """));
 
         Assert.Equal(FindingKind.Shadowed, finding.Kind);
-        Assert.Equal("x", finding["name"]);
-        Assert.Equal("in this scope", finding["where"]);
+        var shadowed = Assert.IsType<Shadowed>(finding);
+
+        Assert.Equal("x", shadowed.Name);
+        Assert.Equal("in this scope", shadowed.Where);
     }
 
     [Fact(DisplayName = "a body sees the scope enclosing it")]
@@ -65,7 +67,7 @@ public class Compilations
                                        """));
 
         Assert.Equal(FindingKind.Shadowed, finding.Kind);
-        Assert.Equal("in an enclosing scope", finding["where"]);
+        Assert.Equal("in an enclosing scope", Assert.IsType<Shadowed>(finding).Where);
     }
 
     [Fact(DisplayName = "a sibling body is not visible")]
@@ -135,7 +137,7 @@ public class Compilations
             var finding = Assert.Single(Of(nested));
 
             Assert.Equal(FindingKind.Shadowed, finding.Kind);
-            Assert.Equal("in an enclosing scope", finding["where"]);
+            Assert.Equal("in an enclosing scope", Assert.IsType<Shadowed>(finding).Where);
         }
     }
 

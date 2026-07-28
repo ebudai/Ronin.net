@@ -90,9 +90,7 @@ internal sealed class Declarations
         {
             if (spans.Count < 2) continue;
 
-            var finding = new Finding(FindingKind.Overloaded, spans[0].Span)
-                .Naming("pattern", pattern.ToString())
-                .Naming("count", spans.Count.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            var finding = new Overloaded(spans[0].Span, pattern.ToString(), spans.Count);
 
             foreach (var shaped in spans.Skip(1)) finding.Alongside(shaped.Span, "also declared here");
 
@@ -143,17 +141,13 @@ internal sealed class Declarations
         // and pointing anywhere would be inventing one.
         if (name.StartsWith(SymbolTable.Shadowed, System.StringComparison.Ordinal))
         {
-            problems.Add(new Finding(FindingKind.ReservedPrefix, span)
-                .Naming("name", name)
-                .Naming("word", SymbolTable.Old));
+            problems.Add(new ReservedPrefix(span, name, SymbolTable.Old));
             return;
         }
 
         if (Symbols.Names.Contains(name))
         {
-            var shadowed = new Finding(FindingKind.Shadowed, span)
-                .Naming("name", name)
-                .Naming("where", Where(name));
+            var shadowed = new Shadowed(span, name, Where(name));
 
             // the site being shadowed, which may be in another file entirely
             if (written.TryGetValue(name, out var first)) shadowed.Alongside(first, "first declared here");

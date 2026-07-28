@@ -155,7 +155,7 @@ public class Constants
 
         Assert.Equal(FindingKind.InitialisationRing, complaint.Kind);
         Assert.Equal("difficulty» → «initial health» → «health» → «max health» → «difficulty",
-                     complaint["ring"]);
+                     Assert.IsType<InitialisationRing>(complaint).Ring);
 
         // four hops, three declaration kinds — every one of them named
         Assert.Equal(3, complaint.Related.Count);

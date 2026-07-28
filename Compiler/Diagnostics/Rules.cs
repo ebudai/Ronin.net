@@ -88,9 +88,7 @@ internal static class Rules
                 var later = IsLater(longer.Inherited, longer.Span, shorter.Inherited, shorter.Span) ? longer : shorter;
                 var earlier = ReferenceEquals(later.Pattern, longer.Pattern) ? shorter : longer;
 
-                yield return new Finding(FindingKind.AnchorPrefix, later.Span)
-                    .Naming("pattern", longer.Pattern.ToString())
-                    .Naming("prefix", shorter.Pattern.ToString())
+                yield return new AnchorPrefix(later.Span, longer.Pattern.ToString(), shorter.Pattern.ToString())
                     .Alongside(earlier.Span, "the anchor it collides with");
             }
         }
@@ -106,9 +104,7 @@ internal static class Rules
         {
             if (pattern.Segments.Contains(SymbolTable.Old) is false) continue;
 
-            yield return new Finding(FindingKind.ReservedSegment, span)
-                .Naming("pattern", pattern.ToString())
-                .Naming("word", SymbolTable.Old);
+            yield return new ReservedSegment(span, pattern.ToString(), SymbolTable.Old);
         }
     }
 
@@ -142,10 +138,7 @@ internal static class Rules
 
             if (declared.InjectedBy is null)
             {
-                yield return new Finding(FindingKind.GlueInName, primary)
-                    .Naming("name", declared.Name)
-                    .Naming("word", word)
-                    .Naming("pattern", offender.Pattern.ToString())
+                yield return new GlueInName(primary, declared.Name, word, offender.Pattern.ToString())
                     .Alongside(related, label);
 
                 continue;
@@ -156,11 +149,8 @@ internal static class Rules
             // too, which is what «injected by» means.
             if (offending[declared.InjectedBy] is not null) continue;
 
-            yield return new Finding(FindingKind.GlueInInjectedName, primary)
-                .Naming("name", declared.Name)
-                .Naming("injector", declared.InjectedBy)
-                .Naming("word", word)
-                .Naming("pattern", offender.Pattern.ToString())
+            yield return new GlueInInjectedName(primary, declared.Name, declared.InjectedBy, word,
+                                                offender.Pattern.ToString())
                 .Alongside(related, label);
         }
     }

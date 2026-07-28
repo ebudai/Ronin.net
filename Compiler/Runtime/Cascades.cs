@@ -251,8 +251,7 @@ internal static class Cascades
 
         foreach (var ring in Cycles(effects))
         {
-            var finding = new Finding(FindingKind.CascadeRing, declared[ring[0]])
-                .Naming("ring", string.Join("» → «", ring));
+            var finding = new CascadeRing(declared[ring[0]], string.Join("» → «", ring));
 
             // every participant, since the ring is what is wrong and no one of
             // them is more at fault than the others
@@ -315,10 +314,7 @@ internal static class Cascades
         {
             if (charged.Count < 2) continue;
 
-            var finding = new Finding(FindingKind.ManyWriters, declared[charged.First()])
-                .Naming("cell", cell)
-                .Naming("count", charged.Count.ToString(System.Globalization.CultureInfo.InvariantCulture))
-                .Naming("writers", string.Join("» and «", charged));
+            var finding = new ManyWriters(declared[charged.First()], cell, charged);
 
             // named, not merely pointed at: a related span alone reads as
             // «source:4:1: also writes it», which is a place and not a culprit

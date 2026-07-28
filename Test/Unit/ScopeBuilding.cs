@@ -63,8 +63,10 @@ public class ScopeBuilding
         var problem = Assert.Single(declared.Problems);
 
         Assert.Equal(FindingKind.Overloaded, problem.Kind);
-        Assert.Equal("area of (_)", problem["pattern"]);
-        Assert.Equal("2", problem["count"]);
+        var overloaded = Assert.IsType<Overloaded>(problem);
+
+        Assert.Equal("area of (_)", overloaded.Pattern);
+        Assert.Equal(2, overloaded.Count);
     }
 
     [Fact(DisplayName = "a constant is named but gets no shadow")]
@@ -195,12 +197,12 @@ public class ScopeBuilding
         var problem = Assert.Single(declared.Problems);
 
         Assert.Equal(FindingKind.Shadowed, problem.Kind);
-        Assert.Equal("total", problem["name"]);
-        Assert.Equal("in an enclosing scope", problem["where"]);
+        Assert.Equal("total", Assert.IsType<Shadowed>(problem).Name);
+        Assert.Equal("in an enclosing scope", Assert.IsType<Shadowed>(problem).Where);
 
         // and a repeat within one scope says so differently
         var twice = Assert.Single(Of("var total => Number; var total => Number;").Problems);
-        Assert.Equal("in this scope", twice["where"]);
+        Assert.Equal("in this scope", Assert.IsType<Shadowed>(twice).Where);
     }
 
     [Fact(DisplayName = "a name may not be spelled like an injected one")]
@@ -211,7 +213,7 @@ public class ScopeBuilding
         var problem = Assert.Single(declared.Problems);
 
         Assert.Equal(FindingKind.ReservedPrefix, problem.Kind);
-        Assert.Equal("old total", problem["name"]);
+        Assert.Equal("old total", Assert.IsType<ReservedPrefix>(problem).Name);
     }
 
     [Fact(DisplayName = "an inner pattern that breaks an outer name is the one rejected")]
@@ -228,9 +230,11 @@ public class ScopeBuilding
 
         var complaint = Assert.Single(declared.Problems, finding => finding.Kind is FindingKind.GlueInName);
 
-        Assert.Equal("hello to alice", complaint["name"]);
-        Assert.Equal("to", complaint["word"]);
-        Assert.Equal("send (_) to (_)", complaint["pattern"]);
+        var glue = Assert.IsType<GlueInName>(complaint);
+
+        Assert.Equal("hello to alice", glue.Name);
+        Assert.Equal("to", glue.Word);
+        Assert.Equal("send (_) to (_)", glue.Pattern);
 
         // And the caret is on the inner pattern, not the outer name. This
         // asserted the kind and the symbols and never the span, so the message

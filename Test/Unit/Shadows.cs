@@ -130,8 +130,10 @@ public class Shadows
         var complaint = Assert.Single(Rules.Validate([Declares("smoothed")], [Shape("recall _ old _")]),
                                       finding => finding.Kind is FindingKind.ReservedSegment);
 
-        Assert.Equal("old", complaint["word"]);
-        Assert.Equal("recall (_) old (_)", complaint["pattern"]);
+        var reserved = Assert.IsType<ReservedSegment>(complaint);
+
+        Assert.Equal("old", reserved.Word);
+        Assert.Equal("recall (_) old (_)", reserved.Pattern);
     }
 
     [Fact(DisplayName = "a shadow is checked by R5 even when its source is not")]
@@ -146,9 +148,10 @@ public class Shadows
 
         // named against the two things the programmer controls, since «old
         // smoothed» is not one of them
-        Assert.Equal(FindingKind.GlueInInjectedName, complaint.Kind);
-        Assert.Equal("old smoothed", complaint["name"]);
-        Assert.Equal("smoothed", complaint["injector"]);
+        var injected = Assert.IsType<GlueInInjectedName>(complaint);
+
+        Assert.Equal("old smoothed", injected.Name);
+        Assert.Equal("smoothed", injected.Injector);
     }
 
     [Fact(DisplayName = "one mistake reports once when both halves fail")]
@@ -160,8 +163,7 @@ public class Shadows
             [Declares("hello to alice"), Declares("old hello to alice", injectedBy: "hello to alice")],
             [Shape("send _ to _")]));
 
-        Assert.Equal(FindingKind.GlueInName, complaint.Kind);
-        Assert.Equal("hello to alice", complaint["name"]);
+        Assert.Equal("hello to alice", Assert.IsType<GlueInName>(complaint).Name);
     }
 
     [Fact(DisplayName = "a name that only looks injected is an ordinary name")]
@@ -172,8 +174,7 @@ public class Shadows
         // it is theirs to rename, so it gets the ordinary message
         var complaint = Assert.Single(Rules.Validate([Declares("old growth")], [Shape("apply _ growth _")]));
 
-        Assert.Equal(FindingKind.GlueInName, complaint.Kind);
-        Assert.Equal("old growth", complaint["name"]);
+        Assert.Equal("old growth", Assert.IsType<GlueInName>(complaint).Name);
     }
 
     [Fact(DisplayName = "a collision with an injected name is a declaration error")]
