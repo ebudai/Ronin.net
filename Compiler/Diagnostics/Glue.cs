@@ -84,6 +84,15 @@ internal static class Glue
 
         foreach (var pattern in free) registry.AppendLine($"    {pattern}");
 
+        // The dual list. Glue words may not be names; injection words may not be
+        // glue — and a reader of this file wants both directions, because they
+        // are the same trap seen from either end.
+        registry.AppendLine();
+        registry.AppendLine($"## PROTECTED ({Rules.Injected.Count}) — no pattern may use these as glue");
+        registry.AppendLine();
+
+        foreach (var (word, injects) in Rules.Injected) registry.AppendLine($"    {word,-12} builds {injects}");
+
         return registry.ToString();
     }
 }

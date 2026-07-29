@@ -9,3 +9,8 @@
 
 ## RESERVES NOTHING (0) — all words precede the first hole
 
+
+## PROTECTED (2) — no pattern may use these as glue
+
+    index        builds index of «a loop variable»
+    of           builds index of «a loop variable»

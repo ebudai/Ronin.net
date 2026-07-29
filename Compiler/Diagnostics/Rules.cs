@@ -53,6 +53,7 @@ internal static class Rules
     {
         foreach (var finding in Anchors(patterns)) yield return finding;
         foreach (var finding in Reserved(patterns)) yield return finding;
+        foreach (var finding in Injecting(patterns)) yield return finding;
         foreach (var finding in Glue(names, patterns)) yield return finding;
     }
 
@@ -105,6 +106,41 @@ internal static class Rules
             if (pattern.Segments.Contains(SymbolTable.Old) is false) continue;
 
             yield return new ReservedSegment(span, pattern.ToString(), SymbolTable.Old);
+        }
+    }
+
+    /// <summary>
+    ///     The words the compiler builds injected names from, and the name each
+    ///     one builds.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     «old» is refused as any segment by <see cref="Reserved"/>, which is
+    ///     stricter and stays. These are refused as GLUE only, because they are
+    ///     ordinary words in anchor position and the language wants them there —
+    ///     «sum of (_)» and «count of (_)» are the shapes to prefer, and banning
+    ///     «of» outright would take them away.
+    /// </remarks>
+    public static IReadOnlyList<(string Word, string Injects)> Injected { get; } =
+    [
+        ("index", "index of «a loop variable»"),
+        ("of", "index of «a loop variable»"),
+    ];
+
+    /// <summary>
+    ///     Injection words may not be glue. The dual of glue words not being
+    ///     names, and it closes the trap in the other direction.
+    /// </summary>
+    private static IEnumerable<Finding> Injecting(IReadOnlyCollection<Shape> patterns)
+    {
+        foreach (var (pattern, span, _) in patterns)
+        {
+            foreach (var (word, injects) in Injected)
+            {
+                if (pattern.Glue.Contains(word) is false) continue;
+
+                yield return new InjectionWordAsGlue(span, pattern.ToString(), word, injects);
+            }
         }
     }
 

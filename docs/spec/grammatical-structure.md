@@ -53,6 +53,27 @@ The reservation is a scope rule and not a lexical one: `in` is an ordinary word
 to the lexer, so the rule can name the pattern responsible, applies only where
 that pattern is in scope, and can be withdrawn if the pattern ever stops
 needing it.
+
+A loop injects one name into its body: `index of` followed by the loop
+variable, so `for each bank in banks` gives `index of bank`.  It is derived from
+the variable rather than being a bare `index` because this language has no
+shadowing, so a bare one would collide with every `index` a program declares.
+
+**Counting starts at 1.**  `index of bank` is 1 on the first iteration, and
+`item 1 in banks` is the first item.  There is no pointer arithmetic and no C
+legacy to stay consistent with, and exact-numbers-by-default has already
+rejected "match what the machine does" as a principle.
+
+The rule that matters more than the number is that there is **one convention,
+everywhere the words `index` or `item` appear**.  Anything genuinely
+machine-facing that needs 0-based counting — a byte offset into a buffer, an
+interop boundary — is called `offset`, and the difference is documented at both.
+Two conventions under similar names is the failure to avoid; which end they
+start from is a detail.
+
+`index` and `of` are therefore protected: no pattern may use either as glue,
+because a pattern that reserved one would make the injected name illegal
+wherever it is in scope.
 ### 4.5.5 Reactive
 `when` (*condition* | *name*) *body*
 - condition is a ***reference***

@@ -28,6 +28,9 @@ internal enum FindingKind
     /// <summary>A pattern uses a reserved word as a segment.</summary>
     ReservedSegment,
 
+    /// <summary>A pattern uses as glue a word the compiler injects names with.</summary>
+    InjectionWordAsGlue,
+
     /// <summary>A multi-word name contains a word that is glue in some pattern.</summary>
     GlueInName,
 
@@ -174,6 +177,33 @@ internal sealed class ReservedSegment(Span primary, string pattern, string word)
     public override string Message
         => $"«{Pattern}» uses the reserved word «{Word}» as a segment, which would make it glue " +
            "and reject every injected name in scope. Respell that segment.";
+}
+
+/// <summary>
+///     A pattern using as glue one of the words the compiler builds injected
+///     names from.
+/// </summary>
+///
+/// <remarks>
+///     The dual of the reserved list: glue words may not be names, so injection
+///     words may not be glue. «index of bank» is a name the compiler writes, and
+///     a pattern that makes «of» glue makes that name illegal in every scope it
+///     reaches — turning a loop nobody touched into an error.
+///
+///     Caught at the PATTERN, which fires once, rather than at each injected
+///     name, which fires once per loop and names the wrong thing.
+/// </remarks>
+internal sealed class InjectionWordAsGlue(Span primary, string pattern, string word, string injects)
+    : Finding(FindingKind.InjectionWordAsGlue, primary)
+{
+    public string Pattern { get; } = pattern;
+    public string Word { get; } = word;
+    public string Injects { get; } = injects;
+
+    public override string Message
+        => $"«{Pattern}» may not use «{Word}» as glue: «{Word}» is how the compiler builds the " +
+           $"injected name «{Injects}». A pattern that reserves it makes that name illegal " +
+           "everywhere this pattern is in scope. Respell the pattern.";
 }
 
 /// <summary>A multi-word name contains a word that is glue in some pattern.</summary>

@@ -269,6 +269,30 @@ internal sealed class Resolver
         cell.Offer(1 + cost, new Node.Group(parts), count);
     }
 
+    /// <summary>
+    ///     Whether a span could be a name, which is to say whether it is words
+    ///     and nothing else.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     LOAD-BEARING, far beyond this method. Every argument that a glue word
+    ///     is safe to leave unreserved rests on this one line: a name cannot
+    ///     contain a bracket or a symbol, so it cannot STRADDLE one, so a word
+    ///     sitting beside a bracket cannot be swallowed by a longer name. That is
+    ///     why «send (hello) to alice» is safe where «send hello to alice» is
+    ///     not, and it is the whole of why bracket-delimited and symbol-separated
+    ///     patterns cost nothing.
+    ///     </para>
+    ///     <para>
+    ///     The exhaustive searches did not verify that. They counted TIES —
+    ///     45,131,520 resolutions across the bracket runs, 2,382,240 in the
+    ///     original, and ties are all any of them measured. The no-capture
+    ///     property is structural and comes from here, so widening what may be
+    ///     part of a name would invalidate it silently and no fuzzer would
+    ///     notice. <c>ANameIsWordsAndNothingElse</c> is the test that would.
+    ///     </para>
+    /// </remarks>
     private static bool AllWords(IReadOnlyList<Lexeme> lexemes, int i, int j)
     {
         for (var k = i; k < j; ++k) if (lexemes[k].Kind is not LexemeKind.Word) return false;
