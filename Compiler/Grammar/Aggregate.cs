@@ -63,6 +63,12 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
     }
 
     /// <summary>
+    ///     Whether this aggregate sequences statements, which are separated by a
+    ///     terminator, rather than values, which are separated by commas.
+    /// </summary>
+    private static bool Statements => typeof(TSeparator) == typeof(Terminal);
+
+    /// <summary>
     ///     The last token an element consumed, so the loop above can tell a
     ///     statement that ended with a brace from one that did not.
     /// </summary>
@@ -111,12 +117,19 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
             // to be rejected rather than read as two elements.
             if (parser.TryAdvance<TSeparator>() is false)
             {
-                // Unless the element ended with a block, which already says
-                // where it stops. Requiring «;» after «if x { … }» meant a
-                // braced statement could be the LAST thing in a block and
-                // nothing else — «function f { if x { return 1; } return 2; }»
-                // did not compile, which is most programs.
-                if (Ended(started, parser) is Close.Brace) continue;
+                // Unless this is a sequence of STATEMENTS and the element ended
+                // with a block, which already says where it stops. Requiring «;»
+                // after «if x { … }» meant a braced statement could be the LAST
+                // thing in a block and nothing else — «function f { if x {
+                // return 1; } return 2; }» did not compile, which is most
+                // programs.
+                //
+                // Scoped to the separator, because this class also parses
+                // comma-delimited values and the exemption leaked into them:
+                // «var nested = { { 1 } { 2 } };» was accepted with the comma
+                // missing. A brace ends a statement; it does not end a list
+                // element.
+                if (Statements && Ended(started, parser) is Close.Brace) continue;
 
                 if (parser.TryAdvance<TClose>() is false) return null;
 

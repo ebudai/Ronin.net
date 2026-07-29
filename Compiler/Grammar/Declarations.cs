@@ -149,7 +149,16 @@ internal sealed class Declarations
         // No shadow of its own. «old index of bank» would be the previous
         // iteration's counter, which is the current one minus one, and a synonym
         // that looks like it means something is what «old pi» was refused for.
+        // Through the same refusal, because it is a declaration too. Skipping
+        // it meant an existing «index of bank» let the symbol set silently
+        // absorb the duplicate while the diagnostic metadata took a second
+        // entry — and the rules key names into a dictionary, so the compiler
+        // died on the collision it was meant to report. Declaring the same name
+        // INSIDE the loop was refused correctly the whole time; declaring it
+        // first killed the process.
         var counter = Index + name;
+
+        if (Refused(counter, span)) return;
 
         written[counter] = span;
         Symbols.WithNames(counter);

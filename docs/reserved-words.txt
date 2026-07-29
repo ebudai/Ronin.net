@@ -6,11 +6,12 @@
 ## RESERVED (0)
 
 
-## RESERVES NOTHING (1) — all words precede the first hole
+## RESERVES NOTHING (1) — every hole before a word is determinate
 
     for each <_> in (_)
 
-## PROTECTED (2) — no pattern may use these as glue
+## PROTECTED (3) — no pattern may use these as glue
 
+    old          builds old «a reactive name», and is refused in any segment, not only glue
     index        builds index of «a loop variable»
     of           builds index of «a loop variable»

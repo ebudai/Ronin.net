@@ -216,6 +216,58 @@ public class Resolutions
         }
     }
 
+    [Theory(DisplayName = "a tie buried under composition still shows both readings")]
+    [InlineData("sum of list")]                 // the tie itself, as the control
+    [InlineData("(sum of list) + x")]           // under an operator
+    [InlineData("((sum of list))")]             // under a group, and a second one
+    [InlineData("compute (sum of list)")]       // under an outer pattern
+    [InlineData("x + (sum of list) + x")]       // with something either side of it
+    public void ATieBuriedUnderCompositionStillShowsBothReadings(string source)
+    {
+        // The top cell of «(sum of list) + x» has ONE derivation — the operator
+        // combines two operands and does not care that one of them was a tie —
+        // so the readings it carried were a single entry, and the message said
+        // "bracket an argument to choose" while printing one choice. The bracket
+        // is already there; the ambiguity is inside it.
+        //
+        // Two witnesses prove and explain a tie, and no number beyond two adds
+        // anything, so the innermost ambiguous span is what gets reported.
+        SymbolTable symbols = new();
+        symbols.WithNames("list", "of list", "x").WithPatterns("sum _", "sum of _", "compute _");
+
+        var tie = new Resolver(symbols).Resolve(source);
+
+        Assert.Equal("Ambiguous", tie.Kind.ToString());
+        Assert.Equal(["sum «of list»", "sum of «list»"], tie.Readings);
+    }
+
+    [Theory(DisplayName = "a multi-word keyword matches however it was spaced")]
+    [InlineData("for each bank in banks")]
+    [InlineData("for  each bank in banks")]
+    [InlineData("for\teach bank in banks")]
+    [InlineData("for\n each bank in banks")]
+    public void AMultiWordKeywordMatchesHoweverItWasSpaced(string source)
+    {
+        // The lexer accepted every spacing and the grammar was happy, because
+        // «Assert.IsType<ForEach>» only asks what the token is. A pattern is
+        // matched against LEXEMES, and a lexeme carried the source slice — so
+        // «for  each» produced a lexeme no segment equalled, and the resolver
+        // failed to match a header the parser had just accepted.
+        //
+        // The canonical spelling closes the split at the one place the two
+        // layers meet, which is why this asks the resolver rather than the
+        // parser.
+        SymbolTable symbols = new();
+        symbols.WithNames("banks", "bank");
+
+        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add(builtin);
+
+        var resolution = new Resolver(symbols).Resolve(source);
+
+        Assert.Equal("Resolved", resolution.Kind.ToString());
+        Assert.Equal("for each «bank» in «banks»", resolution.Reading);
+    }
+
     private static void Repairs(string[] names, string[] patterns, string ambiguous, string[] repairs)
     {
         SymbolTable symbols = new();
@@ -271,6 +323,24 @@ public class Resolutions
 
         Assert.Equal(first.GetHashCode(), same.GetHashCode());
         Assert.NotEqual(first.GetHashCode(), different.GetHashCode());
+
+        // The pin is part of identity, so it is part of the hash. Left out, the
+        // pinned and unpinned spellings of the same segments landed in one
+        // bucket, where they compare unequal and collide for as long as both
+        // exist — and both do, since the free-hole loop is what the pinned one
+        // replaced and the tests still resolve against it.
+        // Built rather than parsed: «Pattern.Parse» has no spelling for a pin, so
+        // the two differ in nothing a string can express.
+        string[] segments = ["for each", null, "in", null];
+
+        Pattern free = new(segments);
+        Pattern pinned = new(segments, [1]);
+
+        Assert.Equal(free.Segments, pinned.Segments);
+        Assert.False(free.Equals(pinned));
+        Assert.NotEqual(free.GetHashCode(), pinned.GetHashCode());
+
+        Assert.Equal(pinned.GetHashCode(), new Pattern(segments, [1]).GetHashCode());
     }
 
     [Fact(DisplayName = "a group holds one part or several")]

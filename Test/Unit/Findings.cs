@@ -209,9 +209,6 @@ public class Findings
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
 
-            Player.ron:2:10: «index of bank», injected by «bank», collides with pattern glue «of» from «item (_) of (_)». Rename «bank», or respell the pattern.
-                Player.ron:1:10: which makes it glue
-
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring
 

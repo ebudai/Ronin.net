@@ -11,11 +11,13 @@ namespace Integration;
 /// <remarks>
 ///     <para>
 ///     The spelling was chosen in LOOPSYNTAX.md over «iterate banks =&gt; bank».
-///     It is safe because a multi-word name may not contain «in», so a loop
-///     header has exactly one and there is exactly one place to split it. Without
-///     that rule the failure is not an ambiguity anyone would see — it is a
-///     strictly cheaper wrong reading, and the resolver here reproduces it
-///     exactly as the design note says:
+///     It is safe because the loop variable is PINNED to one word, so a header
+///     has exactly one place to split and «in» stays an ordinary word. The first
+///     way to get that guarantee was to reserve «in» against names; pinning gets
+///     the same one without taking a word away from anyone. Without either, the
+///     failure is not an ambiguity anyone would see — it is a strictly cheaper
+///     wrong reading, and the resolver here reproduces it exactly as the design
+///     note says:
 ///     </para>
 ///     <code>
 ///     name declared elsewhere   3 lookups   for each «order» in «transit in count of banks»

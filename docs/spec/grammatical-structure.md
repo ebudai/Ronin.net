@@ -39,20 +39,28 @@ Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded
 - body is a ***definition***
 ### 4.5.4 Iterating
 `for each` *loop variable* `in` *collection* *body*
-- loop variable is a ***words***
+- loop variable is a ***word***, or a ***bracketed name***
 - collection is a ***reference***
 - body is a ***definition***
 
-`in` is the loop pattern's glue, and glue words are reserved against names.  A
-multi-word name containing `in` would make the split point in a loop header
-ambiguous — and the competing readings do not tie, so nothing would report it.
-A name that is exactly `in` cannot capture anything and is refused for
-legibility rather than for safety.
+**The loop variable is pinned to one word.**  A multi-word name goes in
+brackets: `for each (order in transit) in shipments`.  The pin is what makes a
+loop header have exactly one reading — a free-growing variable could swallow the
+`in` and take part of the collection with it, and the competing readings do not
+tie, so nothing would report it.
 
-The reservation is a scope rule and not a lexical one: `in` is an ordinary word
-to the lexer, so the rule can name the pattern responsible, applies only where
-that pattern is in scope, and can be withdrawn if the pattern ever stops
-needing it.
+`in` is **not reserved**.  It was, and the reservation was the first way to
+force one reading; pinning gets the same guarantee without taking a word away
+from anyone.  A hole fixed at one token cannot grow across the word that follows
+it, so the split point is determined by the pattern's shape rather than by a
+rule about names.  `var minutes in transit => Number;` is legal, and so is a
+loop over it.
+
+That generalises: a pattern reserves a glue word only where the hole before it
+could grow over that word.  A hole is **determinate** when it cannot — pinned to
+one token, or required to be bracketed — and glue after a determinate hole costs
+nothing.  `docs/reserved-words.txt` is generated from that condition and
+currently lists no reserved words at all.
 
 A loop injects one name into its body: `index of` followed by the loop
 variable, so `for each bank in banks` gives `index of bank`.  It is derived from
@@ -82,7 +90,14 @@ wherever it is in scope.
 A collection of zero or more specific syntax separated by a given delimiter.  The sequence cannot be ended by the delimiter unless otherwise specified.
 ### 4.6.1 Definition
 `{` (***statement***`;`)* `}`
-- ***statement*** sequence must be ended by `;`
+- a ***statement*** whose last token is `}` needs no `;`, and neither does the
+  last statement before the closing `}`
+
+The elision is what makes `function f { if x { return 1; } return 2; }` — a
+block followed by another statement, which is most programs — read the way it
+looks.  A `;` there is permitted and means the same thing.  The elision is
+scoped to statement sequences: a list or a lookup still needs its commas, so
+`{ { 1 } { 2 } }` is two values with no separator and is refused.
 ### 4.6.2 Inputs
 `(` (***value***|***assignment***`,`)* `)`
 ### 4.6.3 List

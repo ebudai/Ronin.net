@@ -6,6 +6,44 @@ namespace Ronin.Lexicon;
 
 internal class Keyword : Word
 {
+    /// <summary>
+    ///     The spelling a pattern is written with, whatever whitespace the
+    ///     author used inside it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     «for  each» and «for each» are the same keyword, and the lexer says
+    ///     so — but a lexeme carried the source slice verbatim, so the resolver
+    ///     compared «for  each» against a pattern anchor of «for each» and did
+    ///     not match. The grammar accepted the statement and the resolver would
+    ///     not read it, which is a split that only shows up when the two are
+    ///     joined.
+    ///
+    ///     Computed rather than stored, because <see cref="Token.Memory"/> is a
+    ///     slice of the source and <see cref="Token.Offset"/> is derived from
+    ///     where it was cut from — replacing it would move every span.
+    /// </remarks>
+    public string Canonical
+    {
+        get
+        {
+            var text = Memory.Span;
+
+            // Any whitespace at all, not merely a doubled one: a single tab is
+            // one character and still not the space the pattern is written with.
+            // A single-word keyword has none, so it never allocates.
+            foreach (var character in text)
+            {
+                if (char.IsWhiteSpace(character) is false) continue;
+
+                return string.Join(' ', Memory.ToString()
+                                              .Split((char[])null, System.StringSplitOptions.RemoveEmptyEntries));
+            }
+
+            return Memory.ToString();
+        }
+    }
+
     public static new Word Lex(ref Lexer lexer)
         => Modifier.Lex(ref lexer)
         ?? Mutability.Lex(ref lexer)

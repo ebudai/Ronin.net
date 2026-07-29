@@ -62,7 +62,11 @@ internal static class Lexemes
              token = token.Next as Token)
         {
             if (token is Trivium) continue;
-            lexemes.Add(new Lexeme(KindOf(token), token.Memory.ToString()));
+            // A keyword's CANONICAL spelling, not its source slice: «for  each»
+            // is the same keyword as «for each» and has to be the same lexeme,
+            // or the grammar accepts a statement the resolver will not read.
+            lexemes.Add(new Lexeme(KindOf(token),
+                                   token is Keyword keyword ? keyword.Canonical : token.Memory.ToString()));
         }
 
         return lexemes;

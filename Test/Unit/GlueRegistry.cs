@@ -10,10 +10,12 @@ namespace Unit;
 ///
 /// <remarks>
 ///     <para>
-///     Adding a pattern with a word after its first hole reserves that word in
-///     every scope the pattern reaches — names that were legal stop being legal.
-///     Nothing noticed that before, which is the whole reason this exists: it
-///     turns "we silently broke everyone's names" into a reviewable diff.
+///     Adding a pattern with a word after an INDETERMINATE hole reserves that
+///     word in every scope the pattern reaches — names that were legal stop
+///     being legal. Nothing noticed that before, which is the whole reason this
+///     exists: it turns "we silently broke everyone's names" into a reviewable
+///     diff. A hole that cannot grow — pinned, or required to be bracketed —
+///     costs nothing, which is why the current registry reserves no word at all.
 ///     </para>
 ///     <para>
 ///     Generated from the language's own patterns rather than transcribed, so it

@@ -37,9 +37,6 @@ internal enum FindingKind
     /// <summary>A name that is exactly a word some pattern uses as glue.</summary>
     GlueAsName,
 
-    /// <summary>The same as GlueInName, for a name the compiler injected.</summary>
-    GlueInInjectedName,
-
     /// <summary>A ring of whens, each writing something the next reads.</summary>
     CascadeRing,
 
@@ -218,34 +215,6 @@ internal sealed class GlueInName(Span primary, string name, string word, string 
         => $"«{Name}» contains «{Word}», which is glue in «{Pattern}». A name containing glue " +
            "silently re-reads statements that already worked, so one of the two has to be " +
            "respelled — and it is the later declaration that gives way.";
-}
-
-/// <summary>
-///     A name the compiler injected that contains pattern glue.
-/// </summary>
-///
-/// <remarks>
-///     Removed once, when the only injected name was «old x» — that adds a
-///     single word, «old», which <see cref="Rules"/> already refuses as a
-///     segment, so an injected name could not offend unless the name it came
-///     from did. A loop's «index of bank» adds two words, and either can be
-///     glue while «bank» is not, so the shape is back and so is the finding.
-///
-///     It names the DECLARATION that caused the injection rather than the
-///     generated name, because «index of bank» is not the programmer's to
-///     rename — the loop variable is.
-/// </remarks>
-internal sealed class GlueInInjectedName(Span primary, string name, string injector, string word, string pattern)
-    : Finding(FindingKind.GlueInInjectedName, primary)
-{
-    public string Name { get; } = name;
-    public string Injector { get; } = injector;
-    public string Word { get; } = word;
-    public string Pattern { get; } = pattern;
-
-    public override string Message
-        => $"«{Name}», injected by «{Injector}», collides with pattern glue «{Word}» from " +
-           $"«{Pattern}». Rename «{Injector}», or respell the pattern.";
 }
 
 /// <summary>

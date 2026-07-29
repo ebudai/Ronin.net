@@ -90,6 +90,31 @@ public class LoopIndex
         Assert.Equal("first declared here", Assert.Single(shadowed.Related).Label);
     }
 
+    [Fact(DisplayName = "declaring it first collides too, and says so from the other side")]
+    public void DeclaringItFirstCollidesTooAndSaysSoFromTheOtherSide()
+    {
+        // The order that used to kill the compiler. The injected counter went
+        // into the symbol set without going through the refusal, so the second
+        // «index of bank» was absorbed silently while the diagnostic metadata
+        // took a second entry — and that metadata is keyed by name, so the
+        // process died on the collision it existed to report. Declaring it
+        // INSIDE the loop was refused correctly the whole time, which is why one
+        // order passing proved nothing about the other.
+        var shadowed = Assert.IsType<Shadowed>(Assert.Single(Of("""
+                                                                var index of bank => Number;
+                                                                for each bank in banks { return bank; }
+
+                                                                """).Findings));
+
+        Assert.Equal("index of bank", shadowed.Name);
+
+        // The loop is the later declaration, so it is the one asked to give way
+        // — and «in an enclosing scope», because the var is at file level and
+        // the counter is injected into the body.
+        Assert.Equal("in an enclosing scope", shadowed.Where);
+        Assert.Equal("first declared here", Assert.Single(shadowed.Related).Label);
+    }
+
     [Fact(DisplayName = "the counter follows the variable's name")]
     public void TheCounterFollowsTheVariablesName()
     {
@@ -99,25 +124,28 @@ public class LoopIndex
         Assert.DoesNotContain("index of bank", Body("for each holding in banks { return index of holding; }\n"));
     }
 
-    [Fact(DisplayName = "a counter that breaks a rule blames the loop, not itself")]
-    public void ACounterThatBreaksARuleBlamesTheLoopNotItself()
+    [Fact(DisplayName = "a pattern that would break the counter is refused, once")]
+    public void APatternThatWouldBreakTheCounterIsRefusedOnce()
     {
-        // 4, and the reason the injected-name finding exists at all. «of» is
-        // glue in «item (_) of (_)», so the counter contains glue while the loop
-        // variable does not — a shape «old x» could never produce, because it
-        // adds only the one word the segment rules already refuse.
-        var findings = Of("""
-                          function item (which => Number) of (list => Number) { return which; }
-                          for each bank in banks { return bank; }
+        // 4, and the shape of the answer changed while this was being written.
+        // «of» is how the counter's name is built, so a pattern making it glue
+        // would make every loop in scope illegal — and the rule catches that at
+        // the PATTERN, which is one finding with one repair.
+        //
+        // It used to also run the invalid pattern through the name scan, so each
+        // loop collected its own complaint about a mistake it did not make. Now
+        // a structurally invalid pattern takes no further part, which is what
+        // makes the count independent of how many loops the file has.
+        foreach (var loops in (int[])[0, 1, 3])
+        {
+            var source = "function item (which => Number) of (list => Number) { return which; }\n"
+                       + string.Concat(Enumerable.Range(0, loops)
+                                                 .Select(each => $"for each bank{each} in banks {{ return bank{each}; }}\n"));
 
-                          """).Findings;
+            var finding = Assert.Single(Of(source).Findings);
 
-        var glue = Assert.IsType<GlueInInjectedName>(Assert.Single(findings, finding => finding is GlueInInjectedName));
-
-        Assert.Equal("index of bank", glue.Name);
-        Assert.Equal("bank", glue.Injector);
-        Assert.Equal("of", glue.Word);
-        Assert.Equal("item (_) of (_)", glue.Pattern);
+            Assert.Equal("item (_) of (_)", Assert.IsType<InjectionWordAsGlue>(finding).Pattern);
+        }
     }
 
     /// <summary>The names the loop body declares, which is a nested scope.</summary>

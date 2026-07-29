@@ -61,6 +61,24 @@ public class NameInvariant
     [Fact(DisplayName = "a name is words and nothing else")]
     public void ANameIsWordsAndNothingElse()
     {
+        // The predicate itself, over every lexeme kind there is. Asserted
+        // DIRECTLY and not inferred from what a statement costs: costs are a
+        // thing someone may reasonably change, and a change to them must not be
+        // able to quietly retire the structural rule underneath.
+        foreach (var kind in Enum.GetValues<LexemeKind>())
+        {
+            IReadOnlyList<Lexeme> span = [new Lexeme(LexemeKind.Word, "hello"),
+                                          new Lexeme(kind, "x"),
+                                          new Lexeme(LexemeKind.Word, "alice")];
+
+            Assert.Equal(kind is LexemeKind.Word, Resolver.CanName(span, 0, span.Count));
+        }
+
+        // and the ends of a span count as much as its middle
+        Assert.False(Resolver.CanName([new Lexeme(LexemeKind.Open, "("), new Lexeme(LexemeKind.Word, "a")], 0, 2));
+        Assert.False(Resolver.CanName([new Lexeme(LexemeKind.Word, "a"), new Lexeme(LexemeKind.Close, ")")], 0, 2));
+
+
         // The capture that R5 exists to prevent: a longer name swallows a call
         // segment, costs FEWER lookups because a name is one lookup and a call
         // is more, and wins outright. Nothing reports it — the reading is unique.

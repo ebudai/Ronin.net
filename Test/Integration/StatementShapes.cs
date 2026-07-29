@@ -88,6 +88,28 @@ public class StatementShapes
         }
     }
 
+    [Theory(DisplayName = "the elision is the statement aggregate's, and no other's")]
+    [InlineData("var nested values = { { 1 } { 2 } };\n", "var nested values = { { 1 }, { 2 } };\n")]
+    [InlineData("var lookup = { { 1 } = { 2 } { 3 } = { 4 } };\n", "var lookup = { { 1 } = { 2 }, { 3 } = { 4 } };\n")]
+    [InlineData("var r = f ({ 1 } { 2 });\n", "var r = f ({ 1 }, { 2 });\n")]
+    public void TheElisionIsTheStatementAggregatesAndNoOthers(string missing, string separated)
+    {
+        // The generator above cannot see this. It exercises the aggregate at its
+        // statement instantiation, and the elision was written into the generic
+        // one — so lists, lookups and input blocks quietly stopped needing their
+        // commas, and every program in this file still passed.
+        //
+        // A braced value ends in «}» exactly as a braced statement does, which is
+        // why the rule could not tell them apart by looking at the tokens. It has
+        // to ask which aggregate it is.
+        var head = "function f (a => Number, b => Number) { return a; }\n";
+
+        Assert.Equal(FindingKind.Malformed,
+                     Assert.Single(Compilation.Of(new SourceText(head + missing, "P.ron")).Findings).Kind);
+
+        Assert.Empty(Compilation.Of(new SourceText(head + separated, "P.ron")).Findings);
+    }
+
     private static IEnumerable<(string Name, string Source)[]> Sequences(int length)
     {
         if (length is 0) return [[]];

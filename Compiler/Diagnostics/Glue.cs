@@ -58,6 +58,10 @@ internal static class Glue
     /// <remarks>
     ///     Patterns that reserve nothing are listed too, and deliberately: the
     ///     shape to prefer is only visible beside the shape that costs something.
+    ///     The heading says «determinate», not «all words precede the first hole»,
+    ///     because the second is the common case and not the condition — «for each
+    ///     (_) in (_)» has a word after a hole and still reserves nothing, since
+    ///     the hole it follows is PINNED and so cannot grow over it.
     /// </remarks>
     public static string Registry(IEnumerable<Pattern> patterns)
     {
@@ -79,7 +83,7 @@ internal static class Glue
         var free = declared.Where(pattern => pattern.Glue.Any() is false).ToArray();
 
         registry.AppendLine();
-        registry.AppendLine($"## RESERVES NOTHING ({free.Length}) — all words precede the first hole");
+        registry.AppendLine($"## RESERVES NOTHING ({free.Length}) — every hole before a word is determinate");
         registry.AppendLine();
 
         foreach (var pattern in free) registry.AppendLine($"    {pattern}");
@@ -87,11 +91,22 @@ internal static class Glue
         // The dual list. Glue words may not be names; injection words may not be
         // glue — and a reader of this file wants both directions, because they
         // are the same trap seen from either end.
+        //
+        // «old» is here because it is protected, not because it is protected the
+        // same way: it is refused in ANY segment and reported as a reserved word,
+        // where «index» and «of» are refused as glue. That is a difference in
+        // which rule fires, not in what a pattern author may write, and this file
+        // answers the second question — so leaving it off made the list read as
+        // complete when it was not.
+        var protectedWords = Rules.Injected
+                                  .Prepend((SymbolTable.Old, $"{SymbolTable.Old} «a reactive name», and is refused in any segment, not only glue"))
+                                  .ToArray();
+
         registry.AppendLine();
-        registry.AppendLine($"## PROTECTED ({Rules.Injected.Count}) — no pattern may use these as glue");
+        registry.AppendLine($"## PROTECTED ({protectedWords.Length}) — no pattern may use these as glue");
         registry.AppendLine();
 
-        foreach (var (word, injects) in Rules.Injected) registry.AppendLine($"    {word,-12} builds {injects}");
+        foreach (var (word, injects) in protectedWords) registry.AppendLine($"    {word,-12} builds {injects}");
 
         return registry.ToString();
     }

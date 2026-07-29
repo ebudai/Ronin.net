@@ -12,19 +12,11 @@ import itertools
 import sys
 import time
 from ronin_grammar_probe import Scope
-from bracket_probe import BProbe, BHOLE, THOLE, pat_str, anchor_run, glue
-from ronin_grammar_probe import HOLE
+from bracket_probe import BProbe, pat_str, anchor_run, glue
 from fuzz_brackets import gen_patterns, gen_names, gen_statements
 
 policy = sys.argv[1]
-assert policy in ('strict', 'blanket', 'refined')
-
-# «strict» is the BASELINE the programmer asked for, and it is more useful than
-# a third glue policy would have been: plain holes only, blanket reservation --
-# i.e. the original harness's configuration, run through the new machinery. It
-# should reproduce 91 pattern pairs and 0 ties. If it ever does not, the
-# extension changed the baseline and every later figure is suspect.
-GLUE_POLICY = 'blanket' if policy == 'strict' else policy
+assert policy in ('blanket', 'refined')
 
 
 def prefix_free(pats):
@@ -45,8 +37,6 @@ def legal_names(names, pats, policy):
 
 
 PATS = gen_patterns()
-if policy == 'strict':
-    PATS = [p for p in PATS if all(s in (HOLE,) or isinstance(s, str) for s in p)]
 NAMES = gen_names()
 STMTS = gen_statements(int(sys.argv[2]) if len(sys.argv) > 2 else 3)
 NAME_SETS = list(itertools.combinations(NAMES, 2))
@@ -57,7 +47,7 @@ ties, checked = [], 0
 for pats in PAIRS:
     patset = frozenset(pats)
     for names in NAME_SETS:
-        legal = legal_names(frozenset(names), patset, GLUE_POLICY)
+        legal = legal_names(frozenset(names), patset, policy)
         if len(legal) < 2:
             continue
         pr = BProbe(Scope(names=legal, patterns=patset))

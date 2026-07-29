@@ -54,7 +54,17 @@ internal static class Rules
         foreach (var finding in Anchors(patterns)) yield return finding;
         foreach (var finding in Reserved(patterns)) yield return finding;
         foreach (var finding in Injecting(patterns)) yield return finding;
-        foreach (var finding in Glue(names, patterns)) yield return finding;
+
+        // A pattern that is structurally wrong does not then get to reserve
+        // words. «recall (_) old (_)» is refused once for using «old» as a
+        // segment — and it was ALSO run through the name scan, so every mutable
+        // declaration in the file collected its own complaint about the shadow
+        // «old» had just invalidated. Three variables, three extra findings; a
+        // hundred, a hundred. Every one of them had the same repair as the
+        // first, which is the thing the structural finding already says.
+        var sound = patterns.Where(shape => Structural(shape.Pattern) is false).ToArray();
+
+        foreach (var finding in Glue(names, sound)) yield return finding;
     }
 
     /// <summary>
@@ -110,6 +120,16 @@ internal static class Rules
     }
 
     /// <summary>
+    ///     Whether a pattern is wrong in itself, rather than in company. One of
+    ///     these has been reported already and its repair is a respelling, so
+    ///     letting it go on to reserve words produces a second complaint the
+    ///     first one covers.
+    /// </summary>
+    private static bool Structural(Pattern pattern)
+        => pattern.Segments.Contains(SymbolTable.Old)
+        || Injected.Any(injection => pattern.Glue.Contains(injection.Word));
+
+    /// <summary>
     ///     The words the compiler builds injected names from, and the name each
     ///     one builds.
     /// </summary>
@@ -154,7 +174,11 @@ internal static class Rules
         // A shadow is a multi-word name, so injected names are examined too, and
         // they must be: R5 never looks at a one-word declaration, so a collision
         // with «apply (_) smoothed (_)» is reachable ONLY through «old smoothed».
-        var offending = names.ToDictionary(declared => declared.Name, declared => Offender(declared.Name, patterns));
+        // Grouped rather than keyed directly: a name reaching here twice is a
+        // defect upstream, and dying on it here reports the defect instead of
+        // the collision the caller was asking about.
+        var offending = names.GroupBy(declared => declared.Name)
+                             .ToDictionary(declared => declared.Key, declared => Offender(declared.Key, patterns));
 
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
         {
@@ -183,21 +207,14 @@ internal static class Rules
                 continue;
             }
 
-            if (declared.InjectedBy is null)
-            {
-                yield return new GlueInName(primary, declared.Name, word, offender.Pattern.ToString())
-                    .Alongside(related, label);
+            // An injected name never complains on its own. It offends only if
+            // the name it came from does — «old X» and «index of X» add «old»,
+            // «index» and «of», and a pattern making any of those glue is
+            // structurally invalid and was excluded above — so the injector's
+            // finding is always there and always has the same repair.
+            if (declared.InjectedBy is not null) continue;
 
-                continue;
-            }
-
-            // One mistake with one fix, so the injector's complaint covers it.
-            // Indexed rather than probed: whatever injects a name declares it
-            // too, which is what «injected by» means.
-            if (offending[declared.InjectedBy] is not null) continue;
-
-            yield return new GlueInInjectedName(primary, declared.Name, declared.InjectedBy, word,
-                                                offender.Pattern.ToString())
+            yield return new GlueInName(primary, declared.Name, word, offender.Pattern.ToString())
                 .Alongside(related, label);
         }
     }

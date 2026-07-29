@@ -124,7 +124,7 @@ public class Boundaries
     [Fact(DisplayName = "a keyword after the first word is an ordinary word")]
     public void AKeywordAfterTheFirstWordIsAnOrdinaryWord()
     {
-        // Only «in» is reserved outright. Rejecting every keyword at every
+        // No word is reserved outright. Rejecting every keyword at every
         // position took «ready if needed» and «total function count» out of the
         // language, which was never part of the loop decision.
         foreach (var source in (string[])

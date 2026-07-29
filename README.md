@@ -27,11 +27,11 @@ Identifiers in Ronin can any number or *words* or *parameter blocks* in any orde
 
 `compiled`\
 `extend`\
+`for each`\
 `function`\
 `global`\
 `if`\
 `import`\
-`iterate`\
 `hidden`\
 `let`\
 `optional`\
@@ -94,9 +94,9 @@ var slow = if speed < 10 => 3; else => 500;
 ```
 
 ```js
-iterate shoes => shoe
+for each shoe in shoes
 {
-    print line shoe #;
+    print line index of shoe;
 }
 ```
 

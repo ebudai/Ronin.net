@@ -146,7 +146,7 @@ internal sealed class Resolver
         var top = Expressions(0, n, 0);
         if (top.TryBest(out var best) is false) return Resolution.NoParse;
 
-        return best.Count > 1 ? Resolution.Ambiguous(best.Cost, top.Readings)
+        return best.Count > 1 ? Resolution.Ambiguous(best.Cost, Witnesses(n, top))
                               : Resolution.Resolved(best.Cost, best.Node);
     }
 
@@ -163,6 +163,42 @@ internal sealed class Resolver
     ///     through it, so twenty-three expectations said something about the
     ///     splitter and only something about the compiler by agreement.
     /// </remarks>
+    /// <summary>
+    ///     The competing readings to show, which are not always the whole
+    ///     statement's.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A cell keeps every cheapest node at its own span, but hands its
+    ///     parent one node and a count — so the ambiguity travels up through a
+    ///     bracket, a group, an operator or an outer call while the witnesses do
+    ///     not. «(sum of list) + x» came back Ambiguous with a single reading
+    ///     and a message inviting the reader to choose between it and nothing.
+    ///
+    ///     So when the top has only one, the innermost span that has two is the
+    ///     one to show: it is where the tie actually is, and it is the smallest
+    ///     thing the reader has to disambiguate.
+    /// </remarks>
+    private IReadOnlyCollection<string> Witnesses(int n, Cell top)
+    {
+        // Widths ascending, so the FIRST hit is the innermost — and the widest
+        // span is the top itself, which is why the search stops one short of it
+        // and returns the top's own readings. That is the answer for a plain
+        // top-level tie and the only remaining case, so there is no third
+        // outcome to guard against.
+        for (var width = 1; width < n; ++width)
+        {
+            for (var i = 0; i + width <= n; ++i)
+            {
+                var competing = Expressions(i, i + width, 0).Readings.ToArray();
+
+                if (competing.Length > 1) return competing;
+            }
+        }
+
+        return top.Readings.ToArray();
+    }
+
     public Resolution Resolve(string source) => Resolve(Lexemes.Lex(source));
 
     private static Cell[] NewTable(int spans)
@@ -187,7 +223,7 @@ internal sealed class Resolver
 
         if (j - i is 1 && lexemes[i].Kind is LexemeKind.Number) cell.Offer(0, new Node.Literal(lexemes[i].Text));
 
-        if (AllWords(lexemes, i, j))
+        if (CanName(lexemes, i, j))
         {
             var name = string.Join(' ', Enumerable.Range(i, j - i).Select(k => lexemes[k].Text));
             if (symbols.Names.Contains(name)) cell.Offer(1, new Node.Name(name));
@@ -318,7 +354,7 @@ internal sealed class Resolver
         return position;
     }
 
-    private static bool AllWords(IReadOnlyList<Lexeme> lexemes, int i, int j)
+    internal static bool CanName(IReadOnlyList<Lexeme> lexemes, int i, int j)
     {
         for (var k = i; k < j; ++k) if (lexemes[k].Kind is not LexemeKind.Word) return false;
         return true;
@@ -466,7 +502,12 @@ internal sealed class Resolver
         /// </remarks>
         public long Count => Saturating(derivations.Values.Sum());
 
-        public IEnumerable<string> Readings => order.Select(node => node.ToString());
+        /// <remarks>
+        ///     Empty for a span nothing was offered, because the witness search
+        ///     asks every span whether it is ambiguous and most are not spans at
+        ///     all.
+        /// </remarks>
+        public IEnumerable<string> Readings => order?.Select(node => node.ToString()) ?? [];
 
         /// <summary>
         ///     The cheapest reading, when the span has one. Every caller of this
@@ -591,6 +632,11 @@ internal sealed class Pattern : IEquatable<Pattern>
         // vanished from the scope with nothing to show it had.
         Segments = [.. segments];
         Pinned = new HashSet<int>(pinned);
+
+        // Decomposed once. A pattern is immutable, and Anchor was rebuilding its
+        // array on every read — inside R6's ordered pattern-by-pattern loop,
+        // where even a pair rejected on length allocated two.
+        Anchor = [.. Segments.TakeWhile(segment => segment is not null)];
     }
 
     /// <summary>Which holes are fixed to one token.</summary>
@@ -612,7 +658,7 @@ internal sealed class Pattern : IEquatable<Pattern>
     public bool IsOpenEnded => Segments[^1] is null;
 
     /// <summary>The literal words before the first hole. Anchor runs must be prefix free across a scope.</summary>
-    public IReadOnlyList<string> Anchor => [.. Segments.TakeWhile(s => s is not null)];
+    public IReadOnlyList<string> Anchor { get; }
 
     /// <summary>
     ///     Literal segments after the first hole, minus the ones a pinned hole
@@ -651,10 +697,19 @@ internal sealed class Pattern : IEquatable<Pattern>
 
     public override bool Equals(object obj) => Equals(obj as Pattern);
 
+    /// <remarks>
+    ///     <see cref="Pinned"/> is part of equality, so it has to be part of the
+    ///     hash: omitting it put the pinned and unpinned spellings of the same
+    ///     segments in one bucket, where they compare unequal and collide for as
+    ///     long as both exist.
+    /// </remarks>
     public override int GetHashCode()
     {
         HashCode hash = new();
+
         foreach (var segment in Segments) hash.Add(segment);
+        foreach (var pinned in Pinned.Order()) hash.Add(pinned);
+
         return hash.ToHashCode();
     }
 }
@@ -716,11 +771,14 @@ internal sealed class SymbolTable
     ///
     /// <remarks>
     ///     <para>
-    ///     Here for their GLUE. «for each (_) in (_)» is why «in» may not appear
-    ///     in a multi-word name, and that reservation is what makes a loop header
-    ///     have exactly one «in» and therefore exactly one reading — see
-    ///     LOOPSYNTAX.md, which shows the alternative is not a tie but a
-    ///     strictly-cheaper wrong reading that nothing flags.
+    ///     Here for their SHAPE, and it reserves nothing — which is the point.
+    ///     A loop header needs exactly one reading, and the first way to get one
+    ///     was to reserve «in» against names; see LOOPSYNTAX.md, where the
+    ///     alternative is not a tie but a strictly-cheaper wrong reading that
+    ///     nothing flags. Pinning the declaring hole buys the same guarantee for
+    ///     free: a hole fixed at one token cannot grow across the «in» that
+    ///     follows it, so the split point is determined without taking a word
+    ///     away from anyone, and «in» is an ordinary name again.
     ///     </para>
     ///     <para>
     ///     Not in <see cref="Patterns"/>, because today the loop is a grammar
