@@ -3,12 +3,12 @@
 # A word here may not appear in a name wherever its pattern is visible.
 # Adding a line is a breaking change for every program that sees it.
 
-## RESERVED (1)
+## RESERVED (0)
 
-    in           for each (_) in (_)
 
-## RESERVES NOTHING (0) — all words precede the first hole
+## RESERVES NOTHING (1) — all words precede the first hole
 
+    for each <_> in (_)
 
 ## PROTECTED (2) — no pattern may use these as glue
 

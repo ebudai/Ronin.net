@@ -51,6 +51,26 @@ public class GlueRegistry
 
         Assert.Equal([("to", "send (_) to (_)")],
                      Glue.Reserved([Pattern.Parse("send _ to _")]));
+
+        // Consecutive glue words are each reserved: only the one directly after
+        // a PINNED hole is protected by it, and the protection does not carry
+        // along the run.
+        Assert.Equal([("over", "repeat (_) times over"), ("times", "repeat (_) times over")],
+                     Glue.Reserved([Pattern.Parse("repeat _ times over")]));
+    }
+
+    [Fact(DisplayName = "a pinned hole protects the word after it, and only that one")]
+    public void APinnedHoleProtectsTheWordAfterItAndOnlyThatOne()
+    {
+        // The whole of what pinning buys. «for each <_> in (_)» reserves
+        // nothing, where the free-hole version reserved «in» — and a second word
+        // further along would still be reserved, because nothing is pinned in
+        // front of it.
+        Assert.Empty(Glue.Reserved([new Pattern(["for each", null, "in", null], [1])]));
+        Assert.Equal(["in"], new Pattern(["for each", null, "in", null]).Glue);
+
+        Assert.Equal([("over", "take <_> in (_) over")],
+                     Glue.Reserved([new Pattern(["take", null, "in", null, "over"], [1])]));
     }
 
     [Fact(DisplayName = "the registry shows what is free beside what is not")]

@@ -69,46 +69,30 @@ internal class Scope : Statement
 
             if (parser.TryAdvance<ForEach>() is false) return null;
 
-            // «for each <name> in <collection> <body>». «in» is an ordinary
-            // word, not a keyword — reserving it lexically would take it out of
-            // R5's jurisdiction, and R5 is the only thing that can say WHICH
-            // pattern reserved it — so the header is a run of words and this
-            // splits it.
+            // «for each <one word> in <collection> <body>», or a bracketed name
+            // where one word will not do.
             //
-            // At the LAST «in», not the first. R5 guarantees at most one can
-            // appear in a well-formed header, so the two agree wherever it
-            // matters; where they differ the input is already wrong, and the last
-            // one gives «for each in flight order in orders» a loop variable to
-            // complain about instead of no name at all.
-            if (Name.Parse(ref parser) is not Name header)
+            // PINNED: the variable is exactly one token, so the split before
+            // «in» is fixed by construction and no name can grow across it. That
+            // is what lets «in» be an ordinary word — a free-growing hole needs
+            // it reserved, and reserving it costs every program «in flight
+            // order», «logged in user» and «opt in list» forever. The bill
+            // instead is that a multi-word loop variable takes brackets.
+            //
+            // See LEADING-HOLES.md: a pinned hole is determinate in EXTENT,
+            // which is what makes this safe, and not determinate in IDENTITY,
+            // which is why it may not begin a pattern. Here it is interior.
+            if (Variable(ref parser) is not Name name)
             {
                 return new ExpectedNameError { Tokens = Parser.Recover(ref current, parser) };
             }
 
-            var words = header.Tokens.Span;
-            var split = -1;
-
-            for (var word = 0; word < words.Length; ++word)
-            {
-                if (words[word].Memory.Span.SequenceEqual(Separator)) split = word;
-            }
-
-            if (split < 0)
+            if (parser.Token is not Word separator || separator.Memory.Span.SequenceEqual(Separator) is false)
             {
                 return new ExpectedInError { Tokens = Parser.Recover(ref current, parser) };
             }
 
-            if (split is 0)
-            {
-                return new ExpectedNameError { Tokens = Parser.Recover(ref current, parser) };
-            }
-
-            Name name = new() { Tokens = header.Tokens[..split] };
-
-            // resume from whatever followed the «in», which is where the
-            // collection begins — it may be more of the run, or a bracket the
-            // name walk stopped at
-            parser = new Parser(words[split].Next as Token);
+            parser.Advance();
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
@@ -126,10 +110,36 @@ internal class Scope : Statement
             };
         }
 
-        public class ExpectedIterableError : Iterating, IError
+        /// <summary>
+        ///     The loop variable: one word, or a bracketed name of any length.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     One word is taken from the front of whatever the name walk
+        ///     collected, and the rest is left for the header to continue with —
+        ///     «for each open order in banks» therefore does not parse, because
+        ///     «order» is where «in» has to be. That is the whole cost of not
+        ///     reserving «in», and the repair is «for each (open order) in
+        ///     banks».
+        /// </remarks>
+        private static Name Variable(ref Parser current)
         {
-            public string Reason { get; } = "expected list";
-            public ReadOnlyMemory<Token> Tokens { get; init; }
+            Parser parser = current;
+
+            if (parser.TryAdvance<Open.Parenthesis>())
+            {
+                if (Name.Parse(ref parser) is not Name bracketed) return null;
+                if (parser.TryAdvance<Close.Parenthesis>() is false) return null;
+
+                current = parser;
+                return bracketed;
+            }
+
+            if (Name.Parse(ref parser) is not Name header) return null;
+
+            current = new Parser(header.Tokens.Span[0].Next as Token);
+
+            return new Name { Tokens = header.Tokens[..1] };
         }
 
         /// <summary>The word a loop header splits on. Not a keyword — see Name.Parse.</summary>
@@ -138,6 +148,12 @@ internal class Scope : Statement
         public class ExpectedInError : Iterating, IError
         {
             public string Reason { get; } = "expected 'in'";
+            public ReadOnlyMemory<Token> Tokens { get; init; }
+        }
+
+        public class ExpectedIterableError : Iterating, IError
+        {
+            public string Reason { get; } = "expected list";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
 

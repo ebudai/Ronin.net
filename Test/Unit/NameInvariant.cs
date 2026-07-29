@@ -56,13 +56,26 @@ public class NameInvariant
         Assert.Equal("send «hello to alice»", captured.Reading);
 
         // A bracket cannot be inside a name, so the same name cannot reach
-        // across one. The capturing reading is not more expensive here — it
-        // cannot be constructed at all, which is a different and much stronger
-        // guarantee than losing on cost.
+        // across one.
         var safe = Resolve(["hello", "alice", "hello to alice"], "send (hello) to alice");
 
         Assert.Equal("Resolved", safe.Kind.ToString());
         Assert.Equal("send ⟨«hello»⟩ to «alice»", safe.Reading);
+
+        // ABSENT, not merely dearer, and proved by cost rather than asserted by
+        // listing readings — «Readings» carries only the winning cost, so asking
+        // it whether the capturing reading is there answers nothing.
+        //
+        // A name is ONE lookup and the call it swallows is more, so capture is
+        // always the cheaper reading where it can be built at all: unbracketed
+        // it wins at 2. If it could be built across a bracket it would still
+        // cost 2 and would still win. The bracketed statement resolves at 4, so
+        // the cheaper reading was not available to lose — it does not exist.
+        //
+        // This is what fails loudly if someone later lets a name span a bracket:
+        // the cost drops back to 2 and the reading changes with it.
+        Assert.Equal(2, captured.Cost);
+        Assert.Equal(4, safe.Cost);
     }
 
     [Fact(DisplayName = "a symbol cannot be part of a name either")]

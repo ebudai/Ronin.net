@@ -137,8 +137,10 @@ public class Boundaries
             Assert.Empty(Compilation.Of(new SourceText(source, "Player.ron")).Findings);
         }
 
-        // and «in» still is not, wherever it appears
-        Assert.NotEmpty(Compilation.Of(new SourceText("var ready in waiting => Number;\n", "Player.ron")).Findings);
+        // «in» included: it is an ordinary word in every position now, because
+        // the loop's hole is pinned and the split needs no reservation to be
+        // unambiguous. See LoopSyntax.
+        Assert.Empty(Compilation.Of(new SourceText("var ready in waiting => Number;\n", "Player.ron")).Findings);
     }
 
     private static Token First(string source)

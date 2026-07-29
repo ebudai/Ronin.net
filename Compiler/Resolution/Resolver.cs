@@ -293,6 +293,28 @@ internal sealed class Resolver
     ///     notice. <c>ANameIsWordsAndNothingElse</c> is the test that would.
     ///     </para>
     /// </remarks>
+    /// <summary>
+    ///     Where a pinned hole ends: one word, or one bracketed group. Equal to
+    ///     <paramref name="position"/> when neither is there.
+    /// </summary>
+    private static int Unit(IReadOnlyList<Lexeme> lexemes, int position, int end)
+    {
+        if (position >= end) return position;
+
+        if (lexemes[position].Kind is LexemeKind.Word) return position + 1;
+        if (lexemes[position].Kind is not LexemeKind.Open) return position;
+
+        var depth = 0;
+
+        for (var at = position; at < end; ++at)
+        {
+            if (lexemes[at].Kind is LexemeKind.Open) ++depth;
+            else if (lexemes[at].Kind is LexemeKind.Close && --depth is 0) return at + 1;
+        }
+
+        return position;
+    }
+
     private static bool AllWords(IReadOnlyList<Lexeme> lexemes, int i, int j)
     {
         for (var k = i; k < j; ++k) if (lexemes[k].Kind is not LexemeKind.Word) return false;
@@ -324,16 +346,33 @@ internal sealed class Resolver
             yield break;
         }
 
+        // A pinned hole is exactly one word, which is what makes the split
+        // around it structural rather than scored: nothing can grow across it,
+        // so the word after it needs no reserving. Enforced HERE and not only in
+        // the glue calculation, or the pattern would claim a guarantee the
+        // resolver does not give.
+        var pinned = pattern.Pinned.Contains(segment);
+
+        // One word, or one bracketed group where a word will not do. Both are
+        // determinate in EXTENT — the word by being one token, the group by
+        // being matched — which is the property that fixes the split and makes
+        // the word after it safe to leave unreserved.
+        var only = pinned ? Unit(lexemes, position, end) : end;
+
+        if (pinned && only == position) yield break;
+
         if (segment == pattern.Segments.Count - 1)
         {
             // trailing argument: reaches the end of the span, parsed at the
             // pattern's own binding power
+            if (pinned && only != end) yield break;
+
             if (Expressions(position, end, PatternBindingPower).TryBest(out var trailing))
                 yield return (trailing.Cost, [trailing.Node], trailing.Count);
             yield break;
         }
 
-        for (var split = position + 1; split <= end; ++split)
+        for (var split = pinned ? only : position + 1; split <= only; ++split)
         {
             // medial args cross any operator
             if (Expressions(position, split, 0).TryBest(out var argument) is false) continue;
@@ -510,9 +549,24 @@ internal readonly record struct Lexeme(LexemeKind Kind, string Text)
 /// </remarks>
 internal sealed class Pattern : IEquatable<Pattern>
 {
-    public Pattern(IReadOnlyList<string> segments)
+    public Pattern(IReadOnlyList<string> segments) : this(segments, []) { }
+
+    /// <param name="pinned">
+    ///     The holes fixed to exactly one token. A pinned hole is determinate in
+    ///     EXTENT — nothing can grow leftward or rightward across it — so a word
+    ///     beside one cannot be swallowed and needs no reserving. That is what
+    ///     makes «for each «one word» in (_)» cost nothing where «for each (_) in
+    ///     (_)» costs «in».
+    ///
+    ///     Determinate in extent is not determinate in IDENTITY: a pinned hole
+    ///     matches any word, so in LEADING position it would collide with every
+    ///     word-anchored pattern. «&lt;_&gt; b» beside «a (_)» reads «a b» two
+    ///     ways. Interior only, which is where the loop wants it.
+    /// </param>
+    public Pattern(IReadOnlyList<string> segments, IReadOnlyCollection<int> pinned)
     {
         ArgumentNullException.ThrowIfNull(segments);
+        ArgumentNullException.ThrowIfNull(pinned);
         if (segments.Count is 0) throw new ArgumentException("pattern is empty", nameof(segments));
 
         // A pattern beginning with a hole is left recursive: resolving an atom at
@@ -533,7 +587,11 @@ internal sealed class Pattern : IEquatable<Pattern>
         // that made it and by a freshly built equal one, so a declaration simply
         // vanished from the scope with nothing to show it had.
         Segments = [.. segments];
+        Pinned = new HashSet<int>(pinned);
     }
+
+    /// <summary>Which holes are fixed to one token.</summary>
+    public IReadOnlySet<int> Pinned { get; }
 
     /// <summary>The most words and holes one pattern may have.</summary>
     public const int MaxSegments = 128;
@@ -553,12 +611,40 @@ internal sealed class Pattern : IEquatable<Pattern>
     /// <summary>The literal words before the first hole. Anchor runs must be prefix free across a scope.</summary>
     public IReadOnlyList<string> Anchor => [.. Segments.TakeWhile(s => s is not null)];
 
-    /// <summary>Literal segments after the first hole. These are reserved against multi-word names.</summary>
-    public IEnumerable<string> Glue => Segments.Skip(Anchor.Count).Where(s => s is not null);
+    /// <summary>
+    ///     Literal segments after the first hole, minus the ones a pinned hole
+    ///     already protects. These are what a name may not contain.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A word immediately after a pinned hole is safe: the hole is exactly
+    ///     one token, so the split before that word is fixed and no name can grow
+    ///     across it. Reserving it anyway is what «for each (_) in (_)» was
+    ///     charging «in» for, and the charge was unnecessary.
+    /// </remarks>
+    public IEnumerable<string> Glue
+    {
+        get
+        {
+            for (var segment = Anchor.Count; segment < Segments.Count; ++segment)
+            {
+                if (Segments[segment] is null) continue;
 
-    public override string ToString() => string.Join(' ', Segments.Select(s => s ?? "(_)"));
+                // «segment» starts at the anchor length, which is at least one
+                // because a pattern must begin with a word — so there is always
+                // a previous segment to look at.
+                if (Segments[segment - 1] is null && Pinned.Contains(segment - 1)) continue;
 
-    public bool Equals(Pattern other) => other is not null && Segments.SequenceEqual(other.Segments);
+                yield return Segments[segment];
+            }
+        }
+    }
+
+    public override string ToString()
+        => string.Join(' ', Segments.Select((segment, at) => segment ?? (Pinned.Contains(at) ? "<_>" : "(_)")));
+
+    public bool Equals(Pattern other)
+        => other is not null && Segments.SequenceEqual(other.Segments) && Pinned.SetEquals(other.Pinned);
 
     public override bool Equals(object obj) => Equals(obj as Pattern);
 
@@ -646,7 +732,7 @@ internal sealed class SymbolTable
     ///     produce — «for» and «each» as two segments would never match anything.
     ///     </para>
     /// </remarks>
-    public static IReadOnlyList<Pattern> Builtins { get; } = [new Pattern(["for each", null, "in", null])];
+    public static IReadOnlyList<Pattern> Builtins { get; } = [new Pattern(["for each", null, "in", null], [1])];
 
     /// <summary>
     ///     Fixed at language design time. No user defined operators, which is

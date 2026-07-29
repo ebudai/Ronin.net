@@ -49,8 +49,9 @@ public class LoopSyntax
     [Theory(DisplayName = "a loop header has one reading")]
     // 1: the ordinary case
     [InlineData(new[] { "bank", "banks" }, "for each bank in banks", "for each «bank» in «banks»")]
-    // 2: a multi-word loop variable is fine as long as it has no «in» in it
-    [InlineData(new[] { "open order", "banks" }, "for each open order in banks", "for each «open order» in «banks»")]
+    // 2: a multi-word loop variable, which now takes brackets — see the pinned
+    // hole. This is the entire bill for «in» costing nothing.
+    [InlineData(new[] { "open order", "banks" }, "for each (open order) in banks", "for each ⟨«open order»⟩ in «banks»")]
     // 3: the collection may itself be a pattern call
     [InlineData(new[] { "bank", "banks" }, "for each bank in count of banks", "for each «bank» in count of «banks»")]
     public void ALoopHeaderHasOneReading(string[] names, string source, string reading)
@@ -61,49 +62,85 @@ public class LoopSyntax
         Assert.Equal(reading, resolution.Reading);
     }
 
-    [Fact(DisplayName = "the hazard the rule exists for")]
-    public void TheHazardTheRuleExistsFor()
+    [Fact(DisplayName = "the hazard, and the pin that removes it")]
+    public void TheHazardAndThePinThatRemovesIt()
     {
-        // 9. With both names in scope the wrong reading is CHEAPER, so nothing
-        // flags it — the same shape as «send hello to alice», which is what put
-        // R5 in the language. With R5 enforced neither name can exist, and the
-        // statement has no reading at all, which is correct: it was never
-        // writable.
-        const string source = "for each order in transit in count of banks";
+        // 9, and the argument's whole arc in one test.
+        //
+        // With a FREE hole the loop variable could grow leftward across an
+        // earlier «in», and the competing readings did not tie — the capturing
+        // one was strictly cheaper, so nothing reported it. That is why «in» had
+        // to be reserved.
+        var free = new Pattern(["for each", null, "in", null]);
 
-        var captured = Resolve(["order", "transit", "banks", "order in transit", "transit in count of banks"], source);
-        var intended = Resolve(["order", "transit", "banks", "order in transit"], source);
+        Assert.Equal(["in"], free.Glue);
 
-        Assert.Equal("Resolved", captured.Kind.ToString());
-        Assert.Equal("Resolved", intended.Kind.ToString());
+        var captured = Resolve(free, ["order", "transit", "banks", "order in transit", "transit in count of banks"],
+                               "for each order in transit in count of banks");
+        var intended = Resolve(free, ["order", "transit", "banks", "order in transit"],
+                               "for each order in transit in count of banks");
 
         Assert.NotEqual(intended.Reading, captured.Reading);
         Assert.True(captured.Cost < intended.Cost, "the capturing reading has to be the cheaper one");
 
-        // and with the rule doing its job, neither name is declarable
-        Assert.Equal("NoParse", Resolve(["order", "transit", "banks"], source).Kind.ToString());
+        // PINNED, the hole is exactly one token, so there is one split point and
+        // nothing to compete. The statement reads the way it is written whatever
+        // anyone has declared, and «in» costs nothing.
+        var pinned = SymbolTable.Builtins[0];
+
+        Assert.Empty(pinned.Glue);
+
+        foreach (var names in (string[][])
+                 [
+                     ["order", "transit", "banks", "order in transit", "transit in count of banks"],
+                     ["order", "transit", "banks", "transit in count of banks"],
+                 ])
+        {
+            var resolution = Resolve(pinned, names, "for each order in transit in count of banks");
+
+            Assert.Equal("Resolved", resolution.Kind.ToString());
+            Assert.Equal("for each «order» in «transit in count of banks»", resolution.Reading);
+        }
     }
 
-    [Fact(DisplayName = "«in» is reserved at the declaration, not in the lexer")]
-    public void InIsReservedAtTheDeclarationNotInTheLexer()
+    private static Resolution Resolve(Pattern loop, string[] names, string source)
     {
-        // 4 and 7. «in» was a keyword briefly, which reserved it in the lexer:
-        // unconditionally, untypeably, unscopeably, and permanently. It is a
-        // declaration rule now, and that is not a smaller hammer but the right
-        // one — the rule has no safety content. A single-word «in» cannot
-        // capture anything, because capture needs a multi-word name straddling a
-        // hole, which is what GlueInName governs.
-        var single = Assert.IsType<GlueAsName>(Assert.Single(Of("var in => Number;\n")));
+        SymbolTable symbols = new();
+        symbols.WithNames(names).WithPatterns("count of _");
+        symbols.Patterns.Add(loop);
 
-        Assert.Equal("in", single.Name);
-        Assert.Equal("for each (_) in (_)", single.Pattern);
+        return new Resolver(symbols).Resolve(source);
+    }
 
-        // and a multi-word name containing it is the capture case, which is the
-        // one that matters
-        var straddling = Assert.IsType<GlueInName>(Assert.Single(Of("var in flight order => Number;\n")));
+    [Fact(DisplayName = "a pinned hole takes a word or a bracket and nothing else")]
+    public void APinnedHoleTakesAWordOrABracketAndNothingElse()
+    {
+        // Determinate in EXTENT is the property, and a literal is neither a word
+        // nor a bracketed group — it has no place a name could be declared.
+        Assert.Equal("NoParse", Resolve(SymbolTable.Builtins[0], ["banks"], "for each 3 in banks").Kind.ToString());
 
-        Assert.Equal("in flight order", straddling.Name);
-        Assert.Equal("for each (_) in (_)", straddling.Pattern);
+        // and pinning works in trailing position too, where the hole has to be
+        // the whole of what is left rather than merely start it
+        var trailing = new Pattern(["take", null], [1]);
+
+        Assert.Equal("Resolved", Resolve(trailing, ["bank", "banks"], "take bank").Kind.ToString());
+        Assert.Equal("NoParse", Resolve(trailing, ["bank", "banks"], "take bank banks").Kind.ToString());
+        Assert.Equal("Resolved", Resolve(trailing, ["open order"], "take (open order)").Kind.ToString());
+    }
+
+    [Fact(DisplayName = "«in» is not reserved at all")]
+    public void InIsNotReservedAtAll()
+    {
+        // It was a lexer keyword, then a declaration rule, and now nothing. The
+        // pinned hole makes the split structural, so there is no capture to
+        // prevent and no legibility argument strong enough to charge every
+        // program «in flight order», «logged in user» and «opt in list» for.
+        Assert.Empty(Of("var in => Number;\n"));
+        Assert.Empty(Of("var in flight order => Number;\n"));
+        Assert.Empty(Of("var logged in user => Number;\n"));
+
+        // and the registry says so
+        Assert.Empty(Glue.Reserved(SymbolTable.Builtins));
     }
 
     [Fact(DisplayName = "a single-word «in» never could capture anything")]
@@ -133,7 +170,7 @@ public class LoopSyntax
         // the lexer now takes «in» first.
         var findings = Of("""
                           function send (x => Number) to (y => Number) { return x; }
-                          for each hello to alice in orders { return alice; }
+                          for each (hello to alice) in orders { return alice; }
 
                           """);
 

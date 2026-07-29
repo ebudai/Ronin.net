@@ -1,0 +1,6 @@
+policy blanket
+units 576
+pairs 2463
+resolutions 96985728
+ties 0
+seconds 286.0

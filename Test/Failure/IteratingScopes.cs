@@ -40,9 +40,9 @@ public class IteratingScopes
         // «7» is not a name at all, and the loop variable is a declaration site
         Assert.IsType<Scope.Iterating.ExpectedNameError>(Only("for each 7 in horses { run the horse; }\n"));
 
-        // and «in» first means the split leaves nothing on the left of it —
-        // a header that is all collection and no variable
-        Assert.IsType<Scope.Iterating.ExpectedNameError>(Only("for each in horses { run the horse; }\n"));
+        // «in» is an ordinary word now, so «for each in horses» takes «in» as
+        // the variable and then finds «horses» where the separator should be
+        Assert.IsType<Scope.Iterating.ExpectedInError>(Only("for each in horses { run the horse; }\n"));
     }
 
     [Fact(DisplayName = "missing 'in'")]
@@ -51,6 +51,25 @@ public class IteratingScopes
         // «for each car cars fast colour = 3;» — no «in», so nothing separates
         // the variable from what it walks
         Assert.IsType<Scope.Iterating.ExpectedInError>(Only("for each car cars fast colour = 3;\n"));
+    }
+
+    [Fact(DisplayName = "nothing at all where the separator goes")]
+    public void NothingAtAllWhereTheSeparatorGoes()
+    {
+        // Not merely the wrong word — no word. The variable is pinned to one
+        // token, so whatever follows it has to be «in» and there may be nothing
+        // else there at all.
+        Assert.IsType<Scope.Iterating.ExpectedInError>(Only("for each bank;\n"));
+    }
+
+    [Fact(DisplayName = "a bracketed variable that is not a name")]
+    public void ABracketedVariableThatIsNotAName()
+    {
+        // Brackets are how a multi-word loop variable is written now, so the two
+        // ways of getting them wrong need saying: nothing inside them, and
+        // nothing closing them.
+        Assert.IsType<Scope.Iterating.ExpectedNameError>(Only("for each () in horses { run the horse; }\n"));
+        Assert.IsType<Scope.Iterating.ExpectedNameError>(Only("for each (fast horse in horses { run it; }\n"));
     }
 
     [Fact(DisplayName = "missing iterable")]
