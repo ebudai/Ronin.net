@@ -173,6 +173,12 @@ public class Evaluations
         Pattern shape = new(["compare", null]);
 
         Assert.Throws<ArgumentException>(() => new Declaration(shape, [["a", "a"]], (_, _) => null));
+
+        // A hole that binds nothing passes a duplicate check vacuously, which is
+        // how «ping (_)» survived: a pattern with a hole and a block no ordinary
+        // argument can fill.
+        Assert.Throws<ArgumentException>(() => new Declaration(shape, [[]], (_, _) => null));
+        Assert.Throws<ArgumentException>(() => new Declaration(shape, [null], (_, _) => null));
         Assert.Throws<ArgumentException>(() => new Declaration(shape, [[null]], (_, _) => null));
         Assert.Throws<ArgumentException>(() => new Declaration(shape, [[" "]], (_, _) => null));
     }

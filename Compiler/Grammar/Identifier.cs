@@ -147,19 +147,6 @@ internal class Identifier : IEnumerable<Identifier.Component>
         blocks = [.. Components.Where(component => component.AsParameters is not null)
                                .Select(component => (IReadOnlyList<string>)[.. component.AsParameters.Select(Named)])];
 
-        // Width is checked HERE and not left to the constructor's guard. That
-        // guard is an invariant for direct construction and throws, and a
-        // declaration wide enough to trip it is ordinary source — so the bound
-        // introduced to refuse hostile input would have become a fatal path of
-        // its own.
-        Width = segments.Count;
-        IsPattern = blocks.Count is not 0;
-
-        // At least one segment always: Parse refuses an identifier with no
-        // components, and every component contributes one — a name its words, a
-        // parameter block its hole.
-        BeginsWithHole = segments[0] is null;
-
         // Having holes is what makes it a pattern, and it is the ONLY thing that
         // does. Deciding by width alone reported a 129-word plain NAME as a
         // pattern too wide, quoting a limit on a matcher it will never enter.
@@ -169,34 +156,44 @@ internal class Identifier : IEnumerable<Identifier.Component>
             return false;
         }
 
-        // Width BEFORE writability, because «||» is ordered and writability is
-        // the expensive one: it renders the whole shape and lexes it back. A
-        // bound that exists to refuse hostile input should not do that work
-        // first — and the claim in Declarations that the readback "is not even
-        // reached" was false while it happened here.
-        pattern = BeginsWithHole || segments.Count > Compiler.Pattern.MaxSegments || Writable is false
-                ? null
-                : new Compiler.Pattern(segments);
+        // No guard of its own. Every shape the constructor throws on is refused
+        // before this is called — one analysis, in one place, so that what a
+        // declaration is checked for does not depend on which path reached it.
+        // Repeating the tests here made them a second opinion that could drift,
+        // and each one of them cost the work it was meant to avoid.
+        pattern = new Compiler.Pattern(segments);
 
-        return pattern is not null;
+        return true;
     }
 
-    /// <summary>Whether the last <see cref="TryPattern"/> saw a parameter block.</summary>
-    public bool IsPattern { get; private set; }
+    /// <summary>
+    ///     Whether this identifier has a hole, which is what makes it a pattern
+    ///     rather than a plain name.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Computed from <see cref="Shaped"/>, like everything else about the
+    ///     shape, so that asking does not depend on <see cref="TryPattern"/>
+    ///     having been called first. A PARAMETER's identifier never calls it —
+    ///     it is flattened straight to a runtime name — so every property
+    ///     recorded there read as its default for exactly the declarations that
+    ///     most needed asking, and «function outer ((x =&gt; Number) rounded)»
+    ///     became the parameter «rounded» with the hole silently gone.
+    /// </remarks>
+    public bool IsPattern => Shaped.Any(segment => segment is null);
 
     /// <summary>
-    ///     Whether it began with one. Reported rather than constructed, because
+    ///     Whether it begins with one. Reported rather than constructed, because
     ///     the constructor's guard is an invariant for direct construction and
     ///     throws — and «function (x) rounded» is ordinary source.
     /// </summary>
-    public bool BeginsWithHole { get; private set; }
+    public bool BeginsWithHole => Shaped[0] is null;
 
     /// <summary>
-    ///     How many words and holes the last <see cref="TryPattern"/> counted,
-    ///     so a caller can say why a pattern was refused rather than only that it
-    ///     was.
+    ///     How many words and holes it has, so a caller can say why a pattern
+    ///     was refused rather than only that it was.
     /// </summary>
-    public int Width { get; private set; }
+    public int Width => Shaped.Count;
 
     /// <summary>
     ///     Whether the declared words read back as the words declared.

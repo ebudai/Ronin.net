@@ -55,6 +55,7 @@ public class Findings
                      "function (x => Number) rounded { return x; }\n",
                      "function compute part /* gap */ of (x => Number) { return x; }\n",
                      "function ping () { return 1; }\n",
+                     "function outer (callback (x => Number) => Number) { return 1; }\n",
                      """
                      function item (which => Number) of (list => Number) { return which; }
                      for each bank in banks { return bank; }
@@ -211,7 +212,9 @@ public class Findings
 
             Player.ron:1:10: this declares the words «compute» «part» «of» «(_)», and written down they read back as «compute» «part of» «(_)» — a different declaration that spells the same. Two words of a composite keyword have something other than a space between them; close the gap, or respell it.
 
-            Player.ron:1:10: «ping ()» has a bracket with nothing in it. A bracket in a declaration marks one argument, and Ronin has no parameter lists — so «()» is an argument with no name rather than an empty list of them. A function that takes nothing is declared without the brackets.
+            Player.ron:1:10: «ping ()» has a bracket with nothing in it. In a NAME, a bracket marks one argument — «send (message) to (recipient)» is called «send x to y» — so «()» is an argument with no name rather than an empty list of them. A function that takes nothing is declared without the brackets. (A delegate is different: its brackets are a signature, and «() => …» is a delegate of no arguments.)
+
+            Player.ron:1:17: «callback (_)» has a bracket in it, and this position takes a name. A bracket marks an argument, and a parameter is bound to one value rather than taking any — so there is nothing for a hole here to mean. Name it, or declare the pattern separately.
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
 

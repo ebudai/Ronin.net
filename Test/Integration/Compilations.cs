@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using Ronin.Compiler;
+using System.Reflection;
 
 namespace Integration;
 
@@ -232,6 +233,62 @@ public class Compilations
         });
 
         Assert.Empty(failures);
+    }
+
+    [Fact(DisplayName = "a synthesised type is not a syntax node, and does not throw")]
+    public void ASynthesisedTypeIsNotASyntaxNodeAndDoesNotThrow()
+    {
+        // The error walk asks every value it reaches whether it is a syntax
+        // node, and a named type has a namespace — which is true of every type
+        // anyone WRITES and false of the ones the compiler synthesises. A
+        // collection expression assigned to an «IReadOnlyList» produces a
+        // read-only wrapper with no namespace at all, and the moment a grammar
+        // node exposed one, the walk threw on every compilation.
+        //
+        // The member filter keeps those slots out of the walk now, so this is no
+        // longer reached through source — which is exactly why it is asserted
+        // here. The next grammar property returning «[.. something]» of a syntax
+        // type would put the wrapper back in front of it.
+        IReadOnlyList<int> synthesised = [1];
+
+        Assert.Null(synthesised.GetType().Namespace);
+
+        var method = typeof(Compilation).GetMethod("IsSyntax",
+                                                   BindingFlags.NonPublic | BindingFlags.Static,
+                                                   [typeof(Type)]);
+
+        Assert.False((bool)method.Invoke(null, [synthesised.GetType()]));
+        Assert.True((bool)method.Invoke(null, [typeof(Ronin.Grammar.Datum)]));
+    }
+
+    [Theory(DisplayName = "only a slot that could hold a child is read")]
+    // could: a syntax type, a collection of one, or a slot typed loosely enough
+    [InlineData(typeof(Ronin.Grammar.Datum), true)]
+    [InlineData(typeof(object), true)]
+    [InlineData(typeof(IReadOnlyList<Ronin.Grammar.Statement>), true)]
+    [InlineData(typeof(Ronin.Grammar.Statement[]), true)]
+    // could not: the shape of a computed answer, not of a tree
+    [InlineData(typeof(bool), false)]
+    [InlineData(typeof(int), false)]
+    [InlineData(typeof(string), false)]
+    [InlineData(typeof(IReadOnlyList<string>), false)]
+    [InlineData(typeof(string[]), false)]
+    public void OnlyASlotThatCouldHoldAChildIsRead(Type slot, bool read)
+    {
+        // The walk reads every member BEFORE asking whether the answer is
+        // syntax, so a computed property was being evaluated for its side
+        // effects on the clock: «Identifier.Writable» renders the whole shape
+        // and lexes it back, and a «bool» has never held a syntax node. Every
+        // declaration paid that readback here and again in «TryPattern», and an
+        // over-width one paid it in full before the guard that bounds it.
+        //
+        // Generous about what it admits and exact about what it rejects —
+        // «object» is admitted because a slot typed that loosely could hold
+        // anything, and skipping a real child would put this walk back where the
+        // hand-written one was.
+        var method = typeof(Compilation).GetMethod("Holds", BindingFlags.NonPublic | BindingFlags.Static);
+
+        Assert.Equal(read, (bool)method.Invoke(null, [slot]));
     }
 
     [Fact(DisplayName = "unrecognisable input is a problem, not a statement")]

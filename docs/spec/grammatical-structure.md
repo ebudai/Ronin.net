@@ -24,11 +24,20 @@ declaration: `function f => Number { … }` would parse as a datum named
 `function f`.  Anywhere else it is an ordinary word, so `var ready if needed` is
 a name and `function send (x) part of (y)` is a pattern.
 
-A **bracket in a declaration marks one argument**, not a parameter list — Ronin
-has no parameter lists.  `send (message) to (recipient)` is called `send x to
-y`, so `(message)` is one hole with one name.  `()` is therefore a hole with no
-name and is refused: a function that takes nothing is declared `function ping`,
-which is what `ping` is called.
+A **bracket in a name marks one argument**, not a parameter list — a declared
+name has no parameter lists.  `send (message) to (recipient)` is called `send x
+to y`, so `(message)` is one hole with one name.  `()` is therefore a hole with
+no name and is refused: a function that takes nothing is declared `function
+ping`, which is what `ping` is called.
+
+The same bracket in a ***delegate*** is a **signature** and not a name, so it
+does list its parameters: `() => { … }` and `(a, b) => { … }` are both well
+formed.  The distinction is which grammar the bracket sits in, and it is why the
+two rules do not contradict.
+
+A hole in a name is also a hole in a *declared* name only.  A ***parameter*** and
+a ***loop variable*** are names and nothing else — they are bound to one value on
+entry, so there is nothing for a hole in one to mean, and one is refused.
 
 Every hole names its argument.  `(_)` is *pattern notation* — what the registry
 renders when it is describing a shape and the names are not its business — and

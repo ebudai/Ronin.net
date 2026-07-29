@@ -284,17 +284,17 @@ public class StatementShapes
         Assert.Empty(Compilation.Of(new SourceText(source.Replace(" /* gap */ ", " ") + "\n", "P.ron")).Findings);
     }
 
-    [Theory(DisplayName = "a declaration is refused, never fatal, at any width")]
-    [InlineData(128, 0)]
-    [InlineData(128, 1)]
-    [InlineData(128, 2)]
-    [InlineData(129, 0)]
-    [InlineData(129, 1)]
-    [InlineData(129, 2)]
-    [InlineData(130, 0)]
-    [InlineData(130, 1)]
-    [InlineData(130, 2)]
-    public void ADeclarationIsRefusedNeverFatalAtAnyWidth(int filler, int gaps)
+    [Theory(DisplayName = "a declaration at the width bound is refused, never fatal")]
+    [InlineData(128, 0, null)]                            // the legal maximum, exactly
+    [InlineData(128, 1, FindingKind.UnwritableName)]      // at the maximum, and unreadable
+    [InlineData(128, 2, FindingKind.UnwritableName)]
+    [InlineData(129, 0, FindingKind.PatternTooWide)]      // one past it
+    [InlineData(129, 1, FindingKind.PatternTooWide)]      // both, and width has priority
+    [InlineData(129, 2, FindingKind.PatternTooWide)]
+    [InlineData(130, 0, FindingKind.PatternTooWide)]
+    [InlineData(130, 1, FindingKind.PatternTooWide)]
+    [InlineData(130, 2, FindingKind.PatternTooWide)]
+    internal void ADeclarationAtTheWidthBoundIsRefusedNeverFatal(int width, int gaps, FindingKind? expected)
     {
         // Both problems at once. The unwritable finding printed what the words
         // read back AS, and worked that out by parsing — which constructs, and
@@ -304,18 +304,30 @@ public class StatementShapes
         // Width is asked first now, on what was written, and the readback no
         // longer constructs. Either would have been enough; the point of the
         // matrix is that nothing here is fatal.
+        // The WIDTH is the input, and the filler is derived from it — the two
+        // extra segments are «compute» and the trailing hole, and each
+        // interrupted keyword contributes two words rather than one. Counting
+        // filler instead meant the rows labelled 128, 129 and 130 exercised
+        // 130 to 134: every one comfortably over, so none of them tested the
+        // legal maximum and «PatternTooWide» was the answer by construction.
+        var filler = width - 2 - (2 * gaps);
+
         var words = string.Concat(Enumerable.Range(0, filler).Select(each => $"word{each} "));
         var interrupted = string.Concat(Enumerable.Repeat("part /* gap */ of ", gaps));
 
         var source = $"function compute {interrupted}{words}(x => Number) {{ return x; }}\n";
 
-        // Not «Assert.All», which passes on an empty collection and would have
-        // said nothing at all. Each of these is over-width as written, so each
-        // has to produce exactly one finding — and width is asked first, so it
-        // is that one even where the words are also uninterpretable.
-        var finding = Assert.Single(Compilation.Of(new SourceText(source, "P.ron")).Findings);
+        var findings = Compilation.Of(new SourceText(source, "P.ron")).Findings;
 
-        Assert.Equal(FindingKind.PatternTooWide, finding.Kind);
+        // Not «Assert.All», which passes on an empty collection and would have
+        // said nothing at all.
+        if (expected is null)
+        {
+            Assert.Empty(findings);
+            return;
+        }
+
+        Assert.Equal(expected, Assert.Single(findings).Kind);
     }
 
     [Fact(DisplayName = "words that cannot be written down are refused, not stored")]
@@ -446,6 +458,57 @@ public class StatementShapes
             Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings));
 
         Assert.Equal(shape, empty.Shape);
+    }
+
+    [Theory(DisplayName = "a parameter's own brackets are checked, not flattened away")]
+    [InlineData("function outer (callback () => Number) { return 1; }", FindingKind.EmptyHole)]
+    [InlineData("function outer (() => Number) { return 1; }", FindingKind.EmptyHole)]
+    [InlineData("var handler = (a () => Number) => { return 1; };", FindingKind.EmptyHole)]
+    [InlineData("function outer (callback (x => Number) => Number) { return 1; }", FindingKind.HoleInName)]
+    [InlineData("function outer ((x => Number) rounded => Number) { return 1; }", FindingKind.HoleInName)]
+    [InlineData("var handler = (a (x => Number) => Number) => { return 1; };", FindingKind.HoleInName)]
+    internal void AParametersOwnBracketsAreCheckedNotFlattenedAway(string source, FindingKind expected)
+    {
+        // A parameter's identifier is parsed by the general identifier parser,
+        // so it can hold holes — and it reached exactly one thing, «Words»,
+        // which drops every parameter block. The brackets and the nested
+        // declaration disappeared into a runtime name with no finding, and «()»
+        // disappeared into the EMPTY STRING as a symbol-table key.
+        var compilation = Compilation.Of(new SourceText(source + "\n", "P.ron"));
+
+        Assert.Equal(expected, Assert.Single(compilation.Findings).Kind);
+
+        // and nothing flattened was installed
+        Assert.DoesNotContain(string.Empty, compilation.Declarations.Symbols.Names);
+        Assert.DoesNotContain("callback", compilation.Declarations.Symbols.Names);
+        Assert.DoesNotContain("rounded", compilation.Declarations.Symbols.Names);
+    }
+
+    [Theory(DisplayName = "a bare delegate is a delegate, through the real parser")]
+    [InlineData("var callback = x => { return x; };")]
+    [InlineData("var handlers = { x => { return x; }, 2 };")]
+    [InlineData("var lookup = { 1 = x => { return x; } };")]
+    [InlineData("function run (callback = x => { return x; }) { return 1; }")]
+    [InlineData("var outer = y => { var inner = x => { return x; }; return 1; };")]
+    public void ABareDelegateIsADelegateThroughTheRealParser(string source)
+    {
+        // «x => { … }» is the documented bare form and its own class's first
+        // example, and through Compilation it was Malformed: «Member.Unresolved»
+        // accepts «x» as a reference and the alternation commits before anything
+        // sees the arrow. The unit test called «Delegate.Parse» directly over a
+        // token chain it built itself, so it proved the component while the real
+        // path chose a different one.
+        Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+    }
+
+    [Fact(DisplayName = "a bare delegate declares its parameter into its body")]
+    public void ABareDelegateDeclaresItsParameterIntoItsBody()
+    {
+        var shadowed = Assert.IsType<Shadowed>(
+            Assert.Single(Compilation.Of(new SourceText("var callback = name => { var name => Number; return 1; };\n",
+                                                        "P.ron")).Findings));
+
+        Assert.Equal("name", shadowed.Name);
     }
 
     private static IEnumerable<(string Name, string Source)[]> Sequences(int length)

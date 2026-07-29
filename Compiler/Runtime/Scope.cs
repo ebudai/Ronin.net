@@ -47,6 +47,14 @@ internal sealed class Declaration
         // first and the body reads one argument where two were passed. The
         // declaration pass refuses the source that would do this; this is the
         // invariant for anything constructing a Declaration directly.
+        // Every hole binds at least one name. A block with none passes a
+        // duplicate check vacuously, and that is how «ping (_)» survived: a
+        // pattern with a hole and a block that binds nothing, which no ordinary
+        // argument can fill. The source rule refuses «function ping ()»; this
+        // is the invariant for anything building a Declaration directly.
+        if (blocks.Any(block => block is null || block.Count is 0))
+            throw new ArgumentException($"«{pattern}» has a hole that binds no name", nameof(blocks));
+
         var named = blocks.SelectMany(block => block).ToArray();
 
         if (named.Any(string.IsNullOrWhiteSpace))

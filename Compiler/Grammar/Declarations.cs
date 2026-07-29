@@ -137,7 +137,7 @@ internal sealed class Declarations
     /// </remarks>
     private void Bind(Identifier variable)
     {
-        if (Unwritable(variable)) return;
+        if (Refuse(variable, Role.Binding)) return;
 
         var words = variable.Canonical;
         var name = variable.Words;
@@ -194,7 +194,7 @@ internal sealed class Declarations
     /// </remarks>
     private void Receive(Identifier parameter)
     {
-        if (Unwritable(parameter)) return;
+        if (Refuse(parameter, Role.Binding)) return;
 
         var name = parameter.Words;
         var span = parameter.Span(source);
@@ -244,14 +244,17 @@ internal sealed class Declarations
         // declaring any, and it is the shape an ordinary expression takes
         if (statement is not Member member || member.Identifier is null) return;
 
-        // Before anything asks what it declares, because an empty bracket makes
-        // it a PATTERN — «function ping ()» has a hole, so it took the pattern
-        // path and never met a single one of the identifier checks below.
-        if (member.Identifier.HasEmptyHole)
-        {
-            problems.Add(new EmptyHole(member.Identifier.Span(source), member.Identifier.Shape));
-            return;
-        }
+        // Before anything asks what it declares. An empty bracket makes it a
+        // PATTERN — «function ping ()» has a hole, so it took the pattern path
+        // and never met a single one of the identifier checks below.
+        if (Refuse(member.Identifier, Role.Member)) return;
+
+        // And its parameters, which are declarations too and were checked by
+        // nothing at all: they reach «Identifier.Words», which drops every
+        // parameter block, so a hole inside one disappeared into a runtime name
+        // with no finding. Checked HERE as well as on body entry, because this
+        // is what installs the flattened block.
+        if (Parameters(member.Identifier).Any(parameter => Refuse(parameter, Role.Binding))) return;
 
         if (member.Identifier.TryPattern(out var pattern, out var blocks) is false)
         {
@@ -266,30 +269,6 @@ internal sealed class Declarations
             // pattern may have at most 128, which is true and not about them.
             // Infix. Checked before width, because a leading hole is what it IS
             // and the width is incidental.
-            if (member.Identifier.BeginsWithHole)
-            {
-                problems.Add(new LeadingHole(member.Identifier.Span(source), member.Identifier.Shape));
-                return;
-            }
-
-            // Width BEFORE readback, and not the other way round. A declaration
-            // can be both, and the readback that the unwritable finding prints
-            // used to go through the pattern constructor — which enforces this
-            // very bound by throwing. Reporting one problem crashed on the
-            // other. The readback no longer constructs, and this order means it
-            // is not even reached: too wide is refused on what was written,
-            // before anything asks what it would read as.
-            if (member.Identifier.IsPattern && member.Identifier.Width > Compiler.Pattern.MaxSegments)
-            {
-                problems.Add(new PatternTooWide(member.Identifier.Span(source),
-                                                member.Identifier.Words,
-                                                member.Identifier.Width,
-                                                Compiler.Pattern.MaxSegments));
-                return;
-            }
-
-            if (Unwritable(member.Identifier)) return;
-
             Cell(member);
             return;
         }
@@ -348,26 +327,75 @@ internal sealed class Declarations
         }
     }
 
+    /// <summary>What a declaration is allowed to be, where it is written.</summary>
+    private enum Role
+    {
+        /// <summary>A member, which may declare a pattern.</summary>
+        Member,
+
+        /// <summary>A parameter or a loop variable, which is a name.</summary>
+        Binding,
+    }
+
     /// <summary>
-    ///     Refuses a declaration whose words do not read back as themselves.
+    ///     Every rule an identifier has to satisfy to declare anything, in the
+    ///     order that names the problem rather than a consequence of it.
     /// </summary>
     ///
     /// <remarks>
-    ///     An IDENTIFIER's invariant, so every declaration passes through it —
-    ///     it was a pattern's, and reached only by things with a parameter block.
-    ///     «var ready part /* gap */ of world» declared the four words «ready»
-    ///     «part» «of» «world» and rendered as three, and the symbol table is
-    ///     keyed on that rendering: so it held a name whose identity it could
-    ///     not state, agreeing with «var ready part of world» while
-    ///     <c>Name.Equals</c> said the two were different things.
+    ///     ONE analysis and not three. «Declare», «Bind» and «Receive» each
+    ///     called a different subset, so what an identifier was checked for
+    ///     depended on where it was written — a parameter got writability and
+    ///     collisions and nothing else, which is how «function outer (() =&gt;
+    ///     Number)» reached the symbol table as the empty string.
     /// </remarks>
-    private bool Unwritable(Identifier identifier)
+    private bool Refuse(Identifier identifier, Role role)
     {
+        var span = identifier.Span(source);
+
+        if (identifier.HasEmptyHole)
+        {
+            problems.Add(new EmptyHole(span, identifier.Shape));
+            return true;
+        }
+
+        if (role is Role.Binding && identifier.IsPattern)
+        {
+            problems.Add(new HoleInName(span, identifier.Shape));
+            return true;
+        }
+
+        if (role is Role.Member && identifier.BeginsWithHole)
+        {
+            problems.Add(new LeadingHole(span, identifier.Shape));
+            return true;
+        }
+
+        // Width BEFORE readback, and not the other way round. A declaration can
+        // be both, and the readback the unwritable finding prints used to go
+        // through the pattern constructor — which enforces this very bound by
+        // throwing, so reporting one problem crashed on the other. The readback
+        // no longer constructs, and this order means it is not even reached:
+        // too wide is refused on what was written, before anything asks what it
+        // would read as.
+        if (identifier.IsPattern && identifier.Width > Compiler.Pattern.MaxSegments)
+        {
+            problems.Add(new PatternTooWide(span, identifier.Words, identifier.Width,
+                                            Compiler.Pattern.MaxSegments));
+            return true;
+        }
+
         if (identifier.Writable) return false;
 
-        problems.Add(new UnwritableName(identifier.Span(source), identifier.Declares(), identifier.Reads()));
+        problems.Add(new UnwritableName(span, identifier.Declares(), identifier.Reads()));
         return true;
     }
+
+    /// <summary>The identifiers every parameter block of an identifier declares.</summary>
+    private static IEnumerable<Identifier> Parameters(Identifier identifier)
+        => identifier.Where(component => component.AsParameters is not null)
+                     .SelectMany(component => component.AsParameters)
+                     .Select(parameter => parameter.AsDatum.Identifier);
 
     private string Where(string name) => inherited.Contains(name) ? "in an enclosing scope" : "in this scope";
 

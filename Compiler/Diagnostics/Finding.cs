@@ -58,6 +58,9 @@ internal enum FindingKind
     /// <summary>A bracket in a declaration with no name inside it.</summary>
     EmptyHole,
 
+    /// <summary>A hole where a plain name is required.</summary>
+    HoleInName,
+
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
 }
@@ -310,6 +313,33 @@ internal sealed class LeadingHole(Span primary, string pattern)
 }
 
 /// <summary>
+///     A hole somewhere only a name can go.
+/// </summary>
+///
+/// <remarks>
+///     A parameter and a loop variable are NAMES. They are bound to one value
+///     on entry, and there is nothing for a hole in one to mean — «function
+///     outer (callback (x =&gt; Number) =&gt; Number)» would be a parameter that
+///     is itself a pattern, which is a language feature nobody has asked for.
+///     <para>
+///     Refused rather than flattened. A parameter's identifier was rendered
+///     straight to a runtime name by <c>Identifier.Words</c>, which drops every
+///     parameter block — so that declaration became the parameter «callback»,
+///     «(x =&gt; Number) rounded» became «rounded», and the brackets and the
+///     nested declaration went with them, silently.
+///     </para>
+/// </remarks>
+internal sealed class HoleInName(Span primary, string shape) : Finding(FindingKind.HoleInName, primary)
+{
+    public string Shape { get; } = shape;
+
+    public override string Message
+        => $"«{Shape}» has a bracket in it, and this position takes a name. A bracket marks an argument, and a " +
+           "parameter is bound to one value rather than taking any — so there is nothing for a hole here to mean. " +
+           "Name it, or declare the pattern separately.";
+}
+
+/// <summary>
 ///     A bracket in a declaration with nothing inside it.
 /// </summary>
 ///
@@ -345,9 +375,10 @@ internal sealed class EmptyHole(Span primary, string shape) : Finding(FindingKin
     public string Shape { get; } = shape;
 
     public override string Message
-        => $"«{Shape}» has a bracket with nothing in it. A bracket in a declaration marks one argument, and Ronin " +
-           "has no parameter lists — so «()» is an argument with no name rather than an empty list of them. A " +
-           "function that takes nothing is declared without the brackets.";
+        => $"«{Shape}» has a bracket with nothing in it. In a NAME, a bracket marks one argument — «send (message) " +
+           "to (recipient)» is called «send x to y» — so «()» is an argument with no name rather than an empty list " +
+           "of them. A function that takes nothing is declared without the brackets. (A delegate is different: its " +
+           "brackets are a signature, and «() => …» is a delegate of no arguments.)";
 }
 
 /// <summary>

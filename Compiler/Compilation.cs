@@ -314,12 +314,28 @@ internal sealed class Compilation
     /// </summary>
     ///
     /// <remarks>
-    ///     Declared BY the grammar, which is the filter that matters: nothing a
-    ///     node inherits from the framework can hold a syntax node, and reaching
-    ///     for one of those anyway finds members that cannot be read at all.
+    ///     Declared BY the grammar, which is the first filter: nothing a node
+    ///     inherits from the framework can hold a syntax node, and reaching for
+    ///     one of those anyway finds members that cannot be read at all.
     ///     <c>Reference.Span</c> returns a <c>ReadOnlySpan</c>, and a by-ref-like
     ///     value cannot be boxed — reflection throws rather than answering, so
     ///     they are excluded by what they are and not by catching the attempt.
+    ///     <para>
+    ///     And by TYPE, which is the second: a slot that could hold a child has
+    ///     a type capable of holding one. This walk reads every member before
+    ///     asking whether the answer is syntax, so a computed property was being
+    ///     evaluated for its side effects on the clock — <c>Identifier.Writable</c>
+    ///     renders the whole shape and lexes it back, and a «bool» has never held
+    ///     a syntax node in its life. Every declaration in a file paid that
+    ///     readback here and then again in <c>TryPattern</c>, and an over-width
+    ///     declaration paid it in full BEFORE the width guard that exists to
+    ///     bound exactly that work.
+    ///     </para>
+    ///     <para>
+    ///     <c>Declares</c> and <c>Reads</c> were made methods for this same
+    ///     reason and the rule was not applied to the rest. Filtering by type
+    ///     applies it to all of them, and to the next one nobody remembers.
+    ///     </para>
     /// </remarks>
     private static System.Reflection.PropertyInfo[] Members(System.Type type) => members.GetOrAdd(type, Reflect);
 
@@ -330,7 +346,31 @@ internal sealed class Compilation
                    .Where(property => property.CanRead
                                    && property.GetIndexParameters().Length is 0
                                    && property.PropertyType.IsByRefLike is false
-                                   && IsSyntax(property.DeclaringType))];
+                                   && IsSyntax(property.DeclaringType)
+                                   && Holds(property.PropertyType))];
+
+    /// <summary>
+    ///     Whether a slot of this type could hold a syntax node, directly or as
+    ///     the elements of something.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Deliberately generous about what it admits and exact about what it
+    ///     rejects: yielding a slot that turns out to hold nothing costs a
+    ///     <c>GetValue</c>, and skipping one that holds a child would put this
+    ///     walk back where the hand-written one was.
+    /// </remarks>
+    private static bool Holds(System.Type type)
+    {
+        if (type == typeof(object) || IsSyntax(type)) return true;
+
+        // A collection is a child slot when its ELEMENTS could be children.
+        // «IReadOnlyList&lt;Statement&gt;» is one; «IReadOnlyList&lt;string&gt;»
+        // and «string[]» are the shapes of a computed answer, not of a tree.
+        if (type.IsArray) return Holds(type.GetElementType());
+
+        return type.IsGenericType && type.GetGenericArguments().Any(Holds);
+    }
 
     private const string Syntax = "Ronin.Grammar";
 
