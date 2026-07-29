@@ -6,8 +6,29 @@ One of `var`, `constant`, or `let`
 One of `compiled`, `optional`, `shared`, `persistent`, `export`, or `extends`
 ## 4.3 Name
 Sequence of one or more ***word***s or ***symbol***s which are not ***punctuation***.
+
+A name is its **words**, not the text it was written as.  Some keywords are two
+words — `part of`, `for each` — and each is a single word for every purpose:
+`ready part of world` is three words and not four, however it was spaced, and
+`ready part of world` and `ready part  of world` are the same name.
+
+That matters wherever a rule counts words.  A pattern's glue may be one of
+these, and a name may not contain it (§ *scope rules*, R5) — so the comparison
+is between words and never between renderings.
 ## 4.4 Identifier
 Sequence of one or more ***name***s or ***parameters***.
+
+A ***keyword*** that introduces a production may not be the identifier's **first
+word**, because there is where an outer production would otherwise take the
+declaration: `function f => Number { … }` would parse as a datum named
+`function f`.  Anywhere else it is an ordinary word, so `var ready if needed` is
+a name and `function send (x) part of (y)` is a pattern.
+
+An identifier's words must **read back as themselves**.  Trivia between the two
+words of a composite keyword is the one way to write a declaration whose words
+cannot: `compute part /* gap */ of (x)` declares three words that, written down,
+are two.  It is refused, because the compiler would otherwise hold a pattern
+that its own rendering does not denote.
 ## 4.4 Declaration
 ### 4.4.1 Datum
 ***mutability***? *identifier* (`=>` ***modifier**** *datatype*)? (`=` *initializer*)?

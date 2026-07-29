@@ -323,16 +323,23 @@ internal sealed class Resolver
     ///     Open, so nothing was checking that the brackets even matched.
     ///     </para>
     /// </remarks>
-    private static Node.Name Binding(IReadOnlyList<Lexeme> lexemes, int i, int j, out int only)
+    private static Node.Binding Binding(IReadOnlyList<Lexeme> lexemes, int i, int j, out int only)
     {
         only = i;
 
         if (i >= j) return null;
 
+        // A keyword that announces a production may not begin a name, which is
+        // the grammar's rule and now this one's — asked of the same lexemes
+        // rather than restated. Every resolver word used to be bindable, so
+        // «for each if in banks» and «for each part of in banks» resolved
+        // cleanly while the parser called them Malformed.
+        if (lexemes[i].Announces) return null;
+
         if (lexemes[i].Kind is LexemeKind.Word)
         {
             only = i + 1;
-            return new Node.Name(lexemes[i].Text);
+            return new Node.Binding(lexemes[i].Text);
         }
 
         if (lexemes[i] is not { Kind: LexemeKind.Open, Text: "(" }) return null;
@@ -348,10 +355,15 @@ internal sealed class Resolver
                 if (at - i is 1) return null;
                 if (CanName(lexemes, i + 1, at) is false) return null;
 
+                // Inside the brackets it is still a name, so the same rule holds
+                // about the word it begins with — «for each (if ready) in banks»
+                // resolved while the parser called it Malformed.
+                if (lexemes[i + 1].Announces) return null;
+
                 only = at + 1;
-                return new Node.Name(string.Join(' ', lexemes.Skip(i + 1)
-                                                             .Take(at - i - 1)
-                                                             .Select(lexeme => lexeme.Text)));
+                return new Node.Binding(string.Join(' ', lexemes.Skip(i + 1)
+                                                                .Take(at - i - 1)
+                                                                .Select(lexeme => lexeme.Text)));
             }
         }
 
@@ -413,7 +425,7 @@ internal sealed class Resolver
             // or any bracket at all: «for each (3) in banks», «for each (a + b)
             // in banks» and «for each [x] in banks» all resolved. None is a name
             // anything could bind.
-            if (Binding(lexemes, position, end, out var only) is not Node.Name name) yield break;
+            if (Binding(lexemes, position, end, out var only) is not Node.Binding name) yield break;
 
             if (segment == pattern.Segments.Count - 1)
             {
@@ -599,7 +611,14 @@ internal sealed class Resolver
             }
             if (cost != Cost) return;
             if (derivations.ContainsKey(reading) is false) order.Add(node);
-            derivations[reading] = Saturating(derivations.GetValueOrDefault(reading) + count);
+
+            // The LARGER and not the sum, because two derivations that read the
+            // same way are the same reading — which this said in a comment and
+            // then did not do. Two identical patterns in a table made «take x»
+            // count two while leaving one rendering in order, so it came back
+            // Ambiguous with no readings at all: a tie reported between a
+            // statement and itself, with nothing to show for it.
+            derivations[reading] = System.Math.Max(derivations.GetValueOrDefault(reading), count);
             witnesses[reading] = Best.Either(witnesses.GetValueOrDefault(reading, []), witness);
         }
 
@@ -658,7 +677,14 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
 
-internal readonly record struct Lexeme(LexemeKind Kind, string Text)
+/// <param name="Announces">
+///     Whether this word is a keyword that introduces a production, which is the
+///     one thing a name may not BEGIN with. Carried rather than re-derived,
+///     because the resolver has no tokens left to ask — and a keyword is an
+///     ordinary word everywhere else, so it cannot be a <see cref="LexemeKind"/>
+///     of its own without taking «var ready if needed» out of the language.
+/// </param>
+internal readonly record struct Lexeme(LexemeKind Kind, string Text, bool Announces = false)
 {
 }
 
@@ -734,6 +760,20 @@ internal sealed class Pattern : IEquatable<Pattern>
         // process-wide instance, which made that a global effect.
         Pinned = System.Collections.Frozen.FrozenSet.ToFrozenSet(pinned);
 
+        // WRITABLE, which is the invariant that makes the round trip a property
+        // rather than a hope. Every non-null segment has to be one word the
+        // lexer produces, and the whole sequence has to survive being written
+        // down and read back — «take 1», «take <_>» and «take +» stored things
+        // no source can match, and «compute» «part» «of» stored two words that
+        // re-read as the one token «part of», so the renderer reconstructed a
+        // pattern the compiler had not built.
+        if (Writable(Segments) is false)
+        {
+            throw new ArgumentException("a pattern's segments must be words the lexer produces, and must read back "
+                                      + $"as themselves: «{string.Join("» «", Segments.Select(segment => segment ?? Bracketed))}» "
+                                      + "does not.", nameof(segments));
+        }
+
         // Decomposed once. A pattern is immutable, and Anchor was rebuilding its
         // array on every read — inside R6's ordered pattern-by-pattern loop,
         // where even a pair rejected on length allocated two.
@@ -772,6 +812,21 @@ internal sealed class Pattern : IEquatable<Pattern>
     ///     </para>
     /// </remarks>
     public static Pattern Parse(string pattern)
+        => Read(pattern) is List<string> segments
+         ? new Pattern(segments)
+         : throw new ArgumentException($"«{pattern}» is not words and «{Bracketed}» holes, as the lexer reads them. "
+                                     + "That is a rendering rather than a declaration.", nameof(pattern));
+
+    /// <summary>
+    ///     The segments a written pattern denotes, or null where it denotes none.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The one place a pattern is read, so <see cref="Parse"/> and the
+    ///     constructor's own round-trip invariant cannot disagree about what a
+    ///     written pattern means.
+    /// </remarks>
+    private static List<string> Read(string pattern)
     {
         var lexemes = Lexemes.Lex(pattern);
 
@@ -781,29 +836,41 @@ internal sealed class Pattern : IEquatable<Pattern>
         {
             if (lexemes[at].Kind is LexemeKind.Word) { segments.Add(lexemes[at].Text); continue; }
 
-            segments.Add(null);
-
             // «(_)» and a bare «_» are the same hole. The brackets are how a
             // call site shows one, which is why the rendering uses them.
-            if (Hole(lexemes, ref at)) continue;
-            if (lexemes[at] is { Kind: LexemeKind.Symbol, Text: Blank }) continue;
+            if (Hole(lexemes, ref at) || lexemes[at] is { Kind: LexemeKind.Symbol, Text: Blank })
+            {
+                segments.Add(null);
+                continue;
+            }
 
-            throw new ArgumentException($"«{lexemes[at].Text}» is not a word or a hole. A pattern is words and «{Bracketed}» "
-                                      + "holes, as the lexer reads them; anything else is a rendering rather than a "
-                                      + "declaration.", nameof(pattern));
+            return null;
         }
 
-        return new Pattern(segments);
+        return segments;
     }
+
+    /// <summary>
+    ///     Whether these segments read back as themselves, which is what the
+    ///     constructor requires and what a declaration is checked for first.
+    /// </summary>
+    public static bool Writable(IReadOnlyList<string> segments)
+        => Read(string.Join(' ', segments.Select(segment => segment ?? Bracketed))) is List<string> written
+        && written.SequenceEqual(segments);
 
     /// <summary>Whether a bracketed hole starts here, consuming it if it does.</summary>
     private static bool Hole(List<Lexeme> lexemes, ref int at)
     {
         if (at + 2 >= lexemes.Count) return false;
 
-        if (lexemes[at].Kind is not LexemeKind.Open) return false;
+        // By TEXT, and a matching pair. «(», «[» and «{» are all Open to the
+        // resolver, so checking the kind alone quietly read «take [_]», «take
+        // {_}» and even «take (_]» as the ordinary free hole — and «{_}» is
+        // spoken for: the design reserves braced units for a hole kind that does
+        // not exist yet, which this would have consumed in advance.
+        if (lexemes[at] is not { Kind: LexemeKind.Open, Text: "(" }) return false;
         if (lexemes[at + 1] is not { Kind: LexemeKind.Symbol, Text: Blank }) return false;
-        if (lexemes[at + 2].Kind is not LexemeKind.Close) return false;
+        if (lexemes[at + 2] is not { Kind: LexemeKind.Close, Text: ")" }) return false;
 
         at += 2;
         return true;

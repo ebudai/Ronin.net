@@ -163,6 +163,35 @@ public class StatementShapes
         }
     }
 
+    [Theory(DisplayName = "a name is its words, however they were spaced")]
+    [InlineData("part of")]
+    [InlineData("for each")]
+    public void ANameIsItsWordsHoweverTheyWereSpaced(string keyword)
+    {
+        // Equality and hashing were over raw token text, so two names with the
+        // same words, the same rendering and the same symbol-table key compared
+        // unequal and hashed apart — an identity that disagreed with every other
+        // layer's.
+        var names = new[] { " ", "  ", "\t", "\n" }
+                    .Select(spacing => Named($"var ready {keyword.Replace(" ", spacing)} world => Number;\n"))
+                    .ToArray();
+
+        Assert.All(names, name => Assert.Equal(names[0], name));
+        Assert.All(names, name => Assert.Equal(names[0].GetHashCode(), name.GetHashCode()));
+
+        Assert.NotEqual(names[0], Named($"var ready {keyword} planet => Number;\n"));
+    }
+
+    private static Ronin.Grammar.Name Named(string source)
+    {
+        Lexer lexer = new(source);
+        Parser parser = new(lexer.Lex());
+
+        var datum = Assert.IsType<Ronin.Grammar.Datum>(parser.Parse().Scopes[0].Statements[0]);
+
+        return datum.Identifier.Single().AsName;
+    }
+
     [Fact(DisplayName = "the same name spelled two ways is declared once")]
     public void TheSameNameSpelledTwoWaysIsDeclaredOnce()
     {
@@ -183,6 +212,73 @@ public class StatementShapes
 
         // «old X» is injected for each, so two names are four
         Assert.Equal(4, compilation.Declarations.Symbols.Names.Count);
+    }
+
+    [Fact(DisplayName = "a name containing pattern glue is refused, composite keyword and all")]
+    public void ANameContainingPatternGlueIsRefusedCompositeKeywordAndAll()
+    {
+        // R5, bypassed by ordinary source. The glue segment «part of» is ONE
+        // word, and the rule compared it against a name split on spaces — so it
+        // was matched against «part» and «of», matched neither, and a name
+        // containing the glue was declared with nothing said. That is the rule
+        // whose entire job is stopping silent capture.
+        var finding = Assert.Single(Compilation.Of(new SourceText("""
+                                                                  var hello part of alice => Number;
+                                                                  function send (x => Number) via part of (y => Number) { return x; }
+
+                                                                  """, "P.ron")).Findings);
+
+        var glue = Assert.IsType<GlueInName>(finding);
+
+        Assert.Equal("hello part of alice", glue.Name);
+        Assert.Equal("part of", glue.Word);
+    }
+
+    [Theory(DisplayName = "a keyword may not lead a declaration, and may do anything else")]
+    [InlineData("if")]
+    [InlineData("while")]
+    [InlineData("part of")]
+    [InlineData("for each")]
+    [InlineData("var")]
+    public void AKeywordMayNotLeadADeclarationAndMayDoAnythingElse(string keyword)
+    {
+        // The rule is about the FIRST word of an identifier — that is where a
+        // production can steal a declaration, and «function f => Number { … }»
+        // becoming a datum named «function f» is what it was written for. It was
+        // being applied to every name component instead, so a keyword in GLUE
+        // position stopped the identifier dead and the whole declaration came
+        // back Malformed.
+        Assert.Empty(Compilation.Of(new SourceText($"function send (x => Number) {keyword} (y => Number) {{ return x; }}\n",
+                                                   "P.ron")).Findings);
+
+        // and mid-name, which was always allowed and is the same position
+        Assert.Empty(Compilation.Of(new SourceText($"var ready {keyword} needed => Number;\n", "P.ron")).Findings);
+
+        // the control: leading, where it still steals
+        Assert.NotEmpty(Compilation.Of(new SourceText($"function {keyword} send (x => Number) {{ return x; }}\n",
+                                                      "P.ron")).Findings);
+    }
+
+    [Fact(DisplayName = "words that cannot be written down are refused, not stored")]
+    public void WordsThatCannotBeWrittenDownAreRefusedNotStored()
+    {
+        // Trivia between the two words of a composite keyword is the one source
+        // route to a pattern whose words do not read back as themselves: «part»
+        // and «of» are two segments here, and written down they are one. The
+        // compiler built one pattern and its own rendering denoted another.
+        var finding = Assert.Single(Compilation.Of(new SourceText("""
+                                                                  function compute part /* gap */ of (x => Number) { return x; }
+
+                                                                  """, "P.ron")).Findings);
+
+        var unwritable = Assert.IsType<PatternUnwritable>(finding);
+
+        Assert.Equal("«compute» «part» «of» «(_)»", unwritable.Declares);
+        Assert.Equal("«compute» «part of» «(_)»", unwritable.Reads);
+
+        // and with the gap closed it is an ordinary declaration
+        Assert.Empty(Compilation.Of(new SourceText("function compute part of (x => Number) { return x; }\n",
+                                                   "P.ron")).Findings);
     }
 
     private static IEnumerable<(string Name, string Source)[]> Sequences(int length)

@@ -51,6 +51,31 @@ internal abstract class Node
     }
 
     /// <summary>
+    ///     A name being DECLARED here, which is not a name being read.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The loop's variable, and the reason it needs a shape of its own: the
+    ///     resolver worked out that this occurrence declares rather than refers —
+    ///     that is what lets «for each bank in banks» resolve against a scope
+    ///     where «bank» does not exist yet — and then handed back a
+    ///     <see cref="Name"/>, whose whole contract is "in scope, one lookup".
+    ///     Evaluating the tree read the name the loop was about to introduce and
+    ///     reported it undeclared. Knowing something and then erasing it is worse
+    ///     than never knowing it, because everything downstream looks right.
+    ///     <para>
+    ///     It renders as a name, because that is how a reader wrote it.
+    ///     </para>
+    /// </remarks>
+    internal sealed class Binding(string words) : Node
+    {
+        /// <summary>Space separated, as the scope it declares into will hold it.</summary>
+        public string Words { get; } = words;
+
+        protected override string Render() => $"«{Words}»";
+    }
+
+    /// <summary>
     ///     A bracketed substatement. One lookup however large it is, and one part
     ///     unless separators divided it — «(x, y)» is a group of two, which is how
     ///     a parameter block of two receives its arguments.

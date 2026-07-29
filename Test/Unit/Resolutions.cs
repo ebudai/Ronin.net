@@ -429,11 +429,10 @@ public class Resolutions
     [InlineData("take <_>")]           // the reference probe's notation, which is three symbols here
     [InlineData("take 1")]             // Number
     [InlineData("take +")]             // Symbol
-    [InlineData("take (")]             // Open
+    [InlineData("take (")]             // Open, and an unmatched one at that
     [InlineData("take )")]             // Close
     [InlineData("take ,")]             // Separator
     [InlineData("take a-b")]           // a word, a symbol and a word
-    [InlineData("take (")]             // an opening bracket with nothing after it
     [InlineData("take , x y")]         // not a bracket, and not at the end either
     [InlineData("take (+)")]           // bracketed, but not around a hole
     [InlineData("take (a)")]           // bracketed around a word, which is not how a segment is written
@@ -467,6 +466,106 @@ public class Resolutions
         Assert.Equal(segments, parsed.Segments.Count);
         Assert.Equal(rendered, parsed.ToString());
         Assert.DoesNotContain(null, parsed.Anchor);
+    }
+
+    [Fact(DisplayName = "a declared name is not a name that was read")]
+    public void ADeclaredNameIsNotANameThatWasRead()
+    {
+        // The resolver worked out that this occurrence DECLARES «bank» — which
+        // is what lets the loop resolve against a scope that does not have it
+        // yet — and then handed back a Node.Name, whose contract is "in scope,
+        // one lookup". Evaluating the tree read the name the loop was about to
+        // introduce and reported it undeclared. Knowing something and erasing it
+        // is worse than never knowing it, because everything downstream looks
+        // right.
+        SymbolTable symbols = new();
+        symbols.WithNames("banks");
+
+        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add(builtin);
+
+        Assert.True(new Resolver(symbols).Resolve("for each bank in banks").TryTree(out var tree));
+
+        var arguments = Assert.IsType<Node.Call>(tree).Arguments;
+
+        Assert.IsType<Node.Binding>(arguments[0]);
+        Assert.IsType<Node.Name>(arguments[1]);
+
+        // and it still reads as what was written
+        Assert.Equal("for each «bank» in «banks»", tree.ToString());
+    }
+
+    [Fact(DisplayName = "the same reading offered twice is one reading")]
+    public void TheSameReadingOfferedTwiceIsOneReading()
+    {
+        // Two identical patterns in a table made «take x» count two derivations
+        // while leaving ONE rendering to show for it, so the result was
+        // Ambiguous with no readings at all — a tie reported between a statement
+        // and itself. The cell said in a comment that same-rendering derivations
+        // are the same reading, and then added their counts.
+        SymbolTable symbols = new();
+        symbols.WithNames("x").WithPatterns("take _", "take _");
+
+        var resolution = new Resolver(symbols).Resolve("take x");
+
+        Assert.Equal("Resolved", resolution.Kind.ToString());
+        Assert.Equal("take «x»", resolution.Reading);
+    }
+
+    [Theory(DisplayName = "every ambiguity has two readings to show for it")]
+    [InlineData("sum of list")]
+    [InlineData("(sum of list) + x")]
+    [InlineData("prefix sum of list + (take from box)")]
+    [InlineData("take from box")]
+    public void EveryAmbiguityHasTwoReadingsToShowForIt(string source)
+    {
+        // The invariant behind both of the above: Ambiguous means two DISTINCT
+        // readings exist and can be named. Anything that reports a tie without
+        // being able to say what the tie is between is reporting a bug.
+        SymbolTable symbols = new();
+        symbols.WithNames("list", "of list", "prefix sum of list", "box", "from box", "x")
+               .WithPatterns("sum _", "sum of _", "take _", "take from _");
+
+        var tie = new Resolver(symbols).Resolve(source);
+
+        Assert.Equal("Ambiguous", tie.Kind.ToString());
+        Assert.True(tie.Readings.Count >= 2, $"«{source}» is a tie between {tie.Readings.Count} readings");
+        Assert.Equal(tie.Readings.Count, tie.Readings.Distinct().Count());
+    }
+
+    [Theory(DisplayName = "a hole is round brackets, and a matching pair")]
+    [InlineData("take [_]")]
+    [InlineData("take {_}")]
+    [InlineData("take (_]")]
+    [InlineData("take [_}")]
+    [InlineData("take {_)")]
+    public void AHoleIsRoundBracketsAndAMatchingPair(string pattern)
+    {
+        // «(», «[» and «{» are all Open to the resolver, so checking the kind
+        // read every one of these as the ordinary free hole — mismatched pairs
+        // included. «{_}» is spoken for besides: the design reserves braced
+        // units for a hole kind that does not exist yet, and this consumed the
+        // notation in advance.
+        Assert.Throws<ArgumentException>(() => Pattern.Parse(pattern));
+    }
+
+    [Theory(DisplayName = "a segment no source can produce is refused by the constructor")]
+    [InlineData("<_>")]
+    [InlineData("1")]
+    [InlineData("+")]
+    [InlineData("for  each")]
+    [InlineData("part of alice")]
+    public void ASegmentNoSourceCanProduceIsRefusedByTheConstructor(string segment)
+    {
+        // Parse is a convenience; the constructor is what every runtime and
+        // registry caller reaches, and it checked the first segment, the width
+        // and the pins while never looking at a literal segment at all. None of
+        // these can be produced by any source, so each was a pattern nothing
+        // could ever match, built in silence.
+        //
+        // «for  each» is the subtle one: it lexes canonically to the single
+        // segment «for each», so the doubled-space string stored here is not
+        // what a call would present.
+        Assert.Throws<ArgumentException>(() => new Pattern(["take", segment, null]));
     }
 
     [Fact(DisplayName = "a pin names a hole, and stays where it was put")]

@@ -52,6 +52,9 @@ internal enum FindingKind
     /// <summary>A pattern with more words and holes than will be matched.</summary>
     PatternTooWide,
 
+    /// <summary>A pattern whose words do not read back as themselves.</summary>
+    PatternUnwritable,
+
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
 }
@@ -301,6 +304,31 @@ internal sealed class LeadingHole(Span primary, string pattern)
         => $"«{Pattern}» begins with a parameter, which makes it infix rather than a word " +
            "pattern. A word pattern leads with its name — respell it so the words come first, " +
            "or declare a symbolic operator, which is where infix belongs.";
+}
+
+/// <summary>
+///     A pattern whose declared words do not read back as the words declared.
+/// </summary>
+///
+/// <remarks>
+///     Reachable one way: something that is not whitespace between the two words
+///     of a composite keyword. «compute part /* gap */ of (x)» declares the
+///     THREE words «compute» «part» «of», because trivia stops «part of» being
+///     recognised as the one token it usually is — and written down, those three
+///     read back as two. So the pattern the compiler built and the pattern its
+///     own rendering denotes were different, which is the whole failure the
+///     round-trip property exists to exclude.
+/// </remarks>
+internal sealed class PatternUnwritable(Span primary, string declares, string reads)
+    : Finding(FindingKind.PatternUnwritable, primary)
+{
+    public string Declares { get; } = declares;
+    public string Reads { get; } = reads;
+
+    public override string Message
+        => $"this declares the words {Declares}, and written down they read back as {Reads} — a different pattern " +
+           "that spells the same. Two words of a composite keyword have something other than a space between them; " +
+           "close the gap, or respell the pattern.";
 }
 
 /// <summary>A pattern with more words and holes than will be matched.</summary>

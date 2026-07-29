@@ -41,16 +41,34 @@ internal sealed class Evaluator(Scope scope)
             // which is also what records the dependency edge
             Tree.Name name => graph.Read(name.Words),
 
+            // NOT a read. This occurrence declares the name; reading it here is
+            // what the resolver went to the trouble of ruling out, and whoever
+            // introduces the scope is the one that gives it a value.
+            Tree.Binding binding => Undeclared(binding),
+
             // brackets cost a lookup to the resolver and mean nothing here
             Tree.Group group => Grouped(graph, group, insideLet),
 
             Tree.Operation operation => Apply(graph, operation, insideLet),
 
-            // Tree has exactly five shapes and Call is the fifth. Naming it and
+            // Tree has exactly six shapes and Call is the sixth. Naming it and
             // adding a default would leave the default unreachable.
             _ => Invoke(graph, (Tree.Call)tree, insideLet),
         };
     }
+
+    /// <summary>
+    ///     A binding occurrence evaluated on its own, which nothing has bound.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The construct that declares the name is the one that gives it a value,
+    ///     and until the loop is a resolver production there is no such construct
+    ///     here. An Error rather than a read, because a read is the specific
+    ///     thing this shape exists to prevent.
+    /// </remarks>
+    private static object Undeclared(Tree.Binding binding)
+        => new Error($"«{binding.Words}» is being declared here, and nothing has given it a value yet.");
 
     /// <summary>
     ///     Wraps a tree as a <c>let</c> body. Everything inside is evaluated as

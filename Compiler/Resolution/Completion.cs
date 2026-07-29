@@ -47,6 +47,15 @@ internal sealed class Completion
 
         var typed = TrailingWords(lexemes);
 
+        // Once per request, not once per suffix. A name's words do not depend on
+        // how much of it has been typed, and lexing inside both loops built a
+        // lexer, a token chain and an array «(typed + 1) × names» times — on an
+        // editor's keystroke path.
+        var declared = new (string Name, string[] Words)[symbols.Names.Count];
+
+        var at = 0;
+        foreach (var name in symbols.Names) declared[at++] = (name, Lexemes.Words(name));
+
         List<Candidate> candidates = [];
         HashSet<(CandidateKind, string, string)> seen = [];
 
@@ -54,9 +63,8 @@ internal sealed class Completion
         {
             var partial = typed[start..];
 
-            foreach (var name in symbols.Names)
+            foreach (var (name, words) in declared)
             {
-                var words = Lexemes.Words(name);
                 if (Continues(words, partial) is not string word) continue;
                 if (seen.Add((CandidateKind.Name, word, name)))
                     candidates.Add(new Candidate(CandidateKind.Name, word, name, partial.Length, words.Length));

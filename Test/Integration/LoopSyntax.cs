@@ -88,8 +88,17 @@ public class LoopSyntax
     [InlineData("for each {open order} in banks")]       // and the other wrong one
     [InlineData("for each (open order] in banks")]       // and one of each
     [InlineData("for each () in banks")]                 // and nothing at all to bind
+    [InlineData("for each if in banks")]                 // a keyword may not lead a name
+    [InlineData("for each while in banks")]
+    [InlineData("for each part of in banks")]
+    [InlineData("for each (if ready) in banks")]         // inside the brackets it is still a name
     public void ABindingHoleTakesANameAndNotAValue(string source)
     {
+        // The parser's answer and the resolver's, as one matrix: whatever the
+        // grammar refuses as a loop variable the resolver has to refuse too, or
+        // joining them produces a program one of them never agreed to.
+        Assert.NotEmpty(Of(source.Replace(" in banks", " in banks { return banks; }") + "\n"));
+
         // The pin fixes EXTENT, which is all the zero-glue argument needs — but
         // extent was being enforced by resolving the span as an ordinary
         // expression, and an expression is happy to be any of these. The grammar

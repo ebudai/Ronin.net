@@ -90,6 +90,41 @@ public class Evaluations
         Assert.Equal(120d, evaluator.Evaluate(graph, Resolve(symbols, "base price + tax"), insideLet: false));
     }
 
+    [Fact(DisplayName = "a declared name is not read from the graph")]
+    public void ADeclaredNameIsNotReadFromTheGraph()
+    {
+        // The end of the argument that started in the resolver. It works out
+        // that «bank» is being DECLARED — which is what lets the loop resolve
+        // against a scope without it — and used to hand back a node meaning "a
+        // name in scope, one lookup". Evaluating that read the name the loop was
+        // about to introduce and reported it undeclared.
+        //
+        // The graph here holds «banks» and not «bank», exactly as the enclosing
+        // scope would, so a read is observable rather than merely wrong.
+        SymbolTable symbols = new();
+        symbols.WithNames("banks");
+
+        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add(builtin);
+
+        Graph graph = new();
+        graph.Var("banks", 3d);
+
+        var arguments = Assert.IsType<Tree.Call>(Resolve(symbols, "for each bank in banks")).Arguments;
+
+        // the argument itself, because the loop has no runtime yet and the call
+        // stops at its own missing declaration before it reaches one
+        var evaluated = new Evaluator(new Scope()).Evaluate(graph, arguments[0], insideLet: false);
+
+        // whatever the loop's runtime turns out to be, it is not a read of a
+        // name nothing has bound — which is what «no declaration for «bank»»
+        // would have been
+        Assert.Contains("«bank» is being declared here", evaluated.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("no declaration", evaluated.ToString(), StringComparison.Ordinal);
+
+        // and the collection beside it is an ordinary read
+        Assert.Equal(3d, new Evaluator(new Scope()).Evaluate(graph, arguments[1], insideLet: false));
+    }
+
     [Fact(DisplayName = "precedence survives into evaluation")]
     public void PrecedenceSurvivesIntoEvaluation()
     {

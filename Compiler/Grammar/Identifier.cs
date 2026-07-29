@@ -24,7 +24,21 @@ internal class Identifier : IEnumerable<Identifier.Component>
 
         var first = current.Token;
 
-        var components = parser.ParseRepeating<Component>();
+        // Not ParseRepeating, because the components are not interchangeable: the
+        // production-keyword rule applies to the FIRST one and to nothing after
+        // it. Applying it to each in turn refused «function send (x) part of
+        // (y)», where no outer production has anything left to steal.
+        List<Component> components = [];
+
+        while (parser.IsNotFinished)
+        {
+            var component = Component.Parse(ref parser, leading: components.Count is 0);
+
+            if (component is null) break;
+
+            components.Add(component);
+        }
+
         if (components.Count is 0) return null;
 
         var extent = first;
@@ -100,8 +114,18 @@ internal class Identifier : IEnumerable<Identifier.Component>
         => string.Join(' ', Components.Select(component => component.AsName?.Words ?? "(_)"));
 
     /// <summary>The literal words of the declaration, space separated.</summary>
-    public string Words => string.Join(' ', Components.Where(component => component.AsName is not null)
-                                                     .Select(component => component.AsName.Words));
+    public string Words => string.Join(' ', Canonical);
+
+    /// <summary>
+    ///     The declaration's words as the lexer counts them, which is what its
+    ///     identity is. <see cref="Words"/> is a rendering of this and not the
+    ///     other way round: a word may CONTAIN a space — «part of» is one token,
+    ///     as «for each» is — so taking the rendering apart again recovers two
+    ///     words that were never there.
+    /// </summary>
+    public IReadOnlyList<string> Canonical
+        => [.. Components.Where(component => component.AsName is not null)
+                         .SelectMany(component => component.AsName.Canonical)];
 
     /// <summary>
     ///     The pattern this identifier declares, and the parameter names filling
@@ -156,7 +180,13 @@ internal class Identifier : IEnumerable<Identifier.Component>
             return false;
         }
 
-        pattern = BeginsWithHole || segments.Count > Compiler.Pattern.MaxSegments
+        // The constructor's own invariant, asked BEFORE it throws — same reason
+        // as the width check above. A pattern whose words do not read back as
+        // themselves is ordinary source, and the guard that keeps direct
+        // construction honest would have become a fatal path.
+        Writable = Compiler.Pattern.Writable(segments);
+
+        pattern = BeginsWithHole || Writable is false || segments.Count > Compiler.Pattern.MaxSegments
                 ? null
                 : new Compiler.Pattern(segments);
 
@@ -180,6 +210,35 @@ internal class Identifier : IEnumerable<Identifier.Component>
     /// </summary>
     public int Width { get; private set; }
 
+    /// <summary>Whether the declared words read back as the words declared.</summary>
+    public bool Writable { get; private set; } = true;
+
+    /// <summary>
+    ///     The words this identifier declares, one quotation each.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Quoted per word and not joined, because the whole point of the
+    ///     finding that uses it is that two different word sequences render
+    ///     identically. Printing the renderings would show the reader the same
+    ///     string twice.
+    ///     <para>
+    ///     A METHOD, as <see cref="Reads"/> is, because the error walk reads
+    ///     every PROPERTY of every node reflectively — and «Reads» parses, which
+    ///     throws for a pattern that is also too wide. A node's properties have
+    ///     to be answerable; these are asked once, by the finding that wants
+    ///     them.
+    ///     </para>
+    /// </remarks>
+    public string Declares()
+        => Boundaries(Components.SelectMany(component => component.AsName?.Canonical ?? ["(_)"]));
+
+    /// <summary>The words that shape denotes when it is read back.</summary>
+    public string Reads()
+        => Boundaries(Compiler.Pattern.Parse(Shape).Segments.Select(segment => segment ?? "(_)"));
+
+    private static string Boundaries(IEnumerable<string> words) => "«" + string.Join("» «", words) + "»";
+
     /// <summary>A parameter's name, which every parameter has.</summary>
     private static string Named(Parameters.Parameter parameter) => parameter.AsDatum.Identifier.Words;
 
@@ -187,7 +246,14 @@ internal class Identifier : IEnumerable<Identifier.Component>
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public class Component : Compiler.IParsable<Component>
+    /// <remarks>
+    ///     Not <c>IParsable</c> any more. The interface exists so that
+    ///     <c>ParseRepeating</c> can loop over interchangeable elements, and
+    ///     components are not interchangeable: the production-keyword rule
+    ///     applies to the first one and to nothing after it, which the one-argument
+    ///     signature has no way to say.
+    /// </remarks>
+    public class Component
     {
         private Component(Name name) => value = name;
         private Component(Parameters parameters) => value = parameters;
@@ -195,9 +261,9 @@ internal class Identifier : IEnumerable<Identifier.Component>
         public static implicit operator Component(Name name) => new(name);
         public static implicit operator Component(Parameters parameters) => new(parameters);
 
-        public static Component Parse(ref Parser current)
+        public static Component Parse(ref Parser current, bool leading)
         {
-            if (Name.Parse(ref current) is Name name) return name;
+            if ((leading ? Name.Parse(ref current) : Name.Continuing(ref current)) is Name name) return name;
             if (Parameters.Parse(ref current) is Parameters parameters) return parameters;
             return null;
         }

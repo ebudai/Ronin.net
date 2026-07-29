@@ -23,7 +23,34 @@ namespace Ronin.Compiler;
 ///     it, so this orders the two whenever they are in different scopes — and
 ///     within one scope, where they were written does.
 /// </param>
-internal readonly record struct Declared(string Name, Span Span, string InjectedBy = null, bool Inherited = false);
+internal readonly record struct Declared(string Name, Span Span, string InjectedBy = null, bool Inherited = false)
+{
+    /// <summary>
+    ///     The name as the lexer counts its words, which is the sequence every
+    ///     rule about words has to ask.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <see cref="Name"/> is a RENDERING of this, and R5 used to take that
+    ///     rendering apart on spaces — so a glue segment «part of» was compared
+    ///     against the two words «part» and «of», matched neither, and a name
+    ///     containing the glue was declared with no finding at all. That is the
+    ///     rule which exists to stop silent capture.
+    ///     <para>
+    ///     Set from the declaration's own tokens where there is one, and
+    ///     otherwise recovered by LEXING the rendering — which is the same answer
+    ///     for every name a rendering can express, and is not the operation that
+    ///     was wrong. Splitting on spaces was.
+    ///     </para>
+    /// </remarks>
+    public IReadOnlyList<string> Words
+    {
+        get => words ?? Lexemes.Words(Name);
+        init => words = value;
+    }
+
+    private readonly IReadOnlyList<string> words;
+}
 
 /// <summary>A pattern as declared, and where.</summary>
 internal readonly record struct Shape(Pattern Pattern, Span Span, bool Inherited = false);
@@ -178,13 +205,14 @@ internal static class Rules
         // defect upstream, and dying on it here reports the defect instead of
         // the collision the caller was asking about.
         var offending = names.GroupBy(declared => declared.Name)
-                             .ToDictionary(declared => declared.Key, declared => Offender(declared.Key, patterns));
+                             .ToDictionary(declared => declared.Key,
+                                           declared => Offender(declared.First().Words, patterns));
 
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
         {
             if (offending[declared.Name] is not Shape offender) continue;
 
-            var word = offender.Pattern.Glue.First(declared.Name.Split(' ').Contains);
+            var word = offender.Pattern.Glue.First(declared.Words.Contains);
 
             // Whichever was written later is the one being asked to give way, and
             // that is where the caret goes. An inner pattern can invalidate a
@@ -229,13 +257,11 @@ internal static class Rules
     ///     one mistake. Repairing it can uncover the next, which is the accepted
     ///     cost — the alternative is a wall of messages with one fix between them.
     /// </remarks>
-    private static Shape? Offender(string name, IReadOnlyCollection<Shape> patterns)
+    private static Shape? Offender(IReadOnlyList<string> words, IReadOnlyCollection<Shape> patterns)
     {
         // Single-word names included. A name that IS a glue word is a different
         // finding from a name that CONTAINS one — the first is legibility, the
         // second is capture — but they are found the same way.
-        var words = name.Split(' ');
-
         foreach (var candidate in patterns)
         {
             if (candidate.Pattern.Glue.Any(words.Contains)) return candidate;

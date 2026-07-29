@@ -219,12 +219,16 @@ internal sealed class Compilation
     private static bool IsSyntax(object value) => value is not null && IsSyntax(value.GetType());
 
     /// <remarks>
-    ///     Every type reached here is a named one — a declaring type, or the
-    ///     runtime type of something a node held — and a named type has a
-    ///     namespace. Handling a null one would be a branch nothing can take.
+    ///     A null namespace is a real answer and not a missing one. It used to
+    ///     say here that every type reached is named and every named type has a
+    ///     namespace — which is true of types anyone WRITES, and false of the
+    ///     ones the compiler synthesises: a collection expression assigned to an
+    ///     <c>IReadOnlyList</c> produces a read-only wrapper with no namespace at
+    ///     all. The moment a grammar node exposed one of those, this walk threw
+    ///     on every compilation.
     /// </remarks>
     private static bool IsSyntax(System.Type type)
-        => type.Namespace.StartsWith(Syntax, System.StringComparison.Ordinal);
+        => type.Namespace?.StartsWith(Syntax, System.StringComparison.Ordinal) is true;
 
     /// <summary>
     ///     The readable members of a node that could hold part of the tree.

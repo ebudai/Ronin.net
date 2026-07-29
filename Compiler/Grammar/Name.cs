@@ -49,11 +49,29 @@ internal class Name
     ///     a word away from names.
     ///     </para>
     /// </remarks>
-    public static Name Parse(ref Parser current)
+    public static Name Parse(ref Parser current) => Parse(ref current, leading: true);
+
+    /// <summary>
+    ///     As <see cref="Parse(ref Parser)"/>, but past the point where a keyword
+    ///     could steal the declaration.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The rule is about the FIRST word of an identifier, and it was being
+    ///     applied to every name component — so «function send (x) part of (y)»
+    ///     stopped at the parameter block and the declaration came back
+    ///     Malformed. A keyword in the middle of a phrase announces nothing and
+    ///     no outer production can steal anything there, which is exactly why
+    ///     «var ready if needed» was always allowed. Glue position is the same
+    ///     position, one component along.
+    /// </remarks>
+    public static Name Continuing(ref Parser current) => Parse(ref current, leading: false);
+
+    private static Name Parse(ref Parser current, bool leading)
     {
         Parser parser = current;
 
-        if (parser.Token is Keyword and not Modifier) return null;
+        if (leading && parser.Token is Keyword and not Modifier) return null;
 
         while (parser.Token is Word)
         {
@@ -83,21 +101,29 @@ internal class Name
     /// <summary>The name as a symbol table holds it: its words, space separated.</summary>
     public string Words => string.Join(' ', Canonical);
 
-    public override bool Equals(object obj) => (obj as Name)?.Tokens.Span.SequenceEqual(Tokens.Span) ?? false;
+    /// <remarks>
+    ///     Over the canonical words and not the raw tokens, because that is what
+    ///     the name IS. Two names spelled «part of» and «part  of» have the same
+    ///     words, the same rendering and the same symbol-table key, and used to
+    ///     compare unequal and hash apart — an identity that disagreed with every
+    ///     other layer's.
+    /// </remarks>
+    public override bool Equals(object obj) => (obj as Name)?.Canonical.SequenceEqual(Canonical) ?? false;
 
     /// <remarks>
-    ///     Over each token's characters. Hashing <c>Memory</c> itself compared the
-    ///     backing object, index and length rather than the contents, so two names
-    ///     spelling the same thing hashed differently unless they happened to share
-    ///     a string instance — which interning arranged for often enough that the
-    ///     test asserting hash equality passed by accident.
+    ///     Over the canonical words, to agree with <see cref="Equals"/>. Hashing
+    ///     <c>Memory</c> itself compared the backing object, index and length
+    ///     rather than the contents, so two names spelling the same thing hashed
+    ///     differently unless they happened to share a string instance — which
+    ///     interning arranged for often enough that the test asserting hash
+    ///     equality passed by accident.
     /// </remarks>
     public override int GetHashCode()
     {
         HashCode hashCode = new();
-        foreach (var token in Tokens.Span)
+        foreach (var word in Canonical)
         {
-            hashCode.Add(token.GetHashCode());
+            hashCode.Add(word);
         }
         return hashCode.ToHashCode();
     }

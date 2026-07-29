@@ -128,6 +128,7 @@ internal sealed class Declarations
     /// </remarks>
     private void Bind(Identifier variable)
     {
+        var words = variable.Canonical;
         var name = variable.Words;
         var span = variable.Span(source);
 
@@ -136,8 +137,8 @@ internal sealed class Declarations
         written[name] = span;
         Symbols.Declaring(name);
 
-        symbols.Add(new Declared(name, span));
-        symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name));
+        symbols.Add(new Declared(name, span) { Words = words });
+        symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name) { Words = [SymbolTable.Old, .. words] });
 
         // The loop's counter, derived from the variable rather than a bare
         // «index». There is no shadowing in this language, so a bare one would
@@ -163,11 +164,15 @@ internal sealed class Declarations
         written[counter] = span;
         Symbols.WithNames(counter);
 
-        symbols.Add(new Declared(counter, span, InjectedBy: name));
+        symbols.Add(new Declared(counter, span, InjectedBy: name) { Words = [Counter, Within, .. words] });
     }
 
     /// <summary>The prefix a loop injects for its counter.</summary>
-    internal const string Index = "index of ";
+    internal const string Index = Counter + " " + Within + " ";
+
+    /// <summary>The two words that prefix an injected counter, as words.</summary>
+    private const string Counter = "index";
+    private const string Within = "of";
 
     /// <summary>
     ///     Whether a name cannot be introduced here, having said why.
@@ -218,6 +223,14 @@ internal sealed class Declarations
                 return;
             }
 
+            if (member.Identifier.IsPattern && member.Identifier.Writable is false)
+            {
+                problems.Add(new PatternUnwritable(member.Identifier.Span(source),
+                                                   member.Identifier.Declares(),
+                                                   member.Identifier.Reads()));
+                return;
+            }
+
             if (member.Identifier.IsPattern && member.Identifier.Width > Compiler.Pattern.MaxSegments)
             {
                 problems.Add(new PatternTooWide(member.Identifier.Span(source),
@@ -252,6 +265,7 @@ internal sealed class Declarations
     /// </summary>
     private void Cell(Member member)
     {
+        var words = member.Identifier.Canonical;
         var name = member.Identifier.Words;
 
         var span = member.Identifier.Span(source);
@@ -263,7 +277,7 @@ internal sealed class Declarations
         if (member is Datum { Mutability: Constant })
         {
             Symbols.Constants(name);
-            symbols.Add(new Declared(name, span));
+            symbols.Add(new Declared(name, span) { Words = words });
         }
         else if (member is Datum)
         {
@@ -271,13 +285,13 @@ internal sealed class Declarations
 
             // the shadow carries its origin's span, because it has none of its
             // own and is not the programmer's to rename
-            symbols.Add(new Declared(name, span));
-            symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name));
+            symbols.Add(new Declared(name, span) { Words = words });
+            symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name) { Words = [SymbolTable.Old, .. words] });
         }
         else
         {
             Symbols.WithNames(name);
-            symbols.Add(new Declared(name, span));
+            symbols.Add(new Declared(name, span) { Words = words });
         }
     }
 
