@@ -3,16 +3,16 @@
 # A word here may not appear in a name wherever its pattern is visible.
 # Adding a line is a breaking change for every program that sees it.
 #
-# «Guillemets» mark text ABOUT the language rather than text in it — a hole
-# with no declaration syntax yet, or a segment plain text cannot read back.
-# Nothing inside them is source, and none of it can be copied into a program.
+# A pattern below is written as it is declared, and «guillemets» mark the one
+# thing that cannot be: a PINNED hole, which takes one word and has no
+# declaration syntax yet. Everything outside them is ordinary source.
 
 ## RESERVED (0)
 
 
 ## RESERVES NOTHING (1) — every hole before a word is determinate
 
-    «for each» «one word, or a bracketed name» in (_)
+    for each «one word, or a bracketed name» in (_)
 
 ## PROTECTED (3) — no pattern may use these as glue
 

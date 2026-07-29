@@ -129,6 +129,62 @@ public class StatementShapes
         Assert.Equal(2, function.Definition.Statements.Count);
     }
 
+    [Theory(DisplayName = "a multi-word keyword is one word from source to resolution")]
+    [InlineData("part of")]
+    [InlineData("for each")]
+    public void AMultiWordKeywordIsOneWordFromSourceToResolution(string keyword)
+    {
+        // The whole path, because each layer was canonical on its own terms and
+        // they disagreed. The resolver folded the spacing; declarations kept the
+        // source slice. So «var ready part of world» and «var ready part  of
+        // world» were TWO names to the symbol table and one to the resolver: a
+        // duplicate nothing reported, and a second copy nothing could reach.
+        foreach (var spacing in (string[])[" ", "  ", "\t", "\n"])
+        {
+            var spaced = keyword.Replace(" ", spacing);
+
+            // one name, whatever the spacing, and the same one every time
+            var declared = Compilation.Of(new SourceText($"var ready {spaced} world => Number;\n", "P.ron"));
+
+            Assert.Empty(declared.Findings);
+            Assert.Contains($"ready {keyword} world", declared.Declarations.Symbols.Names);
+
+            // and a pattern anchored on it matches what the lexer produces,
+            // which is what «Split(' ')» could not do: it made four segments
+            // where a call lexes to three, so the pattern was declared, printed
+            // correctly, and could never match anything
+            var pattern = Compilation.Of(new SourceText($"function compute {spaced} (x => Number) {{ return x; }}\n", "P.ron"));
+
+            Assert.Empty(pattern.Findings);
+            Assert.Equal($"compute {keyword} (_)", Assert.Single(pattern.Declarations.Symbols.Patterns).ToString());
+
+            Assert.Equal("Resolved",
+                         new Resolver(pattern.Declarations.Symbols).Resolve($"compute {spaced} 1").Kind.ToString());
+        }
+    }
+
+    [Fact(DisplayName = "the same name spelled two ways is declared once")]
+    public void TheSameNameSpelledTwoWaysIsDeclaredOnce()
+    {
+        // Four declarations of two names, and shadowing saw none of it: the
+        // table held four different raw strings. Resolution canonicalises either
+        // spelling back to the single-space form, so the odd one out was a
+        // declaration no program could ever reach.
+        var compilation = Compilation.Of(new SourceText("""
+                                                        var ready part of world => Number;
+                                                        var ready part  of world => Number;
+                                                        var ready for each value => Number;
+                                                        var ready for	each value => Number;
+
+                                                        """, "P.ron"));
+
+        Assert.Equal(2, compilation.Findings.Count);
+        Assert.All(compilation.Findings, finding => Assert.IsType<Shadowed>(finding));
+
+        // «old X» is injected for each, so two names are four
+        Assert.Equal(4, compilation.Declarations.Symbols.Names.Count);
+    }
+
     private static IEnumerable<(string Name, string Source)[]> Sequences(int length)
     {
         if (length is 0) return [[]];

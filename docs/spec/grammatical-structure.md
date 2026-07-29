@@ -43,8 +43,12 @@ Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded
 - collection is a ***reference***
 - body is a ***definition***
 
-**The loop variable is pinned to one word.**  A multi-word name goes in
-brackets: `for each (order in transit) in shipments`.  The pin is what makes a
+**The loop variable is a binding occurrence, pinned to one word.**  A
+multi-word name goes in brackets: `for each (order in transit) in shipments`.
+It declares the name rather than referring to one, so it is not looked up and
+costs nothing — and it is a *name*, not a value: a literal, an operation,
+several values, a square or curly bracket, or a mismatched pair are all
+refused.  The pin is what makes a
 loop header have exactly one reading — a free-growing variable could swallow the
 `in` and take part of the collection with it, and the competing readings do not
 tie, so nothing would report it.

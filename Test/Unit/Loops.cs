@@ -23,10 +23,11 @@ namespace Unit;
 ///     spelling the grammar never had.
 ///     </para>
 ///     <para>
-///     The spelling is «for each &lt;name&gt; in &lt;expression&gt;
-///     &lt;body&gt;», decided in LOOPSYNTAX.md. It is safe only because a name
-///     may not contain «in», so a loop header has exactly one and the split needs
-///     no scoring; see LoopSyntax for the case that proves it.
+///     The spelling is «for each «a name» in «an expression» «a body»»,
+///     decided in LOOPSYNTAX.md. It is safe because the loop variable is PINNED
+///     to one word, so the split point is fixed by the pattern's shape — names
+///     containing «in» are legal, and «in» is reserved nowhere; see LoopSyntax
+///     for the case that proves it.
 ///     </para>
 /// </remarks>
 [Trait(nameof(Parser), null)]

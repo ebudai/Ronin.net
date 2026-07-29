@@ -40,6 +40,28 @@ internal static class Lexemes
     }
 
     /// <summary>
+    ///     The words of a name, as the lexer counts them.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Not <c>Split(' ')</c>. A multi-word keyword is ONE word — «part of» is
+    ///     a single token, as «for each» is — so splitting a name's rendering on
+    ///     spaces produced four words where the lexer produces three, and every
+    ///     comparison between the two counted different things. Completion matched
+    ///     typed lexemes against split names and could never complete a name
+    ///     holding one.
+    /// </remarks>
+    public static string[] Words(string name)
+    {
+        var lexemes = Lex(name);
+
+        var words = new string[lexemes.Count];
+        for (var each = 0; each != words.Length; ++each) words[each] = lexemes[each].Text;
+
+        return words;
+    }
+
+    /// <summary>
     ///     Walks a token list from <paramref name="head"/> to the
     ///     <see cref="Sentinel"/>. <c>Lexer.Lex</c> discards trivia itself, but
     ///     hand-built token lists in the tests carry <c>Whitespace</c>, so it is
@@ -65,8 +87,7 @@ internal static class Lexemes
             // A keyword's CANONICAL spelling, not its source slice: «for  each»
             // is the same keyword as «for each» and has to be the same lexeme,
             // or the grammar accepts a statement the resolver will not read.
-            lexemes.Add(new Lexeme(KindOf(token),
-                                   token is Keyword keyword ? keyword.Canonical : token.Memory.ToString()));
+            lexemes.Add(new Lexeme(KindOf(token), token.Canonical));
         }
 
         return lexemes;

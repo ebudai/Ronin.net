@@ -241,6 +241,45 @@ public class Resolutions
         Assert.Equal(["sum «of list»", "sum of «list»"], tie.Readings);
     }
 
+    [Fact(DisplayName = "the witnesses come from the reading that was chosen")]
+    public void TheWitnessesComeFromTheReadingThatWasChosen()
+    {
+        // The witnesses used to be found by scanning every span in the table,
+        // narrowest first, for one with two readings. Nothing required that span
+        // to take part in the parse that won — so here the message named an
+        // ambiguity inside «prefix sum of list», which resolves uniquely and
+        // cheaply as one whole name and contributes nothing to the tie.
+        //
+        // The tie is in the bracket. Carrying provenance up with the derivation
+        // that made the count two says so; rediscovering it afterwards cannot,
+        // because by then there is nothing left to say which cells were used.
+        SymbolTable symbols = new();
+        symbols.WithNames("list", "of list", "prefix sum of list", "box", "from box")
+               .WithPatterns("sum _", "sum of _", "take _", "take from _");
+
+        var tie = new Resolver(symbols).Resolve("prefix sum of list + (take from box)");
+
+        Assert.Equal("Ambiguous", tie.Kind.ToString());
+        Assert.Equal(["take «from box»", "take from «box»"], tie.Readings);
+    }
+
+    [Fact(DisplayName = "a tie shows every repair where it is, and a pair where it is not")]
+    public void ATieShowsEveryRepairWhereItIsAndAPairWhereItIsNot()
+    {
+        // Two readings prove a tie and explain it, so a witness travelling up
+        // through a bracket carries no more than two. At the tie itself there is
+        // nothing to carry and every reading is a bracketing the reader could
+        // choose — listing two of three would hide a repair.
+        SymbolTable symbols = new();
+        symbols.WithNames("report", "the report", "the report today", "today")
+               .WithPatterns("send _", "send _ today", "send the report _");
+
+        Resolver resolver = new(symbols);
+
+        Assert.Equal(3, resolver.Resolve("send the report today").Readings.Count);
+        Assert.Equal(2, resolver.Resolve("(send the report today)").Readings.Count);
+    }
+
     [Theory(DisplayName = "a multi-word keyword matches however it was spaced")]
     [InlineData("for each bank in banks")]
     [InlineData("for  each bank in banks")]
@@ -358,72 +397,103 @@ public class Resolutions
             Pattern.Parse("compute total"),
             Pattern.Parse("compute total for _"),
             Pattern.Parse("send _ to _"),
+            Pattern.Parse("take part of _"),          // one segment holding a space
             .. SymbolTable.Builtins,
             new Pattern(["for each", null, "in", null]),
         ];
 
-        List<Pattern> returned = [];
         List<Pattern> refused = [];
 
         foreach (var pattern in renderable)
         {
             var rendered = pattern.ToString();
 
-            try { returned.Add(Pattern.Parse(rendered)); }
+            Pattern returned;
+            try { returned = Pattern.Parse(rendered); }
             catch (ArgumentException) { refused.Add(pattern); continue; }
 
             // Not "renders the same" — that is the check that could not have
             // caught this. The pattern itself has to come back.
-            Assert.Equal(pattern, returned[^1]);
-            Assert.Equal(rendered, returned[^1].ToString());
+            Assert.Equal(pattern, returned);
+            Assert.Equal(rendered, returned.ToString());
         }
 
-        // Both outcomes reached, or the property is being satisfied by one of
-        // them alone and proves nothing about the other.
-        Assert.NotEmpty(returned);
-
-        // The two a rendering cannot express: a pinned hole, which has no
-        // declaration syntax, and a segment holding a space — «for each» is one
-        // token as «part of» is, and plain text cannot say whether that is one
-        // segment or two.
-        Assert.Equal([SymbolTable.Builtins[0], new Pattern(["for each", null, "in", null])], refused);
+        // The one a rendering cannot express: a pinned hole, which has no
+        // declaration syntax. A segment holding a space USED to be the other,
+        // and stopped being one when Parse started lexing rather than splitting
+        // — «part of» is one token, and re-lexing recovers it.
+        Assert.Equal([SymbolTable.Builtins[0]], refused);
     }
 
-    [Theory(DisplayName = "notation is not a word, and is refused as one")]
-    [InlineData("compute «one word, or a bracketed name»")]
+    [Theory(DisplayName = "a segment the lexer cannot make is refused, not stored")]
+    [InlineData("take <_>")]           // the reference probe's notation, which is three symbols here
+    [InlineData("take 1")]             // Number
+    [InlineData("take +")]             // Symbol
+    [InlineData("take (")]             // Open
+    [InlineData("take )")]             // Close
+    [InlineData("take ,")]             // Separator
+    [InlineData("take a-b")]           // a word, a symbol and a word
+    [InlineData("take (")]             // an opening bracket with nothing after it
+    [InlineData("take , x y")]         // not a bracket, and not at the end either
+    [InlineData("take (+)")]           // bracketed, but not around a hole
+    [InlineData("take (a)")]           // bracketed around a word, which is not how a segment is written
+    [InlineData("take (_ a)")]         // a hole that does not close where it should
     [InlineData("for each «one word, or a bracketed name» in (_)")]
-    [InlineData("compute (x)")]
-    [InlineData("compute (_ )")]
-    public void NotationIsNotAWordAndIsRefusedAsOne(string rendering)
-        => Assert.Throws<ArgumentException>(() => Pattern.Parse(rendering));
-
-    [Theory(DisplayName = "juxtaposing two statements is not an expression")]
-    [InlineData("return a", "Resolved", 2)]
-    [InlineData("return 1", "Resolved", 1)]
-    [InlineData("return return a", "Resolved", 3)]
-    [InlineData("return return 1", "Resolved", 2)]     // «return» takes an expression, and a «return» is one
-    [InlineData("return a return b", "NoParse", 0)]
-    [InlineData("return 1 return 2", "NoParse", 0)]
-    [InlineData("a return b", "NoParse", 0)]           // there is no juxtaposition rule to make this one
-    public void JuxtaposingTwoStatementsIsNotAnExpression(string source, string kind, int cost)
+    public void ASegmentTheLexerCannotMakeIsRefusedNotStored(string pattern)
     {
-        // «function f { return 1 return 2; }» compiles clean today, which looked
-        // like the resolver splitting statements implicitly — and that would be
-        // far worse than the case itself, because then how many statements a
-        // program has would depend on what names are in scope.
-        //
-        // It is not that. The block splits structurally into two elements and
-        // the resolver refuses «return 1 return 2» exactly as the reference
-        // does; nothing rejects it because nothing resolves it yet. These are
-        // the numbers to keep when resolution is joined to the pipeline, and
-        // they are the reference's own.
-        SymbolTable symbols = new();
-        symbols.WithNames("a", "b").WithPatterns("return _");
+        // Splitting on spaces called every one of these a WORD and built a
+        // pattern out of it. None can ever match, because none is a word the
+        // lexer produces — so they were dead shapes, constructed in silence, and
+        // a pattern that can never match is as wrong as one that matches the
+        // wrong thing.
+        Assert.Throws<ArgumentException>(() => Pattern.Parse(pattern));
+    }
 
-        var resolution = new Resolver(symbols).Resolve(source);
+    [Theory(DisplayName = "a multi-word keyword is one segment, however it was spaced")]
+    [InlineData("take part of _", "take part of (_)", 3)]
+    [InlineData("take part  of _", "take part of (_)", 3)]
+    [InlineData("take part\tof _", "take part of (_)", 3)]
+    [InlineData("for each _ in _", "for each (_) in (_)", 4)]
+    [InlineData("for  each _ in _", "for each (_) in (_)", 4)]
+    [InlineData("for\teach _ in _", "for each (_) in (_)", 4)]
+    public void AMultiWordKeywordIsOneSegmentHoweverItWasSpaced(string pattern, string rendered, int segments)
+    {
+        // Three segments, not four. Splitting on spaces gave four, so the
+        // pattern was declared and printed correctly and could never match the
+        // three lexemes a call produces. Doubled spacing added an EMPTY segment
+        // on top of that.
+        var parsed = Pattern.Parse(pattern);
 
-        Assert.Equal(kind, resolution.Kind.ToString());
-        Assert.Equal(cost, resolution.Cost);
+        Assert.Equal(segments, parsed.Segments.Count);
+        Assert.Equal(rendered, parsed.ToString());
+        Assert.DoesNotContain(null, parsed.Anchor);
+    }
+
+    [Fact(DisplayName = "a pin names a hole, and stays where it was put")]
+    public void APinNamesAHoleAndStaysWhereItWasPut()
+    {
+        string[] segments = ["take", null];
+
+        // Nothing checked either, so a pin could describe the literal «take» or
+        // a segment that does not exist — and both rendered as an ordinary
+        // «take (_)», which parses back to the UNPINNED pattern. That is the
+        // round-trip property falsified by metadata saying nothing.
+        Assert.Throws<ArgumentException>(() => new Pattern(segments, [0]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Pattern(segments, [2]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Pattern(segments, [-1]));
+
+        // And the set is frozen rather than merely typed as read-only. It is in
+        // the hash of a dictionary key, so mutating it after insertion makes the
+        // declaration unreachable — and SymbolTable.Builtins is one instance for
+        // the process, which made that global.
+        var pinned = SymbolTable.Builtins[0];
+
+        Assert.IsNotType<HashSet<int>>(pinned.Pinned);
+        Assert.Throws<NotSupportedException>(() => ((ISet<int>)pinned.Pinned).Add(0));
+
+        Dictionary<Pattern, string> scope = new() { [pinned] = "the loop" };
+
+        Assert.Equal("the loop", scope[new Pattern([.. pinned.Segments], [.. pinned.Pinned])]);
     }
 
     [Fact(DisplayName = "a group holds one part or several")]

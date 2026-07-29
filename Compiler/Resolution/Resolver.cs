@@ -146,7 +146,7 @@ internal sealed class Resolver
         var top = Expressions(0, n, 0);
         if (top.TryBest(out var best) is false) return Resolution.NoParse;
 
-        return best.Count > 1 ? Resolution.Ambiguous(best.Cost, Witnesses(n, top))
+        return best.Count > 1 ? Resolution.Ambiguous(best.Cost, best.Witness)
                               : Resolution.Resolved(best.Cost, best.Node);
     }
 
@@ -163,42 +163,6 @@ internal sealed class Resolver
     ///     through it, so twenty-three expectations said something about the
     ///     splitter and only something about the compiler by agreement.
     /// </remarks>
-    /// <summary>
-    ///     The competing readings to show, which are not always the whole
-    ///     statement's.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     A cell keeps every cheapest node at its own span, but hands its
-    ///     parent one node and a count — so the ambiguity travels up through a
-    ///     bracket, a group, an operator or an outer call while the witnesses do
-    ///     not. «(sum of list) + x» came back Ambiguous with a single reading
-    ///     and a message inviting the reader to choose between it and nothing.
-    ///
-    ///     So when the top has only one, the innermost span that has two is the
-    ///     one to show: it is where the tie actually is, and it is the smallest
-    ///     thing the reader has to disambiguate.
-    /// </remarks>
-    private IReadOnlyCollection<string> Witnesses(int n, Cell top)
-    {
-        // Widths ascending, so the FIRST hit is the innermost — and the widest
-        // span is the top itself, which is why the search stops one short of it
-        // and returns the top's own readings. That is the answer for a plain
-        // top-level tie and the only remaining case, so there is no third
-        // outcome to guard against.
-        for (var width = 1; width < n; ++width)
-        {
-            for (var i = 0; i + width <= n; ++i)
-            {
-                var competing = Expressions(i, i + width, 0).Readings.ToArray();
-
-                if (competing.Length > 1) return competing;
-            }
-        }
-
-        return top.Readings.ToArray();
-    }
-
     public Resolution Resolve(string source) => Resolve(Lexemes.Lex(source));
 
     private static Cell[] NewTable(int spans)
@@ -247,8 +211,8 @@ internal sealed class Resolver
         foreach (var pattern in candidates)
         {
             var target = pattern.IsOpenEnded ? open[Span(i, j)] : cell;
-            foreach (var (cost, arguments, count) in Match(pattern, 0, lexemes, i, j))
-                target.Offer(1 + cost, new Node.Call(pattern, arguments), count);
+            foreach (var (cost, arguments, count, witness) in Match(pattern, 0, lexemes, i, j))
+                target.Offer(1 + cost, new Node.Call(pattern, arguments), count, witness);
         }
     }
 
@@ -280,6 +244,7 @@ internal sealed class Resolver
         }
 
         var cost = 0;
+        IReadOnlyList<string> witness = [];
         var count = 1L;
         List<Node> parts = [];
         var start = from;
@@ -297,12 +262,13 @@ internal sealed class Resolver
             // negative, is duly reported as fewer than two derivations, and
             // returns a genuine tie as Resolved.
             count = Cell.Saturating(count * part.Count);
+            witness = Best.Either(witness, part.Witness);
 
             parts.Add(part.Node);
             start = end + 1;
         }
 
-        cell.Offer(1 + cost, new Node.Group(parts), count);
+        cell.Offer(1 + cost, new Node.Group(parts), count, witness);
     }
 
     /// <summary>
@@ -333,25 +299,63 @@ internal sealed class Resolver
     ///     </para>
     /// </remarks>
     /// <summary>
-    ///     Where a pinned hole ends: one word, or one bracketed group. Equal to
-    ///     <paramref name="position"/> when neither is there.
+    ///     The name a binding hole declares and how far it reaches, or null where
+    ///     the span does not start with one.
     /// </summary>
-    private static int Unit(IReadOnlyList<Lexeme> lexemes, int position, int end)
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     One word, or several inside ROUND brackets — the rule already settled
+    ///     for new names, and the same one the grammar's own loop parser applies.
+    ///     Nothing is looked up, because a declaration is not a reference.
+    ///     </para>
+    ///     <para>
+    ///     Extent and validity together, in one walk, because they were two: the
+    ///     extent was measured by matching brackets and the span was then scored
+    ///     as an ordinary expression. An expression is happy to be a literal, an
+    ///     operation, several values or any bracket at all, so «for each (3) in
+    ///     banks», «for each (a + b) in banks» and «for each [x] in banks» all
+    ///     resolved to something no loop could bind.
+    ///     </para>
+    ///     <para>
+    ///     The bracket kind is checked by its text and not by
+    ///     <see cref="LexemeKind"/>, which erases it: «[», «{» and «(» are all
+    ///     Open, so nothing was checking that the brackets even matched.
+    ///     </para>
+    /// </remarks>
+    private static Node.Name Binding(IReadOnlyList<Lexeme> lexemes, int i, int j, out int only)
     {
-        if (position >= end) return position;
+        only = i;
 
-        if (lexemes[position].Kind is LexemeKind.Word) return position + 1;
-        if (lexemes[position].Kind is not LexemeKind.Open) return position;
+        if (i >= j) return null;
+
+        if (lexemes[i].Kind is LexemeKind.Word)
+        {
+            only = i + 1;
+            return new Node.Name(lexemes[i].Text);
+        }
+
+        if (lexemes[i] is not { Kind: LexemeKind.Open, Text: "(" }) return null;
 
         var depth = 0;
 
-        for (var at = position; at < end; ++at)
+        for (var at = i; at < j; ++at)
         {
             if (lexemes[at].Kind is LexemeKind.Open) ++depth;
-            else if (lexemes[at].Kind is LexemeKind.Close && --depth is 0) return at + 1;
+            else if (lexemes[at].Kind is LexemeKind.Close && --depth is 0)
+            {
+                if (lexemes[at].Text is not ")") return null;
+                if (at - i is 1) return null;
+                if (CanName(lexemes, i + 1, at) is false) return null;
+
+                only = at + 1;
+                return new Node.Name(string.Join(' ', lexemes.Skip(i + 1)
+                                                             .Take(at - i - 1)
+                                                             .Select(lexeme => lexeme.Text)));
+            }
         }
 
-        return position;
+        return null;
     }
 
     internal static bool CanName(IReadOnlyList<Lexeme> lexemes, int i, int j)
@@ -367,12 +371,12 @@ internal sealed class Resolver
     ///     here at all — <see cref="Node.Call"/> puts them back by walking the
     ///     same segments when it renders.
     /// </summary>
-    private IEnumerable<(int Cost, IReadOnlyList<Node> Arguments, long Count)> Match(
+    private IEnumerable<(int Cost, IReadOnlyList<Node> Arguments, long Count, IReadOnlyList<string> Witness)> Match(
         Pattern pattern, int segment, IReadOnlyList<Lexeme> lexemes, int position, int end)
     {
         if (segment == pattern.Segments.Count)
         {
-            if (position == end) yield return (0, [], 1);
+            if (position == end) yield return (0, [], 1, []);
             yield break;
         }
 
@@ -396,27 +400,51 @@ internal sealed class Resolver
         // determinate in EXTENT — the word by being one token, the group by
         // being matched — which is the property that fixes the split and makes
         // the word after it safe to leave unreserved.
-        var only = pinned ? Unit(lexemes, position, end) : end;
+        if (pinned)
+        {
+            // A BINDING occurrence, not a value. The hole declares the name, so
+            // there is nothing to look up and nothing to score — and resolving
+            // it as an expression meant «for each bank in banks» only resolved
+            // when «bank» was ALREADY declared, which is the one table the real
+            // path can never present: the loop is what declares it.
+            //
+            // It also over-accepted in the other direction, because an
+            // expression is happy to be a literal, an operator, several values,
+            // or any bracket at all: «for each (3) in banks», «for each (a + b)
+            // in banks» and «for each [x] in banks» all resolved. None is a name
+            // anything could bind.
+            if (Binding(lexemes, position, end, out var only) is not Node.Name name) yield break;
 
-        if (pinned && only == position) yield break;
+            if (segment == pattern.Segments.Count - 1)
+            {
+                if (only == end) yield return (0, [name], 1, []);
+                yield break;
+            }
+
+            foreach (var (bound, arguments, count, witness) in Match(pattern, segment + 1, lexemes, only, end))
+                yield return (bound, [name, .. arguments], count, witness);
+
+            yield break;
+        }
 
         if (segment == pattern.Segments.Count - 1)
         {
             // trailing argument: reaches the end of the span, parsed at the
             // pattern's own binding power
-            if (pinned && only != end) yield break;
-
             if (Expressions(position, end, PatternBindingPower).TryBest(out var trailing))
-                yield return (trailing.Cost, [trailing.Node], trailing.Count);
+                yield return (trailing.Cost, [trailing.Node], trailing.Count, Best.Pair(trailing.Witness));
             yield break;
         }
 
-        for (var split = pinned ? only : position + 1; split <= only; ++split)
+        for (var split = position + 1; split <= end; ++split)
         {
             // medial args cross any operator
             if (Expressions(position, split, 0).TryBest(out var argument) is false) continue;
-            foreach (var (cost, arguments, count) in Match(pattern, segment + 1, lexemes, split, end))
-                yield return (argument.Cost + cost, [argument.Node, .. arguments], Cell.Saturating(argument.Count * count));
+            foreach (var (cost, arguments, count, witness) in Match(pattern, segment + 1, lexemes, split, end))
+                yield return (argument.Cost + cost,
+                              [argument.Node, .. arguments],
+                              Cell.Saturating(argument.Count * count),
+                              Best.Either(argument.Witness, witness));
         }
     }
 
@@ -460,7 +488,8 @@ internal sealed class Resolver
 
             cell.Offer(left.Cost + right.Cost,
                        new Node.Operation(left.Node, lexemes[k].Text, op, right.Node),
-                       Cell.Saturating(left.Count * right.Count));
+                       Cell.Saturating(left.Count * right.Count),
+                       Best.Either(left.Witness, right.Witness));
         }
     }
 
@@ -502,13 +531,6 @@ internal sealed class Resolver
         /// </remarks>
         public long Count => Saturating(derivations.Values.Sum());
 
-        /// <remarks>
-        ///     Empty for a span nothing was offered, because the witness search
-        ///     asks every span whether it is ambiguous and most are not spans at
-        ///     all.
-        /// </remarks>
-        public IEnumerable<string> Readings => order?.Select(node => node.ToString()) ?? [];
-
         /// <summary>
         ///     The cheapest reading, when the span has one. Every caller of this
         ///     used to read <c>Cost</c>, <c>Reading</c> and <c>Count</c> off the
@@ -525,9 +547,23 @@ internal sealed class Resolver
                 return false;
             }
 
-            best = new Best(Cost, order[0], Count);
+            best = new Best(Cost, order[0], Count, Witness);
             return true;
         }
+
+        /// <summary>
+        ///     Two readings and no more, because two prove a tie and explain it.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     Its own pair when it has one — this cell IS where the tie is. Only
+        ///     when it does not does the tie come from further in, and then the
+        ///     witness travelled up with the derivation that carried the count.
+        /// </remarks>
+        private IReadOnlyList<string> Witness
+            => order.Count > 1
+             ? [.. order.Select(node => node.ToString())]
+             : witnesses[order[0].ToString()];
 
         // Keyed by rendering rather than by node: two derivations that read the
         // same way ARE the same reading, and counting them separately would
@@ -535,9 +571,11 @@ internal sealed class Resolver
         /// <summary>Two is as many as anything needs to be counted.</summary>
         public static long Saturating(long count) => count < 2 ? count : 2;
 
-        public void Offer(int cost, Node node, long count = 1)
+        public void Offer(int cost, Node node, long count = 1, IReadOnlyList<string> witness = null)
         {
             var reading = node.ToString();
+
+            witness ??= [];
 
             if (IsEmpty || cost < Cost)
             {
@@ -549,22 +587,31 @@ internal sealed class Resolver
                 // collections was two objects per cell for nothing.
                 order ??= [];
                 derivations ??= [];
+                witnesses ??= [];
 
                 order.Clear();
                 derivations.Clear();
+                witnesses.Clear();
                 order.Add(node);
                 derivations[reading] = count;
+                witnesses[reading] = witness;
                 return;
             }
             if (cost != Cost) return;
             if (derivations.ContainsKey(reading) is false) order.Add(node);
             derivations[reading] = Saturating(derivations.GetValueOrDefault(reading) + count);
+            witnesses[reading] = Best.Either(witnesses.GetValueOrDefault(reading, []), witness);
         }
 
         public void Merge(Cell other)
         {
             if (other.IsEmpty) return;
-            foreach (var node in other.order) Offer(other.Cost, node, other.derivations[node.ToString()]);
+
+            foreach (var node in other.order)
+            {
+                var reading = node.ToString();
+                Offer(other.Cost, node, other.derivations[reading], other.witnesses[reading]);
+            }
         }
 
         // Dictionary is NOT insertion ordered in .NET, and the chosen reading must
@@ -572,11 +619,42 @@ internal sealed class Resolver
         // Both are null until something is offered, which is what «IsEmpty» reads.
         private List<Node> order;
         private Dictionary<string, long> derivations;
+        private Dictionary<string, IReadOnlyList<string>> witnesses;
     }
 }
 
 /// <summary>The cheapest reading of one span, and how many derivations reach it.</summary>
-internal readonly record struct Best(int Cost, Node Node, long Count);
+///
+/// <param name="Witness">
+///     The two readings that make <paramref name="Count"/> two, which is not
+///     always this span's own pair. A parent combining children keeps one node
+///     and a count, so an ambiguity inside a bracket, an operator or an outer
+///     call arrives here as "two derivations" with nothing to show — and the
+///     message then invited the reader to choose between one reading and
+///     nothing. Empty when the span is unambiguous.
+/// </param>
+internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyList<string> Witness)
+{
+    /// <summary>
+    ///     The first witness there is, bounded, since one pair explains a tie.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Bounded HERE and not at the tie itself, which is the whole
+    ///     distinction. A cell that is ambiguous hands out every reading it has,
+    ///     because each one is a bracketing the reader could choose and listing
+    ///     two of three would hide a repair. A witness travelling UP through a
+    ///     bracket, an operator or an outer call is doing a different job — it
+    ///     proves and explains a tie the parent cannot see — and two readings
+    ///     prove it as well as ten.
+    /// </remarks>
+    public static IReadOnlyList<string> Either(IReadOnlyList<string> witness, IReadOnlyList<string> otherwise)
+        => Pair(witness.Count is 0 ? otherwise : witness);
+
+    /// <summary>At most two, which is what a parent carries.</summary>
+    public static IReadOnlyList<string> Pair(IReadOnlyList<string> witness)
+        => witness.Count > 2 ? [witness[0], witness[1]] : witness;
+}
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
 
@@ -631,7 +709,30 @@ internal sealed class Pattern : IEquatable<Pattern>
         // that made it and by a freshly built equal one, so a declaration simply
         // vanished from the scope with nothing to show it had.
         Segments = [.. segments];
-        Pinned = new HashSet<int>(pinned);
+
+        // A pin names a HOLE, and only a hole. Neither of these was checked, so
+        // «take (_)» pinned at 0 described the literal «take», and pinned at 2
+        // described nothing at all — and both rendered as an ordinary «take
+        // (_)», which parses back to the unpinned pattern and compares unequal
+        // to what it came from. That is the round trip failing on a pattern the
+        // registry can emit, from metadata that says nothing.
+        foreach (var hole in pinned)
+        {
+            if (hole < 0 || hole >= segments.Count)
+                throw new ArgumentOutOfRangeException(nameof(pinned), hole,
+                                                      $"there is no segment {hole} to pin");
+
+            if (segments[hole] is not null)
+                throw new ArgumentException($"segment {hole} is the word «{segments[hole]}», and a pin fixes a hole",
+                                            nameof(pinned));
+        }
+
+        // Frozen, not merely typed as read-only. «IReadOnlySet» over a HashSet
+        // hands out the mutable object to anything willing to cast, and this one
+        // is in the hash of a dictionary key — so mutating it after insertion
+        // makes the declaration unreachable. SymbolTable.Builtins is a single
+        // process-wide instance, which made that a global effect.
+        Pinned = System.Collections.Frozen.FrozenSet.ToFrozenSet(pinned);
 
         // Decomposed once. A pattern is immutable, and Anchor was rebuilding its
         // array on every read — inside R6's ordered pattern-by-pattern loop,
@@ -646,51 +747,73 @@ internal sealed class Pattern : IEquatable<Pattern>
     public const int MaxSegments = 128;
 
     /// <summary>
-    ///     Parses "compute total for (_)" into segments, a hole being "(_)" or a
+    ///     Reads "compute total for (_)" into segments, a hole being "(_)" or a
     ///     bare "_".
     /// </summary>
     ///
     /// <remarks>
     ///     <para>
-    ///     ROUND-TRIPS OR REFUSES. It used to do neither: <see cref="ToString"/>
-    ///     writes a hole as «(_)» and this read «(_)» as an ordinary WORD, so
-    ///     parsing a pattern's own rendering gave a different pattern that
-    ///     rendered identically. Same shape as the numeric-lexer bug — the text
-    ///     and the text the scanner approved were different strings, silently —
-    ///     and that was the worst one in its sweep.
+    ///     THROUGH THE LEXER, so segmentation agrees with the compiler by
+    ///     construction rather than by convention. Splitting on spaces agreed
+    ///     with it only for names of single-word tokens: «part of» and «for
+    ///     each» are one token each, so "take part of _" built four segments
+    ///     where a call lexes to three, and the pattern was declared, printed
+    ///     correctly, and could never match anything.
     ///     </para>
     ///     <para>
-    ///     So anything this cannot represent throws rather than becoming
-    ///     something else. A PINNED hole is the live case: it has no declaration
-    ///     syntax yet, which is why <see cref="ToString"/> renders it as prose
-    ///     rather than as source, and why prose arriving here is refused instead
-    ///     of being read as three words.
+    ///     ROUND-TRIPS OR REFUSES, and this is what makes the first half true:
+    ///     <see cref="ToString"/> writes segments separated by spaces, and
+    ///     re-lexing recovers exactly the tokens they came from. It refuses
+    ///     everything else. Splitting on spaces accepted «take &lt;_&gt;»,
+    ///     «take 1», «take a-b» and «take +» as literal WORDS — none of which
+    ///     the lexer can produce as one word, so each was a pattern nothing
+    ///     could ever match, constructed in silence. A pattern that cannot match
+    ///     is the forbidden third outcome as much as a wrong one is.
     ///     </para>
     /// </remarks>
     public static Pattern Parse(string pattern)
-        => new([.. pattern.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Segment)]);
-
-    /// <summary>One word, or the hole it is not.</summary>
-    private static string Segment(string segment)
     {
-        if (segment is "_" or Hole) return null;
+        var lexemes = Lexemes.Lex(pattern);
 
-        // Cheap and total: a word may not contain the characters a rendering
-        // uses, so anything holding one is a rendering this cannot read back.
-        if (segment.IndexOfAny(Notation) < 0) return segment;
+        List<string> segments = [];
 
-        throw new ArgumentException($"«{segment}» is not a word or a hole. A pattern is words and «{Hole}» holes; "
-                                  + "anything else is a rendering rather than a declaration.", nameof(segment));
+        for (var at = 0; at < lexemes.Count; ++at)
+        {
+            if (lexemes[at].Kind is LexemeKind.Word) { segments.Add(lexemes[at].Text); continue; }
+
+            segments.Add(null);
+
+            // «(_)» and a bare «_» are the same hole. The brackets are how a
+            // call site shows one, which is why the rendering uses them.
+            if (Hole(lexemes, ref at)) continue;
+            if (lexemes[at] is { Kind: LexemeKind.Symbol, Text: Blank }) continue;
+
+            throw new ArgumentException($"«{lexemes[at].Text}» is not a word or a hole. A pattern is words and «{Bracketed}» "
+                                      + "holes, as the lexer reads them; anything else is a rendering rather than a "
+                                      + "declaration.", nameof(pattern));
+        }
+
+        return new Pattern(segments);
+    }
+
+    /// <summary>Whether a bracketed hole starts here, consuming it if it does.</summary>
+    private static bool Hole(List<Lexeme> lexemes, ref int at)
+    {
+        if (at + 2 >= lexemes.Count) return false;
+
+        if (lexemes[at].Kind is not LexemeKind.Open) return false;
+        if (lexemes[at + 1] is not { Kind: LexemeKind.Symbol, Text: Blank }) return false;
+        if (lexemes[at + 2].Kind is not LexemeKind.Close) return false;
+
+        at += 2;
+        return true;
     }
 
     /// <summary>A hole, written the way it is called: bracketed.</summary>
-    private const string Hole = "(_)";
+    private const string Bracketed = "(_)";
 
-    /// <summary>
-    ///     What a rendering may contain and a declaration may not, so that the
-    ///     one is never quietly read as the other.
-    /// </summary>
-    private static readonly char[] Notation = ['(', ')', '«', '»'];
+    /// <summary>A hole, written bare.</summary>
+    private const string Blank = "_";
 
     public IReadOnlyList<string> Segments { get; }
 
@@ -741,27 +864,10 @@ internal sealed class Pattern : IEquatable<Pattern>
     ///     into a program by mistake.
     /// </remarks>
     public override string ToString()
-        => string.Join(' ', Segments.Select((segment, at) => segment is null
-                                                           ? Pinned.Contains(at) ? Pin : Hole
-                                                           : Readable(segment)));
+        => string.Join(' ', Segments.Select((segment, at) => segment ?? (Pinned.Contains(at) ? Pin : Bracketed)));
 
     /// <summary>What a pinned hole takes, in words, until it can be declared.</summary>
     private const string Pin = "«one word, or a bracketed name»";
-
-    /// <summary>
-    ///     A segment as source where it can be, and as prose where it cannot.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     Segments are the LEXER's words, so one of them may hold a space —
-    ///     «for each» is a single token as «part of» is. Rendered plainly it
-    ///     became two, and <see cref="Parse"/> split it back into two, which is
-    ///     a different pattern that rendered identically. Neither round-tripping
-    ///     nor refusing is the one outcome the contract does not allow, so a
-    ///     segment that cannot be read back is quoted and refused instead.
-    /// </remarks>
-    private static string Readable(string segment)
-        => segment.Contains(' ') || segment.IndexOfAny(Notation) >= 0 ? $"«{segment}»" : segment;
 
     public bool Equals(Pattern other)
         => other is not null && Segments.SequenceEqual(other.Segments) && Pinned.SetEquals(other.Pinned);
@@ -853,9 +959,13 @@ internal sealed class SymbolTable
     ///     </para>
     ///     <para>
     ///     Not in <see cref="Patterns"/>, because today the loop is a grammar
-    ///     production and the resolver never sees a loop header. The reserved
-    ///     glue set is therefore larger than the pattern table, and will stop
-    ///     being so when the resolver takes the loop over.
+    ///     production and the resolver never sees a loop header. It is now able
+    ///     to: its declaring hole is a BINDING hole, so it recognises the new
+    ///     name without looking it up, and resolves against the enclosing scope
+    ///     the real path actually presents — one where the loop variable is
+    ///     absent, because the loop is what declares it. Every loop test used to
+    ///     supply it by hand, and the valid header returned NoParse the moment
+    ///     anything real was handed over.
     ///     </para>
     ///     <para>
     ///     Spelled in the LEXER's words and not the reader's: «for each» is one

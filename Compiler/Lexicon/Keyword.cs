@@ -23,7 +23,7 @@ internal class Keyword : Word
     ///     slice of the source and <see cref="Token.Offset"/> is derived from
     ///     where it was cut from — replacing it would move every span.
     /// </remarks>
-    public string Canonical
+    public override string Canonical
     {
         get
         {

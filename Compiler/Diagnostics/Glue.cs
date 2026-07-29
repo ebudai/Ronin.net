@@ -37,8 +37,11 @@ namespace Ronin.Compiler;
 ///     across every design document. That is the argument for generating it.
 ///     </para>
 ///     <para>
-///     The lever is that a pattern whose words all precede its first hole
-///     reserves nothing. Anchor-first is free; interleaving costs a word, for
+///     The lever is that a word costs nothing unless a hole before it could grow
+///     over it. Anchor-first is the easy way to get that — no hole precedes any
+///     word — but not the only one: a DETERMINATE hole, pinned to one token or
+///     required to be bracketed, cannot grow either, so the word after it is
+///     free as well. Interleaving with an indeterminate hole costs a word, for
 ///     every program, for as long as the pattern is in scope.
 ///     </para>
 /// </remarks>
@@ -75,9 +78,9 @@ internal static class Glue
         registry.AppendLine("# A word here may not appear in a name wherever its pattern is visible.");
         registry.AppendLine("# Adding a line is a breaking change for every program that sees it.");
         registry.AppendLine("#");
-        registry.AppendLine("# «Guillemets» mark text ABOUT the language rather than text in it — a hole");
-        registry.AppendLine("# with no declaration syntax yet, or a segment plain text cannot read back.");
-        registry.AppendLine("# Nothing inside them is source, and none of it can be copied into a program.");
+        registry.AppendLine("# A pattern below is written as it is declared, and «guillemets» mark the one");
+        registry.AppendLine("# thing that cannot be: a PINNED hole, which takes one word and has no");
+        registry.AppendLine("# declaration syntax yet. Everything outside them is ordinary source.");
         registry.AppendLine();
         registry.AppendLine($"## RESERVED ({reserved.Count})");
         registry.AppendLine();

@@ -124,7 +124,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
         {
             if (component.AsName is Name name)
             {
-                segments.AddRange(name.Words.Split(' '));
+                segments.AddRange(name.Canonical);
                 continue;
             }
 

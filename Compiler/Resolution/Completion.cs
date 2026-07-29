@@ -56,7 +56,7 @@ internal sealed class Completion
 
             foreach (var name in symbols.Names)
             {
-                var words = name.Split(' ');
+                var words = Lexemes.Words(name);
                 if (Continues(words, partial) is not string word) continue;
                 if (seen.Add((CandidateKind.Name, word, name)))
                     candidates.Add(new Candidate(CandidateKind.Name, word, name, partial.Length, words.Length));

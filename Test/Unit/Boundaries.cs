@@ -106,9 +106,9 @@ public class Boundaries
         // reservation it was supposed to be under.
         //
         // «in» is not among them any more: it is an ordinary word now, reserved
-        // at the declaration rather than in the lexer, so «type in;» is a type
-        // called «in» and that is a scope rule's business. The keyword boundary
-        // bug was never about «in» — «var if=>Number» is the same defect.
+        // nowhere at all, so «type in;» is a type called «in» and no rule has an
+        // opinion about it. The keyword boundary bug was never about «in» —
+        // «var if=>Number» is the same defect.
         foreach (var source in (string[])
                  [
                      "var if=>Number;\n",

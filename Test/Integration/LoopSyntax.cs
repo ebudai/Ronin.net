@@ -48,20 +48,57 @@ public class LoopSyntax
         return new Resolver(symbols).Resolve(source);
     }
 
+    /// <remarks>
+    ///     The names are the ENCLOSING scope's, and the loop variable is not
+    ///     among them — because the loop is what declares it. Every one of these
+    ///     used to supply it by hand, which is a table the real path can never
+    ///     present: «Declarations.Bind» introduces the variable inside the body,
+    ///     and reports shadowing if the enclosing scope already has it. So the
+    ///     tests passed on a state that meant the valid loop returned NoParse
+    ///     the moment anything real was handed to it.
+    /// </remarks>
     [Theory(DisplayName = "a loop header has one reading")]
     // 1: the ordinary case
-    [InlineData(new[] { "bank", "banks" }, "for each bank in banks", "for each «bank» in «banks»")]
+    [InlineData(new[] { "banks" }, "for each bank in banks", "for each «bank» in «banks»", 2)]
     // 2: a multi-word loop variable, which now takes brackets — see the pinned
     // hole. This is the entire bill for «in» costing nothing.
-    [InlineData(new[] { "open order", "banks" }, "for each (open order) in banks", "for each ⟨«open order»⟩ in «banks»")]
+    [InlineData(new[] { "banks" }, "for each (open order) in banks", "for each «open order» in «banks»", 2)]
     // 3: the collection may itself be a pattern call
-    [InlineData(new[] { "bank", "banks" }, "for each bank in count of banks", "for each «bank» in count of «banks»")]
-    public void ALoopHeaderHasOneReading(string[] names, string source, string reading)
+    [InlineData(new[] { "banks" }, "for each bank in count of banks", "for each «bank» in count of «banks»", 3)]
+    // 4: and the variable's own name is nobody else's business, «in» included
+    [InlineData(new[] { "banks" }, "for each in in banks", "for each «in» in «banks»", 2)]
+    public void ALoopHeaderHasOneReading(string[] names, string source, string reading, int cost)
     {
         var resolution = Resolve(names, source);
 
         Assert.Equal("Resolved", resolution.Kind.ToString());
         Assert.Equal(reading, resolution.Reading);
+
+        // The pattern and the collection, and nothing for the variable: it is a
+        // BINDING occurrence, so there is nothing to look up — which is also why
+        // it resolves without being declared.
+        Assert.Equal(cost, resolution.Cost);
+    }
+
+    [Theory(DisplayName = "a binding hole takes a name and not a value")]
+    [InlineData("for each (3) in banks")]                // a literal
+    [InlineData("for each (a + b) in banks")]            // an operation
+    [InlineData("for each (a, b) in banks")]             // several values
+    [InlineData("for each [open order] in banks")]       // the wrong bracket
+    [InlineData("for each {open order} in banks")]       // and the other wrong one
+    [InlineData("for each (open order] in banks")]       // and one of each
+    [InlineData("for each () in banks")]                 // and nothing at all to bind
+    public void ABindingHoleTakesANameAndNotAValue(string source)
+    {
+        // The pin fixes EXTENT, which is all the zero-glue argument needs — but
+        // extent was being enforced by resolving the span as an ordinary
+        // expression, and an expression is happy to be any of these. The grammar
+        // accepts none of them, so the resolver accepted six shapes it could
+        // never be handed and would not have known what to do with.
+        //
+        // Bracket kind included: the resolver files «(», «[» and «{» all as
+        // Open, so nothing was checking that the brackets even matched.
+        Assert.Equal("NoParse", Resolve(["banks", "a", "b", "open order"], source).Kind.ToString());
     }
 
     [Fact(DisplayName = "the hazard, and the pin that removes it")]

@@ -38,13 +38,15 @@ internal class Name
     ///     there: «var hidden cost» is a name too.
     ///     </para>
     ///     <para>
-    ///     No exception for «in». It was a keyword briefly, which reserved it in
-    ///     the lexer — unconditionally, untypeably, and unscopeably — for a rule
-    ///     that turns out to have no safety content: a SINGLE-word «in» cannot
-    ///     capture anything, because capture needs a multi-word name straddling a
-    ///     hole and that is R5's job. Reserving it is legibility, so it is
-    ///     enforced where legibility rules belong, at the declaration, with a
-    ///     message that can name the pattern responsible.
+    ///     No exception for «in», which is now reserved nowhere at all. It was a
+    ///     keyword briefly, which reserved it in the lexer — unconditionally,
+    ///     untypeably, and unscopeably — for a rule that turns out to have no
+    ///     safety content: a SINGLE-word «in» cannot capture anything, because
+    ///     capture needs a multi-word name straddling a hole. And the multi-word
+    ///     case went the same way once the loop's declaring hole was pinned: a
+    ///     hole fixed to one token cannot grow across the word after it, so the
+    ///     split point is determined by the pattern's shape rather than by taking
+    ///     a word away from names.
     ///     </para>
     /// </remarks>
     public static Name Parse(ref Parser current)
@@ -63,8 +65,23 @@ internal class Name
         return new Name { Tokens = current.AdvanceTo(parser) };
     }
 
+    /// <summary>
+    ///     The name as a sequence of word identities, which is what it IS.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     First-class, and every consumer takes it rather than taking
+    ///     <see cref="Words"/> apart again. Rendering to a string and splitting
+    ///     on spaces was how a pattern segment list got built, and a multi-word
+    ///     keyword does not survive that trip: «compute part of (_)» became four
+    ///     segments where the lexer emits three lexemes, so the pattern was
+    ///     declared, printed correctly, and could never match anything. Doubled
+    ///     spacing added an EMPTY segment on top.
+    /// </remarks>
+    public string[] Canonical => [.. Tokens.ToArray().Select(token => token.Canonical)];
+
     /// <summary>The name as a symbol table holds it: its words, space separated.</summary>
-    public string Words => string.Join(' ', Tokens.ToArray().Select(token => token.Memory.ToString()));
+    public string Words => string.Join(' ', Canonical);
 
     public override bool Equals(object obj) => (obj as Name)?.Tokens.Span.SequenceEqual(Tokens.Span) ?? false;
 

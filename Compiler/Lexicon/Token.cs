@@ -18,6 +18,29 @@ public abstract class Token : ReadOnlySequenceSegment<char>
     ///     source. The memory is a slice of the source string and knows where it
     ///     was cut from.
     /// </remarks>
+    /// <summary>
+    ///     This token's identity: what it IS, rather than how it was written.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     For everything but a multi-word keyword these are the same string, so
+    ///     the distinction had no consequence until «part of» and «for each»
+    ///     became single tokens holding a space. Then "how it was written" split
+    ///     four ways — one space, two, a tab, a newline — and every layer that
+    ///     compared source slices started disagreeing with every layer that
+    ///     compared tokens.
+    ///     </para>
+    ///     <para>
+    ///     It is defined HERE, once, because the alternative was each layer
+    ///     canonicalising for itself: the resolver did, and declarations did not,
+    ///     so «var ready part of world» and «var ready part  of world» were two
+    ///     names to the symbol table and one to the resolver — a duplicate
+    ///     declaration nothing reported, and a second copy nothing could reach.
+    ///     </para>
+    /// </remarks>
+    public virtual string Canonical => Memory.ToString();
+
     public int Offset
     {
         get
