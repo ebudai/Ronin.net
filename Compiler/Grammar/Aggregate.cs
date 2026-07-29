@@ -62,6 +62,22 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
         }
     }
 
+    /// <summary>
+    ///     The last token an element consumed, so the loop above can tell a
+    ///     statement that ended with a brace from one that did not.
+    /// </summary>
+    private static Token Ended(Parser from, Parser to)
+    {
+        Token last = null;
+
+        for (var token = from.Token; ReferenceEquals(token, to.Token) is false; token = token.Next as Token)
+        {
+            if (token is not Trivium) last = token;
+        }
+
+        return last;
+    }
+
     private static TParent Parsed(ref Parser current, ref Parser parser)
     {
         TParent values = [];
@@ -69,6 +85,8 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
 
         while (parser.IsNotFinished)
         {
+            var started = parser;
+
             if (TElement.Parse(ref parser) is not TElement syntax)
             {
                 // an element that will not parse is only acceptable where the
@@ -93,6 +111,13 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
             // to be rejected rather than read as two elements.
             if (parser.TryAdvance<TSeparator>() is false)
             {
+                // Unless the element ended with a block, which already says
+                // where it stops. Requiring «;» after «if x { … }» meant a
+                // braced statement could be the LAST thing in a block and
+                // nothing else — «function f { if x { return 1; } return 2; }»
+                // did not compile, which is most programs.
+                if (Ended(started, parser) is Close.Brace) continue;
+
                 if (parser.TryAdvance<TClose>() is false) return null;
 
                 closed = true;

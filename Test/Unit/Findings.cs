@@ -53,6 +53,11 @@ public class Findings
                      "var x => = 1;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => Number) {}\n",
                      "function (x => Number) rounded { return x; }\n",
+                     """
+                     function item (which => Number) of (list => Number) { return which; }
+                     for each bank in banks { return bank; }
+
+                     """,
                  })
         {
             // Through the whole pipeline rather than one phase of it, so an
@@ -201,6 +206,9 @@ public class Findings
             Player.ron:1:10: «word word word word wor ... ord word word word word» has 129 words and holes, and a pattern may have at most 128. Matching one walks a frame per segment, so the limit is what keeps a declaration from being a way to exhaust the stack. Split it into smaller patterns.
 
             Player.ron:1:10: «(_) rounded» begins with a parameter, which makes it infix rather than a word pattern. A word pattern leads with its name — respell it so the words come first, or declare a symbolic operator, which is where infix belongs.
+
+            Player.ron:2:10: «index of bank», injected by «bank», collides with pattern glue «of» from «item (_) of (_)». Rename «bank», or respell the pattern.
+                Player.ron:1:10: which makes it glue
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

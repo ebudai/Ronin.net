@@ -147,15 +147,21 @@ internal static class Rules
                 continue;
             }
 
-            // One mistake with one fix, so a shadow's complaint adds nothing —
-            // and now it can never have one to add. A shadow offends only if the
-            // name it was injected from does: «old X» contains glue that «X»
-            // does not only when the glue word is «old», which Reserved already
-            // refuses. Checking single-word names is what closed that gap; the
-            // separate injected-name finding it used to need is gone with it.
-            if (declared.InjectedBy is not null) continue;
+            if (declared.InjectedBy is null)
+            {
+                yield return new GlueInName(primary, declared.Name, word, offender.Pattern.ToString())
+                    .Alongside(related, label);
 
-            yield return new GlueInName(primary, declared.Name, word, offender.Pattern.ToString())
+                continue;
+            }
+
+            // One mistake with one fix, so the injector's complaint covers it.
+            // Indexed rather than probed: whatever injects a name declares it
+            // too, which is what «injected by» means.
+            if (offending[declared.InjectedBy] is not null) continue;
+
+            yield return new GlueInInjectedName(primary, declared.Name, declared.InjectedBy, word,
+                                                offender.Pattern.ToString())
                 .Alongside(related, label);
         }
     }

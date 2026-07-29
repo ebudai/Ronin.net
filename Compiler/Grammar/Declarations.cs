@@ -138,7 +138,27 @@ internal sealed class Declarations
 
         symbols.Add(new Declared(name, span));
         symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name));
+
+        // The loop's counter, derived from the variable rather than a bare
+        // «index». There is no shadowing in this language, so a bare one would
+        // collide with every «var index» anyone writes — and "rename your
+        // variable because the loop wanted the word" is the diagnostic the
+        // grammar exists to avoid. Derived, it nests for free: «index of bank»
+        // and «index of branch» coexist with no rule to say how.
+        //
+        // No shadow of its own. «old index of bank» would be the previous
+        // iteration's counter, which is the current one minus one, and a synonym
+        // that looks like it means something is what «old pi» was refused for.
+        var counter = Index + name;
+
+        written[counter] = span;
+        Symbols.WithNames(counter);
+
+        symbols.Add(new Declared(counter, span, InjectedBy: name));
     }
+
+    /// <summary>The prefix a loop injects for its counter.</summary>
+    internal const string Index = "index of ";
 
     /// <summary>
     ///     Whether a name cannot be introduced here, having said why.

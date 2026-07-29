@@ -1,0 +1,98 @@
+// Copyright © 2026 Eric Budai
+
+using Ronin.Compiler;
+
+namespace Unit;
+
+/// <summary>
+///     The reserved-word list, as a file that fails the build when it changes.
+/// </summary>
+///
+/// <remarks>
+///     <para>
+///     Adding a pattern with a word after its first hole reserves that word in
+///     every scope the pattern reaches — names that were legal stop being legal.
+///     Nothing noticed that before, which is the whole reason this exists: it
+///     turns "we silently broke everyone's names" into a reviewable diff.
+///     </para>
+///     <para>
+///     Generated from the language's own patterns rather than transcribed, so it
+///     cannot drift from what the compiler actually reserves. The seed registry
+///     in the handoff folder is the designer's, computed from an aspirational
+///     stdlib; this one is computed from what exists.
+///     </para>
+/// </remarks>
+[Trait(nameof(Glue), null)]
+public class GlueRegistry
+{
+    private static readonly string Committed =
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs", "reserved-words.txt");
+
+    [Fact(DisplayName = "the registry matches what the language reserves")]
+    public void TheRegistryMatchesWhatTheLanguageReserves()
+    {
+        var registry = Glue.Registry(SymbolTable.Builtins);
+
+        Assert.True(File.Exists(Committed), $"{Committed} is missing — regenerate it");
+
+        // Normalised, because a file's line endings are the checkout's business
+        // and not the language's.
+        Assert.Equal(File.ReadAllText(Committed).ReplaceLineEndings("\n"),
+                     registry.ReplaceLineEndings("\n"));
+    }
+
+    [Fact(DisplayName = "a word before the first hole reserves nothing")]
+    public void AWordBeforeTheFirstHoleReservesNothing()
+    {
+        // The design lever, and the reason the registry lists the free patterns
+        // beside the costly ones: the shape to prefer is only visible next to
+        // the shape that charges for itself.
+        Assert.Empty(Glue.Reserved([Pattern.Parse("compute total for _"), Pattern.Parse("sum of _")]));
+
+        Assert.Equal([("to", "send (_) to (_)")],
+                     Glue.Reserved([Pattern.Parse("send _ to _")]));
+    }
+
+    [Fact(DisplayName = "the registry shows what is free beside what is not")]
+    public void TheRegistryShowsWhatIsFreeBesideWhatIsNot()
+    {
+        // Both halves, because the shape to prefer is only legible next to the
+        // shape that charges. A registry listing only the costs would read as a
+        // tax nobody can avoid, when in fact avoiding it is a respelling.
+        var registry = Glue.Registry([Pattern.Parse("send _ to _"), Pattern.Parse("sum of _")]);
+
+        Assert.Contains("## RESERVED (1)", registry);
+        Assert.Contains("to           send (_) to (_)", registry);
+
+        Assert.Contains("## RESERVES NOTHING (1)", registry);
+        Assert.Contains("    sum of (_)", registry);
+    }
+
+    [Fact(DisplayName = "one word reserved by two patterns is named by both")]
+    public void OneWordReservedByTwoPatternsIsNamedByBoth()
+    {
+        // Which pattern cost you the word is the actionable half of the message,
+        // so a word reserved twice has to say so twice — respelling one of them
+        // does not give it back.
+        Assert.Equal(
+            [("of", "item (_) of (_)"), ("of", "part (_) of (_)")],
+            Glue.Reserved([Pattern.Parse("part _ of _"), Pattern.Parse("item _ of _")]));
+    }
+
+    [Fact(DisplayName = "the most expensive shape cannot be built at all")]
+    public void TheMostExpensiveShapeCannotBeBuiltAtAll()
+    {
+        // A leading hole means an empty anchor run, so EVERY word in the pattern
+        // is glue — postfix is the costliest shape there is. The language refuses
+        // it outright rather than pricing it, which is why the registry can never
+        // contain one. Recorded here because "it would have been expensive" is
+        // the reason the refusal exists.
+        Assert.Throws<ArgumentException>(() => new Pattern([null, "rounded"]));
+
+        // and the same shape from source is a finding rather than a throw
+        var finding = Assert.Single(Compilation.Of(
+            new SourceText("function (x => Number) rounded { return x; }\n", "Player.ron")).Findings);
+
+        Assert.Equal("(_) rounded", Assert.IsType<LeadingHole>(finding).Pattern);
+    }
+}

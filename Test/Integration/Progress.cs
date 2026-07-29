@@ -182,6 +182,37 @@ public class Progress
                     $"a twelve-deep brace nest took {stopwatch.Elapsed}");
     }
 
+    [Fact(DisplayName = "a block statement needs no terminator after it")]
+    public void ABlockStatementNeedsNoTerminatorAfterIt()
+    {
+        // The aggregate required a separator between every pair of elements, and
+        // a braced statement does not end with one — so a block could be the
+        // LAST thing in a block and nothing else. «function f { if x { return 1;
+        // } return 2; }» did not compile, which is most programs, and 582 tests
+        // did not notice because every block in every one of them either held a
+        // single statement or ended with the braced one.
+        foreach (var source in (string[])
+                 [
+                     "function f { if x { return 1; } return 2; }\n",
+                     "function f { while x { return 1; } while y { return 2; } }\n",
+                     "for each a in b { for each c in d { return c; } return a; }\n",
+                     "function f { { return 1; } return 2; }\n",
+                 ])
+        {
+            Lexer lexer = new(source);
+            Parser parser = new(lexer.Lex());
+
+            Assert.IsNotType<Module.UnexpectedInputError>(parser.Parse());
+            Assert.False(parser.IsNotFinished, source);
+        }
+
+        // The rule keys on the BRACE, not on "a separator is optional". An
+        // aggregate whose element ends in anything else takes the old path, which
+        // is what keeps a parameter block of «(the ball)» one parameter rather
+        // than two — see ScopeBuilding, where that case is asserted from the
+        // guide's own example.
+    }
+
     [Fact(DisplayName = "recovery runs to the end of the statement, not to the first surprise")]
     public void RecoveryRunsToTheEndOfTheStatement()
     {
