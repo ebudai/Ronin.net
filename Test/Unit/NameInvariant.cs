@@ -10,11 +10,19 @@ namespace Unit;
 ///
 /// <remarks>
 ///     <para>
-///     The exhaustive searches counted TIES — 2,382,240 resolutions in the
-///     original run, 45,131,520 across the bracket runs — and a tie is all any
-///     of them measured. R5's actual purpose is preventing silent CAPTURE, and
-///     that property was never what the fuzzer established at either policy. It
-///     comes from one line in the resolver: only a span of words may be a name.
+///     The exhaustive searches counted TIES, and a tie is all any of them
+///     measured. Every figure carries a scope, because quoting one without it is
+///     how this got misread once already:
+///     </para>
+///     <code>
+///     2,382,240    anchor-first word patterns, no brackets      the original run
+///     45,131,520   single patterns and pairs, ≤ 2 units         the bracket runs
+///     294,333,696  pattern pairs, ≤ 3 units                     both policies
+///     </code>
+///     <para>
+///     R5's actual purpose is preventing silent CAPTURE, and that property was
+///     never what any of them established. It comes from one line in the
+///     resolver: only a span of words may be a name.
 ///     </para>
 ///     <para>
 ///     So a name cannot contain a bracket or a symbol, cannot straddle one, and

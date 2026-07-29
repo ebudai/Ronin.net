@@ -285,12 +285,15 @@ internal sealed class Resolver
     ///     patterns cost nothing.
     ///     </para>
     ///     <para>
-    ///     The exhaustive searches did not verify that. They counted TIES —
-    ///     45,131,520 resolutions across the bracket runs, 2,382,240 in the
-    ///     original, and ties are all any of them measured. The no-capture
-    ///     property is structural and comes from here, so widening what may be
-    ///     part of a name would invalidate it silently and no fuzzer would
-    ///     notice. <c>ANameIsWordsAndNothingElse</c> is the test that would.
+    ///     The exhaustive searches did not verify that. They counted TIES, and
+    ///     ties are all any of them measured — 2,382,240 resolutions over
+    ///     anchor-first word patterns with no brackets, 45,131,520 over the
+    ///     narrower bracket runs, and 294,333,696 over pattern pairs at three
+    ///     units. The no-capture property is structural and comes from here, so
+    ///     widening what may be part of a name would invalidate it silently and
+    ///     no fuzzer would notice: the resolutions would stay unique, they would
+    ///     simply be unique and wrong.
+    ///     <c>ANameIsWordsAndNothingElse</c> is the test that would.
     ///     </para>
     /// </remarks>
     /// <summary>
