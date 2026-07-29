@@ -193,6 +193,10 @@ none keep the graph reified at runtime. Ronin does, for other reasons.
 3. **Outward-in typing only** (§4) — a rule to write down, not code to write,
    and it prevents a class of problem rather than fixing one.
 4. **No higher-order cells** (§6) — same: a sentence in the spec now, versus a
-   research programme later.
+   research programme later. NOTE: this is no longer purely hypothetical. `() =>
+   …` is well formed (see `DELEGATES.md`), and a zero-argument delegate whose
+   read invokes it is a deferred computation held in a cell — so the language has
+   higher-order cells whether or not the prohibition is written down. Deciding
+   it late now means deciding it against existing programs.
 5. Node lifetime (§3) and exact roots (§5) when the live environment and the
    numeric tower respectively get built.

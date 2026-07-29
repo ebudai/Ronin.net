@@ -32,8 +32,16 @@ ping`, which is what `ping` is called.
 
 The same bracket in a ***delegate*** is a **signature** and not a name, so it
 does list its parameters: `() => { … }` and `(a, b) => { … }` are both well
-formed.  The distinction is which grammar the bracket sits in, and it is why the
-two rules do not contradict.
+formed.
+
+The distinction is not about the character but about what is being declared:
+
+> A bracket is a **hole** where a *call-site shape* is being declared, and a
+> **signature** where a *callable value's type* is being described.
+
+`function send (message) to (recipient)` declares syntax — how a call is
+written.  `var callback => () => Number` describes a value.  So the two rules
+are one rule applied to two kinds of thing, and do not contradict.
 
 A hole in a name is also a hole in a *declared* name only.  A ***parameter*** and
 a ***loop variable*** are names and nothing else — they are bound to one value on
@@ -180,6 +188,18 @@ Can be ***inline value***, ***delegate***, ***lookup***, ***list***, ***inputs**
 One or more ***literal***s
 ### 4.8.2 Delegate
 ***datum declaration*** | ***parameters*** `=>` *body*
+
+**Reading a zero-argument delegate invokes it.**  There is no call syntax; a
+delegate is read like any other name.  Anything else would reintroduce `ping()`
+at the call site, which is the exact spelling `function ping ()` is refused for
+— so a language that refuses the declaration cannot accept the call.
+
+That makes a zero-argument delegate a deferred computation evaluated on read,
+which is a `let` that can be passed around.  Two questions follow and neither is
+settled: whether **higher-order cells** are permitted at all, and whether a
+first-class computation is distinct enough from a `let` to want both.  See
+`FAILUREMODES.md` §6 — `() => …` being well formed puts them in scope whether or
+not those decisions are taken.
 ## 4.9 Statements
 An expression of programmer intent.  All are completed with either ***punctuation*** or the end of file.  ***Reference***s and ***anonymous value***s are also considered statements.
 ### 4.9.1 Export
