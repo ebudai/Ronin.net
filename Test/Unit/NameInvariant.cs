@@ -18,7 +18,13 @@ namespace Unit;
 ///     2,382,240    anchor-first word patterns, no brackets      the original run
 ///     45,131,520   single patterns and pairs, ≤ 2 units         the bracket runs
 ///     294,333,696  pattern pairs, ≤ 3 units                     both policies
+///     4,083,840    the original's configuration, new machinery  the baseline
 ///     </code>
+///     <para>
+///     Every one of them is reproducible from the handoff folder — the original
+///     harness was the last to arrive and confirms its own figure at 91 pattern
+///     pairs, 24 of them refused by R6.
+///     </para>
 ///     <para>
 ///     R5's actual purpose is preventing silent CAPTURE, and that property was
 ///     never what any of them established. It comes from one line in the
