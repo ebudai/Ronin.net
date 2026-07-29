@@ -854,9 +854,21 @@ internal sealed class Pattern : IEquatable<Pattern>
     ///     Whether these segments read back as themselves, which is what the
     ///     constructor requires and what a declaration is checked for first.
     /// </summary>
-    public static bool Writable(IReadOnlyList<string> segments)
-        => Read(string.Join(' ', segments.Select(segment => segment ?? Bracketed))) is List<string> written
-        && written.SequenceEqual(segments);
+    public static bool Writable(IReadOnlyList<string> segments) => Reads(segments).SequenceEqual(segments);
+
+    /// <summary>
+    ///     What these segments denote once written down and read back, which is
+    ///     the same sequence exactly when they are <see cref="Writable"/>.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Never throws, because a finding that says a declaration cannot be
+    ///     written has to be able to say what it becomes instead — and going
+    ///     through <see cref="Parse"/> to find out meant crossing the very
+    ///     constructor whose invariant was being reported.
+    /// </remarks>
+    public static IReadOnlyList<string> Reads(IReadOnlyList<string> segments)
+        => Read(string.Join(' ', segments.Select(segment => segment ?? Bracketed))) ?? [];
 
     /// <summary>Whether a bracketed hole starts here, consuming it if it does.</summary>
     private static bool Hole(List<Lexeme> lexemes, ref int at)

@@ -128,6 +128,8 @@ internal sealed class Declarations
     /// </remarks>
     private void Bind(Identifier variable)
     {
+        if (Unwritable(variable)) return;
+
         var words = variable.Canonical;
         var name = variable.Words;
         var span = variable.Span(source);
@@ -223,14 +225,13 @@ internal sealed class Declarations
                 return;
             }
 
-            if (member.Identifier.IsPattern && member.Identifier.Writable is false)
-            {
-                problems.Add(new PatternUnwritable(member.Identifier.Span(source),
-                                                   member.Identifier.Declares(),
-                                                   member.Identifier.Reads()));
-                return;
-            }
-
+            // Width BEFORE readback, and not the other way round. A declaration
+            // can be both, and the readback that the unwritable finding prints
+            // used to go through the pattern constructor — which enforces this
+            // very bound by throwing. Reporting one problem crashed on the
+            // other. The readback no longer constructs, and this order means it
+            // is not even reached: too wide is refused on what was written,
+            // before anything asks what it would read as.
             if (member.Identifier.IsPattern && member.Identifier.Width > Compiler.Pattern.MaxSegments)
             {
                 problems.Add(new PatternTooWide(member.Identifier.Span(source),
@@ -239,6 +240,8 @@ internal sealed class Declarations
                                                 Compiler.Pattern.MaxSegments));
                 return;
             }
+
+            if (Unwritable(member.Identifier)) return;
 
             Cell(member);
             return;
@@ -265,6 +268,9 @@ internal sealed class Declarations
     /// </summary>
     private void Cell(Member member)
     {
+        // Not checked again here. Every route to this passes the identifier
+        // through the refusal first, and a second guard that cannot fire is a
+        // guard nothing is testing.
         var words = member.Identifier.Canonical;
         var name = member.Identifier.Words;
 
@@ -293,6 +299,27 @@ internal sealed class Declarations
             Symbols.WithNames(name);
             symbols.Add(new Declared(name, span) { Words = words });
         }
+    }
+
+    /// <summary>
+    ///     Refuses a declaration whose words do not read back as themselves.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     An IDENTIFIER's invariant, so every declaration passes through it —
+    ///     it was a pattern's, and reached only by things with a parameter block.
+    ///     «var ready part /* gap */ of world» declared the four words «ready»
+    ///     «part» «of» «world» and rendered as three, and the symbol table is
+    ///     keyed on that rendering: so it held a name whose identity it could
+    ///     not state, agreeing with «var ready part of world» while
+    ///     <c>Name.Equals</c> said the two were different things.
+    /// </remarks>
+    private bool Unwritable(Identifier identifier)
+    {
+        if (identifier.Writable) return false;
+
+        problems.Add(new UnwritableName(identifier.Span(source), identifier.Declares(), identifier.Reads()));
+        return true;
     }
 
     private string Where(string name) => inherited.Contains(name) ? "in an enclosing scope" : "in this scope";

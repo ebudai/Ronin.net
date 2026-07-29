@@ -208,7 +208,7 @@ public class Findings
 
             Player.ron:1:10: «(_) rounded» begins with a parameter, which makes it infix rather than a word pattern. A word pattern leads with its name — respell it so the words come first, or declare a symbolic operator, which is where infix belongs.
 
-            Player.ron:1:10: this declares the words «compute» «part» «of» «(_)», and written down they read back as «compute» «part of» «(_)» — a different pattern that spells the same. Two words of a composite keyword have something other than a space between them; close the gap, or respell the pattern.
+            Player.ron:1:10: this declares the words «compute» «part» «of» «(_)», and written down they read back as «compute» «part of» «(_)» — a different declaration that spells the same. Two words of a composite keyword have something other than a space between them; close the gap, or respell it.
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
 

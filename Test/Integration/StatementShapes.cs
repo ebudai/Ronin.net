@@ -259,6 +259,61 @@ public class StatementShapes
                                                       "P.ron")).Findings);
     }
 
+    [Theory(DisplayName = "words that cannot be written down are refused, whatever declares them")]
+    [InlineData("var ready part /* gap */ of world => Number;")]
+    [InlineData("constant ready part /* gap */ of world => Number;")]
+    [InlineData("type ready part /* gap */ of world;")]
+    [InlineData("function ready part /* gap */ of world { return 1; }")]
+    [InlineData("for each (ready part /* gap */ of world) in banks { return 1; }")]
+    public void WordsThatCannotBeWrittenDownAreRefusedWhateverDeclaresThem(string source)
+    {
+        // An IDENTIFIER's invariant, so every declaration passes through it. It
+        // was a pattern's, and reached only by things with a parameter block —
+        // so a plain name declared four words, rendered as three, and the symbol
+        // table is keyed on the rendering: it held a name whose identity it could
+        // not state, agreeing with «var ready part of world» while Name.Equals
+        // said the two were different things.
+        var finding = Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+
+        var unwritable = Assert.IsType<UnwritableName>(finding);
+
+        Assert.Equal("«ready» «part» «of» «world»", unwritable.Declares);
+        Assert.Equal("«ready» «part of» «world»", unwritable.Reads);
+
+        // and with the gap closed, every one of them is ordinary
+        Assert.Empty(Compilation.Of(new SourceText(source.Replace(" /* gap */ ", " ") + "\n", "P.ron")).Findings);
+    }
+
+    [Theory(DisplayName = "a declaration is refused, never fatal, at any width")]
+    [InlineData(126)]
+    [InlineData(127)]
+    [InlineData(128)]
+    [InlineData(129)]
+    [InlineData(130)]
+    public void ADeclarationIsRefusedNeverFatalAtAnyWidth(int filler)
+    {
+        // Both problems at once. The unwritable finding printed what the words
+        // read back AS, and worked that out by parsing — which constructs, and
+        // the constructor enforces the width bound by THROWING. Reporting one
+        // problem crashed on the other, from ordinary source.
+        //
+        // Width is asked first now, on what was written, and the readback no
+        // longer constructs. Either would have been enough; the point of the
+        // matrix is that nothing here is fatal.
+        var words = string.Concat(Enumerable.Range(0, filler).Select(each => $"word{each} "));
+
+        foreach (var gap in (string[])["part /* gap */ of ", "part of ", string.Empty])
+        {
+            var source = $"function compute {gap}{words}(x => Number) {{ return x; }}\n";
+
+            var findings = Compilation.Of(new SourceText(source, "P.ron")).Findings;
+
+            Assert.All(findings, finding => Assert.True(finding.Kind is FindingKind.PatternTooWide
+                                                                     or FindingKind.UnwritableName,
+                                                        finding.Kind.ToString()));
+        }
+    }
+
     [Fact(DisplayName = "words that cannot be written down are refused, not stored")]
     public void WordsThatCannotBeWrittenDownAreRefusedNotStored()
     {
@@ -271,7 +326,7 @@ public class StatementShapes
 
                                                                   """, "P.ron")).Findings);
 
-        var unwritable = Assert.IsType<PatternUnwritable>(finding);
+        var unwritable = Assert.IsType<UnwritableName>(finding);
 
         Assert.Equal("«compute» «part» «of» «(_)»", unwritable.Declares);
         Assert.Equal("«compute» «part of» «(_)»", unwritable.Reads);

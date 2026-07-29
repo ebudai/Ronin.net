@@ -180,12 +180,6 @@ internal class Identifier : IEnumerable<Identifier.Component>
             return false;
         }
 
-        // The constructor's own invariant, asked BEFORE it throws — same reason
-        // as the width check above. A pattern whose words do not read back as
-        // themselves is ordinary source, and the guard that keeps direct
-        // construction honest would have become a fatal path.
-        Writable = Compiler.Pattern.Writable(segments);
-
         pattern = BeginsWithHole || Writable is false || segments.Count > Compiler.Pattern.MaxSegments
                 ? null
                 : new Compiler.Pattern(segments);
@@ -210,8 +204,25 @@ internal class Identifier : IEnumerable<Identifier.Component>
     /// </summary>
     public int Width { get; private set; }
 
-    /// <summary>Whether the declared words read back as the words declared.</summary>
-    public bool Writable { get; private set; } = true;
+    /// <summary>
+    ///     Whether the declared words read back as the words declared.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Computed, not recorded by <see cref="TryPattern"/>. Recorded there it
+    ///     was only ever true for declarations that ask for a pattern, and a
+    ///     loop variable does not — so a bracketed «for each (ready part /* gap
+    ///     */ of world) in banks» kept the default and declared a name whose
+    ///     rendering states different words than the declaration holds.
+    /// </remarks>
+    public bool Writable => Compiler.Pattern.Writable(Shaped);
+
+    /// <summary>
+    ///     The segments this identifier declares, a hole for each parameter
+    ///     block. The one decomposition, so nothing can hold a second opinion.
+    /// </summary>
+    private IReadOnlyList<string> Shaped
+        => [.. Components.SelectMany(component => component.AsName?.Canonical ?? [null])];
 
     /// <summary>
     ///     The words this identifier declares, one quotation each.
@@ -230,14 +241,24 @@ internal class Identifier : IEnumerable<Identifier.Component>
     ///     them.
     ///     </para>
     /// </remarks>
-    public string Declares()
-        => Boundaries(Components.SelectMany(component => component.AsName?.Canonical ?? ["(_)"]));
+    public string Declares() => Boundaries(Shaped);
 
-    /// <summary>The words that shape denotes when it is read back.</summary>
-    public string Reads()
-        => Boundaries(Compiler.Pattern.Parse(Shape).Segments.Select(segment => segment ?? "(_)"));
+    /// <summary>
+    ///     The words this identifier's own rendering denotes when read back.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Through the lexical decomposition and NOT through
+    ///     <c>Pattern.Parse</c>, which constructs — and the constructor enforces
+    ///     the width bound by throwing. A declaration that was both unwritable
+    ///     and over-width reached this while the finding for the first was being
+    ///     built, so reporting the problem crashed on the other one. A finding
+    ///     formatter must not cross the invariant it is reporting.
+    /// </remarks>
+    public string Reads() => Boundaries(Compiler.Pattern.Reads(Shaped));
 
-    private static string Boundaries(IEnumerable<string> words) => "«" + string.Join("» «", words) + "»";
+    private static string Boundaries(IEnumerable<string> words)
+        => "«" + string.Join("» «", words.Select(word => word ?? "(_)")) + "»";
 
     /// <summary>A parameter's name, which every parameter has.</summary>
     private static string Named(Parameters.Parameter parameter) => parameter.AsDatum.Identifier.Words;

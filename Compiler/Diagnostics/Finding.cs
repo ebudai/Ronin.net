@@ -52,8 +52,8 @@ internal enum FindingKind
     /// <summary>A pattern with more words and holes than will be matched.</summary>
     PatternTooWide,
 
-    /// <summary>A pattern whose words do not read back as themselves.</summary>
-    PatternUnwritable,
+    /// <summary>A declaration whose words do not read back as themselves.</summary>
+    UnwritableName,
 
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
@@ -307,7 +307,7 @@ internal sealed class LeadingHole(Span primary, string pattern)
 }
 
 /// <summary>
-///     A pattern whose declared words do not read back as the words declared.
+///     A declaration whose words do not read back as the words declared.
 /// </summary>
 ///
 /// <remarks>
@@ -315,20 +315,23 @@ internal sealed class LeadingHole(Span primary, string pattern)
 ///     of a composite keyword. «compute part /* gap */ of (x)» declares the
 ///     THREE words «compute» «part» «of», because trivia stops «part of» being
 ///     recognised as the one token it usually is — and written down, those three
-///     read back as two. So the pattern the compiler built and the pattern its
-///     own rendering denotes were different, which is the whole failure the
-///     round-trip property exists to exclude.
+///     read back as two.
+///     <para>
+///     Every declaration and not only a pattern, because the symbol table is
+///     keyed on the rendering: a name whose words the rendering cannot state is
+///     a name the table cannot tell apart from a different one.
+///     </para>
 /// </remarks>
-internal sealed class PatternUnwritable(Span primary, string declares, string reads)
-    : Finding(FindingKind.PatternUnwritable, primary)
+internal sealed class UnwritableName(Span primary, string declares, string reads)
+    : Finding(FindingKind.UnwritableName, primary)
 {
     public string Declares { get; } = declares;
     public string Reads { get; } = reads;
 
     public override string Message
-        => $"this declares the words {Declares}, and written down they read back as {Reads} — a different pattern " +
-           "that spells the same. Two words of a composite keyword have something other than a space between them; " +
-           "close the gap, or respell the pattern.";
+        => $"this declares the words {Declares}, and written down they read back as {Reads} — a different " +
+           "declaration that spells the same. Two words of a composite keyword have something other than a space " +
+           "between them; close the gap, or respell it.";
 }
 
 /// <summary>A pattern with more words and holes than will be matched.</summary>

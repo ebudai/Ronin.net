@@ -111,8 +111,9 @@ public class Evaluations
 
         var arguments = Assert.IsType<Tree.Call>(Resolve(symbols, "for each bank in banks")).Arguments;
 
-        // the argument itself, because the loop has no runtime yet and the call
-        // stops at its own missing declaration before it reaches one
+        // the argument ALONE, which is the case with no declaring call around it
+        // — inside one it is handed over as a name rather than evaluated, which
+        // is the test above
         var evaluated = new Evaluator(new Scope()).Evaluate(graph, arguments[0], insideLet: false);
 
         // whatever the loop's runtime turns out to be, it is not a read of a
@@ -123,6 +124,43 @@ public class Evaluations
 
         // and the collection beside it is an ordinary read
         Assert.Equal(3d, new Evaluator(new Scope()).Evaluate(graph, arguments[1], insideLet: false));
+    }
+
+    [Fact(DisplayName = "a declaring call receives the name, and runs")]
+    public void ADeclaringCallReceivesTheNameAndRuns()
+    {
+        // The other half. Preserving the binding in the tree was not enough,
+        // because the only generic call boundary evaluated every argument — so
+        // the binding arrived as the error saying nothing had given it a value,
+        // and a body never runs on an error input. The construct that DECLARES
+        // the name never got to say what it introduces.
+        SymbolTable symbols = new();
+        symbols.WithNames("banks");
+
+        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add(builtin);
+
+        Graph graph = new();
+        graph.Var("banks", 3d);
+
+        List<object> received = [];
+
+        Scope scope = new();
+        scope.Declare(new Declaration(SymbolTable.Builtins[0],
+                                      [["variable"], ["collection"]],
+                                      (_, bound) =>
+                                      {
+                                          received.Add(bound["variable"]);
+                                          received.Add(bound["collection"]);
+                                          return "the body ran";
+                                      }));
+
+        Assert.Equal("the body ran",
+                     new Evaluator(scope).Evaluate(graph, Resolve(symbols, "for each bank in banks"),
+                                                   insideLet: false));
+
+        // the name unevaluated, and the collection beside it read as usual
+        Assert.Equal("bank", Assert.IsType<Evaluator.Binding>(received[0]).Name);
+        Assert.Equal(3d, received[1]);
     }
 
     [Fact(DisplayName = "precedence survives into evaluation")]

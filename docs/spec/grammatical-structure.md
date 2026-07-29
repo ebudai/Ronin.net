@@ -24,11 +24,13 @@ declaration: `function f => Number { … }` would parse as a datum named
 `function f`.  Anywhere else it is an ordinary word, so `var ready if needed` is
 a name and `function send (x) part of (y)` is a pattern.
 
-An identifier's words must **read back as themselves**.  Trivia between the two
-words of a composite keyword is the one way to write a declaration whose words
-cannot: `compute part /* gap */ of (x)` declares three words that, written down,
-are two.  It is refused, because the compiler would otherwise hold a pattern
-that its own rendering does not denote.
+An identifier's words must **read back as themselves**, and this holds for
+*every* declaration — data, constants, types, functions, patterns and loop
+variables alike.  Trivia between the two words of a composite keyword is the one
+way to write one that does not: `compute part /* gap */ of (x)` declares three
+words that, written down, are two.  It is refused, because a name is stored by
+its rendering, and a name whose rendering states different words than the
+declaration holds is one the compiler cannot tell apart from a different name.
 ## 4.4 Declaration
 ### 4.4.1 Datum
 ***mutability***? *identifier* (`=>` ***modifier**** *datatype*)? (`=` *initializer*)?

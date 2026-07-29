@@ -71,6 +71,19 @@ internal sealed class Evaluator(Scope scope)
         => new Error($"«{binding.Words}» is being declared here, and nothing has given it a value yet.");
 
     /// <summary>
+    ///     A name a call is declaring, handed to the declaration unevaluated.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Not an <see cref="Error"/> and not a value: a declaration receiving
+    ///     one is being told which name it is introducing, and only it knows what
+    ///     scope or value that name should get. Outside a call there is no such
+    ///     declaration, which is why <see cref="Undeclared"/> still answers
+    ///     there.
+    /// </remarks>
+    internal sealed record Binding(string Name);
+
+    /// <summary>
     ///     Wraps a tree as a <c>let</c> body. Everything inside is evaluated as
     ///     pure, and the graph re-runs it whenever something it read changed.
     /// </summary>
@@ -103,11 +116,33 @@ internal sealed class Evaluator(Scope scope)
         => operation.Operator.Apply(Evaluate(graph, operation.Left, insideLet),
                                     Evaluate(graph, operation.Right, insideLet));
 
+    /// <summary>
+    ///     A call, with its value arguments evaluated and its binding arguments
+    ///     not.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Every argument used to be evaluated, which erased the one distinction
+    ///     the resolver had gone to the trouble of making: a binding occurrence
+    ///     arrived as the Error saying nothing had given it a value, and the
+    ///     declaration refused to run a body on an error input. So the construct
+    ///     that DECLARES the name never got the chance to say what it introduces.
+    ///     <para>
+    ///     It reaches the declaration as a <see cref="Binding"/> instead — a
+    ///     name, not a value — and what to do with it is the declaration's
+    ///     business, which is where that decision belongs.
+    ///     </para>
+    /// </remarks>
     private object Invoke(Graph graph, Tree.Call call, bool insideLet)
         => scope.Invoke(graph,
                         call.Pattern,
-                        [.. call.Arguments.Select(argument => Evaluate(graph, argument, insideLet))],
+                        [.. call.Arguments.Select(argument => Argument(graph, argument, insideLet))],
                         insideLet);
+
+    private object Argument(Graph graph, Tree argument, bool insideLet)
+        => argument is Tree.Binding binding
+         ? new Binding(binding.Words)
+         : Evaluate(graph, argument, insideLet);
 
     /// <summary>
     ///     A literal denotes itself, which is why it costs the resolver nothing.
