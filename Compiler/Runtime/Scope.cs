@@ -41,6 +41,21 @@ internal sealed class Declaration
         if (blocks.Count != holes)
             throw new ArgumentException($"«{pattern}» has {holes} hole(s) and {blocks.Count} block(s)", nameof(blocks));
 
+        // Every parameter name distinct, across the whole declaration and not
+        // merely within one block. Binding writes them into a dictionary, so a
+        // repeat is not an error there — the second value silently replaces the
+        // first and the body reads one argument where two were passed. The
+        // declaration pass refuses the source that would do this; this is the
+        // invariant for anything constructing a Declaration directly.
+        var named = blocks.SelectMany(block => block).ToArray();
+
+        if (named.Any(string.IsNullOrWhiteSpace))
+            throw new ArgumentException($"«{pattern}» has a parameter with no name", nameof(blocks));
+
+        if (named.Distinct(StringComparer.Ordinal).Count() != named.Length)
+            throw new ArgumentException($"«{pattern}» names a parameter twice, and a binding would keep one",
+                                        nameof(blocks));
+
         Pattern = pattern;
 
         // deep, because both levels are the caller's and the inner ones are what

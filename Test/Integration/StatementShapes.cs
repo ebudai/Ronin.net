@@ -285,12 +285,16 @@ public class StatementShapes
     }
 
     [Theory(DisplayName = "a declaration is refused, never fatal, at any width")]
-    [InlineData(126)]
-    [InlineData(127)]
-    [InlineData(128)]
-    [InlineData(129)]
-    [InlineData(130)]
-    public void ADeclarationIsRefusedNeverFatalAtAnyWidth(int filler)
+    [InlineData(128, 0)]
+    [InlineData(128, 1)]
+    [InlineData(128, 2)]
+    [InlineData(129, 0)]
+    [InlineData(129, 1)]
+    [InlineData(129, 2)]
+    [InlineData(130, 0)]
+    [InlineData(130, 1)]
+    [InlineData(130, 2)]
+    public void ADeclarationIsRefusedNeverFatalAtAnyWidth(int filler, int gaps)
     {
         // Both problems at once. The unwritable finding printed what the words
         // read back AS, and worked that out by parsing — which constructs, and
@@ -301,17 +305,17 @@ public class StatementShapes
         // longer constructs. Either would have been enough; the point of the
         // matrix is that nothing here is fatal.
         var words = string.Concat(Enumerable.Range(0, filler).Select(each => $"word{each} "));
+        var interrupted = string.Concat(Enumerable.Repeat("part /* gap */ of ", gaps));
 
-        foreach (var gap in (string[])["part /* gap */ of ", "part of ", string.Empty])
-        {
-            var source = $"function compute {gap}{words}(x => Number) {{ return x; }}\n";
+        var source = $"function compute {interrupted}{words}(x => Number) {{ return x; }}\n";
 
-            var findings = Compilation.Of(new SourceText(source, "P.ron")).Findings;
+        // Not «Assert.All», which passes on an empty collection and would have
+        // said nothing at all. Each of these is over-width as written, so each
+        // has to produce exactly one finding — and width is asked first, so it
+        // is that one even where the words are also uninterpretable.
+        var finding = Assert.Single(Compilation.Of(new SourceText(source, "P.ron")).Findings);
 
-            Assert.All(findings, finding => Assert.True(finding.Kind is FindingKind.PatternTooWide
-                                                                     or FindingKind.UnwritableName,
-                                                        finding.Kind.ToString()));
-        }
+        Assert.Equal(FindingKind.PatternTooWide, finding.Kind);
     }
 
     [Fact(DisplayName = "words that cannot be written down are refused, not stored")]
@@ -334,6 +338,114 @@ public class StatementShapes
         // and with the gap closed it is an ordinary declaration
         Assert.Empty(Compilation.Of(new SourceText("function compute part of (x => Number) { return x; }\n",
                                                    "P.ron")).Findings);
+    }
+
+    [Theory(DisplayName = "a parameter is a declaration, and is checked like one")]
+    [InlineData("function compute (ready part /* gap */ of world => Number) { return 1; }")]
+    [InlineData("var callback = (ready part /* gap */ of world) => { return 1; };")]
+    public void AParameterIsADeclarationAndIsCheckedLikeOne(string source)
+    {
+        // A parameter's identifier reached exactly one thing: «Named», which
+        // takes its rendering. So writability, the reserved prefix, collisions,
+        // R5 and no-shadowing were every one of them asked of nothing, and a
+        // parameter declaring four words was stored under a key stating three.
+        var unwritable = Assert.IsType<UnwritableName>(
+            Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings));
+
+        Assert.Equal("«ready» «part» «of» «world»", unwritable.Declares);
+        Assert.Equal("«ready» «part of» «world»", unwritable.Reads);
+    }
+
+    [Fact(DisplayName = "two parameters that spell the same are one name, and are refused")]
+    public void TwoParametersThatSpellTheSameAreOneNameAndAreRefused()
+    {
+        // The runtime consequence, which is why this is not a diagnostic nicety.
+        // Both parameters became the key «ready part of world», binding writes
+        // them into a dictionary, and the body received one entry with the first
+        // argument silently replaced by the second.
+        Assert.NotEmpty(Compilation.Of(new SourceText("""
+                                                      function compare (ready part /* gap */ of world => Number,
+                                                                        ready part of world => Number) { return 1; }
+
+                                                      """, "P.ron")).Findings);
+
+        // and the plain duplicate, which was equally unreported
+        var shadowed = Assert.IsType<Shadowed>(
+            Assert.Single(Compilation.Of(new SourceText("function compare (a => Number, a => Number) { return 1; }\n",
+                                                        "P.ron")).Findings));
+
+        Assert.Equal("a", shadowed.Name);
+    }
+
+    [Theory(DisplayName = "a delegate's parameter is declared into its body, typed or not")]
+    [InlineData("var callback = (name) => { var name => Number; return 1; };")]
+    [InlineData("var callback = (name => Number) => { var name => Number; return 1; };")]
+    public void ADelegatesParameterIsDeclaredIntoItsBodyTypedOrNot(string source)
+    {
+        // Both spellings declare «name». A delegate's parameter is a bare name
+        // when it has no type and a datum when it has one, and one declaration
+        // path serves both rather than a second growing beside it with its own
+        // idea of the rules.
+        var shadowed = Assert.IsType<Shadowed>(
+            Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings));
+
+        Assert.Equal("name", shadowed.Name);
+    }
+
+    [Fact(DisplayName = "a parameter is in scope in its body, and shadows nothing there")]
+    public void AParameterIsInScopeInItsBodyAndShadowsNothingThere()
+    {
+        // Parameters were never declared into the body at all — only the loop
+        // variable was — so this had nothing to report, and «name» in that body
+        // would have quietly read the member instead of the argument.
+        var shadowed = Assert.IsType<Shadowed>(Assert.Single(Compilation.Of(new SourceText("""
+                                                                                          type Box {
+                                                                                              var name => Number;
+                                                                                              function read (name => Number) { return name; }
+                                                                                          }
+
+                                                                                          """, "P.ron")).Findings));
+
+        Assert.Equal("name", shadowed.Name);
+        Assert.Equal("in an enclosing scope", shadowed.Where);
+    }
+
+    [Theory(DisplayName = "a delegate body is a scope like any other")]
+    [InlineData("var callback = (x) => { var d => Number; var d => Number; };")]
+    [InlineData("var handlers = { (x) => { var d => Number; var d => Number; }, 2 };")]
+    [InlineData("var outer = (x) => { var inner = (y) => { var d => Number; var d => Number; }; };")]
+    [InlineData("function run (callback = (x) => { var d => Number; var d => Number; }) { return 1; }")]
+    [InlineData("var callback = (x => Number) => { var d => Number; var d => Number; };")]
+    public void ADelegateBodyIsAScopeLikeAnyOther(string source)
+    {
+        // A delegate is a VALUE, so its body could sit in an initialiser, a
+        // list, a lookup, an input, a parameter's default or another delegate —
+        // and the scope walk was a switch over the statement. Every declaration
+        // diagnostic vanished inside one, while the error walk kept finding
+        // syntax problems in the same body: the split was invisible because half
+        // the diagnostics still worked.
+        Assert.Contains(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings,
+                        finding => finding.Kind is FindingKind.Shadowed);
+    }
+
+    [Theory(DisplayName = "an empty bracket is a hole with no name")]
+    [InlineData("function ping () { return 1; }", "ping ()")]
+    [InlineData("function send () to (recipient => Number) { return recipient; }", "send () to (_)")]
+    [InlineData("type Box { function ping () { return 1; } }", "ping ()")]
+    public void AnEmptyBracketIsAHoleWithNoName(string source, string shape)
+    {
+        // A bracket in a declaration marks ONE ARGUMENT — «send (message) to
+        // (recipient)» is called «send x to y» — so «()» is a hole with no name
+        // rather than an empty parameter list, of which Ronin has none.
+        //
+        // It used to become an ordinary hole: «function ping ()» installed «ping
+        // (_)», which «ping» does not resolve against, «ping ()» does not
+        // either, and «ping 1» resolves and is then refused at binding. A
+        // declaration with no spelling that calls it.
+        var empty = Assert.IsType<EmptyHole>(
+            Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings));
+
+        Assert.Equal(shape, empty.Shape);
     }
 
     private static IEnumerable<(string Name, string Source)[]> Sequences(int length)

@@ -76,7 +76,8 @@ internal sealed class Declarations
     ///     would be the one hole in it.
     /// </param>
     public static Declarations Of(IEnumerable<Statement> statements, SourceText source,
-                                  Declarations enclosing = null, Identifier variable = null)
+                                  Declarations enclosing = null, Identifier variable = null,
+                                  IReadOnlyList<Identifier> parameters = null)
     {
         Declarations declarations = new() { source = source };
 
@@ -99,6 +100,14 @@ internal sealed class Declarations
         }
 
         if (variable is not null) declarations.Bind(variable);
+
+        // Before the body's own statements, because that is where they are: a
+        // parameter is declared on entry, and a body redeclaring one is
+        // shadowing it. They were declared nowhere at all — flattened to strings
+        // for the runtime and never presented to any rule — so «type Box { var
+        // name; function read (name) {} }» had nothing to report, and «name» in
+        // that body would have read the member.
+        foreach (var parameter in parameters ?? []) declarations.Receive(parameter);
 
         foreach (var statement in statements) declarations.Declare(statement);
 
@@ -169,6 +178,35 @@ internal sealed class Declarations
         symbols.Add(new Declared(counter, span, InjectedBy: name) { Words = [Counter, Within, .. words] });
     }
 
+    /// <summary>Declares a parameter into the body it is bound in.</summary>
+    ///
+    /// <remarks>
+    ///     Through the same refusal as everything else, which is the point: a
+    ///     parameter's identifier used to reach only <c>Named</c>, which takes
+    ///     its rendering — so writability, the reserved prefix, collisions, R5
+    ///     and no-shadowing were all asked of nothing. Two parameters whose
+    ///     canonical words differ but whose renderings agree became one runtime
+    ///     key, and the second argument silently overwrote the first.
+    ///     <para>
+    ///     No shadow and no counter. «old x» is the previous value of a cell that
+    ///     has one, and a parameter is bound once per call.
+    ///     </para>
+    /// </remarks>
+    private void Receive(Identifier parameter)
+    {
+        if (Unwritable(parameter)) return;
+
+        var name = parameter.Words;
+        var span = parameter.Span(source);
+
+        if (Refused(name, span)) return;
+
+        written[name] = span;
+        Symbols.WithNames(name);
+
+        symbols.Add(new Declared(name, span) { Words = parameter.Canonical });
+    }
+
     /// <summary>The prefix a loop injects for its counter.</summary>
     internal const string Index = Counter + " " + Within + " ";
 
@@ -205,6 +243,15 @@ internal sealed class Declarations
         // Member.Unresolved is a statement that mentions names rather than
         // declaring any, and it is the shape an ordinary expression takes
         if (statement is not Member member || member.Identifier is null) return;
+
+        // Before anything asks what it declares, because an empty bracket makes
+        // it a PATTERN — «function ping ()» has a hole, so it took the pattern
+        // path and never met a single one of the identifier checks below.
+        if (member.Identifier.HasEmptyHole)
+        {
+            problems.Add(new EmptyHole(member.Identifier.Span(source), member.Identifier.Shape));
+            return;
+        }
 
         if (member.Identifier.TryPattern(out var pattern, out var blocks) is false)
         {

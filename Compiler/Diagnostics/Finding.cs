@@ -55,6 +55,9 @@ internal enum FindingKind
     /// <summary>A declaration whose words do not read back as themselves.</summary>
     UnwritableName,
 
+    /// <summary>A bracket in a declaration with no name inside it.</summary>
+    EmptyHole,
+
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
 }
@@ -304,6 +307,47 @@ internal sealed class LeadingHole(Span primary, string pattern)
         => $"«{Pattern}» begins with a parameter, which makes it infix rather than a word " +
            "pattern. A word pattern leads with its name — respell it so the words come first, " +
            "or declare a symbolic operator, which is where infix belongs.";
+}
+
+/// <summary>
+///     A bracket in a declaration with nothing inside it.
+/// </summary>
+///
+/// <remarks>
+///     <para>
+///     A bracket in a declaration marks A HOLE, not a parameter list — «send
+///     (message) to (recipient)» is called «send x to y», so «(message)» is one
+///     hole with one name. «()» is therefore a hole with no name: zero-width,
+///     referring to nothing. Ronin has no parameter lists for it to be an empty
+///     one of.
+///     </para>
+///     <para>
+///     Not accepted as a second spelling of «function ping», which is what
+///     already declares a function taking nothing. Someone writing «function
+///     ping ()» is importing a habit whose next move is «ping()» at the call
+///     site, and that cannot work — «ping» is a plain name and is called «ping».
+///     Accepting the declaration buys a moment of familiarity and sets up a
+///     worse surprise straight after; refusing it puts the correction where the
+///     author still has the model in mind. It would also establish that empty
+///     brackets are erasable, which invites «send () to ()» and a rule nobody
+///     wants to write.
+///     </para>
+///     <para>
+///     The message explains the model rather than reporting a syntax error,
+///     because the mistake is a wrong model and not a typo. It does not offer
+///     «(_)» as the unnamed-hole spelling: that is pattern NOTATION, which the
+///     registry renders and this compiler's own <c>Pattern.Parse</c> reads, and
+///     it is not source. A declaration always names its holes.
+///     </para>
+/// </remarks>
+internal sealed class EmptyHole(Span primary, string shape) : Finding(FindingKind.EmptyHole, primary)
+{
+    public string Shape { get; } = shape;
+
+    public override string Message
+        => $"«{Shape}» has a bracket with nothing in it. A bracket in a declaration marks one argument, and Ronin " +
+           "has no parameter lists — so «()» is an argument with no name rather than an empty list of them. A " +
+           "function that takes nothing is declared without the brackets.";
 }
 
 /// <summary>

@@ -111,7 +111,8 @@ internal class Identifier : IEnumerable<Identifier.Component>
     ///     this language will accept.
     /// </summary>
     public string Shape
-        => string.Join(' ', Components.Select(component => component.AsName?.Words ?? "(_)"));
+        => string.Join(' ', Components.Select(component => component.AsName?.Words
+                                                       ?? (component.AsParameters is { Count: 0 } ? "()" : "(_)")));
 
     /// <summary>The literal words of the declaration, space separated.</summary>
     public string Words => string.Join(' ', Canonical);
@@ -141,22 +142,10 @@ internal class Identifier : IEnumerable<Identifier.Component>
     /// </remarks>
     public bool TryPattern(out Compiler.Pattern pattern, out IReadOnlyList<IReadOnlyList<string>> blocks)
     {
-        List<string> segments = [];
-        List<IReadOnlyList<string>> holes = [];
+        var segments = Shaped;
 
-        foreach (var component in Components)
-        {
-            if (component.AsName is Name name)
-            {
-                segments.AddRange(name.Canonical);
-                continue;
-            }
-
-            segments.Add(null);
-            holes.Add([.. component.AsParameters.Select(Named)]);
-        }
-
-        blocks = holes;
+        blocks = [.. Components.Where(component => component.AsParameters is not null)
+                               .Select(component => (IReadOnlyList<string>)[.. component.AsParameters.Select(Named)])];
 
         // Width is checked HERE and not left to the constructor's guard. That
         // guard is an invariant for direct construction and throws, and a
@@ -164,7 +153,7 @@ internal class Identifier : IEnumerable<Identifier.Component>
         // introduced to refuse hostile input would have become a fatal path of
         // its own.
         Width = segments.Count;
-        IsPattern = holes.Count is not 0;
+        IsPattern = blocks.Count is not 0;
 
         // At least one segment always: Parse refuses an identifier with no
         // components, and every component contributes one — a name its words, a
@@ -174,13 +163,18 @@ internal class Identifier : IEnumerable<Identifier.Component>
         // Having holes is what makes it a pattern, and it is the ONLY thing that
         // does. Deciding by width alone reported a 129-word plain NAME as a
         // pattern too wide, quoting a limit on a matcher it will never enter.
-        if (holes.Count is 0)
+        if (IsPattern is false)
         {
             pattern = null;
             return false;
         }
 
-        pattern = BeginsWithHole || Writable is false || segments.Count > Compiler.Pattern.MaxSegments
+        // Width BEFORE writability, because «||» is ordered and writability is
+        // the expensive one: it renders the whole shape and lexes it back. A
+        // bound that exists to refuse hostile input should not do that work
+        // first — and the claim in Declarations that the readback "is not even
+        // reached" was false while it happened here.
+        pattern = BeginsWithHole || segments.Count > Compiler.Pattern.MaxSegments || Writable is false
                 ? null
                 : new Compiler.Pattern(segments);
 
@@ -218,11 +212,34 @@ internal class Identifier : IEnumerable<Identifier.Component>
     public bool Writable => Compiler.Pattern.Writable(Shaped);
 
     /// <summary>
-    ///     The segments this identifier declares, a hole for each parameter
-    ///     block. The one decomposition, so nothing can hold a second opinion.
+    ///     Whether any bracket in this declaration is empty.
     /// </summary>
-    private IReadOnlyList<string> Shaped
-        => [.. Components.SelectMany(component => component.AsName?.Canonical ?? [null])];
+    ///
+    /// <remarks>
+    ///     A hole with no name. It used to become an ordinary hole, so «function
+    ///     ping ()» installed «ping (_)» — which «ping» does not resolve
+    ///     against, «ping ()» does not either, and «ping 1» resolves and is then
+    ///     refused at binding for filling a block that holds no parameters. A
+    ///     declaration with no spelling that calls it.
+    /// </remarks>
+    public bool HasEmptyHole => Components.Any(component => component.AsParameters is { Count: 0 });
+
+    /// <summary>
+    ///     The segments this identifier declares, a hole for each parameter
+    ///     block.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The ONE decomposition, and now actually so: <c>TryPattern</c> used to
+    ///     walk the components itself while this walked them again with a
+    ///     different expression, and width, writability, construction and the
+    ///     diagnostic readback could each have acquired a separate opinion. An
+    ///     identifier does not change after it is parsed, so it is computed once.
+    /// </remarks>
+    public IReadOnlyList<string> Shaped
+        => shaped ??= [.. Components.SelectMany(component => component.AsName?.Canonical ?? [null])];
+
+    private IReadOnlyList<string> shaped;
 
     /// <summary>
     ///     The words this identifier declares, one quotation each.

@@ -90,15 +90,15 @@ internal sealed class Compilation
     ///     probe rather than a walk up the chain.
     /// </summary>
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
-                               Identifier variable = null)
+                               Identifier variable = null, IReadOnlyList<Identifier> parameters = null)
     {
-        var declared = Declarations.Of(statements, Source, enclosing, variable);
+        var declared = Declarations.Of(statements, Source, enclosing, variable, parameters);
 
         foreach (var problem in declared.Problems) Add(problem);
 
         foreach (var body in statements.SelectMany(Bodies))
         {
-            Scope(body.Statements, declared, body.Variable);
+            Scope(body.Statements, declared, body.Variable, body.Parameters);
         }
 
         return declared;
@@ -110,36 +110,115 @@ internal sealed class Compilation
     ///     language where a declaration is a grammar production is the difference
     ///     between nesting and rewriting a sibling's syntax.
     /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     A WALK, for the same reason the error walk is one. This was a switch
+    ///     over the statement itself, and a delegate is a <c>Value</c> — so its
+    ///     body could sit in a datum's initialiser, an input, a list, a lookup, a
+    ///     parameter's default or another delegate, and none of those is a
+    ///     statement. Every declaration diagnostic vanished inside one: «var
+    ///     callback = (x) =&gt; { var d =&gt; Number; var d =&gt; Number; };»
+    ///     compiled clean, while the same duplicate anywhere else is Shadowed.
+    ///     Syntax diagnostics worked, because the error walk was already
+    ///     complete; declaration diagnostics silently did not.
+    ///     </para>
+    ///     <para>
+    ///     Ownership stays explicit. A node that opens a scope yields its body
+    ///     and the walk does not descend into it — the recursion in
+    ///     <see cref="Scope"/> does that, with this scope as the enclosing one.
+    ///     What the walk does keep descending is everything BESIDE the body: a
+    ///     function's parameter defaults can hold delegates of their own.
+    ///     </para>
+    /// </remarks>
     private static IEnumerable<Body> Bodies(Statement statement)
     {
-        // An error node is a Function or a Type or a Scope too, and carries none
-        // of the parts the real one would, so each of these can be absent.
-        switch (statement)
+        HashSet<object> seen = new(ReferenceEqualityComparer.Instance);
+        Stack<object> pending = new();
+
+        pending.Push(statement);
+
+        while (pending.Count is not 0)
         {
-            case Grammar.Function { Definition.Statements: { } body }:
-                yield return new Body(body, null);
-                break;
+            var node = pending.Pop();
 
-            case Grammar.Type { Members: { } members }:
-                yield return new Body([.. members], null);
-                break;
+            if (seen.Add(node) is false) continue;
 
-            // a loop binds its variable in its body and nowhere else
-            case Grammar.Scope.Iterating loop:
-                yield return new Body(loop.Statements, loop.Current);
-                break;
+            // An error node is a Function or a Type or a Scope too, and carries
+            // none of the parts the real one would, so each part can be absent.
+            switch (node)
+            {
+                // A function's body is its parameters' scope. They were never
+                // declared into it at all: nothing but the loop variable was,
+                // so «type Box { var name; function read (name) {} }» had no
+                // shadowing to report and «name» in the body would have read
+                // the member.
+                case Grammar.Function { Definition: { } definition } function:
+                    seen.Add(definition);
+                    yield return new Body(definition.Statements, null, Bound(function.Identifier));
+                    break;
 
-            case Grammar.Scope scope:
-                yield return new Body(scope.Statements, null);
-                break;
+                case Grammar.Delegate { Definition: { } body } lambda:
+                    seen.Add(body);
+                    yield return new Body(body.Statements, null, Bound(lambda.Data));
+                    break;
 
-            default:
-                break;
+                case Grammar.Type { Members: { } members }:
+                    yield return new Body([.. members], null, []);
+                    continue;
+
+                // a loop binds its variable in its body and nowhere else
+                case Grammar.Scope.Iterating loop:
+                    yield return new Body(loop.Statements, loop.Current, []);
+                    continue;
+
+                case Grammar.Scope scope:
+                    yield return new Body(scope.Statements, null, []);
+                    continue;
+
+                default:
+                    break;
+            }
+
+            foreach (var child in Children(node)) pending.Push(child);
         }
     }
 
+    /// <summary>The identifiers a parameter block declares, in order.</summary>
+    private static IReadOnlyList<Identifier> Bound(Grammar.Parameters parameters)
+        => [.. parameters.Select(parameter => parameter.AsDatum.Identifier)];
+
+    /// <summary>
+    ///     The same for a delegate, whose parameter may be a bare name.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     «(x) =&gt; …» and «x =&gt; …» declare «x» exactly as «(x =&gt;
+    ///     Number)» does; only the typing is absent. A name is wrapped so that
+    ///     one declaration path serves all three, rather than a second one
+    ///     growing beside it with its own idea of the rules.
+    /// </remarks>
+    private static IReadOnlyList<Identifier> Bound(Grammar.Delegate.Parameters parameters)
+        => [.. parameters.Select(Declaring)];
+
+    private static Identifier Declaring(Grammar.Delegate.Parameter parameter)
+    {
+        if (parameter.AsDatum is Grammar.Datum declared) return declared.Identifier;
+
+        Identifier wrapped = new();
+        wrapped.Add(parameter.AsName);
+
+        return wrapped;
+    }
+
+    /// <summary>The identifiers every parameter block of an identifier declares.</summary>
+    private static IReadOnlyList<Identifier> Bound(Identifier identifier)
+        => [.. identifier.Where(component => component.AsParameters is not null)
+                         .SelectMany(component => Bound(component.AsParameters))];
+
     /// <summary>One nested scope: what is in it, and what it binds on entry.</summary>
-    private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable);
+    private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable,
+                                        IReadOnlyList<Identifier> Parameters);
 
     /// <summary>
     ///     Every error node anywhere in the tree.

@@ -836,8 +836,10 @@ internal sealed class Pattern : IEquatable<Pattern>
         {
             if (lexemes[at].Kind is LexemeKind.Word) { segments.Add(lexemes[at].Text); continue; }
 
-            // «(_)» and a bare «_» are the same hole. The brackets are how a
-            // call site shows one, which is why the rendering uses them.
+            // «(_)» and a bare «_» are the same hole. Both are NOTATION and
+            // neither is source: a declaration always names its holes, and the
+            // renderer drops those names because the registry is about shape.
+            // This is a parser for that notation and not for Ronin.
             if (Hole(lexemes, ref at) || lexemes[at] is { Kind: LexemeKind.Symbol, Text: Blank })
             {
                 segments.Add(null);

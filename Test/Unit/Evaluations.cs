@@ -163,6 +163,20 @@ public class Evaluations
         Assert.Equal(3d, received[1]);
     }
 
+    [Fact(DisplayName = "a declaration may not name a parameter twice")]
+    public void ADeclarationMayNotNameAParameterTwice()
+    {
+        // The last line of defence for the source rule. Binding writes parameter
+        // names into a dictionary, so a repeat is not an error there — the
+        // second value silently replaces the first, and the body reads one
+        // argument where two were passed.
+        Pattern shape = new(["compare", null]);
+
+        Assert.Throws<ArgumentException>(() => new Declaration(shape, [["a", "a"]], (_, _) => null));
+        Assert.Throws<ArgumentException>(() => new Declaration(shape, [[null]], (_, _) => null));
+        Assert.Throws<ArgumentException>(() => new Declaration(shape, [[" "]], (_, _) => null));
+    }
+
     [Fact(DisplayName = "precedence survives into evaluation")]
     public void PrecedenceSurvivesIntoEvaluation()
     {

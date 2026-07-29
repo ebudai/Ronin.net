@@ -24,6 +24,16 @@ declaration: `function f => Number { … }` would parse as a datum named
 `function f`.  Anywhere else it is an ordinary word, so `var ready if needed` is
 a name and `function send (x) part of (y)` is a pattern.
 
+A **bracket in a declaration marks one argument**, not a parameter list — Ronin
+has no parameter lists.  `send (message) to (recipient)` is called `send x to
+y`, so `(message)` is one hole with one name.  `()` is therefore a hole with no
+name and is refused: a function that takes nothing is declared `function ping`,
+which is what `ping` is called.
+
+Every hole names its argument.  `(_)` is *pattern notation* — what the registry
+renders when it is describing a shape and the names are not its business — and
+is not source.
+
 An identifier's words must **read back as themselves**, and this holds for
 *every* declaration — data, constants, types, functions, patterns and loop
 variables alike.  Trivia between the two words of a composite keyword is the one
@@ -31,6 +41,12 @@ way to write one that does not: `compute part /* gap */ of (x)` declares three
 words that, written down, are two.  It is refused, because a name is stored by
 its rendering, and a name whose rendering states different words than the
 declaration holds is one the compiler cannot tell apart from a different name.
+A **parameter is a declaration**, checked exactly as any other: its words must
+read back as themselves, it may not take a reserved prefix, and it may not
+collide with anything in scope.  It is declared into the body it is bound in, so
+a body redeclaring one is shadowing it — and so is a parameter named after
+something the enclosing scope already has.
+
 ## 4.4 Declaration
 ### 4.4.1 Datum
 ***mutability***? *identifier* (`=>` ***modifier**** *datatype*)? (`=` *initializer*)?
