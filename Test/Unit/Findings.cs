@@ -52,6 +52,7 @@ public class Findings
                      """,
                      "var x => = 1;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => Number) {}\n",
+                     "function (x => Number) rounded { return x; }\n",
                  })
         {
             // Through the whole pipeline rather than one phase of it, so an
@@ -192,12 +193,14 @@ public class Findings
             Player.ron:2:10: «hello to alice» contains «to», which is glue in «send (_) to (_)». A name containing glue silently re-reads statements that already worked, so one of the two has to be respelled — and it is the later declaration that gives way.
                 Player.ron:1:5: the name it collides with
 
-            Player.ron:2:10: «old smoothed», injected by «smoothed», collides with pattern glue «smoothed» from «apply (_) smoothed (_)». Rename «smoothed», or respell the pattern.
+            Player.ron:2:10: «smoothed» is the word «apply (_) smoothed (_)» uses to separate its parts, so a reader meets it in two roles at once. Rename it — nothing about the program is ambiguous, but a name that doubles as punctuation is a name that has to be read twice.
                 Player.ron:1:5: the name it collides with
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
 
             Player.ron:1:10: «word word word word wor ... ord word word word word» has 129 words and holes, and a pattern may have at most 128. Matching one walks a frame per segment, so the limit is what keeps a declaration from being a way to exhaust the stack. Split it into smaller patterns.
+
+            Player.ron:1:10: «(_) rounded» begins with a parameter, which makes it infix rather than a word pattern. A word pattern leads with its name — respell it so the words come first, or declare a symbolic operator, which is where infix belongs.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

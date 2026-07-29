@@ -84,30 +84,44 @@ public class LoopSyntax
         Assert.Equal("NoParse", Resolve(["order", "transit", "banks"], source).Kind.ToString());
     }
 
-    [Fact(DisplayName = "«in» is reserved outright, by the lexer")]
-    public void InIsReservedOutrightByTheLexer()
+    [Fact(DisplayName = "«in» is reserved at the declaration, not in the lexer")]
+    public void InIsReservedAtTheDeclarationNotInTheLexer()
     {
-        // 4 and 7, and a divergence from the design note worth stating.
-        //
-        // The note left open whether to reserve «in» only inside multi-word
-        // names, via R5, or outright. Making it a keyword is the outright option
-        // — the one the note leaned toward — and it moves the enforcement from a
-        // scope rule to the lexer: «in» can no longer be a word in ANY name, so
-        // the R5 rejection for «in» specifically is unreachable rather than
-        // merely rare. The reservation is stronger and the message is worse; the
-        // trade is deliberate.
-        Assert.Equal(FindingKind.Malformed, Assert.Single(Of("var in flight order => Number;\n")).Kind);
-        Assert.Equal(FindingKind.Malformed, Assert.Single(Of("var in => Number;\n")).Kind);
+        // 4 and 7. «in» was a keyword briefly, which reserved it in the lexer:
+        // unconditionally, untypeably, unscopeably, and permanently. It is a
+        // declaration rule now, and that is not a smaller hammer but the right
+        // one — the rule has no safety content. A single-word «in» cannot
+        // capture anything, because capture needs a multi-word name straddling a
+        // hole, which is what GlueInName governs.
+        var single = Assert.IsType<GlueAsName>(Assert.Single(Of("var in => Number;\n")));
 
-        // R5 still holds the reservation for every OTHER pattern's glue, which
-        // is where the rule earns its keep — «to» is glue and is not a keyword.
-        var glue = Assert.IsType<GlueInName>(Assert.Single(Of("""
-                                                              var hello to alice => Number;
-                                                              function send (x => Number) to (y => Number) { return x; }
+        Assert.Equal("in", single.Name);
+        Assert.Equal("for each (_) in (_)", single.Pattern);
 
-                                                              """)));
+        // and a multi-word name containing it is the capture case, which is the
+        // one that matters
+        var straddling = Assert.IsType<GlueInName>(Assert.Single(Of("var in flight order => Number;\n")));
 
-        Assert.Equal("to", glue.Word);
+        Assert.Equal("in flight order", straddling.Name);
+        Assert.Equal("for each (_) in (_)", straddling.Pattern);
+    }
+
+    [Fact(DisplayName = "a single-word «in» never could capture anything")]
+    public void ASingleWordInNeverCouldCaptureAnything()
+    {
+        // Why the reservation is legibility and not safety, checked rather than
+        // assumed. Every one of these resolves uniquely with «in» declared as an
+        // ordinary name, which is what makes it safe to enforce this at the
+        // declaration where it can be scoped, typed, and later withdrawn.
+        foreach (var source in (string[])
+                 [
+                     "for each bank in in",
+                     "for each in in in",
+                     "for each bank in count of in",
+                 ])
+        {
+            Assert.Equal("Resolved", Resolve(["bank", "in", "banks"], source).Kind.ToString());
+        }
     }
 
     [Fact(DisplayName = "a loop variable is a declaration, and is checked like one")]
@@ -155,18 +169,21 @@ public class LoopSyntax
         Assert.Equal("in an enclosing scope", shadowed.Where);
     }
 
-    [Fact(DisplayName = "R6 does not see «for» as a prefix of «for each»")]
-    public void R6DoesNotSeeForAsAPrefixOfForEach()
+    [Fact(DisplayName = "«for (_)» is a legal user pattern")]
+    public void ForIsALegalUserPattern()
     {
-        // 8, and the second divergence. The note expects R6 to reject «for (_)»
-        // beside «for each (_) in (_)», because «for» begins «for each». It does
-        // not, because «for each» is ONE token — they are different words, not a
-        // prefix pair — and a pattern is spelled in the lexer's words.
+        // 8, accepted by the designer rather than merely diverged from. The
+        // checklist demanded R6 reject «for (_)» beside «for each (_) in (_)»,
+        // and the same document's own probe says why it need not:
         //
-        // Nothing is unsafe by it, and the note says why: swallowing a loop
-        // header needs a name spanning «... in ...», and no name may contain
-        // «in» at all now. The note calls R6's rejection here conservative
-        // rather than load-bearing, which is exactly what this records.
+        //     "I went looking for a statement where «for (_)» could actually
+        //      swallow a loop header, and there isn't one ... R6's rejection
+        //      here is conservative, not load-bearing."
+        //
+        // loop_syntax.py §7 is that probe. Swallowing needs a name spanning
+        // «... in ...», and GlueInName has already banned those — so the pair is
+        // safe, and «for each» being one token means «for» is not an anchor
+        // prefix of it under a model defined over lexer tokens.
         Assert.Empty(Of("function for (x => Number) { return x; }\n"));
 
         // «for» is still an ordinary word, which is the point of spelling the

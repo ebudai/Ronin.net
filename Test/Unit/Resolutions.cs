@@ -9,6 +9,11 @@ namespace Unit;
 ///     Every case here was checked against an independent backtracking parser,
 ///     and the two rule cases at the bottom came out of an exhaustive search over
 ///     2,382,240 resolutions rather than out of anyone's judgement.
+///
+///     That search covered ANCHOR-FIRST WORD PATTERNS WITH NO BRACKETS, which is
+///     what its generator emits — it never produced a leading hole. The number
+///     stands; its scope was not stated when it was first reported, and quoting
+///     it without the scope has been the mistake.
 /// </summary>
 [Trait(nameof(Resolver), null)]
 public class Resolutions
@@ -334,6 +339,31 @@ public class Resolutions
 
         Assert.Equal("b (_)", anchors.Prefix);
         Assert.Equal("b b (_)", anchors.Pattern);
+    }
+
+    [Fact(DisplayName = "a pattern beginning with a hole is refused by its own rule")]
+    public void APatternBeginningWithAHoleIsRefusedByItsOwnRule()
+    {
+        // R6 rejects infix already, but by accident: a leading hole makes the
+        // anchor run empty, and an empty run is a prefix of every other. The
+        // message would then say one anchor run begins another when the problem
+        // is that there is no anchor run at all.
+        //
+        // Two leading-hole patterns are the case R6 cannot catch even
+        // accidentally — neither run is SHORTER than the other, so the
+        // comparison never runs. The explicit rule makes that unreachable rather
+        // than merely unwitnessed, which is the point of having it.
+        var findings = Compilation.Of(new SourceText("""
+                                                     function (x => Number) rounded { return x; }
+                                                     function (y => Number) squared { return y; }
+
+                                                     """, "Player.ron")).Findings;
+
+        Assert.Equal(2, findings.Count);
+        Assert.All(findings, finding => Assert.IsType<LeadingHole>(finding));
+
+        Assert.Equal(["(_) rounded", "(_) squared"],
+                     findings.Cast<LeadingHole>().Select(finding => finding.Pattern).Order());
     }
 
     [Fact(DisplayName = "names may not contain pattern glue")]

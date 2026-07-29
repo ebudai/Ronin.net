@@ -31,8 +31,8 @@ internal enum FindingKind
     /// <summary>A multi-word name contains a word that is glue in some pattern.</summary>
     GlueInName,
 
-    /// <summary>The same, for a name the compiler injected.</summary>
-    GlueInInjectedName,
+    /// <summary>A name that is exactly a word some pattern uses as glue.</summary>
+    GlueAsName,
 
     /// <summary>A ring of whens, each writing something the next reads.</summary>
     CascadeRing,
@@ -48,6 +48,9 @@ internal enum FindingKind
 
     /// <summary>A pattern with more words and holes than will be matched.</summary>
     PatternTooWide,
+
+    /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
+    LeadingHole,
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -184,18 +187,30 @@ internal sealed class GlueInName(Span primary, string name, string word, string 
            "respelled — and it is the later declaration that gives way.";
 }
 
-/// <summary>The same, for a name the compiler injected.</summary>
-internal sealed class GlueInInjectedName(Span primary, string name, string injector, string word, string pattern)
-    : Finding(FindingKind.GlueInInjectedName, primary)
+/// <summary>
+///     A name that is exactly a word some pattern uses as glue.
+/// </summary>
+///
+/// <remarks>
+///     Legibility rather than safety, and it matters which: a single-word name
+///     cannot capture anything, because capture needs a multi-word name
+///     straddling a hole and that is what <see cref="GlueInName"/> governs. «for
+///     each bank in in» resolves uniquely. So this rule is here to stop a reader
+///     meeting «in» as a variable in a language where «in» separates a loop
+///     header — and being a legibility rule is exactly why it is enforced at the
+///     declaration, where the message can name the pattern responsible, rather
+///     than in the lexer, where it would be untyped, unscoped and permanent.
+/// </remarks>
+internal sealed class GlueAsName(Span primary, string name, string pattern)
+    : Finding(FindingKind.GlueAsName, primary)
 {
     public string Name { get; } = name;
-    public string Injector { get; } = injector;
-    public string Word { get; } = word;
     public string Pattern { get; } = pattern;
 
     public override string Message
-        => $"«{Name}», injected by «{Injector}», collides with pattern glue «{Word}» from " +
-           $"«{Pattern}». Rename «{Injector}», or respell the pattern.";
+        => $"«{Name}» is the word «{Pattern}» uses to separate its parts, so a reader meets it in " +
+           "two roles at once. Rename it — nothing about the program is ambiguous, but a name that " +
+           "doubles as punctuation is a name that has to be read twice.";
 }
 
 /// <summary>A ring of whens, each writing something the next reads.</summary>
@@ -234,6 +249,28 @@ internal sealed class InitialisationRing(Span primary, string ring)
         => $"«{Ring}» is a cycle: each initialiser reads the one before it, so none of them can " +
            "be evaluated first. Break the ring by giving one of them a value that does not depend " +
            "on the others.";
+}
+
+/// <summary>
+///     A pattern that begins with a hole.
+/// </summary>
+///
+/// <remarks>
+///     Its own rule and its own message, checked before the anchor comparison.
+///     A leading hole makes the anchor run empty, and an empty run is a prefix
+///     of every other — so R6 rejects infix already, but by accident, and would
+///     say one anchor run begins another when the actual problem is that there
+///     is no anchor run at all.
+/// </remarks>
+internal sealed class LeadingHole(Span primary, string pattern)
+    : Finding(FindingKind.LeadingHole, primary)
+{
+    public string Pattern { get; } = pattern;
+
+    public override string Message
+        => $"«{Pattern}» begins with a parameter, which makes it infix rather than a word " +
+           "pattern. A word pattern leads with its name — respell it so the words come first, " +
+           "or declare a symbolic operator, which is where infix belongs.";
 }
 
 /// <summary>A pattern with more words and holes than will be matched.</summary>

@@ -12,7 +12,6 @@ internal class Keyword : Word
         ?? Type.Lex(ref lexer)
         ?? Extend.Lex(ref lexer)
         ?? ForEach.Lex(ref lexer)
-        ?? In.Lex(ref lexer)
         ?? Function.Lex(ref lexer)
         ?? Import.Lex(ref lexer)
         ?? PartOf.Lex(ref lexer)
@@ -23,6 +22,13 @@ internal class Keyword : Word
 
     protected static T Lex<T>(ref Lexer lexer, string keyword) where T : Keyword, new()
     {
+        // «for each» and «part of» are one token whose spelling contains a
+        // space, and a reader cannot see how many. Every other multi-word thing
+        // in this language is a whitespace-insensitive sequence of words, so one
+        // construct behaving differently for reasons invisible on screen is a
+        // bug report waiting to be filed — «for  each» is «for each».
+        if (keyword.Contains(' ')) return Spaced<T>(ref lexer, keyword);
+
         if (lexer.StartsWith(keyword) is false) return null;
 
         // A keyword needs a boundary after it, or «iffy» would lex as «if».
@@ -38,6 +44,40 @@ internal class Keyword : Word
         if (lexer.Length > keyword.Length && Continues(lexer[keyword.Length])) return null;
 
         return new T { Memory = lexer.AdvanceBy(keyword.Length) };
+    }
+
+    /// <summary>
+    ///     A keyword written as several words, separated by any run of
+    ///     whitespace rather than by the single space its spelling happens to
+    ///     contain.
+    /// </summary>
+    private static T Spaced<T>(ref Lexer lexer, string keyword) where T : Keyword, new()
+    {
+        var length = 0;
+
+        foreach (var word in keyword.Split(' '))
+        {
+            if (length is not 0)
+            {
+                var spaces = length;
+                while (spaces < lexer.Length && char.IsWhiteSpace(lexer[spaces])) ++spaces;
+
+                if (spaces == length) return null;
+
+                length = spaces;
+            }
+
+            for (var index = 0; index < word.Length; ++index)
+            {
+                if (length + index >= lexer.Length || lexer[length + index] != word[index]) return null;
+            }
+
+            length += word.Length;
+        }
+
+        if (lexer.Length > length && Continues(lexer[length])) return null;
+
+        return new T { Memory = lexer.AdvanceBy(length) };
     }
 
     /// <summary>
@@ -78,31 +118,6 @@ internal class ForEach : Keyword
     internal const string keyword = "for each";
 
     public static new ForEach Lex(ref Lexer lexer) => Lex<ForEach>(ref lexer, keyword);
-}
-
-/// <summary>
-///     Separates a loop's variable from what it walks.
-/// </summary>
-///
-/// <remarks>
-///     <para>
-///     Reserved outright, which is the stronger of the two options the design
-///     note left open. R5 alone would reserve «in» only inside multi-word names
-///     and leave «var in» legal; a keyword reserves it everywhere, and makes the
-///     rule one sentence rather than a rule with an exception.
-///     </para>
-///     <para>
-///     It also makes the loop header split structurally rather than by scoring.
-///     «for each bank in banks» has exactly one «in» and the parser knows which,
-///     without needing the symbol table — and R5 keeps a second one from ever
-///     appearing, which is what the design note proves is load-bearing.
-///     </para>
-/// </remarks>
-internal class In : Keyword
-{
-    internal const string keyword = "in";
-
-    public static new In Lex(ref Lexer lexer) => Lex<In>(ref lexer, keyword);
 }
 
 internal class Function : Keyword

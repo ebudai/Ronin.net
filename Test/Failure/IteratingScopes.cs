@@ -37,11 +37,15 @@ public class IteratingScopes
     [Fact(DisplayName = "no variable to bind")]
     public void NoVariableToBind()
     {
-        // «7» is not a name, and the loop variable is a declaration site
+        // «7» is not a name at all, and the loop variable is a declaration site
         Assert.IsType<Scope.Iterating.ExpectedNameError>(Only("for each 7 in horses { run the horse; }\n"));
+
+        // and «in» first means the split leaves nothing on the left of it —
+        // a header that is all collection and no variable
+        Assert.IsType<Scope.Iterating.ExpectedNameError>(Only("for each in horses { run the horse; }\n"));
     }
 
-    [Fact(DisplayName = $"missing {In.keyword}")]
+    [Fact(DisplayName = "missing 'in'")]
     public void MissingIn()
     {
         // «for each car cars fast colour = 3;» — no «in», so nothing separates

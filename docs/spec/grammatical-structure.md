@@ -43,9 +43,16 @@ Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded
 - collection is a ***reference***
 - body is a ***definition***
 
-`in` is a reserved word and may not appear in any name.  A multi-word name
-containing it would make the split point in a loop header ambiguous — and the
-competing readings do not tie, so nothing would report it.
+`in` is the loop pattern's glue, and glue words are reserved against names.  A
+multi-word name containing `in` would make the split point in a loop header
+ambiguous — and the competing readings do not tie, so nothing would report it.
+A name that is exactly `in` cannot capture anything and is refused for
+legibility rather than for safety.
+
+The reservation is a scope rule and not a lexical one: `in` is an ordinary word
+to the lexer, so the rule can name the pattern responsible, applies only where
+that pattern is in scope, and can be withdrawn if the pattern ever stops
+needing it.
 ### 4.5.5 Reactive
 `when` (*condition* | *name*) *body*
 - condition is a ***reference***

@@ -38,10 +38,13 @@ internal class Name
     ///     there: «var hidden cost» is a name too.
     ///     </para>
     ///     <para>
-    ///     <see cref="In"/> is the exception, at every position, because it is
-    ///     reserved outright and because it has to split a loop header: «for each
-    ///     bank in banks» is one name, one keyword and one expression, and a name
-    ///     that swallowed the «in» would leave the loop unparseable.
+    ///     No exception for «in». It was a keyword briefly, which reserved it in
+    ///     the lexer — unconditionally, untypeably, and unscopeably — for a rule
+    ///     that turns out to have no safety content: a SINGLE-word «in» cannot
+    ///     capture anything, because capture needs a multi-word name straddling a
+    ///     hole and that is R5's job. Reserving it is legibility, so it is
+    ///     enforced where legibility rules belong, at the declaration, with a
+    ///     message that can name the pattern responsible.
     ///     </para>
     /// </remarks>
     public static Name Parse(ref Parser current)
@@ -50,7 +53,7 @@ internal class Name
 
         if (parser.Token is Keyword and not Modifier) return null;
 
-        while (parser.Token is Word and not In)
+        while (parser.Token is Word)
         {
             parser.Advance();
         }
@@ -58,15 +61,6 @@ internal class Name
         if (ReferenceEquals(parser.Token, current.Token)) return null;
 
         return new Name { Tokens = current.AdvanceTo(parser) };
-    }
-
-    /// <summary>Where it was written, given the text the tokens came from.</summary>
-    public Span Span(SourceText source)
-    {
-        var first = Tokens.Span[0];
-        var last = Tokens.Span[^1];
-
-        return source.Span(first.Offset, last.Offset - first.Offset + last.Memory.Length);
     }
 
     /// <summary>The name as a symbol table holds it: its words, space separated.</summary>

@@ -69,19 +69,46 @@ internal class Scope : Statement
 
             if (parser.TryAdvance<ForEach>() is false) return null;
 
-            // «for each <name> in <expression> <body>». The variable comes first
-            // because that is how the sentence reads, and «in» is a keyword so
-            // the split needs no scoring — see LOOPSYNTAX.md for why a second
-            // «in» in the header can never arise.
-            if (Name.Parse(ref parser) is not Name name)
+            // «for each <name> in <collection> <body>». «in» is an ordinary
+            // word, not a keyword — reserving it lexically would take it out of
+            // R5's jurisdiction, and R5 is the only thing that can say WHICH
+            // pattern reserved it — so the header is a run of words and this
+            // splits it.
+            //
+            // At the LAST «in», not the first. R5 guarantees at most one can
+            // appear in a well-formed header, so the two agree wherever it
+            // matters; where they differ the input is already wrong, and the last
+            // one gives «for each in flight order in orders» a loop variable to
+            // complain about instead of no name at all.
+            if (Name.Parse(ref parser) is not Name header)
             {
                 return new ExpectedNameError { Tokens = Parser.Recover(ref current, parser) };
             }
 
-            if (parser.TryAdvance<In>() is false)
+            var words = header.Tokens.Span;
+            var split = -1;
+
+            for (var word = 0; word < words.Length; ++word)
+            {
+                if (words[word].Memory.Span.SequenceEqual(Separator)) split = word;
+            }
+
+            if (split < 0)
             {
                 return new ExpectedInError { Tokens = Parser.Recover(ref current, parser) };
             }
+
+            if (split is 0)
+            {
+                return new ExpectedNameError { Tokens = Parser.Recover(ref current, parser) };
+            }
+
+            Name name = new() { Tokens = header.Tokens[..split] };
+
+            // resume from whatever followed the «in», which is where the
+            // collection begins — it may be more of the run, or a bracket the
+            // name walk stopped at
+            parser = new Parser(words[split].Next as Token);
 
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
@@ -105,9 +132,12 @@ internal class Scope : Statement
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
 
+        /// <summary>The word a loop header splits on. Not a keyword — see Name.Parse.</summary>
+        internal static ReadOnlySpan<char> Separator => "in";
+
         public class ExpectedInError : Iterating, IError
         {
-            public string Reason { get; } = $"expected '{In.keyword}'";
+            public string Reason { get; } = "expected 'in'";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
 

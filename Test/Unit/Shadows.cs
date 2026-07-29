@@ -139,19 +139,22 @@ public class Shadows
     [Fact(DisplayName = "a shadow is checked by R5 even when its source is not")]
     public void AShadowIsCheckedByR5EvenWhenItsSourceIsNot()
     {
-        // R5 only examines multi-word names, so a one-word declaration is never
-        // checked — but its two-word shadow is, and this conflict is reachable
-        // only through the shadow. Suppressing injected names would hide it.
+        // A single-word name that IS a pattern's glue.
         var complaint = Assert.Single(Rules.Validate(
             [Declares("smoothed"), Declares("old smoothed", injectedBy: "smoothed")],
             [Shape("apply _ smoothed _")]));
 
-        // named against the two things the programmer controls, since «old
-        // smoothed» is not one of them
-        var injected = Assert.IsType<GlueInInjectedName>(complaint);
+        // The source name is caught, and the shadow's complaint is suppressed
+        // because it would be the same mistake with the same fix.
+        //
+        // This used to be the other way round: R5 examined multi-word names
+        // only, so «smoothed» passed and the collision was reachable ONLY
+        // through «old smoothed» — which is why a separate injected-name finding
+        // existed. Checking single-word names closed that gap, and the separate
+        // finding went with it.
+        var glue = Assert.IsType<GlueAsName>(complaint);
 
-        Assert.Equal("old smoothed", injected.Name);
-        Assert.Equal("smoothed", injected.Injector);
+        Assert.Equal("smoothed", glue.Name);
     }
 
     [Fact(DisplayName = "one mistake reports once when both halves fail")]

@@ -1,6 +1,7 @@
 // Copyright © 2023 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Lexicon;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,28 +22,82 @@ internal class Identifier : IEnumerable<Identifier.Component>
     {
         Parser parser = current;
 
+        var first = current.Token;
+
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
+
+        var extent = first;
+        for (var token = first; ReferenceEquals(token, parser.Token) is false; token = token.Next as Token)
+        {
+            extent = token;
+        }
+
         current = parser;
-        return new Identifier { components };
+        Identifier identifier = new();
+        identifier.Add(components);
+
+        // the parsed extent covers parameter blocks too, which the name walk
+        // above cannot see
+        identifier.From = first;
+        identifier.To = extent;
+
+        return identifier;
     }
+
+    /// <summary>The first and last token it was written with.</summary>
+    ///
+    /// <remarks>
+    ///     Kept because <see cref="Span"/> cannot always be recovered from the
+    ///     name words: «function (x) rounded» begins with a parameter block, and
+    ///     «function (x)» has no name words at all — both are things a person can
+    ///     write and a diagnostic has to point at.
+    /// </remarks>
+    private Token From { get; set; }
+
+    private Token To { get; set; }
 
     public Component this[int i] => Components[i];
 
-    public void Add(Name name) => Components.Add(name);
-    public void Add(IEnumerable<Component> components) => Components.AddRange(components);
+    public void Add(Name name)
+    {
+        Components.Add(name);
+        Extend(name);
+    }
+
+    public void Add(IEnumerable<Component> components)
+    {
+        Components.AddRange(components);
+
+        foreach (var component in components)
+        {
+            if (component.AsName is Name name) Extend(name);
+        }
+    }
+
+    /// <summary>
+    ///     Widens the extent to cover a name. An identifier built by hand — a
+    ///     loop's variable, a test's — never went through <see cref="Parse"/>,
+    ///     and still has to be able to say where it is.
+    /// </summary>
+    private void Extend(Name name)
+    {
+        From ??= name.Tokens.Span[0];
+        To = name.Tokens.Span[^1];
+    }
 
     public int Count => Components.Count;
 
     /// <summary>Where the declaration was written.</summary>
     public Span Span(SourceText source)
-    {
-        var names = Components.Where(component => component.AsName is not null).ToArray();
-        var first = names[0].AsName.Span(source);
-        var last = names[^1].AsName.Span(source);
+        => source.Span(From.Offset, To.Offset + To.Memory.Length - From.Offset);
 
-        return source.Span(first.Offset, last.Offset - first.Offset + last.Length);
-    }
+    /// <summary>
+    ///     How it reads as a pattern, holes and all, whether or not it is one
+    ///     this language will accept.
+    /// </summary>
+    public string Shape
+        => string.Join(' ', Components.Select(component => component.AsName?.Words ?? "(_)"));
 
     /// <summary>The literal words of the declaration, space separated.</summary>
     public string Words => string.Join(' ', Components.Where(component => component.AsName is not null)
@@ -87,6 +142,11 @@ internal class Identifier : IEnumerable<Identifier.Component>
         Width = segments.Count;
         IsPattern = holes.Count is not 0;
 
+        // At least one segment always: Parse refuses an identifier with no
+        // components, and every component contributes one — a name its words, a
+        // parameter block its hole.
+        BeginsWithHole = segments[0] is null;
+
         // Having holes is what makes it a pattern, and it is the ONLY thing that
         // does. Deciding by width alone reported a 129-word plain NAME as a
         // pattern too wide, quoting a limit on a matcher it will never enter.
@@ -96,13 +156,22 @@ internal class Identifier : IEnumerable<Identifier.Component>
             return false;
         }
 
-        pattern = segments.Count > Compiler.Pattern.MaxSegments ? null : new Compiler.Pattern(segments);
+        pattern = BeginsWithHole || segments.Count > Compiler.Pattern.MaxSegments
+                ? null
+                : new Compiler.Pattern(segments);
 
         return pattern is not null;
     }
 
     /// <summary>Whether the last <see cref="TryPattern"/> saw a parameter block.</summary>
     public bool IsPattern { get; private set; }
+
+    /// <summary>
+    ///     Whether it began with one. Reported rather than constructed, because
+    ///     the constructor's guard is an invariant for direct construction and
+    ///     throws — and «function (x) rounded» is ordinary source.
+    /// </summary>
+    public bool BeginsWithHole { get; private set; }
 
     /// <summary>
     ///     How many words and holes the last <see cref="TryPattern"/> counted,

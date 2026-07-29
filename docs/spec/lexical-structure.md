@@ -16,7 +16,6 @@ Instances of a specific ***word*** which has pre-defined meaning by the compiler
 - `hidden`
 - `import`
 - `for each`
-- `in`
 - `let`
 - `optional`
 - `override`

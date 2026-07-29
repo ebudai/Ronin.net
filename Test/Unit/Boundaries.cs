@@ -32,7 +32,7 @@ public class Boundaries
         Ronin.Lexicon.Type.keyword, Ronin.Lexicon.Function.keyword, Variable.keyword, Constant.keyword,
         Let.keyword, Reactive.keyword, Compiled.keyword, Global.keyword, Optional.keyword, Hidden.keyword,
         PartOf.keyword, Ronin.Lexicon.Import.keyword, If.keyword, While.keyword, When.keyword,
-        Changing.keyword, ForEach.keyword, In.keyword, Extend.keyword,
+        Changing.keyword, ForEach.keyword, Extend.keyword,
     ];
 
     [Theory(DisplayName = "a keyword ends where a word would")]
@@ -71,18 +71,32 @@ public class Boundaries
         }
     }
 
-    [Fact(DisplayName = "a multi-word keyword needs its own single space")]
-    public void AMultiWordKeywordNeedsItsOwnSingleSpace()
+    [Fact(DisplayName = "a multi-word keyword is separated by whitespace, not by one space")]
+    public void AMultiWordKeywordIsSeparatedByWhitespaceNotByOneSpace()
     {
-        // «for each» and «part of» are one token whose spelling contains a
-        // space, which is a real constraint and worth pinning: two spaces or a
-        // tab is not that keyword, and the reader cannot see the difference.
-        Assert.IsType<ForEach>(First("for each x"));
-        Assert.IsNotType<ForEach>(First("for  each x"));
-        Assert.IsNotType<ForEach>(First("for\teach x"));
+        // «for each» and «part of» are one token whose SPELLING contains a
+        // single space, and a reader cannot see how many are there. Every other
+        // multi-word thing in this language is a whitespace-insensitive sequence
+        // of words, so matching the spelling literally made one construct behave
+        // differently for a reason invisible on screen.
+        foreach (var spacing in (string[])[" ", "  ", "\t", " \t ", "\n"])
+        {
+            Assert.IsType<ForEach>(First($"for{spacing}each x"));
+            Assert.IsType<PartOf>(First($"part{spacing}of x"));
+        }
 
-        Assert.IsType<PartOf>(First("part of x"));
-        Assert.IsNotType<PartOf>(First("part  of x"));
+        // it still needs SOME whitespace, or «foreach» would be the keyword
+        Assert.IsNotType<ForEach>(First("foreach x"));
+        Assert.IsNotType<PartOf>(First("partof x"));
+
+        // and the source can end in the middle of one, which is a word and not
+        // half a keyword
+        Assert.IsType<Word>(First("for "));
+        Assert.IsType<Word>(First("part "));
+
+        // and the boundary after it holds, as for any other keyword
+        Assert.IsType<ForEach>(First("for each(x"));
+        Assert.IsNotType<ForEach>(First("for eachy"));
     }
 
     [Fact(DisplayName = "a reserved word is reserved against punctuation too")]
@@ -90,13 +104,17 @@ public class Boundaries
     {
         // The forms that compiled clean. Each was one delimiter away from the
         // reservation it was supposed to be under.
+        //
+        // «in» is not among them any more: it is an ordinary word now, reserved
+        // at the declaration rather than in the lexer, so «type in;» is a type
+        // called «in» and that is a scope rule's business. The keyword boundary
+        // bug was never about «in» — «var if=>Number» is the same defect.
         foreach (var source in (string[])
                  [
-                     "constant in=>Number;\n",
-                     "type in;\n",
-                     "function in(x=>Number) { return x; }\n",
-                     "function f (in=>Number) { return in; }\n",
                      "var if=>Number;\n",
+                     "type if;\n",
+                     "function while(x=>Number) { return x; }\n",
+                     "constant when=>Number;\n",
                  ])
         {
             Assert.NotEmpty(Compilation.Of(new SourceText(source, "Player.ron")).Findings);

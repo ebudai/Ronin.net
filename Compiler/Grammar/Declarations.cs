@@ -181,6 +181,14 @@ internal sealed class Declarations
             // once per segment, and a plain name never enters that matcher:
             // deciding on width alone told someone with a 129-word name that a
             // pattern may have at most 128, which is true and not about them.
+            // Infix. Checked before width, because a leading hole is what it IS
+            // and the width is incidental.
+            if (member.Identifier.BeginsWithHole)
+            {
+                problems.Add(new LeadingHole(member.Identifier.Span(source), member.Identifier.Shape));
+                return;
+            }
+
             if (member.Identifier.IsPattern && member.Identifier.Width > Compiler.Pattern.MaxSegments)
             {
                 problems.Add(new PatternTooWide(member.Identifier.Span(source),

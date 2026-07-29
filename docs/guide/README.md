@@ -16,7 +16,6 @@ Identifiers can contain any number of **names** and **parameter blocks** in any 
 `if`\
 `import`\
 `for each`\
-`in`\
 `hidden`\
 `let`\
 `optional`\

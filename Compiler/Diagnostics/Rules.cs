@@ -136,21 +136,26 @@ internal static class Rules
             var related = blamed ? offender.Span : declared.Span;
             var label = blamed ? "which makes it glue" : "the name it collides with";
 
-            if (declared.InjectedBy is null)
+            // A name that is exactly the glue word, rather than one containing
+            // it. Never injected: every injected name begins with «old », so it
+            // has at least two words.
+            if (declared.Name.Contains(' ') is false)
             {
-                yield return new GlueInName(primary, declared.Name, word, offender.Pattern.ToString())
+                yield return new GlueAsName(primary, declared.Name, offender.Pattern.ToString())
                     .Alongside(related, label);
 
                 continue;
             }
 
-            // One mistake with one fix, so the shadow's complaint adds nothing.
-            // Indexed rather than probed: whatever injects a name declares it
-            // too, which is what «injected by» means.
-            if (offending[declared.InjectedBy] is not null) continue;
+            // One mistake with one fix, so a shadow's complaint adds nothing —
+            // and now it can never have one to add. A shadow offends only if the
+            // name it was injected from does: «old X» contains glue that «X»
+            // does not only when the glue word is «old», which Reserved already
+            // refuses. Checking single-word names is what closed that gap; the
+            // separate injected-name finding it used to need is gone with it.
+            if (declared.InjectedBy is not null) continue;
 
-            yield return new GlueInInjectedName(primary, declared.Name, declared.InjectedBy, word,
-                                                offender.Pattern.ToString())
+            yield return new GlueInName(primary, declared.Name, word, offender.Pattern.ToString())
                 .Alongside(related, label);
         }
     }
@@ -167,8 +172,10 @@ internal static class Rules
     /// </remarks>
     private static Shape? Offender(string name, IReadOnlyCollection<Shape> patterns)
     {
+        // Single-word names included. A name that IS a glue word is a different
+        // finding from a name that CONTAINS one — the first is legibility, the
+        // second is capture — but they are found the same way.
         var words = name.Split(' ');
-        if (words.Length < 2) return null;
 
         foreach (var candidate in patterns)
         {
