@@ -110,6 +110,25 @@ public class StatementShapes
         Assert.Empty(Compilation.Of(new SourceText(head + separated, "P.ron")).Findings);
     }
 
+    [Fact(DisplayName = "a block is split before anything is resolved")]
+    public void ABlockIsSplitBeforeAnythingIsResolved()
+    {
+        // Statement boundaries are structural. A block is cut on «;» and on «}»
+        // by the parser, and the resolver is then handed one element and either
+        // resolves it or fails — so how many statements a program has cannot
+        // depend on what names are in scope.
+        //
+        // «return 1 return 2; return 3;» is the case that tests it, because the
+        // first element is one the resolver refuses. It is still ONE element:
+        // the split happened before anyone asked what it meant.
+        Lexer lexer = new("function f { return 1 return 2; return 3; }\n");
+        Parser parser = new(lexer.Lex());
+
+        var function = Assert.IsType<Function>(parser.Parse().Scopes[0].Statements[0]);
+
+        Assert.Equal(2, function.Definition.Statements.Count);
+    }
+
     private static IEnumerable<(string Name, string Source)[]> Sequences(int length)
     {
         if (length is 0) return [[]];

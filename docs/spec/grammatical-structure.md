@@ -98,6 +98,17 @@ block followed by another statement, which is most programs — read the way it
 looks.  A `;` there is permitted and means the same thing.  The elision is
 scoped to statement sequences: a list or a lookup still needs its commas, so
 `{ { 1 } { 2 } }` is two values with no separator and is refused.
+
+**Statement boundaries are structural, not resolved.**  A block is split into
+elements on `;` and on `}` before anything is resolved.  The resolver is then
+handed one element and either resolves it or fails; it never joins two or
+splits one.  Without that, how many statements a program has would depend on
+what names are in scope, which is a worse property than any single misreading.
+
+So `return 1 return 2;` is one element and not two, and it is one the resolver
+refuses — there is no juxtaposition rule that would let `1 return 2` be an
+expression.  `return return 1` does resolve, because `return` takes an
+expression and a `return` is one.
 ### 4.6.2 Inputs
 `(` (***value***|***assignment***`,`)* `)`
 ### 4.6.3 List

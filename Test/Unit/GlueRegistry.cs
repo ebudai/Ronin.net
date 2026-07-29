@@ -64,14 +64,14 @@ public class GlueRegistry
     [Fact(DisplayName = "a pinned hole protects the word after it, and only that one")]
     public void APinnedHoleProtectsTheWordAfterItAndOnlyThatOne()
     {
-        // The whole of what pinning buys. «for each <_> in (_)» reserves
-        // nothing, where the free-hole version reserved «in» — and a second word
-        // further along would still be reserved, because nothing is pinned in
-        // front of it.
+        // The whole of what pinning buys. The pinned loop reserves nothing,
+        // where the free-hole version reserved «in» — and a second word further
+        // along would still be reserved, because nothing is pinned in front of
+        // it.
         Assert.Empty(Glue.Reserved([new Pattern(["for each", null, "in", null], [1])]));
         Assert.Equal(["in"], new Pattern(["for each", null, "in", null]).Glue);
 
-        Assert.Equal([("over", "take <_> in (_) over")],
+        Assert.Equal([("over", "take «one word, or a bracketed name» in (_) over")],
                      Glue.Reserved([new Pattern(["take", null, "in", null, "over"], [1])]));
     }
 

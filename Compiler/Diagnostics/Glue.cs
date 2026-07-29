@@ -74,6 +74,10 @@ internal static class Glue
         registry.AppendLine("#");
         registry.AppendLine("# A word here may not appear in a name wherever its pattern is visible.");
         registry.AppendLine("# Adding a line is a breaking change for every program that sees it.");
+        registry.AppendLine("#");
+        registry.AppendLine("# «Guillemets» mark text ABOUT the language rather than text in it — a hole");
+        registry.AppendLine("# with no declaration syntax yet, or a segment plain text cannot read back.");
+        registry.AppendLine("# Nothing inside them is source, and none of it can be copied into a program.");
         registry.AppendLine();
         registry.AppendLine($"## RESERVED ({reserved.Count})");
         registry.AppendLine();

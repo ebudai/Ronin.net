@@ -343,6 +343,89 @@ public class Resolutions
         Assert.Equal(pinned.GetHashCode(), new Pattern(segments, [1]).GetHashCode());
     }
 
+    [Fact(DisplayName = "a pattern's rendering parses back to it, or is refused")]
+    public void APatternsRenderingParsesBackToItOrIsRefused()
+    {
+        // The property, not a case, because the failure was silent: «ToString»
+        // wrote a hole as «(_)» and «Parse» read «(_)» as an ordinary word, so
+        // the round trip gave a DIFFERENT pattern that rendered identically.
+        // Nothing could have noticed by comparing renderings, which is exactly
+        // what a test of cases would have done.
+        //
+        // Either half is a correct outcome. What is not correct is a third one.
+        List<Pattern> renderable =
+        [
+            Pattern.Parse("compute total"),
+            Pattern.Parse("compute total for _"),
+            Pattern.Parse("send _ to _"),
+            .. SymbolTable.Builtins,
+            new Pattern(["for each", null, "in", null]),
+        ];
+
+        List<Pattern> returned = [];
+        List<Pattern> refused = [];
+
+        foreach (var pattern in renderable)
+        {
+            var rendered = pattern.ToString();
+
+            try { returned.Add(Pattern.Parse(rendered)); }
+            catch (ArgumentException) { refused.Add(pattern); continue; }
+
+            // Not "renders the same" — that is the check that could not have
+            // caught this. The pattern itself has to come back.
+            Assert.Equal(pattern, returned[^1]);
+            Assert.Equal(rendered, returned[^1].ToString());
+        }
+
+        // Both outcomes reached, or the property is being satisfied by one of
+        // them alone and proves nothing about the other.
+        Assert.NotEmpty(returned);
+
+        // The two a rendering cannot express: a pinned hole, which has no
+        // declaration syntax, and a segment holding a space — «for each» is one
+        // token as «part of» is, and plain text cannot say whether that is one
+        // segment or two.
+        Assert.Equal([SymbolTable.Builtins[0], new Pattern(["for each", null, "in", null])], refused);
+    }
+
+    [Theory(DisplayName = "notation is not a word, and is refused as one")]
+    [InlineData("compute «one word, or a bracketed name»")]
+    [InlineData("for each «one word, or a bracketed name» in (_)")]
+    [InlineData("compute (x)")]
+    [InlineData("compute (_ )")]
+    public void NotationIsNotAWordAndIsRefusedAsOne(string rendering)
+        => Assert.Throws<ArgumentException>(() => Pattern.Parse(rendering));
+
+    [Theory(DisplayName = "juxtaposing two statements is not an expression")]
+    [InlineData("return a", "Resolved", 2)]
+    [InlineData("return 1", "Resolved", 1)]
+    [InlineData("return return a", "Resolved", 3)]
+    [InlineData("return return 1", "Resolved", 2)]     // «return» takes an expression, and a «return» is one
+    [InlineData("return a return b", "NoParse", 0)]
+    [InlineData("return 1 return 2", "NoParse", 0)]
+    [InlineData("a return b", "NoParse", 0)]           // there is no juxtaposition rule to make this one
+    public void JuxtaposingTwoStatementsIsNotAnExpression(string source, string kind, int cost)
+    {
+        // «function f { return 1 return 2; }» compiles clean today, which looked
+        // like the resolver splitting statements implicitly — and that would be
+        // far worse than the case itself, because then how many statements a
+        // program has would depend on what names are in scope.
+        //
+        // It is not that. The block splits structurally into two elements and
+        // the resolver refuses «return 1 return 2» exactly as the reference
+        // does; nothing rejects it because nothing resolves it yet. These are
+        // the numbers to keep when resolution is joined to the pipeline, and
+        // they are the reference's own.
+        SymbolTable symbols = new();
+        symbols.WithNames("a", "b").WithPatterns("return _");
+
+        var resolution = new Resolver(symbols).Resolve(source);
+
+        Assert.Equal(kind, resolution.Kind.ToString());
+        Assert.Equal(cost, resolution.Cost);
+    }
+
     [Fact(DisplayName = "a group holds one part or several")]
     public void AGroupHoldsOnePartOrSeveral()
     {

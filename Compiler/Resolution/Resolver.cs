@@ -645,12 +645,52 @@ internal sealed class Pattern : IEquatable<Pattern>
     /// <summary>The most words and holes one pattern may have.</summary>
     public const int MaxSegments = 128;
 
-    /// <summary>Parses "compute total for _" into segments, "_" being a hole.</summary>
+    /// <summary>
+    ///     Parses "compute total for (_)" into segments, a hole being "(_)" or a
+    ///     bare "_".
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     ROUND-TRIPS OR REFUSES. It used to do neither: <see cref="ToString"/>
+    ///     writes a hole as «(_)» and this read «(_)» as an ordinary WORD, so
+    ///     parsing a pattern's own rendering gave a different pattern that
+    ///     rendered identically. Same shape as the numeric-lexer bug — the text
+    ///     and the text the scanner approved were different strings, silently —
+    ///     and that was the worst one in its sweep.
+    ///     </para>
+    ///     <para>
+    ///     So anything this cannot represent throws rather than becoming
+    ///     something else. A PINNED hole is the live case: it has no declaration
+    ///     syntax yet, which is why <see cref="ToString"/> renders it as prose
+    ///     rather than as source, and why prose arriving here is refused instead
+    ///     of being read as three words.
+    ///     </para>
+    /// </remarks>
     public static Pattern Parse(string pattern)
-        => new([
-            .. pattern.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s is "_" ? null : s)
-        ]);
+        => new([.. pattern.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Segment)]);
+
+    /// <summary>One word, or the hole it is not.</summary>
+    private static string Segment(string segment)
+    {
+        if (segment is "_" or Hole) return null;
+
+        // Cheap and total: a word may not contain the characters a rendering
+        // uses, so anything holding one is a rendering this cannot read back.
+        if (segment.IndexOfAny(Notation) < 0) return segment;
+
+        throw new ArgumentException($"«{segment}» is not a word or a hole. A pattern is words and «{Hole}» holes; "
+                                  + "anything else is a rendering rather than a declaration.", nameof(segment));
+    }
+
+    /// <summary>A hole, written the way it is called: bracketed.</summary>
+    private const string Hole = "(_)";
+
+    /// <summary>
+    ///     What a rendering may contain and a declaration may not, so that the
+    ///     one is never quietly read as the other.
+    /// </summary>
+    private static readonly char[] Notation = ['(', ')', '«', '»'];
 
     public IReadOnlyList<string> Segments { get; }
 
@@ -689,8 +729,39 @@ internal sealed class Pattern : IEquatable<Pattern>
         }
     }
 
+    /// <remarks>
+    ///     A free hole renders as source — «(_)» is the bracket the call site
+    ///     shows and <see cref="Parse"/> reads it back. A PINNED one renders as
+    ///     PROSE, because there is no declaration syntax for it yet and any
+    ///     punctuation here would be an invention: «&lt;_&gt;» was the reference
+    ///     probe's display notation, and it escaped into the generated registry
+    ///     and from there into a question about whether Ronin had angle
+    ///     brackets. Guillemets are the compiler's own quoting for text that is
+    ///     about the language rather than in it, so nothing here can be copied
+    ///     into a program by mistake.
+    /// </remarks>
     public override string ToString()
-        => string.Join(' ', Segments.Select((segment, at) => segment ?? (Pinned.Contains(at) ? "<_>" : "(_)")));
+        => string.Join(' ', Segments.Select((segment, at) => segment is null
+                                                           ? Pinned.Contains(at) ? Pin : Hole
+                                                           : Readable(segment)));
+
+    /// <summary>What a pinned hole takes, in words, until it can be declared.</summary>
+    private const string Pin = "«one word, or a bracketed name»";
+
+    /// <summary>
+    ///     A segment as source where it can be, and as prose where it cannot.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Segments are the LEXER's words, so one of them may hold a space —
+    ///     «for each» is a single token as «part of» is. Rendered plainly it
+    ///     became two, and <see cref="Parse"/> split it back into two, which is
+    ///     a different pattern that rendered identically. Neither round-tripping
+    ///     nor refusing is the one outcome the contract does not allow, so a
+    ///     segment that cannot be read back is quoted and refused instead.
+    /// </remarks>
+    private static string Readable(string segment)
+        => segment.Contains(' ') || segment.IndexOfAny(Notation) >= 0 ? $"«{segment}»" : segment;
 
     public bool Equals(Pattern other)
         => other is not null && Segments.SequenceEqual(other.Segments) && Pinned.SetEquals(other.Pinned);
