@@ -378,7 +378,7 @@ internal sealed class Compilation
         // the walk from ever reading it — and this walk exists to make that
         // impossible. «object» needs no case of its own now; every node is
         // assignable to it.
-        if (Nodes.Any(type.IsAssignableFrom)) return true;
+        if (nodes.Any(type.IsAssignableFrom)) return true;
 
         // A collection is a child slot when its ELEMENTS could be children.
         // «IReadOnlyList&lt;Statement&gt;» is one; «IReadOnlyList&lt;string&gt;»
@@ -413,7 +413,7 @@ internal sealed class Compilation
     ///     Concrete only, because the question is what a slot could HOLD, and an
     ///     abstract type is never the runtime type of anything.
     /// </remarks>
-    private static readonly System.Type[] Nodes =
+    private static readonly System.Type[] nodes =
         [.. typeof(Compilation).Assembly
                                .GetTypes()
                                .Where(type => IsSyntax(type)

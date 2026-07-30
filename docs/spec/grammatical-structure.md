@@ -159,6 +159,12 @@ looks.  A `;` there is permitted and means the same thing.  The elision is
 scoped to statement sequences: a list or a lookup still needs its commas, so
 `{ { 1 } { 2 } }` is two values with no separator and is refused.
 
+A statement takes a `;` unless its last token is `}`, or it is the last thing in
+the file.  **This is one rule and it holds at every level** — the top of a file
+is a statement sequence exactly as a braced definition is, so `1 2;` is refused
+in both and `function f {} var second = 2;` is accepted in both.  Moving a
+statement into or out of a block does not change whether it is legal.
+
 **Statement boundaries are structural, not resolved.**  A block is split into
 elements on `;` and on `}` before anything is resolved.  The resolver is then
 handed one element and either resolves it or fails; it never joins two or

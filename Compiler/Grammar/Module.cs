@@ -17,10 +17,25 @@ internal class Module
 
         Scope scope = new();
 
-        while (Statement.Parse(ref parser) is Statement statement)
+        while (true)
         {
+            var started = parser;
+
+            if (Statement.Parse(ref parser) is not Statement statement) break;
+
             scope.Statements.Add(statement);
-            parser.TryAdvance<Terminal>();
+
+            // The SAME rule a braced definition uses, because a module is a
+            // statement sequence too. This used to try for a terminator and
+            // ignore failing, so «1 2;» was two statements and «var first = 1
+            // var second = 2» was two declarations — the missing punctuation
+            // changed nothing at all, while the same tokens inside a block were
+            // refused. Whatever is left over becomes the unexpected input below.
+            if (parser.TryAdvance<Terminal>()) continue;
+
+            if (parser.IsNotFinished && Sequence.Elides(started, parser)) continue;
+
+            break;
         }
 
         // Stopping where statements stop discarded the rest of the file in

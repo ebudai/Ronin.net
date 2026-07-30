@@ -68,22 +68,6 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
     /// </summary>
     private static bool Statements => typeof(TSeparator) == typeof(Terminal);
 
-    /// <summary>
-    ///     The last token an element consumed, so the loop above can tell a
-    ///     statement that ended with a brace from one that did not.
-    /// </summary>
-    private static Token Ended(Parser from, Parser to)
-    {
-        Token last = null;
-
-        for (var token = from.Token; ReferenceEquals(token, to.Token) is false; token = token.Next as Token)
-        {
-            if (token is not Trivium) last = token;
-        }
-
-        return last;
-    }
-
     private static TParent Parsed(ref Parser current, ref Parser parser)
     {
         TParent values = [];
@@ -129,7 +113,7 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
                 // «var nested = { { 1 } { 2 } };» was accepted with the comma
                 // missing. A brace ends a statement; it does not end a list
                 // element.
-                if (Statements && Ended(started, parser) is Close.Brace) continue;
+                if (Statements && Sequence.Elides(started, parser)) continue;
 
                 if (parser.TryAdvance<TClose>() is false) return null;
 

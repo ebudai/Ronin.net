@@ -31,7 +31,7 @@ namespace Integration;
 public class StatementShapes
 {
     /// <summary>The shapes a block element can take.</summary>
-    private static readonly (string Name, string Source)[] Elements =
+    private static readonly (string Name, string Source)[] elements =
     [
         ("simple", "return 1;"),
         ("braced", "if ready { return 1; }"),
@@ -592,13 +592,22 @@ public class StatementShapes
         Parser parser = new(lexer.Lex());
 
         var statements = parser.Parse().Scopes[0].Statements;
+        var findings = Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings;
 
-        Assert.Equal(one ? 1 : 2, statements.Count);
+        if (one)
+        {
+            Assert.IsType<Datum>(Assert.Single(statements));
+            Assert.Empty(findings);
+            return;
+        }
 
-        if (one is false) return;
-
-        Assert.IsType<Datum>(Assert.Single(statements));
-        Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+        // NOT one reference, which is what this theory is about. What then
+        // becomes of the leftover is §4.6's business and not §4.7's: if the
+        // value ended with a brace the next statement may start without a
+        // terminator — «var r = { 1 } { 2 };» is two statements and legal —
+        // and otherwise the module stops and reports what is left.
+        Assert.True(statements.Count > 1 || findings.Count > 0,
+                    $"«{source}» was read as one reference");
     }
 
     [Theory(DisplayName = "a word leads, and its arguments may be anything")]
@@ -638,10 +647,63 @@ public class StatementShapes
         else Assert.NotEmpty(findings);
     }
 
+    [Theory(DisplayName = "a statement needs its terminator, at the top of a file too")]
+    // separated, or ended by the file
+    [InlineData("1; 2;", 2, false)]
+    [InlineData("var first = 1;", 1, false)]
+    [InlineData("var first = 1", 1, false)]
+    // elided, because the statement before already said where it stopped
+    [InlineData("function f {} var second = 2;", 2, false)]
+    [InlineData("var first = { 1 } var second = 2;", 2, false)]
+    // and otherwise refused
+    [InlineData("1 2;", 1, true)]
+    [InlineData("var first = 1 var second = 2;", 1, true)]
+    [InlineData("var r = (1) (2);", 1, true)]
+    public void AStatementNeedsItsTerminatorAtTheTopOfAFileToo(string source, int statements, bool refused)
+    {
+        // A module is a statement sequence and had none of the rule. It TRIED to
+        // take a terminator and ignored failing, whatever ended the statement and
+        // whatever followed — so «1 2;» was two literals and «var first = 1 var
+        // second = 2» was two declarations, with the missing punctuation changing
+        // no finding and no declaration.
+        //
+        // The same tokens inside a block were refused the whole time, so
+        // statement validity depended on whether they were in one.
+        Lexer lexer = new(source + "\n");
+        Parser parser = new(lexer.Lex());
+
+        var module = parser.Parse();
+
+        Assert.Equal(statements, module.Scopes[0].Statements.Count);
+
+        var findings = Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings;
+
+        // Both assertions: the accepted-but-wrong readings produced no findings
+        // at all, so an empty-findings check is the failure mode here.
+        if (refused) Assert.Equal(FindingKind.Malformed, Assert.Single(findings).Kind);
+        else Assert.Empty(findings);
+    }
+
+    [Theory(DisplayName = "and the same rule inside a block")]
+    [InlineData("function g { 1; 2; }", false)]
+    [InlineData("function g { if x { return 1; } return 2; }", false)]
+    [InlineData("function g { 1 2; }", true)]
+    [InlineData("function g { var first = 1 var second = 2; }", true)]
+    public void AndTheSameRuleInsideABlock(string source, bool refused)
+    {
+        // The pair to the theory above, and the reason the policy is extracted
+        // rather than written twice: these two paths are supposed to share a
+        // rule, and only one of them had it.
+        var findings = Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings;
+
+        if (refused) Assert.Equal(FindingKind.Malformed, Assert.Single(findings).Kind);
+        else Assert.Empty(findings);
+    }
+
     private static IEnumerable<(string Name, string Source)[]> Sequences(int length)
     {
         if (length is 0) return [[]];
 
-        return Sequences(length - 1).SelectMany(_ => Elements, (rest, element) => ((string, string)[])[.. rest, element]);
+        return Sequences(length - 1).SelectMany(_ => elements, (rest, element) => ((string, string)[])[.. rest, element]);
     }
 }
