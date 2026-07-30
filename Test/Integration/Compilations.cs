@@ -264,6 +264,22 @@ public class Compilations
     /// <summary>A named collection of syntax, which is not itself generic.</summary>
     private sealed class Nested : List<Ronin.Grammar.Statement>;
 
+    /// <summary>
+    ///     A collection of ITSELF, which is what following element types has to
+    ///     terminate on. It did not, and the answer was a stack overflow: this row
+    ///     is here because that is not something a result assertion would report.
+    /// </summary>
+    private sealed class Recursive : List<Recursive>;
+
+    /// <summary>
+    ///     An UNTYPED collection that also happens to be generic over something
+    ///     unrelated, which is the shape that read as "typed, and not syntax".
+    /// </summary>
+    private sealed class Compared : System.Collections.ArrayList, IComparable<Compared>
+    {
+        public int CompareTo(Compared other) => 0;
+    }
+
     [Theory(DisplayName = "only a slot that could hold a child is read")]
     // could: a syntax type, a collection of one, or a slot typed loosely enough
     [InlineData(typeof(Ronin.Grammar.Datum), true)]
@@ -275,6 +291,11 @@ public class Compilations
     [InlineData(typeof(Nested), true)]
     [InlineData(typeof(System.Collections.IEnumerable), true)]
     [InlineData(typeof(System.Collections.ArrayList), true)]
+    [InlineData(typeof(Compared), true)]
+    [InlineData(typeof(Recursive), false)]
+    // could not: generic over syntax, but nothing can enumerate it
+    [InlineData(typeof(Func<Ronin.Grammar.Statement>), false)]
+    [InlineData(typeof(Lazy<Ronin.Grammar.Statement>), false)]
     // could not: the shape of a computed answer, not of a tree
     [InlineData(typeof(bool), false)]
     [InlineData(typeof(int), false)]
@@ -298,6 +319,34 @@ public class Compilations
                                                    [typeof(Type)]);
 
         Assert.Equal(read, (bool)method.Invoke(null, [slot]));
+    }
+
+    [Theory(DisplayName = "an anonymous value is parsed once, not twice")]
+    [InlineData("var v = { 1, 2, 3 };", 2)]
+    [InlineData("var c = x => { return x; };", 1)]
+    [InlineData("var l = { 1 = 2, 3 = 4 };", 1)]
+    [InlineData("var i = (1, 2);", 2)]
+    [InlineData("var deep = { { 1, 2 }, { 3, 4 } };", 8)]
+    public void AnAnonymousValueIsParsedOnceNotTwice(string source, int groups)
+    {
+        // A reference that turns out to be a single anonymous value used to
+        // discard it, and «Value.Parse» built the whole thing again. Every list,
+        // lookup, input block and delegate body was walked twice — and a
+        // speculative aggregate spends from the group budget that bounds
+        // adversarial backtracking, which deliberately does not roll back. So the
+        // duplicate did not merely cost time; it halved the budget, and it
+        // compounded with nesting: the last row was 28 entries and is 8.
+        //
+        // Counted rather than timed, because a result-only test executes both
+        // parses happily and cannot tell that they describe the same input.
+        Lexer lexer = new(source + "\n");
+        Parser parser = new(lexer.Lex());
+
+        parser.Parse();
+
+        var counter = typeof(Parser).GetField("groups", BindingFlags.NonPublic | BindingFlags.Static);
+
+        Assert.Equal(groups, counter.GetValue(null));
     }
 
     [Fact(DisplayName = "unrecognisable input is a problem, not a statement")]

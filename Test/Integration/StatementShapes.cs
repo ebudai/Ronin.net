@@ -540,13 +540,63 @@ public class StatementShapes
     [InlineData("var v = { { 1 } { 2 } };")]
     [InlineData("var v = { { 1 = 2 } { 3 } };")]
     [InlineData("var r = f ({ 1 } { 2 });")]
+    // and a trailing word does not buy the missing separator
+    [InlineData("var v = { { 1 } { 2 } name };")]
+    [InlineData("var v = { (1) (2) name };")]
+    [InlineData("var v = { { 1 } { 2 } one two three };")]
     public void TwoValuesWithNothingBetweenThemAreStillRefused(string source)
     {
         // The other side of the same rule. A reference may lead with an anonymous
         // value — «3..test» does — so the temptation is to admit any run of them,
         // and that would make «{ 1 } { 2 }» one reference and put the aggregate
         // separator rule back where REAUDIT5 found it.
+        //
+        // It was bought with a trailing word for a while: the run was refused
+        // only by a rule asking whether ANY component anywhere was a name, and
+        // any word satisfied it. So «{ 1 } { 2 }» was refused and «{ 1 } { 2 }
+        // name» was one reference — a missing comma, purchasable.
         Assert.NotEmpty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+    }
+
+    [Theory(DisplayName = "what may follow a leading value, and what may not")]
+    // may: an indexer attaches to the value, a symbol takes it as a left operand
+    [InlineData("var r = { 1, 2 } [0];", true)]
+    [InlineData("var r = { 1, 2 } [0] [1];", true)]
+    [InlineData("var r = 3..test;", true)]
+    [InlineData("var r = 3 + 4;", true)]
+    // may not: a second value is a second value
+    [InlineData("var r = { 1 } { 2 };", false)]
+    [InlineData("var r = (1) (2);", false)]
+    [InlineData("var r = { 1 } (2);", false)]
+    public void WhatMayFollowALeadingValueAndWhatMayNot(string source, bool one)
+    {
+        // A word may be followed by anything — an anonymous value after a word is
+        // an ARGUMENT, which is why «thing 7 ("stuff")» has two in a row and is
+        // one call. A leading anonymous value is the constrained case, and it was
+        // not constrained at all.
+        Lexer lexer = new(source + "\n");
+        Parser parser = new(lexer.Lex());
+
+        var statements = parser.Parse().Scopes[0].Statements;
+
+        Assert.Equal(one ? 1 : 2, statements.Count);
+    }
+
+    [Theory(DisplayName = "a word leads, and its arguments may be anything")]
+    [InlineData("var r = thing 7 (\"stuff\");")]
+    [InlineData("var r = x > 3;")]
+    [InlineData("var r = f [0] [1];")]
+    [InlineData("var r = f (1) (2);")]
+    [InlineData("var r = compute total for order;")]
+    public void AWordLeadsAndItsArgumentsMayBeAnything(string source)
+    {
+        // The positive half, kept beside the negative one so that tightening the
+        // sequence cannot quietly erase a valid reference.
+        Lexer lexer = new(source + "\n");
+        Parser parser = new(lexer.Lex());
+
+        Assert.Single(parser.Parse().Scopes[0].Statements);
+        Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
     }
 
     [Theory(DisplayName = "a delegate is a name or a bracketed signature, and owns the arrow")]

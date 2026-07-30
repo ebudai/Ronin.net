@@ -36,8 +36,42 @@ internal class Reference : IEnumerable<Reference.Component>
     /// </remarks>
     public List<Lexeme> ToLexemes() => Start.ToLexemes(End);
 
+    /// <remarks>
+    ///     Every caller but one wants a reference or nothing, so this consumes
+    ///     nothing when it finds a lone anonymous value — see the overload, which
+    ///     hands that value back rather than making the caller build it again.
+    /// </remarks>
     public static Reference Parse(ref Parser current)
     {
+        Parser parser = current;
+
+        var reference = Parse(ref parser, out var alone);
+
+        if (alone is not null) return null;
+
+        current = parser;
+        return reference;
+    }
+
+    /// <param name="alone">
+    ///     The single anonymous value this turned out to be, already parsed and
+    ///     consumed.
+    /// </param>
+    ///
+    /// <remarks>
+    ///     A lone anonymous value is a value and not a reference to one, and the
+    ///     caller wants it as a value — so it is handed over rather than
+    ///     discarded. Discarding it meant the whole thing was parsed twice, once
+    ///     inside the rejected reference and once as the value: every list,
+    ///     lookup, input block and delegate body walked and built twice. That is
+    ///     not only duplicate work — a speculative aggregate spends from the group
+    ///     budget that bounds adversarial backtracking, and the budget
+    ///     deliberately does not roll back.
+    /// </remarks>
+    public static Reference Parse(ref Parser current, out Temporary alone)
+    {
+        alone = null;
+
         Parser parser = current;
 
         if (current.Token is Keyword) return null;
@@ -45,10 +79,23 @@ internal class Reference : IEnumerable<Reference.Component>
         var components = parser.ParseRepeating<Component>();
         if (components.Count is 0) return null;
 
-        // A lone anonymous value is a value and not a reference to one. Two of
-        // them may be — «3..test» leads with a literal — so this is about the
-        // count and not about the leading component's kind.
-        if (components.Count is 1 && components[0].AsTemporary is not null) return null;
+        if (components.Count is 1 && components[0].AsTemporary is Temporary only)
+        {
+            alone = only;
+            current = parser;
+            return null;
+        }
+
+        // What may follow a WORD is unconstrained: an anonymous value after a
+        // word is an argument, which is why «thing 7 ("stuff")» has two of them
+        // in a row and is one call.
+        //
+        // An anonymous value LEADING is the constrained case, and it was not
+        // constrained at all — it was merely required to have a name somewhere
+        // later, which any word supplied. So «{ 1 } { 2 }» was refused and
+        // «{ 1 } { 2 } name» was one reference, and the missing separator §4.6
+        // asks for could be bought with a trailing word.
+        if (components[0].AsTemporary is not null && Leads(components) is false) return null;
 
         // symbols punctuate a reference, they are never the whole of one
         if (components.TrueForAll(component => component.AsSymbolic is not null)) return null;
@@ -65,19 +112,31 @@ internal class Reference : IEnumerable<Reference.Component>
     }
 
     /// <summary>
-    ///     Whether this is an anonymous value and its indexer, which §4.7 admits
-    ///     beside a run of words.
+    ///     Whether an anonymous value may lead these components.
     /// </summary>
     ///
     /// <remarks>
-    ///     Exactly two, and the second an indexer. Admitting any run of anonymous
-    ///     values instead would make «{ 1 } { 2 }» one reference, and two values
-    ///     with no separator between them is what the aggregate rule exists to
-    ///     refuse.
+    ///     Two continuations and no others. An INDEXER attaches to the value
+    ///     before it, so «{ 1, 2 } [0]» is one reference; a SYMBOL is an operator
+    ///     with the value as its left operand, so «3..test» is one too. Anything
+    ///     else after a leading value is a second value, and two of those side by
+    ///     side need the separator §4.6 asks for.
+    ///     <para>
+    ///     Never asked of a lone value: that is not a reference at all, and the
+    ///     caller has already been handed it as a value.
+    ///     </para>
     /// </remarks>
-    public bool IsIndexed => Components.Count is 2
-                          && Components[0].AsTemporary is not null
-                          && Components[1].AsTemporary is Index;
+    private static bool Leads(List<Component> components)
+    {
+        if (components[1].AsSymbolic is not null) return true;
+
+        for (var at = 1; at < components.Count; ++at)
+        {
+            if (components[at].AsTemporary is not Index) return false;
+        }
+
+        return true;
+    }
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 

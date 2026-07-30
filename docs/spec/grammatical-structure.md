@@ -181,18 +181,31 @@ expression and a `return` is one.
 `(` (***datum declaration***`,`)* `)`
 - declarators for each parameter can only be blank, `var` or `let`
 ## 4.7 Reference
-One or more ***words*** or ***anonymous value*** + optional ***indexer***
+A sequence of ***component***s, each a ***words***, an ***anonymous value***, or
+a ***symbol***.  What may lead it decides what may follow.
 
-Precisely: a run of ***words*** with whatever follows them, or **one**
-***anonymous value*** with an optional ***indexer***.  So `f (1)` and `3..test`
-are references, and so is `{ 1, 2 } [0]`.
+**A ***words*** may be followed by anything.**  An anonymous value after a word
+is an *argument*, so `thing 7 ("stuff")`, `f (1) (2)` and `f [0] [1]` are each
+one reference, and `x > 3` is one too.
 
-A run of anonymous values is **not** one: `{ 1 } { 2 }` is two values with no
-separator between them, which the aggregate rule (§4.6) refuses.  That is also
-why `(x) => { … } (1)` is not immediate application — an input block is not an
-indexer, so the delegate ends the reference and the input begins a new
-statement.  Whether the language wants immediate application is open; today it
-does not have it.
+**An ***anonymous value*** may lead, and then only two things may follow it:**
+
+- an ***indexer***, which attaches to the value — `{ 1, 2 } [0]`; or
+- a ***symbol***, which takes the value as its left operand and continues the
+  expression — `3..test`, `3 + 4`.
+
+Anything else after a leading anonymous value is a *second* value, and two
+values side by side need the separator §4.6 asks for: `{ 1 } { 2 }` is refused,
+and so is `{ 1 } { 2 } name` — a trailing word does not buy the missing comma.
+
+An anonymous value **alone** is not a reference.  It is a value, and §4.9 makes
+it a statement.
+
+That is also why `(x) => { … } (1)` is not immediate application: an input block
+is neither an indexer nor a symbol, so the delegate ends the reference and the
+input begins a new statement.  Whether the language wants immediate application
+is open; today it does not have it, and a source that looks like it is a
+sequence of statements each legal on its own.
 ## 4.8 Anonymous value
 Can be ***inline value***, ***delegate***, ***lookup***, ***list***, ***inputs***, or ***indexer***.
 ### 4.8.1 Inline value

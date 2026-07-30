@@ -378,33 +378,33 @@ internal sealed class Compilation
         // and «string[]» are the shapes of a computed answer, not of a tree.
         if (type.IsArray) return Holds(type.GetElementType(), seen);
 
-        // Through the whole type and not only its own generic arguments, because
-        // a named collection is not generic itself: «sealed class Children :
-        // List&lt;Statement&gt;» holds children and says so only through its base.
-        // Turning «List&lt;T&gt;» into a named subclass is exactly the
-        // unremarkable refactor a reflective completeness argument has to
-        // survive.
-        var elements = Elements(type).ToArray();
+        // From the ENUMERABLE contract, because that is the only generic
+        // relationship that says what a collection holds. Reading every generic
+        // argument of every interface and base instead got the common cases right
+        // by luck and two others wrong: «class Children : ArrayList,
+        // IComparable&lt;Children&gt;» is an untyped enumerable that can hold
+        // anything, and its unrelated comparison supplied an argument that
+        // answered the question before the untyped case was reached. In the other
+        // direction «Func&lt;Statement&gt;» was admitted for being generic over a
+        // syntax type, though nothing can enumerate it.
+        var elements = Enumerated(type).ToArray();
 
         if (elements.Length is not 0) return elements.Any(element => Holds(element, seen));
 
         // Nothing said what it holds, so it could hold anything. «ArrayList» and
-        // a bare «IEnumerable» are that case, and «Children» knows how to
-        // enumerate both — answering false is what would keep it from ever seeing
-        // the slot.
+        // a bare «IEnumerable» are that case, and <see cref="Children"/> knows
+        // how to enumerate both — answering false is what would keep it from ever
+        // seeing the slot.
         return typeof(System.Collections.IEnumerable).IsAssignableFrom(type);
     }
 
-    /// <summary>Every element type this one is generic over, however it says so.</summary>
-    private static IEnumerable<System.Type> Elements(System.Type type)
-        => type.GetGenericArguments()
-               .Concat(type.GetInterfaces().SelectMany(each => each.GetGenericArguments()))
-               .Concat(Bases(type).SelectMany(each => each.GetGenericArguments()));
-
-    private static IEnumerable<System.Type> Bases(System.Type type)
-    {
-        for (var above = type.BaseType; above is not null; above = above.BaseType) yield return above;
-    }
+    /// <summary>What this type says it enumerates, if it says.</summary>
+    private static IEnumerable<System.Type> Enumerated(System.Type type)
+        => type.GetInterfaces()
+               .Append(type)
+               .Where(each => each.IsGenericType
+                           && each.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+               .Select(each => each.GetGenericArguments()[0]);
 
     private const string Syntax = "Ronin.Grammar";
 
