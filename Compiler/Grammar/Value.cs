@@ -8,25 +8,21 @@ namespace Ronin.Grammar;
 internal class Value : Statement, IParsable<Value>
 {
     /// <remarks>
-    ///     A delegate FIRST, because it is the only alternative here that can be
-    ///     mistaken for the start of another. «x =&gt; { … }» is the documented
-    ///     bare form and its own class's first example, and through the real
-    ///     parser it was Malformed: «Member.Unresolved» accepts «x» as a
-    ///     reference and the alternation commits before anything sees the arrow.
-    ///     The unit test called <c>Delegate.Parse</c> directly over a token chain
-    ///     it built itself, so it proved the component while the real path chose
-    ///     a different one.
+    ///     A reference first, and it is the longer parse: «x =&gt; { … } [0]» is
+    ///     a delegate and its indexer, where «x =&gt; { … }» alone is a delegate.
+    ///     Whichever of the two is tried first has to be able to see the other,
+    ///     which is why the delegate is recognised inside
+    ///     <c>Reference.Component</c> rather than beside it here.
     ///     <para>
-    ///     Safe to try first: <c>Delegate.Parse</c> works on a copy and assigns
-    ///     the caller's parser only once it has the arrow AND a body, so a
-    ///     «(x)» that turns out to be an input block costs one failed attempt
-    ///     and nothing else.
+    ///     Trying <c>Delegate.Parse</c> here instead moved the premature
+    ///     commitment to the other side of the same boundary — it committed as
+    ///     soon as the delegate was complete, without asking whether the delegate
+    ///     was the start of something longer — and speculated the production
+    ///     twice, since <c>Temporary</c> holds the same branch.
     ///     </para>
     /// </remarks>
     public static new Value Parse(ref Parser current)
-        => Delegate.Parse(ref current)
-        ?? Member.Unresolved.Parse(ref current)
-        ?? Temporary.Parse(ref current) as Value;
+        => Member.Unresolved.Parse(ref current) ?? Temporary.Parse(ref current) as Value;
 }
 
 /// <summary>

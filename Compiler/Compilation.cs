@@ -360,16 +360,50 @@ internal sealed class Compilation
     ///     <c>GetValue</c>, and skipping one that holds a child would put this
     ///     walk back where the hand-written one was.
     /// </remarks>
-    private static bool Holds(System.Type type)
+    private static bool Holds(System.Type type) => Holds(type, []);
+
+    /// <param name="seen">
+    ///     What is already being asked about, because a type can be its own
+    ///     element type: «string» implements «IComparable&lt;string&gt;», so
+    ///     following element types without this recurses until the stack ends.
+    /// </param>
+    private static bool Holds(System.Type type, HashSet<System.Type> seen)
     {
+        if (seen.Add(type) is false) return false;
+
         if (type == typeof(object) || IsSyntax(type)) return true;
 
         // A collection is a child slot when its ELEMENTS could be children.
         // «IReadOnlyList&lt;Statement&gt;» is one; «IReadOnlyList&lt;string&gt;»
         // and «string[]» are the shapes of a computed answer, not of a tree.
-        if (type.IsArray) return Holds(type.GetElementType());
+        if (type.IsArray) return Holds(type.GetElementType(), seen);
 
-        return type.IsGenericType && type.GetGenericArguments().Any(Holds);
+        // Through the whole type and not only its own generic arguments, because
+        // a named collection is not generic itself: «sealed class Children :
+        // List&lt;Statement&gt;» holds children and says so only through its base.
+        // Turning «List&lt;T&gt;» into a named subclass is exactly the
+        // unremarkable refactor a reflective completeness argument has to
+        // survive.
+        var elements = Elements(type).ToArray();
+
+        if (elements.Length is not 0) return elements.Any(element => Holds(element, seen));
+
+        // Nothing said what it holds, so it could hold anything. «ArrayList» and
+        // a bare «IEnumerable» are that case, and «Children» knows how to
+        // enumerate both — answering false is what would keep it from ever seeing
+        // the slot.
+        return typeof(System.Collections.IEnumerable).IsAssignableFrom(type);
+    }
+
+    /// <summary>Every element type this one is generic over, however it says so.</summary>
+    private static IEnumerable<System.Type> Elements(System.Type type)
+        => type.GetGenericArguments()
+               .Concat(type.GetInterfaces().SelectMany(each => each.GetGenericArguments()))
+               .Concat(Bases(type).SelectMany(each => each.GetGenericArguments()));
+
+    private static IEnumerable<System.Type> Bases(System.Type type)
+    {
+        for (var above = type.BaseType; above is not null; above = above.BaseType) yield return above;
     }
 
     private const string Syntax = "Ronin.Grammar";

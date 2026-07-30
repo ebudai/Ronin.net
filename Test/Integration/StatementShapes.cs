@@ -511,6 +511,64 @@ public class StatementShapes
         Assert.Equal("name", shadowed.Name);
     }
 
+    [Theory(DisplayName = "an anonymous value keeps its indexer")]
+    [InlineData("var r = (x) => { return x; } [0];")]      // a delegate, bracketed
+    [InlineData("var r = x => { return x; } [0];")]        // a delegate, bare
+    [InlineData("var r = { 1, 2 } [0];")]                  // a list
+    [InlineData("var r = { 1 = 2 } [0];")]                 // a lookup
+    [InlineData("var r = (1) [0];")]                       // an input block
+    [InlineData("var vals = { (x) => { return x; } [0] };")]  // and inside an aggregate
+    public void AnAnonymousValueKeepsItsIndexer(string source)
+    {
+        // §4.7 admits an anonymous value with an indexer as a reference, and it
+        // was never parsed as one: the value won on its own and the indexer
+        // became a statement of its own. Nothing said they had been separated,
+        // because a value IS a statement and the elision makes the wrong split
+        // look complete.
+        //
+        // Not delegate-specific — every anonymous value did it — but a delegate
+        // is where it shows, because a bare one begins with a name and so was
+        // not even a candidate component.
+        Lexer lexer = new(source + "\n");
+        Parser parser = new(lexer.Lex());
+
+        Assert.Single(parser.Parse().Scopes[0].Statements);
+        Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+    }
+
+    [Theory(DisplayName = "two values with nothing between them are still refused")]
+    [InlineData("var v = { { 1 } { 2 } };")]
+    [InlineData("var v = { { 1 = 2 } { 3 } };")]
+    [InlineData("var r = f ({ 1 } { 2 });")]
+    public void TwoValuesWithNothingBetweenThemAreStillRefused(string source)
+    {
+        // The other side of the same rule. A reference may lead with an anonymous
+        // value — «3..test» does — so the temptation is to admit any run of them,
+        // and that would make «{ 1 } { 2 }» one reference and put the aggregate
+        // separator rule back where REAUDIT5 found it.
+        Assert.NotEmpty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+    }
+
+    [Theory(DisplayName = "a delegate is a name or a bracketed signature, and owns the arrow")]
+    [InlineData("var c = x => { return x; };", true)]
+    [InlineData("var c = (x) => { return x; };", true)]
+    [InlineData("var c = (x => Number) => { return x; };", true)]
+    [InlineData("var c = (x, y) => { return x; };", true)]
+    [InlineData("var c = (a => Number, b) => { return a; };", true)]
+    [InlineData("var c = () => { return 1; };", true)]
+    [InlineData("var c = x => Number => { return x; };", false)]   // a bare typed declaration is not one
+    public void ADelegateIsANameOrABracketedSignatureAndOwnsTheArrow(string source, bool legal)
+    {
+        // §4.8.2 as written, because it was written as «datum declaration |
+        // parameters => body» — which omits the bare name that is the form most
+        // used, admits a bare typed declaration that the parser refuses, and
+        // reads as though only the second alternative owns the arrow.
+        var findings = Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings;
+
+        if (legal) Assert.Empty(findings);
+        else Assert.NotEmpty(findings);
+    }
+
     private static IEnumerable<(string Name, string Source)[]> Sequences(int length)
     {
         if (length is 0) return [[]];

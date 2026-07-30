@@ -182,12 +182,30 @@ expression and a `return` is one.
 - declarators for each parameter can only be blank, `var` or `let`
 ## 4.7 Reference
 One or more ***words*** or ***anonymous value*** + optional ***indexer***
+
+Precisely: a run of ***words*** with whatever follows them, or **one**
+***anonymous value*** with an optional ***indexer***.  So `f (1)` and `3..test`
+are references, and so is `{ 1, 2 } [0]`.
+
+A run of anonymous values is **not** one: `{ 1 } { 2 }` is two values with no
+separator between them, which the aggregate rule (§4.6) refuses.  That is also
+why `(x) => { … } (1)` is not immediate application — an input block is not an
+indexer, so the delegate ends the reference and the input begins a new
+statement.  Whether the language wants immediate application is open; today it
+does not have it.
 ## 4.8 Anonymous value
 Can be ***inline value***, ***delegate***, ***lookup***, ***list***, ***inputs***, or ***indexer***.
 ### 4.8.1 Inline value
 One or more ***literal***s
 ### 4.8.2 Delegate
-***datum declaration*** | ***parameters*** `=>` *body*
+(***name*** | ***delegate parameters***) `=>` *body*
+- delegate parameters is `(` ((***datum declaration*** | ***name***) `,`)* `)`
+- body is a ***definition***
+
+The grouping matters: whichever alternative is chosen owns the arrow and the
+body.  A single untyped parameter needs no brackets — `x => { … }` — and types
+go *inside* the brackets: `(x => Number) => { … }`.  A bare typed declaration is
+not a delegate, so `x => Number => { … }` is not one either.
 
 **Reading a zero-argument delegate invokes it.**  There is no call syntax; a
 delegate is read like any other name.  Anything else would reintroduce `ping()`

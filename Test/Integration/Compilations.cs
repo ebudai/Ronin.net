@@ -261,12 +261,20 @@ public class Compilations
         Assert.True((bool)method.Invoke(null, [typeof(Ronin.Grammar.Datum)]));
     }
 
+    /// <summary>A named collection of syntax, which is not itself generic.</summary>
+    private sealed class Nested : List<Ronin.Grammar.Statement>;
+
     [Theory(DisplayName = "only a slot that could hold a child is read")]
     // could: a syntax type, a collection of one, or a slot typed loosely enough
     [InlineData(typeof(Ronin.Grammar.Datum), true)]
     [InlineData(typeof(object), true)]
     [InlineData(typeof(IReadOnlyList<Ronin.Grammar.Statement>), true)]
     [InlineData(typeof(Ronin.Grammar.Statement[]), true)]
+    // could: a named collection is not generic itself, and an untyped one says
+    // nothing about its elements — «Children» can enumerate either
+    [InlineData(typeof(Nested), true)]
+    [InlineData(typeof(System.Collections.IEnumerable), true)]
+    [InlineData(typeof(System.Collections.ArrayList), true)]
     // could not: the shape of a computed answer, not of a tree
     [InlineData(typeof(bool), false)]
     [InlineData(typeof(int), false)]
@@ -286,7 +294,8 @@ public class Compilations
         // «object» is admitted because a slot typed that loosely could hold
         // anything, and skipping a real child would put this walk back where the
         // hand-written one was.
-        var method = typeof(Compilation).GetMethod("Holds", BindingFlags.NonPublic | BindingFlags.Static);
+        var method = typeof(Compilation).GetMethod("Holds", BindingFlags.NonPublic | BindingFlags.Static,
+                                                   [typeof(Type)]);
 
         Assert.Equal(read, (bool)method.Invoke(null, [slot]));
     }
