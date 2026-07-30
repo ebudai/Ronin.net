@@ -292,6 +292,9 @@ public class Compilations
     [InlineData(typeof(System.Collections.IEnumerable), true)]
     [InlineData(typeof(System.Collections.ArrayList), true)]
     [InlineData(typeof(Compared), true)]
+    // could: an interface a grammar node implements, wherever the interface lives
+    [InlineData(typeof(IError), true)]
+    [InlineData(typeof(Ronin.Compiler.IParsable<Ronin.Grammar.Statement>), true)]
     [InlineData(typeof(Recursive), false)]
     // could not: generic over syntax, but nothing can enumerate it
     [InlineData(typeof(Func<Ronin.Grammar.Statement>), false)]
@@ -312,9 +315,15 @@ public class Compilations
         // over-width one paid it in full before the guard that bounds it.
         //
         // Generous about what it admits and exact about what it rejects —
-        // «object» is admitted because a slot typed that loosely could hold
-        // anything, and skipping a real child would put this walk back where the
-        // hand-written one was.
+        // «object» is admitted because every node is assignable to it, and
+        // skipping a real child would put this walk back where the hand-written
+        // one was.
+        //
+        // Whether a NODE could be here, not whether the slot's own type is
+        // spelled in the grammar's namespace. A slot declared «IError» or
+        // «IParsable<Statement>» holds grammar nodes and is declared elsewhere,
+        // so a namespace test kept the walk from ever reading it — and this walk
+        // exists to make that impossible.
         var method = typeof(Compilation).GetMethod("Holds", BindingFlags.NonPublic | BindingFlags.Static,
                                                    [typeof(Type)]);
 

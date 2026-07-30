@@ -564,6 +564,11 @@ public class StatementShapes
     [InlineData("var r = { 1, 2 } [0] [1];", true)]
     [InlineData("var r = 3..test;", true)]
     [InlineData("var r = 3 + 4;", true)]
+    // and they COMPOSE: an indexer attaches, and what it built is an operand
+    [InlineData("var r = { 1, 2 } [0] + 3;", true)]
+    [InlineData("var r = { 1, 2 } [0] [1] + 3;", true)]
+    [InlineData("var r = { 1, 2 } [0] + { 3 } [0];", true)]
+    [InlineData("var r = x => { return x; } [0] + 3;", true)]
     // may not: a second value is a second value
     [InlineData("var r = { 1 } { 2 };", false)]
     [InlineData("var r = (1) (2);", false)]
@@ -574,12 +579,26 @@ public class StatementShapes
         // an ARGUMENT, which is why «thing 7 ("stuff")» has two in a row and is
         // one call. A leading anonymous value is the constrained case, and it was
         // not constrained at all.
+        //
+        // The composing rows are the ones that were missing. Choosing between the
+        // two continuations by looking at the component right after the value
+        // could not express an index suffix FOLLOWED by an operator, so the whole
+        // expression fell back to the value at its front and the closing-brace
+        // elision made the remainder look like another complete statement.
+        //
+        // Both assertions, and this is why: the split produced zero findings, so
+        // asking only for an empty finding list would have certified it.
         Lexer lexer = new(source + "\n");
         Parser parser = new(lexer.Lex());
 
         var statements = parser.Parse().Scopes[0].Statements;
 
         Assert.Equal(one ? 1 : 2, statements.Count);
+
+        if (one is false) return;
+
+        Assert.IsType<Datum>(Assert.Single(statements));
+        Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
     }
 
     [Theory(DisplayName = "a word leads, and its arguments may be anything")]

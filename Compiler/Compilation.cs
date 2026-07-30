@@ -371,7 +371,14 @@ internal sealed class Compilation
     {
         if (seen.Add(type) is false) return false;
 
-        if (type == typeof(object) || IsSyntax(type)) return true;
+        // Whether a NODE could be here, and not whether the slot's own type is
+        // spelled in the grammar's namespace. Those are different questions: a
+        // slot declared «IError» or «IParsable&lt;Statement&gt;» holds grammar
+        // nodes and is declared elsewhere, so the namespace test would have kept
+        // the walk from ever reading it — and this walk exists to make that
+        // impossible. «object» needs no case of its own now; every node is
+        // assignable to it.
+        if (Nodes.Any(type.IsAssignableFrom)) return true;
 
         // A collection is a child slot when its ELEMENTS could be children.
         // «IReadOnlyList&lt;Statement&gt;» is one; «IReadOnlyList&lt;string&gt;»
@@ -397,6 +404,21 @@ internal sealed class Compilation
         // seeing the slot.
         return typeof(System.Collections.IEnumerable).IsAssignableFrom(type);
     }
+
+    /// <summary>
+    ///     Every node the grammar can actually produce.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Concrete only, because the question is what a slot could HOLD, and an
+    ///     abstract type is never the runtime type of anything.
+    /// </remarks>
+    private static readonly System.Type[] Nodes =
+        [.. typeof(Compilation).Assembly
+                               .GetTypes()
+                               .Where(type => IsSyntax(type)
+                                           && type.IsAbstract is false
+                                           && type.IsInterface is false)];
 
     /// <summary>What this type says it enumerates, if it says.</summary>
     private static IEnumerable<System.Type> Enumerated(System.Type type)

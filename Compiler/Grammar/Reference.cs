@@ -116,26 +116,35 @@ internal class Reference : IEnumerable<Reference.Component>
     /// </summary>
     ///
     /// <remarks>
-    ///     Two continuations and no others. An INDEXER attaches to the value
-    ///     before it, so «{ 1, 2 } [0]» is one reference; a SYMBOL is an operator
-    ///     with the value as its left operand, so «3..test» is one too. Anything
-    ///     else after a leading value is a second value, and two of those side by
-    ///     side need the separator §4.6 asks for.
+    ///     Two continuations, and they COMPOSE. An indexer attaches to the value
+    ///     before it and the result is a value, so more indexers may attach to
+    ///     that; a symbol then takes whatever has been built as its left operand.
+    ///     «{ 1, 2 } [0]», «{ 1, 2 } [0] [1]», «3..test» and «{ 1, 2 } [0] + 3»
+    ///     are each one reference.
     ///     <para>
-    ///     Never asked of a lone value: that is not a reference at all, and the
-    ///     caller has already been handed it as a value.
+    ///     Choosing between the two by looking at the component right after the
+    ///     value could not express the composition: an index suffix FOLLOWED by
+    ///     an operator matched neither branch, so «{ 1, 2 } [0] + 3» fell back to
+    ///     the list alone and the closing-brace elision made the remainder look
+    ///     like another complete statement. The resolver cannot repair that — it
+    ///     is handed spans and neither joins nor splits them, so the expression
+    ///     was gone before anything could read it.
+    ///     </para>
+    ///     <para>
+    ///     Anything else after a leading value is a SECOND value, and two of
+    ///     those side by side need the separator §4.6 asks for. Never asked of a
+    ///     lone value: that is not a reference at all, and the caller has already
+    ///     been handed it as a value.
     ///     </para>
     /// </remarks>
     private static bool Leads(List<Component> components)
     {
-        if (components[1].AsSymbolic is not null) return true;
+        var at = 1;
 
-        for (var at = 1; at < components.Count; ++at)
-        {
-            if (components[at].AsTemporary is not Index) return false;
-        }
+        while (at < components.Count && components[at].AsTemporary is Index) ++at;
 
-        return true;
+        // the whole of it, or an operator and the rest of the expression
+        return at == components.Count || components[at].AsSymbolic is not null;
     }
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();

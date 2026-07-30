@@ -191,8 +191,12 @@ one reference, and `x > 3` is one too.
 **An ***anonymous value*** may lead, and then only two things may follow it:**
 
 - an ***indexer***, which attaches to the value — `{ 1, 2 } [0]`; or
-- a ***symbol***, which takes the value as its left operand and continues the
-  expression — `3..test`, `3 + 4`.
+- a ***symbol***, which takes what has been built so far as its left operand and
+  continues the expression — `3..test`, `3 + 4`.
+
+**These compose.**  An indexer attaches to a value and the result is a value, so
+another indexer may attach to that, and a symbol may take the whole of it:
+`{ 1, 2 } [0] + 3` and `{ 1, 2 } [0] [1] + 3` are each one reference.
 
 Anything else after a leading anonymous value is a *second* value, and two
 values side by side need the separator §4.6 asks for: `{ 1 } { 2 }` is refused,
