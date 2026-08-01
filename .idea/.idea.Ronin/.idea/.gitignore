@@ -4,6 +4,7 @@
 # Editor-based HTTP Client requests
 /httpRequests/
 # Rider ignored files
+/vcs.xml
 /modules.xml
 /contentModel.xml
 /projectSettingsUpdater.xml
