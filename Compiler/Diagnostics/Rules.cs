@@ -169,10 +169,8 @@ internal static class Rules
     ///     «of» outright would take them away.
     /// </remarks>
     public static IReadOnlyList<(string Word, string Injects)> Injected { get; } =
-    [
-        ("index", "index of «a loop variable»"),
-        ("of", "index of «a loop variable»"),
-    ];
+        [.. Injection.All.Where(injection => injection != Injection.Shadow)
+                         .SelectMany(injection => injection.Words.Select(word => (word, injection.Shape)))];
 
     /// <summary>
     ///     Injection words may not be glue. The dual of glue words not being

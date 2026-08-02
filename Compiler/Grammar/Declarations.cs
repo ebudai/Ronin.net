@@ -149,7 +149,7 @@ internal sealed class Declarations
         Symbols.Declaring(name);
 
         symbols.Add(new Declared(name, span) { Words = words });
-        symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name) { Words = [SymbolTable.Old, .. words] });
+        symbols.Add(new Declared(Injection.Shadow.Of(name), span, InjectedBy: name) { Words = Injection.Shadow.Of(words) });
 
         // The loop's counter, derived from the variable rather than a bare
         // «index». There is no shadowing in this language, so a bare one would
@@ -168,14 +168,14 @@ internal sealed class Declarations
         // died on the collision it was meant to report. Declaring the same name
         // INSIDE the loop was refused correctly the whole time; declaring it
         // first killed the process.
-        var counter = Index + name;
+        var counter = Injection.Counter.Of(name);
 
         if (Refused(counter, span)) return;
 
         written[counter] = span;
         Symbols.WithNames(counter);
 
-        symbols.Add(new Declared(counter, span, InjectedBy: name) { Words = [Counter, Within, .. words] });
+        symbols.Add(new Declared(counter, span, InjectedBy: name) { Words = Injection.Counter.Of(words) });
     }
 
     /// <summary>Declares a parameter into the body it is bound in.</summary>
@@ -207,12 +207,7 @@ internal sealed class Declarations
         symbols.Add(new Declared(name, span) { Words = parameter.Canonical });
     }
 
-    /// <summary>The prefix a loop injects for its counter.</summary>
-    internal const string Index = Counter + " " + Within + " ";
 
-    /// <summary>The two words that prefix an injected counter, as words.</summary>
-    private const string Counter = "index";
-    private const string Within = "of";
 
     /// <summary>
     ///     Whether a name cannot be introduced here, having said why.
@@ -318,7 +313,7 @@ internal sealed class Declarations
             // the shadow carries its origin's span, because it has none of its
             // own and is not the programmer's to rename
             symbols.Add(new Declared(name, span) { Words = words });
-            symbols.Add(new Declared(SymbolTable.Shadowed + name, span, InjectedBy: name) { Words = [SymbolTable.Old, .. words] });
+            symbols.Add(new Declared(Injection.Shadow.Of(name), span, InjectedBy: name) { Words = Injection.Shadow.Of(words) });
         }
         else
         {

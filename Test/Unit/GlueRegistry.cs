@@ -45,12 +45,21 @@ public class GlueRegistry
             SymbolTable.Old,
         };
 
-        foreach (var (shape, _) in Glue.Shapes)
-        {
-            // the words outside the guillemets are the compiler's own
-            var joins = shape.Split('«')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        // Over the REAL descriptors, which the builders, the rule and the
+        // registry all read. Iterating the registry checked the sample against
+        // the rule and said nothing about the implementation: an injector left
+        // out of the registry kept it green, which is the same defect as a
+        // hand-built token chain standing in for source.
+        Assert.NotEmpty(Injection.All);
 
-            Assert.All(joins, word => Assert.Contains(word, kept));
+        foreach (var injection in Injection.All)
+        {
+            // every word of it, not merely those before the first placeholder
+            Assert.All(injection.Words, word => Assert.Contains(word, kept));
+
+            // and the name it builds is those words and the subject, so nothing
+            // can be in the shape that is not accounted for above
+            Assert.Equal(injection.Of("x"), injection.Prefix + "x");
         }
 
         // And a chain's names are not among them, because nothing it generates

@@ -83,11 +83,7 @@ internal static class Glue
     ///     </para>
     /// </remarks>
     public static IReadOnlyList<(string Shape, string Cause)> Shapes { get; } =
-    [
-        ("old «a name»", "a reactive declaration's previous value"),
-        ("index of «a loop variable»", "a loop's counter"),
-
-    ];
+        [.. Injection.All.Select(injection => (injection.Shape, injection.Cause))];
 
     public static string Registry(IEnumerable<Pattern> patterns)
     {
@@ -129,7 +125,8 @@ internal static class Glue
         // answers the second question — so leaving it off made the list read as
         // complete when it was not.
         var protectedWords = Rules.Injected
-                                  .Prepend((SymbolTable.Old, $"{SymbolTable.Old} «a reactive name», and is refused in any segment, not only glue"))
+                                  .Prepend((SymbolTable.Old,
+                                            $"{Injection.Shadow.Shape}, and is refused in any segment, not only glue"))
                                   .ToArray();
 
         registry.AppendLine();

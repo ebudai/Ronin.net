@@ -16,11 +16,11 @@
 
 ## PROTECTED (3) — no pattern may use these as glue
 
-    old          builds old «a reactive name», and is refused in any segment, not only glue
+    old          builds old «a name», and is refused in any segment, not only glue
     index        builds index of «a loop variable»
     of           builds index of «a loop variable»
 
 ## INJECTED (2) — names the compiler builds, and never asks anyone to rename
 
-    old «a name»                 a reactive declaration's previous value
+    old «a name»                 the previous value of a mutable declaration
     index of «a loop variable»   a loop's counter

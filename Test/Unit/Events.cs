@@ -185,6 +185,37 @@ public class Events
 
     // 6 -------------------------------------------------------------------
 
+    [Fact(DisplayName = "whens fire in declaration order, whatever woke them")]
+    public void WhensFireInDeclarationOrderWhateverWokeThem()
+    {
+        // A round asks the «when»s that could have moved rather than every one
+        // there is — a trigger whose node was not dirtied has the value its
+        // baseline already holds, so asking it can only confirm that, and asking
+        // all of them made a step cost O(whens) however few changed.
+        //
+        // Which is exactly backwards for sparse updates, and it measured that
+        // way: 5000 «when»s with one source moving cost 195 us a step, and 2.9
+        // once the round visited only the candidates.
+        //
+        // The order has to survive that, because it can no longer come from
+        // walking the table: it is declaration order, sorted back, and must not
+        // depend on which «when» happened to be dirtied.
+        Graph graph = new();
+        graph.Var("shared", false);
+
+        foreach (var each in (int[])[0, 1, 2, 3, 4])
+        {
+            graph.When($"when {each}", scope => scope.Read("shared"), _ => { });
+        }
+
+        graph.Prime();
+
+        graph.Write("shared", true);
+        graph.Step();
+
+        Assert.Equal(["when 0", "when 1", "when 2", "when 3", "when 4"], graph.Fired);
+    }
+
     [Fact(DisplayName = "a body feeding its own trigger is caught and named")]
     public void ABodyFeedingItsOwnTriggerIsCaughtAndNamed()
     {

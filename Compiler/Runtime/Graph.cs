@@ -174,7 +174,14 @@ internal sealed class Graph
         // afterwards ran the code that had just been rejected.
         var node = Let(name, trigger);
 
-        whens[name] = new Trigger(body, mode);
+        whens[name] = new Trigger(body, mode) { Order = whens.Count };
+
+        // A level trigger has to be asked every round even when nothing moved —
+        // it fires while its value holds, which is how a chain drains — so it is
+        // never a candidate the dirty set can leave out.
+        if (mode is TriggerMode.WhileTrue) level.Add(name);
+
+        woken.Add(name);
 
         return node;
     }
@@ -723,6 +730,20 @@ internal sealed class Graph
     {
         List<string> triggered = [];
 
+        // The «when»s that could have moved, not every one there is. A trigger
+        // whose node was not dirtied has the value its baseline already holds,
+        // so asking it can only confirm that — and asking all of them made a
+        // step cost O(whens) however few changed, which is exactly backwards for
+        // the sparse updates this runtime is for.
+        //
+        // Sorted back into declaration order, because which «when» fires first
+        // must not depend on which happened to be dirtied.
+        List<string> candidates = [.. woken, .. level.Where(name => woken.Contains(name) is false)];
+
+        woken.Clear();
+
+        candidates.Sort((left, right) => whens[left].Order.CompareTo(whens[right].Order));
+
         // At most one position of a chain per round. Two adjacent positions both
         // write the count between them — the earlier adds when it advances, the
         // later takes when it consumes — and both read the same settled front
@@ -734,8 +755,12 @@ internal sealed class Graph
         // separately, which is what "one run per round" meant all along.
         HashSet<string> claimed = [];
 
-        foreach (var (name, trigger) in whens)
+        foreach (var name in candidates)
         {
+            // a chain removed by «stop» takes its «when»s with it, and a name
+            // dirtied before that is no longer one
+            if (whens.TryGetValue(name, out var trigger) is false) continue;
+
             var value = Read(name);
 
             // a failing trigger is not a firing one, and it still updates the
@@ -758,8 +783,12 @@ internal sealed class Graph
 
             // Deferred, and the baseline is left alone so the edge survives to
             // the next round. Advancing it would consume the transition and the
-            // position would simply never run.
-            if (fires && membership.TryGetValue(name, out var chain) && claimed.Add(chain) is false) continue;
+            // position would simply never run — so it stays a candidate too.
+            if (fires && membership.TryGetValue(name, out var chain) && claimed.Add(chain) is false)
+            {
+                woken.Add(name);
+                continue;
+            }
 
             trigger.Previous = value;
 
@@ -848,6 +877,7 @@ internal sealed class Graph
             foreach (var member in Belonging(name))
             {
                 whens.Remove(member);
+                level.Remove(member);
                 Undeclare(member);
             }
         }
@@ -1078,6 +1108,9 @@ internal sealed class Graph
                 if (dependent.Dirty) continue;
 
                 dependent.Dirty = true;
+
+                if (whens.ContainsKey(name)) woken.Add(name);
+
                 pending.Push(dependent);
             }
         }
@@ -1137,6 +1170,17 @@ internal sealed class Graph
         ///     thing in both scopes.
         /// </remarks>
         public HashSet<int> Live { get; } = [Alone];
+
+        /// <summary>
+        ///     Where this «when» was declared, which is the order they fire in.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     Kept because the round no longer walks every «when» in table
+        ///     order: it visits the ones that could have changed, and they have
+        ///     to be put back into the order a reader wrote them.
+        /// </remarks>
+        public int Order { get; init; }
     }
 
     /// <summary>The only instance there is, until there are instances.</summary>
@@ -1256,6 +1300,12 @@ internal sealed class Graph
 
     /// <summary>How many runs each wait had when the step began.</summary>
     private readonly Dictionary<string, double> quota = [];
+
+    /// <summary>«when»s whose condition may have moved since the last round.</summary>
+    private readonly HashSet<string> woken = [];
+
+    /// <summary>«when»s that must be asked every round whatever moved.</summary>
+    private readonly HashSet<string> level = [];
     private readonly Dictionary<string, object> pending = [];
     private readonly HashSet<string> stopping = [];
 
