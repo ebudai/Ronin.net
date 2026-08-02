@@ -239,12 +239,22 @@ keep at type scope — *this rule is off now, for every instance* cannot be said
 any other way.
 
 **A chain accumulates when its waits complete more slowly than its trigger
-fires**, and nothing reports it.  One run is taken per round, which bounds
-growth *within* a step — the trigger is edge-driven so it adds at most one per
-round, and the tail takes one — but across steps each settles cleanly while the
-count grows.  The runaway detector counts rounds inside a step and cannot see
-it.  This is the cost of counting, and it is why the chain-versus-deadline rule
-in the guide is an obligation rather than style advice.
+fires.**  One run is taken per round, which bounds growth *within* a step — the
+trigger is edge-driven so it adds at most one per round, and the tail takes one
+— but across steps each settles cleanly while the count grows, and the runaway
+detector's window is a step.
+
+So accumulation is watched for separately, and by **draining rather than
+depth**: a queue of orders awaiting payment is deep and healthy, while a
+countdown re-armed faster than it expires is shallow and broken, and only one of
+them ever comes back to nothing.  A chain whose quietest moment in one window is
+busier than its quietest moment in the last is reported, with the deadline
+rewrite in the message.
+
+Unlike a cascade ring there is **no static tier**: a leak and a queue are the
+same shape at compile time, so nothing can be said before the program runs.
+That is why the chain-versus-deadline rule in the guide is an obligation rather
+than style advice.
 
 Because it can only *shrink* the graph it cannot make a legal program illegal,
 so cascade analysis over the never-stops graph stays sound and needs no dynamic

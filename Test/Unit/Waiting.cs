@@ -518,25 +518,120 @@ public class Waiting
         Assert.Equal(["x", "y"], ran);
     }
 
-    [Fact(DisplayName = "a chain accumulates across steps, and nothing sees it")]
-    public void AChainAccumulatesAcrossStepsAndNothingSeesIt()
+    [Fact(DisplayName = "a chain that never drains is reported as accumulating")]
+    public void AChainThatNeverDrainsIsReportedAsAccumulating()
     {
-        // The last unverified assumption in the chain design, and it does not
-        // hold. One run per round bounds accumulation WITHIN a step: the head
-        // fires at most once per round because it is edge-triggered, and the
-        // tail drains one per round, so the count cannot run away and the
-        // detector's rounds are the runs.
+        // A LEAK DETECTOR and not a size limit, because depth does not separate
+        // the two: a queue of orders awaiting payment is deep and healthy, and a
+        // countdown re-armed faster than it expires is shallow and broken. What
+        // separates them is DRAINING — a queue comes back to nothing, an
+        // accumulation only rises — so this watches the low-water mark.
+        var graph = Armed("activity", "never");
+
+        graph.Chain("when activity",
+                    (scope => scope.Read("activity"), _ => { }),
+                    (scope => scope.Read("never"), _ => { }));
+
+        graph.Prime();
+
+        var reported = 0;
+
+        for (var step = 0; step < Graph.Settling * 3; ++step)
+        {
+            graph.Write("activity", step % 2 is 0);
+            graph.Step();
+            reported += graph.Faults.Count;
+        }
+
+        // the first window has nothing to compare against; the two after it do
+        Assert.Equal(2, reported);
+    }
+
+    [Fact(DisplayName = "and one that comes back to nothing is not")]
+    public void AndOneThatComesBackToNothingIsNot()
+    {
+        // The half that makes the detector worth having. This queue is deep and
+        // slow, and its low-water mark rises for a long stretch — but it reaches
+        // zero inside the window, so it is a queue and not a leak.
+        var graph = Armed("go", "done");
+
+        graph.Chain("when go",
+                    (scope => scope.Read("go"), _ => { }),
+                    (scope => scope.Read("done"), _ => { }));
+
+        graph.Prime();
+
+        var reported = 0;
+
+        for (var cycle = 0; cycle < 6; ++cycle)
+        {
+            for (var step = 0; step < 40; ++step)
+            {
+                graph.Write("go", step % 2 is 0);
+                graph.Step();
+                reported += graph.Faults.Count;
+            }
+
+            Pulse(graph, "done");
+            reported += graph.Faults.Count;
+        }
+
+        Assert.Equal(0, reported);
+        Assert.Equal(0d, graph.Read(Graph.Waiting("when go", 1)));
+    }
+
+    [Fact(DisplayName = "a queue deeper than the round limit cannot drain")]
+    public void AQueueDeeperThanTheRoundLimitCannotDrain()
+    {
+        // Recorded because it is not designed, it is fallen into. Runs are taken
+        // one per round, and draining k of them therefore needs k rounds inside
+        // one step — so the round limit, which exists to catch a «when» that
+        // schedules itself, doubles as a cap on how deep a chain may ever get.
+        //
+        // 63 drains and 64 does not. Above it the program throws, with a message
+        // that blames a body writing what its own trigger reads — which is not
+        // what happened.
+        foreach (var (depth, drains) in ((int, bool)[])[(63, true), (64, false)])
+        {
+            var graph = Armed("go", "done");
+
+            graph.Chain("when go",
+                        (scope => scope.Read("go"), _ => { }),
+                        (scope => scope.Read("done"), _ => { }));
+
+            graph.Prime();
+
+            for (var each = 0; each < depth; ++each) Pulse(graph, "go");
+
+            Assert.Equal((double)depth, graph.Read(Graph.Waiting("when go", 1)));
+
+            if (drains)
+            {
+                Pulse(graph, "done");
+                Assert.Equal(0d, graph.Read(Graph.Waiting("when go", 1)));
+                continue;
+            }
+
+            Assert.Throws<RunawayCascade>(() =>
+            {
+                graph.Write("done", true);
+                graph.Step();
+            });
+        }
+    }
+
+    [Fact(DisplayName = "a chain accumulates across steps, and the round limit does not see it")]
+    public void AChainAccumulatesAcrossStepsAndTheRoundLimitDoesNotSeeIt()
+    {
+        // One run per round bounds accumulation WITHIN a step: the head fires at
+        // most once per round because it is edge-triggered, and the tail takes
+        // one, so the count cannot run away inside a settle.
         //
         // Across steps there is no such bound. Each step settles perfectly, so
         // the runaway detector — which counts rounds inside a step — never sees
         // a head that fires once per step and a tail whose condition does not
-        // come. This is the idle-autosave shape: «when activity { wait until 5
-        // minutes; save }» with activity faster than the wait.
-        //
-        // Recorded as behaviour rather than asserted as correct. It is the cost
-        // of counting, it is why the chain-versus-deadline rule is a real
-        // obligation rather than style advice, and a bound with a diagnostic is
-        // the open question it leaves.
+        // come. That is what the low-water detector above is for; this pins the
+        // gap it fills.
         var graph = Armed("activity", "never");
 
         graph.Chain("when activity",

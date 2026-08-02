@@ -4,6 +4,7 @@ using Ronin.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 
 namespace Ronin.Runtime;
@@ -620,6 +621,8 @@ internal sealed class Graph(int cascades = 64)
 
         if (pending.Count is not 0) throw Runaway(rounds);
 
+        Draining();
+
         return rounds;
     }
 
@@ -1036,12 +1039,89 @@ internal sealed class Graph(int cascades = 64)
     /// <summary>The only instance there is, until there are instances.</summary>
     private const int Alone = 0;
 
-    /// <summary>The «when»s and flags one written «when» compiled to.</summary>
+    /// <summary>The «when»s and counts one written «when» compiled to.</summary>
     private sealed class Split(IReadOnlyList<string> flags)
     {
         public IReadOnlyList<string> Flags { get; } = flags;
         public List<string> Reacting { get; } = [];
+
+        /// <summary>The fewest runs pending at any point in this window.</summary>
+        public double Low { get; set; } = double.MaxValue;
+
+        /// <summary>The same, for the window before it.</summary>
+        public double Before { get; set; } = double.MaxValue;
+
+        /// <summary>Steps taken in this window.</summary>
+        public int Steps { get; set; }
     }
+
+    /// <summary>
+    ///     Reports a chain whose pending runs never come back down.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     A LEAK DETECTOR and not a size limit, because the compiler cannot tell
+    ///     a leak from a busy queue by looking at the depth: «when order placed {
+    ///     reserve; wait until payment cleared; ship }» with ten thousand pending
+    ///     is a Tuesday, and «when activity { wait until 5 minutes; save }» with
+    ///     ten is a bug. They are structurally identical, so any limit either
+    ///     fires on the first or misses the second — and the second is the one
+    ///     that grows without end.
+    ///     </para>
+    ///     <para>
+    ///     What separates them is DRAINING. A queue comes back to nothing,
+    ///     sometimes slowly; an accumulation only ever rises. So this watches the
+    ///     low-water mark rather than the value, and reports when the quietest
+    ///     moment of one window is still busier than the quietest moment of the
+    ///     last.
+    ///     </para>
+    ///     <para>
+    ///     There is no static tier for this, unlike a cascade ring: a leak and a
+    ///     queue are the same shape at compile time, so nothing can be said
+    ///     before the program runs. That asymmetry is why the guide's
+    ///     chain-versus-deadline rule is load bearing rather than advice.
+    ///     </para>
+    /// </remarks>
+    private void Draining()
+    {
+        foreach (var (name, chain) in chains)
+        {
+            var waiting = chain.Flags.Sum(counter => Waiting(nodes[counter].Value));
+
+            if (waiting < chain.Low) chain.Low = waiting;
+
+            if (++chain.Steps < Settling) continue;
+
+            // Strictly increased across the whole window, so the chain did not
+            // come back to where it was even once.
+            if (chain.Before < chain.Low && chain.Before is not double.MaxValue) faults.Add(Accumulating(name, waiting));
+
+            chain.Before = chain.Low;
+            chain.Low = double.MaxValue;
+            chain.Steps = 0;
+        }
+    }
+
+    /// <summary>
+    ///     How many steps a chain is watched over before its quietest moment is
+    ///     compared with the last.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A queue that empties every few hundred steps has a low-water mark that
+    ///     rises for a long stretch before it falls, so a short window reports it
+    ///     as a leak. Long enough that an ordinary slow drain finishes inside
+    ///     one, and short enough that a real leak is caught while the count is
+    ///     still small.
+    /// </remarks>
+    public const int Settling = 256;
+
+    private static Fault Accumulating(string name, double waiting)
+        => new($"«{name}» has {waiting.ToString(CultureInfo.InvariantCulture)} runs pending and the count has not " +
+               $"fallen in {Settling.ToString(CultureInfo.InvariantCulture)} steps. A chain gives each trigger its " +
+               "own run. If a new one should supersede the pending one instead, a deadline says so: «when activity " +
+               "{ save at = now + 5 minutes }» beside «when now >= save at { save }».");
 
     /// <summary>
     ///     How deep a pull may go before it is a failure rather than a
