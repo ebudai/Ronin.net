@@ -625,6 +625,66 @@ public class Waiting
         Assert.Equal(0d, graph.Read(Graph.Waiting("when go", 1)));
     }
 
+    [Fact(DisplayName = "a run parked in one chain does not excuse another's new work")]
+    public void ARunParkedInOneChainDoesNotExcuseAnothersNewWork()
+    {
+        // Found by audit. Runs are fungible WITHIN a chain, which is what lets
+        // the exemption be a countdown rather than a tag per run — but they are
+        // not fungible across chains, and one pooled counter let a run sitting
+        // in a chain that never drains excuse every round another chain spent
+        // creating and consuming its own work. The limit simply stopped firing.
+        Graph graph = new(cascades: 2);
+        graph.Var("old head", false);
+        graph.Var("never", false);
+        graph.Var("new head", false);
+
+        // a chain that will hold one run for ever
+        graph.Chain("old chain",
+                    (scope => scope.Read("old head"), _ => { }),
+                    (scope => scope.Read("never"), _ => { }));
+
+        // and one that makes work and takes it inside a single step
+        graph.Chain("new chain",
+                    (scope => scope.Read("new head"), _ => { }),
+                    (_ => true, _ => { }));
+
+        graph.Prime();
+
+        Pulse(graph, "old head");
+
+        Assert.Equal(1d, graph.Read(Graph.Waiting("old chain", 1)));
+
+        graph.Write("new head", true);
+
+        Assert.Throws<RunawayCascade>(() => graph.Step());
+    }
+
+    [Fact(DisplayName = "a body that fails applies none of its effects, «stop» included")]
+    public void ABodyThatFailsAppliesNoneOfItsEffectsStopIncluded()
+    {
+        // Found by audit. A body that fails applies none of its writes — landing
+        // the ones queued before the failure would show the graph a state no
+        // body intended — and disarming a «when» is an effect like any other. It
+        // was applied anyway, so a body that stopped and then threw took the
+        // «when» with it while its writes were discarded: half of an intention
+        // nobody expressed, and the «when» could never come back.
+        Graph graph = new();
+        graph.Var("armed", false);
+
+        graph.When("when armed", scope => scope.Read("armed"), scope =>
+        {
+            scope.Stop();
+            throw new InvalidOperationException("defect");
+        });
+
+        graph.Prime();
+        graph.Write("armed", true);
+        graph.Step();
+
+        Assert.True(graph.Reacts("when armed"));
+        Assert.Single(graph.Faults);
+    }
+
     [Fact(DisplayName = "and work made inside the step still counts against it")]
     public void AndWorkMadeInsideTheStepStillCountsAgainstIt()
     {

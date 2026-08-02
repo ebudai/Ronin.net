@@ -257,7 +257,13 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
     {
         if (firing is null) throw new InvalidOperationException("«stop» is only meaningful inside a «when» body");
 
-        stopping.Add(firing);
+        // STAGED, like a write. A body that fails applies none of its effects —
+        // landing the writes queued before a failure would show the graph a
+        // state no body intended — and disarming a «when» is an effect. Applying
+        // it anyway meant a body that stopped and then threw took the «when»
+        // with it while its writes were discarded: half of an intention nobody
+        // expressed.
+        halting = true;
     }
 
     /// <summary>Whether a «when» by this name is still declared.</summary>
@@ -356,7 +362,7 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
                      if (arrived is not null)
                      {
                          scope.Write(arrived, Waiting(scope.Read(arrived)) - 1);
-                         scope.Advanced();
+                         scope.Advanced(name);
                      }
 
                      body(scope);
@@ -604,12 +610,16 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
             MarkDirty(shadow);
         }
 
-        // The finite, known set of runs this step inherited. Working through
+        // The finite, known set of runs each chain inherited. Working through
         // them is definite progress toward a fixed point; runs CREATED during
         // the step are not, because creating and consuming work inside one
-        // settle is the shape the limit exists to catch. Runs are fungible, so
-        // the first this many consumed are the ones that were already here.
-        inherited = chains.Values.Sum(chain => chain.Flags.Sum(counter => Waiting(nodes[counter].Value)));
+        // settle is the shape the limit exists to catch. Runs are fungible
+        // WITHIN a chain, so the first this many consumed are the ones that were
+        // already here — but not across chains, and pooling them let a run
+        // sitting in one chain excuse a round spent making and taking work in
+        // another.
+        foreach (var chain in chains.Values)
+            chain.Inherited = chain.Flags.Sum(counter => Waiting(nodes[counter].Value));
 
         var rounds = 0;
         var counted = 0;
@@ -727,12 +737,15 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
         staged = [];
         firing = name;
         stopped = false;
+        halting = false;
 
         try
         {
             whens[name].Body(this);
 
             foreach (var (cell, value) in staged) pending[cell] = value;
+
+            if (halting) stopping.Add(name);
         }
         catch (Exception defect)
         {
@@ -1082,6 +1095,9 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
 
         /// <summary>Steps taken in this window.</summary>
         public int Steps { get; set; }
+
+        /// <summary>How many of this chain's runs the step inherited.</summary>
+        public double Inherited { get; set; }
     }
 
     /// <summary>
@@ -1182,27 +1198,35 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
     /// <summary>Whether that body asked not to advance.</summary>
     private bool stopped;
 
+    /// <summary>Whether it asked to be disarmed, which lands only if it finishes.</summary>
+    private bool halting;
+
     /// <summary>Whether this round took a run the step began with.</summary>
     private bool advanced;
 
-    /// <summary>How many runs were pending when the step began.</summary>
-    private double inherited;
-
     /// <summary>
-    ///     Records that this round consumed a run, and whether it was one the
-    ///     step inherited.
+    ///     Records that this round consumed one of <paramref name="chain"/>'s
+    ///     runs, and whether it was one the step inherited.
     /// </summary>
     ///
     /// <remarks>
     ///     Counted down rather than tagged per run, which is the same answer
-    ///     because runs are fungible: the first «inherited» consumed in a step
-    ///     are exactly the ones that were already pending when it began.
+    ///     because runs are fungible: the first «Inherited» consumed in a step
+    ///     are exactly the ones already pending when it began. Per CHAIN, though
+    ///     — fungibility does not cross chains, and one pooled counter let a run
+    ///     parked in a chain that never drains excuse every round another chain
+    ///     spent creating and consuming its own work.
     /// </remarks>
-    private void Advanced()
+    private void Advanced(string chain)
     {
-        if (inherited < 1) return;
+        // Indexed, not probed: this is called from a chain's own body, and a
+        // chain is removed only with the «when»s that run it — so a missing one
+        // is a defect here rather than a state to tolerate.
+        var split = chains[chain];
 
-        --inherited;
+        if (split.Inherited < 1) return;
+
+        --split.Inherited;
         advanced = true;
     }
     private Dictionary<string, object> staged;
