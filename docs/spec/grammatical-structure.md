@@ -252,6 +252,21 @@ when A {                        when A {
                                 }
 ```
 
+**A wait whose condition is already true proceeds in the same step.**  Level,
+not edge: `wait until B` is a guard on a continuation rather than a second
+trigger, and `when` is the one edge-triggered construct — edge-triggered on its
+*own* condition.  The guard is evaluated after the segment before it, so a
+segment that clears `B` waits.
+
+The failure modes are asymmetric and only one is silent.  Under edge semantics a
+prepaid order whose payment already cleared never ships: no error, no
+diagnostic, and the symptom is that orders sometimes do not go out.  Level
+semantics can fire too early, but visibly and on the first run, and a program
+can fix that by clearing the flag; the edge failure cannot be fixed inside the
+program without manufacturing a transition.  There is no second spelling for the
+edge reading — an author who wants one writes `wait until not B` then
+`wait until B`, or a second `when`.
+
 The flags are **the runtime's, not the program's**.  A flag is written by the
 segment that sets it and the one that clears it, which the single-writer rule
 refuses; and the second `when` reads and writes it, which is a self-loop the

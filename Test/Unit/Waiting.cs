@@ -148,6 +148,109 @@ public class Waiting
         Assert.Empty(ran);
     }
 
+    // 9a-9d ---------------------------------------------------------------
+
+    [Fact(DisplayName = "a wait whose condition is already true proceeds in the same step")]
+    public void AWaitWhoseConditionIsAlreadyTrueProceedsInTheSameStep()
+    {
+        // LEVEL, not edge. «wait until B» is a guard on a continuation, not a
+        // second trigger, and guards are level — «when» is the one
+        // edge-triggered construct and it is edge-triggered on its OWN
+        // condition.
+        //
+        // The failure modes are asymmetric and only one is silent. Under edge
+        // semantics a prepaid order whose payment already cleared never ships:
+        // no error, no diagnostic, and the symptom is "sometimes orders just do
+        // not go out". Level semantics can fire too early, but visibly and on
+        // the first run, and a program can fix that by clearing the flag. The
+        // edge failure cannot be fixed inside the program at all without
+        // manufacturing a transition.
+        var graph = Armed("a");
+        graph.Var("b", true);
+        List<string> ran = [];
+
+        graph.Chain("when a",
+                    (scope => scope.Read("a"), _ => ran.Add("x")),
+                    (scope => scope.Read("b"), _ => ran.Add("y")));
+
+        graph.Prime();
+
+        graph.Write("a", true);
+        graph.Step();
+
+        Assert.Equal(["x", "y"], ran);
+    }
+
+    [Fact(DisplayName = "and one whose condition is false waits for it")]
+    public void AndOneWhoseConditionIsFalseWaitsForIt()
+    {
+        var graph = Armed("a", "b");
+        List<string> ran = [];
+
+        graph.Chain("when a",
+                    (scope => scope.Read("a"), _ => ran.Add("x")),
+                    (scope => scope.Read("b"), _ => ran.Add("y")));
+
+        graph.Prime();
+
+        graph.Write("a", true);
+        graph.Step();
+        Assert.Equal(["x"], ran);
+
+        graph.Write("b", true);
+        graph.Step();
+        Assert.Equal(["x", "y"], ran);
+    }
+
+    [Fact(DisplayName = "the guard sees the condition after the segment before it, not before")]
+    public void TheGuardSeesTheConditionAfterTheSegmentBeforeItNotBefore()
+    {
+        // The case that says WHERE level is measured, since both readings are
+        // plausible implementations of it: B is true when «a» fires, and the
+        // first segment sets it false. The wait sees what the segment left
+        // behind — its write and the arming flag land together, and the guard
+        // is evaluated after both.
+        var graph = Armed("a");
+        graph.Var("b", true);
+        List<string> ran = [];
+
+        graph.Chain("when a",
+                    (scope => scope.Read("a"), scope => { ran.Add("x"); scope.Write("b", false); }),
+                    (scope => scope.Read("b"), _ => ran.Add("y")));
+
+        graph.Prime();
+
+        graph.Write("a", true);
+        graph.Step();
+
+        Assert.Equal(["x"], ran);
+
+        graph.Write("b", true);
+        graph.Step();
+
+        Assert.Equal(["x", "y"], ran);
+    }
+
+    [Fact(DisplayName = "«wait until true» is a no-op in the same step")]
+    public void WaitUntilTrueIsANoOpInTheSameStep()
+    {
+        // The degenerate case falls out rather than being special-cased, which
+        // is the sign the rule is the right one.
+        var graph = Armed("a");
+        List<string> ran = [];
+
+        graph.Chain("when a",
+                    (scope => scope.Read("a"), _ => ran.Add("x")),
+                    (_ => true, _ => ran.Add("y")));
+
+        graph.Prime();
+
+        graph.Write("a", true);
+        graph.Step();
+
+        Assert.Equal(["x", "y"], ran);
+    }
+
     // 10 ------------------------------------------------------------------
 
     [Fact(DisplayName = "a wait's condition going true and false again is an ordinary edge")]
@@ -293,7 +396,7 @@ public class Waiting
         Assert.Equal(["x", "y"], ran);
 
         Assert.False(graph.Reacts("when a"));
-        Assert.False(graph.Reacts("when a after wait 1"));
+        Assert.False(graph.Reacts(Graph.Resuming("when a", 1)));
 
         // and neither half fires again
         Pulse(graph, "a");

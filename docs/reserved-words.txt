@@ -14,8 +14,19 @@
 
     for each «one word, or a bracketed name» in (_)
 
-## PROTECTED (3) — no pattern may use these as glue
+## PROTECTED (6) — no pattern may use these as glue
 
     old          builds old «a reactive name», and is refused in any segment, not only glue
     index        builds index of «a loop variable»
     of           builds index of «a loop variable»
+    wait         builds wait 1 of «a when»
+    resuming     builds resuming 1 of «a when»
+    waiting      builds waiting of «a when»
+
+## INJECTED (5) — names the compiler builds, and never asks anyone to rename
+
+    old «a name»                 a reactive declaration's previous value
+    index of «a loop variable»   a loop's counter
+    wait 1 of «a when»           the flag armed while a «wait until» is pending
+    resuming 1 of «a when»       the «when» a chain resumes into after a wait
+    waiting of «a when»          true while any wait in a chain is armed

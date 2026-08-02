@@ -30,6 +30,30 @@ public class GlueRegistry
     private static readonly string Committed =
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs", "reserved-words.txt");
 
+    [Fact(DisplayName = "every injected shape joins on a protected word")]
+    public void EveryInjectedShapeJoinsOnAProtectedWord()
+    {
+        // The two halves of one rule: glue words may not be names, and injection
+        // words may not be glue. A shape that joined on an ordinary word could
+        // be broken by a declaration somewhere else — the first «wait until»
+        // spelling used «in flight», and «in» is the word most likely to become
+        // glue again, so that trap would have fired on every «wait until» in
+        // every program at once.
+        var kept = new HashSet<string>(Rules.Injected.Select(injection => injection.Word))
+        {
+            SymbolTable.Old,
+        };
+
+        foreach (var (shape, _) in Glue.Shapes)
+        {
+            // the words outside the guillemets are the compiler's own
+            var joins = shape.Split('«')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                             .Where(word => int.TryParse(word, out _) is false);
+
+            Assert.All(joins, word => Assert.Contains(word, kept));
+        }
+    }
+
     [Fact(DisplayName = "the registry matches what the language reserves")]
     public void TheRegistryMatchesWhatTheLanguageReserves()
     {

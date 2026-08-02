@@ -66,6 +66,27 @@ internal static class Glue
     ///     (_) in (_)» has a word after a hole and still reserves nothing, since
     ///     the hole it follows is PINNED and so cannot grow over it.
     /// </remarks>
+    /// <summary>
+    ///     Every shape the compiler builds a name out of, and what causes it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Every one joins with a PROTECTED word, so no declaration anywhere can
+    ///     break one. The first «wait until» spelling used «in flight», and «in»
+    ///     is the word most likely to become glue again — it was glue until the
+    ///     pinned hole, and the loop is the construct most likely to be
+    ///     respelled. That trap would have fired on every «wait until» in every
+    ///     program at once.
+    /// </remarks>
+    public static IReadOnlyList<(string Shape, string Cause)> Shapes { get; } =
+    [
+        ("old «a name»", "a reactive declaration's previous value"),
+        ("index of «a loop variable»", "a loop's counter"),
+        ("wait 1 of «a when»", "the flag armed while a «wait until» is pending"),
+        ("resuming 1 of «a when»", "the «when» a chain resumes into after a wait"),
+        ("waiting of «a when»", "true while any wait in a chain is armed"),
+    ];
+
     public static string Registry(IEnumerable<Pattern> patterns)
     {
         var declared = patterns.OrderBy(pattern => pattern.ToString(), System.StringComparer.Ordinal).ToArray();
@@ -114,6 +135,17 @@ internal static class Glue
         registry.AppendLine();
 
         foreach (var (word, injects) in protectedWords) registry.AppendLine($"    {word,-12} builds {injects}");
+
+        // The other half of the same rule, and checked in for the same reason:
+        // a collision between an injected name and a declared one should be
+        // found by reading a diff rather than by hitting it. One scheme —
+        // qualifier first, subject after, joined by a protected word — rather
+        // than a spelling per injection.
+        registry.AppendLine();
+        registry.AppendLine($"## INJECTED ({Shapes.Count}) — names the compiler builds, and never asks anyone to rename");
+        registry.AppendLine();
+
+        foreach (var (shape, cause) in Shapes) registry.AppendLine($"    {shape,-28} {cause}");
 
         return registry.ToString();
     }

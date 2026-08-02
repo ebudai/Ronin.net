@@ -259,7 +259,7 @@ internal sealed class Graph(int cascades = 64)
 
         for (var wait = 0; wait < waits; ++wait)
         {
-            flags[wait] = $"{name} in flight {wait + 1}";
+            flags[wait] = Waiting(name, wait + 1);
             Var(flags[wait], false);
         }
 
@@ -276,7 +276,7 @@ internal sealed class Graph(int cascades = 64)
         {
             var (until, body) = segments[segment];
 
-            var reacting = segment is 0 ? name : $"{name} after wait {segment}";
+            var reacting = segment is 0 ? name : Resuming(name, segment);
             var entered = segment is 0 ? null : flags[segment - 1];
             var leaving = segment < waits ? flags[segment] : null;
 
@@ -327,11 +327,39 @@ internal sealed class Graph(int cascades = 64)
     /// </summary>
     ///
     /// <remarks>
+    ///     <para>
     ///     What an author guards the first condition with to ignore a re-fire
-    ///     rather than restart — «when A and not «A in flight»». Debounce,
+    ///     rather than restart — «when A and not waiting of A». Debounce,
     ///     one-shot and "do not retrigger the animation" are all this.
+    ///     </para>
+    ///     <para>
+    ///     Qualifier first and subject after, joined by «of», which follows
+    ///     «index of X» and is one scheme applied by rule rather than three
+    ///     ad-hoc spellings. «of» because it is PROTECTED: no pattern may use it
+    ///     as glue, so a name built from it cannot be broken by a declaration
+    ///     somewhere else. The first spelling used «in flight», and «in» is the
+    ///     word in this language most likely to become glue again — it was glue
+    ///     until the pinned hole, and the loop is the construct most likely to be
+    ///     respelled. That trap would have fired on every «wait until» in every
+    ///     program at once.
+    ///     </para>
     /// </remarks>
-    public static string InFlight(string name) => $"{name} in flight";
+    public static string InFlight(string name) => $"waiting of {name}";
+
+    /// <summary>The flag armed while wait <paramref name="wait"/> is pending.</summary>
+    public static string Waiting(string name, int wait) => $"wait {wait} of {name}";
+
+    /// <summary>
+    ///     The «when» a chain resumes into after wait <paramref name="wait"/>.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Numbered like the flag, and for the same reason: two waits produce two
+    ///     continuations, and one spelling for both collides. A generated name
+    ///     that changes shape when a second wait is added would be its own trap,
+    ///     so the number is there at one wait as well.
+    /// </remarks>
+    public static string Resuming(string name, int wait) => $"resuming {wait} of {name}";
 
     /// <summary>
     ///     Effect bodies that failed during the last <see cref="Step"/>. A
