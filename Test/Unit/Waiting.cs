@@ -1170,6 +1170,68 @@ public class Waiting
         Assert.Equal(0d, graph.Read(Graph.Waiting("chain", 1)));
     }
 
+    [Theory(DisplayName = "and a run that has already drained pays for nothing after it")]
+    [InlineData(5, 0)]
+    [InlineData(6, 7)]
+    public void AndARunThatHasAlreadyDrainedPaysForNothingAfterIt(int cascades, int settles)
+    {
+        // Found by audit, and it is the same subsidy as the cross-chain one seen
+        // across TIME rather than across chains: the two credits were two tables
+        // read from the same count, and the displacement credit outlived what it
+        // was a reading of. Drain the run parked here and its unspent
+        // displacement credit stayed behind, ready to forgive a run this step
+        // made at the same wait.
+        //
+        // The three controls beside this one all miss it. Two of them leave the
+        // run parked while it pays, and the third displaces it before draining
+        // it — which is the order that IS free, and stays free.
+        Graph graph = new(cascades: cascades);
+        graph.Var("h", false);
+        graph.Var("w", false);
+        graph.Var("phase", 0d);
+
+        graph.Chain("chain",
+                    (scope => scope.Read("h"), _ => { }),
+                    (scope => scope.Read("w"), _ => { }));
+
+        graph.When("phasing", scope => scope.Read("phase"), scope =>
+        {
+            var phase = (double)scope.Read("phase");
+
+            // shuts the wait behind the drain, so the run the head makes next
+            // cannot leave before a second one is made and displaces it
+            if (phase is 1d) { scope.Write("w", false); scope.Write("h", true); scope.Write("phase", 2d); }
+            else if (phase is 2d) { scope.Write("h", false); scope.Write("phase", 3d); }
+            else if (phase is 3d) { scope.Write("h", true); scope.Write("w", true); scope.Write("phase", 4d); }
+        }, TriggerMode.Changes);
+
+        graph.Prime();
+
+        // one run parked at a shut wait, in a step of its own
+        Pulse(graph, "h");
+
+        // the tested step opens the wait, so its first round drains that run and
+        // everything at this wait afterwards was made by this step
+        graph.Write("w", true);
+        graph.Write("phase", 1d);
+
+        if (settles is 0)
+        {
+            // Found by audit. The two numbers stopped being the same one the
+            // moment servicing inherited work became free, and the message went
+            // on reporting the physical figure and saying every one of those
+            // rounds created the next. A reader given six rounds and told all
+            // six made work goes looking for a body writing what its trigger
+            // reads — in a step where one of them was draining a queue.
+            var runaway = Assert.Throws<RunawayCascade>(() => graph.Step());
+
+            Assert.StartsWith("the graph did not settle: 5 rounds of work it created, out of 6 in all.",
+                              runaway.Message);
+            Assert.Contains("Likely sources, being the last to fire:", runaway.Message);
+        }
+        else Assert.Equal(settles, graph.Step());
+    }
+
     [Theory(DisplayName = "and no other chain's parked run can be spent on it")]
     [InlineData(6, 0)]
     [InlineData(7, 7)]

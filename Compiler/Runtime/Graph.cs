@@ -376,6 +376,8 @@ internal sealed class Graph
             chain.Reacting.Add(reacting);
             membership[reacting] = name;
 
+            if (arrived is not null) consumes[reacting] = arrived;
+
             When(reacting,
                  scope =>
                  {
@@ -675,31 +677,22 @@ internal sealed class Graph
 
         stalled.Clear();
 
-        quota.Clear();
+        credits.Clear();
 
         // Only chains with a run in them. A chain at rest has nothing to inherit
         // and nothing to watch, and walking every one made a no-op step cost
         // O(chains) — the same shape as scanning every «when», one level down,
         // and it is what the allocation measurement was actually finding.
-        allowance.Clear();
-
         foreach (var name in active)
         {
             var chain = chains[name];
 
-            for (var wait = 0; wait < chain.Counts.Count; ++wait)
-            {
-                var owed = Waiting(nodes[chain.Counts[wait]].Value);
-
-                quota[chain.Counts[wait]] = owed;
-
-                // The same reading, owned by the position that consumes it. A
-                // count and the continuation waiting on it are one to one — the
-                // segment after wait «w» is the only thing that takes from wait
-                // «w» — so the position is the key, and the allowance below can
-                // ask what it was deferred out of without a second index.
-                allowance[chain.Reacting[wait + 1]] = owed;
-            }
+            // ONE record per wait, holding both credits. They were two tables
+            // read from the same number, and the second outlived what it was a
+            // reading OF: consuming the last run parked here left its unspent
+            // displacement credit behind to forgive a run created later at the
+            // same wait. Kept together, the two cannot come apart.
+            foreach (var counter in chain.Counts) credits[counter] = new Credit(Waiting(nodes[counter].Value));
         }
 
         var rounds = 0;
@@ -753,7 +746,7 @@ internal sealed class Graph
 
         // Deferred work outstanding is non-settlement exactly as a pending write
         // is: the step ran out of rounds with something still to do.
-        if (pending.Count is not 0 || deferred.Count is not 0) throw Runaway(rounds);
+        if (pending.Count is not 0 || deferred.Count is not 0) throw Runaway(rounds, counted);
 
         Draining();
 
@@ -957,6 +950,7 @@ internal sealed class Graph
                 woken.Remove(member);
                 deferred.Remove(member);
                 stalled.Remove(member);
+                consumes.Remove(member);
                 Undeclare(member);
             }
         }
@@ -1006,22 +1000,25 @@ internal sealed class Graph
         nodes.Remove(name);
     }
 
-    private RunawayCascade Runaway(int rounds)
+    private RunawayCascade Runaway(int rounds, int counted)
     {
         var culprits = string.Join(", ", fired.TakeLast(3).Distinct().Select(name => $"«{name}»"));
 
-        // Every round here MADE the work for the next one, which is now the only
-        // way to reach this: a round that took a run the step began with is
-        // definite progress and does not count. Draining used to reach it too,
-        // and got told a body was writing what its own trigger reads — a
-        // confident, specific description of a program the author had not
-        // written, which is worse than a vague one because it sends them looking
-        // for a bug that is not there.
+        // Both numbers, because they stopped being the same one. What is bounded
+        // is rounds spent on work the step MADE; rounds spent draining what it
+        // inherited, or displaced by the head that owns it, are free and are not
+        // in this count. Reporting the physical figure and then saying every one
+        // of those rounds created the next was a confident, specific description
+        // of a program the author had not written — which is worse than a vague
+        // one, because it sends them looking for a bug that is not there.
+        //
+        // «Likely» for the same reason. These are the last three that fired, not
+        // three the runtime has any evidence against.
         return new RunawayCascade(
-            $"the graph did not settle after {rounds} rounds; last fired: {culprits}. " +
-            "Every round created the work for the next — most often a when body writing a var its own trigger " +
-            "reads, so each firing schedules another. Stop the body writing once the condition it acts on is " +
-            "satisfied.");
+            $"the graph did not settle: {counted} rounds of work it created, out of {rounds} in all. " +
+            $"Likely sources, being the last to fire: {culprits}. Most often a when body writes a var its own " +
+            "trigger reads, so each firing schedules another. Stop the body writing once the condition it acts " +
+            "on is satisfied.");
     }
 
     private Node Declare(Node node)
@@ -1402,10 +1399,30 @@ internal sealed class Graph
     private readonly Dictionary<string, string> membership = [];
 
     /// <summary>How many runs each wait had when the step began.</summary>
-    private readonly Dictionary<string, double> quota = [];
+    private readonly Dictionary<string, Credit> credits = [];
 
-    /// <summary>Deferrals each position may be forgiven, by run it inherited.</summary>
-    private readonly Dictionary<string, double> allowance = [];
+    /// <summary>The counter each continuation takes from, fixed when it is written.</summary>
+    private readonly Dictionary<string, string> consumes = [];
+
+    /// <summary>
+    ///     What the runs parked at one wait may be forgiven, by kind.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Two credits per run and not one, which was measured: spending one on
+    ///     whichever came first cost exactly what having no exemption at all
+    ///     cost, because «k» runs make «k» displacements and «k» drains against a
+    ///     supply of «k». They are separate because they are separate events —
+    ///     and they are here together because neither may outlive the run.
+    /// </remarks>
+    private sealed class Credit(double parked)
+    {
+        /// <summary>Runs parked here when the step began, still to be taken.</summary>
+        public double Drains { get; set; } = parked;
+
+        /// <summary>Rounds those runs may still forgive for being displaced.</summary>
+        public double Displacements { get; set; } = parked;
+    }
 
     /// <summary>«when»s whose condition may have moved since the last round.</summary>
     private readonly HashSet<string> woken = [];
@@ -1478,9 +1495,13 @@ internal sealed class Graph
     {
         foreach (var name in deferred)
         {
-            if (allowance.TryGetValue(name, out var left) is false || left < 1) continue;
+            // «consumes», not a per-step copy of the association: which counter a
+            // continuation takes from is fixed when the chain is written, and a
+            // second table rebuilt each step to say the same thing is how the
+            // two readings drifted apart in the first place.
+            if (credits.TryGetValue(consumes[name], out var credit) is false || credit.Displacements < 1) continue;
 
-            allowance[name] = left - 1;
+            --credit.Displacements;
 
             return true;
         }
@@ -1504,10 +1525,16 @@ internal sealed class Graph
     {
         if (consuming is null) return;
 
-        if (quota.TryGetValue(consuming, out var left) && left >= 1)
+        if (credits.TryGetValue(consuming, out var credit) && credit.Drains >= 1)
         {
-            quota[consuming] = left - 1;
+            --credit.Drains;
             advanced = true;
+
+            // Displacement credit is a reading of what is parked here, so it
+            // cannot outlast it. Runs at one wait are fungible: after a drain the
+            // most that can still be displaced is what is still standing there,
+            // and anything above that belonged to a run that has already gone.
+            credit.Displacements = Math.Min(credit.Displacements, credit.Drains);
         }
 
         consuming = null;

@@ -282,7 +282,10 @@ reason: it declined to run work that was already there, and charging the
 scheduler's own throttle to the program spent the budget before the deferred run
 could show that taking it would have been free — which it can only show by
 running.  Forgiveness is **owned**: what pays for the round is a run that was
-parked at the very wait the round declined to serve, and it pays once.  So a
+parked at the very wait the round declined to serve, and it pays once — and only
+while it is still standing there.  A run that has drained pays for nothing after
+it, or its credit would outlive it and buy rounds for a replacement the step
+made itself.  So a
 chain whose head keeps being re-armed while its tail waits still reaches the
 limit, and no chain's healthy queue can pay for another chain's spinning.
 
