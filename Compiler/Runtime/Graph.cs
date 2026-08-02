@@ -22,6 +22,21 @@ internal enum TriggerMode
 
     /// <summary>Whenever the value differs from the last settled one.</summary>
     Changes,
+
+    /// <summary>
+    ///     Every round the value is true, and not only on the edge.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     What a chain's later segments need. Several runs can be waiting at one
+    ///     point and they must be taken ONE PER ROUND: several in a round would
+    ///     be several writes to the same cells inside one settle, and the last
+    ///     would land while the rest vanished. One per round makes each run its
+    ///     own settled round, which is the model working as designed — and it is
+    ///     what lets the runaway detector see a chain accumulating, since the
+    ///     rounds it already counts are the ones the runs take.
+    /// </remarks>
+    WhileTrue,
 }
 
 /// <summary>
@@ -180,7 +195,27 @@ internal sealed class Graph(int cascades = 64)
     public IReadOnlyList<string> Fired => fired;
 
     /// <summary>
-    ///     Ends the «when» whose body is running, for the instance it ran for.
+    ///     Ends this run of the chain: it does not advance to the next segment.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Other runs in flight are unaffected, and the «when» stays ARMED. Armed
+    ///     and in-flight are two pieces of state, and collapsing them means a
+    ///     chain that completes normally has nothing in flight, therefore looks
+    ///     stopped, therefore is removed — every time it finishes. A one-shot
+    ///     chain would work and a repeating one would silently stop after its
+    ///     first run. An empty count is the RESTING STATE of a healthy chain and
+    ///     says nothing about whether the «when» should still exist.
+    /// </remarks>
+    public void Stop()
+    {
+        if (firing is null) throw new InvalidOperationException("«stop» is only meaningful inside a «when» body");
+
+        stopped = true;
+    }
+
+    /// <summary>
+    ///     Disarms the «when» whose body is running, for the instance it ran for.
     /// </summary>
     ///
     /// <remarks>
@@ -201,9 +236,10 @@ internal sealed class Graph(int cascades = 64)
     ///     cascade analysis here and why there should not be one.
     ///     </para>
     /// </remarks>
-    public void Stop()
+    public void StopAll()
     {
-        if (firing is null) throw new InvalidOperationException("«stop» is only meaningful inside a «when» body");
+        if (firing is null)
+            throw new InvalidOperationException("«stop all» is only meaningful inside a «when» body");
 
         stopping.Add(firing);
     }
@@ -255,30 +291,24 @@ internal sealed class Graph(int cascades = 64)
         if (segments.Length is 0) throw new ArgumentException("a chain has at least one segment", nameof(segments));
 
         var waits = segments.Length - 1;
-        var flags = new string[waits];
+        var pending = new string[waits];
 
         for (var wait = 0; wait < waits; ++wait)
         {
-            flags[wait] = Waiting(name, wait + 1);
-            Var(flags[wait], false);
+            pending[wait] = Waiting(name, wait + 1);
+            Var(pending[wait], 0d);
         }
 
-        Split chain = new(flags);
+        Split chain = new(pending);
         chains[name] = chain;
-
-        // A DERIVED VALUE and not a host method, because the idiom that uses it
-        // is written in the language: «when A and not «A in flight»» is how an
-        // author asks for ignore instead of restart, and a program cannot read
-        // something only the runtime can see.
-        Let(InFlight(name), scope => flags.Any(flag => Equals(scope.Read(flag), true)));
 
         for (var segment = 0; segment < segments.Length; ++segment)
         {
             var (until, body) = segments[segment];
 
             var reacting = segment is 0 ? name : Resuming(name, segment);
-            var entered = segment is 0 ? null : flags[segment - 1];
-            var leaving = segment < waits ? flags[segment] : null;
+            var arrived = segment is 0 ? null : pending[segment - 1];
+            var leaving = segment < waits ? pending[segment] : null;
 
             chain.Reacting.Add(reacting);
 
@@ -286,80 +316,77 @@ internal sealed class Graph(int cascades = 64)
                  scope =>
                  {
                      // The first segment's condition is the «when»'s own. Every
-                     // later one is "the flag, and what the wait named" — the
-                     // flag is what stops «B» on its own from reaching a tail
-                     // whose head has not run.
-                     if (entered is null) return until(scope);
+                     // later one is "somebody is waiting here, and what the wait
+                     // named is true" — the count is what stops «B» on its own
+                     // from reaching a tail whose head has not run.
+                     if (arrived is null) return until(scope);
 
-                     // «Equals» and not «is true» in both places: the pattern
-                     // tests the type and then the value, and the type test can
-                     // never fail — a flag is written here and nowhere else, and
-                     // a condition that is not boolean is a type error the
-                     // frontend owns rather than something to invent an answer
-                     // for.
-                     if (Equals(scope.Read(entered), true) is false) return false;
+                     if (Waiting(scope.Read(arrived)) is 0) return false;
 
+                     // «Equals» and not «is true»: the pattern tests the type and
+                     // then the value, and the type test can never fail — a
+                     // condition that is not boolean is a type error the frontend
+                     // owns rather than something to invent an answer for.
                      return Equals(until(scope), true);
                  },
                  scope =>
                  {
-                     // «entered is null» is the first segment, and it is asked
-                     // that way rather than by the loop counter: a «for»
+                     // ONE run per firing, which the mode below makes one per
+                     // round. «arrived is null» is the first segment, and it is
+                     // asked that way rather than by the loop counter: a «for»
                      // variable is ONE variable, so a lambda capturing it reads
                      // the value the loop ended on and every segment believed it
                      // was a later one.
-                     //
-                     // Restart clears everything, not just this one. A re-fire
-                     // at segment 3 of 3 that cleared only its own would leave
-                     // two live positions and run the tail twice.
-                     if (entered is null) foreach (var flag in flags) scope.Write(flag, false);
-                     else scope.Write(entered, false);
+                     if (arrived is not null) scope.Write(arrived, Waiting(scope.Read(arrived)) - 1);
 
                      body(scope);
 
-                     if (leaving is not null) scope.Write(leaving, true);
-                 });
+                     // «stop» ends THIS run: it simply does not advance. The
+                     // «when» stays armed and the runs beside it are untouched,
+                     // which is why nothing is cleared here — there is no policy
+                     // to apply, because there is no rule holding a chain to one
+                     // run at a time.
+                     if (leaving is not null && stopped is false)
+                         scope.Write(leaving, Waiting(scope.Read(leaving)) + 1);
+                 },
+                 arrived is null ? TriggerMode.BecomesTrue : TriggerMode.WhileTrue);
         }
     }
 
     /// <summary>
-    ///     Whether any activation of <paramref name="name"/> is part way through.
+    /// <summary>
+    ///     How many runs are waiting at a point.
     /// </summary>
     ///
     /// <remarks>
-    ///     <para>
-    ///     What an author guards the first condition with to ignore a re-fire
-    ///     rather than restart — «when A and not waiting of A». Debounce,
-    ///     one-shot and "do not retrigger the animation" are all this.
-    ///     </para>
-    ///     <para>
-    ///     Qualifier first and subject after, joined by «of», which follows
-    ///     «index of X» and is one scheme applied by rule rather than three
-    ///     ad-hoc spellings. «of» because it is PROTECTED: no pattern may use it
-    ///     as glue, so a name built from it cannot be broken by a declaration
-    ///     somewhere else. The first spelling used «in flight», and «in» is the
-    ///     word in this language most likely to become glue again — it was glue
-    ///     until the pinned hole, and the loop is the construct most likely to be
-    ///     respelled. That trap would have fired on every «wait until» in every
-    ///     program at once.
-    ///     </para>
+    ///     A cast and not a test. These counts are declared and written here and
+    ///     nowhere else, so anything but a number is a defect in this file rather
+    ///     than a state to tolerate — and a body that throws becomes a fault
+    ///     naming itself, which is how it should surface.
     /// </remarks>
-    public static string InFlight(string name) => $"waiting of {name}";
+    private static double Waiting(object count) => (double)count;
 
-    /// <summary>The flag armed while wait <paramref name="wait"/> is pending.</summary>
-    public static string Waiting(string name, int wait) => $"wait {wait} of {name}";
+    /// <summary>The count of runs waiting at wait <paramref name="wait"/>.</summary>
+    public static string Waiting(string name, int wait) => $"{name} (waiting at {wait})";
 
     /// <summary>
     ///     The «when» a chain resumes into after wait <paramref name="wait"/>.
     /// </summary>
     ///
     /// <remarks>
-    ///     Numbered like the flag, and for the same reason: two waits produce two
-    ///     continuations, and one spelling for both collides. A generated name
-    ///     that changes shape when a second wait is added would be its own trap,
-    ///     so the number is there at one wait as well.
+    ///     A REPORT and not prose, because nothing generated is typed any more —
+    ///     the value an author had to name went with the rule that held a chain
+    ///     to one run. These surface in <see cref="Fired"/>, in a fault message
+    ///     and in a desugaring view, where a parenthetical says plainly that the
+    ///     compiler is talking. Being unspellable, they also cost no protected
+    ///     words.
+    ///     <para>
+    ///     Numbered even at one wait: two waits produce two continuations, and a
+    ///     generated name that changes shape when a second is added would be its
+    ///     own trap.
+    ///     </para>
     /// </remarks>
-    public static string Resuming(string name, int wait) => $"resuming {wait} of {name}";
+    public static string Resuming(string name, int wait) => $"{name} (after wait {wait})";
 
     /// <summary>
     ///     Effect bodies that failed during the last <see cref="Step"/>. A
@@ -621,9 +648,12 @@ internal sealed class Graph(int cascades = 64)
             // the first observation establishes a baseline rather than an edge
             if (ReferenceEquals(previous, Unobserved)) continue;
 
-            var fires = trigger.Mode is TriggerMode.Changes
-                      ? Equals(value, previous) is false
-                      : value is true && previous is not true;
+            var fires = trigger.Mode switch
+            {
+                TriggerMode.Changes => Equals(value, previous) is false,
+                TriggerMode.WhileTrue => Equals(value, true),
+                _ => Equals(value, true) && Equals(previous, true) is false,
+            };
 
             if (fires) triggered.Add(name);
         }
@@ -657,6 +687,7 @@ internal sealed class Graph(int cascades = 64)
 
         staged = [];
         firing = name;
+        stopped = false;
 
         try
         {
@@ -719,9 +750,8 @@ internal sealed class Graph(int cascades = 64)
         {
             if (membership.Reacting.Contains(name) is false) continue;
 
-            foreach (var flag in membership.Flags) Undeclare(flag);
+            foreach (var counter in membership.Flags) Undeclare(counter);
 
-            Undeclare(InFlight(chain));
             chains.Remove(chain);
 
             return membership.Reacting;
@@ -1016,6 +1046,9 @@ internal sealed class Graph(int cascades = 64)
 
     /// <summary>The «when» whose body is running, which is what «stop» stops.</summary>
     private string firing;
+
+    /// <summary>Whether that body asked not to advance.</summary>
+    private bool stopped;
     private Dictionary<string, object> staged;
     private readonly List<Node> reading = [];
     private readonly List<Adoption> adopting = [];

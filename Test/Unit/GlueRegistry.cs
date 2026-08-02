@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using Ronin.Compiler;
+using Ronin.Runtime;
 
 namespace Unit;
 
@@ -47,11 +48,16 @@ public class GlueRegistry
         foreach (var (shape, _) in Glue.Shapes)
         {
             // the words outside the guillemets are the compiler's own
-            var joins = shape.Split('«')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                             .Where(word => int.TryParse(word, out _) is false);
+            var joins = shape.Split('«')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             Assert.All(joins, word => Assert.Contains(word, kept));
         }
+
+        // And a chain's names are not among them, because nothing it generates
+        // is typed: they are reports, and a report cannot collide with a
+        // declaration. Making them prose cost three protected words to dress
+        // internal identifiers as a language they were never part of.
+        Assert.DoesNotContain(Graph.Waiting("when a", 1), Glue.Shapes.Select(shape => shape.Shape));
     }
 
     [Fact(DisplayName = "the registry matches what the language reserves")]

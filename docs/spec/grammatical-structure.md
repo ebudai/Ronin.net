@@ -212,12 +212,33 @@ node count is a function of M alone and is unchanged between N = 1 and
 N = 1000.*  The failure mode to watch for is archetype count growing with
 instance count rather than with type count.
 
-#### `stop`
+#### `stop` and `stop all`
 
-`stop` is legal only in a `when` body, takes effect at the end of the round, and
-**removes the node** rather than disabling it: a stopped `when` that lingers
-still costs an edge walk and still counts toward cascades, which is the leak the
-placement rule above exists to prevent.
+Both are legal only in a `when` body and take effect at the end of the round, so
+a body that stops finishes first, including what it writes afterwards.
+
+- **`stop`** ends *this run* of the chain: it does not advance to the next
+  segment.  Runs beside it are unaffected and the `when` stays **armed**.
+- **`stop all`** disarms the `when` entirely: every pending run is abandoned and
+  the node is **removed** rather than disabled — a stopped `when` that lingers
+  still costs an edge walk and still counts toward cascades, which is the leak
+  the placement rule above exists to prevent.
+
+They are two pieces of state and must not be collapsed.  *Armed* asks whether
+the `when` may be triggered at all; *in flight* asks how many runs are going.
+An empty count is the **resting state of a healthy chain** and says nothing
+about whether the `when` should exist — collapse them and a chain is removed
+every time it finishes, so a one-shot works and a repeating one silently stops
+after its first run.
+
+A one-shot needs no `stop all`: `when ready { init; stop }` ends the run, and
+nothing re-triggers `ready`.  `stop all` is for abandoning work genuinely in
+flight, which is why it earns its keep at type scope — *this rule is off now,
+for every instance* cannot be said any other way.
+
+`stop all` must be **one lexer token**, because `stop` is a prefix of it and R6
+requires determinate prefixes to be prefix-free.  The precedent is `for each`,
+which is one token and is exactly why `for` remains available.
 
 Because it can only *shrink* the graph it cannot make a legal program illegal,
 so cascade analysis over the never-stops graph stays sound and needs no dynamic
@@ -267,23 +288,43 @@ program without manufacturing a transition.  There is no second spelling for the
 edge reading — an author who wants one writes `wait until not B` then
 `wait until B`, or a second `when`.
 
-The flags are **the runtime's, not the program's**.  A flag is written by the
-segment that sets it and the one that clears it, which the single-writer rule
-refuses; and the second `when` reads and writes it, which is a self-loop the
-cascade checker calls undeclared feedback.  Both of those analyses run over the
-source, so a flag the program never declares is invisible to them.
+The counts are **the runtime's, not the program's**.  A count is written by the
+segment that arrives at it and the one that leaves it, which the single-writer
+rule refuses; and the second `when` reads and writes it, which the cascade
+checker calls undeclared feedback.  Both of those analyses run over the source,
+so a count the program never declares is invisible to them.
 
-**Restart is the default.**  The first segment clears *every* flag in the chain
-before setting its own, so a re-fire abandons an activation wherever it was.
-Clearing all of them rather than only setting the first is what stops a re-fire
-at segment 3 leaving two live positions and running the tail twice.  To ignore
-the re-fire instead, an author guards the first condition: `when A and not
-«A in flight»`.
+**Runs are counted, not gated.**  A `when` is instantaneous — it fires on an
+edge and its body runs to completion inside one step, so it cannot be
+re-entered.  A chain has *duration*, and anything with duration can be.  A
+second `when A` while a chain is in flight starts a second run; both finish.
 
-`stop` anywhere in a chain removes **all** of it and clears every flag.  If it
-removed only the half it appears in, an armed first half would leave an orphaned
-second half firing whenever its condition eventually went true — much later,
-with the rest of the chain gone.
+Counting is what makes the ordinary case right.  Three orders placed and then
+one payment clearing should ship three: abandoning the earlier runs reserves
+three and ships one, and suppressing the later ones reserves one and ships one.
+Both lose the rest in silence.  An author who *wants* suppression writes it in
+their own vocabulary, with state they already have:
+
+```ronin
+when key pressed and not charging {
+    charging = true
+    charge
+    wait until released
+    charging = false
+    fire
+}
+```
+
+Runs are taken **one per round**.  Several in a round would be several writes to
+the same cells inside one settle, where the last lands and the rest vanish; one
+per round makes each run its own settled round, and it is what lets the existing
+runaway detector see a head firing faster than its tail completes.
+
+**No value crosses a `wait until`.**  The wait ends the segment, so a `var`
+declared before it is out of scope after it.  A run therefore carries no data
+and has no frame — which is what makes a second run cost a number rather than a
+continuation.  If a value must persist, it belongs to the thing the chain is
+about: declare the `when` on a type and the value as a member.
 
 A time-based wait — `wait until 3 seconds` — needs a deadline rather than a
 condition: the segment before it stores `now + 3 seconds` and the guard compares

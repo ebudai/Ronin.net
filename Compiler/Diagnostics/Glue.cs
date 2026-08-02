@@ -72,19 +72,21 @@ internal static class Glue
     ///
     /// <remarks>
     ///     Every one joins with a PROTECTED word, so no declaration anywhere can
-    ///     break one. The first «wait until» spelling used «in flight», and «in»
-    ///     is the word most likely to become glue again — it was glue until the
-    ///     pinned hole, and the loop is the construct most likely to be
-    ///     respelled. That trap would have fired on every «wait until» in every
-    ///     program at once.
+    ///     break one — a name an author can type has to survive whatever anyone
+    ///     else declares.
+    ///     <para>
+    ///     A chain's generated names are NOT here, and that is the point: nothing
+    ///     it generates is ever typed, so they are reports rather than names —
+    ///     «when a (waiting at 1)» cannot be written and so cannot collide. The
+    ///     scheme that made them prose cost three protected words to make
+    ///     internal identifiers look like a language they were never part of.
+    ///     </para>
     /// </remarks>
     public static IReadOnlyList<(string Shape, string Cause)> Shapes { get; } =
     [
         ("old «a name»", "a reactive declaration's previous value"),
         ("index of «a loop variable»", "a loop's counter"),
-        ("wait 1 of «a when»", "the flag armed while a «wait until» is pending"),
-        ("resuming 1 of «a when»", "the «when» a chain resumes into after a wait"),
-        ("waiting of «a when»", "true while any wait in a chain is armed"),
+
     ];
 
     public static string Registry(IEnumerable<Pattern> patterns)

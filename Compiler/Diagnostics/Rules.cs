@@ -172,15 +172,6 @@ internal static class Rules
     [
         ("index", "index of «a loop variable»"),
         ("of", "index of «a loop variable»"),
-
-        // EVERY word a shape is built from, not only the connective. A name
-        // joined by a protected «of» is still broken if «wait» becomes glue, and
-        // it would break on every «wait until» in every program at once. The
-        // rule generalises: any word the compiler uses to build an injected name
-        // joins this set, and «Glue.Shapes» is checked against it.
-        ("wait", "wait 1 of «a when»"),
-        ("resuming", "resuming 1 of «a when»"),
-        ("waiting", "waiting of «a when»"),
     ];
 
     /// <summary>

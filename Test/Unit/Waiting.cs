@@ -37,8 +37,8 @@ public class Waiting
 
     // 5 -------------------------------------------------------------------
 
-    [Fact(DisplayName = "«stop» takes effect at the end of the round")]
-    public void StopTakesEffectAtTheEndOfTheRound()
+    [Fact(DisplayName = "«stop all» takes effect at the end of the round")]
+    public void StopAllTakesEffectAtTheEndOfTheRound()
     {
         // Like a write. A «when» that stops itself finishes its body, including
         // what it writes after the «stop» — the alternative is a body whose
@@ -49,7 +49,7 @@ public class Waiting
 
         graph.When("when armed", scope => scope.Read("armed"), scope =>
         {
-            scope.Stop();
+            scope.StopAll();
             scope.Write("count", (double)scope.Read("count") + 1);
         });
 
@@ -68,7 +68,7 @@ public class Waiting
         // counts toward cascades. "Stopped" that is not gone is the same leak
         // the placement rule exists to prevent.
         var graph = Armed("armed");
-        graph.When("when armed", scope => scope.Read("armed"), scope => scope.Stop());
+        graph.When("when armed", scope => scope.Read("armed"), scope => scope.StopAll());
 
         graph.Prime();
         Pulse(graph, "armed");
@@ -87,9 +87,12 @@ public class Waiting
         Assert.Empty(graph.Fired);
     }
 
-    [Fact(DisplayName = "«stop» outside a body is a defect, not a silent no-op")]
-    public void StopOutsideABodyIsADefectNotASilentNoOp()
-        => Assert.Throws<InvalidOperationException>(new Graph().Stop);
+    [Fact(DisplayName = "neither «stop» outside a body is a silent no-op")]
+    public void NeitherStopOutsideABodyIsASilentNoOp()
+    {
+        Assert.Throws<InvalidOperationException>(new Graph().Stop);
+        Assert.Throws<InvalidOperationException>(new Graph().StopAll);
+    }
 
     [Fact(DisplayName = "a chain has segments, and «in flight» answers for chains")]
     public void AChainHasSegmentsAndInFlightAnswersForChains()
@@ -99,12 +102,11 @@ public class Waiting
         Assert.Throws<ArgumentNullException>(() => graph.Chain("when a", null));
         Assert.Throws<ArgumentException>(() => graph.Chain("when a"));
 
-        // an ordinary «when» has no chain, so nothing declares the value: it is
-        // undeclared rather than false, which is a value like any other failure
+        // an ordinary «when» has no chain, so it has no counts either
         graph.Var("a", false);
         graph.When("when a", scope => scope.Read("a"), _ => { });
 
-        Assert.IsType<Error>(graph.Read(Graph.InFlight("when a")));
+        Assert.IsType<Error>(graph.Read(Graph.Waiting("when a", 1)));
     }
 
     // 8 -------------------------------------------------------------------
@@ -305,8 +307,9 @@ public class Waiting
 
         Assert.Equal(["x", "y", "z"], ran);
 
-        // and nothing is left armed, so a stray «c» reaches nothing
-        Assert.Equal(false, graph.Read(Graph.InFlight("when a")));
+        // and nothing is left waiting, so a stray «c» reaches nothing
+        Assert.Equal(0d, graph.Read(Graph.Waiting("when a", 1)));
+        Assert.Equal(0d, graph.Read(Graph.Waiting("when a", 2)));
 
         Pulse(graph, "c");
         Assert.Equal(["x", "y", "z"], ran);
@@ -314,13 +317,14 @@ public class Waiting
 
     // 13 ------------------------------------------------------------------
 
-    [Fact(DisplayName = "a re-fire at the last segment clears every flag, and the tail runs once")]
-    public void ARefireAtTheLastSegmentClearsEveryFlagAndTheTailRunsOnce()
+    [Fact(DisplayName = "a re-fire mid-chain adds a run rather than abandoning one")]
+    public void ARefireMidChainAddsARunRatherThanAbandoningOne()
     {
-        // The one that catches the partial-clear bug. Setting flag 1 without
-        // clearing the others leaves TWO live positions, and the tail then runs
-        // for both — a bug whose symptom is a doubled effect long after the
-        // re-fire that caused it.
+        // This was the restart test, and restart no longer exists. Under one run
+        // at a time a re-fire at segment 3 of 3 had to clear EVERY count or the
+        // tail ran twice — a subtlety that existed only to hold a chain to one
+        // run. Counting has no policy to get wrong: the second run joins the
+        // first and both finish.
         var graph = Armed("a", "b", "c");
         List<string> ran = [];
 
@@ -332,50 +336,159 @@ public class Waiting
         graph.Prime();
 
         Pulse(graph, "a");
-        Pulse(graph, "b");          // now sitting at segment 3 of 3
+        Pulse(graph, "b");          // one run is now at wait 2
 
-        Pulse(graph, "a");          // re-fire, mid-flight
+        Pulse(graph, "a");          // a second run arrives at wait 1
         Assert.Equal(["x", "y", "x"], ran);
 
+        // «c» finishes the first run; the second is still at wait 1
         Pulse(graph, "c");
-        Assert.Equal(["x", "y", "x"], ran);   // «c» reaches nothing: flag 2 was cleared
+        Assert.Equal(["x", "y", "x", "z"], ran);
 
         Pulse(graph, "b");
         Pulse(graph, "c");
-        Assert.Equal(["x", "y", "x", "y", "z"], ran);
+        Assert.Equal(["x", "y", "x", "z", "y", "z"], ran);
     }
 
     // 14 ------------------------------------------------------------------
 
-    [Fact(DisplayName = "guarding on «in flight» ignores the re-fire instead")]
-    public void GuardingOnInFlightIgnoresTheRefireInstead()
+    [Fact(DisplayName = "a second run does not disturb the first — both complete")]
+    public void ASecondRunDoesNotDisturbTheFirstBothComplete()
     {
-        // Restart is the default; ignore is what an author writes, in one
-        // clause. Debounce, one-shot and "do not retrigger the animation" are
-        // all this.
-        var graph = Armed("a", "b");
+        // Counted, not gated. A «when» is instantaneous and cannot be re-entered;
+        // a chain has DURATION and can be. Holding it to one run was an attempt
+        // to make the chain behave like the «when» it is spelled as, and restart,
+        // ignore and the value an author had to name were all faces of that.
+        //
+        // Counting is also right more often: three orders placed and then one
+        // payment clearing should ship three. Restarting reserves three and ships
+        // one; ignoring reserves one and ships one. Both lose the rest silently.
+        var graph = Armed("placed", "cleared");
         List<string> ran = [];
 
-        graph.Chain("when a",
-                    (scope => Equals(scope.Read("a"), true)
-                           && Equals(scope.Read(Graph.InFlight("when a")), false), _ => ran.Add("x")),
-                    (scope => scope.Read("b"), _ => ran.Add("y")));
+        graph.Chain("when placed",
+                    (scope => scope.Read("placed"), _ => ran.Add("reserve")),
+                    (scope => scope.Read("cleared"), _ => ran.Add("ship")));
 
         graph.Prime();
 
-        Pulse(graph, "a");
-        Pulse(graph, "a");          // ignored: the chain is in flight
+        Pulse(graph, "placed");
+        Pulse(graph, "placed");
+        Pulse(graph, "placed");
 
-        Assert.Equal(["x"], ran);
+        Assert.Equal(["reserve", "reserve", "reserve"], ran);
+
+        graph.Write("cleared", true);
+        graph.Step();
+
+        Assert.Equal(["reserve", "reserve", "reserve", "ship", "ship", "ship"], ran);
+    }
+
+    [Fact(DisplayName = "and suppression is written in the author's own vocabulary")]
+    public void AndSuppressionIsWrittenInTheAuthorsOwnVocabulary()
+    {
+        // Under one run the UNCOMMON policy needed a compiler-invented name.
+        // Under counting both are expressible and neither does — an author who
+        // wants suppression uses state they already have.
+        var graph = Armed("pressed", "released");
+        graph.Var("charging", false);
+        List<string> ran = [];
+
+        graph.Chain("when pressed",
+                    (scope => Equals(scope.Read("pressed"), true)
+                           && Equals(scope.Read("charging"), false),
+                     scope => { ran.Add("charge"); scope.Write("charging", true); }),
+                    (scope => scope.Read("released"),
+                     scope => { ran.Add("fire"); scope.Write("charging", false); }));
+
+        graph.Prime();
+
+        Pulse(graph, "pressed");
+        Pulse(graph, "pressed");          // suppressed: still charging
+
+        Assert.Equal(["charge"], ran);
+
+        Pulse(graph, "released");
+        Assert.Equal(["charge", "fire"], ran);
+    }
+
+    [Fact(DisplayName = "«stop» ends its own run and leaves the others, and the «when» armed")]
+    public void StopEndsItsOwnRunAndLeavesTheOthersAndTheWhenArmed()
+    {
+        // The distinction that was two sentences from being lost. Armed and
+        // in-flight are different state: collapsing them means a chain that
+        // completes normally has nothing in flight, therefore looks stopped,
+        // therefore is removed — so a one-shot chain would work and a repeating
+        // one would silently stop after its first run.
+        var graph = Armed("a", "b", "c");
+        graph.Var("abandon", false);
+        List<string> ran = [];
+
+        graph.Chain("when a",
+                    (scope => scope.Read("a"), _ => ran.Add("x")),
+                    (scope => scope.Read("b"),
+                     scope => { ran.Add("y"); if (Equals(scope.Read("abandon"), true)) scope.Stop(); }),
+                    (scope => scope.Read("c"), _ => ran.Add("z")));
+
+        graph.Prime();
+
+        // one run, abandoned where it waits
+        Pulse(graph, "a");
+
+        graph.Write("abandon", true);
+        graph.Step();
 
         Pulse(graph, "b");
         Assert.Equal(["x", "y"], ran);
+
+        // it did not advance, so «c» reaches nothing
+        Pulse(graph, "c");
+        Assert.Equal(["x", "y"], ran);
+
+        // and the «when» is still ARMED, which is the whole point — a later run
+        // goes all the way through
+        Assert.True(graph.Reacts("when a"));
+
+        graph.Write("abandon", false);
+        graph.Step();
+
+        Pulse(graph, "a");
+        Pulse(graph, "b");
+        Pulse(graph, "c");
+
+        Assert.Equal(["x", "y", "x", "y", "z"], ran);
+    }
+
+    [Fact(DisplayName = "a chain that accumulates is caught by the detector that already exists")]
+    public void AChainThatAccumulatesIsCaughtByTheDetectorThatAlreadyExists()
+    {
+        // Runs are taken ONE PER ROUND, so k of them take k rounds inside the
+        // step — which is what lets the runaway detector see a head firing
+        // faster than its tail completes. Several in a round would instead be
+        // several writes to the same cells in one settle, where the last lands
+        // and the rest vanish.
+        //
+        // Here the tail re-arms the head, so the chain feeds itself.
+        var graph = Armed("go");
+        graph.Var("count", 0d);
+
+        graph.Chain("when go",
+                    (scope => scope.Read("go"), _ => { }),
+                    (_ => true, scope => scope.Write("count", (double)scope.Read("count") + 1)));
+
+        graph.Prime();
+
+        graph.Write("go", true);
+
+        // it settles: one run in, one run out
+        graph.Step();
+        Assert.Equal(1d, graph.Read("count"));
     }
 
     // 15 ------------------------------------------------------------------
 
-    [Fact(DisplayName = "«stop» in the second half removes the first half too")]
-    public void StopInTheSecondHalfRemovesTheFirstHalfToo()
+    [Fact(DisplayName = "«stop all» in the second half removes the first half too")]
+    public void StopAllInTheSecondHalfRemovesTheFirstHalfToo()
     {
         // The author wrote one «when». If «stop» removed only the half it
         // appears in, an armed first half would leave an orphaned second half
@@ -386,7 +499,7 @@ public class Waiting
 
         graph.Chain("when a",
                     (scope => scope.Read("a"), _ => ran.Add("x")),
-                    (scope => scope.Read("b"), scope => { ran.Add("y"); scope.Stop(); }));
+                    (scope => scope.Read("b"), scope => { ran.Add("y"); scope.StopAll(); }));
 
         graph.Prime();
 
