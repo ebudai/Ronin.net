@@ -13,7 +13,7 @@ namespace Unit;
 ///     A «wait until» is compiled away rather than run. It looks like a coroutine
 ///     feature — a continuation, per-activation state, a re-entrancy policy — and
 ///     a suspended continuation is live state produced by OLD CODE, which is the
-///     live-edit problem at its worst. So n waits become n+1 «when»s and n flags,
+///     live-edit problem at its worst. So n waits become n+1 «when»s and n counts,
 ///     and there is no continuation anywhere to reload into.
 /// </remarks>
 [Trait(nameof(Graph), null)]
@@ -61,7 +61,7 @@ public class Waiting
 
     // 6 -------------------------------------------------------------------
 
-    [Fact(DisplayName = "and the «when» is gone, not present and flagged")]
+    [Fact(DisplayName = "and the «when» is gone, not present and disabled")]
     public void AndTheWhenIsGoneNotPresentAndFlagged()
     {
         // A stopped «when» that lingers still costs an edge walk and still
@@ -110,8 +110,42 @@ public class Waiting
         Assert.Throws<ArgumentOutOfRangeException>(() => new Graph(cascades, settling));
     }
 
-    [Fact(DisplayName = "a chain has segments, and «in flight» answers for chains")]
-    public void AChainHasSegmentsAndInFlightAnswersForChains()
+    [Fact(DisplayName = "«Return» records non-advancement, and ends nothing by itself")]
+    public void ReturnRecordsNonAdvancementAndEndsNothingByItself()
+    {
+        // The spec says «return» ends the body where it is written, and it does
+        // — by ordinary means, when the lowering emits a «return». This method
+        // records only the half the chain needs, so a hand-built body carries on
+        // and its later writes apply. Pinned because the two halves are easy to
+        // conflate, and the spec now says which is whose.
+        var graph = Armed("a", "b");
+        graph.Var("after", 0d);
+        List<string> ran = [];
+
+        graph.Chain("chain",
+                    (scope => scope.Read("a"), _ => ran.Add("x")),
+                    (scope => scope.Read("b"), scope =>
+                    {
+                        scope.Return();
+                        scope.Write("after", (double)scope.Read("after") + 1);
+                    }),
+                    (_ => true, _ => ran.Add("z")));
+
+        graph.Prime();
+
+        Pulse(graph, "a");
+        Pulse(graph, "b");
+
+        // the write after it landed
+        Assert.Equal(1d, graph.Read("after"));
+
+        // and the run did not advance
+        Assert.Equal(["x"], ran);
+        Assert.Equal(0d, graph.Read(Graph.Waiting("chain", 2)));
+    }
+
+    [Fact(DisplayName = "a chain has segments, and only a chain has counts")]
+    public void AChainHasSegmentsAndOnlyAChainHasCounts()
     {
         Graph graph = new();
 
@@ -151,8 +185,8 @@ public class Waiting
     [Fact(DisplayName = "B true before A fires does not run the tail early")]
     public void BTrueBeforeAFiresDoesNotRunTheTailEarly()
     {
-        // The flag is the whole of the answer: the second segment's condition is
-        // «B and the flag», so B on its own reaches nothing.
+        // The count is the whole of the answer: the second segment's condition
+        // is «somebody is waiting here, and B», so B on its own reaches nothing.
         var graph = Armed("a", "b");
         List<string> ran = [];
 
@@ -180,7 +214,7 @@ public class Waiting
         // semantics a prepaid order whose payment already cleared never ships:
         // no error, no diagnostic, and the symptom is "sometimes orders just do
         // not go out". Level semantics can fire too early, but visibly and on
-        // the first run, and a program can fix that by clearing the flag. The
+        // the first run, and a program can fix that with its own state. The
         // edge failure cannot be fixed inside the program at all without
         // manufacturing a transition.
         var graph = Armed("a");
@@ -226,7 +260,7 @@ public class Waiting
         // The case that says WHERE level is measured, since both readings are
         // plausible implementations of it: B is true when «a» fires, and the
         // first segment sets it false. The wait sees what the segment left
-        // behind — its write and the arming flag land together, and the guard
+        // behind — its write and the arriving count land together, and the guard
         // is evaluated after both.
         var graph = Armed("a");
         graph.Var("b", true);
@@ -274,9 +308,9 @@ public class Waiting
     [Fact(DisplayName = "a wait's condition going true and false again is an ordinary edge")]
     public void AWaitsConditionGoingTrueAndFalseAgainIsAnOrdinaryEdge()
     {
-        // No special case: the second segment's guard is «the flag and B», and
-        // it fires when that becomes true like any other trigger. So B rising
-        // while the flag is set runs the tail, and B rising while it is not
+        // No special case: the second segment's guard is «somebody waiting and
+        // B», and it fires while that holds like any other trigger. So B rising
+        // with a run waiting takes one, and B rising with none waiting
         // reaches nothing — which is test 9 from the other side.
         var graph = Armed("a", "b");
         List<string> ran = [];
@@ -291,12 +325,12 @@ public class Waiting
         Pulse(graph, "b");
         Assert.Empty(ran);
 
-        // armed, but B is low: the flag alone is not the condition
+        // a run is waiting, but B is low: the count alone is not the condition
         graph.Write("a", true);
         graph.Step();
         Assert.Equal(["x"], ran);
 
-        // and now B rises, with the flag set
+        // and now B rises, with a run waiting
         graph.Write("b", true);
         graph.Step();
         Assert.Equal(["x", "y"], ran);
@@ -304,8 +338,8 @@ public class Waiting
 
     // 11 ------------------------------------------------------------------
 
-    [Fact(DisplayName = "two waits are three «when»s in order, each flag cleared")]
-    public void TwoWaitsAreThreeWhensInOrderEachFlagCleared()
+    [Fact(DisplayName = "two waits are three «when»s in order, each count returning to zero")]
+    public void TwoWaitsAreThreeWhensInOrderEachCountReturningToZero()
     {
         var graph = Armed("a", "b", "c");
         List<string> ran = [];
@@ -428,8 +462,8 @@ public class Waiting
         Assert.Equal(["charge", "fire"], ran);
     }
 
-    [Fact(DisplayName = "«stop» ends its own run and leaves the others, and the «when» armed")]
-    public void StopEndsItsOwnRunAndLeavesTheOthersAndTheWhenArmed()
+    [Fact(DisplayName = "«return» ends its own run and leaves the «when» armed")]
+    public void ReturnEndsItsOwnRunAndLeavesTheWhenArmed()
     {
         // The distinction that was two sentences from being lost. Armed and
         // in-flight are different state: collapsing them means a chain that
@@ -878,18 +912,18 @@ public class Waiting
 
     // 17 ------------------------------------------------------------------
 
-    [Fact(DisplayName = "a chain's flags are the runtime's, not the program's")]
-    public void AChainsFlagsAreTheRuntimesNotThePrograms()
+    [Fact(DisplayName = "a chain's counts are the runtime's, not the program's")]
+    public void AChainsCountsAreTheRuntimesNotThePrograms()
     {
         // Two reasons they cannot be ordinary vars, and both are compile-time
-        // analyses: a flag is written by the segment that sets it AND the one
-        // that clears it, which the writer analysis rejects; and the second
+        // analyses: a count is written by the segment that arrives at it AND
+        // the one that leaves it, which the writer analysis rejects; and the second
         // «when» reads and writes it, which is a self-loop the cascade checker
         // calls undeclared feedback.
         //
         // Both run over the SOURCE, so a node the frontend never declares is
         // invisible to them. Being a node is what makes a guard dirty when its
-        // flag moves, which plain state would not.
+        // count moves, which plain state would not.
         Triggering when(string name) => new(name, new SourceText(string.Empty).Span(0, 0));
 
         var rings = Cascades.Diagnose(new Dictionary<Triggering, Effects>

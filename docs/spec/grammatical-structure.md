@@ -214,8 +214,13 @@ instance count rather than with type count.
 
 #### `return` and `stop`
 
-There are **two** words and not three.  Both take effect at the end of the
-round, so a body finishes first, including what it writes afterwards.
+There are **two** words and not three.
+
+`return` **ends the body where it is written**, as it does anywhere else — the
+statements after it do not run.  `stop` does not: it marks the `when` to be
+disarmed and the body carries on, so what it writes afterwards still applies.
+Both take effect at the end of the round, and a body that *fails* applies
+neither, along with none of its writes.
 
 - **`return`** ends *this run* of the chain: it leaves the body, and since a
   chain arms its next segment only *at* a wait, not advancing falls out of that.
@@ -234,9 +239,11 @@ about whether the `when` should exist — collapse them and a chain is removed
 every time it finishes, so a one-shot works and a repeating one silently stops
 after its first run.
 
-`stop` is for abandoning work genuinely in flight, which is why it earns its
-keep at type scope — *this rule is off now, for every instance* cannot be said
-any other way.  A one-shot needs no `stop`: `when ready { init; return }` ends
+`stop` is for abandoning work genuinely in flight, and at type scope it disarms
+the `when` **for the instance whose body ran** — it clears that instance's bit in
+the liveness mask, and the shared node goes when the mask empties.  There is no
+spelling today for *off for every instance*; that would be a third word and
+nobody has needed one.  A one-shot needs no `stop`: `when ready { init; return }` ends
 the run, and nothing re-triggers `ready`.
 
 There is no `stop all`.  An earlier draft gave `stop` the "end this run" meaning

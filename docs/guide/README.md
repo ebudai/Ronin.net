@@ -220,5 +220,9 @@ There is a second reason to prefer the value form wherever it applies, and it is
 not aesthetic: **a chain can accumulate and a value cannot.**  The deadline
 formulation has exactly one pending save however fast activity fires,
 structurally.  A chain whose waits complete more slowly than its trigger fires
-grows a run at a time, and each step settles cleanly while it does — so nothing
-reports it.
+grows a run at a time.
+
+It will be reported — a chain whose pending runs never come back down is a leak
+rather than a queue, and the runtime says so, with this rewrite in the message.
+But it is reported *after* the fact, and only once the pattern is unmistakable.
+Choosing the right shape is better than being told you chose the wrong one.

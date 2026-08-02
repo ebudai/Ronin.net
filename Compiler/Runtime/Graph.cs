@@ -218,9 +218,16 @@ internal sealed class Graph
     public IReadOnlyList<string> Fired => fired;
 
     /// <summary>
-    ///     What «return» in a «when» body compiles to: leave this body, and do
-    ///     not advance to the next segment.
+    ///     Half of what «return» in a «when» body compiles to: do not advance to
+    ///     the next segment.
     /// </summary>
+    ///
+    /// <remarks>
+    ///     HALF, and deliberately. Leaving the body is the lowering's job and
+    ///     happens by ordinary means — a «return» in the source returns — so this
+    ///     records only the part the chain needs to know. Calling it by hand does
+    ///     not end anything: the statements after it run, and their writes apply.
+    /// </remarks>
     ///
     /// <remarks>
     ///     <para>
@@ -307,25 +314,32 @@ internal sealed class Graph
     ///     and a suspended continuation is live state produced by OLD CODE, which
     ///     is the live-edit problem at its worst: a reload lands mid-body in a
     ///     function whose body has changed. So n waits become n+1 «when»s and n
-    ///     flags, and there is no continuation anywhere.
+    ///     COUNTS, and there is no continuation anywhere.
     ///     </para>
     ///     <para>
-    ///     RESTART is the default. The first segment clears every flag in the
-    ///     chain before setting its own, so a re-fire while the chain is in
-    ///     flight abandons it wherever it was. Clearing ALL of them and not
-    ///     merely setting the first is what stops a re-fire at segment 3 leaving
-    ///     two live positions and running the tail twice. To ignore instead, an
-    ///     author guards the first condition with <see cref="InFlight"/>.
+    ///     COUNTED, not held to one. A «when» is instantaneous — it fires on an
+    ///     edge and its body runs to completion in one step — and a chain has
+    ///     DURATION, so it can be re-entered. A second trigger while a run is
+    ///     pending starts a second run and both finish; there is no restart, no
+    ///     ignore, and nothing an author has to name. Suppression, where it is
+    ///     wanted, is written with state the author already has.
     ///     </para>
     ///     <para>
-    ///     The flags are nodes HERE and never variables THERE. A flag is written
-    ///     by the segment that sets it and the segment that clears it, which the
-    ///     writer analysis would reject; and its second «when» reads and writes
-    ///     it, which is a self-loop the cascade checker would call undeclared
-    ///     feedback. Both of those analyses run over the source, so a node the
-    ///     frontend never declares is invisible to them — and being a node is
-    ///     what makes a guard dirty when its flag moves, which plain state would
-    ///     not.
+    ///     One position of a chain fires per round. Adjacent positions both write
+    ///     the count between them, and both read the same settled front value, so
+    ///     two firing together lost a run to last-write-wins — and the segments
+    ///     are deliberately one writer to the single-writer rule, so they could
+    ///     collide on an author's cell the same way.
+    ///     </para>
+    ///     <para>
+    ///     The counts are nodes HERE and never variables THERE. A count is
+    ///     written by the segment that arrives at it and the one that leaves it,
+    ///     which the writer analysis would reject; and the second «when» reads
+    ///     and writes it, which is a self-loop the cascade checker would call
+    ///     undeclared feedback. Both of those analyses run over the source, so a
+    ///     node the frontend never declares is invisible to them — and being a
+    ///     node is what makes a guard dirty when its count moves, which plain
+    ///     state would not.
     ///     </para>
     /// </remarks>
     public void Chain(string name, params (Func<Graph, object> Until, Action<Graph> Body)[] segments)
@@ -402,7 +416,6 @@ internal sealed class Graph
         }
     }
 
-    /// <summary>
     /// <summary>
     ///     How many runs are waiting at a point.
     /// </summary>
@@ -843,7 +856,7 @@ internal sealed class Graph
     }
 
     /// <summary>
-    ///     Every «when» that must go when this one does, and the flags with them.
+    ///     Every «when» that must go when this one does, and the counts with them.
     /// </summary>
     private IEnumerable<string> Belonging(string name)
     {
@@ -865,13 +878,13 @@ internal sealed class Graph
     {
         // A write queued for it in the same round, which is otherwise applied
         // next round against a node that is gone. The segment that stops a chain
-        // clears its own flag first, so this is the ordinary path and not a
+        // takes from its own count first, so this is the ordinary path and not a
         // corner: the write and the removal are both end-of-round effects, and
         // the removal wins.
         pending.Remove(name);
 
         // No "if it is there". Every caller passes a name it has just found in
-        // «whens» or in a chain's flags, and both were declared as nodes when the
+        // «whens» or in a chain's counts, and both were declared as nodes when the
         // chain was — so a missing one is a defect here rather than a state to
         // tolerate.
         var node = nodes[name];
@@ -1130,9 +1143,10 @@ internal sealed class Graph
     private const int Alone = 0;
 
     /// <summary>The «when»s and counts one written «when» compiled to.</summary>
-    private sealed class Split(IReadOnlyList<string> flags)
+    private sealed class Split(IReadOnlyList<string> counters)
     {
-        public IReadOnlyList<string> Flags { get; } = flags;
+        /// <summary>One count per wait, in order.</summary>
+        public IReadOnlyList<string> Flags { get; } = counters;
         public List<string> Reacting { get; } = [];
 
         /// <summary>The fewest runs pending at any point in this window.</summary>
