@@ -228,9 +228,57 @@ case.**  `stop` clears the caller's bit; the node is removed when the mask
 empties.  This is what makes `stop` mean the same thing in both scopes: under
 one cell per member there is a *single* node evaluating a predicate across every
 instance, so removing it on `stop` would stop the behaviour for all of them —
-and the instance that breaks is not the one whose code ran.  Neither `stop` nor
-the mask is built; the rule is recorded here so that whoever writes `stop` first
-does not have to rediscover it.
+and the instance that breaks is not the one whose code ran.
+
+#### `wait until`
+
+A `wait until` is **compiled away, not run**.  It looks like a coroutine
+feature — a continuation, per-activation state, a re-entrancy policy — and a
+suspended continuation is live state produced by *old code*, which is the
+live-edit problem at its worst: a reload lands mid-body in a function whose body
+has changed.
+
+So a `when` whose body waits becomes a chain.  `n` waits produce `n + 1` `when`s
+and `n` flags: the first segment runs under the original condition and sets flag
+1, and segment `k` runs under `B[k] and flag k`, clears that flag, and sets the
+next.
+
+```
+when A {                        when A {
+    x                               clear every flag; x; set flag 1
+    wait until B         ⇒      }
+    y                           when B and flag 1 {
+}                                   clear flag 1; y
+                                }
+```
+
+The flags are **the runtime's, not the program's**.  A flag is written by the
+segment that sets it and the one that clears it, which the single-writer rule
+refuses; and the second `when` reads and writes it, which is a self-loop the
+cascade checker calls undeclared feedback.  Both of those analyses run over the
+source, so a flag the program never declares is invisible to them.
+
+**Restart is the default.**  The first segment clears *every* flag in the chain
+before setting its own, so a re-fire abandons an activation wherever it was.
+Clearing all of them rather than only setting the first is what stops a re-fire
+at segment 3 leaving two live positions and running the tail twice.  To ignore
+the re-fire instead, an author guards the first condition: `when A and not
+«A in flight»`.
+
+`stop` anywhere in a chain removes **all** of it and clears every flag.  If it
+removed only the half it appears in, an armed first half would leave an orphaned
+second half firing whenever its condition eventually went true — much later,
+with the rest of the chain gone.
+
+A time-based wait — `wait until 3 seconds` — needs a deadline rather than a
+condition: the segment before it stores `now + 3 seconds` and the guard compares
+against `now`.  That makes `now` a source every pending timer reads, which is
+fine for a few and is the same granularity cliff as instances for thousands; the
+answer then is one earliest-deadline node rather than one comparison per timer.
+
+Splitting requires the waits to be **statically sequential**, so a `wait until`
+is legal only as a statement directly in the `when` body — not inside a loop,
+not inside an `if`, not in a called function, and not in a `let`.
 
 ## 4.6 Aggregates
 A collection of zero or more specific syntax separated by a given delimiter.  The sequence cannot be ended by the delimiter unless otherwise specified.

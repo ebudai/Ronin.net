@@ -180,6 +180,155 @@ internal sealed class Graph(int cascades = 64)
     public IReadOnlyList<string> Fired => fired;
 
     /// <summary>
+    ///     Ends the «when» whose body is running, for the instance it ran for.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     At the END OF THE ROUND, like a write, so a «when» that stops itself
+    ///     finishes its body first — including the writes it makes afterwards.
+    ///     </para>
+    ///     <para>
+    ///     And it REMOVES the node rather than disabling it. A stopped «when»
+    ///     that lingers still costs an edge walk and still counts toward
+    ///     cascades, and "stopped" that is not gone is the same leak the
+    ///     placement rule exists to prevent.
+    ///     </para>
+    ///     <para>
+    ///     It can only ever shrink the graph, so a statically legal program stays
+    ///     legal: removing nodes can only remove cycles, and <see cref="Cascades"/>
+    ///     analyses the never-stops graph. That is why there is no dynamic
+    ///     cascade analysis here and why there should not be one.
+    ///     </para>
+    /// </remarks>
+    public void Stop()
+    {
+        if (firing is null) throw new InvalidOperationException("«stop» is only meaningful inside a «when» body");
+
+        stopping.Add(firing);
+    }
+
+    /// <summary>Whether a «when» by this name is still declared.</summary>
+    public bool Reacts(string name) => whens.ContainsKey(name);
+
+    /// <summary>
+    ///     A «when» whose body waits, registered as the chain it compiles to.
+    /// </summary>
+    ///
+    /// <param name="segments">
+    ///     The body split at each wait. The first segment's condition is the
+    ///     «when»'s own; every later one is what its «wait until» named.
+    /// </param>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     COMPILED AWAY rather than run. «wait until» looks like a coroutine
+    ///     feature — a continuation, per-activation state, a re-entrancy policy —
+    ///     and a suspended continuation is live state produced by OLD CODE, which
+    ///     is the live-edit problem at its worst: a reload lands mid-body in a
+    ///     function whose body has changed. So n waits become n+1 «when»s and n
+    ///     flags, and there is no continuation anywhere.
+    ///     </para>
+    ///     <para>
+    ///     RESTART is the default. The first segment clears every flag in the
+    ///     chain before setting its own, so a re-fire while the chain is in
+    ///     flight abandons it wherever it was. Clearing ALL of them and not
+    ///     merely setting the first is what stops a re-fire at segment 3 leaving
+    ///     two live positions and running the tail twice. To ignore instead, an
+    ///     author guards the first condition with <see cref="InFlight"/>.
+    ///     </para>
+    ///     <para>
+    ///     The flags are nodes HERE and never variables THERE. A flag is written
+    ///     by the segment that sets it and the segment that clears it, which the
+    ///     writer analysis would reject; and its second «when» reads and writes
+    ///     it, which is a self-loop the cascade checker would call undeclared
+    ///     feedback. Both of those analyses run over the source, so a node the
+    ///     frontend never declares is invisible to them — and being a node is
+    ///     what makes a guard dirty when its flag moves, which plain state would
+    ///     not.
+    ///     </para>
+    /// </remarks>
+    public void Chain(string name, params (Func<Graph, object> Until, Action<Graph> Body)[] segments)
+    {
+        ArgumentNullException.ThrowIfNull(segments);
+
+        if (segments.Length is 0) throw new ArgumentException("a chain has at least one segment", nameof(segments));
+
+        var waits = segments.Length - 1;
+        var flags = new string[waits];
+
+        for (var wait = 0; wait < waits; ++wait)
+        {
+            flags[wait] = $"{name} in flight {wait + 1}";
+            Var(flags[wait], false);
+        }
+
+        Split chain = new(flags);
+        chains[name] = chain;
+
+        for (var segment = 0; segment < segments.Length; ++segment)
+        {
+            var (until, body) = segments[segment];
+
+            var reacting = segment is 0 ? name : $"{name} after wait {segment}";
+            var entered = segment is 0 ? null : flags[segment - 1];
+            var leaving = segment < waits ? flags[segment] : null;
+
+            chain.Reacting.Add(reacting);
+
+            When(reacting,
+                 scope =>
+                 {
+                     // The first segment's condition is the «when»'s own. Every
+                     // later one is "the flag, and what the wait named" — the
+                     // flag is what stops «B» on its own from reaching a tail
+                     // whose head has not run.
+                     if (entered is null) return until(scope);
+
+                     // «Equals» and not «is true» in both places: the pattern
+                     // tests the type and then the value, and the type test can
+                     // never fail — a flag is written here and nowhere else, and
+                     // a condition that is not boolean is a type error the
+                     // frontend owns rather than something to invent an answer
+                     // for.
+                     if (Equals(scope.Read(entered), true) is false) return false;
+
+                     return Equals(until(scope), true);
+                 },
+                 scope =>
+                 {
+                     // «entered is null» is the first segment, and it is asked
+                     // that way rather than by the loop counter: a «for»
+                     // variable is ONE variable, so a lambda capturing it reads
+                     // the value the loop ended on and every segment believed it
+                     // was a later one.
+                     //
+                     // Restart clears everything, not just this one. A re-fire
+                     // at segment 3 of 3 that cleared only its own would leave
+                     // two live positions and run the tail twice.
+                     if (entered is null) foreach (var flag in flags) scope.Write(flag, false);
+                     else scope.Write(entered, false);
+
+                     body(scope);
+
+                     if (leaving is not null) scope.Write(leaving, true);
+                 });
+        }
+    }
+
+    /// <summary>
+    ///     Whether any activation of <paramref name="name"/> is part way through.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     What an author guards the first condition with to ignore a re-fire
+    ///     rather than restart — «when A and not «A in flight»». Debounce,
+    ///     one-shot and "do not retrigger the animation" are all this.
+    /// </remarks>
+    public bool InFlight(string name)
+        => chains.TryGetValue(name, out var chain) && chain.Flags.Any(flag => Read(flag) is true);
+
+    /// <summary>
     ///     Effect bodies that failed during the last <see cref="Step"/>. A
     ///     <c>let</c> keeps its fault as its value, where the next reader finds
     ///     it; a <c>when</c> has no value and no reader, so its faults collect
@@ -390,6 +539,8 @@ internal sealed class Graph(int cascades = 64)
             // settle is an ordinary pull, so a trigger reading derived values
             // gets consistent ones
             foreach (var name in Triggered()) Fire(name);
+
+            Stopped();
         }
 
         if (pending.Count is not 0) throw Runaway(rounds);
@@ -472,6 +623,7 @@ internal sealed class Graph(int cascades = 64)
         fired.Add(name);
 
         staged = [];
+        firing = name;
 
         try
         {
@@ -487,7 +639,84 @@ internal sealed class Graph(int cascades = 64)
         finally
         {
             staged = null;
+            firing = null;
         }
+    }
+
+    /// <summary>
+    ///     Applies the round's stops, once every body has run.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The trigger's own node goes with it. It was declared by
+    ///     <see cref="When"/> as an ordinary <c>let</c>, and leaving it behind
+    ///     would keep the condition being pulled every settle for a body that no
+    ///     longer exists.
+    /// </remarks>
+    private void Stopped()
+    {
+        foreach (var name in stopping)
+        {
+            if (whens.TryGetValue(name, out var trigger) is false) continue;
+
+            trigger.Live.Remove(Alone);
+
+            if (trigger.Live.Count is not 0) continue;
+
+            // The whole chain, wherever in it the stop was written. The author
+            // wrote ONE «when»; leaving the other half armed would let it fire
+            // whenever its condition eventually went true, possibly much later,
+            // with the rest of the chain gone.
+            foreach (var member in Belonging(name))
+            {
+                whens.Remove(member);
+                Undeclare(member);
+            }
+        }
+
+        stopping.Clear();
+    }
+
+    /// <summary>
+    ///     Every «when» that must go when this one does, and the flags with them.
+    /// </summary>
+    private IEnumerable<string> Belonging(string name)
+    {
+        foreach (var (chain, membership) in chains)
+        {
+            if (membership.Reacting.Contains(name) is false) continue;
+
+            foreach (var flag in membership.Flags) Undeclare(flag);
+
+            chains.Remove(chain);
+
+            return membership.Reacting;
+        }
+
+        return [name];
+    }
+
+    /// <summary>Removes a node and every edge into it.</summary>
+    private void Undeclare(string name)
+    {
+        // A write queued for it in the same round, which is otherwise applied
+        // next round against a node that is gone. The segment that stops a chain
+        // clears its own flag first, so this is the ordinary path and not a
+        // corner: the write and the removal are both end-of-round effects, and
+        // the removal wins.
+        pending.Remove(name);
+
+        // No "if it is there". Every caller passes a name it has just found in
+        // «whens» or in a chain's flags, and both were declared as nodes when the
+        // chain was — so a missing one is a defect here rather than a state to
+        // tolerate.
+        var node = nodes[name];
+
+        foreach (var dependency in node.Dependencies) nodes[dependency].Dependents.Remove(name);
+
+        foreach (var dependent in node.Dependents) nodes[dependent].Dependencies.Remove(name);
+
+        nodes.Remove(name);
     }
 
     private RunawayCascade Runaway(int rounds)
@@ -708,6 +937,31 @@ internal sealed class Graph(int cascades = 64)
         public Action<Graph> Body { get; } = body;
         public TriggerMode Mode { get; } = mode;
         public object Previous { get; set; } = Unobserved;
+
+        /// <summary>
+        ///     Which instances this «when» is still running for.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     A LIVENESS MASK, of which module scope is the one-element case.
+        ///     Under one cell per member a type-scope «when» is a single node
+        ///     evaluating a predicate across every instance, so «stop» meaning
+        ///     "remove the node" would stop the behaviour for all of them — and
+        ///     the instance that breaks is not the one whose body ran. Clearing a
+        ///     bit and removing the node when the mask empties means the same
+        ///     thing in both scopes.
+        /// </remarks>
+        public HashSet<int> Live { get; } = [Alone];
+    }
+
+    /// <summary>The only instance there is, until there are instances.</summary>
+    private const int Alone = 0;
+
+    /// <summary>The «when»s and flags one written «when» compiled to.</summary>
+    private sealed class Split(IReadOnlyList<string> flags)
+    {
+        public IReadOnlyList<string> Flags { get; } = flags;
+        public List<string> Reacting { get; } = [];
     }
 
     /// <summary>
@@ -722,7 +976,12 @@ internal sealed class Graph(int cascades = 64)
     private readonly Dictionary<string, object> constants = [];
     private readonly Dictionary<Node, Node> shadows = [];
     private readonly Dictionary<string, Trigger> whens = [];
+    private readonly Dictionary<string, Split> chains = [];
     private readonly Dictionary<string, object> pending = [];
+    private readonly HashSet<string> stopping = [];
+
+    /// <summary>The «when» whose body is running, which is what «stop» stops.</summary>
+    private string firing;
     private Dictionary<string, object> staged;
     private readonly List<Node> reading = [];
     private readonly List<Adoption> adopting = [];
