@@ -52,7 +52,7 @@ Because it is spread across six documents and was summarised wrongly once:
 - **`return`** ends one run and leaves the `when` armed
 - **`stop`** disarms the `when` — there are **two** words, not three
 - runs are taken **one per round**, and rounds that consume — or defer — a run
-  the step inherited do not count against the round limit
+  parked at that wait when the step began do not count against the round limit
 - accumulation is watched by **draining, not depth**, over an adjustable window
 
 All of it is in `docs/spec/grammatical-structure.md` §4.5.5, and all of it is

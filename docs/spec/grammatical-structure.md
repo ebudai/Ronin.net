@@ -281,9 +281,10 @@ One position of a chain runs per round, so a round in which two were ready
 reason: it declined to run work that was already there, and charging the
 scheduler's own throttle to the program spent the budget before the deferred run
 could show that taking it would have been free — which it can only show by
-running.  Forgiveness is capped at the number of runs the step inherited, so a
+running.  Forgiveness is **owned**: what pays for the round is a run that was
+parked at the very wait the round declined to serve, and it pays once.  So a
 chain whose head keeps being re-armed while its tail waits still reaches the
-limit.
+limit, and no chain's healthy queue can pay for another chain's spinning.
 
 **A chain accumulates when its waits complete more slowly than its trigger
 fires.**  Growth is bounded *within* a step — the trigger is edge-driven so it

@@ -681,20 +681,30 @@ internal sealed class Graph
         // and nothing to watch, and walking every one made a no-op step cost
         // O(chains) — the same shape as scanning every «when», one level down,
         // and it is what the allocation measurement was actually finding.
+        allowance.Clear();
+
         foreach (var name in active)
         {
-            foreach (var counter in chains[name].Counts) quota[counter] = Waiting(nodes[counter].Value);
+            var chain = chains[name];
+
+            for (var wait = 0; wait < chain.Counts.Count; ++wait)
+            {
+                var owed = Waiting(nodes[chain.Counts[wait]].Value);
+
+                quota[chain.Counts[wait]] = owed;
+
+                // The same reading, owned by the position that consumes it. A
+                // count and the continuation waiting on it are one to one — the
+                // segment after wait «w» is the only thing that takes from wait
+                // «w» — so the position is the key, and the allowance below can
+                // ask what it was deferred out of without a second index.
+                allowance[chain.Reacting[wait + 1]] = owed;
+            }
         }
 
         var rounds = 0;
         var counted = 0;
 
-        // How much of the exemption below there is to spend. Bounding it by the
-        // work that was already here is the same principle as the quota itself:
-        // a step may be forgiven for taking its time over what it inherited, and
-        // never for what it makes.
-        var inherited = quota.Values.Sum();
-        var throttled = 0d;
 
         // At least one round, always. Shadows advance above with no write behind
         // them, so a «when» reading «old x» can be dirtied by nothing but the
@@ -732,14 +742,13 @@ internal sealed class Graph
             // taking it would have been free. Which it only shows by running:
             // that is why the round has to happen at all.
             //
-            // Bounded, because a spinning chain defers too. A step cannot buy
-            // more of these than it inherited runs, so one whose head keeps
-            // being re-armed while its tail waits reaches the limit as before.
-            var throttling = deferred.Count is not 0 && throttled < inherited;
-
-            if (throttling) ++throttled;
-
-            if (advanced is false && throttling is false) ++counted;
+            // Bounded, because a spinning chain defers too, and bounded BY THE
+            // POSITION: what forgives a round is a run that was parked at the
+            // very wait the round declined to serve. A graph-wide total let a
+            // queue draining healthily in one chain pay for work another chain
+            // made and deferred this step — the cross-chain subsidy the quota
+            // was made per counter to stop, arriving by the other door.
+            if (advanced is false && Throttled() is false) ++counted;
         }
 
         // Deferred work outstanding is non-settlement exactly as a pending write
@@ -1395,6 +1404,9 @@ internal sealed class Graph
     /// <summary>How many runs each wait had when the step began.</summary>
     private readonly Dictionary<string, double> quota = [];
 
+    /// <summary>Deferrals each position may be forgiven, by run it inherited.</summary>
+    private readonly Dictionary<string, double> allowance = [];
+
     /// <summary>«when»s whose condition may have moved since the last round.</summary>
     private readonly HashSet<string> woken = [];
 
@@ -1450,6 +1462,31 @@ internal sealed class Graph
     ///     </para>
     /// </remarks>
     private void Consuming(string counter) => consuming = counter;
+
+    /// <summary>
+    ///     Whether this round declined to serve a run that was already here.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     One run forgives one round, at its own wait. A position absent from
+    ///     the table belongs to a chain that was at rest when the step began, so
+    ///     everything waiting there arrived during it and none of it is
+    ///     inherited; a position present with nothing left has already been
+    ///     forgiven for every run it was holding.
+    /// </remarks>
+    private bool Throttled()
+    {
+        foreach (var name in deferred)
+        {
+            if (allowance.TryGetValue(name, out var left) is false || left < 1) continue;
+
+            allowance[name] = left - 1;
+
+            return true;
+        }
+
+        return false;
+    }
 
     /// <summary>Spends the quota a finished body claimed, if it had one.</summary>
     ///

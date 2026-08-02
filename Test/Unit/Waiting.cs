@@ -1084,15 +1084,15 @@ public class Waiting
         Assert.Equal(["head", "tail"], ran);
     }
 
-    [Fact(DisplayName = "and it buys no more of those than it inherited runs")]
-    public void AndItBuysNoMoreOfThoseThanItInheritedRuns()
+    [Fact(DisplayName = "and a step that inherited nothing is forgiven nothing")]
+    public void AndAStepThatInheritedNothingIsForgivenNothing()
     {
         // The bound, and the reason the exemption is one. A chain whose head
         // keeps being re-armed defers its tail every round, so forgiving every
         // deferral outright would forgive every round and the limit would never
-        // fire. Forgiveness is capped at the work that was already here, which
-        // is the same principle as the quota: a step may take its time over what
-        // it inherited and never over what it makes.
+        // fire — this test does not fail without the bound, it HANGS. Nothing
+        // was parked anywhere before this step, so every run it defers is one it
+        // made, and none of them is forgiven.
         Graph graph = new(cascades: 4);
         graph.Var("head", false);
         graph.Var("spin", 0d);
@@ -1117,6 +1117,105 @@ public class Waiting
         graph.Write("spin", 1d);
 
         Assert.Throws<RunawayCascade>(() => graph.Step());
+    }
+
+    [Theory(DisplayName = "and no other chain's parked run can be spent on it")]
+    [InlineData(6, 0)]
+    [InlineData(7, 7)]
+    public void AndNoOtherChainsParkedRunCanBeSpentOnIt(int cascades, int settles)
+    {
+        // Found by audit. The forgiveness was capped at what the step inherited
+        // and then counted graph-wide, so a queue draining healthily in one
+        // chain paid for work another chain made and deferred during the step —
+        // the cross-chain subsidy the quota was made per counter to stop,
+        // arriving by the other door. One run parked here is the only difference
+        // between the two cases below, and it is in a chain that never runs.
+        //
+        // So the allowance is owned. A count and the continuation waiting on it
+        // are one to one, and what forgives a round is a run that was parked at
+        // the very wait the round declined to serve.
+        Graph graph = new(cascades: cascades);
+        graph.Var("old head", false);
+        graph.Var("never", false);
+        graph.Var("new head", false);
+        graph.Var("guard", false);
+        graph.Var("phase", 0d);
+
+        graph.Chain("old chain",
+                    (scope => scope.Read("old head"), _ => { }),
+                    (scope => scope.Read("never"), _ => { }));
+
+        graph.Chain("new chain",
+                    (scope => scope.Read("new head"), _ => { }),
+                    (scope => scope.Read("guard"), _ => { }));
+
+        // arms the new chain, re-arms its head, and opens its wait — all inside
+        // the step under test, so every run in it was made by it
+        graph.When("phasing", scope => scope.Read("phase"), scope =>
+        {
+            var phase = (double)scope.Read("phase");
+
+            if (phase is 1d) { scope.Write("new head", true); scope.Write("phase", 2d); }
+            else if (phase is 2d) { scope.Write("new head", false); scope.Write("phase", 3d); }
+            else if (phase is 3d)
+            {
+                scope.Write("new head", true);
+                scope.Write("guard", true);
+                scope.Write("phase", 4d);
+            }
+        }, TriggerMode.Changes);
+
+        graph.Prime();
+
+        // the unrelated inherited run, parked in a step of its own
+        Pulse(graph, "old head");
+
+        graph.Write("phase", 1d);
+
+        if (settles is 0) Assert.Throws<RunawayCascade>(() => graph.Step());
+        else Assert.Equal(settles, graph.Step());
+    }
+
+    [Theory(DisplayName = "and one parked run forgives one deferral, not every one after it")]
+    [InlineData(4, 0)]
+    [InlineData(5, 7)]
+    public void AndOneParkedRunForgivesOneDeferralNotEveryOneAfterIt(int cascades, int settles)
+    {
+        // The positive cap, which the zero-inherited test above cannot stand in
+        // for: there the allowance was empty and nothing could be spent, so it
+        // proved only that nothing buys nothing.
+        //
+        // Here one run is parked, its wait opens during the step, and its head
+        // is re-armed twice — so the same position is deferred twice and there
+        // is one run to pay for it. The second deferral is the step's own work
+        // and is charged like any other.
+        Graph graph = new(cascades: cascades);
+        graph.Var("h", false);
+        graph.Var("w", false);
+        graph.Var("phase", 0d);
+
+        graph.Chain("chain",
+                    (scope => scope.Read("h"), _ => { }),
+                    (scope => scope.Read("w"), _ => { }));
+
+        graph.When("phasing", scope => scope.Read("phase"), scope =>
+        {
+            var phase = (double)scope.Read("phase");
+
+            if (phase is 1d) { scope.Write("w", true); scope.Write("h", true); scope.Write("phase", 2d); }
+            else if (phase is 2d) { scope.Write("h", false); scope.Write("phase", 3d); }
+            else if (phase is 3d) { scope.Write("h", true); scope.Write("phase", 4d); }
+        }, TriggerMode.Changes);
+
+        graph.Prime();
+
+        // parked while its wait is still shut, so it is still there next step
+        Pulse(graph, "h");
+
+        graph.Write("phase", 1d);
+
+        if (settles is 0) Assert.Throws<RunawayCascade>(() => graph.Step());
+        else Assert.Equal(settles, graph.Step());
     }
 
     [Fact(DisplayName = "and work made inside the step still counts against it")]
