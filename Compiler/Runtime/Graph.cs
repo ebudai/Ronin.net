@@ -353,7 +353,11 @@ internal sealed class Graph(int cascades = 64)
                      // variable is ONE variable, so a lambda capturing it reads
                      // the value the loop ended on and every segment believed it
                      // was a later one.
-                     if (arrived is not null) scope.Write(arrived, Waiting(scope.Read(arrived)) - 1);
+                     if (arrived is not null)
+                     {
+                         scope.Write(arrived, Waiting(scope.Read(arrived)) - 1);
+                         scope.Advanced();
+                     }
 
                      body(scope);
 
@@ -600,15 +604,24 @@ internal sealed class Graph(int cascades = 64)
             MarkDirty(shadow);
         }
 
+        // The finite, known set of runs this step inherited. Working through
+        // them is definite progress toward a fixed point; runs CREATED during
+        // the step are not, because creating and consuming work inside one
+        // settle is the shape the limit exists to catch. Runs are fungible, so
+        // the first this many consumed are the ones that were already here.
+        inherited = chains.Values.Sum(chain => chain.Flags.Sum(counter => Waiting(nodes[counter].Value)));
+
         var rounds = 0;
+        var counted = 0;
 
         // At least one round, always. Shadows advance above with no write behind
         // them, so a «when» reading «old x» can be dirtied by nothing but the
         // step itself — and gating the loop on pending writes meant it was
         // dirtied and never examined.
-        while ((rounds is 0 || pending.Count is not 0) && rounds < limit)
+        while ((rounds is 0 || pending.Count is not 0) && counted < limit)
         {
             ++rounds;
+            advanced = false;
 
             Propagate();
 
@@ -617,6 +630,14 @@ internal sealed class Graph(int cascades = 64)
             foreach (var name in Triggered()) Fire(name);
 
             Stopped();
+
+            // A round that took one of the runs this step began with is the
+            // graph settling slowly, not failing to settle: each one strictly
+            // reduces work that already existed. The limit detects
+            // NON-TERMINATION, and draining terminates — counting it was
+            // counting the wrong events, which is why raising the number would
+            // only have moved the wall.
+            if (advanced is false) ++counted;
         }
 
         if (pending.Count is not 0) throw Runaway(rounds);
@@ -805,10 +826,18 @@ internal sealed class Graph(int cascades = 64)
     {
         var culprits = string.Join(", ", fired.TakeLast(3).Distinct().Select(name => $"«{name}»"));
 
+        // Every round here MADE the work for the next one, which is now the only
+        // way to reach this: a round that took a run the step began with is
+        // definite progress and does not count. Draining used to reach it too,
+        // and got told a body was writing what its own trigger reads — a
+        // confident, specific description of a program the author had not
+        // written, which is worse than a vague one because it sends them looking
+        // for a bug that is not there.
         return new RunawayCascade(
             $"the graph did not settle after {rounds} rounds; last fired: {culprits}. " +
-            "A when body is writing a var its own trigger reads, so every firing schedules " +
-            "the next. Stop the body writing once the condition it acts on is satisfied.");
+            "Every round created the work for the next — most often a when body writing a var its own trigger " +
+            "reads, so each firing schedules another. Stop the body writing once the condition it acts on is " +
+            "satisfied.");
     }
 
     private Node Declare(Node node)
@@ -1144,6 +1173,30 @@ internal sealed class Graph(int cascades = 64)
 
     /// <summary>Whether that body asked not to advance.</summary>
     private bool stopped;
+
+    /// <summary>Whether this round took a run the step began with.</summary>
+    private bool advanced;
+
+    /// <summary>How many runs were pending when the step began.</summary>
+    private double inherited;
+
+    /// <summary>
+    ///     Records that this round consumed a run, and whether it was one the
+    ///     step inherited.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Counted down rather than tagged per run, which is the same answer
+    ///     because runs are fungible: the first «inherited» consumed in a step
+    ///     are exactly the ones that were already pending when it began.
+    /// </remarks>
+    private void Advanced()
+    {
+        if (inherited < 1) return;
+
+        --inherited;
+        advanced = true;
+    }
     private Dictionary<string, object> staged;
     private readonly List<Node> reading = [];
     private readonly List<Adoption> adopting = [];

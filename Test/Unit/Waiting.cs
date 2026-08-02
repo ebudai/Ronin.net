@@ -580,44 +580,93 @@ public class Waiting
         Assert.Equal(0d, graph.Read(Graph.Waiting("when go", 1)));
     }
 
-    [Fact(DisplayName = "a queue deeper than the round limit cannot drain")]
-    public void AQueueDeeperThanTheRoundLimitCannotDrain()
+    [Fact(DisplayName = "a queue of any depth drains, however small the limit")]
+    public void AQueueOfAnyDepthDrainsHoweverSmallTheLimit()
     {
-        // Recorded because it is not designed, it is fallen into. Runs are taken
-        // one per round, and draining k of them therefore needs k rounds inside
-        // one step — so the round limit, which exists to catch a «when» that
-        // schedules itself, doubles as a cap on how deep a chain may ever get.
+        // Runs are taken one per round, so draining k of them needs k rounds in
+        // one step — and the round limit used to count those, which made it a
+        // cap on how deep a chain could ever get. 63 drained and 64 threw, and
+        // that was nobody's decision.
         //
-        // 63 drains and 64 does not. Above it the program throws, with a message
-        // that blames a body writing what its own trigger reads — which is not
-        // what happened.
-        foreach (var (depth, drains) in ((int, bool)[])[(63, true), (64, false)])
-        {
-            var graph = Armed("go", "done");
+        // The limit detects NON-TERMINATION, and draining is the opposite: each
+        // run strictly reduces work that already existed. So a round that took
+        // one of the runs the step BEGAN with does not count. Runs created
+        // during the step are not progress — creating and consuming work inside
+        // one settle is the shape the limit is for — which is what the "already
+        // pending" qualifier is doing, and why it is not simply "draining
+        // rounds do not count".
+        Graph graph = new(cascades: 4);
+        graph.Var("go", false);
+        graph.Var("done", false);
 
-            graph.Chain("when go",
-                        (scope => scope.Read("go"), _ => { }),
-                        (scope => scope.Read("done"), _ => { }));
+        var ran = 0;
 
-            graph.Prime();
+        graph.Chain("when go",
+                    (scope => scope.Read("go"), _ => { }),
+                    (scope => scope.Read("done"), _ => ++ran));
 
-            for (var each = 0; each < depth; ++each) Pulse(graph, "go");
+        graph.Prime();
 
-            Assert.Equal((double)depth, graph.Read(Graph.Waiting("when go", 1)));
+        for (var each = 0; each < 40; ++each) Pulse(graph, "go");
 
-            if (drains)
-            {
-                Pulse(graph, "done");
-                Assert.Equal(0d, graph.Read(Graph.Waiting("when go", 1)));
-                continue;
-            }
+        Assert.Equal(40d, graph.Read(Graph.Waiting("when go", 1)));
 
-            Assert.Throws<RunawayCascade>(() =>
-            {
-                graph.Write("done", true);
-                graph.Step();
-            });
-        }
+        Pulse(graph, "done");
+
+        Assert.Equal(40, ran);
+        Assert.Equal(0d, graph.Read(Graph.Waiting("when go", 1)));
+    }
+
+    [Fact(DisplayName = "and work made inside the step still counts against it")]
+    public void AndWorkMadeInsideTheStepStillCountsAgainstIt()
+    {
+        // The half that keeps the limit a limit. A «when» whose body writes what
+        // its own trigger reads creates the work for the next round every round,
+        // and none of it was pending when the step began — so every round counts
+        // and it is caught exactly as before.
+        Graph graph = new(cascades: 4);
+        graph.Var("temp", 0d);
+
+        graph.When("temp moved",
+                   scope => scope.Read("temp"),
+                   scope => scope.Write("temp", (double)scope.Read("temp") + 1),
+                   TriggerMode.Changes);
+
+        graph.Prime();
+        graph.Write("temp", 1d);
+
+        Assert.Throws<RunawayCascade>(() => graph.Step());
+    }
+
+    [Fact(DisplayName = "one run per round, because a tail may read what it writes")]
+    public void OneRunPerRoundBecauseATailMayReadWhatItWrites()
+    {
+        // Runs are fungible, so k of them are identical computations and their
+        // writes are identical values — collapsing them into a round would be
+        // harmless, EXCEPT where the tail reads a cell it writes. Three runs of
+        // «shipped = shipped + 1» in one round each read the same front value
+        // and each write the same «old + 1», and the count rises by one instead
+        // of three.
+        //
+        // That is the reason to take one per round, and it is sharper than the
+        // write-collision argument: batching is safe only for a tail that reads
+        // nothing it writes, which is a static property and an optimisation
+        // rather than a fix.
+        var graph = Armed("go", "done");
+        graph.Var("shipped", 0d);
+
+        graph.Chain("when go",
+                    (scope => scope.Read("go"), _ => { }),
+                    (scope => scope.Read("done"),
+                     scope => scope.Write("shipped", (double)scope.Read("shipped") + 1)));
+
+        graph.Prime();
+
+        for (var each = 0; each < 5; ++each) Pulse(graph, "go");
+
+        Pulse(graph, "done");
+
+        Assert.Equal(5d, graph.Read("shipped"));
     }
 
     [Fact(DisplayName = "a chain accumulates across steps, and the round limit does not see it")]

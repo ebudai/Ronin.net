@@ -238,11 +238,26 @@ after its first run.
 keep at type scope — *this rule is off now, for every instance* cannot be said
 any other way.
 
+Runs are taken **one per round**.  Runs are fungible, so several in a round
+would be identical computations writing identical values — harmless, *except*
+where the tail reads a cell it writes: three runs of `shipped = shipped + 1` in
+one round each read the same front value and the count rises by one instead of
+three.  Batching is therefore safe only for a tail that reads nothing it writes,
+which is an optimisation rather than a rule.
+
+Taking one per round means draining `k` runs takes `k` rounds, and the round
+limit does **not** count them.  That limit detects *non-termination*, and
+draining is the opposite: each run strictly reduces work that already existed.
+Precisely — a round does not count if it consumed a run that was **already
+pending when the step began**.  Runs *created* during the step are not progress,
+because creating and consuming work inside one settle is the shape the limit
+exists to catch.  Without that qualifier a queue deeper than the limit could
+never drain, which made it an accidental cap on how deep a chain could get.
+
 **A chain accumulates when its waits complete more slowly than its trigger
-fires.**  One run is taken per round, which bounds growth *within* a step — the
-trigger is edge-driven so it adds at most one per round, and the tail takes one
-— but across steps each settles cleanly while the count grows, and the runaway
-detector's window is a step.
+fires.**  Growth is bounded *within* a step — the trigger is edge-driven so it
+adds at most one per round — but across steps each settles cleanly while the
+count grows, and the runaway detector's window is a step.
 
 So accumulation is watched for separately, and by **draining rather than
 depth**: a queue of orders awaiting payment is deep and healthy, while a
