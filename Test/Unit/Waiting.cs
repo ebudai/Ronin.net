@@ -219,11 +219,12 @@ public class Waiting
         // manufacturing a transition.
         var graph = Armed("a");
         graph.Var("b", true);
+        graph.Var("shipped", false);
         List<string> ran = [];
 
         graph.Chain("when a",
                     (scope => scope.Read("a"), _ => ran.Add("x")),
-                    (scope => scope.Read("b"), _ => ran.Add("y")));
+                    (scope => scope.Read("b"), scope => { ran.Add("y"); scope.Write("shipped", true); }));
 
         graph.Prime();
 
@@ -231,6 +232,16 @@ public class Waiting
         graph.Step();
 
         Assert.Equal(["x", "y"], ran);
+
+        // Found by audit, and the assertion above could not see it: the quota is
+        // built at the start of the step from the chains that had a run in them
+        // THEN, and this chain was at rest. Its continuation ran in the same step
+        // and looked up a counter that was not in the table, so it faulted AFTER
+        // its writes had been published — the bodies ran, the count was right,
+        // and the only sign was a fault nobody was reading.
+        Assert.Empty(graph.Faults);
+        Assert.Equal(true, graph.Read("shipped"));
+        Assert.Equal(0d, graph.Read(Graph.Waiting("when a", 1)));
     }
 
     [Fact(DisplayName = "and one whose condition is false waits for it")]
@@ -979,6 +990,133 @@ public class Waiting
 
         Assert.True(graph.Reacts("when armed"));
         Assert.Single(graph.Faults);
+    }
+
+    [Fact(DisplayName = "and a failed body is tried once more, at the next step and not this one")]
+    public void AndAFailedBodyIsTriedOnceMoreAtTheNextStepAndNotThisOne()
+    {
+        // Found by audit. The run a failed body did not consume is still waiting
+        // and nothing it staged applied, so nothing will wake it — only the
+        // requeue does. But it was queued in the round's own wake set, which is
+        // consumed EVERY round, so "later" meant "again this step if anything
+        // else keeps it alive". Unrelated work decided how many times a body
+        // ran, and a body that fails after an effect nothing can take back would
+        // repeat it before anything about the program had changed.
+        var graph = Armed("head", "wait");
+        graph.Var("noise", 0d);
+        graph.Var("echo", 0d);
+        var attempts = 0;
+
+        graph.Chain("chain",
+                    (scope => scope.Read("head"), _ => { }),
+                    (scope => scope.Read("wait"),
+                     _ => { ++attempts; throw new InvalidOperationException("defect"); }));
+
+        // unrelated, finite, and enough to keep the step going for a few rounds
+        graph.When("echoing", scope => scope.Read("noise"), scope =>
+        {
+            if ((double)scope.Read("echo") < 3d) scope.Write("echo", (double)scope.Read("echo") + 1d);
+        }, TriggerMode.Changes);
+
+        graph.Prime();
+        Pulse(graph, "head");
+
+        attempts = 0;
+        graph.Write("wait", true);
+        graph.Write("noise", 1d);
+        graph.Step();
+
+        Assert.Equal(1, attempts);
+        Assert.Single(graph.Faults);
+
+        // and the run is still there, so the next step tries it again
+        graph.Step();
+
+        Assert.Equal(2, attempts);
+        Assert.Equal(1d, graph.Read(Graph.Waiting("chain", 1)));
+    }
+
+    [Fact(DisplayName = "a round that deferred work did not fail to settle")]
+    public void ARoundThatDeferredWorkDidNotFailToSettle()
+    {
+        // Found by audit. Deferring is the scheduler declining to run something
+        // already ready, because one position of a chain runs per round — and
+        // the round was charged to the author for it. At the boundary that spent
+        // the budget before the deferred tail could run, and an inherited tail
+        // only shows that taking it is free BY running: the quota learns it
+        // afterwards. So the step threw with finite, already-owed work in hand.
+        //
+        // Two rounds is exactly what this program's own cascade needs: the
+        // starter, and the head it arms. Everything after that is draining.
+        Graph graph = new(cascades: 2);
+        graph.Var("head", false);
+        graph.Var("wait", false);
+        graph.Var("bail", false);
+        graph.Var("starter", false);
+        List<string> ran = [];
+
+        graph.Chain("chain",
+                    (scope => scope.Read("head"),
+                     scope => { ran.Add("head"); if (Equals(scope.Read("bail"), true)) scope.Return(); }),
+                    (scope => scope.Read("wait"), _ => ran.Add("tail")));
+
+        graph.When("when starter", scope => scope.Read("starter"), scope =>
+        {
+            scope.Write("head", true);
+            scope.Write("wait", true);
+            scope.Write("bail", true);
+        });
+
+        graph.Prime();
+
+        // one run parked at the wait, from a step of its own
+        graph.Write("head", true);
+        graph.Step();
+        graph.Write("head", false);
+        graph.Step();
+
+        ran.Clear();
+        graph.Write("starter", true);
+        graph.Step();
+
+        // the head returns, so it writes no next count and the parked run's
+        // tail is the only thing left to defer
+        Assert.Equal(["head", "tail"], ran);
+    }
+
+    [Fact(DisplayName = "and it buys no more of those than it inherited runs")]
+    public void AndItBuysNoMoreOfThoseThanItInheritedRuns()
+    {
+        // The bound, and the reason the exemption is one. A chain whose head
+        // keeps being re-armed defers its tail every round, so forgiving every
+        // deferral outright would forgive every round and the limit would never
+        // fire. Forgiveness is capped at the work that was already here, which
+        // is the same principle as the quota: a step may take its time over what
+        // it inherited and never over what it makes.
+        Graph graph = new(cascades: 4);
+        graph.Var("head", false);
+        graph.Var("spin", 0d);
+
+        // three positions, so two of them are ready together round after round
+        graph.Chain("chain",
+                    (scope => scope.Read("head"), _ => { }),
+                    (_ => true, _ => { }),
+                    (_ => true, _ => { }));
+
+        // re-arms the head every round, for ever
+        graph.When("spinning",
+                   scope => scope.Read("spin"),
+                   scope =>
+                   {
+                       scope.Write("head", Equals(scope.Read("head"), false));
+                       scope.Write("spin", (double)scope.Read("spin") + 1d);
+                   },
+                   TriggerMode.Changes);
+
+        graph.Prime();
+        graph.Write("spin", 1d);
+
+        Assert.Throws<RunawayCascade>(() => graph.Step());
     }
 
     [Fact(DisplayName = "and work made inside the step still counts against it")]

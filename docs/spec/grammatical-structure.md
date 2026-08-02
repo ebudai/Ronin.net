@@ -220,7 +220,13 @@ There are **two** words and not three.
 statements after it do not run.  `stop` does not: it marks the `when` to be
 disarmed and the body carries on, so what it writes afterwards still applies.
 Both take effect at the end of the round, and a body that *fails* applies
-neither, along with none of its writes.
+neither, along with none of its writes.  The run it did not consume is still
+waiting and nothing it staged will wake it, so a failed body is offered exactly
+**one more attempt, at the next step** — the earliest point at which anything
+about the program can have changed.  Not again in the same one: how many times a
+body ran would then be decided by whatever unrelated work happened to keep the
+step alive, and a body that fails after an effect nothing can take back would
+repeat it.
 
 - **`return`** ends *this run* of the chain: it leaves the body, and since a
   chain arms its next segment only *at* a wait, not advancing falls out of that.
@@ -269,6 +275,15 @@ pending when the step began**.  Runs *created* during the step are not progress,
 because creating and consuming work inside one settle is the shape the limit
 exists to catch.  Without that qualifier a queue deeper than the limit could
 never drain, which made it an accidental cap on how deep a chain could get.
+
+One position of a chain runs per round, so a round in which two were ready
+*deferred* one of them.  That round does not count either, and for the same
+reason: it declined to run work that was already there, and charging the
+scheduler's own throttle to the program spent the budget before the deferred run
+could show that taking it would have been free — which it can only show by
+running.  Forgiveness is capped at the number of runs the step inherited, so a
+chain whose head keeps being re-armed while its tail waits still reaches the
+limit.
 
 **A chain accumulates when its waits complete more slowly than its trigger
 fires.**  Growth is bounded *within* a step — the trigger is edge-driven so it

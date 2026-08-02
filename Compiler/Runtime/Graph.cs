@@ -12,9 +12,12 @@ namespace Ronin.Runtime;
 internal enum NodeKind { Var, Let, Shadow }
 
 /// <summary>
-///     When a <c>when</c> fires. Edge triggered in both cases, never level
-///     triggered: firing every step while a condition merely holds is almost
-///     never wanted and is very hard to notice you have.
+///     When a <c>when</c> fires. The two an author can write are edge
+///     triggered — firing every step while a condition merely holds is almost
+///     never wanted and is very hard to notice you have. <see cref="WhileTrue"/>
+///     is level triggered and is generated, never written: a wait is satisfied
+///     by its condition BEING true, not by its becoming true, so a run arriving
+///     at one that already holds proceeds.
 /// </summary>
 internal enum TriggerMode
 {
@@ -666,6 +669,12 @@ internal sealed class Graph
         // interchangeable with one taken at wait 1, and a quota shared across a
         // chain let the parked one pay for work newly made and consumed
         // somewhere else in it. Sharing one across CHAINS was worse again.
+        // One attempt each, at a step boundary, which is the earliest point at
+        // which anything about the program can have changed.
+        foreach (var name in stalled) woken.Add(name);
+
+        stalled.Clear();
+
         quota.Clear();
 
         // Only chains with a run in them. A chain at rest has nothing to inherit
@@ -679,6 +688,13 @@ internal sealed class Graph
 
         var rounds = 0;
         var counted = 0;
+
+        // How much of the exemption below there is to spend. Bounding it by the
+        // work that was already here is the same principle as the quota itself:
+        // a step may be forgiven for taking its time over what it inherited, and
+        // never for what it makes.
+        var inherited = quota.Values.Sum();
+        var throttled = 0d;
 
         // At least one round, always. Shadows advance above with no write behind
         // them, so a «when» reading «old x» can be dirtied by nothing but the
@@ -708,7 +724,22 @@ internal sealed class Graph
             // NON-TERMINATION, and draining terminates — counting it was
             // counting the wrong events, which is why raising the number would
             // only have moved the wall.
-            if (advanced is false) ++counted;
+            //
+            // Nor did a round that DEFERRED work fail to settle. It declined to
+            // run something already ready, because one position of a chain runs
+            // per round — the scheduler's own throttle, and charging the author
+            // for it spent the budget before an inherited tail could show that
+            // taking it would have been free. Which it only shows by running:
+            // that is why the round has to happen at all.
+            //
+            // Bounded, because a spinning chain defers too. A step cannot buy
+            // more of these than it inherited runs, so one whose head keeps
+            // being re-armed while its tail waits reaches the limit as before.
+            var throttling = deferred.Count is not 0 && throttled < inherited;
+
+            if (throttling) ++throttled;
+
+            if (advanced is false && throttling is false) ++counted;
         }
 
         // Deferred work outstanding is non-settlement exactly as a pending write
@@ -828,9 +859,14 @@ internal sealed class Graph
     ///     <para>
     ///     Landing the writes queued before the failure would show the graph a
     ///     state no body ever intended — the same hazard that settling before
-    ///     firing exists to prevent — and unlike a <c>let</c>, an effect body
-    ///     cannot simply be run again, so there is nothing to be recovered by
+    ///     firing exists to prevent — so there is nothing to be recovered by
     ///     keeping them. All or none, and the fault says which body.
+    ///     </para>
+    ///     <para>
+    ///     Unlike a <c>let</c>, an effect body cannot be re-run at will: it is
+    ///     offered exactly one more attempt, at the next step, because the run it
+    ///     did not consume is still waiting and nothing else will wake it. That
+    ///     is a retry and not a loop — see <c>stalled</c>.
     ///     </para>
     /// </remarks>
     private void Fire(string name)
@@ -847,18 +883,30 @@ internal sealed class Graph
         {
             whens[name].Body(this);
 
-            foreach (var (cell, value) in staged) pending[cell] = value;
-
+            // Every book closed before anything is published. The fault below
+            // says none of its writes were applied, and that has to stay true of
+            // a defect ANYWHERE in the firing, not only of one inside the body:
+            // publishing first left a path that applied all of them and said it
+            // had applied none.
             Consumed();
 
             if (halting) stopping.Add(name);
+
+            foreach (var (cell, value) in staged) pending[cell] = value;
         }
         catch (Exception defect)
         {
             // Nothing it staged applied, so nothing it would have changed will
             // wake it: a run it did not consume is still waiting, and only this
             // puts the position back in front of the scheduler.
-            woken.Add(name);
+            //
+            // NEXT step, though, and not this round. «woken» is consumed every
+            // round, so a retry put there ran again as many times as unrelated
+            // work happened to keep the step alive — the count decided by
+            // something with nothing to do with it. A body that failed after an
+            // effect nothing can take back would repeat that effect before
+            // anything about the program had changed.
+            stalled.Add(name);
 
             faults.Add(new Fault($"«{name}» failed and none of its writes were applied: " +
                                  $"{defect.GetType().Name}: {defect.Message}"));
@@ -899,6 +947,7 @@ internal sealed class Graph
                 whens.Remove(member);
                 woken.Remove(member);
                 deferred.Remove(member);
+                stalled.Remove(member);
                 Undeclare(member);
             }
         }
@@ -1349,6 +1398,9 @@ internal sealed class Graph
     /// <summary>«when»s whose condition may have moved since the last round.</summary>
     private readonly HashSet<string> woken = [];
 
+    /// <summary>Positions whose body failed, to be tried once at the next step.</summary>
+    private readonly HashSet<string> stalled = [];
+
     /// <summary>Positions this round deferred, which the step still owes.</summary>
     private readonly HashSet<string> deferred = [];
 
@@ -1360,7 +1412,6 @@ internal sealed class Graph
     /// <summary>The «when» whose body is running, which is what «stop» stops.</summary>
     private string firing;
 
-    /// <summary>Whether that body asked not to advance.</summary>
     /// <summary>Whether the body called <see cref="Return"/>, which is per firing.</summary>
     ///
     /// <remarks>
@@ -1401,15 +1452,22 @@ internal sealed class Graph
     private void Consuming(string counter) => consuming = counter;
 
     /// <summary>Spends the quota a finished body claimed, if it had one.</summary>
+    ///
+    /// <remarks>
+    ///     Probed, and not indexed. The table is built at the start of the step
+    ///     from the chains that had a run in them THEN, so a chain woken during
+    ///     the step is legitimately absent — and its first wait may be satisfied
+    ///     already, putting a continuation here in the same step. Absent means
+    ///     nothing inherited, which is the truth about it: a run this step made
+    ///     and this step took is exactly the work the limit is counting, so it
+    ///     buys no exemption. Indexing called that state a defect and faulted the
+    ///     ordinary «wait until true».
+    /// </remarks>
     private void Consumed()
     {
         if (consuming is null) return;
 
-        // Indexed, not probed: the quota is rebuilt each step from every counter
-        // there is, so a counter a body consumed from is always in it.
-        var left = quota[consuming];
-
-        if (left >= 1)
+        if (quota.TryGetValue(consuming, out var left) && left >= 1)
         {
             quota[consuming] = left - 1;
             advanced = true;
