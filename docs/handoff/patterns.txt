@@ -1,0 +1,38 @@
+# The pattern declarations the glue registry is computed from.
+#
+# SEED FILE. These are the patterns that appear across the design documents,
+# plus the obvious control-flow ones. The programmer replaces this with the
+# real declarations — ideally by having the compiler emit it, so the registry
+# can never drift from the language.
+#
+# format:   module | pattern        («_» is a hole)
+# lines starting with # are ignored
+
+prelude       | for each <_> in _
+prelude       | while _
+prelude       | repeat _ times
+prelude       | if _ {_}
+prelude       | print _
+prelude       | stop
+
+numbers       | sum of _
+numbers       | count of _
+numbers       | average of _
+numbers       | round _ to _ places
+numbers       | rounded _
+
+text          | join _ with _
+text          | split _ on _
+text          | length of _
+
+collections   | first of _
+collections   | last of _
+collections   | sort _ by _
+collections   | filter _ where _
+collections   | item _ of _
+
+messaging     | send _ to _
+messaging     | broadcast _
+
+time          | wait until _
+time          | every _ seconds

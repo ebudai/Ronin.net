@@ -90,19 +90,34 @@ internal sealed class Compilation
     ///     probe rather than a walk up the chain.
     /// </summary>
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
-                               Identifier variable = null, IReadOnlyList<Identifier> parameters = null)
+                               Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
+                               string inside = null)
     {
         var declared = Declarations.Of(statements, Source, enclosing, variable, parameters);
 
         foreach (var problem in declared.Problems) Add(problem);
 
+        // «inside» is null exactly where a «when» belongs — the module, and a
+        // type's members. Everywhere else it names what the reader would call
+        // the enclosing thing, and doubles as the reason there is one.
+        if (inside is not null)
+        {
+            foreach (var misplaced in statements.OfType<Grammar.Scope>())
+            {
+                if (misplaced.Reacts) Add(new MisplacedWhen(Where(misplaced.Opened), inside));
+            }
+        }
+
         foreach (var body in statements.SelectMany(Bodies))
         {
-            Scope(body.Statements, declared, body.Variable, body.Parameters);
+            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside);
         }
 
         return declared;
     }
+
+    /// <summary>The span of one token, for a finding that points at a keyword.</summary>
+    private Span Where(Token token) => Source.Span(token.Offset, token.Memory.Length);
 
     /// <summary>
     ///     The scopes a statement opens. A body is a scope of its own: it sees
@@ -155,25 +170,28 @@ internal sealed class Compilation
                 // the member.
                 case Grammar.Function { Definition: { } definition } function:
                     seen.Add(definition);
-                    yield return new Body(definition.Statements, null, Bound(function.Identifier));
+                    yield return new Body(definition.Statements, null, Bound(function.Identifier),
+                                          Named(function.Identifier));
                     break;
 
                 case Grammar.Delegate { Definition: { } body } lambda:
                     seen.Add(body);
-                    yield return new Body(body.Statements, null, Bound(lambda.Data));
+                    yield return new Body(body.Statements, null, Bound(lambda.Data), "a delegate");
                     break;
 
+                // A type's members are where a «when» belongs, along with the
+                // module: it lives as long as the instance does.
                 case Grammar.Type { Members: { } members }:
-                    yield return new Body([.. members], null, []);
+                    yield return new Body([.. members], null, [], null);
                     continue;
 
                 // a loop binds its variable in its body and nowhere else
                 case Grammar.Scope.Iterating loop:
-                    yield return new Body(loop.Statements, loop.Current, []);
+                    yield return new Body(loop.Statements, loop.Current, [], "a loop");
                     continue;
 
                 case Grammar.Scope scope:
-                    yield return new Body(scope.Statements, null, []);
+                    yield return new Body(scope.Statements, null, [], scope.Reacts ? "another «when»" : "a block");
                     continue;
 
                 default:
@@ -216,9 +234,15 @@ internal sealed class Compilation
         => [.. identifier.Where(component => component.AsParameters is not null)
                          .SelectMany(component => Bound(component.AsParameters))];
 
-    /// <summary>One nested scope: what is in it, and what it binds on entry.</summary>
+    /// <param name="Inside">
+    ///     What a reader would call this scope, or null where it is one a «when»
+    ///     may be declared in. Only the module and a type's members are null.
+    /// </param>
     private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable,
-                                        IReadOnlyList<Identifier> Parameters);
+                                        IReadOnlyList<Identifier> Parameters, string Inside);
+
+    /// <summary>A declaration as a message would quote it.</summary>
+    private static string Named(Identifier identifier) => $"«{identifier.Words}»";
 
     /// <summary>
     ///     Every error node anywhere in the tree.

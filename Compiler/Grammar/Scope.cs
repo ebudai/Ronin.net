@@ -9,6 +9,32 @@ namespace Ronin.Grammar;
 
 internal class Scope : Statement
 {
+    /// <summary>
+    ///     The keyword this scope opened with, where it opened with one.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Both «when» forms already read this token to build their
+    ///     <c>Trigger</c> and then let it go. A diagnostic about a «when» wants
+    ///     to point AT the «when» — the body is not the mistake and the
+    ///     condition is not either — so the token is kept rather than recovered
+    ///     from the statements by counting backwards.
+    /// </remarks>
+    public Token Opened { get; init; }
+
+    /// <summary>
+    ///     Whether this scope is a «when», in either of its two spellings.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Asked rather than pattern-matched on the type, because
+    ///     <c>ConditionalReactive</c> is never the runtime type of anything:
+    ///     <see cref="Conditional{T}.Parse"/> is inherited and constructs a
+    ///     <c>Conditional&lt;When&gt;</c>, so the named subclass exists to pick
+    ///     the keyword and nothing ever is one.
+    /// </remarks>
+    public bool Reacts => this is Reactive or Conditional<When>;
+
     public Modifiers Modifiers { get; init; }
     public List<Import> Imports { get; } = [];
     public List<Statement> Statements { get; } = [];
@@ -200,7 +226,8 @@ internal class Scope : Statement
             {
                 Modifiers = modifiers,
                 Target = datum,
-                Trigger = trigger
+                Trigger = trigger,
+                Opened = keyword,
             };
         }
 
@@ -323,7 +350,8 @@ internal class Scope : Statement
             {
                 Modifiers = modifiers,
                 Condition = condition,
-                Trigger = trigger
+                Trigger = trigger,
+                Opened = keyword,
             };
         }
 

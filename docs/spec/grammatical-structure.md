@@ -146,6 +146,21 @@ wherever it is in scope.
 `when` (*condition* | *name*) *body*
 - condition is a ***reference***
 - name is ***words***
+
+A ***when*** may be declared at **module scope** or inside a ***type***, and
+nowhere else.  Not in a function body, a block, a loop, a delegate, or another
+`when`.
+
+A propagation step happens *between* statements rather than during one, so a
+`when` inside a scope that closes has two possible lifetimes and both are wrong:
+it leaves its scope before any step runs, so it can never fire and the
+declaration is dead; or it outlives its scope, so it holds references to locals
+that are gone.  There is no third option, which is why the restriction costs
+nothing.
+
+It is also what lets the lifetime rule be stated whole: a module `when` lives as
+long as the module, and a type `when` as long as the instance.
+
 ## 4.6 Aggregates
 A collection of zero or more specific syntax separated by a given delimiter.  The sequence cannot be ended by the delimiter unless otherwise specified.
 ### 4.6.1 Definition

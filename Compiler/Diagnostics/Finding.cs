@@ -61,6 +61,9 @@ internal enum FindingKind
     /// <summary>A hole where a plain name is required.</summary>
     HoleInName,
 
+    /// <summary>A «when» declared where it could never run.</summary>
+    MisplacedWhen,
+
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
 }
@@ -310,6 +313,33 @@ internal sealed class LeadingHole(Span primary, string pattern)
         => $"«{Pattern}» begins with a parameter, which makes it infix rather than a word " +
            "pattern. A word pattern leads with its name — respell it so the words come first, " +
            "or declare a symbolic operator, which is where infix belongs.";
+}
+
+/// <summary>
+///     A «when» declared somewhere it could never run.
+/// </summary>
+///
+/// <remarks>
+///     A «when» belongs at module scope or inside a type, and nowhere else. A
+///     propagation step happens BETWEEN statements rather than during one, so a
+///     «when» declared inside a function body has two possible lifetimes and
+///     both are wrong: it leaves its scope before any step runs, in which case
+///     it can never fire and the declaration is dead; or it outlives its scope,
+///     in which case it holds references to locals that are gone.
+///     <para>
+///     There is no third option, so the restriction costs nothing — and it is
+///     what lets the lifetime rule be stated whole: a module «when» lives as
+///     long as the module, a type «when» as long as the instance.
+///     </para>
+/// </remarks>
+internal sealed class MisplacedWhen(Span primary, string inside) : Finding(FindingKind.MisplacedWhen, primary)
+{
+    /// <summary>What it was declared inside, named the way a reader would.</summary>
+    public string Inside { get; } = inside;
+
+    public override string Message
+        => $"«when» may only be declared at module scope or inside a type. This one is inside {Inside}, where it " +
+           "would go out of scope before it could ever run — a step happens between statements, not during one.";
 }
 
 /// <summary>
