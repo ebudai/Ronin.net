@@ -161,10 +161,56 @@ nothing.
 It is also what lets the lifetime rule be stated whole: a module `when` lives as
 long as the module, and a type `when` as long as the instance.
 
-A `when` inside a ***type*** is **designed and not implemented**.  It is blocked
-on the instance binding model — whether an instance is a set of nodes or an
-index into one cell per member — which cannot be retrofitted and so has to be
-decided first.  Writing one is refused by name rather than as a syntax error.
+A `when` inside a ***type*** is **designed and not implemented**.  Writing one
+is refused by name rather than as a syntax error.  What it waits on is the
+instance binding model, which is now decided:
+
+> **One cell per declared member, holding N values.  Not one node per instance.**
+
+The reason is not the benchmark, though there is one — per-instance scalar nodes
+ran about twenty times slower on a simulation workload, and the cost was
+edge-chasing and cache behaviour rather than arithmetic, so it does not come
+back with tuning.  That is corroboration.  The argument is:
+
+> Under grouped storage the dependency graph is the size of the **source text**.
+> Under per-instance nodes it is the size of the **world**.
+
+Everything downstream inherits that — edge counts, dirty propagation, cascade
+analysis, the SCC check, the cutoff comparison, and any diagnostic that names a
+node all scale with how much code was written rather than how much data exists.
+That holds at twelve instances and at a million, so it does not depend on the
+benchmark generalising, and it is a *comprehensibility* property before it is a
+performance one: the graph a person debugs is the graph they wrote.  At twelve
+instances grouped storage wins nothing on speed and costs a little indirection.
+It still wins.
+
+What follows from it:
+
+- a type-scope `when` is **one** node, evaluating a predicate across the member
+  array and firing its body per instance whose entry changed;
+- `stop` clears the caller's bit in the liveness mask, as above;
+- an instance identity is an **index** into the member arrays, not a pointer;
+- adding or removing an instance is an array operation, and removal wants a free
+  list or swap-with-last plus a stable handle table;
+- cutoff becomes array-valued and so O(N) per cell — a dirty range or a digest,
+  never a full compare;
+- adding or removing a *member* is adding or dropping one array rather than
+  walking N objects, so live editing gets easier rather than harder.
+
+Three things sit inside the decision rather than reopening it, and none needs
+answering yet: **subtypes**, where members only some instances have make the
+arrays ragged and the answer is one array set per concrete type; **sparse
+firing**, where a predicate over N entries is wasteful when three are armed and
+wants a dirty list rather than the mask, since reading the mask still scans; and
+**references between instances**, where a member holding a reference stores an
+index and a polymorphic one needs a type beside it.
+
+When instances are built, this decision is pinned by a test rather than a
+comment, because a comment does not survive an optimisation pass: *create N
+instances of a type with M members and one type-scope `when`; assert the graph's
+node count is a function of M alone and is unchanged between N = 1 and
+N = 1000.*  The failure mode to watch for is archetype count growing with
+instance count rather than with type count.
 
 #### `stop`
 
