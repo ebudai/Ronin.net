@@ -526,7 +526,15 @@ public class Waiting
         // countdown re-armed faster than it expires is shallow and broken. What
         // separates them is DRAINING — a queue comes back to nothing, an
         // accumulation only rises — so this watches the low-water mark.
-        var graph = Armed("activity", "never");
+        // A short window here, because the window changes how quickly a leak is
+        // reported and not whether: a chain that ratchets trips any window
+        // eventually, and one that drains trips none. That is why it may be
+        // picked, and it is not the round limit's kind of number — that one was
+        // load bearing for correctness and killed valid programs when it was
+        // wrong.
+        Graph graph = new(settling: 8);
+        graph.Var("activity", false);
+        graph.Var("never", false);
 
         graph.Chain("when activity",
                     (scope => scope.Read("activity"), _ => { }),
@@ -536,7 +544,7 @@ public class Waiting
 
         var reported = 0;
 
-        for (var step = 0; step < Graph.Settling * 3; ++step)
+        for (var step = 0; step < graph.Settling * 3; ++step)
         {
             graph.Write("activity", step % 2 is 0);
             graph.Step();

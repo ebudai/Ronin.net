@@ -271,6 +271,18 @@ same shape at compile time, so nothing can be said before the program runs.
 That is why the chain-versus-deadline rule in the guide is an obligation rather
 than style advice.
 
+The window is **chosen rather than derived, and may be**.  It changes how
+quickly a leak is reported and not whether one is — a chain that ratchets trips
+any window eventually, and a chain that drains trips none — so there is no
+principled value to look for, and adjusting it only trades reporting latency
+against how long a slow drain may hold its low-water mark up.  It is observable
+and adjustable for that reason.
+
+This is deliberately *not* the round limit's kind of number.  That one is load
+bearing for correctness: set wrong it kills valid programs, and no tuning fixes
+it, because the defect was counting the wrong events rather than counting too
+few of them.
+
 Because it can only *shrink* the graph it cannot make a legal program illegal,
 so cascade analysis over the never-stops graph stays sound and needs no dynamic
 counterpart.

@@ -104,7 +104,7 @@ internal sealed class Node
 ///     It is enforced here, not assumed.
 ///     </para>
 /// </remarks>
-internal sealed class Graph(int cascades = 64)
+internal sealed class Graph(int cascades = 64, int settling = 256)
 {
     /// <summary>
     ///     A source. Its initialiser is evaluated once, now, so declaration order
@@ -1138,15 +1138,23 @@ internal sealed class Graph(int cascades = 64)
     /// </summary>
     ///
     /// <remarks>
-    ///     A queue that empties every few hundred steps has a low-water mark that
-    ///     rises for a long stretch before it falls, so a short window reports it
-    ///     as a leak. Long enough that an ordinary slow drain finishes inside
-    ///     one, and short enough that a real leak is caught while the count is
-    ///     still small.
+    ///     <para>
+    ///     PICKED, and allowed to be. It changes how quickly a leak is reported
+    ///     and not whether: a chain that ratchets trips any window eventually,
+    ///     and one that drains trips none. So there is no principled value to go
+    ///     looking for, and adjusting it trades reporting latency against how
+    ///     long a slow drain may hold its low-water mark up.
+    ///     </para>
+    ///     <para>
+    ///     Not the round limit's kind of number. That one was load bearing for
+    ///     CORRECTNESS — set wrong it killed valid programs, and no tuning fixed
+    ///     it because it was counting the wrong events. This one cannot kill
+    ///     anything.
+    ///     </para>
     /// </remarks>
-    public const int Settling = 256;
+    public int Settling { get; } = settling;
 
-    private static Fault Accumulating(string name, double waiting)
+    private Fault Accumulating(string name, double waiting)
         => new($"«{name}» has {waiting.ToString(CultureInfo.InvariantCulture)} runs pending and the count has not " +
                $"fallen in {Settling.ToString(CultureInfo.InvariantCulture)} steps. A chain gives each trigger its " +
                "own run. If a new one should supersede the pending one instead, a deadline says so: «when activity " +
