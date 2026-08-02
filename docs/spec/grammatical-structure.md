@@ -312,18 +312,21 @@ live-edit problem at its worst: a reload lands mid-body in a function whose body
 has changed.
 
 So a `when` whose body waits becomes a chain.  `n` waits produce `n + 1` `when`s
-and `n` flags: the first segment runs under the original condition and sets flag
-1, and segment `k` runs under `B[k] and flag k`, clears that flag, and sets the
-next.
+and `n` **counts**: the first segment runs under the original condition and adds
+one to count 1, and segment `k` runs while somebody is waiting at count `k` and
+`B[k]` holds — taking one from that count, and adding to the next.
 
 ```
 when A {                        when A {
-    x                               clear every flag; x; set flag 1
+    x                               x; count 1 = count 1 + 1
     wait until B         ⇒      }
-    y                           when B and flag 1 {
-}                                   clear flag 1; y
+    y                           when count 1 > 0 and B {
+}                                   count 1 = count 1 - 1; y
                                 }
 ```
+
+Nothing is cleared, because nothing is being held to one run: a second `A` while
+a run is pending adds a second, and both finish.
 
 **A wait whose condition is already true proceeds in the same step.**  Level,
 not edge: `wait until B` is a guard on a continuation rather than a second
@@ -335,7 +338,7 @@ The failure modes are asymmetric and only one is silent.  Under edge semantics a
 prepaid order whose payment already cleared never ships: no error, no
 diagnostic, and the symptom is that orders sometimes do not go out.  Level
 semantics can fire too early, but visibly and on the first run, and a program
-can fix that by clearing the flag; the edge failure cannot be fixed inside the
+can fix that with its own state; the edge failure cannot be fixed inside the
 program without manufacturing a transition.  There is no second spelling for the
 edge reading — an author who wants one writes `wait until not B` then
 `wait until B`, or a second `when`.
