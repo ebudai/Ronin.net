@@ -195,21 +195,31 @@ internal sealed class Graph(int cascades = 64)
     public IReadOnlyList<string> Fired => fired;
 
     /// <summary>
-    ///     Ends this run of the chain: it does not advance to the next segment.
+    ///     What «return» in a «when» body compiles to: leave this body, and do
+    ///     not advance to the next segment.
     /// </summary>
     ///
     /// <remarks>
-    ///     Other runs in flight are unaffected, and the «when» stays ARMED. Armed
-    ///     and in-flight are two pieces of state, and collapsing them means a
-    ///     chain that completes normally has nothing in flight, therefore looks
-    ///     stopped, therefore is removed — every time it finishes. A one-shot
-    ///     chain would work and a repeating one would silently stop after its
-    ///     first run. An empty count is the RESTING STATE of a healthy chain and
-    ///     says nothing about whether the «when» should still exist.
+    ///     <para>
+    ///     No word of its own, because «return» already means "leave this body
+    ///     and do not do the rest" — and since a chain arms its next segment only
+    ///     AT a wait, ending the run falls out of leaving the body rather than
+    ///     needing a second construct beside it.
+    ///     </para>
+    ///     <para>
+    ///     Runs beside it are unaffected and the «when» stays ARMED, which is
+    ///     the distinction that matters. Armed and in-flight are two pieces of
+    ///     state, and collapsing them means a chain that completes normally has
+    ///     nothing in flight, therefore looks stopped, therefore is removed —
+    ///     every time it finishes. A one-shot chain would work and a repeating
+    ///     one would silently stop after its first run. An empty count is the
+    ///     RESTING STATE of a healthy chain and says nothing about whether the
+    ///     «when» should still exist.
+    ///     </para>
     /// </remarks>
-    public void Stop()
+    public void Return()
     {
-        if (firing is null) throw new InvalidOperationException("«stop» is only meaningful inside a «when» body");
+        if (firing is null) throw new InvalidOperationException("«return» is only meaningful inside a body");
 
         stopped = true;
     }
@@ -217,6 +227,12 @@ internal sealed class Graph(int cascades = 64)
     /// <summary>
     ///     Disarms the «when» whose body is running, for the instance it ran for.
     /// </summary>
+    ///
+    /// <remarks>
+    ///     One word for one thing: «stop» stops the «when». Ending a single run
+    ///     is <see cref="Return"/>, which needs no word because «return» already
+    ///     has that meaning everywhere else.
+    /// </remarks>
     ///
     /// <remarks>
     ///     <para>
@@ -236,10 +252,9 @@ internal sealed class Graph(int cascades = 64)
     ///     cascade analysis here and why there should not be one.
     ///     </para>
     /// </remarks>
-    public void StopAll()
+    public void Stop()
     {
-        if (firing is null)
-            throw new InvalidOperationException("«stop all» is only meaningful inside a «when» body");
+        if (firing is null) throw new InvalidOperationException("«stop» is only meaningful inside a «when» body");
 
         stopping.Add(firing);
     }

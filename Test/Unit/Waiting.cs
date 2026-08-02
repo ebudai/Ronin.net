@@ -37,8 +37,8 @@ public class Waiting
 
     // 5 -------------------------------------------------------------------
 
-    [Fact(DisplayName = "«stop all» takes effect at the end of the round")]
-    public void StopAllTakesEffectAtTheEndOfTheRound()
+    [Fact(DisplayName = "«stop» takes effect at the end of the round")]
+    public void StopTakesEffectAtTheEndOfTheRound()
     {
         // Like a write. A «when» that stops itself finishes its body, including
         // what it writes after the «stop» — the alternative is a body whose
@@ -49,7 +49,7 @@ public class Waiting
 
         graph.When("when armed", scope => scope.Read("armed"), scope =>
         {
-            scope.StopAll();
+            scope.Stop();
             scope.Write("count", (double)scope.Read("count") + 1);
         });
 
@@ -68,7 +68,7 @@ public class Waiting
         // counts toward cascades. "Stopped" that is not gone is the same leak
         // the placement rule exists to prevent.
         var graph = Armed("armed");
-        graph.When("when armed", scope => scope.Read("armed"), scope => scope.StopAll());
+        graph.When("when armed", scope => scope.Read("armed"), scope => scope.Stop());
 
         graph.Prime();
         Pulse(graph, "armed");
@@ -91,7 +91,7 @@ public class Waiting
     public void NeitherStopOutsideABodyIsASilentNoOp()
     {
         Assert.Throws<InvalidOperationException>(new Graph().Stop);
-        Assert.Throws<InvalidOperationException>(new Graph().StopAll);
+        Assert.Throws<InvalidOperationException>(new Graph().Return);
     }
 
     [Fact(DisplayName = "a chain has segments, and «in flight» answers for chains")]
@@ -427,7 +427,7 @@ public class Waiting
         graph.Chain("when a",
                     (scope => scope.Read("a"), _ => ran.Add("x")),
                     (scope => scope.Read("b"),
-                     scope => { ran.Add("y"); if (Equals(scope.Read("abandon"), true)) scope.Stop(); }),
+                     scope => { ran.Add("y"); if (Equals(scope.Read("abandon"), true)) scope.Return(); }),
                     (scope => scope.Read("c"), _ => ran.Add("z")));
 
         graph.Prime();
@@ -487,8 +487,8 @@ public class Waiting
 
     // 15 ------------------------------------------------------------------
 
-    [Fact(DisplayName = "«stop all» in the second half removes the first half too")]
-    public void StopAllInTheSecondHalfRemovesTheFirstHalfToo()
+    [Fact(DisplayName = "«stop» in the second half removes the first half too")]
+    public void StopInTheSecondHalfRemovesTheFirstHalfToo()
     {
         // The author wrote one «when». If «stop» removed only the half it
         // appears in, an armed first half would leave an orphaned second half
@@ -499,7 +499,7 @@ public class Waiting
 
         graph.Chain("when a",
                     (scope => scope.Read("a"), _ => ran.Add("x")),
-                    (scope => scope.Read("b"), scope => { ran.Add("y"); scope.StopAll(); }));
+                    (scope => scope.Read("b"), scope => { ran.Add("y"); scope.Stop(); }));
 
         graph.Prime();
 
@@ -516,6 +516,38 @@ public class Waiting
         Pulse(graph, "b");
 
         Assert.Equal(["x", "y"], ran);
+    }
+
+    [Fact(DisplayName = "a chain accumulates across steps, and nothing sees it")]
+    public void AChainAccumulatesAcrossStepsAndNothingSeesIt()
+    {
+        // The last unverified assumption in the chain design, and it does not
+        // hold. One run per round bounds accumulation WITHIN a step: the head
+        // fires at most once per round because it is edge-triggered, and the
+        // tail drains one per round, so the count cannot run away and the
+        // detector's rounds are the runs.
+        //
+        // Across steps there is no such bound. Each step settles perfectly, so
+        // the runaway detector — which counts rounds inside a step — never sees
+        // a head that fires once per step and a tail whose condition does not
+        // come. This is the idle-autosave shape: «when activity { wait until 5
+        // minutes; save }» with activity faster than the wait.
+        //
+        // Recorded as behaviour rather than asserted as correct. It is the cost
+        // of counting, it is why the chain-versus-deadline rule is a real
+        // obligation rather than style advice, and a bound with a diagnostic is
+        // the open question it leaves.
+        var graph = Armed("activity", "never");
+
+        graph.Chain("when activity",
+                    (scope => scope.Read("activity"), _ => { }),
+                    (scope => scope.Read("never"), _ => { }));
+
+        graph.Prime();
+
+        for (var pulse = 0; pulse < 100; ++pulse) Pulse(graph, "activity");
+
+        Assert.Equal(100d, graph.Read(Graph.Waiting("when activity", 1)));
     }
 
     // 17 ------------------------------------------------------------------
@@ -549,5 +581,49 @@ public class Waiting
         });
 
         Assert.Empty(writers);
+    }
+
+    [Fact(DisplayName = "the two analyses want the segments grouped differently")]
+    public void TheTwoAnalysesWantTheSegmentsGroupedDifferently()
+    {
+        // Anything that unifies these breaks one of them, and the two failures
+        // look nothing alike: one is a false diagnostic on a correct program,
+        // the other is silence where there should be a diagnostic.
+        //
+        // Nothing splits a chain from source yet, so this pins the requirement
+        // for whoever wires it rather than testing a path that exists.
+        Triggering when(string name) => new(name, new SourceText(string.Empty).Span(0, 0));
+
+        // SINGLE-WRITER wants them as ONE writer. The author wrote one «when»,
+        // and ownership is a source-level property — the suppression idiom sets
+        // a var in one segment and clears it in the next, which is one «when»
+        // writing one cell twice.
+        Assert.NotEmpty(Cascades.Writers(new Dictionary<Triggering, IReadOnlyCollection<Write>>
+        {
+            [when("when pressed")] = [new Write("charging", "when pressed")],
+            [when("when pressed (after wait 1)")] = [new Write("charging", "when pressed (after wait 1)")],
+        }));
+
+        Assert.Empty(Cascades.Writers(new Dictionary<Triggering, IReadOnlyCollection<Write>>
+        {
+            [when("when pressed")] = [new Write("charging", "when pressed"),
+                                      new Write("charging", "when pressed")],
+        }));
+
+        // CASCADE wants them DISTINCT, with a real edge between them. Segment 1
+        // writing what segment 2 reads IS the chain; merged into one identity it
+        // reads as a node that writes what it reads, which is a self-loop.
+        Assert.Empty(Cascades.Diagnose(new Dictionary<Triggering, Effects>
+        {
+            [when("when pressed")] = new(new HashSet<string> { "charging" }, new HashSet<string> { "pressed" }),
+            [when("when pressed (after wait 1)")] = new(new HashSet<string> { "fired" },
+                                                       new HashSet<string> { "charging" }),
+        }));
+
+        Assert.NotEmpty(Cascades.Diagnose(new Dictionary<Triggering, Effects>
+        {
+            [when("when pressed")] = new(new HashSet<string> { "charging", "fired" },
+                                         new HashSet<string> { "pressed", "charging" }),
+        }));
     }
 }

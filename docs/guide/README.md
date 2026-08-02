@@ -162,3 +162,63 @@ Lists contain zero or more instances of a particular type, set during declaratio
 ### conditional reactive
 ### iterating
 ### reactive
+
+## Waiting
+
+A `when` body may wait:
+
+```ronin
+when order placed {
+    reserve stock
+    wait until payment cleared
+    ship
+}
+```
+
+Each occurrence gets its **own run**.  Three orders placed and then one payment
+clearing ships three — the runs are counted, not queued behind one another, and
+nothing is dropped.
+
+A run carries no data across a wait: the wait ends that part of the body, so a
+`var` declared before it is out of scope after it.  If a value has to survive
+the wait it belongs to the thing the chain is about — declare the `when` on a
+type and the value as a member.
+
+`return` ends the run you are in, without advancing.  `stop` disarms the `when`
+altogether.
+
+### Chain, or deadline?
+
+> **A chain is for "each occurrence gets its own run".  A deadline value is for
+> "the latest occurrence supersedes."**
+
+If a new trigger should *cancel* what is pending, you do not want a chain.  This
+is idle-autosave, search-as-you-type, screensaver timeout, alarm re-arming —
+every "reset the countdown" shape:
+
+```ronin
+when activity { wait until 5 minutes; save }        ← ten activities, ten saves
+```
+
+Each activity starts its own five-minute run, so ten of them save ten times.
+Guarding the front with a flag is not the fix either — that saves five minutes
+after the *first* activity rather than the last, which is silently the wrong one
+again.
+
+Write the deadline as a value instead:
+
+```ronin
+when activity       { save at = now + 5 minutes }
+when now >= save at { save }
+```
+
+Superseding is then just writing to `save at`, which is what the latest
+occurrence should do.  There is no chain, no run to abandon, and no name the
+compiler had to invent.
+
+There is a second reason to prefer the value form wherever it applies, and it is
+not aesthetic: **a chain can accumulate and a value cannot.**  The deadline
+formulation has exactly one pending save however fast activity fires,
+structurally.  A chain whose waits complete more slowly than its trigger fires
+grows a run at a time, and each step settles cleanly while it does — so nothing
+reports it.

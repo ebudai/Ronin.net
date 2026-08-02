@@ -217,12 +217,15 @@ instance count rather than with type count.
 Both are legal only in a `when` body and take effect at the end of the round, so
 a body that stops finishes first, including what it writes afterwards.
 
-- **`stop`** ends *this run* of the chain: it does not advance to the next
-  segment.  Runs beside it are unaffected and the `when` stays **armed**.
-- **`stop all`** disarms the `when` entirely: every pending run is abandoned and
-  the node is **removed** rather than disabled — a stopped `when` that lingers
-  still costs an edge walk and still counts toward cascades, which is the leak
-  the placement rule above exists to prevent.
+- **`return`** ends *this run* of the chain: it leaves the body, and since a
+  chain arms its next segment only *at* a wait, not advancing falls out of that.
+  Runs beside it are unaffected and the `when` stays **armed**.  It needs no
+  word of its own because `return` already means "leave this body and do not do
+  the rest".
+- **`stop`** disarms the `when` entirely: every pending run is abandoned and the
+  node is **removed** rather than disabled — a stopped `when` that lingers still
+  costs an edge walk and still counts toward cascades, which is the leak the
+  placement rule above exists to prevent.
 
 They are two pieces of state and must not be collapsed.  *Armed* asks whether
 the `when` may be triggered at all; *in flight* asks how many runs are going.
@@ -231,14 +234,17 @@ about whether the `when` should exist — collapse them and a chain is removed
 every time it finishes, so a one-shot works and a repeating one silently stops
 after its first run.
 
-A one-shot needs no `stop all`: `when ready { init; stop }` ends the run, and
-nothing re-triggers `ready`.  `stop all` is for abandoning work genuinely in
-flight, which is why it earns its keep at type scope — *this rule is off now,
-for every instance* cannot be said any other way.
+`stop` is for abandoning work genuinely in flight, which is why it earns its
+keep at type scope — *this rule is off now, for every instance* cannot be said
+any other way.
 
-`stop all` must be **one lexer token**, because `stop` is a prefix of it and R6
-requires determinate prefixes to be prefix-free.  The precedent is `for each`,
-which is one token and is exactly why `for` remains available.
+**A chain accumulates when its waits complete more slowly than its trigger
+fires**, and nothing reports it.  One run is taken per round, which bounds
+growth *within* a step — the trigger is edge-driven so it adds at most one per
+round, and the tail takes one — but across steps each settles cleanly while the
+count grows.  The runaway detector counts rounds inside a step and cannot see
+it.  This is the cost of counting, and it is why the chain-versus-deadline rule
+in the guide is an obligation rather than style advice.
 
 Because it can only *shrink* the graph it cannot make a legal program illegal,
 so cascade analysis over the never-stops graph stays sound and needs no dynamic
