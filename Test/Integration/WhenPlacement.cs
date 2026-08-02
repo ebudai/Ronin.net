@@ -72,6 +72,22 @@ public class WhenPlacement
         Assert.IsType<WhenInType>(Assert.Single(Of(source + "\n")));
     }
 
+    [Theory(DisplayName = "a «when» nobody could parse is malformed, not refused by name")]
+    [InlineData("type Box { when { return 1; } }")]
+    [InlineData("type Box { when changing { return 1; } }")]
+    public void AWhenNobodyCouldParseIsMalformedNotRefusedByName(string source)
+    {
+        // Found by audit. A parse-error node for a «when» is a reactive Scope
+        // too — the error types inherit from the real ones — so the
+        // first-invalid-element rule accepted one, and it has no keyword to
+        // point at. The null token went into the finding and took the compiler
+        // out on it.
+        //
+        // Recognising a construct in order to refuse it well requires having
+        // recognised one.
+        Assert.Equal(FindingKind.Malformed, Assert.Single(Of(source + "\n")).Kind);
+    }
+
     [Fact(DisplayName = "and a genuine syntax error in a type still says so")]
     public void AndAGenuineSyntaxErrorInATypeStillSaysSo()
     {

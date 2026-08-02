@@ -1140,7 +1140,7 @@ internal sealed class SymbolTable
                     "injection applies to declared cells and never to injected ones, so a second " +
                     "generation has to be captured by declaring a let for it.", nameof(names));
 
-            var shadow = Shadowed + name;
+            var shadow = Injection.Shadow.Of(name);
 
             if (Names.Contains(shadow))
                 throw new ArgumentException(
@@ -1192,9 +1192,20 @@ internal sealed class SymbolTable
 
     private readonly HashSet<string> constants = [];
 
-    /// <summary>The prefix a declaration injects, and the reserved word it is built from.</summary>
-    internal const string Old = "old";
-    internal const string Shadowed = Old + " ";
+    /// <summary>
+    ///     The prefix a declaration injects, and the reserved word it is built
+    ///     from — both read from the descriptor rather than spelled again.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Found by audit. These were a second, independent definition of the
+    ///     same word: changing <see cref="Injection.Shadow"/> moved the
+    ///     diagnostics, the protection rule and the generated registry while the
+    ///     resolver and the runtime went on injecting «old ». One description and
+    ///     everything consumes it, or the description is decoration.
+    /// </remarks>
+    internal static string Old => Injection.Shadow.Words[0];
+    internal static string Shadowed => Injection.Shadow.Prefix;
 
     public SymbolTable WithPatterns(params string[] patterns)
     {

@@ -176,11 +176,6 @@ internal sealed class Graph
 
         whens[name] = new Trigger(body, mode) { Order = whens.Count };
 
-        // A level trigger has to be asked every round even when nothing moved —
-        // it fires while its value holds, which is how a chain drains — so it is
-        // never a candidate the dirty set can leave out.
-        if (mode is TriggerMode.WhileTrue) level.Add(name);
-
         woken.Add(name);
 
         return node;
@@ -210,7 +205,7 @@ internal sealed class Graph
     public Node Shadow(string name)
     {
         var source = nodes[name];
-        var shadowed = SymbolTable.Shadowed + name;
+        var shadowed = Injection.Shadow.Of(name);
 
         if (nodes.TryGetValue(shadowed, out var shadow)) return shadow;
 
@@ -258,7 +253,7 @@ internal sealed class Graph
     {
         if (firing is null) throw new InvalidOperationException("«return» is only meaningful inside a body");
 
-        stopped = true;
+        returned = true;
     }
 
     /// <summary>
@@ -411,13 +406,20 @@ internal sealed class Graph
 
                      body(scope);
 
-                     // «stop» ends THIS run: it simply does not advance. The
-                     // «when» stays armed and the runs beside it are untouched,
-                     // which is why nothing is cleared here — there is no policy
-                     // to apply, because there is no rule holding a chain to one
-                     // run at a time.
-                     if (leaving is not null && stopped is false)
+                     // «return» ends THIS run: it simply does not advance.
+                     // The «when» stays armed and the runs beside it are
+                     // untouched, which is why nothing is cleared here — there
+                     // is no policy to apply, because there is no rule holding a
+                     // chain to one run at a time.
+                     //
+                     // «stop» is the other word and does not come through here:
+                     // it takes the whole «when» away, and the runs beside it
+                     // with it.
+                     if (leaving is not null && returned is false)
+                     {
                          scope.Write(leaving, Waiting(scope.Read(leaving)) + 1);
+                         scope.active.Add(name);
+                     }
                  },
                  arrived is null ? TriggerMode.BecomesTrue : TriggerMode.WhileTrue);
         }
@@ -656,20 +658,23 @@ internal sealed class Graph
         // The finite, known set of runs each chain inherited. Working through
         // them is definite progress toward a fixed point; runs CREATED during
         // the step are not, because creating and consuming work inside one
-        // settle is the shape the limit exists to catch. Runs are fungible
-        // WITHIN a chain, so the first this many consumed are the ones that were
-        // already here — but not across chains, and pooling them let a run
-        // sitting in one chain excuse a round spent making and taking work in
-        // another.
-        // Per COUNTER, and not per chain. Runs are fungible at one wait; a run
-        // parked at wait 2 is not interchangeable with one taken at wait 1, and
-        // a shared quota let the parked one pay for work newly made and consumed
-        // somewhere else in the same chain.
+        // settle is the shape the limit exists to catch.
+        //
+        // Per COUNTER, because that is the whole extent of the fungibility: runs
+        // are interchangeable AT ONE WAIT, so the first this many consumed there
+        // are the ones that were already here. A run parked at wait 2 is not
+        // interchangeable with one taken at wait 1, and a quota shared across a
+        // chain let the parked one pay for work newly made and consumed
+        // somewhere else in it. Sharing one across CHAINS was worse again.
         quota.Clear();
 
-        foreach (var chain in chains.Values)
+        // Only chains with a run in them. A chain at rest has nothing to inherit
+        // and nothing to watch, and walking every one made a no-op step cost
+        // O(chains) — the same shape as scanning every «when», one level down,
+        // and it is what the allocation measurement was actually finding.
+        foreach (var name in active)
         {
-            foreach (var counter in chain.Flags) quota[counter] = Waiting(nodes[counter].Value);
+            foreach (var counter in chains[name].Counts) quota[counter] = Waiting(nodes[counter].Value);
         }
 
         var rounds = 0;
@@ -679,7 +684,12 @@ internal sealed class Graph
         // them, so a «when» reading «old x» can be dirtied by nothing but the
         // step itself — and gating the loop on pending writes meant it was
         // dirtied and never examined.
-        while ((rounds is 0 || pending.Count is not 0) && counted < limit)
+        // Deferred positions are work this step still owes. Settling on pending
+        // writes alone let a ready continuation fall out of the step entirely
+        // when the round that deferred it wrote nothing — a «return» in the head
+        // writes no next count — so the tail waited for an unrelated step, and in
+        // an event-driven host possibly for an unrelated event.
+        while ((rounds is 0 || pending.Count is not 0 || deferred.Count is not 0) && counted < limit)
         {
             ++rounds;
             advanced = false;
@@ -701,7 +711,9 @@ internal sealed class Graph
             if (advanced is false) ++counted;
         }
 
-        if (pending.Count is not 0) throw Runaway(rounds);
+        // Deferred work outstanding is non-settlement exactly as a pending write
+        // is: the step ran out of rounds with something still to do.
+        if (pending.Count is not 0 || deferred.Count is not 0) throw Runaway(rounds);
 
         Draining();
 
@@ -738,9 +750,14 @@ internal sealed class Graph
         //
         // Sorted back into declaration order, because which «when» fires first
         // must not depend on which happened to be dirtied.
-        List<string> candidates = [.. woken, .. level.Where(name => woken.Contains(name) is false)];
+        // Filtered BEFORE the sort, not during the walk below. The comparison
+        // indexes «whens», so one stale name is carried harmlessly and two make
+        // the sort itself throw — and a chain that «stop» removed leaves exactly
+        // that behind, because its deferred positions were queued before it went.
+        List<string> candidates = [.. woken.Concat(deferred).Distinct().Where(whens.ContainsKey)];
 
         woken.Clear();
+        deferred.Clear();
 
         candidates.Sort((left, right) => whens[left].Order.CompareTo(whens[right].Order));
 
@@ -757,9 +774,7 @@ internal sealed class Graph
 
         foreach (var name in candidates)
         {
-            // a chain removed by «stop» takes its «when»s with it, and a name
-            // dirtied before that is no longer one
-            if (whens.TryGetValue(name, out var trigger) is false) continue;
+            var trigger = whens[name];
 
             var value = Read(name);
 
@@ -786,7 +801,7 @@ internal sealed class Graph
             // position would simply never run — so it stays a candidate too.
             if (fires && membership.TryGetValue(name, out var chain) && claimed.Add(chain) is false)
             {
-                woken.Add(name);
+                deferred.Add(name);
                 continue;
             }
 
@@ -824,7 +839,7 @@ internal sealed class Graph
 
         staged = [];
         firing = name;
-        stopped = false;
+        returned = false;
         halting = false;
         consuming = null;
 
@@ -840,6 +855,11 @@ internal sealed class Graph
         }
         catch (Exception defect)
         {
+            // Nothing it staged applied, so nothing it would have changed will
+            // wake it: a run it did not consume is still waiting, and only this
+            // puts the position back in front of the scheduler.
+            woken.Add(name);
+
             faults.Add(new Fault($"«{name}» failed and none of its writes were applied: " +
                                  $"{defect.GetType().Name}: {defect.Message}"));
         }
@@ -877,7 +897,8 @@ internal sealed class Graph
             foreach (var member in Belonging(name))
             {
                 whens.Remove(member);
-                level.Remove(member);
+                woken.Remove(member);
+                deferred.Remove(member);
                 Undeclare(member);
             }
         }
@@ -894,10 +915,11 @@ internal sealed class Graph
 
         var split = chains[chain];
 
-        foreach (var counter in split.Flags) Undeclare(counter);
+        foreach (var counter in split.Counts) Undeclare(counter);
 
         foreach (var reacting in split.Reacting) membership.Remove(reacting);
 
+        active.Remove(chain);
         chains.Remove(chain);
 
         return split.Reacting;
@@ -1190,7 +1212,14 @@ internal sealed class Graph
     private sealed class Split(IReadOnlyList<string> counters)
     {
         /// <summary>One count per wait, in order.</summary>
-        public IReadOnlyList<string> Flags { get; } = counters;
+        ///
+        /// <remarks>
+        ///     Counts, and once flags. A chain held one run at a time and each
+        ///     wait was set or clear; runs are counted now, and a name saying
+        ///     otherwise is how the superseded model keeps being read back out of
+        ///     the code.
+        /// </remarks>
+        public IReadOnlyList<string> Counts { get; } = counters;
         public List<string> Reacting { get; } = [];
 
         /// <summary>The fewest runs pending at any point in this window.</summary>
@@ -1235,9 +1264,25 @@ internal sealed class Graph
     /// </remarks>
     private void Draining()
     {
-        foreach (var (name, chain) in chains)
+        // A copy, because a chain that has emptied leaves «active» below.
+        foreach (var name in active.ToArray())
         {
-            var waiting = chain.Flags.Sum(counter => Waiting(nodes[counter].Value));
+            var chain = chains[name];
+
+            var waiting = 0d;
+
+            foreach (var counter in chain.Counts) waiting += Waiting(nodes[counter].Value);
+
+            // At rest: nothing to watch, and its quietest moment is zero, so the
+            // window begins again from there when a run next arrives.
+            if (waiting is 0)
+            {
+                active.Remove(name);
+                chain.Before = 0;
+                chain.Low = double.MaxValue;
+                chain.Steps = 0;
+                continue;
+            }
 
             if (waiting < chain.Low) chain.Low = waiting;
 
@@ -1304,8 +1349,11 @@ internal sealed class Graph
     /// <summary>«when»s whose condition may have moved since the last round.</summary>
     private readonly HashSet<string> woken = [];
 
-    /// <summary>«when»s that must be asked every round whatever moved.</summary>
-    private readonly HashSet<string> level = [];
+    /// <summary>Positions this round deferred, which the step still owes.</summary>
+    private readonly HashSet<string> deferred = [];
+
+    /// <summary>Chains with a run in them, the only ones with anything to do.</summary>
+    private readonly HashSet<string> active = [];
     private readonly Dictionary<string, object> pending = [];
     private readonly HashSet<string> stopping = [];
 
@@ -1313,7 +1361,14 @@ internal sealed class Graph
     private string firing;
 
     /// <summary>Whether that body asked not to advance.</summary>
-    private bool stopped;
+    /// <summary>Whether the body called <see cref="Return"/>, which is per firing.</summary>
+    ///
+    /// <remarks>
+    ///     Named for the word that sets it. It was «stopped», and the comment
+    ///     where it is read said «stop» ends this run — the one misdescription
+    ///     that has already sent a design round and an audit round the wrong way.
+    /// </remarks>
+    private bool returned;
 
     /// <summary>Whether it asked to be disarmed, which lands only if it finishes.</summary>
     private bool halting;

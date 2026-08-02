@@ -62,7 +62,7 @@ public class Waiting
     // 6 -------------------------------------------------------------------
 
     [Fact(DisplayName = "and the «when» is gone, not present and disabled")]
-    public void AndTheWhenIsGoneNotPresentAndFlagged()
+    public void AndTheWhenIsGoneNotPresentAndDisabled()
     {
         // A stopped «when» that lingers still costs an edge walk and still
         // counts toward cascades. "Stopped" that is not gone is the same leak
@@ -711,6 +711,153 @@ public class Waiting
         Assert.Equal(0d, graph.Read(Graph.Waiting("chain", 2)));
     }
 
+    [Fact(DisplayName = "«stop» with positions already deferred leaves nothing behind")]
+    public void StopWithPositionsAlreadyDeferredLeavesNothingBehind()
+    {
+        // Found by audit. A deferred position is queued by name, and «stop»
+        // removed the chain's «when»s, its nodes and its counts — but not the
+        // names it had queued. The next candidate sort indexes «whens» to order
+        // them, so ONE stale name is carried harmlessly and TWO make the
+        // comparison itself throw. That is why this needs three segments: a
+        // single stale candidate never invokes the comparer and passes.
+        var graph = Armed("a", "b", "c");
+
+        graph.Chain("chain",
+                    (scope => scope.Read("a"), scope => scope.Stop()),
+                    (scope => scope.Read("b"), _ => { }),
+                    (scope => scope.Read("c"), _ => { }));
+
+        graph.Prime();
+
+        // two runs in flight, one at each wait
+        Pulse(graph, "a");
+        Pulse(graph, "b");
+        Pulse(graph, "a");
+
+        // the head fires and stops while both continuations are also ready, so
+        // both are deferred and then removed underneath the queue
+        graph.Write("a", true);
+        graph.Write("b", true);
+        graph.Write("c", true);
+        graph.Step();
+
+        Assert.False(graph.Reacts("chain"));
+
+        // the step that used to throw
+        graph.Step();
+        graph.Write("a", false);
+        graph.Step();
+    }
+
+    [Fact(DisplayName = "a deferred position runs in the step that deferred it")]
+    public void ADeferredPositionRunsInTheStepThatDeferredIt()
+    {
+        // Found by audit. Deferring is scheduler work, and the settle loop
+        // continued only while WRITES were pending — so when the round that
+        // deferred a position wrote nothing, the step ended with the position
+        // still owed. A «return» in the head is exactly that: it deliberately
+        // writes no next count.
+        //
+        // The tail then waited for an unrelated step, and in a host that steps
+        // only when something changes, for an unrelated event. Both settled
+        // rules say otherwise: runs beside the returning one are unaffected, and
+        // a satisfied wait proceeds in the same step.
+        var graph = Armed("a", "b", "bail");
+        List<string> ran = [];
+
+        graph.Chain("chain",
+                    (scope => scope.Read("a"),
+                     scope => { ran.Add("head"); if (Equals(scope.Read("bail"), true)) scope.Return(); }),
+                    (scope => scope.Read("b"), _ => ran.Add("tail")));
+
+        graph.Prime();
+
+        Pulse(graph, "a");          // one run parked at the wait
+
+        ran.Clear();
+        graph.Write("bail", true);
+        graph.Step();
+
+        // the head fires and returns, and the parked run's wait is satisfied too
+        graph.Write("a", true);
+        graph.Write("b", true);
+        graph.Step();
+
+        Assert.Equal(["head", "tail"], ran);
+    }
+
+    [Fact(DisplayName = "a chain at rest costs nothing, however many there are")]
+    public void AChainAtRestCostsNothingHoweverManyThereAre()
+    {
+        // Found by audit, and it was the other half of the sparse-scheduling
+        // finding: ordinary «when»s stopped being scanned, and every chain
+        // continuation was still visited, sorted and read every round. Worse, the
+        // step rebuilt a quota and a low-water reading for every chain there was.
+        //
+        // A chain at rest has nothing to inherit and nothing to watch. Nothing
+        // needs to keep asking it — a run arriving changes its count, and so does
+        // taking one, and either wakes it like any other node.
+        static long Resting(int chains)
+        {
+            Graph graph = new();
+
+            for (var each = 0; each < chains; ++each)
+            {
+                graph.Var($"s{each}", false);
+                graph.Var($"t{each}", false);
+
+                var mine = each;
+
+                graph.Chain($"chain {each}",
+                            (scope => scope.Read($"s{mine}"), _ => { }),
+                            (scope => scope.Read($"t{mine}"), _ => { }));
+            }
+
+            graph.Prime();
+            graph.Step();
+
+            var before = GC.GetAllocatedBytesForCurrentThread();
+
+            for (var step = 0; step < 50; ++step) graph.Step();
+
+            return (GC.GetAllocatedBytesForCurrentThread() - before) / 50;
+        }
+
+        // Flat rather than a number, because the absolute figure is the
+        // allocator's business and the shape is the finding: fifty times the
+        // chains must not cost fifty times the step.
+        var few = Resting(100);
+        var many = Resting(5000);
+
+        Assert.True(many <= few * 2, $"{few} bytes at 100 chains, {many} at 5000");
+    }
+
+    [Fact(DisplayName = "and one active among many at rest still drains")]
+    public void AndOneActiveAmongManyAtRestStillDrains()
+    {
+        Graph graph = new();
+
+        for (var each = 0; each < 200; ++each)
+        {
+            graph.Var($"s{each}", false);
+            graph.Var($"t{each}", false);
+
+            var mine = each;
+
+            graph.Chain($"chain {each}",
+                        (scope => scope.Read($"s{mine}"), _ => { }),
+                        (scope => scope.Read($"t{mine}"), _ => { }));
+        }
+
+        graph.Prime();
+
+        Pulse(graph, "s7");
+        Assert.Equal(1d, graph.Read(Graph.Waiting("chain 7", 1)));
+
+        Pulse(graph, "t7");
+        Assert.Equal(0d, graph.Read(Graph.Waiting("chain 7", 1)));
+    }
+
     [Fact(DisplayName = "a run parked at one wait does not excuse work taken at another")]
     public void ARunParkedAtOneWaitDoesNotExcuseWorkTakenAtAnother()
     {
@@ -776,9 +923,10 @@ public class Waiting
     [Fact(DisplayName = "a run parked in one chain does not excuse another's new work")]
     public void ARunParkedInOneChainDoesNotExcuseAnothersNewWork()
     {
-        // Found by audit. Runs are fungible WITHIN a chain, which is what lets
-        // the exemption be a countdown rather than a tag per run — but they are
-        // not fungible across chains, and one pooled counter let a run sitting
+        // Found by audit. Runs are fungible at ONE WAIT, which is what lets the
+        // exemption be a countdown per counter rather than a tag per run — they
+        // are fungible neither across the waits of a chain (the test above) nor
+        // across chains, and one pooled counter let a run sitting
         // in a chain that never drains excuse every round another chain spent
         // creating and consuming its own work. The limit simply stopped firing.
         Graph graph = new(cascades: 2);

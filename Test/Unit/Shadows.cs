@@ -29,6 +29,28 @@ public class Shadows
                      resolver.Resolve("old smoothed * 0.9 + reading * 0.1").Reading);
     }
 
+    [Fact(DisplayName = "and the name it injects is the descriptor's, in both halves")]
+    public void AndTheNameItInjectsIsTheDescriptorsInBothHalves()
+    {
+        // Found by audit, and the point of the finding is that the test above
+        // cannot see it: it spells «old reading» by hand, so the resolver and the
+        // runtime could each hold their own copy of the word and it would still
+        // pass. Changing the descriptor would then move the diagnostics, the
+        // protection rule and the generated registry and leave these two behind.
+        //
+        // So this asserts the joins rather than the spelling: whatever the
+        // descriptor says, that is what goes in scope and that is what gets
+        // allocated.
+        var injected = Injection.Shadow.Of("reading");
+
+        Assert.Contains(injected, new SymbolTable().Declaring("reading").Names);
+
+        Graph graph = new();
+        graph.Var("reading", 10d);
+
+        Assert.Equal(injected, graph.Shadow("reading").Name);
+    }
+
     [Fact(DisplayName = "a cell reading its own old is not a cycle")]
     public void ACellReadingItsOwnOldIsNotACycle()
     {

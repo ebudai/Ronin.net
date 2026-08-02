@@ -65,9 +65,17 @@ internal class Type : Member
             // ready { … } }», where the «if» is the invalid member and comes
             // first — so removing the diagnosed «when» left the original failure
             // untouched.
+            // A parse-error node for a «when» is a reactive Scope too, and has
+            // no keyword to point at — «type Box { when { return 1; } }» reached
+            // here, carried a null token into the finding, and took the compiler
+            // out on it. Recognising a construct in order to refuse it well
+            // requires having recognised one: a «when» nobody could parse is
+            // ordinary malformed input and says so.
             if (Loose.Parse(ref reading) is Loose body
                 && body.FirstOrDefault(element => element is not Member) is Scope reactive
-                && reactive.Reacts)
+                && reactive is not IError
+                && reactive.Reacts
+                && reactive.Opened is not null)
             {
                 return new ReactiveMemberError
                 {
