@@ -2,7 +2,9 @@
 
 using Ronin.Compiler;
 using Ronin.Lexicon;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Ronin.Grammar;
 /// <summary>
@@ -45,6 +47,29 @@ internal class Type : Member
 
         var definition = Definition.Parse(ref parser);
 
+        // Recognised in order to be REFUSED, which is diagnostics and not
+        // semantics: it adds a message and no node, no lifetime, and no
+        // instance. A «when» in a type is designed — it lives as long as the
+        // instance does — and blocked on the instance binding model, which is
+        // not built. For a language whose diagnostics are the teaching
+        // mechanism, "designed and not implemented" and "I cannot read this"
+        // must not look the same to someone who understood the design and wrote
+        // it correctly.
+        if (definition is null)
+        {
+            Parser reading = parser;
+
+            if (Loose.Parse(ref reading) is Loose body
+                && body.OfType<Scope>().FirstOrDefault(scope => scope.Reacts) is Scope reactive)
+            {
+                return new ReactiveMemberError
+                {
+                    Opened = reactive.Opened,
+                    Tokens = Parser.Recover(ref current, reading),
+                };
+            }
+        }
+
         current = parser;
         return new Type
         {
@@ -58,6 +83,32 @@ internal class Type : Member
     public class Definition : Aggregate<Definition, Open.Brace, Member, Terminal, Close.Brace>
     {
 
+    }
+
+    /// <summary>
+    ///     A type body read loosely, so that what it holds can be named.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Never becomes part of the tree. <see cref="Definition"/> takes members
+    ///     and a «when» is not one, so the body simply failed to parse and every
+    ///     such type came back as unexpected input — the same message as a stray
+    ///     bracket. This reads the same span again with the element loosened, for
+    ///     the sole purpose of telling the two apart.
+    /// </remarks>
+    private class Loose : Aggregate<Loose, Open.Brace, Statement, Terminal, Close.Brace>
+    {
+
+    }
+
+    /// <summary>A «when» declared inside a type, which is not built yet.</summary>
+    public class ReactiveMemberError : Type, IError
+    {
+        /// <summary>The «when» keyword, which is what a message points at.</summary>
+        public Token Opened { get; init; }
+
+        public string Reason { get; } = "a «when» inside a type is not implemented";
+        public ReadOnlyMemory<Token> Tokens { get; init; }
     }
 
     public class ExpectedAlgebraError : Type, IError

@@ -55,6 +55,34 @@ public class WhenPlacement
         Assert.Equal(inside, misplaced.Inside);
     }
 
+    [Theory(DisplayName = "inside a type it is refused by name, not as a syntax error")]
+    [InlineData("type Box { when ready { return 1; } }")]
+    [InlineData("type Box { when changing ready { return 1; } }")]
+    [InlineData("type Box { var a => Number; when ready { return 1; } }")]
+    public void InsideATypeItIsRefusedByNameNotAsASyntaxError(string source)
+    {
+        // A type «when» is designed — it lives as long as the instance — and
+        // blocked on the instance binding model, which is not built. A user who
+        // writes one has understood the design, and was being told they made a
+        // syntax error: a type's members are an aggregate of Member, a «when» is
+        // a Scope, so the body simply failed to parse and came back as
+        // «unexpected input», the same message as a stray bracket.
+        //
+        // Recognising it to refuse it adds a message and no semantics.
+        Assert.IsType<WhenInType>(Assert.Single(Of(source + "\n")));
+    }
+
+    [Fact(DisplayName = "and a genuine syntax error in a type still says so")]
+    public void AndAGenuineSyntaxErrorInATypeStillSaysSo()
+    {
+        // The other half, and the reason the first matters: the loose re-read
+        // exists to tell these apart, so it must not swallow everything. A type
+        // body that holds no «when» is refused exactly as it was.
+        Assert.Equal(FindingKind.Malformed, Assert.Single(Of("type Box { + }\n")).Kind);
+
+        Assert.Empty(Of("type Box { var a => Number; }\n"));
+    }
+
     [Fact(DisplayName = "the caret is on the «when», not its body or its condition")]
     public void TheCaretIsOnTheWhenNotItsBodyOrItsCondition()
     {

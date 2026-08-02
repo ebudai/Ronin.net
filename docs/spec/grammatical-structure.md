@@ -161,6 +161,31 @@ nothing.
 It is also what lets the lifetime rule be stated whole: a module `when` lives as
 long as the module, and a type `when` as long as the instance.
 
+A `when` inside a ***type*** is **designed and not implemented**.  It is blocked
+on the instance binding model — whether an instance is a set of nodes or an
+index into one cell per member — which cannot be retrofitted and so has to be
+decided first.  Writing one is refused by name rather than as a syntax error.
+
+#### `stop`
+
+`stop` is legal only in a `when` body, takes effect at the end of the round, and
+**removes the node** rather than disabling it: a stopped `when` that lingers
+still costs an edge walk and still counts toward cascades, which is the leak the
+placement rule above exists to prevent.
+
+Because it can only *shrink* the graph it cannot make a legal program illegal,
+so cascade analysis over the never-stops graph stays sound and needs no dynamic
+counterpart.
+
+**Every `when` carries a liveness mask, and module scope is the one-element
+case.**  `stop` clears the caller's bit; the node is removed when the mask
+empties.  This is what makes `stop` mean the same thing in both scopes: under
+one cell per member there is a *single* node evaluating a predicate across every
+instance, so removing it on `stop` would stop the behaviour for all of them —
+and the instance that breaks is not the one whose code ran.  Neither `stop` nor
+the mask is built; the rule is recorded here so that whoever writes `stop` first
+does not have to rediscover it.
+
 ## 4.6 Aggregates
 A collection of zero or more specific syntax separated by a given delimiter.  The sequence cannot be ended by the delimiter unless otherwise specified.
 ### 4.6.1 Definition

@@ -64,6 +64,9 @@ internal enum FindingKind
     /// <summary>A «when» declared where it could never run.</summary>
     MisplacedWhen,
 
+    /// <summary>A «when» inside a type, which is designed and not built.</summary>
+    WhenInType,
+
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
 }
@@ -313,6 +316,31 @@ internal sealed class LeadingHole(Span primary, string pattern)
         => $"«{Pattern}» begins with a parameter, which makes it infix rather than a word " +
            "pattern. A word pattern leads with its name — respell it so the words come first, " +
            "or declare a symbolic operator, which is where infix belongs.";
+}
+
+/// <summary>
+///     A «when» inside a type, which is designed and not implemented.
+/// </summary>
+///
+/// <remarks>
+///     Its own kind rather than the general parse failure, because a user who
+///     writes this has understood the design and is being told they made a
+///     syntax error. For a language whose diagnostics are the teaching
+///     mechanism, "designed and not built" and "I cannot read this" must not
+///     look the same.
+///     <para>
+///     What blocks it is the instance binding model: a type «when» lives as long
+///     as the instance, and whether an instance is a set of nodes or an index
+///     into one cell per member is a decision that cannot be retrofitted. So the
+///     construct is recognised and refused, which adds a message and no
+///     semantics.
+///     </para>
+/// </remarks>
+internal sealed class WhenInType(Span primary) : Finding(FindingKind.WhenInType, primary)
+{
+    public override string Message
+        => "a «when» inside a type is not implemented yet. It needs the instance binding model, which is not built — " +
+           "so declare it at module scope, or track the instance explicitly.";
 }
 
 /// <summary>

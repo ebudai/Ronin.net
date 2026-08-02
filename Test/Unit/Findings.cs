@@ -57,6 +57,7 @@ public class Findings
                      "function ping () { return 1; }\n",
                      "function outer (callback (x => Number) => Number) { return 1; }\n",
                      "function update path { when ready { return 1; } }\n",
+                     "type Box { when ready { return 1; } }\n",
                      """
                      function item (which => Number) of (list => Number) { return which; }
                      for each bank in banks { return bank; }
@@ -218,6 +219,8 @@ public class Findings
             Player.ron:1:17: «callback (_)» has a bracket in it, and this position takes a name. A bracket marks an argument, and a parameter is bound to one value rather than taking any — so there is nothing for a hole here to mean. Name it, or declare the pattern separately.
 
             Player.ron:1:24: «when» may only be declared at module scope or inside a type. This one is inside «update path», where it would go out of scope before it could ever run — a step happens between statements, not during one.
+
+            Player.ron:1:12: a «when» inside a type is not implemented yet. It needs the instance binding model, which is not built — so declare it at module scope, or track the instance explicitly.
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
 

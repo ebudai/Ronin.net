@@ -468,7 +468,18 @@ internal sealed class Compilation
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<System.Type, System.Reflection.PropertyInfo[]> members = new();
 
     private void Malformed(IError error)
-        => Add(new Malformed(Where(error), error.Reason, Text(error)));
+    {
+        // Recognised in order to be refused by name. Everything else here is a
+        // parse that failed; this is one that succeeded at telling us what the
+        // author meant, and said it is not built.
+        if (error is Grammar.Type.ReactiveMemberError reactive)
+        {
+            Add(new WhenInType(Where(reactive.Opened)));
+            return;
+        }
+
+        Add(new Malformed(Where(error), error.Reason, Text(error)));
+    }
 
     /// <summary>
     ///     Records a finding, once.
