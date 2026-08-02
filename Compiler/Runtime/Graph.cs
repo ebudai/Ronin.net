@@ -711,15 +711,18 @@ internal sealed class Graph
         while ((rounds is 0 || pending.Count is not 0 || deferred.Count is not 0) && counted < limit)
         {
             ++rounds;
-            advanced = false;
+            servicing.Clear();
 
             Propagate();
 
             // settle is an ordinary pull, so a trigger reading derived values
             // gets consistent ones
-            foreach (var name in Triggered()) Fire(name);
+            var ran = Triggered();
+
+            foreach (var name in ran) Fire(name);
 
             Stopped();
+            Displaced();
 
             // A round that took one of the runs this step began with is the
             // graph settling slowly, not failing to settle: each one strictly
@@ -741,7 +744,15 @@ internal sealed class Graph
             // queue draining healthily in one chain pay for work another chain
             // made and deferred this step — the cross-chain subsidy the quota
             // was made per counter to stop, arriving by the other door.
-            if (advanced is false && Throttled() is false) ++counted;
+            //
+            // And EVERY firing in the round, not any one of them. Several
+            // independent reactions share a round, so reducing an owned credit
+            // to "this round was free" handed the exemption to whatever else
+            // happened to fire beside it — a queue draining three deep bought
+            // three extra rounds for an unrelated «when» writing what its own
+            // trigger reads. The credit is spent on the work it belongs to and
+            // covers that; a round is free when there was nothing else in it.
+            if (ran.Count is 0 || ran.Exists(name => servicing.Contains(name) is false)) ++counted;
         }
 
         // Deferred work outstanding is non-settlement exactly as a pending write
@@ -803,7 +814,7 @@ internal sealed class Graph
         //
         // One per round for the whole written «when», not for each continuation
         // separately, which is what "one run per round" meant all along.
-        HashSet<string> claimed = [];
+        claimed.Clear();
 
         foreach (var name in candidates)
         {
@@ -832,7 +843,7 @@ internal sealed class Graph
             // Deferred, and the baseline is left alone so the edge survives to
             // the next round. Advancing it would consume the transition and the
             // position would simply never run — so it stays a candidate too.
-            if (fires && membership.TryGetValue(name, out var chain) && claimed.Add(chain) is false)
+            if (fires && membership.TryGetValue(name, out var chain) && claimed.TryAdd(chain, name) is false)
             {
                 deferred.Add(name);
                 continue;
@@ -1007,7 +1018,10 @@ internal sealed class Graph
         // Both numbers, because they stopped being the same one. What is bounded
         // is rounds spent on work the step MADE; rounds spent draining what it
         // inherited, or displaced by the head that owns it, are free and are not
-        // in this count. Reporting the physical figure and then saying every one
+        // in this count. Counted and not created, because the last round of a
+        // step fires nothing and is charged — it makes nothing either, so
+        // naming the count after created work would be a second small lie in
+        // the same sentence. Reporting the physical figure and then saying every one
         // of those rounds created the next was a confident, specific description
         // of a program the author had not written — which is worse than a vague
         // one, because it sends them looking for a bug that is not there.
@@ -1015,7 +1029,8 @@ internal sealed class Graph
         // «Likely» for the same reason. These are the last three that fired, not
         // three the runtime has any evidence against.
         return new RunawayCascade(
-            $"the graph did not settle: {counted} rounds of work it created, out of {rounds} in all. " +
+            $"the graph did not settle: {counted} rounds counted against the limit, out of {rounds} in " +
+            "all. " +
             $"Likely sources, being the last to fire: {culprits}. Most often a when body writes a var its own " +
             "trigger reads, so each firing schedules another. Stop the body writing once the condition it acts " +
             "on is satisfied.");
@@ -1457,7 +1472,11 @@ internal sealed class Graph
     private string consuming;
 
     /// <summary>Whether this round took a run the step began with.</summary>
-    private bool advanced;
+    /// <summary>What fired this round in service of work the step inherited.</summary>
+    private readonly HashSet<string> servicing = [];
+
+    /// <summary>The position each chain ran this round, which is what displaces.</summary>
+    private readonly Dictionary<string, string> claimed = [];
 
     /// <summary>
     ///     Records that this round consumed one of <paramref name="chain"/>'s
@@ -1491,7 +1510,7 @@ internal sealed class Graph
     ///     inherited; a position present with nothing left has already been
     ///     forgiven for every run it was holding.
     /// </remarks>
-    private bool Throttled()
+    private void Displaced()
     {
         foreach (var name in deferred)
         {
@@ -1503,10 +1522,11 @@ internal sealed class Graph
 
             --credit.Displacements;
 
-            return true;
+            // The head that owns it, which is the whole of what the run pays
+            // for. It was deferred because that position claimed the chain
+            // first, so that position is the firing being forgiven.
+            servicing.Add(claimed[membership[name]]);
         }
-
-        return false;
     }
 
     /// <summary>Spends the quota a finished body claimed, if it had one.</summary>
@@ -1528,7 +1548,7 @@ internal sealed class Graph
         if (credits.TryGetValue(consuming, out var credit) && credit.Drains >= 1)
         {
             --credit.Drains;
-            advanced = true;
+            servicing.Add(firing);
 
             // Displacement credit is a reading of what is parked here, so it
             // cannot outlast it. Runs at one wait are fungible: after a drain the

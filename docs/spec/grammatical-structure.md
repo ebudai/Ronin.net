@@ -296,6 +296,14 @@ Stated once, since the two exemptions are one rule:
 > being displaced by the head that owns it — are not in scope.  For `k`
 > inherited runs there are at most `2k` of them.
 
+An exemption belongs to the firing that earned it and not to the round it
+happened in.  Several independent reactions share a round, so a round is free
+only when **everything** in it was servicing inherited work; one containing
+anything else is counted, including the reaction that would have been free on
+its own.  Otherwise a queue draining three deep buys three extra rounds for an
+unrelated `when` writing what its own trigger reads, and the guarantee below
+would be false.
+
 A free round is not counted, so it cannot displace anything: a step holding a
 thousand parked runs *and* a genuine runaway still catches the runaway after
 exactly `cascades` rounds of created work, undelayed.  What grows with `k` is how

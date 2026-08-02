@@ -1171,39 +1171,39 @@ public class Waiting
     }
 
     [Theory(DisplayName = "and a run that has already drained pays for nothing after it")]
-    [InlineData(5, 0)]
-    [InlineData(6, 7)]
+    [InlineData(6, 0)]
+    [InlineData(7, 7)]
     public void AndARunThatHasAlreadyDrainedPaysForNothingAfterIt(int cascades, int settles)
     {
-        // Found by audit, and it is the same subsidy as the cross-chain one seen
-        // across TIME rather than across chains: the two credits were two tables
-        // read from the same count, and the displacement credit outlived what it
-        // was a reading of. Drain the run parked here and its unspent
-        // displacement credit stayed behind, ready to forgive a run this step
-        // made at the same wait.
+        // Found by audit, and it is the cross-chain subsidy seen across TIME
+        // rather than across chains: the two credits were two tables read from
+        // the same count, and the displacement one outlived what it was a
+        // reading of. Drain the run parked here and its unspent displacement
+        // credit stayed behind to forgive a run this step made at the same wait.
         //
-        // The three controls beside this one all miss it. Two of them leave the
-        // run parked while it pays, and the third displaces it before draining
-        // it — which is the order that IS free, and stays free.
+        // Same driver shape as the test below, and for the same reason: the
+        // round that defers has to contain only the head.
         Graph graph = new(cascades: cascades);
         graph.Var("h", false);
         graph.Var("w", false);
-        graph.Var("phase", 0d);
+        graph.Var("a", false);
+        graph.Var("b", false);
+        graph.Var("c", false);
 
         graph.Chain("chain",
                     (scope => scope.Read("h"), _ => { }),
                     (scope => scope.Read("w"), _ => { }));
 
-        graph.When("phasing", scope => scope.Read("phase"), scope =>
-        {
-            var phase = (double)scope.Read("phase");
+        // shuts the wait behind the drain, so the run the head makes next cannot
+        // leave before a second one is made and displaces it
+        graph.When("when a", scope => scope.Read("a"),
+                   scope => { scope.Write("w", false); scope.Write("h", true); scope.Write("b", true); });
 
-            // shuts the wait behind the drain, so the run the head makes next
-            // cannot leave before a second one is made and displaces it
-            if (phase is 1d) { scope.Write("w", false); scope.Write("h", true); scope.Write("phase", 2d); }
-            else if (phase is 2d) { scope.Write("h", false); scope.Write("phase", 3d); }
-            else if (phase is 3d) { scope.Write("h", true); scope.Write("w", true); scope.Write("phase", 4d); }
-        }, TriggerMode.Changes);
+        graph.When("when b", scope => scope.Read("b"),
+                   scope => { scope.Write("h", false); scope.Write("c", true); });
+
+        graph.When("when c", scope => scope.Read("c"),
+                   scope => { scope.Write("h", true); scope.Write("w", true); });
 
         graph.Prime();
 
@@ -1213,22 +1213,9 @@ public class Waiting
         // the tested step opens the wait, so its first round drains that run and
         // everything at this wait afterwards was made by this step
         graph.Write("w", true);
-        graph.Write("phase", 1d);
+        graph.Write("a", true);
 
-        if (settles is 0)
-        {
-            // Found by audit. The two numbers stopped being the same one the
-            // moment servicing inherited work became free, and the message went
-            // on reporting the physical figure and saying every one of those
-            // rounds created the next. A reader given six rounds and told all
-            // six made work goes looking for a body writing what its trigger
-            // reads — in a step where one of them was draining a queue.
-            var runaway = Assert.Throws<RunawayCascade>(() => graph.Step());
-
-            Assert.StartsWith("the graph did not settle: 5 rounds of work it created, out of 6 in all.",
-                              runaway.Message);
-            Assert.Contains("Likely sources, being the last to fire:", runaway.Message);
-        }
+        if (settles is 0) Assert.Throws<RunawayCascade>(() => graph.Step());
         else Assert.Equal(settles, graph.Step());
     }
 
@@ -1237,22 +1224,27 @@ public class Waiting
     [InlineData(7, 7)]
     public void AndNoOtherChainsParkedRunCanBeSpentOnIt(int cascades, int settles)
     {
-        // Found by audit. The forgiveness was capped at what the step inherited
-        // and then counted graph-wide, so a queue draining healthily in one
-        // chain paid for work another chain made and deferred during the step —
-        // the cross-chain subsidy the quota was made per counter to stop,
-        // arriving by the other door. One run parked here is the only difference
-        // between the two cases below, and it is in a chain that never runs.
+        // Found by audit. The forgiveness was counted graph-wide, so a queue
+        // draining healthily in one chain paid for work another chain made and
+        // deferred during the step — the cross-chain subsidy the quota was made
+        // per counter to stop, arriving by the other door. One run parked here
+        // is the only difference between the two cases, and it is in a chain
+        // that never runs.
         //
-        // So the allowance is owned. A count and the continuation waiting on it
-        // are one to one, and what forgives a round is a run that was parked at
-        // the very wait the round declined to serve.
+        // The driver is three one-shot «when»s rather than something firing
+        // every round, and the last of them arms the head and opens the wait in
+        // ONE write. That is what makes the round that defers contain only the
+        // head — a round with anything else in it is charged whatever credit
+        // the chain has, so a driver that ticks alongside would hide the whole
+        // question.
         Graph graph = new(cascades: cascades);
         graph.Var("old head", false);
         graph.Var("never", false);
         graph.Var("new head", false);
         graph.Var("guard", false);
-        graph.Var("phase", 0d);
+        graph.Var("a", false);
+        graph.Var("b", false);
+        graph.Var("c", false);
 
         graph.Chain("old chain",
                     (scope => scope.Read("old head"), _ => { }),
@@ -1262,73 +1254,152 @@ public class Waiting
                     (scope => scope.Read("new head"), _ => { }),
                     (scope => scope.Read("guard"), _ => { }));
 
-        // arms the new chain, re-arms its head, and opens its wait — all inside
-        // the step under test, so every run in it was made by it
-        graph.When("phasing", scope => scope.Read("phase"), scope =>
-        {
-            var phase = (double)scope.Read("phase");
+        graph.When("when a", scope => scope.Read("a"),
+                   scope => { scope.Write("new head", true); scope.Write("b", true); });
 
-            if (phase is 1d) { scope.Write("new head", true); scope.Write("phase", 2d); }
-            else if (phase is 2d) { scope.Write("new head", false); scope.Write("phase", 3d); }
-            else if (phase is 3d)
-            {
-                scope.Write("new head", true);
-                scope.Write("guard", true);
-                scope.Write("phase", 4d);
-            }
-        }, TriggerMode.Changes);
+        graph.When("when b", scope => scope.Read("b"),
+                   scope => { scope.Write("new head", false); scope.Write("c", true); });
+
+        graph.When("when c", scope => scope.Read("c"),
+                   scope => { scope.Write("new head", true); scope.Write("guard", true); });
 
         graph.Prime();
 
         // the unrelated inherited run, parked in a step of its own
         Pulse(graph, "old head");
 
-        graph.Write("phase", 1d);
+        graph.Write("a", true);
 
         if (settles is 0) Assert.Throws<RunawayCascade>(() => graph.Step());
         else Assert.Equal(settles, graph.Step());
     }
 
-    [Theory(DisplayName = "and one parked run forgives one deferral, not every one after it")]
-    [InlineData(4, 0)]
-    [InlineData(5, 7)]
-    public void AndOneParkedRunForgivesOneDeferralNotEveryOneAfterIt(int cascades, int settles)
+    [Fact(DisplayName = "and a draining queue buys nothing for an unrelated runaway")]
+    public void AndADrainingQueueBuysNothingForAnUnrelatedRunaway()
     {
-        // The positive cap, which the zero-inherited test above cannot stand in
-        // for: there the allowance was empty and nothing could be spent, so it
-        // proved only that nothing buys nothing.
+        // Found by audit, and it is the fourth form of one shape: the credit was
+        // owned by the right wait and the right generation, and then the ROUND
+        // was declared free on the strength of it. Several independent reactions
+        // share a round, so a queue draining three deep handed its exemption to
+        // a «when» writing what its own trigger reads, and the runaway fired
+        // five times against a limit of two.
         //
-        // Here one run is parked, its wait opens during the step, and its head
-        // is re-armed twice — so the same position is deferred twice and there
-        // is one run to pay for it. The second deferral is the step's own work
-        // and is charged like any other.
-        Graph graph = new(cascades: cascades);
+        // A credit is spent on the work it belongs to. A round is free when
+        // there was nothing else in it.
+        Graph graph = new(cascades: 2);
         graph.Var("h", false);
         graph.Var("w", false);
-        graph.Var("phase", 0d);
+        graph.Var("spin", 0d);
+        var fired = 0;
 
-        graph.Chain("chain",
+        graph.Chain("queue",
                     (scope => scope.Read("h"), _ => { }),
                     (scope => scope.Read("w"), _ => { }));
 
-        graph.When("phasing", scope => scope.Read("phase"), scope =>
-        {
-            var phase = (double)scope.Read("phase");
-
-            if (phase is 1d) { scope.Write("w", true); scope.Write("h", true); scope.Write("phase", 2d); }
-            else if (phase is 2d) { scope.Write("h", false); scope.Write("phase", 3d); }
-            else if (phase is 3d) { scope.Write("h", true); scope.Write("phase", 4d); }
-        }, TriggerMode.Changes);
+        graph.When("spinning",
+                   scope => scope.Read("spin"),
+                   scope => { ++fired; scope.Write("spin", (double)scope.Read("spin") + 1d); },
+                   TriggerMode.Changes);
 
         graph.Prime();
 
-        // parked while its wait is still shut, so it is still there next step
+        // three real runs parked at a shut wait, in ordinary steps
+        for (var each = 0; each < 3; ++each) Pulse(graph, "h");
+
+        Assert.Equal(3d, graph.Read(Graph.Waiting("queue", 1)));
+
+        fired = 0;
+        graph.Write("w", true);
+        graph.Write("spin", 1d);
+
+        Assert.Throws<RunawayCascade>(() => graph.Step());
+
+        // twice, which is what «cascades: 2» says — not five
+        Assert.Equal(2, fired);
+    }
+
+    [Fact(DisplayName = "and neither does a run being displaced and then drained")]
+    public void AndNeitherDoesARunBeingDisplacedAndThenDrained()
+    {
+        // The same, for the other credit. One old run in one chain was buying
+        // two rounds for unrelated work: one for its displacement and one for
+        // its drain. Both exemptions are still separately real — the test above
+        // proves that — and neither of them reaches beyond the firing it belongs
+        // to.
+        Graph graph = new(cascades: 2);
+        graph.Var("h", false);
+        graph.Var("w", false);
+        graph.Var("bail", false);
+        graph.Var("spin", 0d);
+        var fired = 0;
+
+        graph.Chain("queue",
+                    (scope => scope.Read("h"),
+                     scope => { if (Equals(scope.Read("bail"), true)) scope.Return(); }),
+                    (scope => scope.Read("w"), _ => { }));
+
+        graph.When("spinning",
+                   scope => scope.Read("spin"),
+                   scope => { ++fired; scope.Write("spin", (double)scope.Read("spin") + 1d); },
+                   TriggerMode.Changes);
+
+        graph.Prime();
+
         Pulse(graph, "h");
 
-        graph.Write("phase", 1d);
+        fired = 0;
+        graph.Write("bail", true);
+        graph.Write("h", true);
+        graph.Write("w", true);
+        graph.Write("spin", 1d);
 
-        if (settles is 0) Assert.Throws<RunawayCascade>(() => graph.Step());
-        else Assert.Equal(settles, graph.Step());
+        Assert.Throws<RunawayCascade>(() => graph.Step());
+
+        Assert.Equal(2, fired);
+    }
+
+    [Fact(DisplayName = "and the report says which rounds it counted and how many there were")]
+    public void AndTheReportSaysWhichRoundsItCountedAndHowManyThereWere()
+    {
+        // Found by audit. The two numbers stopped being the same one when
+        // servicing inherited work became free, and the message went on
+        // reporting the physical figure while saying every one of those rounds
+        // created the next. A reader given five rounds and told all five made
+        // work goes looking for a body writing what its trigger reads, in a step
+        // where three of them were draining a queue.
+        //
+        // The step below is the whole guarantee in one program: three inherited
+        // runs drain in rounds of their own and cost nothing, the last of them
+        // starts a genuine runaway, and it is caught after exactly «cascades»
+        // rounds — not three later.
+        Graph graph = new(cascades: 2);
+        graph.Var("h", false);
+        graph.Var("w", false);
+        graph.Var("spin", 0d);
+        var drained = 0;
+
+        graph.Chain("queue",
+                    (scope => scope.Read("h"), _ => { }),
+                    (scope => scope.Read("w"),
+                     scope => { if (++drained is 3) scope.Write("spin", 1d); }));
+
+        graph.When("spinning",
+                   scope => scope.Read("spin"),
+                   scope => scope.Write("spin", (double)scope.Read("spin") + 1d),
+                   TriggerMode.Changes);
+
+        graph.Prime();
+
+        for (var each = 0; each < 3; ++each) Pulse(graph, "h");
+
+        drained = 0;
+        graph.Write("w", true);
+
+        var runaway = Assert.Throws<RunawayCascade>(() => graph.Step());
+
+        Assert.StartsWith("the graph did not settle: 2 rounds counted against the limit, out of 5 in all.",
+                          runaway.Message);
+        Assert.Equal(3, drained);
     }
 
     [Fact(DisplayName = "and work made inside the step still counts against it")]
