@@ -120,16 +120,10 @@ internal class Scope : Statement
 
             parser.Advance();
 
-            var heading = parser.Heading;
-
-            parser.Heading = true;
-
-            if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
+            if (Heading.Of(ref parser, Datum.Unresolved.Parse) is not Datum datum)
             {
                 return new ExpectedIterableError { Tokens = Parser.Recover(ref current, parser) };
             }
-
-            parser.Heading = heading;
 
             if (Definition.Parse(ref parser) is not Scope definition) return null;
 
@@ -215,16 +209,10 @@ internal class Scope : Statement
             var keyword = parser.Token;
             if (parser.TryAdvance<When>() is false || parser.TryAdvance<Changing>() is false) return null;
 
-            var heading = parser.Heading;
-
-            parser.Heading = true;
-
-            if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
+            if (Heading.Of(ref parser, Datum.Unresolved.Parse) is not Datum datum)
             {
                 return new ExpectedTargetError { Tokens = Parser.Recover(ref current, parser) };
             }
-
-            parser.Heading = heading;
 
             var trigger = keyword.ToLexemes(parser.Token).Render();
 
@@ -348,21 +336,10 @@ internal class Scope : Statement
             var keyword = parser.Token;
             if (parser.TryAdvance<T>() is false) return null;
 
-            // Restored and not cleared. They are the same thing while a scope
-            // cannot appear in a heading — and «if» in expression position is
-            // exactly what makes one able to, so «if if a { b } { c }» would
-            // have had the inner heading end the outer one and the outer body
-            // read as an argument again.
-            var heading = parser.Heading;
-
-            parser.Heading = true;
-
-            if (Member.Unresolved.Parse(ref parser) is not Member condition)
+            if (Heading.Of(ref parser, Member.Unresolved.Parse) is not Member condition)
             {
                 return new ExpectedConditionError { Tokens = Parser.Recover(ref current, parser) };
             }
-
-            parser.Heading = heading;
 
             var trigger = keyword.ToLexemes(parser.Token).Render();
 

@@ -93,8 +93,15 @@ Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded
 **A heading ends at the brace that opens its body.**  An anonymous value after a
 word is an argument — `thing 7 ("stuff")` is one call — so without that rule
 `if c { 1 }` is the reference `c` applied to the list `{ 1 }`, with no body left
-to find.  The rule holds for every heading: a conditional's condition, a `while`,
-a `when` and its `changing` target, and the collection of a `for each`.
+to find.
+
+A heading is any **reference that a definition follows**, which is what decides
+where the rule applies rather than a list of the constructs that have one: a
+conditional's condition, a `while`, a `when` and its `changing` target, the
+collection of a `for each`, a function's declared return type, and a type's
+algebra.  A list left two of them out, and one of those — `type T = Base {}` —
+was silent, because a type may have no members and so nothing was left behind to
+complain about.
 
 It costs a braced value in heading position and nothing else.  Bracket it and it
 is available again — `if takes ({ 1 }) { … }` — because inside brackets there is

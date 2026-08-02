@@ -41,7 +41,7 @@ internal class Function : Member
             // «function f => {}» a function with no return type rather than one
             // missing it, so the mistake became indistinguishable from the
             // untyped form the language already has.
-            if (Type.Unresolved.Parse(ref parser) is not Type declared)
+            if (Heading.Of(ref parser, Type.Unresolved.Parse) is not Type declared)
             {
                 return new ExpectedTypeError { Tokens = Parser.Recover(ref current, parser) };
             }
