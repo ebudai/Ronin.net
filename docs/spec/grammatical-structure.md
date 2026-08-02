@@ -212,10 +212,10 @@ node count is a function of M alone and is unchanged between N = 1 and
 N = 1000.*  The failure mode to watch for is archetype count growing with
 instance count rather than with type count.
 
-#### `stop` and `stop all`
+#### `return` and `stop`
 
-Both are legal only in a `when` body and take effect at the end of the round, so
-a body that stops finishes first, including what it writes afterwards.
+There are **two** words and not three.  Both take effect at the end of the
+round, so a body finishes first, including what it writes afterwards.
 
 - **`return`** ends *this run* of the chain: it leaves the body, and since a
   chain arms its next segment only *at* a wait, not advancing falls out of that.
@@ -236,7 +236,16 @@ after its first run.
 
 `stop` is for abandoning work genuinely in flight, which is why it earns its
 keep at type scope — *this rule is off now, for every instance* cannot be said
-any other way.
+any other way.  A one-shot needs no `stop`: `when ready { init; return }` ends
+the run, and nothing re-triggers `ready`.
+
+There is no `stop all`.  An earlier draft gave `stop` the "end this run" meaning
+and needed a second, marked word for disarming; `return` took that meaning back,
+because it already means "leave this body and do not do the rest" — and since a
+chain arms its next segment only *at* a wait, ending the run falls out of
+leaving.  That also retired a constraint: `stop` is a prefix of `stop all`, and
+R6 requires determinate prefixes to be prefix-free, so `stop all` would have had
+to be a single lexer token the way `for each` is.
 
 Runs are taken **one per round**.  Runs are fungible, so several in a round
 would be identical computations writing identical values — harmless, *except*
