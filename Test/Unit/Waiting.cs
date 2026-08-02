@@ -1119,6 +1119,57 @@ public class Waiting
         Assert.Throws<RunawayCascade>(() => graph.Step());
     }
 
+    [Theory(DisplayName = "and a run pays for its own displacement and its own drain, both")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AndARunPaysForItsOwnDisplacementAndItsOwnDrainBoth(bool park)
+    {
+        // The invariant, stated as the difference the parked run makes: none.
+        // «cascades» bounds the rounds a step spends on work it CREATED, and
+        // these two programs create exactly the same work — a starter and the
+        // head it arms. One of them also inherits a run, which is displaced by
+        // that head in one round and drained in another, and neither round is
+        // the program's doing.
+        //
+        // Two credits and not one, which is what this pins. Tidying them into a
+        // single credit per run reads like the same rule and is not: the run
+        // would pay for its displacement and then be charged for its own drain,
+        // and this budget would no longer be enough. Measured, one credit costs
+        // exactly what having no exemption at all costs.
+        Graph graph = new(cascades: 2);
+        graph.Var("head", false);
+        graph.Var("wait", false);
+        graph.Var("bail", false);
+        graph.Var("starter", false);
+        List<string> ran = [];
+
+        graph.Chain("chain",
+                    (scope => scope.Read("head"),
+                     scope => { ran.Add("head"); if (Equals(scope.Read("bail"), true)) scope.Return(); }),
+                    (scope => scope.Read("wait"), _ => ran.Add("tail")));
+
+        graph.When("when starter", scope => scope.Read("starter"), scope =>
+        {
+            scope.Write("head", true);
+            scope.Write("wait", true);
+            scope.Write("bail", true);
+        });
+
+        graph.Prime();
+
+        // parked while the wait is still shut, so it is still there next step
+        if (park) Pulse(graph, "head");
+
+        ran.Clear();
+        graph.Write("starter", true);
+        graph.Step();
+
+        // the head is displaced-by in one round and drained in the next, and the
+        // budget the program needs is the same either way
+        Assert.Equal(park ? ["head", "tail"] : ["head"], ran);
+        Assert.Equal(0d, graph.Read(Graph.Waiting("chain", 1)));
+    }
+
     [Theory(DisplayName = "and no other chain's parked run can be spent on it")]
     [InlineData(6, 0)]
     [InlineData(7, 7)]

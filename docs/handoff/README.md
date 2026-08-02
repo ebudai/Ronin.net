@@ -51,8 +51,10 @@ Because it is spread across six documents and was summarised wrongly once:
 - a wait is **level**: one whose condition is already true proceeds
 - **`return`** ends one run and leaves the `when` armed
 - **`stop`** disarms the `when` — there are **two** words, not three
-- runs are taken **one per round**, and rounds that consume — or defer — a run
-  parked at that wait when the step began do not count against the round limit
+- **`cascades` bounds the rounds a step spends on work it created**; rounds
+  servicing work it inherited — consuming a run, or being displaced by the head
+  that owns it — are not in scope, and there are at most `2k` of them for `k`
+  inherited runs
 - accumulation is watched by **draining, not depth**, over an adjustable window
 
 All of it is in `docs/spec/grammatical-structure.md` §4.5.5, and all of it is

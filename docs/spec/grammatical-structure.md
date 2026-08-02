@@ -286,6 +286,19 @@ parked at the very wait the round declined to serve, and it pays once.  So a
 chain whose head keeps being re-armed while its tail waits still reaches the
 limit, and no chain's healthy queue can pay for another chain's spinning.
 
+Stated once, since the two exemptions are one rule:
+
+> `cascades` bounds the rounds a step spends on work **created during that
+> step**.  Rounds spent servicing work the step *inherited* — consuming it, or
+> being displaced by the head that owns it — are not in scope.  For `k`
+> inherited runs there are at most `2k` of them.
+
+A free round is not counted, so it cannot displace anything: a step holding a
+thousand parked runs *and* a genuine runaway still catches the runaway after
+exactly `cascades` rounds of created work, undelayed.  What grows with `k` is how
+many rounds a step may *take*, which is throughput, and it is proportional to
+work that really is already there.
+
 **A chain accumulates when its waits complete more slowly than its trigger
 fires.**  Growth is bounded *within* a step — the trigger is edge-driven so it
 adds at most one per round — but across steps each settles cleanly while the
