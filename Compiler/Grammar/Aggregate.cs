@@ -73,6 +73,19 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
         TParent values = [];
         var closed = false;
 
+        // Inside brackets there is nothing for a brace to be ambiguous with, so
+        // a heading stops at the opener. That is what keeps a braced value
+        // available as an argument — «if takes ({ 1 }) { … }» — and it is also
+        // what lets a body hold an ordinary list.
+        //
+        // Restored on the way out, because the parser is a struct written back
+        // over the caller's: leaving it cleared ended the caller's heading at
+        // the first bracket in it, so «if c (x) { 1 }» lost its body to the
+        // condition and every argument list undid the rule one call later.
+        var heading = parser.Heading;
+
+        parser.Heading = false;
+
         while (parser.IsNotFinished)
         {
             var started = parser;
@@ -125,6 +138,7 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
         // running out of tokens is not the same as being closed
         if (closed is false) return null;
 
+        parser.Heading = heading;
         current = parser;
         return values;
     }

@@ -18,6 +18,35 @@ internal struct Parser
 
     public Token Token;
 
+    /// <summary>
+    ///     Whether a brace here opens a scope's body rather than continuing the
+    ///     expression before it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     An anonymous value after a word is an argument — «thing 7 ("stuff")»
+    ///     is one call — and a brace opens one, so a heading read «if c { 1 }» as
+    ///     the reference «c» applied to the list «{ 1 }» and then found no body.
+    ///     Every conditional and every loop whose body was a single bare
+    ///     expression was malformed for that reason: «if c { 1; }» compiled and
+    ///     «if c { 1 }» did not, because a «;» is what stopped «{ 1 }» being a
+    ///     list.
+    ///     </para>
+    ///     <para>
+    ///     So the brace is where the heading ends. It costs a braced ARGUMENT in
+    ///     heading position and nothing else — bracket it and it is available
+    ///     again, «if takes ({ 1 }) { … }», because inside brackets there is
+    ///     nothing for a brace to be ambiguous with.
+    ///     </para>
+    ///     <para>
+    ///     A field of the parser and not a parameter threaded through: the parser
+    ///     is a struct copied at every speculative parse, so this reaches the
+    ///     component that has to honour it and unwinds with the copy that failed.
+    ///     </para>
+    /// </remarks>
+    public bool Heading;
+
     public readonly bool IsNotFinished => Token is not Sentinel;
 
     /// <summary>

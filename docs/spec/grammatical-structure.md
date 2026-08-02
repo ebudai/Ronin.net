@@ -89,6 +89,17 @@ Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded
 `if` *condition* *body*
 - condition is a ***refrence***
 - body is a ***definition***
+
+**A heading ends at the brace that opens its body.**  An anonymous value after a
+word is an argument — `thing 7 ("stuff")` is one call — so without that rule
+`if c { 1 }` is the reference `c` applied to the list `{ 1 }`, with no body left
+to find.  The rule holds for every heading: a conditional's condition, a `while`,
+a `when` and its `changing` target, and the collection of a `for each`.
+
+It costs a braced value in heading position and nothing else.  Bracket it and it
+is available again — `if takes ({ 1 }) { … }` — because inside brackets there is
+nothing for a brace to be ambiguous with.  Everywhere else a brace means what it
+always meant, including inside the body it opened.
 ### 4.5.3 Repeating
 `while` *condition* *body*
 - condition is a ***reference***

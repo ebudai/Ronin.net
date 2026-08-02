@@ -120,10 +120,14 @@ internal class Scope : Statement
 
             parser.Advance();
 
+            parser.Heading = true;
+
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
                 return new ExpectedIterableError { Tokens = Parser.Recover(ref current, parser) };
             }
+
+            parser.Heading = false;
 
             if (Definition.Parse(ref parser) is not Scope definition) return null;
 
@@ -209,10 +213,14 @@ internal class Scope : Statement
             var keyword = parser.Token;
             if (parser.TryAdvance<When>() is false || parser.TryAdvance<Changing>() is false) return null;
 
+            parser.Heading = true;
+
             if (Datum.Unresolved.Parse(ref parser) is not Datum datum)
             {
                 return new ExpectedTargetError { Tokens = Parser.Recover(ref current, parser) };
             }
+
+            parser.Heading = false;
 
             var trigger = keyword.ToLexemes(parser.Token).Render();
 
@@ -336,10 +344,14 @@ internal class Scope : Statement
             var keyword = parser.Token;
             if (parser.TryAdvance<T>() is false) return null;
 
+            parser.Heading = true;
+
             if (Member.Unresolved.Parse(ref parser) is not Member condition)
             {
                 return new ExpectedConditionError { Tokens = Parser.Recover(ref current, parser) };
             }
+
+            parser.Heading = false;
 
             var trigger = keyword.ToLexemes(parser.Token).Render();
 

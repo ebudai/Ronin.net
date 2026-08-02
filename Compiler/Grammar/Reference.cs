@@ -188,6 +188,12 @@ internal class Reference : IEnumerable<Reference.Component>
         /// </remarks>
         public static Component Parse(ref Parser current)
         {
+            // The heading of a scope ends here. Only a Temporary could take this
+            // brace — a name cannot — so refusing the component is refusing the
+            // braced value, and the repetition above stops with the reference it
+            // has.
+            if (current.Heading && current.Token is Open.Brace) return null;
+
             Parser ahead = current;
 
             if (Name.Parse(ref ahead) is Name leading && ahead.Token is not Returns)
