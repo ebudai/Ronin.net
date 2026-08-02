@@ -59,8 +59,15 @@ internal class Type : Member
         {
             Parser reading = parser;
 
+            // The FIRST element the member aggregate could not take, and only
+            // then whether it is a «when». Asking whether the body holds one
+            // anywhere blamed the «when» in «type Box { if ready { … } when
+            // ready { … } }», where the «if» is the invalid member and comes
+            // first — so removing the diagnosed «when» left the original failure
+            // untouched.
             if (Loose.Parse(ref reading) is Loose body
-                && body.OfType<Scope>().FirstOrDefault(scope => scope.Reacts) is Scope reactive)
+                && body.FirstOrDefault(element => element is not Member) is Scope reactive
+                && reactive.Reacts)
             {
                 return new ReactiveMemberError
                 {

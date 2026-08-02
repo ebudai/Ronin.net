@@ -104,8 +104,30 @@ internal sealed class Node
 ///     It is enforced here, not assumed.
 ///     </para>
 /// </remarks>
-internal sealed class Graph(int cascades = 64, int settling = 256)
+internal sealed class Graph
 {
+    /// <summary>
+    ///     Both bounds count rounds and steps, so neither is meaningful below
+    ///     one.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A cascade limit under one skips the mandatory first round, so a step
+    ///     either does nothing and reports no rounds, or throws before applying
+    ///     the write that would have settled it. A settling window under one
+    ///     compares every step while reporting that a count has not fallen in
+    ///     zero of them. Both are configuration mistakes that surface far from
+    ///     where they were made and read as defects in something else.
+    /// </remarks>
+    public Graph(int cascades = 64, int settling = 256)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(cascades, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(settling, 1);
+
+        limit = cascades;
+        Settling = settling;
+    }
+
     /// <summary>
     ///     A source. Its initialiser is evaluated once, now, so declaration order
     ///     matters for a <c>var</c> and not for a <c>let</c>.
@@ -333,6 +355,7 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
             var leaving = segment < waits ? pending[segment] : null;
 
             chain.Reacting.Add(reacting);
+            membership[reacting] = name;
 
             When(reacting,
                  scope =>
@@ -362,7 +385,7 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
                      if (arrived is not null)
                      {
                          scope.Write(arrived, Waiting(scope.Read(arrived)) - 1);
-                         scope.Advanced(name);
+                         scope.Consuming(arrived);
                      }
 
                      body(scope);
@@ -618,8 +641,16 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
         // already here — but not across chains, and pooling them let a run
         // sitting in one chain excuse a round spent making and taking work in
         // another.
+        // Per COUNTER, and not per chain. Runs are fungible at one wait; a run
+        // parked at wait 2 is not interchangeable with one taken at wait 1, and
+        // a shared quota let the parked one pay for work newly made and consumed
+        // somewhere else in the same chain.
+        quota.Clear();
+
         foreach (var chain in chains.Values)
-            chain.Inherited = chain.Flags.Sum(counter => Waiting(nodes[counter].Value));
+        {
+            foreach (var counter in chain.Flags) quota[counter] = Waiting(nodes[counter].Value);
+        }
 
         var rounds = 0;
         var counted = 0;
@@ -679,6 +710,17 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
     {
         List<string> triggered = [];
 
+        // At most one position of a chain per round. Two adjacent positions both
+        // write the count between them — the earlier adds when it advances, the
+        // later takes when it consumes — and both read the same settled front
+        // value, so one absolute write replaced the other and a run was lost.
+        // The same holds for any two positions and an author's cell, because the
+        // segments are deliberately ONE writer to the single-writer rule.
+        //
+        // One per round for the whole written «when», not for each continuation
+        // separately, which is what "one run per round" meant all along.
+        HashSet<string> claimed = [];
+
         foreach (var (name, trigger) in whens)
         {
             var value = Read(name);
@@ -692,17 +734,21 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
             }
 
             var previous = trigger.Previous;
-            trigger.Previous = value;
 
             // the first observation establishes a baseline rather than an edge
-            if (ReferenceEquals(previous, Unobserved)) continue;
-
-            var fires = trigger.Mode switch
+            var fires = ReferenceEquals(previous, Unobserved) is false && trigger.Mode switch
             {
                 TriggerMode.Changes => Equals(value, previous) is false,
                 TriggerMode.WhileTrue => Equals(value, true),
                 _ => Equals(value, true) && Equals(previous, true) is false,
             };
+
+            // Deferred, and the baseline is left alone so the edge survives to
+            // the next round. Advancing it would consume the transition and the
+            // position would simply never run.
+            if (fires && membership.TryGetValue(name, out var chain) && claimed.Add(chain) is false) continue;
+
+            trigger.Previous = value;
 
             if (fires) triggered.Add(name);
         }
@@ -738,12 +784,15 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
         firing = name;
         stopped = false;
         halting = false;
+        consuming = null;
 
         try
         {
             whens[name].Body(this);
 
             foreach (var (cell, value) in staged) pending[cell] = value;
+
+            Consumed();
 
             if (halting) stopping.Add(name);
         }
@@ -798,18 +847,17 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
     /// </summary>
     private IEnumerable<string> Belonging(string name)
     {
-        foreach (var (chain, membership) in chains)
-        {
-            if (membership.Reacting.Contains(name) is false) continue;
+        if (membership.TryGetValue(name, out var chain) is false) return [name];
 
-            foreach (var counter in membership.Flags) Undeclare(counter);
+        var split = chains[chain];
 
-            chains.Remove(chain);
+        foreach (var counter in split.Flags) Undeclare(counter);
 
-            return membership.Reacting;
-        }
+        foreach (var reacting in split.Reacting) membership.Remove(reacting);
 
-        return [name];
+        chains.Remove(chain);
+
+        return split.Reacting;
     }
 
     /// <summary>Removes a node and every edge into it.</summary>
@@ -1096,8 +1144,7 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
         /// <summary>Steps taken in this window.</summary>
         public int Steps { get; set; }
 
-        /// <summary>How many of this chain's runs the step inherited.</summary>
-        public double Inherited { get; set; }
+
     }
 
     /// <summary>
@@ -1168,7 +1215,7 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
     ///     anything.
     ///     </para>
     /// </remarks>
-    public int Settling { get; } = settling;
+    public int Settling { get; }
 
     private Fault Accumulating(string name, double waiting)
         => new($"«{name}» has {waiting.ToString(CultureInfo.InvariantCulture)} runs pending and the count has not " +
@@ -1183,12 +1230,18 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
     /// </summary>
     private const int Depth = 512;
 
-    private readonly int limit = cascades;
+    private readonly int limit;
     private readonly Dictionary<string, Node> nodes = [];
     private readonly Dictionary<string, object> constants = [];
     private readonly Dictionary<Node, Node> shadows = [];
     private readonly Dictionary<string, Trigger> whens = [];
     private readonly Dictionary<string, Split> chains = [];
+
+    /// <summary>Which chain each generated «when» belongs to.</summary>
+    private readonly Dictionary<string, string> membership = [];
+
+    /// <summary>How many runs each wait had when the step began.</summary>
+    private readonly Dictionary<string, double> quota = [];
     private readonly Dictionary<string, object> pending = [];
     private readonly HashSet<string> stopping = [];
 
@@ -1201,6 +1254,9 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
     /// <summary>Whether it asked to be disarmed, which lands only if it finishes.</summary>
     private bool halting;
 
+    /// <summary>The counter it took a run from, spent only if it finishes.</summary>
+    private string consuming;
+
     /// <summary>Whether this round took a run the step began with.</summary>
     private bool advanced;
 
@@ -1211,23 +1267,36 @@ internal sealed class Graph(int cascades = 64, int settling = 256)
     ///
     /// <remarks>
     ///     Counted down rather than tagged per run, which is the same answer
-    ///     because runs are fungible: the first «Inherited» consumed in a step
-    ///     are exactly the ones already pending when it began. Per CHAIN, though
-    ///     — fungibility does not cross chains, and one pooled counter let a run
-    ///     parked in a chain that never drains excuse every round another chain
-    ///     spent creating and consuming its own work.
+    ///     because runs are fungible AT ONE WAIT: the first quota consumed there
+    ///     is exactly a run that was already waiting there when the step began.
+    ///     They are not fungible across waits or across chains, and a quota
+    ///     shared any wider let a run parked in one place pay for work made and
+    ///     taken in another.
+    ///     <para>
+    ///     Recorded rather than spent, because a body that fails applies none of
+    ///     its effects: the decrement it staged is discarded, so claiming the
+    ///     progress would buy an exemption for a run still sitting there.
+    ///     <see cref="Fire"/> spends it once the body has finished.
+    ///     </para>
     /// </remarks>
-    private void Advanced(string chain)
+    private void Consuming(string counter) => consuming = counter;
+
+    /// <summary>Spends the quota a finished body claimed, if it had one.</summary>
+    private void Consumed()
     {
-        // Indexed, not probed: this is called from a chain's own body, and a
-        // chain is removed only with the «when»s that run it — so a missing one
-        // is a defect here rather than a state to tolerate.
-        var split = chains[chain];
+        if (consuming is null) return;
 
-        if (split.Inherited < 1) return;
+        // Indexed, not probed: the quota is rebuilt each step from every counter
+        // there is, so a counter a body consumed from is always in it.
+        var left = quota[consuming];
 
-        --split.Inherited;
-        advanced = true;
+        if (left >= 1)
+        {
+            quota[consuming] = left - 1;
+            advanced = true;
+        }
+
+        consuming = null;
     }
     private Dictionary<string, object> staged;
     private readonly List<Node> reading = [];

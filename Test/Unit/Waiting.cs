@@ -94,6 +94,22 @@ public class Waiting
         Assert.Throws<InvalidOperationException>(new Graph().Return);
     }
 
+    [Theory(DisplayName = "a bound below one is a configuration mistake, refused where it is made")]
+    [InlineData(0, 256)]
+    [InlineData(-1, 256)]
+    [InlineData(64, 0)]
+    [InlineData(64, -1)]
+    public void ABoundBelowOneIsAConfigurationMistakeRefusedWhereItIsMade(int cascades, int settling)
+    {
+        // Both count rounds and steps. A cascade limit under one skips the
+        // mandatory first round, so a step either does nothing and reports no
+        // rounds or throws before applying the write that would have settled it;
+        // a settling window under one compares every step while reporting that a
+        // count has not fallen in zero of them. Both surfaced far from where the
+        // mistake was made and read as defects in something else.
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Graph(cascades, settling));
+    }
+
     [Fact(DisplayName = "a chain has segments, and «in flight» answers for chains")]
     public void AChainHasSegmentsAndInFlightAnswersForChains()
     {
@@ -623,6 +639,104 @@ public class Waiting
 
         Assert.Equal(40, ran);
         Assert.Equal(0d, graph.Read(Graph.Waiting("when go", 1)));
+    }
+
+    [Fact(DisplayName = "two positions ready at once do not lose a run between them")]
+    public void TwoPositionsReadyAtOnceDoNotLoseARunBetweenThem()
+    {
+        // Found by audit. Adjacent positions both write the count between them —
+        // the earlier adds when it advances, the later takes when it consumes —
+        // and both read the same settled front value, so one absolute write
+        // replaced the other and a run vanished. The counters both ended at zero,
+        // which is what made it a lost run rather than a late one.
+        //
+        // The fix is that one position of a chain fires per round, which is what
+        // "one run per round" meant for the written «when» rather than for each
+        // continuation separately.
+        var graph = Armed("a", "b", "c");
+        List<string> ran = [];
+
+        graph.Chain("chain",
+                    (scope => scope.Read("a"), _ => ran.Add("x")),
+                    (scope => scope.Read("b"), _ => ran.Add("y")),
+                    (scope => scope.Read("c"), _ => ran.Add("z")));
+
+        graph.Prime();
+
+        Pulse(graph, "a");
+        Pulse(graph, "b");          // one run parked at wait 2
+        Pulse(graph, "a");          // a second parked at wait 1
+
+        // both waits satisfied in the same step
+        graph.Write("b", true);
+        graph.Write("c", true);
+        graph.Step();
+
+        Assert.Equal(["x", "y", "x", "y", "z", "z"], ran);
+        Assert.Equal(0d, graph.Read(Graph.Waiting("chain", 1)));
+        Assert.Equal(0d, graph.Read(Graph.Waiting("chain", 2)));
+    }
+
+    [Fact(DisplayName = "a run parked at one wait does not excuse work taken at another")]
+    public void ARunParkedAtOneWaitDoesNotExcuseWorkTakenAtAnother()
+    {
+        // Found by audit, and narrower than the cross-chain version below: runs
+        // are fungible AT ONE WAIT, so the quota belongs to the counter. Shared
+        // across a chain, a run parked at wait 2 paid for work made and taken at
+        // wait 1, and the limit stopped firing.
+        Graph graph = new(cascades: 2);
+        graph.Var("a", false);
+        graph.Var("b", false);
+        graph.Var("never", false);
+
+        graph.Chain("chain",
+                    (scope => scope.Read("a"), _ => { }),
+                    (scope => scope.Read("b"), _ => { }),
+                    (scope => scope.Read("never"), _ => { }));
+
+        graph.Prime();
+
+        Pulse(graph, "a");
+        Pulse(graph, "b");          // parked at wait 2, and it never leaves
+
+        Assert.Equal(1d, graph.Read(Graph.Waiting("chain", 2)));
+
+        graph.Write("a", true);
+        graph.Write("b", true);
+
+        Assert.Throws<RunawayCascade>(() => graph.Step());
+    }
+
+    [Fact(DisplayName = "a body that fails claims no progress either")]
+    public void ABodyThatFailsClaimsNoProgressEither()
+    {
+        // Found by audit, and the same rule as the «stop» one: a body that fails
+        // applies none of its effects. It staged its decrement and claimed the
+        // exemption before running, so a body that always throws bought a round
+        // for a run still sitting where it was — three of them turned a limit of
+        // two into five.
+        Graph graph = new(cascades: 2);
+        graph.Var("a", false);
+        graph.Var("b", false);
+        graph.Var("temp", 0d);
+
+        graph.Chain("chain",
+                    (scope => scope.Read("a"), _ => { }),
+                    (scope => scope.Read("b"), _ => throw new InvalidOperationException("defect")));
+
+        graph.When("spin",
+                   scope => scope.Read("temp"),
+                   scope => scope.Write("temp", (double)scope.Read("temp") + 1),
+                   TriggerMode.Changes);
+
+        graph.Prime();
+
+        for (var each = 0; each < 3; ++each) Pulse(graph, "a");
+
+        graph.Write("b", true);
+        graph.Write("temp", 1d);
+
+        Assert.Throws<RunawayCascade>(() => graph.Step());
     }
 
     [Fact(DisplayName = "a run parked in one chain does not excuse another's new work")]
