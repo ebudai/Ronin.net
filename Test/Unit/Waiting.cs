@@ -1358,6 +1358,70 @@ public class Waiting
         Assert.Equal(2, fired);
     }
 
+    [Fact(DisplayName = "and one parked run forgives one displacement, not every one after it")]
+    public void AndOneParkedRunForgivesOneDisplacementNotEveryOneAfterIt()
+    {
+        // Found by audit, after I had written that no such program existed. The
+        // shape I kept missing is one condition: SHUT THE WAIT while the head is
+        // being re-armed. Every attempt I made left it open, so the tail got its
+        // turn in the gap and drained the run that was paying — and a run that
+        // has drained pays for nothing, which is the test above. Closed, the
+        // same run is still standing there to be displaced a second time, and
+        // the second time is charged.
+        //
+        // Without the cap the head body runs a third time. That is not an
+        // accounting difference: it is a body executing, with whatever it does
+        // to the world, because a counter said the step had already been
+        // forgiven for it.
+        Graph graph = new(cascades: 3);
+        graph.Var("h", false);
+        graph.Var("w", false);
+        graph.Var("tick", 0d);
+        var heads = 0;
+        var looping = false;
+
+        graph.Chain("chain",
+                    (scope => scope.Read("h"),
+                     scope =>
+                     {
+                         ++heads;
+
+                         if (looping is false) return;
+
+                         // shuts itself and the wait behind it, so nothing drains
+                         // while the driver re-arms
+                         scope.Write("h", false);
+                         scope.Write("w", false);
+                         scope.Write("tick", (double)scope.Read("tick") + 1d);
+                     }),
+                    (scope => scope.Read("w"), _ => { }));
+
+        graph.When("driver",
+                   scope => scope.Read("tick"),
+                   scope => { scope.Write("h", true); scope.Write("w", true); },
+                   TriggerMode.Changes);
+
+        graph.Prime();
+
+        // one run parked at a shut wait, in a step of its own
+        Pulse(graph, "h");
+
+        Assert.Equal(1d, graph.Read(Graph.Waiting("chain", 1)));
+
+        looping = true;
+        heads = 0;
+        graph.Write("h", true);
+        graph.Write("w", true);
+
+        var runaway = Assert.Throws<RunawayCascade>(() => graph.Step());
+
+        // the first displacement is free and the second is not, so the driver
+        // reaches the limit two head bodies in rather than three
+        Assert.Equal(2, heads);
+        Assert.StartsWith("the graph did not settle: 3 rounds counted against the limit, out of 4 in all.",
+                          runaway.Message);
+    }
+
     [Fact(DisplayName = "and the report says which rounds it counted and how many there were")]
     public void AndTheReportSaysWhichRoundsItCountedAndHowManyThereWere()
     {

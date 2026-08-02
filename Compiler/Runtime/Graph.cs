@@ -1471,7 +1471,6 @@ internal sealed class Graph
     /// <summary>The counter it took a run from, spent only if it finishes.</summary>
     private string consuming;
 
-    /// <summary>Whether this round took a run the step began with.</summary>
     /// <summary>What fired this round in service of work the step inherited.</summary>
     private readonly HashSet<string> servicing = [];
 

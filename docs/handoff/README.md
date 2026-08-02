@@ -36,6 +36,7 @@ Read the right-hand column before quoting the left.
 | `WAITSEMANTICS.md` §2 | naming **obsolete** — nothing generated is typed, so the names are reports |
 | `EMPTYBRACKETS.md` §2 | `(_)` as source syntax **retracted** — `UNDERSCORE.md`. `_` is not in the language |
 | `GLUEREGISTRY.txt` | a seed study, **superseded** by the generated `docs/reserved-words.txt` |
+| `DEFERRALCREDIT-UNOBSERVABLE.md` | **refuted by measurement** — `REAUDIT21`. The displacement cap is observable; the document now records the shape and the correction |
 | `IFASEXPRESSION.md` | **not started** — no code corresponds to it |
 
 ## The settled `when` model, in one place

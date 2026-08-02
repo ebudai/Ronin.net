@@ -1,86 +1,72 @@
-# The displacement counter is now stricter than anything observable
+# Corrected: the displacement cap IS observable
 
-A disclosure rather than a question, in the same class as `LeadingHole` and the
-anchor-run form of R6: a rule the runtime enforces that no program can currently
-be written to detect.
+**This document originally claimed the opposite.** It said the displacement
+counter was stricter than anything a program could detect, listed three shapes
+that failed to observe it, and offered to remove the counter and its clamp. The
+auditor found the shape in `REAUDIT21` and it is neither exotic nor far from what
+I tried. The offer is withdrawn, the counter stays, and the regression I deleted
+is restored in a form that works.
 
-## What changed
+## The shape, and the condition I kept missing
 
-`REAUDIT20` found the fourth form of one shape. The credit was owned by the right
-wait and the right generation, and then the **round** was declared free on the
-strength of it — so a queue draining three deep handed its exemption to an
-unrelated `when` writing what its own trigger reads, and a runaway configured to
-be caught after two rounds fired five times.
+**Shut the wait while the head is being re-armed.**
 
-The repair is that an exemption belongs to the firing that earned it. A round is
-free only when everything in it was servicing inherited work.
+Every attempt I made left it open, so in the gap between the two head firings the
+tail got its turn and drained the run that was paying. A drained run pays for
+nothing after it — which is a rule I had implemented and tested one round
+earlier — so the second displacement was charged for that reason, and the counter
+never had to be the thing deciding.
 
-## What that does to the `2k` bound
+With the wait shut, the same run is still parked when the head fires again, and
+the counter is the only thing that can refuse it:
 
-Q2 settled that each inherited run carries two credits: one for being displaced,
-one for being drained. The displacement credit is a counter, and spending it is
-what bounds the exemption at `2k` rounds for `k` inherited runs.
+1. a two-position chain parks one real run at a shut wait, in a step of its own;
+2. the head body shuts its own trigger and the wait, and changes `tick`;
+3. a `Changes` driver on `tick` re-opens both together;
+4. the driver's round sees the wait shut, so nothing drains; the next round has
+   the head and the tail ready together, and the head displaces the same run
+   again.
 
-Under the new round rule I could not construct a program in which that counter's
-**exhaustion** changes any outcome. Three attempts:
+At `cascades: 3`, measured both ways:
 
-1. the previous test's shape — a phaser re-arming the head. Its phaser fires in
-   every round, so no round is ever free and the credit is never consulted. It
-   gave identical results with the counter, with a graph-wide pool, and with
-   unlimited credit, which means it had stopped testing anything at all. Deleted
-   rather than renumbered.
-2. a three-segment chain where position 2 claims and position 3 is displaced
-   repeatedly. Identical results with and without the counter.
-3. a chain re-arming its own head, to starve its tail in pure rounds for ever.
-   It settles; the head only re-arms every other round, and in the gap the tail
-   gets its turn.
+| | head bodies run | diagnostic |
+|---|---:|---|
+| with `--credit.Displacements` | 2 | `3 rounds counted against the limit, out of 4 in all` |
+| without it | 3 | `3 rounds counted against the limit, out of 6 in all` |
 
-Removing the counter entirely — displacement forgiven while a run is still
-parked at that wait, without spending anything — passes all 867 tests, including
-the hang control and the Q2 both-free control.
+A body executes one more time. That is not an accounting difference visible only
+to the scheduler — it is an author's `when` body running, with whatever it does
+to the world, because a counter said the step had already been forgiven for it.
 
-So on the evidence the counter is currently unobservable. It is **kept**, for
-three reasons:
+## What was wrong with my reasoning
 
-- it is what `Q2SETTLED.md` decided, and I have no program that argues against
-  it;
-- it is what makes the maintained `2k` bound true rather than aspirational, and
-  a bound nobody can currently reach is still a bound; and
-- "I could not construct one" is not "none exists". The three attempts above rule
-  out the shapes I thought of, and this project has twice found the fourth shape
-  after three looked exhaustive.
+Not the individual measurements — those were right, and each of the three shapes
+really does fail to observe the cap. What was wrong was the step from "three
+shapes failed" to "it is unobservable".
 
-## What that means for the tests
+I had even written the caution and then not applied it: *"I could not construct
+one" is not "none exists"*. Having said that, I still let the conclusion stand in
+the title, in the summary, and in an offer to delete working code on the strength
+of it. A disclosure that hedges in its body and asserts in its heading is read by
+its heading.
 
-`AndOneParkedRunForgivesOneDeferralNotEveryOneAfterIt` is gone. It was the
-positive-cap test written for `REAUDIT18`, and it was correct then; the round
-rule made it vacuous, and I could not rebuild it. Keeping a test whose expected
-numbers I would have had to update to whatever the code now does — while it
-passed equally with the mechanism deleted — is the exact failure `Q2SETTLED.md`
-§2 named.
+The specific blind spot is worth naming because it is mechanical: all three
+attempts varied *who fires* — a phaser, a third position, a self-arming chain —
+and none varied *what is open*. The condition that mattered was a guard, not a
+schedule. When an enumeration keeps coming back negative, the axis it does not
+vary is the one to look at, which is the same lesson `Q2SETTLED.md` §1 drew from
+the designer's two-way enumeration of what a round consumes.
 
-What remains and is non-vacuous, each verified by sabotage:
+## What is in the tree now
 
-| test | breaks when |
-|---|---|
-| a round that deferred work did not fail to settle | the exemption is removed |
-| and a step that inherited nothing is forgiven nothing | the cap is removed — it hangs rather than fails |
-| and a run pays for its own displacement and its own drain, both | the two credits are collapsed into one |
-| and no other chain's parked run can be spent on it | the credit is pooled across chains |
-| and a run that has already drained pays for nothing after it | the drain does not retire the credit |
-| and a draining queue buys nothing for an unrelated runaway | the exemption frees the whole round |
-| and neither does a run being displaced and then drained | the same, for the other credit |
-| and the report says which rounds it counted and how many there were | servicing rounds are counted, or the two figures are conflated |
+`AndOneParkedRunForgivesOneDisplacementNotEveryOneAfterIt` in
+`Test/Unit/Waiting.cs`, asserting the head body ran exactly twice and pinning the
+`3 counted / 4 in all` report. It fails with `expected 2, actual 3` when the
+decrement is removed, which is the guard the suite had been missing since
+`REAUDIT20`.
 
-Two of these needed rebuilding for the round rule, because their drivers fired
-in every round: the round that matters has to contain only the firing under
-test, so the drivers are now one-shot `when`s whose last one arms the head and
-opens the wait in a single write.
+The `2k` bound in `docs/spec/grammatical-structure.md` therefore stands as a
+maintained rule with a test behind it, rather than as an aspiration.
 
-## If you would rather it went
-
-Say so and it goes, along with the clamp that keeps it from outliving its run —
-one balance per wait, read but not spent. That is simpler, and every test still
-passes. The cost is that the `2k` sentence in the spec would have to be retired
-in favour of "while a run it inherited is still standing there", which is weaker
-and, on today's evidence, indistinguishable.
+The rest of that earlier table — the eight other credit tests and what breaks
+each — was accurate and still holds.
