@@ -266,6 +266,12 @@ internal sealed class Graph(int cascades = 64)
         Split chain = new(flags);
         chains[name] = chain;
 
+        // A DERIVED VALUE and not a host method, because the idiom that uses it
+        // is written in the language: «when A and not «A in flight»» is how an
+        // author asks for ignore instead of restart, and a program cannot read
+        // something only the runtime can see.
+        Let(InFlight(name), scope => flags.Any(flag => Equals(scope.Read(flag), true)));
+
         for (var segment = 0; segment < segments.Length; ++segment)
         {
             var (until, body) = segments[segment];
@@ -325,8 +331,7 @@ internal sealed class Graph(int cascades = 64)
     ///     rather than restart — «when A and not «A in flight»». Debounce,
     ///     one-shot and "do not retrigger the animation" are all this.
     /// </remarks>
-    public bool InFlight(string name)
-        => chains.TryGetValue(name, out var chain) && chain.Flags.Any(flag => Read(flag) is true);
+    public static string InFlight(string name) => $"{name} in flight";
 
     /// <summary>
     ///     Effect bodies that failed during the last <see cref="Step"/>. A
@@ -688,6 +693,7 @@ internal sealed class Graph(int cascades = 64)
 
             foreach (var flag in membership.Flags) Undeclare(flag);
 
+            Undeclare(InFlight(chain));
             chains.Remove(chain);
 
             return membership.Reacting;

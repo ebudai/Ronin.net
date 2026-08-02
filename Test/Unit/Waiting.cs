@@ -99,12 +99,12 @@ public class Waiting
         Assert.Throws<ArgumentNullException>(() => graph.Chain("when a", null));
         Assert.Throws<ArgumentException>(() => graph.Chain("when a"));
 
-        // and asking about something that is not a chain is not an error: an
-        // ordinary «when» is never in flight, because it has no flags to be in
+        // an ordinary «when» has no chain, so nothing declares the value: it is
+        // undeclared rather than false, which is a value like any other failure
         graph.Var("a", false);
         graph.When("when a", scope => scope.Read("a"), _ => { });
 
-        Assert.False(graph.InFlight("when a"));
+        Assert.IsType<Error>(graph.Read(Graph.InFlight("when a")));
     }
 
     // 8 -------------------------------------------------------------------
@@ -203,7 +203,7 @@ public class Waiting
         Assert.Equal(["x", "y", "z"], ran);
 
         // and nothing is left armed, so a stray «c» reaches nothing
-        Assert.False(graph.InFlight("when a"));
+        Assert.Equal(false, graph.Read(Graph.InFlight("when a")));
 
         Pulse(graph, "c");
         Assert.Equal(["x", "y", "z"], ran);
@@ -254,7 +254,8 @@ public class Waiting
         List<string> ran = [];
 
         graph.Chain("when a",
-                    (scope => scope.Read("a") is true && scope.InFlight("when a") is false, _ => ran.Add("x")),
+                    (scope => Equals(scope.Read("a"), true)
+                           && Equals(scope.Read(Graph.InFlight("when a")), false), _ => ran.Add("x")),
                     (scope => scope.Read("b"), _ => ran.Add("y")));
 
         graph.Prime();
