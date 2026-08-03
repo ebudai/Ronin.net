@@ -318,6 +318,89 @@ public class Instances
         Assert.Equal(settled, evaluated);
     }
 
+    [Fact(DisplayName = "a pure cell may not write a member either")]
+    public void APureCellMayNotWriteAMemberEither()
+    {
+        // Found by audit. A scalar assignment answers to three boundaries and a
+        // member write answered to none: it went straight to the graph-wide
+        // table, so a «let» — which is pure, and whose whole contract is that
+        // reading it changes nothing — could mutate an instance.
+        var graph = Boxes(1, out var boxes);
+
+        graph.Let("impure", scope =>
+        {
+            scope.Write("cash", boxes[0], 7d);
+            return 1d;
+        });
+
+        graph.Prime();
+
+        // The violation becomes the cell's value, as a scalar one does: a
+        // defect inside a body is reported and the session carries on.
+        Assert.Contains("may not assign", Assert.IsType<Error>(graph.Read("impure")).Message);
+    }
+
+    [Fact(DisplayName = "and a failed body applies none of its member writes")]
+    public void AndAFailedBodyAppliesNoneOfItsMemberWrites()
+    {
+        // The same transaction a scalar write is inside. A «when» body's writes
+        // are held until it finishes, so a defect part way through takes all of
+        // them — and a member write went round that, so the fault said none of
+        // its writes were applied while one of them had.
+        var graph = Boxes(1, out var boxes);
+        graph.Var("armed", false);
+
+        graph.When("when armed", scope => scope.Read("armed"), scope =>
+        {
+            scope.Write("cash", boxes[0], 7d);
+            throw new InvalidOperationException("defect");
+        });
+
+        graph.Prime();
+
+        graph.Write("armed", true);
+        graph.Step();
+
+        Assert.Single(graph.Faults);
+        Assert.Equal(0d, graph.Read("cash", boxes[0]));
+    }
+
+    [Fact(DisplayName = "and one that finishes applies all of them")]
+    public void AndOneThatFinishesAppliesAllOfThem()
+    {
+        // The other half of the transaction, and the half a discard test cannot
+        // reach: two instances written by one body, both landing at the round
+        // boundary because the body got to the end.
+        var graph = Boxes(2, out var boxes);
+        graph.Var("armed", false);
+
+        graph.When("when armed", scope => scope.Read("armed"), scope =>
+        {
+            scope.Write("cash", boxes[0], 7d);
+            scope.Write("cash", boxes[1], 9d);
+        });
+
+        graph.Prime();
+
+        graph.Write("armed", true);
+        graph.Step();
+
+        Assert.Equal([7d, 9d], boxes.Select(box => graph.Read("cash", box)));
+    }
+
+    [Fact(DisplayName = "and the whole column is not a value anyone can take")]
+    public void AndTheWholeColumnIsNotAValueAnyoneCanTake()
+    {
+        // Both directions of the same boundary. A scalar write would replace the
+        // column with one value and the next instance read would fail its cast
+        // on the way past; a scalar read would hand out the backing list, which
+        // is the graph's and not a value.
+        var graph = Boxes(1, out _);
+
+        Assert.Throws<PurityViolation>(() => graph.Write("Box.cash", 7d));
+        Assert.IsType<Error>(graph.Read("Box.cash"));
+    }
+
     [Fact(DisplayName = "two instances written in one step both land")]
     public void TwoInstancesWrittenInOneStepBothLand()
     {

@@ -256,7 +256,11 @@ internal sealed class Graph
 
         var index = populations[instance.Type][instance];
 
-        return index is Population.Absent ? Stale(instance) : ((List<object>)Read(cell))[index];
+        // «Reading» and not «Read»: the public one refuses a member, because
+        // handing out the backing list lets a caller change every instance's
+        // value with nobody dirtying anything. This is the one caller that wants
+        // the column, and it wants the dependency edge with it.
+        return index is Population.Absent ? Stale(instance) : ((List<object>)Reading(cell))[index];
     }
 
     /// <summary>Writes one instance's value for a member, as of the next round.</summary>
@@ -268,6 +272,15 @@ internal sealed class Graph
         if (populations[instance.Type][instance] is Population.Absent)
             throw new PurityViolation(
                 $"«{instance.Type}» instance {instance.Slot} was removed and cannot be written");
+
+        // The same effect context a scalar write answers to, which this had none
+        // of. A «let» is pure and may not assign, and a «when» body's writes are
+        // held until it finishes so that a defect part way through takes all of
+        // them rather than landing half — a member write went straight to the
+        // graph and did neither, so a pure cell could mutate state and a failed
+        // body reported that none of its writes were applied while applying one.
+        if (reading.Count is not 0)
+            throw new PurityViolation($"«{reading[^1].Name}» is a let and may not assign «{member}»");
 
         // Staged per INSTANCE and not per index, and not per cell either.
         //
@@ -281,7 +294,9 @@ internal sealed class Graph
         // identity failure the generational handle exists to prevent,
         // reintroduced by converting the handle to a location before the write
         // settled.
-        if (arriving.TryGetValue(cell, out var writes) is false) arriving[cell] = writes = [];
+        var into = staging ?? arriving;
+
+        if (into.TryGetValue(cell, out var writes) is false) into[cell] = writes = [];
 
         writes[instance] = value;
     }
@@ -698,6 +713,11 @@ internal sealed class Graph
         // Before the edge is recorded, because reading a constant creates none.
         if (constants.TryGetValue(name, out var constant)) return constant;
 
+        // The backing list is the graph's, not a value: handing it out lets a
+        // caller mutate every instance's value with nobody dirtying anything.
+        if (nodes.TryGetValue(name, out var member) && member.Kind is NodeKind.Member)
+            return new Error($"«{name}» is a member and is read for one instance at a time");
+
         var read = Reading(name);
 
         // Arms adoption. A body cannot be stopped mid-flight, so instead the
@@ -793,6 +813,12 @@ internal sealed class Graph
                 "only when the step does; write the cell it shadows instead");
 
         if (node.Kind is NodeKind.Let) throw new PurityViolation($"«{name}» is derived; only its body may set it");
+
+        // A member holds every instance's value, so a scalar write would replace
+        // the whole column with one value and the next instance read would fail
+        // its cast on the way past.
+        if (node.Kind is NodeKind.Member)
+            throw new PurityViolation($"«{name}» is a member and is written for one instance at a time");
 
         if (reading.Count is not 0)
             throw new PurityViolation($"«{reading[^1].Name}» is a let and may not assign «{name}»");
@@ -1126,6 +1152,7 @@ internal sealed class Graph
         fired.Add(name);
 
         staged = [];
+        staging = [];
         firing = name;
         returned = false;
         halting = false;
@@ -1145,6 +1172,13 @@ internal sealed class Graph
             if (halting) stopping.Add(name);
 
             foreach (var (cell, value) in staged) pending[cell] = value;
+
+            foreach (var (cell, writes) in staging)
+            {
+                if (arriving.TryGetValue(cell, out var landing) is false) arriving[cell] = landing = [];
+
+                foreach (var (instance, value) in writes) landing[instance] = value;
+            }
         }
         catch (Exception defect)
         {
@@ -1166,6 +1200,7 @@ internal sealed class Graph
         finally
         {
             staged = null;
+            staging = null;
             firing = null;
         }
     }
@@ -1798,6 +1833,9 @@ internal sealed class Graph
         consuming = null;
     }
     private Dictionary<string, object> staged;
+
+    /// <summary>A firing's member writes, which land only if it finishes.</summary>
+    private Dictionary<string, Dictionary<Instance, object>> staging;
     private readonly List<Node> reading = [];
     private readonly List<Adoption> adopting = [];
     private readonly List<string> trace = [];
