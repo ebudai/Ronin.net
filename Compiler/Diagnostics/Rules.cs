@@ -164,6 +164,23 @@ internal static class Rules
     /// </summary>
     ///
     /// <remarks>
+    ///     WITHIN A MODULE, and this is the place that will be got wrong. R5 and
+    ///     this are blanket declaration-time rules: they refuse a name for what
+    ///     it is spelled, without asking whether a rival reading exists. That
+    ///     trade is paid for by the repair being a rename, and inside one module
+    ///     the author owns both sides.
+    ///     <para>
+    ///     Across an import boundary they own neither, and the blanket rule
+    ///     over-refuses by about 87% — «hello to», «send to», «print print» can
+    ///     never capture anything and would each make two innocent libraries
+    ///     unusable together, with no rename available to anyone. So imported
+    ///     symbols must NOT arrive here marked <c>Inherited</c> the way an
+    ///     enclosing scope's do. The boundary wants a differential check —
+    ///     whether an import changes the reading of a statement the importing
+    ///     module already had — which is exactly as strict as the danger and
+    ///     nothing more.
+    ///     </para>
+    ///     <para>
     ///     Glue-free patterns only. One with glue needs its glue word inside any
     ///     name that could reach the whole call, and R5 has refused that already
     ///     — asking both would be two findings for one repair, which is what the
