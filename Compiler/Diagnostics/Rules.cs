@@ -80,6 +80,7 @@ internal static class Rules
     {
         foreach (var finding in Anchors(patterns)) yield return finding;
         foreach (var finding in Infixes(names)) yield return finding;
+        foreach (var finding in Shadowing(names, patterns)) yield return finding;
         foreach (var finding in Reserved(patterns)) yield return finding;
         foreach (var finding in Injecting(patterns)) yield return finding;
 
@@ -156,6 +157,53 @@ internal static class Rules
     private static bool Structural(Pattern pattern)
         => pattern.Segments.Contains(SymbolTable.Old)
         || Injected.Any(injection => pattern.Glue.Contains(injection.Word));
+
+    /// <summary>
+    ///     R6b. No name may have a pattern's whole word content as a proper
+    ///     prefix, or it is read instead of the call and more cheaply.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Glue-free patterns only. One with glue needs its glue word inside any
+    ///     name that could reach the whole call, and R5 has refused that already
+    ///     — asking both would be two findings for one repair, which is what the
+    ///     structural guard below exists to avoid elsewhere.
+    ///     <para>
+    ///     PROPER prefix, so a name equal to the pattern's words is left alone.
+    ///     It cannot capture: the call's argument would have to sit beside it as
+    ///     a second juxtaposed name, and that is not an expression.
+    ///     </para>
+    /// </remarks>
+    private static IEnumerable<Finding> Shadowing(IReadOnlyCollection<Declared> names,
+                                                  IReadOnlyCollection<Shape> patterns)
+    {
+        // Anchor-only, which is not the same as glue-free: a pinned hole makes
+        // the word after it free of glue and still leaves the words apart, so
+        // there is no contiguous run for a name to begin with.
+        var exposed = patterns.Where(shape => shape.Pattern.IsAnchorOnly).ToArray();
+
+        foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
+        {
+            // Not the programmer's to rename, and its origin is reported already.
+            if (declared.InjectedBy is not null) continue;
+
+            foreach (var shape in exposed)
+            {
+                var words = shape.Pattern.Segments.Where(segment => segment is not null).ToArray();
+
+                if (declared.Words.Count <= words.Length) continue;
+                if (declared.Words.Take(words.Length).SequenceEqual(words) is false) continue;
+
+                var blamed = IsLater(declared.Inherited, declared.Span, shape.Inherited, shape.Span);
+
+                yield return new NameShadowsPattern(blamed ? declared.Span : shape.Span,
+                                                   declared.Name,
+                                                   shape.Pattern.ToString())
+                    .Alongside(blamed ? shape.Span : declared.Span,
+                               blamed ? "the pattern it would shadow" : "the name that would shadow it");
+            }
+        }
+    }
 
     /// <summary>
     ///     The words the language reads as operators between two values.

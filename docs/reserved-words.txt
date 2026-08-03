@@ -18,6 +18,9 @@
 
     for each «one word, or a bracketed name» in (_)
 
+## RESERVES A NAME PREFIX (0) — no name may begin with these words
+
+
 ## PROTECTED (3) — no pattern may use these as glue
 
     old          builds old «a name», and is refused in any segment, not only glue

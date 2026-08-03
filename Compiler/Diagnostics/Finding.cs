@@ -40,6 +40,9 @@ internal enum FindingKind
     /// <summary>A name containing a word the language reads as an operator.</summary>
     InfixInName,
 
+    /// <summary>A name that would swallow a pattern's whole call.</summary>
+    NameShadowsPattern,
+
     /// <summary>A ring of whens, each writing something the next reads.</summary>
     CascadeRing,
 
@@ -157,6 +160,34 @@ internal sealed class Shadowed(Span primary, string name, string where)
 ///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
 ///     otherwise y» already written and makes it mean the name.
 /// </remarks>
+/// <summary>
+///     A name beginning with every word of a pattern, which swallows its call.
+/// </summary>
+///
+/// <remarks>
+///     R6 compares patterns with patterns. This is the pattern-versus-NAME case,
+///     and it is the same arithmetic as <see cref="InfixInName"/>: a name is one
+///     lookup and a call is one plus its arguments, so a name covering the call's
+///     whole span is always cheaper and always wins, without a tie to report.
+///     <para>
+///     Only a pattern with no glue can be caught this way. One with glue needs
+///     that word inside the name to reach the whole call, and R5 has already
+///     refused it — so this asks only the patterns R5 leaves exposed, which is
+///     also why it is the anchor-only shapes that the registry has to warn about.
+///     </para>
+/// </remarks>
+internal sealed class NameShadowsPattern(Span primary, string name, string pattern)
+    : Finding(FindingKind.NameShadowsPattern, primary)
+{
+    public string Name { get; } = name;
+    public string Pattern { get; } = pattern;
+
+    public override string Message
+        => $"«{Name}» begins with every word of «{Pattern}», so it would be read instead of that " +
+           "call wherever both are in scope — and more cheaply, so nothing would report it. " +
+           "Rename it, or respell the pattern.";
+}
+
 internal sealed class InfixInName(Span primary, string name, string word)
     : Finding(FindingKind.InfixInName, primary)
 {

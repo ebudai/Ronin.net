@@ -51,6 +51,11 @@ public class Findings
 
                      """,
                      "var total otherwise zero => Number;\n",
+                     """
+                     var print job => Number;
+                     function print (x => Number) { return x; }
+
+                     """,
                      "var x => = 1;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => Number) {}\n",
                      "function (x => Number) rounded { return x; }\n",
@@ -208,6 +213,9 @@ public class Findings
                 Player.ron:1:5: the name it collides with
 
             Player.ron:1:5: «total otherwise zero» contains «otherwise», which the language reads as an operator between two values. A name spanning one is cheaper than the expression it covers, so every «… otherwise …» already written would quietly become this name instead. Respell it.
+
+            Player.ron:2:10: «print job» begins with every word of «print (_)», so it would be read instead of that call wherever both are in scope — and more cheaply, so nothing would report it. Rename it, or respell the pattern.
+                Player.ron:1:5: the name that would shadow it
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
 

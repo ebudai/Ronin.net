@@ -126,6 +126,25 @@ internal static class Glue
 
         foreach (var pattern in free) registry.AppendLine($"    {pattern}");
 
+        // The other half of what a pattern costs, and the half a word count
+        // cannot show. An anchor-only pattern reserves no word ANYWHERE — and it
+        // does reserve its own word run as a name prefix, because a name
+        // covering the whole call is one lookup where the call is at least two,
+        // so it wins silently. A pattern with glue is not here: R5 already
+        // refuses any name that could reach across it.
+        var anchored = declared.Where(pattern => pattern.IsAnchorOnly
+                                              && pattern.Segments.Any(segment => segment is null))
+                               .ToArray();
+
+        registry.AppendLine();
+        registry.AppendLine($"## RESERVES A NAME PREFIX ({anchored.Length}) — no name may begin with these words");
+        registry.AppendLine();
+
+        foreach (var pattern in anchored)
+        {
+            registry.AppendLine($"    {string.Join(" ", pattern.Anchor),-12} from {pattern}");
+        }
+
         // The dual list. Glue words may not be names; injection words may not be
         // glue — and a reader of this file wants both directions, because they
         // are the same trap seen from either end.

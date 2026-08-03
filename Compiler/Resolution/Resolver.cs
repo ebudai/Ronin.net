@@ -798,6 +798,19 @@ internal sealed class Pattern : IEquatable<Pattern>
         Anchor = [.. Segments.TakeWhile(segment => segment is not null)];
     }
 
+    /// <summary>
+    ///     Whether every word comes before the first hole.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The shape a NAME can swallow whole: its words are one contiguous run
+    ///     at the front, so a name may begin with exactly them and cover the
+    ///     whole call. Not the same as having no glue — a pinned hole makes the
+    ///     word after it free of glue while leaving the words apart, and «for
+    ///     each «x» in (_)» is that: no glue, and no name is «for each in …».
+    /// </remarks>
+    public bool IsAnchorOnly => Anchor.Count == Segments.Count(segment => segment is not null);
+
     /// <summary>Which holes are fixed to one token.</summary>
     public IReadOnlySet<int> Pinned { get; }
 
