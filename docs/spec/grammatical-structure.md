@@ -496,6 +496,32 @@ expression and a `return` is one.
 ### 4.6.6 Parameters
 `(` (***datum declaration***`,`)* `)`
 - declarators for each parameter can only be blank, `var` or `let`
+### 4.6.7 Fallback
+*value* `otherwise` *value*
+
+`otherwise` answers with the left value unless it is an **error** or **nothing**,
+in which case it answers with the right.  A fault is not caught: a body that
+threw is a defect in the program and not a value a fallback should paper over.
+
+It is an **operator and not a pattern**.  A pattern spelled `(_) otherwise (_)`
+begins with a hole, so its anchor run is empty, and R6 refuses an empty run
+against every anchored pattern there is — the language bans word infix as a
+pattern, and an infix form lives where `+` does.  It binds **looser than any
+arithmetic**, so what it guards is the expression beside it: `total / count
+otherwise 0` guards the division.
+
+**The right side is not evaluated when the left is good.**  A body's
+dependencies are collected by evaluating it, so an operand that is evaluated is
+a cell that is read — an eager fallback would make itself an input of the very
+cell it guards, and writing to a fallback nobody wanted would recompute it.
+
+A declared name containing the word takes the words back: minimum lookup scores
+one name below an operation over two, so `x otherwise y` means the name where
+one is declared.  That is a **silent** re-reading of statements that already
+worked, which is the hazard R5 exists to prevent for glue and does not cover
+here, because this is neither glue nor a pattern.  Whether `otherwise` should
+join the protected words is open.
+
 ## 4.7 Reference
 A sequence of ***component***s, each a ***words***, an ***anonymous value***, or
 a ***symbol***.  What may lead it decides what may follow.

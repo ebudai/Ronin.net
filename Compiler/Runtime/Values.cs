@@ -98,6 +98,20 @@ internal static class Builtin
             ["-"] = new(10, Arithmetic("-", (left, right) => left - right)),
             ["*"] = new(20, Arithmetic("*", (left, right) => left * right)),
             ["/"] = new(20, Divide()),
+
+            // Loosest of them, so «a + b otherwise 0» is the fallback of the
+            // sum and not the sum of a fallback, and «a otherwise b + c» falls
+            // back to the whole sum: what it guards is the expression beside it,
+            // which is the only reading that makes it worth writing.
+            //
+            // NINE and not something rounder, because a level is not free. The
+            // resolver derives its table from the powers the operators actually
+            // use, and each new one widens every span — «9» borrows the «10»
+            // that «+» already needs for the side that may not repeat it, so it
+            // costs one column where a level with nothing adjacent costs two.
+            // Measured on the 149-lexeme case: 15 MB before, 21.1 at nine, 25.5
+            // at five.
+            ["otherwise"] = new(9, Otherwise) { Needs = value => value is Error or Nothing },
         };
 
     /// <summary>

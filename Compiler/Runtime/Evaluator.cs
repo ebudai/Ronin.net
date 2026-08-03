@@ -113,8 +113,17 @@ internal sealed class Evaluator(Scope scope)
     ///     the built-in. There is nothing left to look up.
     /// </remarks>
     private object Apply(Graph graph, Tree.Operation operation, bool insideLet)
-        => operation.Operator.Apply(Evaluate(graph, operation.Left, insideLet),
-                                    Evaluate(graph, operation.Right, insideLet));
+    {
+        var left = Evaluate(graph, operation.Left, insideLet);
+
+        // Not evaluated at all, rather than evaluated and discarded. Reading is
+        // what records a dependency, so the branch not taken must not be read —
+        // otherwise every «otherwise» makes its fallback an input of the cell it
+        // is guarding, and writing to a fallback nobody wanted recomputes it.
+        if (operation.Operator.Needs is { } needs && needs(left) is false) return left;
+
+        return operation.Operator.Apply(left, Evaluate(graph, operation.Right, insideLet));
+    }
 
     /// <summary>
     ///     A call, with its value arguments evaluated and its binding arguments

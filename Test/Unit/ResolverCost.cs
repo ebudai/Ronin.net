@@ -64,11 +64,19 @@ public class ResolverCost
         resolver.Resolve(lexemes);
         var megabytes = (GC.GetAllocatedBytesForCurrentThread() - before) / 1024.0 / 1024.0;
 
-        // 15 MB as this is written. It was 158 MB before the binding-power and
-        // lazy-collection work, and 22 MB before the table went triangular — so
-        // this ceiling catches losing any of the three.
-        Assert.True(megabytes < 20,
-                    $"resolving 149 lexemes allocated {megabytes:F1} MB, past the 20 MB ceiling");
+        // 21 MB as this is written. It was 15 with two operator precedences and
+        // is 21 with three, because the table carries a column per level that
+        // the recurrences can ask for and «otherwise» added one — a language
+        // cannot have many more operators than it needs, and this is where that
+        // shows up rather than in a benchmark nobody runs.
+        //
+        // It was 158 MB before the binding-power and lazy-collection work, and
+        // 22 before the table went triangular, which scales to about 31 at three
+        // levels. So 26 still fails on losing any of the three, with less room
+        // than it had — the next operator has to move this number again, and
+        // should say what it did to the margin when it does.
+        Assert.True(megabytes < 26,
+                    $"resolving 149 lexemes allocated {megabytes:F1} MB, past the 26 MB ceiling");
     }
 
     [Fact(DisplayName = "a statement past the ceiling is refused, not resolved slowly")]
@@ -147,7 +155,7 @@ public class ResolverCost
         // binds at 13, and the table carried it regardless.
         SymbolTable symbols = new();
 
-        Assert.Equal([10, 20], symbols.Operators.Values.Select(op => op.BindingPower).Distinct().Order());
+        Assert.Equal([9, 10, 20], symbols.Operators.Values.Select(op => op.BindingPower).Distinct().Order());
 
         // An operator added at a new level has to widen the table with it.
         // Hard-coding six would leave every statement using the new operator

@@ -476,7 +476,12 @@ internal sealed class Resolver
             {
                 case LexemeKind.Open: ++depth; continue;
                 case LexemeKind.Close: --depth; continue;
-                case LexemeKind.Symbol when depth is 0 && k > i && k < j - 1: break;
+                // A WORD may be one too. «otherwise» is an infix form and not
+                // a pattern — a pattern with a leading hole has an empty anchor
+                // run, which R6 refuses against every anchored pattern there is
+                // — so it lives here, beside «+», where an operator is
+                // recognised without asking the symbol table what is declared.
+                case LexemeKind.Symbol or LexemeKind.Word when depth is 0 && k > i && k < j - 1: break;
                 default: continue;
             }
 
@@ -988,6 +993,30 @@ internal sealed class Pattern : IEquatable<Pattern>
 /// </remarks>
 internal sealed class Operator
 {
+    /// <summary>
+    ///     Whether the right operand is needed, given the left. Null where it
+    ///     always is, which is every arithmetic operator.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Not an optimisation. A body's dependencies are collected BY
+    ///     evaluating it, so an operand that is evaluated is a cell that is read
+    ///     and an edge that exists — «a otherwise b» would wake on «b» moving
+    ///     while «a» was perfectly good, and the fallback of a fallback would be
+    ///     computed for every value that never needed one.
+    ///     </para>
+    ///     <para>
+    ///     Asked of the LEFT value, because that is the whole of what decides it
+    ///     here: «otherwise» wants its right operand when the left is an error or
+    ///     nothing, and in every other case the left value IS the answer. That is
+    ///     also why the caller may return the left when this says no — an
+    ///     operator that short-circuits to something else would need a different
+    ///     question.
+    ///     </para>
+    /// </remarks>
+    public Func<object, bool> Needs { get; init; }
+
     public Operator(int bindingPower, Func<object, object, object> apply, bool isLeftAssociative = true)
     {
         // Checked here rather than assumed. The table is mutable so that a scope
