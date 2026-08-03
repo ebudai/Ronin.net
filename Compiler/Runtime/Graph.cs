@@ -135,7 +135,21 @@ internal sealed class Graph
     ///     A source. Its initialiser is evaluated once, now, so declaration order
     ///     matters for a <c>var</c> and not for a <c>let</c>.
     /// </summary>
-    public Node Var(string name, object value) => Declare(new Node(name, NodeKind.Var, null, value, dirty: false));
+    /// <summary>
+    ///     A cell holding a value, which is normalised on the way in.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A host may hand over an ordinary array and keep its reference — so
+    ///     the array is DEEP-copied here rather than stored. Wrapping it would
+    ///     satisfy the letter of "the graph's storage is not reachable" and fix
+    ///     nothing; copying only the top level leaves the same hole one level
+    ///     down. The asymmetry is deliberate and worth knowing: entry takes a
+    ///     mutable array and copies it, and what comes back out cannot be
+    ///     mutated at all.
+    /// </remarks>
+    public Node Var(string name, object value)
+        => Declare(new Node(name, NodeKind.Var, null, List.Of(value), dirty: false));
 
     /// <summary>
     ///     Declares a type: one cell per member, each holding every instance's
@@ -339,7 +353,7 @@ internal sealed class Graph
 
         if (into.TryGetValue(cell, out var writes) is false) into[cell] = writes = [];
 
-        writes[instance] = value;
+        writes[instance] = List.Of(value);
     }
 
     /// <summary>
@@ -911,7 +925,7 @@ internal sealed class Graph
 
         // staged while a when body is running, so that a defect part way through
         // it takes every write with it rather than landing half of them
-        if (staged is null) pending[name] = value; else staged[name] = value;
+        if (staged is null) pending[name] = List.Of(value); else staged[name] = List.Of(value);
     }
 
     /// <summary>
@@ -1472,7 +1486,12 @@ internal sealed class Graph
         object value;
         try
         {
-            value = node.Body(this);
+            // Normalised here as well as at the host boundary, because a body is
+            // the other way a value enters the graph. A «let» that builds an
+            // array keeps no reference a caller could mutate, but it must still
+            // be the same TYPE as everything else or equality cannot dispatch on
+            // it — and «changes», «old» and cutoff all ask.
+            value = List.Of(node.Body(this));
         }
         catch (PurityViolation violation)
         {

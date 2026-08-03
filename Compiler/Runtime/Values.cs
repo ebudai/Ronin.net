@@ -201,20 +201,20 @@ internal static class Builtin
     private static Func<object, object, object> Indexing()
         => Lift((left, right) => (left, right) switch
         {
-            (object[] list, double position) when position != System.Math.Floor(position)
+            (List list, double position) when position != System.Math.Floor(position)
                 => new Error($"«@» takes a whole position, and {position} is not one"),
 
             // Said separately from the range, because off-by-one is the mistake
             // this spelling exists to make unlikely and «0» is what someone
             // arriving from a zero-based language writes first.
-            (object[], 0d) => new Error("«@» counts from one, so there is no position 0. The first is «@ 1»."),
+            (List, 0d) => new Error("«@» counts from one, so there is no position 0. The first is «@ 1»."),
 
-            (object[] list, double position) when position < 1 || position > list.Length
-                => new Error($"«@» has no position {position} in a list of {list.Length}"),
+            (List list, double position) when position < 1 || position > list.Count
+                => new Error($"«@» has no position {position} in a list of {list.Count}"),
 
-            (object[] list, double position) => list[(int)position - 1],
+            (List list, double position) => list[(int)position - 1],
 
-            (object[], _) => new Error("«@» takes a number for a position"),
+            (List, _) => new Error("«@» takes a number for a position"),
 
             _ => new Error("«@» indexes a list"),
         });
@@ -263,20 +263,31 @@ internal static class Builtin
     ///     arrive with one.
     ///     </para>
     /// </remarks>
-    public static bool Same(object left, object right)
+    public static bool Same(object left, object right) => Same(left, right, 0);
+
+    private static bool Same(object left, object right, int depth)
     {
-        if (left is not object[] first || right is not object[] second) return Equals(left, right);
+        // A cheap cap, kept even though the normaliser refuses a cycle at the
+        // boundary. "This can never see one" is exactly the class of invariant
+        // that keeps turning out to be unenforced, and one integer converts an
+        // unrecoverable process death into an answer.
+        if (depth > Deep) return false;
+
+        if (left is not List first || right is not List second) return Equals(left, right);
 
         if (ReferenceEquals(first, second)) return true;
-        if (first.Length != second.Length) return false;
+        if (first.Count != second.Count) return false;
 
-        for (var at = 0; at < first.Length; ++at)
+        for (var at = 0; at < first.Count; ++at)
         {
-            if (Same(first[at], second[at]) is false) return false;
+            if (Same(first[at], second[at], depth + 1) is false) return false;
         }
 
         return true;
     }
+
+    /// <summary>How deep a value may nest before comparison gives up.</summary>
+    private const int Deep = 256;
 
     public static object Otherwise(object value, object fallback) => Replaces(value) ? fallback : value;
 

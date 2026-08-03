@@ -232,6 +232,97 @@ public class Indexing
     // audit round keeps finding, so there is not one — the gap is recorded
     // instead of dressed up.
 
+    [Fact(DisplayName = "a host's array is copied in, so mutating it changes nothing")]
+    public void AHostsArrayIsCopiedInSoMutatingItChangesNothing()
+    {
+        // Found by audit. Lists were called immutable values and represented as
+        // «object[]», handed straight in and straight back — so a caller could
+        // change one without a graph write, nothing dirtied, and a direct read
+        // and a derived read disagreed for ever. The same confidently-wrong
+        // cache as a removed instance, admitted by the representation itself.
+        var host = new object[] { 1d };
+
+        Graph graph = new();
+        graph.Var("xs", host);
+        graph.Let("first", scope => Builtin.Operators["@"].Apply(scope.Read("xs"), 1d));
+        graph.Prime();
+
+        Assert.Equal(1d, graph.Read("first"));
+
+        host[0] = 2d;
+
+        // and the copy is DEEP: wrapping the caller's array would satisfy "the
+        // storage is unreachable" and change nothing, because the caller still
+        // holds it
+        Assert.Equal(1d, graph.Read("first"));
+        Assert.Equal(1d, ((List)graph.Read("xs"))[0]);
+    }
+
+    [Fact(DisplayName = "and one level down as well")]
+    public void AndOneLevelDownAsWell()
+    {
+        // Shallow copying is the same defect one level down, and nested lists
+        // are not exotic — they arrive with any grouped data.
+        var inner = new object[] { 1d };
+
+        Graph graph = new();
+        graph.Var("xs", new object[] { inner });
+        graph.Prime();
+
+        inner[0] = 99d;
+
+        Assert.Equal(1d, ((List)((List)graph.Read("xs"))[0])[0]);
+    }
+
+    [Fact(DisplayName = "and a list that contains itself is refused where it has a name")]
+    public void AndAListThatContainsItselfIsRefusedWhereItHasAName()
+    {
+        // A cycle cannot be spelled in source, and the runtime API can build
+        // one — so the guard is at the boundary, where the value still has a
+        // caller and the message can say what is wrong. Inside a comparison the
+        // two values are anonymous and the only honest answer is "too deep".
+        var looping = new object[1];
+        looping[0] = looping;
+
+        Graph graph = new();
+        graph.Var("xs", looping);
+
+        Assert.Contains("cannot contain itself", Assert.IsType<Error>(graph.Read("xs")).Message);
+    }
+
+    [Fact(DisplayName = "and nesting deeper than comparison follows is an answer, not a crash")]
+    public void AndNestingDeeperThanComparisonFollowsIsAnAnswerNotACrash()
+    {
+        // The cap is kept even though the boundary refuses a cycle, because
+        // "the comparison can never see one" is the class of invariant this
+        // round keeps finding unenforced. One integer turns an unrecoverable
+        // process death into an answer.
+        static object Deep(int levels)
+        {
+            object built = new object[] { 1d };
+
+            for (var at = 0; at < levels; ++at) built = new object[] { built };
+
+            return List.Of(built);
+        }
+
+        Assert.True(Builtin.Same(Deep(8), Deep(8)));
+        Assert.False(Builtin.Same(Deep(300), Deep(300)));
+    }
+
+    [Fact(DisplayName = "and a list says what it is when something quotes it")]
+    public void AndAListSaysWhatItIsWhenSomethingQuotesIt()
+        // Diagnostics render values, so the value has to render as the language
+        // spells it rather than as the host type behind it.
+        => Assert.Equal("[1, 2]", Written("[ 1, 2 ]").ToString());
+
+    [Fact(DisplayName = "and the empty list is one value, not one per mention")]
+    public void AndTheEmptyListIsOneValueNotOnePerMention()
+        // A singleton, which makes the commonest equality a reference check.
+        // Not the intern table that was refused: no lookup, no growth, and
+        // nothing to contend on.
+        => Assert.Same(Written("[]"), Written("[ ]"));
+
     [Theory(DisplayName = "and equality is the language's, all the way down")]
     [InlineData("[ 1, 2 ]", "[ 1, 2 ]", true)]
     [InlineData("[ 1, 2 ]", "[ 2, 1 ]", false)]
