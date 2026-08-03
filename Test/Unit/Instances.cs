@@ -75,11 +75,13 @@ public class Instances
         var graph = Boxes(2, out var boxes);
 
         graph.Remove(boxes[0]);
+        graph.Step();
 
-        // The slot is free and the next instance takes it. Without the
-        // generation this read would answer with that instance's value, which is
-        // a wrong answer rather than a refusal — the failure class this project
-        // refuses everywhere else, arriving through a data structure.
+        // The slot is free — as of the round boundary, since removal is a write
+        // — and the next instance takes it. Without the generation this read
+        // would answer with that instance's value, which is a wrong answer
+        // rather than a refusal: the failure class this project refuses
+        // everywhere else, arriving through a data structure.
         var replacing = graph.Create("Box");
 
         graph.Write("cash", replacing, 7d);
@@ -133,9 +135,15 @@ public class Instances
 
         graph.Remove(boxes[0]);
 
-        // The second call would otherwise release a slot that belongs to
-        // whatever took it, and swap-with-last would move a live instance out
-        // from under its own handle.
+        // Within the round it is still there, so removing it again is the same
+        // removal and not a mistake — «leaving» is a set. It is the NEXT round
+        // that can tell, because by then the handle names nothing.
+        graph.Remove(boxes[0]);
+        graph.Step();
+
+        // The call would otherwise release a slot that belongs to whatever took
+        // it, and swap-with-last would move a live instance out from under its
+        // own handle.
         Assert.Contains("already removed",
                         Assert.Throws<InitialisationFailure>(() => graph.Remove(boxes[0])).Message);
     }
@@ -151,12 +159,109 @@ public class Instances
 
         var box = graph.Create("Box");
 
-        if (removed) graph.Remove(box);
+        if (removed)
+        {
+            graph.Remove(box);
+            graph.Step();
+        }
 
         // A write cannot answer with an error the way a read can, so it refuses
         // where a read reports. Same two questions either way: is this member
         // this type's, and is this handle still anybody's.
         Assert.Throws<PurityViolation>(() => graph.Write(removed ? "cash" : "weight", box, 1d));
+    }
+
+    [Fact(DisplayName = "a removal is a write, so a reader learns of it at the round boundary")]
+    public void ARemovalIsAWriteSoAReaderLearnsOfItAtTheRoundBoundary()
+    {
+        // Found by audit, adjudicated by the designer, and the timing is the
+        // part worth pinning. Removal used to compact the arrays on the spot and
+        // advance nothing, so a derived reader stayed cached at its last value —
+        // the stable handle held for a direct read and not for one through a
+        // «let», and the wrong answer was permanent unless something else
+        // happened to dirty the cell.
+        //
+        // But reading «0» in the SAME round is correct and must stay correct. A
+        // removal that landed the instant it was called would make a step
+        // order-dependent: a «when» that removes and one that reads would give
+        // two answers depending on which was declared first, which is what
+        // buffered writes exist to prevent. So the defect is the round after.
+        var graph = Boxes(2, out var boxes);
+
+        graph.Let("observed", scope => scope.Read("cash", boxes[0]));
+        graph.Prime();
+
+        Assert.Equal(0d, graph.Read("observed"));
+
+        graph.Remove(boxes[0]);
+
+        Assert.Equal(0d, graph.Read("observed"));
+
+        graph.Step();
+
+        Assert.IsType<Error>(graph.Read("observed"));
+        Assert.IsType<Error>(graph.Read("cash", boxes[0]));
+    }
+
+    [Fact(DisplayName = "and a write staged for it goes with it, rather than landing on its neighbour")]
+    public void AndAWriteStagedForItGoesWithItRatherThanLandingOnItsNeighbour()
+    {
+        // Found by audit. The write staged a dense INDEX, and removal is
+        // swap-with-last, so the survivor moved into the removed instance's slot
+        // and collected a value written for somebody else — the identity failure
+        // the generational handle exists to prevent, reintroduced by turning the
+        // handle into a location before the write had settled.
+        var graph = Boxes(2, out var boxes);
+
+        graph.Write("cash", boxes[0], 7d);
+        graph.Remove(boxes[0]);
+        graph.Step();
+
+        Assert.Equal(0d, graph.Read("cash", boxes[1]));
+
+        // and the mirror, which used to index past the end of a compacted array
+        // and take the step out with it
+        var mirror = Boxes(2, out var pair);
+
+        mirror.Write("cash", pair[1], 7d);
+        mirror.Remove(pair[0]);
+        mirror.Step();
+
+        Assert.Equal(7d, mirror.Read("cash", pair[1]));
+    }
+
+    [Fact(DisplayName = "and a cell that stays stale stops waking its readers")]
+    public void AndACellThatStaysStaleStopsWakingItsReaders()
+    {
+        // Cutoff compares a recompute with the cached value, and an error was
+        // compared by reference — so a reader of a removed instance produced a
+        // NEW error every round, advanced the clock every round, and the graph
+        // never went quiet. Exactly what cutoff exists to prevent, arriving by a
+        // different door.
+        var graph = Boxes(2, out var boxes);
+        var evaluated = 0;
+
+        graph.Let("observed", scope =>
+        {
+            ++evaluated;
+            return scope.Read("cash", boxes[0]);
+        });
+
+        graph.Prime();
+        graph.Read("observed");
+
+        graph.Remove(boxes[0]);
+        graph.Step();
+
+        Assert.IsType<Error>(graph.Read("observed"));
+
+        var settled = evaluated;
+
+        graph.Step();
+        graph.Step();
+
+        Assert.IsType<Error>(graph.Read("observed"));
+        Assert.Equal(settled, evaluated);
     }
 
     [Fact(DisplayName = "two instances written in one step both land")]

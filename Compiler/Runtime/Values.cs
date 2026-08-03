@@ -23,6 +23,36 @@ internal class Error(string message)
     public string Message { get; } = message;
 
     public override string ToString() => $"error({Message})";
+
+    /// <summary>
+    ///     Two failures of the same kind saying the same thing are the same
+    ///     value.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Cutoff compares a recompute's result with the cached one and stops
+    ///     propagating when they match. Reference equality means a body that
+    ///     fails the same way every round produces a NEW error every round, so
+    ///     the clock advances, dependents wake, and the graph never goes quiet —
+    ///     which is exactly what cutoff exists to prevent, arriving by a
+    ///     different door. A removed instance's readers would do that for ever.
+    ///     <para>
+    ///     By kind and by message, and nothing else. If an error ever carries a
+    ///     site or a time, equality must not follow it there for the same
+    ///     reason.
+    ///     </para>
+    /// </remarks>
+    public override bool Equals(object other)
+        => other is Error failure && failure.GetType() == GetType() && failure.Message == Message;
+
+    /// <remarks>
+    ///     Required by the contract and used by nothing: a failure is compared,
+    ///     never keyed. Written rather than omitted because a type that
+    ///     overrides one and not the other is a trap for whoever first puts an
+    ///     error in a set.
+    /// </remarks>
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    public override int GetHashCode() => System.HashCode.Combine(GetType(), Message);
 }
 
 /// <summary>

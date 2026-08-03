@@ -191,22 +191,22 @@ internal sealed class Graph
     /// </remarks>
     public void Remove(Instance instance)
     {
-        var population = populations[instance.Type];
-
-        if (population[instance] is Population.Absent)
+        if (populations[instance.Type][instance] is Population.Absent)
             throw new InitialisationFailure(
                 $"«{instance.Type}» instance {instance.Slot} was already removed. A handle outlives " +
                 "the instance it named, which is what stops it naming a different one.");
 
-        var (removed, moved) = population.Release(instance);
-
-        foreach (var member in population.Members)
-        {
-            var values = Values(member);
-
-            values[removed] = values[moved];
-            values.RemoveAt(moved);
-        }
+        // A WRITE, and not a mutation that also remembers to dirty. Removal used
+        // to compact the arrays on the spot and advance nothing, so a derived
+        // cell that had read the instance stayed cached at its last value — and
+        // the stable-handle guarantee held only for whoever read the member
+        // directly.
+        //
+        // Buffering it here is what makes the step order-independent as well: if
+        // removal landed the instant it was called, a «when» that removes and one
+        // that reads would give two different answers depending on which was
+        // declared first, which is the defect buffered writes exist to remove.
+        leaving.Add(instance);
     }
 
     /// <summary>One instance's value for a member.</summary>
@@ -229,20 +229,25 @@ internal sealed class Graph
     {
         if (Foreign(member, instance) is Error mismatch) throw new PurityViolation(mismatch.Message);
 
-        var index = populations[instance.Type][instance];
-
-        if (index is Population.Absent)
+        if (populations[instance.Type][instance] is Population.Absent)
             throw new PurityViolation(
                 $"«{instance.Type}» instance {instance.Slot} was removed and cannot be written");
 
-        // Staged per index and not per cell. A member is one node holding N
-        // values, so two instances written in one step are two writes to the
-        // same node — last-write-wins over the cell would keep one of them, and
-        // the arriving indices are also exactly the dirty set the next round
-        // wants.
+        // Staged per INSTANCE and not per index, and not per cell either.
+        //
+        // Not per cell, because a member is one node holding N values, so two
+        // instances written in one step are two writes to the same node and
+        // last-write-wins would keep one of them.
+        //
+        // Not per index, because an index is where an instance sits and removal
+        // moves the last one into the hole. A write staged as a location and
+        // applied after a removal lands on whoever moved into that slot — the
+        // identity failure the generational handle exists to prevent,
+        // reintroduced by converting the handle to a location before the write
+        // settled.
         if (arriving.TryGetValue(member, out var writes) is false) arriving[member] = writes = [];
 
-        writes[index] = value;
+        writes[instance] = value;
     }
 
     private Error Foreign(string member, Instance instance)
@@ -262,7 +267,10 @@ internal sealed class Graph
 
     /// <summary>Which type each member belongs to, which a handle cannot say.</summary>
     private readonly Dictionary<string, string> belonging = [];
-    private readonly Dictionary<string, Dictionary<int, object>> arriving = [];
+    private readonly Dictionary<string, Dictionary<Instance, object>> arriving = [];
+
+    /// <summary>Instances removed this round, applied where every write is.</summary>
+    private readonly HashSet<Instance> leaving = [];
 
     /// <summary>
     ///     A derived node. The body is not evaluated at declaration — it runs on
@@ -846,8 +854,11 @@ internal sealed class Graph
         // when the round that deferred it wrote nothing — a «return» in the head
         // writes no next count — so the tail waited for an unrelated step, and in
         // an event-driven host possibly for an unrelated event.
-        while ((rounds is 0 || pending.Count is not 0 || arriving.Count is not 0 || deferred.Count is not 0)
-            && counted < limit)
+        while ((rounds is 0
+             || pending.Count is not 0
+             || arriving.Count is not 0
+             || leaving.Count is not 0
+             || deferred.Count is not 0) && counted < limit)
         {
             ++rounds;
             servicing.Clear();
@@ -896,7 +907,7 @@ internal sealed class Graph
 
         // Deferred work outstanding is non-settlement exactly as a pending write
         // is: the step ran out of rounds with something still to do.
-        if (pending.Count is not 0 || arriving.Count is not 0 || deferred.Count is not 0)
+        if (pending.Count is not 0 || arriving.Count is not 0 || leaving.Count is not 0 || deferred.Count is not 0)
             throw Runaway(rounds, counted);
 
         Draining();
@@ -924,11 +935,17 @@ internal sealed class Graph
         foreach (var (member, writes) in arriving)
         {
             var values = Values(member);
-            var node = nodes[member];
             var moved = false;
 
-            foreach (var (index, value) in writes)
+            foreach (var (instance, value) in writes)
             {
+                // Resolved HERE and not when the write was made, which is the
+                // whole point of staging the handle: removal is applied below,
+                // so an instance leaving this round is still where it was and
+                // the write lands on it rather than on whoever moves into its
+                // slot. Compaction then discards both together.
+                var index = populations[instance.Type][instance];
+
                 if (Equals(values[index], value)) continue;
 
                 values[index] = value;
@@ -937,11 +954,38 @@ internal sealed class Graph
 
             if (moved is false) continue;
 
-            node.Changed = ++clock;
-            MarkDirty(node);
+            nodes[member].Changed = ++clock;
+            MarkDirty(nodes[member]);
         }
 
         arriving.Clear();
+
+        // Removal, through the same door. Compacting the arrays without
+        // advancing anything left a derived reader cached at the value it last
+        // saw, so the stable handle held for a direct read and not for one
+        // through a «let» — confidently wrong, and for ever if nothing else
+        // happened to dirty it.
+        foreach (var instance in leaving)
+        {
+            var population = populations[instance.Type];
+            var (removed, moved) = population.Release(instance);
+
+            foreach (var member in population.Members)
+            {
+                var values = Values(member);
+
+                values[removed] = values[moved];
+                values.RemoveAt(moved);
+
+                // The whole column, which is what a member write already does.
+                // A per-row dirty set would be finer and does not exist yet;
+                // until it does this is correct and coarse rather than wrong.
+                nodes[member].Changed = ++clock;
+                MarkDirty(nodes[member]);
+            }
+        }
+
+        leaving.Clear();
     }
 
     private List<string> Triggered()
