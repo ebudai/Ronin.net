@@ -80,6 +80,7 @@ internal static class Rules
     {
         foreach (var finding in Anchors(patterns)) yield return finding;
         foreach (var finding in Infixes(names)) yield return finding;
+        foreach (var finding in Infixes(patterns)) yield return finding;
         foreach (var finding in Shadowing(names, patterns)) yield return finding;
         foreach (var finding in Reserved(patterns)) yield return finding;
         foreach (var finding in Injecting(patterns)) yield return finding;
@@ -156,6 +157,7 @@ internal static class Rules
     /// </summary>
     private static bool Structural(Pattern pattern)
         => pattern.Segments.Contains(SymbolTable.Old)
+        || pattern.Segments.Any(Infix.Contains)
         || Injected.Any(injection => pattern.Glue.Contains(injection.Word));
 
     /// <summary>
@@ -241,6 +243,27 @@ internal static class Rules
     ///     A name may not contain an operator word, for R5's reason against a
     ///     different rival.
     /// </summary>
+    /// <summary>
+    ///     Nor may a pattern use one, which fails the other way.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A name is cheaper than the expression it covers and wins silently; a
+    ///     pattern costs exactly what the operator costs and ties. So this is an
+    ///     ambiguity rather than a capture — reported at every call site, far
+    ///     from the declaration that caused it, which is why the declaration is
+    ///     what gets refused.
+    /// </remarks>
+    private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Shape> patterns)
+    {
+        foreach (var (pattern, span, _) in patterns)
+        {
+            if (pattern.Segments.FirstOrDefault(Infix.Contains) is not string word) continue;
+
+            yield return new InfixInPattern(span, pattern.ToString(), word);
+        }
+    }
+
     private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Declared> names)
     {
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))

@@ -40,6 +40,9 @@ internal enum FindingKind
     /// <summary>A name containing a word the language reads as an operator.</summary>
     InfixInName,
 
+    /// <summary>A pattern using a word the language reads as an operator.</summary>
+    InfixInPattern,
+
     /// <summary>A name that would swallow a pattern's whole call.</summary>
     NameShadowsPattern,
 
@@ -150,17 +153,6 @@ internal sealed class Shadowed(Span primary, string name, string where)
 
 /// <summary>A name spelled like one the compiler injects.</summary>
 /// <summary>
-///     A name containing a word the language reads as an operator.
-/// </summary>
-///
-/// <remarks>
-///     R5's shape, for the same reason and against a different rival. A name is
-///     ONE lookup and any composite reading of the same span is at least two, so
-///     a name spanning an operator always wins it — silently, because it is
-///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
-///     otherwise y» already written and makes it mean the name.
-/// </remarks>
-/// <summary>
 ///     A name beginning with every word of a pattern, which swallows its call.
 /// </summary>
 ///
@@ -186,6 +178,41 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
         => $"«{Name}» begins with every word of «{Pattern}», so it would be read instead of that " +
            "call wherever both are in scope — and more cheaply, so nothing would report it. " +
            "Rename it, or respell the pattern.";
+}
+
+/// <summary>
+///     A name containing a word the language reads as an operator.
+/// </summary>
+///
+/// <remarks>
+///     R5's shape, for the same reason and against a different rival. A name is
+///     ONE lookup and any composite reading of the same span is at least two, so
+///     a name spanning an operator always wins it — silently, because it is
+///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
+///     otherwise y» already written and makes it mean the name.
+/// </remarks>
+/// <summary>
+///     A pattern using a word the language reads as an operator.
+/// </summary>
+///
+/// <remarks>
+///     The other half of <see cref="InfixInName"/>, and it fails differently: a
+///     name is cheaper than the expression it covers and wins silently, while a
+///     pattern costs exactly what the operator costs and TIES. So the name case
+///     is a silent capture and this one is an ambiguity at every call site —
+///     which is a worse diagnostic for the same defect, because it is reported
+///     far from the declaration that caused it and once per use.
+/// </remarks>
+internal sealed class InfixInPattern(Span primary, string pattern, string word)
+    : Finding(FindingKind.InfixInPattern, primary)
+{
+    public string Pattern { get; } = pattern;
+    public string Word { get; } = word;
+
+    public override string Message
+        => $"«{Pattern}» uses «{Word}», which the language reads as an operator between two " +
+           "values. A call to it would cost exactly what the operation costs, so every " +
+           $"«… {Word} …» in scope would be ambiguous rather than wrong. Respell it.";
 }
 
 internal sealed class InfixInName(Span primary, string name, string word)

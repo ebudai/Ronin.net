@@ -64,6 +64,23 @@ public class NameShadowing
         Assert.Equal(FindingKind.GlueInName, Only("var send to me => Number;\n" + glued).Kind);
     }
 
+    [Fact(DisplayName = "and a pattern may not use an operator word either")]
+    public void AndAPatternMayNotUseAnOperatorWordEither()
+    {
+        // Found by audit. Reserving «otherwise» inside NAMES closed the capture
+        // that motivated the rule and left the mirror open: a pattern using the
+        // word costs exactly what the operation costs, so «x otherwise y» became
+        // a TIE rather than a wrong answer.
+        //
+        // Refused at the declaration, because an ambiguity is reported at every
+        // call site and none of them is where the mistake was made.
+        var finding = Assert.IsType<InfixInPattern>(
+            Only("function x otherwise (value => Number) { return value; }\n"));
+
+        Assert.Equal("x otherwise (_)", finding.Pattern);
+        Assert.Equal("otherwise", finding.Word);
+    }
+
     [Fact(DisplayName = "and nothing is refused where the pattern is not in scope")]
     public void AndNothingIsRefusedWhereThePatternIsNotInScope()
         // The rule is about a collision, so with nothing to collide with there
