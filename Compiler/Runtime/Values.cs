@@ -119,6 +119,13 @@ internal static class Builtin
             // six borrows the seven that patterns already need and costs one
             // column where a level with nothing adjacent costs two.
             ["otherwise"] = new(6, Otherwise) { Catches = Replaces },
+
+            // Tighter than arithmetic, so «list @ 4 + 1» is «(list @ 4) + 1»:
+            // what is indexed is the list beside it and not the sum. Twenty-one
+            // borrows the column «*» already needs for the side that may not
+            // repeat it, so it costs one where a level with nothing adjacent
+            // costs two.
+            ["@"] = new(21, Indexing()),
         };
 
     /// <summary>
@@ -142,6 +149,44 @@ internal static class Builtin
             (double first, double second) => first / second,
 
             _ => new Error("«/» needs two numbers"),
+        });
+
+    /// <summary>
+    ///     Indexing, which is ONE-BASED and closed.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     A symbol and not a word. A word-spelled indexer would put its glue in
+    ///     the reserved set and end «RESERVED (0)», which is a property this
+    ///     language has and few others do.
+    ///     </para>
+    ///     <para>
+    ///     Every way of missing is a value and not a throw, for the reason
+    ///     division by zero is: an index past the end is an ordinary thing for a
+    ///     program to compute, and a fallback is already the language's answer to
+    ///     it. «list @ 4 otherwise 0» reads as what it does.
+    ///     </para>
+    /// </remarks>
+    private static Func<object, object, object> Indexing()
+        => Lift((left, right) => (left, right) switch
+        {
+            (object[] list, double position) when position != System.Math.Floor(position)
+                => new Error($"«@» takes a whole position, and {position} is not one"),
+
+            // Said separately from the range, because off-by-one is the mistake
+            // this spelling exists to make unlikely and «0» is what someone
+            // arriving from a zero-based language writes first.
+            (object[], 0d) => new Error("«@» counts from one, so there is no position 0. The first is «@ 1»."),
+
+            (object[] list, double position) when position < 1 || position > list.Length
+                => new Error($"«@» has no position {position} in a list of {list.Length}"),
+
+            (object[] list, double position) => list[(int)position - 1],
+
+            (object[], _) => new Error("«@» takes a number for a position"),
+
+            _ => new Error("«@» indexes a list"),
         });
 
     private static Func<object, object, object> Arithmetic(string symbol, Func<double, double, double> operation)

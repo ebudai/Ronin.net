@@ -535,6 +535,23 @@ worked, which is the hazard R5 exists to prevent for glue and does not cover
 here, because this is neither glue nor a pattern.  Whether `otherwise` should
 join the protected words is open.
 
+### 4.6.8 Indexing
+*list* `@` *position*
+
+**One-based and closed**, so `list @ 1` is the first element and `list @ n` the
+last of `n`.  A position of `0`, one past the end, or one that is not whole is an
+**error value** and not a throw — an index past the end is an ordinary thing for
+a program to compute, and `list @ 4 otherwise 0` is already the language's answer
+to it.
+
+A **symbol** and not a word.  A word-spelled indexer would put its glue in the
+reserved set and end `RESERVED (0)`, which is a property this language has and
+few others do.
+
+It binds **tighter than arithmetic**, so `list @ 4 + 1` is `(list @ 4) + 1`: what
+is indexed is the list beside it and not the sum.  Being tighter than `otherwise`
+as well is what makes the fallback guard the indexing rather than the position.
+
 ## 4.7 Reference
 A sequence of ***component***s, each a ***words***, an ***anonymous value***, or
 a ***symbol***.  What may lead it decides what may follow.

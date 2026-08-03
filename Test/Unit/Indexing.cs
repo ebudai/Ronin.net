@@ -1,0 +1,105 @@
+// Copyright © 2026 Eric Budai
+
+using Ronin.Compiler;
+using Ronin.Runtime;
+
+namespace Unit;
+
+/// <summary>
+///     «@» — indexing, one-based and closed.
+/// </summary>
+///
+/// <remarks>
+///     A symbol and not a word, because a word-spelled indexer puts its glue in
+///     the reserved set and ends «RESERVED (0)». It already lexed — every
+///     punctuation character is a one-character symbol — so what it was missing
+///     was an entry in the one table that gives an operator its precedence and
+///     its meaning together.
+/// </remarks>
+[Trait(nameof(Resolver), null)]
+public class Indexing
+{
+    private static object Value(string source)
+    {
+        SymbolTable symbols = new();
+        symbols.WithNames("list", "position");
+
+        Assert.True(new Resolver(symbols).Resolve(Lexemes.Lex(source)).TryTree(out var tree), source);
+
+        Graph graph = new();
+        graph.Var("list", new object[] { 10d, 20d, 30d });
+        graph.Var("position", 2d);
+
+        return new Evaluator(new Scope()).Evaluate(graph, tree, insideLet: false);
+    }
+
+    private static string Reading(string source)
+    {
+        SymbolTable symbols = new();
+        symbols.WithNames("list", "a", "b", "c");
+
+        return new Resolver(symbols).Resolve(source).Reading;
+    }
+
+    [Theory(DisplayName = "«@» binds tighter than arithmetic, and looser than nothing else")]
+    [InlineData("list @ 4 + 1", "((«list» @ 4) + 1)")]
+    [InlineData("a * b @ c", "(«a» * («b» @ «c»))")]
+    [InlineData("a @ b @ c", "((«a» @ «b») @ «c»)")]
+    public void BindsTighterThanArithmetic(string source, string reading)
+        // What is indexed is the list beside it, not the sum — «list @ 4 + 1»
+        // is the fifth element of nothing anyone wrote.
+        => Assert.Equal(reading, Reading(source));
+
+    [Theory(DisplayName = "and it counts from one")]
+    [InlineData("list @ 1", 10d)]
+    [InlineData("list @ 2", 20d)]
+    [InlineData("list @ 3", 30d)]
+    [InlineData("list @ position", 20d)]
+    public void AndItCountsFromOne(string source, double expected) => Assert.Equal(expected, Value(source));
+
+    [Fact(DisplayName = "and says so when someone counts from zero")]
+    public void AndSaysSoWhenSomeoneCountsFromZero()
+    {
+        // Its own message and not the range's, because this is the mistake the
+        // spelling exists to make unlikely and «0» is what someone arriving from
+        // a zero-based language writes first.
+        var refused = Assert.IsType<Error>(Value("list @ 0"));
+
+        Assert.Contains("counts from one", refused.Message);
+        Assert.Contains("«@ 1»", refused.Message);
+    }
+
+    [Theory(DisplayName = "and every other way of missing is a value, not a throw")]
+    [InlineData("list @ 4", "no position 4")]
+    [InlineData("list @ 2.5", "not one")]
+    [InlineData("position @ 1", "indexes a list")]
+    [InlineData("list @ list", "takes a number")]
+    public void AndEveryOtherWayOfMissingIsAValueNotAThrow(string source, string says)
+        // The reason division by zero is a value: an index past the end is an
+        // ordinary thing for a program to compute, and the language already has
+        // an answer for a computation that produced nothing useful.
+        => Assert.Contains(says, Assert.IsType<Error>(Value(source)).Message);
+
+    [Fact(DisplayName = "so a fallback reads as what it does")]
+    public void SoAFallbackReadsAsWhatItDoes()
+    {
+        // The composition the whole spelling is for, and it needs «@» to bind
+        // tighter than «otherwise» — which it does by twenty-one against six, so
+        // the fallback guards the indexing rather than the position.
+        Assert.Equal("((«list» @ 4) otherwise 0)", Reading("list @ 4 otherwise 0"));
+        Assert.Equal(0d, Value("list @ 4 otherwise 0"));
+        Assert.Equal(20d, Value("list @ 2 otherwise 0"));
+    }
+
+    [Fact(DisplayName = "and a failure on either side is the answer")]
+    public void AndAFailureOnEitherSideIsTheAnswer()
+    {
+        // Lifted, so an error arriving as either operand is what comes out
+        // rather than being reported as a bad index.
+        Assert.Equal("boom", Assert.IsType<Error>(
+            Builtin.Operators["@"].Apply(new Error("boom"), 1d)).Message);
+
+        Assert.Equal("boom", Assert.IsType<Error>(
+            Builtin.Operators["@"].Apply(new object[] { 1d }, new Error("boom"))).Message);
+    }
+}

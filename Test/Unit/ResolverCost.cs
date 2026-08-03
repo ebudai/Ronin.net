@@ -156,7 +156,7 @@ public class ResolverCost
         // binds at 13, and the table carried it regardless.
         SymbolTable symbols = new();
 
-        Assert.Equal([6, 10, 20], symbols.Operators.Values.Select(op => op.BindingPower).Distinct().Order());
+        Assert.Equal([6, 10, 20, 21], symbols.Operators.Values.Select(op => op.BindingPower).Distinct().Order());
 
         // An operator added at a new level has to widen the table with it.
         // Hard-coding six would leave every statement using the new operator
