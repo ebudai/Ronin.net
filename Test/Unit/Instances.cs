@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using Ronin.Compiler;
 using Ronin.Runtime;
 
 namespace Unit;
@@ -111,22 +112,75 @@ public class Instances
         Assert.IsType<Error>(graph.Read("weight", box));
     }
 
-    [Fact(DisplayName = "a type is declared once, and its members say so")]
-    public void ATypeIsDeclaredOnceAndItsMembersSayIt()
+    [Fact(DisplayName = "sibling types may share a member name")]
+    public void SiblingTypesMayShareAMemberName()
+    {
+        // Found by audit, and it was the runtime disagreeing with the frontend.
+        // A type body is its own scope, so this source is accepted with no
+        // findings — and the runtime keyed a member on its bare spelling, so the
+        // second «name» collided with the first through the global uniqueness
+        // check. «name», «id» and «value» in unrelated types is not a corner
+        // case.
+        Assert.Empty(Compilation.Of(new SourceText("""
+            type Box    { var name => Number; }
+            type Person { var name => Number; }
+
+            """, "Player.ron")).Findings);
+
+        // and the runtime now represents what that source declares
+        Graph graph = new();
+        graph.Type("Box", ("name", 0d));
+        graph.Type("Person", ("name", 1d));
+
+        var box = graph.Create("Box");
+        var person = graph.Create("Person");
+
+        graph.Write("name", box, 7d);
+        graph.Step();
+
+        Assert.Equal(7d, graph.Read("name", box));
+        Assert.Equal(1d, graph.Read("name", person));
+
+        // two cells, still one per declared member
+        Assert.Equal(2, graph.Declared);
+    }
+
+    [Fact(DisplayName = "and a type is declared once, whole or not at all")]
+    public void AndATypeIsDeclaredOnceWholeOrNotAtAll()
     {
         Graph graph = new();
         graph.Type("Box", ("cash", 0d));
 
-        // Not caught by Unique, which is what guards a member name: a second
-        // «Box» with DIFFERENT members clashes with nothing and would replace
-        // the population, leaving every handle already issued naming slots in a
-        // table nobody can reach.
         Assert.Contains("already declared",
                         Assert.Throws<InitialisationFailure>(() => graph.Type("Box", ("weight", 0d))).Message);
 
-        // and the ordinary clash is still the member's
-        Assert.Throws<InitialisationFailure>(() => graph.Type("Crate", ("cash", 0d)));
+        // Found by audit. Members were declared one at a time and published
+        // after, so a collision on any but the first left the earlier nodes
+        // behind with their seeds and the type itself absent.
+        //
+        // Qualifying the cells took most of that away: a member shares a
+        // namespace only with its own type's members, so a module-level
+        // «occupied» no longer collides with «Broken.occupied» at all. What
+        // remains reachable is a member named twice, and it leaves nothing.
+        Graph leaky = new();
+        leaky.Var("occupied", 0d);
+
+        Assert.Throws<InitialisationFailure>(() => leaky.Type("Broken", ("leaked", 0d), ("leaked", 1d)));
+        Assert.Equal(1, leaky.Declared);
+
+        // and the module-level name it used to collide with is untouched either way
+        leaky.Type("Fixed", ("leaked", 0d), ("occupied", 0d));
+
+        Assert.Equal(3, leaky.Declared);
     }
+
+    [Fact(DisplayName = "and one member declared twice in the same type is refused")]
+    public void AndOneMemberDeclaredTwiceInTheSameTypeIsRefused()
+        // Not reachable through «Unique», because the first declaration has not
+        // happened yet when the preflight asks.
+        => Assert.Contains("twice",
+                           Assert.Throws<InitialisationFailure>(
+                               () => new Graph().Type("Box", ("cash", 0d), ("cash", 1d))).Message);
 
     [Fact(DisplayName = "removing one twice says so rather than removing another")]
     public void RemovingOneTwiceSaysSoRatherThanRemovingAnother()

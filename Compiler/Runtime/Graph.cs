@@ -153,22 +153,56 @@ internal sealed class Graph
     {
         ArgumentNullException.ThrowIfNull(members);
 
+        // EVERY question asked before anything is written. Declaring members one
+        // at a time and failing part way left the earlier nodes behind, their
+        // seeds with them, and the type itself absent — a state no successful
+        // declaration can produce.
+        //
+        // Qualifying the cells took most of the failures away with it: a member
+        // shares a namespace only with the other members of its own type now, so
+        // the collision that used to leak — a member against an unrelated
+        // module-level name — cannot arise. What is left is a type declared
+        // twice and a member declared twice, and both are asked here.
         if (populations.ContainsKey(type))
             throw new InitialisationFailure($"«{type}» is already declared. Rename one of them.");
+
+        HashSet<string> declaring = [];
+
+        foreach (var (member, _) in members)
+        {
+            if (declaring.Add(Qualified(type, member)) is false)
+                throw new InitialisationFailure(
+                    $"«{type}» declares «{member}» twice. A member is one cell however many times it is named.");
+        }
 
         Population population = new(type);
 
         foreach (var (member, seed) in members)
         {
-            Declare(new Node(member, NodeKind.Member, null, new List<object>(), dirty: false));
+            var cell = Qualified(type, member);
 
-            population.Members.Add(member);
-            seeds[member] = seed;
-            belonging[member] = type;
+            Declare(new Node(cell, NodeKind.Member, null, new List<object>(), dirty: false));
+
+            population.Members.Add(cell);
+            seeds[cell] = seed;
         }
 
         populations[type] = population;
     }
+
+    /// <summary>
+    ///     A member cell's name, which carries the type it belongs to.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The runtime used to key a member on its bare source spelling, so two
+    ///     unrelated types could not both have a «name» — which the frontend
+    ///     allows, because a type body is its own scope. The storage model has to
+    ///     agree with the scope model, and the dot is what makes it: a source
+    ///     name is a run of WORDS, so no declaration can collide with this and
+    ///     «Unique» stays one check for both kinds.
+    /// </remarks>
+    private static string Qualified(string type, string member) => $"{type}.{member}";
 
     /// <summary>A new instance of <paramref name="type"/>, seeded per member.</summary>
     public Instance Create(string type)
@@ -217,17 +251,19 @@ internal sealed class Graph
         // belongs to that population — every type's arrays are indexed the same
         // way, so a live «Box» handle reads a «Crate» member perfectly well and
         // answers with whichever crate happens to sit at that index.
-        if (Foreign(member, instance) is Error mismatch) return mismatch;
+        if (Cell(member, instance) is not string cell)
+            return new Error($"«{member}» is not a member of «{instance.Type}»");
 
         var index = populations[instance.Type][instance];
 
-        return index is Population.Absent ? Stale(instance) : ((List<object>)Read(member))[index];
+        return index is Population.Absent ? Stale(instance) : ((List<object>)Read(cell))[index];
     }
 
     /// <summary>Writes one instance's value for a member, as of the next round.</summary>
     public void Write(string member, Instance instance, object value)
     {
-        if (Foreign(member, instance) is Error mismatch) throw new PurityViolation(mismatch.Message);
+        if (Cell(member, instance) is not string cell)
+            throw new PurityViolation($"«{member}» is not a member of «{instance.Type}»");
 
         if (populations[instance.Type][instance] is Population.Absent)
             throw new PurityViolation(
@@ -245,15 +281,14 @@ internal sealed class Graph
         // identity failure the generational handle exists to prevent,
         // reintroduced by converting the handle to a location before the write
         // settled.
-        if (arriving.TryGetValue(member, out var writes) is false) arriving[member] = writes = [];
+        if (arriving.TryGetValue(cell, out var writes) is false) arriving[cell] = writes = [];
 
         writes[instance] = value;
     }
 
-    private Error Foreign(string member, Instance instance)
-        => belonging.TryGetValue(member, out var type) && type == instance.Type
-         ? null
-         : new Error($"«{member}» is not a member of «{instance.Type}»");
+    /// <summary>The cell this member names for this instance, or null if none.</summary>
+    private string Cell(string member, Instance instance)
+        => nodes.ContainsKey(Qualified(instance.Type, member)) ? Qualified(instance.Type, member) : null;
 
     private static Error Stale(Instance instance)
         => new($"this handle named an instance of «{instance.Type}» that has been removed. " +
@@ -265,8 +300,6 @@ internal sealed class Graph
     private readonly Dictionary<string, Population> populations = [];
     private readonly Dictionary<string, object> seeds = [];
 
-    /// <summary>Which type each member belongs to, which a handle cannot say.</summary>
-    private readonly Dictionary<string, string> belonging = [];
     private readonly Dictionary<string, Dictionary<Instance, object>> arriving = [];
 
     /// <summary>Instances removed this round, applied where every write is.</summary>
