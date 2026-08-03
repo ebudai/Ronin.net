@@ -45,16 +45,53 @@ the reference's first. So the two really do disagree, the disagreement is not
 about which reading is preferable, and `LEFTASSOCIATIVEWORDS.md` §4 — "TIE →
 ERROR still" — describes the reference.
 
-That does not yet prove the port is the defective one. It localises the question:
-the reference offers both derivations and the port offers one, so either the
-port's open-ended trailing argument cannot reach a non-open-ended leading-hole
-call, or my lift failed to offer it. §5 cites `POSTFIXDIAGNOSIS.md` §1 as
-already covering this, and that document is not in the folder — see §5.
+**Answered, after this was first written.** The port produces *both*
+derivations. It loses them at the point where a tie is counted.
 
-Worth stating in the direction that matters: **the safety argument for postfix
-rests on a tie being reported, and on the port it currently is not.** Whichever
-way this resolves, it has to resolve before postfix ships, and §1 of this
-document is the reason not to assume the reference is right.
+`Cell.Offer` keys derivations by `node.ToString()` — the rendered reading — and
+for equal cost keeps the larger count rather than the sum. A word-pattern call
+renders without brackets, so both groupings render as `sorted «xs» reversed`,
+collapse into one entry, and the count stays at one. `Resolution` then reports
+`Resolved` because ambiguity is `best.Count > 1`.
+
+Confirmed by changing only the rendering: bracketing a nested call inside
+`Node.Call.Render` makes the same statement come back **Ambiguous, count 2**, at
+the same cost 3. Nothing else was touched.
+
+So:
+
+- §4's cost invariance is true of the port as well — the two derivations exist
+  and cost the same;
+- the tie is not reported because the tie *detector* keys on rendering, not on
+  structure; and
+- the reference and the port do not disagree about the grammar at all. They
+  disagree about what counts as two readings.
+
+That dedup is not a mistake. Its comment records what it fixed: two identical
+patterns in a table made «take x» count two while leaving one rendering in
+order, so a tie was reported between a statement and itself with no readings to
+show. Keying on the rendering is sound **while distinct derivations always
+render distinctly** — which holds for prefix patterns, because their nesting is
+unique, and is measurably still true today:
+
+```
+f g a                Resolved   f g «a»
+sum of sum of a      Resolved   sum of sum of «a»
+send f a to g b      Resolved   send f «a» to g «b»
+f f f a              Resolved   f f f «a»
+```
+
+Postfix is what breaks the assumption, because a call that ends in a word and a
+call that begins with one compose to the same string. So this is a
+**precondition for postfix rather than a live defect**, and it is a small and
+well-localised one: either a call renders its nested calls unambiguously, or
+derivations are counted by structure instead of by text. The first is a
+one-method change and would show up in every diagnostic that quotes a reading;
+the second is invisible to users and is probably what is wanted.
+
+Either way it belongs on §8's list, and it replaces the vaguer worry in
+`POSTFIXPATTERNS-RESULT.md` §2 that the DP might not reach the reading at all.
+It does.
 
 ## 3. A small inconsistency in `word_infix.py`
 
@@ -76,7 +113,8 @@ true of it:
 
 - the index keys a pattern by its first word and a leading hole has none;
 - R6 is stated over anchor runs and a leading hole's is empty; and
-- the port and the reference disagree about the resulting composition.
+- a tie between the resulting groupings is not reported, for the reason §2
+  gives.
 
 This is worth doing before the design settles rather than after, because the
 sentence is what a reader meets first and it is wrong under either outcome.
@@ -85,9 +123,9 @@ sentence is what a reader meets first and it is wrong under either outcome.
 
 `POSTFIXDIAGNOSIS.md`, `WHYSYMBOLINFIX.md` and `WHYNOPOSTFIX.md` are all cited —
 one withdrawn, one superseded, and one named as a blocker for postfix in §5's
-table — and none is in `docs/handoff/`. The first is the one I need: it is said
-to diagnose the exact port divergence §2 is about, and without it I would be
-re-deriving something already written.
+table — and none is in `docs/handoff/`. `POSTFIXDIAGNOSIS.md` is said to
+diagnose the port divergence §2 is about; §2 now has an answer arrived at
+independently, so the useful thing is to compare the two rather than to send it.
 
 `DOTNETSCHEDULER.md` and `BRACEDECISION.md` are also referenced by earlier
 packets and also absent.
