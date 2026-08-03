@@ -50,6 +50,14 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
         if (Aggregate<Collection, Open.SquareBracket, Element, Separator, Close.SquareBracket>
             .Parse(ref current) is not Collection collection) return null;
 
+        // An element that failed is not a list entry, whatever its Origin says.
+        // A missing association value leaves Origin null, so counting nulls read
+        // «[a =, b = 2]» as one value beside one association and reported a
+        // mixed collection — hiding the syntax error and recommending a repair
+        // for a mistake nobody made. An error already carries its own finding;
+        // classification has nothing to add to it.
+        if (collection.Any(element => element is IError)) return collection;
+
         var associated = collection.Count(element => element.Origin is not null);
 
         if (associated is 0 || associated == collection.Count) return collection;

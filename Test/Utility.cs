@@ -174,16 +174,16 @@ public class ParsingTests
 
     internal static Open.SquareBracket StartBracket()
     {
-        Open.SquareBracket startIndexer = new();
-        startIndexer.SetMemory(Open.SquareBracket.symbol.ToString());
-        return startIndexer;
+        Open.SquareBracket startCollection = new();
+        startCollection.SetMemory(Open.SquareBracket.symbol.ToString());
+        return startCollection;
     }
 
     internal static Close.SquareBracket EndBracket()
     {
-        Close.SquareBracket endIndexer = new();
-        endIndexer.SetMemory(Close.SquareBracket.symbol.ToString());
-        return endIndexer;
+        Close.SquareBracket endCollection = new();
+        endCollection.SetMemory(Close.SquareBracket.symbol.ToString());
+        return endCollection;
     }
 
     internal static Open.Brace StartScope()

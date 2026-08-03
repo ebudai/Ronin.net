@@ -173,6 +173,14 @@ internal sealed class Graph
             if (declaring.Add(Qualified(type, member)) is false)
                 throw new InitialisationFailure(
                     $"«{type}» declares «{member}» twice. A member is one cell however many times it is named.");
+
+            // The same question «Declare» asks, asked before anything is
+            // written. A source name cannot contain a dot, so nothing a
+            // programmer writes reaches this — but «Graph» is an API, a handled
+            // failure part way through still leaves a type that no successful
+            // declaration could produce, and "unspellable today" is not the same
+            // as unreachable.
+            Unique(Qualified(type, member));
         }
 
         Population population = new(type);
@@ -205,12 +213,24 @@ internal sealed class Graph
     private static string Qualified(string type, string member) => $"{type}.{member}";
 
     /// <summary>A new instance of <paramref name="type"/>, seeded per member.</summary>
+    ///
+    /// <remarks>
+    ///     The handle is IMMEDIATE, because «var b = new box; b.cash = 5» has to
+    ///     work in one body and a handle is a local value rather than a shared
+    ///     read. So creation cannot be buffered the way removal is — instead the
+    ///     firing owns what it made, and a body that fails takes its instances
+    ///     with it, which is the same transaction by the other route.
+    /// </remarks>
     public Instance Create(string type)
     {
+        Structural("create an instance of", type);
+
         var population = populations[type];
         var instance = population.Take();
 
         foreach (var member in population.Members) Values(member).Add(seeds[member]);
+
+        made?.Add(instance);
 
         return instance;
     }
@@ -225,6 +245,8 @@ internal sealed class Graph
     /// </remarks>
     public void Remove(Instance instance)
     {
+        Structural("remove an instance of", instance.Type);
+
         if (populations[instance.Type][instance] is Population.Absent)
             throw new InitialisationFailure(
                 $"«{instance.Type}» instance {instance.Slot} was already removed. A handle outlives " +
@@ -240,7 +262,25 @@ internal sealed class Graph
         // removal landed the instant it was called, a «when» that removes and one
         // that reads would give two different answers depending on which was
         // declared first, which is the defect buffered writes exist to remove.
-        leaving.Add(instance);
+        (departing ?? leaving).Add(instance);
+    }
+
+    /// <summary>
+    ///     Refuses a structural change from somewhere that may not make one.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Found by audit, and it is the shape the designer predicted while
+    ///     amending finding 3: a fix that has to be remembered will be forgotten.
+    ///     Member writes were given the effect context and the structural write
+    ///     added in the same pass was not, so a pure «let» could remove an
+    ///     instance and a body that threw removed one while its fault said none
+    ///     of its writes had applied.
+    /// </remarks>
+    private void Structural(string what, string type)
+    {
+        if (reading.Count is not 0)
+            throw new PurityViolation($"«{reading[^1].Name}» is a let and may not {what} «{type}»");
     }
 
     /// <summary>One instance's value for a member.</summary>
@@ -301,9 +341,40 @@ internal sealed class Graph
         writes[instance] = value;
     }
 
+    /// <summary>
+    ///     Frees an instance and compacts every member column, reporting them.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     One place, because the round boundary and a failed body's undo both
+    ///     need it and only the first needs to dirty anything: an instance that
+    ///     never survived its own firing was never visible to a reader.
+    /// </remarks>
+    private IEnumerable<string> Release(Instance instance)
+    {
+        var population = populations[instance.Type];
+        var (removed, moved) = population.Release(instance);
+
+        foreach (var member in population.Members)
+        {
+            var values = Values(member);
+
+            values[removed] = values[moved];
+            values.RemoveAt(moved);
+
+            yield return member;
+        }
+    }
+
     /// <summary>The cell this member names for this instance, or null if none.</summary>
     private string Cell(string member, Instance instance)
-        => nodes.ContainsKey(Qualified(instance.Type, member)) ? Qualified(instance.Type, member) : null;
+        // Asked of the POPULATION and not of the node table. A qualified string
+        // is this cell's identity and was doing double duty as proof of
+        // membership, so anything that could name one could claim it belonged.
+        => populations.TryGetValue(instance.Type, out var population)
+        && population.Members.Contains(Qualified(instance.Type, member))
+         ? Qualified(instance.Type, member)
+         : null;
 
     private static Error Stale(Instance instance)
         => new($"this handle named an instance of «{instance.Type}» that has been removed. " +
@@ -1026,16 +1097,8 @@ internal sealed class Graph
         // happened to dirty it.
         foreach (var instance in leaving)
         {
-            var population = populations[instance.Type];
-            var (removed, moved) = population.Release(instance);
-
-            foreach (var member in population.Members)
+            foreach (var member in Release(instance))
             {
-                var values = Values(member);
-
-                values[removed] = values[moved];
-                values.RemoveAt(moved);
-
                 // The whole column, which is what a member write already does.
                 // A per-row dirty set would be finer and does not exist yet;
                 // until it does this is correct and coarse rather than wrong.
@@ -1153,6 +1216,8 @@ internal sealed class Graph
 
         staged = [];
         staging = [];
+        departing = [];
+        made = [];
         firing = name;
         returned = false;
         halting = false;
@@ -1179,6 +1244,8 @@ internal sealed class Graph
 
                 foreach (var (instance, value) in writes) landing[instance] = value;
             }
+
+            foreach (var instance in departing) leaving.Add(instance);
         }
         catch (Exception defect)
         {
@@ -1194,6 +1261,13 @@ internal sealed class Graph
             // anything about the program had changed.
             stalled.Add(name);
 
+            // What it made goes with it. A handle has to be usable inside the
+            // body that created it, so creation cannot be buffered the way a
+            // removal is — the transaction is kept by undoing instead, and the
+            // instances are released in reverse so each is still the last one
+            // when its turn comes.
+            for (var at = made.Count - 1; at >= 0; --at) Release(made[at]);
+
             faults.Add(new Fault($"«{name}» failed and none of its writes were applied: " +
                                  $"{defect.GetType().Name}: {defect.Message}"));
         }
@@ -1201,6 +1275,8 @@ internal sealed class Graph
         {
             staged = null;
             staging = null;
+            departing = null;
+            made = null;
             firing = null;
         }
     }
@@ -1836,6 +1912,12 @@ internal sealed class Graph
 
     /// <summary>A firing's member writes, which land only if it finishes.</summary>
     private Dictionary<string, Dictionary<Instance, object>> staging;
+
+    /// <summary>A firing's removals, which land only if it finishes.</summary>
+    private HashSet<Instance> departing;
+
+    /// <summary>What a firing created, which is undone if it does not finish.</summary>
+    private List<Instance> made;
     private readonly List<Node> reading = [];
     private readonly List<Adoption> adopting = [];
     private readonly List<string> trace = [];

@@ -61,12 +61,13 @@ public class WhenPlacement
     [InlineData("type Box { var a => Number; when ready { return 1; } }")]
     public void InsideATypeItIsRefusedByNameNotAsASyntaxError(string source)
     {
-        // A type «when» is designed — it lives as long as the instance — and
-        // blocked on the instance binding model, which is not built. A user who
-        // writes one has understood the design, and was being told they made a
-        // syntax error: a type's members are an aggregate of Member, a «when» is
-        // a Scope, so the body simply failed to parse and came back as
-        // «unexpected input», the same message as a stray bracket.
+        // A type «when» is designed — it lives as long as the instance — and the
+        // instances are built now; what is missing is the join that fires one
+        // type-scope node per instance. A user who writes one has understood the
+        // design, and was being told they made a syntax error: a type's members
+        // are an aggregate of Member, a «when» is a Scope, so the body simply
+        // failed to parse and came back as «unexpected input», the same message
+        // as a stray bracket.
         //
         // Recognising it to refuse it adds a message and no semantics.
         Assert.IsType<WhenInType>(Assert.Single(Of(source + "\n")));

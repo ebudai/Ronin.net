@@ -73,7 +73,7 @@ internal enum FindingKind
     /// <summary>A «when» declared where it could never run.</summary>
     MisplacedWhen,
 
-    /// <summary>A «when» inside a type, which is designed and not built.</summary>
+    /// <summary>A «when» inside a type, which is designed and not joined to instances yet.</summary>
     WhenInType,
 
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
@@ -151,7 +151,6 @@ internal sealed class Shadowed(Span primary, string name, string where)
            "when both readings are legal. Rename this one.";
 }
 
-/// <summary>A name spelled like one the compiler injects.</summary>
 /// <summary>
 ///     A name beginning with every word of a pattern, which swallows its call.
 /// </summary>
@@ -181,17 +180,6 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
 }
 
 /// <summary>
-///     A name containing a word the language reads as an operator.
-/// </summary>
-///
-/// <remarks>
-///     R5's shape, for the same reason and against a different rival. A name is
-///     ONE lookup and any composite reading of the same span is at least two, so
-///     a name spanning an operator always wins it — silently, because it is
-///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
-///     otherwise y» already written and makes it mean the name.
-/// </remarks>
-/// <summary>
 ///     A pattern using a word the language reads as an operator.
 /// </summary>
 ///
@@ -215,6 +203,17 @@ internal sealed class InfixInPattern(Span primary, string pattern, string word)
            $"«… {Word} …» in scope would be ambiguous rather than wrong. Respell it.";
 }
 
+/// <summary>
+///     A name containing a word the language reads as an operator.
+/// </summary>
+///
+/// <remarks>
+///     R5's shape, for the same reason and against a different rival. A name is
+///     ONE lookup and any composite reading of the same span is at least two, so
+///     a name spanning an operator always wins it — silently, because it is
+///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
+///     otherwise y» already written and makes it mean the name.
+/// </remarks>
 internal sealed class InfixInName(Span primary, string name, string word)
     : Finding(FindingKind.InfixInName, primary)
 {
@@ -227,6 +226,7 @@ internal sealed class InfixInName(Span primary, string name, string word)
            $"«… {Word} …» already written would quietly become this name instead. Respell it.";
 }
 
+/// <summary>A name spelled like one the compiler injects.</summary>
 internal sealed class ReservedPrefix(Span primary, string name, string word)
     : Finding(FindingKind.ReservedPrefix, primary)
 {
@@ -413,18 +413,27 @@ internal sealed class LeadingHole(Span primary, string pattern)
 ///     mechanism, "designed and not built" and "I cannot read this" must not
 ///     look the same.
 ///     <para>
-///     What blocks it is the instance binding model: a type «when» lives as long
-///     as the instance, and whether an instance is a set of nodes or an index
-///     into one cell per member is a decision that cannot be retrofitted. So the
-///     construct is recognised and refused, which adds a message and no
-///     semantics.
+///     What blocks it is no longer the instance binding model. That model is
+///     decided AND built — one cell per declared member, a stable
+///     <see cref="Runtime.Instance"/> handle rather than an index, creation,
+///     removal and member writes. What is missing is the JOIN: nothing turns a
+///     «when» in a type body into the one type-scope node that evaluates its
+///     predicate across the member array and fires per instance, and no liveness
+///     mask exists for «stop» to clear a bit in.
+///     </para>
+///     <para>
+///     Naming the actual remainder matters more here than in most messages,
+///     because the previous one told a user to wait for something that had
+///     already arrived. So the construct is recognised and refused, which adds a
+///     message and no semantics.
 ///     </para>
 /// </remarks>
 internal sealed class WhenInType(Span primary) : Finding(FindingKind.WhenInType, primary)
 {
     public override string Message
-        => "a «when» inside a type is not implemented yet. It needs the instance binding model, which is not built — " +
-           "so declare it at module scope, or track the instance explicitly.";
+        => "a «when» inside a type is not implemented yet. Instances are built — one cell per member, and a handle " +
+           "that survives removal — but nothing yet fires a type-scope «when» per instance, so declare it at module " +
+           "scope, or track the instance explicitly.";
 }
 
 /// <summary>

@@ -34,10 +34,11 @@ internal struct Parser
     ///     list.
     ///     </para>
     ///     <para>
-    ///     So the brace is where the heading ends. It costs a braced ARGUMENT in
-    ///     heading position and nothing else — bracket it and it is available
-    ///     again, «if takes ({ 1 }) { … }», because inside brackets there is
-    ///     nothing for a brace to be ambiguous with.
+    ///     So the brace is where the heading ends. The bill was a braced
+    ///     ARGUMENT in heading position and nothing else, and it is not being
+    ///     paid today: a list is bracketed now, so «if takes [ 1 ] { 2 }» is one
+    ///     conditional with an argument and nothing a heading could absorb
+    ///     begins with a brace.
     ///     </para>
     ///     <para>
     ///     A field of the parser and not a parameter threaded through: the parser

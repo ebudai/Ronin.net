@@ -93,7 +93,7 @@ internal class Reference : IEnumerable<Reference.Component>
         // An anonymous value LEADING is the constrained case, and it was not
         // constrained at all — it was merely required to have a name somewhere
         // later, which any word supplied. So «{ 1 } { 2 }» was refused and
-        // «{ 1 } { 2 } name» was one reference, and the missing separator §4.6
+        // «{ 1 } { 2 } name» was one reference, and the missing separator §4.7
         // asks for could be bought with a trailing word.
         if (components[0].AsTemporary is not null && Leads(components) is false) return null;
 
@@ -116,23 +116,23 @@ internal class Reference : IEnumerable<Reference.Component>
     /// </summary>
     ///
     /// <remarks>
-    ///     Two continuations, and they COMPOSE. An indexer attaches to the value
-    ///     before it and the result is a value, so more indexers may attach to
-    ///     that; a symbol then takes whatever has been built as its left operand.
-    ///     «{ 1, 2 } [0]», «{ 1, 2 } [0] [1]», «3..test» and «{ 1, 2 } [0] + 3»
-    ///     are each one reference.
+    ///     ONE continuation: a symbol, which takes whatever has been built as its
+    ///     left operand. «3..test», «[ 1, 2 ] @ 1» and «[ 1, 2 ] @ 1 + 3» are
+    ///     each one reference, the last of them by the rule applying twice.
     ///     <para>
-    ///     Choosing between the two by looking at the component right after the
-    ///     value could not express the composition: an index suffix FOLLOWED by
-    ///     an operator matched neither branch, so «{ 1, 2 } [0] + 3» fell back to
-    ///     the list alone and the closing-brace elision made the remainder look
-    ///     like another complete statement. The resolver cannot repair that — it
-    ///     is handed spans and neither joins nor splits them, so the expression
-    ///     was gone before anything could read it.
+    ///     There were TWO, because indexing was a bracketed suffix that attached
+    ///     to the value. Choosing between them by looking at the component right
+    ///     after the value could not express the composition: an index suffix
+    ///     FOLLOWED by an operator matched neither branch, so «{ 1, 2 } [0] + 3»
+    ///     fell back to the list alone and the closing-brace elision made the
+    ///     remainder look like another complete statement. The resolver cannot
+    ///     repair that — it is handed spans and neither joins nor splits them, so
+    ///     the expression was gone before anything could read it. Indexing became
+    ///     «@», which is a symbol, and the two alternatives became one.
     ///     </para>
     ///     <para>
     ///     Anything else after a leading value is a SECOND value, and two of
-    ///     those side by side need the separator §4.6 asks for. Never asked of a
+    ///     those side by side need the separator §4.7 asks for. Never asked of a
     ///     lone value: that is not a reference at all, and the caller has already
     ///     been handed it as a value.
     ///     </para>

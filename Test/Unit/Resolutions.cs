@@ -616,9 +616,16 @@ public class Resolutions
         Assert.Equal("draw «a» at ⟨⟨«a», «b»⟩, «b»⟩", resolver.Resolve("draw a at ((a, b), b)").Reading);
         Assert.Equal(7, resolver.Resolve("draw a at ((a, b), b)").Cost);
 
-        // a part has to be a substatement, so there is no empty one
-        Assert.Equal("NoParse", resolver.Resolve("draw a at (b,)").Kind.ToString());
+        // A part has to be a substatement, so there is no empty one — but a
+        // TRAILING separator does not make one. The aggregate permits it and the
+        // guide's examples use it, so refusing it here made a form the parser
+        // accepts fail to resolve.
+        Assert.Equal("draw «a» at ⟨«b»⟩", resolver.Resolve("draw a at (b,)").Reading);
+
+        // and the ones that really are holes still are
         Assert.Equal("NoParse", resolver.Resolve("draw a at ()").Kind.ToString());
+        Assert.Equal("NoParse", resolver.Resolve("draw a at (,b)").Kind.ToString());
+        Assert.Equal("NoParse", resolver.Resolve("draw a at (a,,b)").Kind.ToString());
     }
 
     [Theory(DisplayName = "bracket cost is ranking neutral")]

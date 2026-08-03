@@ -73,10 +73,10 @@ internal abstract class Aggregate<TParent, TOpen, TElement, TSeparator, TClose> 
         TParent values = [];
         var closed = false;
 
-        // Inside brackets there is nothing for a brace to be ambiguous with, so
-        // a heading stops at the opener. That is what keeps a braced value
-        // available as an argument — «if takes ({ 1 }) { … }» — and it is also
-        // what lets a body hold an ordinary list.
+        // Inside an aggregate there is nothing for a brace to be ambiguous with,
+        // so a heading stops at the opener. That is what lets a body hold an
+        // ordinary value, and what used to keep a braced one available as an
+        // argument back when a brace could open a list.
         //
         // Restored on the way out, because the parser is a struct written back
         // over the caller's: leaving it cleared ended the caller's heading at

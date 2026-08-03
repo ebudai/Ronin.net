@@ -295,9 +295,12 @@ public class Instances
         var graph = Boxes(2, out var boxes);
         var evaluated = 0;
 
+        graph.Var("noise", 0d);
+
         graph.Let("observed", scope =>
         {
             ++evaluated;
+            scope.Read("noise");
             return scope.Read("cash", boxes[0]);
         });
 
@@ -309,13 +312,31 @@ public class Instances
 
         Assert.IsType<Error>(graph.Read("observed"));
 
-        var settled = evaluated;
+        // A DOWNSTREAM reader, and something that dirties the stale cell so it
+        // recomputes again. Found by audit: stepping with nothing to wake it
+        // left the count fixed however errors compared, so the test passed
+        // under reference equality and pinned nothing it was named for.
+        var downstream = 0;
 
-        graph.Step();
+        graph.Let("watching", scope =>
+        {
+            ++downstream;
+            return scope.Read("observed");
+        });
+
+        graph.Prime();
+        graph.Read("watching");
+
+        var settled = downstream;
+
+        graph.Write("noise", 1d);
         graph.Step();
 
-        Assert.IsType<Error>(graph.Read("observed"));
-        Assert.Equal(settled, evaluated);
+        // «observed» runs again and produces the same error, so cutoff holds it
+        // there and its reader never wakes
+        Assert.IsType<Error>(graph.Read("watching"));
+        Assert.Equal(settled, downstream);
+        Assert.True(evaluated > 1, "the stale cell must have recomputed for this to mean anything");
     }
 
     [Fact(DisplayName = "a pure cell may not write a member either")]
@@ -386,6 +407,86 @@ public class Instances
         graph.Step();
 
         Assert.Equal([7d, 9d], boxes.Select(box => graph.Read("cash", box)));
+    }
+
+    [Fact(DisplayName = "and a structural change answers to the same context")]
+    public void AndAStructuralChangeAnswersToTheSameContext()
+    {
+        // Found by audit, and it is the shape the designer predicted while
+        // amending the removal finding: a fix that has to be remembered will be
+        // forgotten. Member writes were given the effect context in one pass and
+        // the structural write added in the same pass was not.
+        var graph = Boxes(2, out var boxes);
+
+        graph.Let("removes", scope =>
+        {
+            scope.Remove(boxes[0]);
+            return 1d;
+        });
+
+        graph.Let("creates", scope => scope.Create("Box").Slot);
+
+        graph.Prime();
+
+        Assert.Contains("may not remove", Assert.IsType<Error>(graph.Read("removes")).Message);
+        Assert.Contains("may not create", Assert.IsType<Error>(graph.Read("creates")).Message);
+    }
+
+    [Fact(DisplayName = "and a failed body neither removes nor creates")]
+    public void AndAFailedBodyNeitherRemovesNorCreates()
+    {
+        var graph = Boxes(1, out var boxes);
+        graph.Var("armed", false);
+
+        graph.When("when armed", scope => scope.Read("armed"), scope =>
+        {
+            scope.Remove(boxes[0]);
+            scope.Create("Box");
+            throw new InvalidOperationException("defect");
+        });
+
+        graph.Prime();
+
+        graph.Write("armed", true);
+        graph.Step();
+
+        Assert.Single(graph.Faults);
+
+        // the removal never reached the round boundary, and the instance the body
+        // made went with it — a handle is usable inside the body that created
+        // it, so creation cannot be buffered and is undone instead
+        Assert.Equal(0d, graph.Read("cash", boxes[0]));
+
+        var after = graph.Create("Box");
+
+        graph.Write("cash", after, 3d);
+        graph.Step();
+
+        Assert.Equal([0d, 3d], new[] { boxes[0], after }.Select(box => graph.Read("cash", box)));
+    }
+
+    [Fact(DisplayName = "and one that finishes does both")]
+    public void AndOneThatFinishesDoesBoth()
+    {
+        var graph = Boxes(2, out var boxes);
+        graph.Var("armed", false);
+        Instance made = default;
+
+        graph.When("when armed", scope => scope.Read("armed"), scope =>
+        {
+            scope.Remove(boxes[0]);
+            made = scope.Create("Box");
+            scope.Write("cash", made, 4d);
+        });
+
+        graph.Prime();
+
+        graph.Write("armed", true);
+        graph.Step();
+
+        Assert.Empty(graph.Faults);
+        Assert.IsType<Error>(graph.Read("cash", boxes[0]));
+        Assert.Equal(4d, graph.Read("cash", made));
     }
 
     [Fact(DisplayName = "and the whole column is not a value anyone can take")]

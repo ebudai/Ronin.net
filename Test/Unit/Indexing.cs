@@ -59,6 +59,24 @@ public class Indexing
     public void AndAListWrittenInSourceIsAListAtEverySize(string source, double expected)
         => Assert.Equal(expected, Written(source));
 
+    [Theory(DisplayName = "and a trailing comma is the aggregate's rule, not a hole")]
+    [InlineData("[ 10, ] @ 1", 10d)]
+    [InlineData("[ 10, 20, ] @ 2", 20d)]
+    public void AndATrailingCommaIsTheAggregatesRuleNotAHole(string source, double expected)
+        // Found by audit. The aggregate permits a trailing separator and the
+        // guide's examples use it, so «[10, ]» compiles with no finding — and
+        // then the resolver asked for an expression after the last comma, found
+        // an empty span, and refused the whole group. A language-valid list that
+        // would not resolve, and the cardinality tests missed it because none of
+        // them was written in the form a person actually types.
+        => Assert.Equal(expected, Written(source));
+
+    [Theory(DisplayName = "and a leading or doubled one is still a hole")]
+    [InlineData("[ , 10 ] @ 1")]
+    [InlineData("[ 10, , 20 ] @ 1")]
+    public void AndALeadingOrDoubledOneIsStillAHole(string source)
+        => Assert.False(new Resolver(new SymbolTable()).Resolve(Lexemes.Lex(source)).TryTree(out _), source);
+
     [Fact(DisplayName = "and an empty one is a list with nothing in it, not a value")]
     public void AndAnEmptyOneIsAListWithNothingInItNotAValue()
     {

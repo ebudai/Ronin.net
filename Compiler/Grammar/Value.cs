@@ -9,8 +9,8 @@ internal class Value : Statement, IParsable<Value>
 {
     /// <remarks>
     ///     <para>
-    ///     A reference first, and it is the longer parse: «x =&gt; { … } [0]» is
-    ///     a delegate and its indexer, where «x =&gt; { … }» alone is a delegate.
+    ///     A reference first, and it is the longer parse: «x =&gt; { … } @ 1» is
+    ///     a delegate indexed, where «x =&gt; { … }» alone is a delegate.
     ///     Whichever of the two is tried first has to be able to see the other,
     ///     which is why the delegate is recognised inside
     ///     <c>Reference.Component</c> rather than beside it here.

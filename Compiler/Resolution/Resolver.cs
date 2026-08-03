@@ -261,9 +261,24 @@ internal sealed class Resolver
         List<Node> parts = [];
         var start = from;
 
+        // A TRAILING separator ends the last part rather than starting an empty
+        // one. The aggregate permits it and the guide's examples use it, so
+        // «[10, ]» compiles with no finding and then reached here, where the
+        // span after the last comma is empty and the whole group was refused —
+        // a language-valid list that would not resolve.
+        //
+        // Only the last, and only at top level: a leading or doubled separator
+        // still asks for an expression that is not there and is still refused.
+        if (separators.Count is not 0 && separators[^1] == to - 1)
+        {
+            to = separators[^1];
+            separators.RemoveAt(separators.Count - 1);
+        }
+
         foreach (var end in separators.Append(to))
         {
-            // an empty part — «(a,)» or «()» — is not a substatement at all
+            // an empty part — a leading or doubled separator — is not a
+            // substatement at all
             if (Expressions(start, end, 0).TryBest(out var part) is false) return;
 
             cost += part.Cost;

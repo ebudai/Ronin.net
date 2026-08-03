@@ -234,7 +234,7 @@ public class Findings
 
             Player.ron:1:24: «when» may only be declared at module scope or inside a type. This one is inside «update path», where it would go out of scope before it could ever run — a step happens between statements, not during one.
 
-            Player.ron:1:12: a «when» inside a type is not implemented yet. It needs the instance binding model, which is not built — so declare it at module scope, or track the instance explicitly.
+            Player.ron:1:12: a «when» inside a type is not implemented yet. Instances are built — one cell per member, and a handle that survives removal — but nothing yet fires a type-scope «when» per instance, so declare it at module scope, or track the instance explicitly.
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
 

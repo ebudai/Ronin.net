@@ -30,7 +30,7 @@ public class Symbols
     [Fact(DisplayName = "start values")]
     public void LexOpenParenthesis() => LexSymbol(Open.Parenthesis.symbol);
 
-    [Fact(DisplayName = "start indexer")]
+    [Fact(DisplayName = "start collection")]
     public void LexOpenSquareBracket() => LexSymbol(Open.SquareBracket.symbol);
 
     [Fact(DisplayName = "end scope")]
@@ -39,7 +39,7 @@ public class Symbols
     [Fact(DisplayName = "end values")]
     public void LexCloseParenthesis() => LexSymbol(Close.Parenthesis.symbol);
 
-    [Fact(DisplayName = "end indexer")]
+    [Fact(DisplayName = "end collection")]
     public void LexCloseSquareBracket() => LexSymbol(Close.SquareBracket.symbol);
 
     [Fact(DisplayName = "text delimiter")]

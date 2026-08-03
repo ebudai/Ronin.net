@@ -50,8 +50,9 @@ internal class Type : Member
         // Recognised in order to be REFUSED, which is diagnostics and not
         // semantics: it adds a message and no node, no lifetime, and no
         // instance. A «when» in a type is designed — it lives as long as the
-        // instance does — and blocked on the instance binding model, which is
-        // not built. For a language whose diagnostics are the teaching
+        // instance does — and the instances themselves are built now; what is
+        // missing is the join that would make one type-scope node fire per
+        // instance. For a language whose diagnostics are the teaching
         // mechanism, "designed and not implemented" and "I cannot read this"
         // must not look the same to someone who understood the design and wrote
         // it correctly.
@@ -116,7 +117,7 @@ internal class Type : Member
 
     }
 
-    /// <summary>A «when» declared inside a type, which is not built yet.</summary>
+    /// <summary>A «when» declared inside a type, which is not joined to instances yet.</summary>
     public class ReactiveMemberError : Type, IError
     {
         /// <summary>The «when» keyword, which is what a message points at.</summary>

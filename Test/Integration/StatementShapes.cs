@@ -520,11 +520,11 @@ public class StatementShapes
     [InlineData("var vals = [ (x) => { return x; } @ 1 ];")]  // and inside an aggregate
     public void AnAnonymousValueKeepsWhatFollowsIt(string source)
     {
-        // §4.7 admits an anonymous value with an indexer as a reference, and it
-        // was never parsed as one: the value won on its own and the indexer
-        // became a statement of its own. Nothing said they had been separated,
-        // because a value IS a statement and the elision makes the wrong split
-        // look complete.
+        // §4.8 admits an anonymous value that a symbol continues, and it was
+        // never parsed as one: the value won on its own and what followed became
+        // a statement of its own. Nothing said they had been separated, because a
+        // value IS a statement and the elision makes the wrong split look
+        // complete.
         //
         // Not delegate-specific — every anonymous value did it — but a delegate
         // is where it shows, because a bare one begins with a name and so was
@@ -539,7 +539,7 @@ public class StatementShapes
     [Fact(DisplayName = "one parse and one decision, which the spec says and this is why")]
     public void OneParseAndOneDecisionWhichTheSpecSaysAndThisIsWhy()
     {
-        // Named for «grammatical-structure.md» §4.6.3-4, so the sentence and the
+        // Named for «grammatical-structure.md» §4.7.3-4, so the sentence and the
         // thing that makes it true are findable from each other. The recurring
         // failure here is a claim outliving its evidence: "one parse and one
         // decision" was a design conclusion about what the grammar makes
@@ -671,7 +671,7 @@ public class StatementShapes
         }
 
         // NOT one reference, which is what this theory is about. What then
-        // becomes of the leftover is §4.6's business and not §4.7's: if the
+        // becomes of the leftover is §4.7's business and not §4.8's: if the
         // value ended with a brace the next statement may start without a
         // terminator — «var r = { 1 } { 2 };» is two statements and legal —
         // and otherwise the module stops and reports what is left.
@@ -706,7 +706,7 @@ public class StatementShapes
     [InlineData("var c = x => Number => { return x; };", false)]   // a bare typed declaration is not one
     public void ADelegateIsANameOrABracketedSignatureAndOwnsTheArrow(string source, bool legal)
     {
-        // §4.8.2 as written, because it was written as «datum declaration |
+        // §4.9.2 as written, because it was written as «datum declaration |
         // parameters => body» — which omits the bare name that is the form most
         // used, admits a bare typed declaration that the parser refuses, and
         // reads as though only the second alternative owns the arrow.
