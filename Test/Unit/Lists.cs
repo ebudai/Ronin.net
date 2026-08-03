@@ -23,10 +23,10 @@ public class Lists : ParsingTests
         };
 
         Parser parser = new(tokens.AsLinkedList());
-        var list = List.Parse(ref parser);
+        var list = Collection.Parse(ref parser) as Collection;
 
         Assert.Single(list);
-        var scalar = list[0] as Literal;
+        var scalar = list[0].Destination as Literal;
         Assert.Single(scalar?.Tokens.ToArray());
     }
 
@@ -48,22 +48,22 @@ public class Lists : ParsingTests
         };
 
         Parser parser = new(tokens.AsLinkedList());
-        var list = List.Parse(ref parser);
+        var list = Collection.Parse(ref parser) as Collection;
 
         Assert.Equal(3, list?.Count);
 
         {
-            var scalar = list[0] as Literal;
+            var scalar = list[0].Destination as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var scalar = list[1] as Literal;
+            var scalar = list[1].Destination as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
 
         {
-            var scalar = list[2] as Literal;
+            var scalar = list[2].Destination as Literal;
             Assert.Single(scalar?.Tokens.ToArray());
         }
     }
@@ -90,7 +90,7 @@ public class Lists : ParsingTests
 
         Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
-        var list = datum?.Initializer as List;
+        var list = datum?.Initializer as Collection;
         Assert.NotNull(list);
     }
 }

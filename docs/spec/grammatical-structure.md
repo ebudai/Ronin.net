@@ -502,9 +502,20 @@ be a value.  Each of the three re-parses a nested body before it can tell whethe
 it matched, so the cost of a brace nest was exponential in its depth and a
 statement-position brace was speculatively read as two other things first.
 
-A list and a lookup are told apart by whether the first element is an
-assignment, which is a discriminator *inside* the first element: still one parse
-and one decision.
+A list and a lookup are **one production**.  Each entry is a value, optionally
+followed by `=` and another value, and the kind is decided after every entry is
+parsed: all associated is a lookup, none associated is a list, and a mix is a
+finding naming both positions.  `[ ]` is the **empty list**.
+
+What makes that a decision rather than a guess is a constraint: **`=` inside
+brackets is only ever an association separator, never an expression operator.**
+If that stops being true, the kind test needs a speculative parse again.
+
+This says what the grammar *requires*, and `Test/Integration/StatementShapes.cs`
+is where the compiler is held to it.  One thing it is **not** yet held to: a
+nested collection whose body cannot be parsed still costs `2^(d+1) − 2` element
+attempts, which folding the two alternatives into one production did not change.
+That cost is elsewhere and is unfixed.
 ### 4.6.6 Parameters
 `(` (***datum declaration***`,`)* `)`
 - declarators for each parameter can only be blank, `var` or `let`

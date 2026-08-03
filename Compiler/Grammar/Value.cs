@@ -47,11 +47,8 @@ internal class Temporary : Value
         ?? Delegate.Parse(ref current)
         ?? Inputs.Parse(ref current)
 
-        // LIST before lookup, which decides «[]». Both accept nothing, and the
-        // settled default for an empty square aggregate is the list — trying the
-        // lookup first made «var empty = [];» a lookup with no way to tell.
-        // «[a = 1]» still reaches the lookup, because a list element is a value
-        // and «a = 1» is not one.
-        ?? List.Parse(ref current)
-        ?? Lookup.Parse(ref current) as Temporary;
+        // ONE production for both bracketed collections. They were alternatives
+        // tried in order, which made «[]» mean whichever ran first and made a
+        // nested key parse under both — see Collection for why that doubled.
+        ?? Collection.Parse(ref current) as Temporary;
 }

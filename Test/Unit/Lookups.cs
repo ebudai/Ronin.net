@@ -25,7 +25,7 @@ public class Lookups : ParsingTests
         };
 
         Parser parser = new(tokens.AsLinkedList());
-        var lookup = Lookup.Parse(ref parser);
+        var lookup = Collection.Parse(ref parser) as Collection;
 
         Assert.Single(lookup);
         var association = lookup[0];
@@ -57,7 +57,7 @@ public class Lookups : ParsingTests
 
         Parser parser = new(tokens.AsLinkedList());
         var datum = Datum.Parse(ref parser);
-        var lookup = datum?.Initializer as Lookup;
+        var lookup = datum?.Initializer as Collection;
         Assert.NotNull(lookup);
     }
 }

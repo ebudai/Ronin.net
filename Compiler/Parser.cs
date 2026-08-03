@@ -76,21 +76,22 @@ internal struct Parser
     /// </summary>
     ///
     /// <remarks>
-    ///     Depth alone does not bound the work. Three productions open on «{» —
-    ///     <see cref="Lookup"/>, <see cref="List"/>, and <see cref="Association"/>
-    ///     through the value inside a lookup — and each re-parses the whole nested
-    ///     body before it can tell whether it matched, so the cost of a brace
-    ///     nest is exponential in its depth — twelve levels of «{» took ten
-    ///     seconds — and a depth ceiling of 256 does nothing about that. Making
-    ///     the TOTAL the limit rather than the shape is what stops a hostile file
-    ///     quickly whatever it looks like.
-    ///
-    ///     The number is a symptom, not a design: it buys roughly half a second
-    ///     of worst-case parsing, which is about ten levels of nested braces and
-    ///     unbounded depth of anything else. The fix is for «{...}» to be ONE
-    ///     production that parses its contents once and then decides whether it
-    ///     holds associations or values — at which point this stops binding on
-    ///     anything anyone would write.
+    ///     A defensive ceiling on total group attempts, and no current
+    ///     production is known to be super-linear.
+    ///     <para>
+    ///     It exists because that has been false twice. Three productions opened
+    ///     on «{» — a lookup, a list, and an association through a lookup's value
+    ///     — each re-parsing a nested body before it could tell whether it
+    ///     matched, so twelve levels took ten seconds. Moving lists and lookups
+    ///     to «[» carried the same curve across, and folding them into one
+    ///     production removed it. Depth alone bounds neither: the shape of the
+    ///     nesting is what costs, so the TOTAL is what is capped.
+    ///     </para>
+    ///     <para>
+    ///     A ceiling whose comment names a fixed bug reads as dead code and gets
+    ///     deleted. This one names its own history instead, because the failure
+    ///     mode is a hang rather than a wrong answer.
+    ///     </para>
     /// </remarks>
     public const int MaxGroups = 1_000_000;
 

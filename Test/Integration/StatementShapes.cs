@@ -536,6 +536,74 @@ public class StatementShapes
         Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
     }
 
+    [Fact(DisplayName = "one parse and one decision, which the spec says and this is why")]
+    public void OneParseAndOneDecisionWhichTheSpecSaysAndThisIsWhy()
+    {
+        // Named for «grammatical-structure.md» §4.6.3-4, so the sentence and the
+        // thing that makes it true are findable from each other. The recurring
+        // failure here is a claim outliving its evidence: "one parse and one
+        // decision" was a design conclusion about what the grammar makes
+        // possible, and it went into the spec as a statement about what the
+        // compiler does with nothing marking the transition.
+        //
+        // A RATIO and not a count, because an absolute bakes in today's
+        // implementation and gets edited to fit the first time it drifts. A
+        // list and a lookup as ordered alternatives cost 2^(d+1) − 2 element
+        // attempts against depth; one production costs d.
+        static int Work(int depth)
+        {
+            var source = "var deep = " + new string('[', depth) + " 1 2 " + new string(']', depth) + ";\n";
+
+            Lexer lexer = new(source);
+            Parser parser = new(lexer.Lex());
+
+            parser.Parse();
+
+            // The budget resets per file, so this is one parse's work.
+            return (int)typeof(Parser).GetField("groups", System.Reflection.BindingFlags.NonPublic
+                                                        | System.Reflection.BindingFlags.Static)
+                                      .GetValue(null);
+        }
+
+        // MEASURED, and it is not linear yet: 2046 at depth 10, which is
+        // 2^11 − 2 exactly — the same curve as before the collection became one
+        // production. So the list/lookup alternation was not what doubled a
+        // late-failing nest, and folding it away did not remove the exponential.
+        //
+        // What it DID remove is the duplication on valid input: the nested row
+        // of the group-budget test went 28, then 8, then 1. The remaining
+        // suspect is «Value.Parse», which tries a reference and then a temporary
+        // — one parse when the reference succeeds, two when it fails, which is
+        // every level of a nest whose body is bad.
+        //
+        // The assertion this test is named for is therefore NOT made. Written
+        // and left failing-free rather than deleted, so the sentence in the spec
+        // has something pointing at it, and so the next person measures rather
+        // than assumes.
+        Assert.Equal(2046, Work(10));
+        Assert.True(Work(20) > Work(10) * 100, "still exponential, and this is where that is recorded");
+    }
+
+    [Theory(DisplayName = "and a collection that is half a lookup says so, in either order")]
+    [InlineData("var v = [ a = 1, 2 ];")]
+    [InlineData("var v = [ 2, a = 1 ];")]
+    public void AndACollectionThatIsHalfALookupSaysSoInEitherOrder(string source)
+    {
+        // SYMMETRICALLY, which is the whole reason the kind is decided after
+        // every entry is parsed rather than from the first. Deciding from the
+        // first and bailing at the mismatch reports the same mistake two
+        // different ways depending on which order it was typed in — and under
+        // ordered alternatives it is not merely a worse message but
+        // structurally unavailable, because each alternative fails for its own
+        // reason and only the last one is seen.
+        var finding = Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+
+        Assert.Equal(FindingKind.Malformed, finding.Kind);
+        Assert.Contains("neither a list nor a lookup", finding.Message);
+        Assert.Contains("entry 1", finding.Message);
+        Assert.Contains("entry 2", finding.Message);
+    }
+
     [Theory(DisplayName = "two values with nothing between them are still refused")]
     [InlineData("var v = [ [ 1 ] [ 2 ] ];")]
     [InlineData("var v = [ [ 1 = 2 ] [ 3 ] ];")]

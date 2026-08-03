@@ -23,9 +23,9 @@ public class Lookups : ParsingTests
         };
         
         Parser parser = new(tokens.AsLinkedList());
-        var lookup = Lookup.Parse(ref parser);
+        var lookup = Collection.Parse(ref parser) as Collection;
 
-        Assert.IsNotType<Lookup>(lookup);
+        Assert.IsNotType<Collection>(lookup);
     }
 
     [Fact(DisplayName = "missing key")]
@@ -43,9 +43,9 @@ public class Lookups : ParsingTests
         };
         
         Parser parser = new(tokens.AsLinkedList());
-        var lookup = Lookup.Parse(ref parser);
+        var lookup = Collection.Parse(ref parser) as Collection;
 
-        Assert.IsNotType<Lookup>(lookup);
+        Assert.IsNotType<Collection>(lookup);
     }
 
     [Fact(DisplayName = "missing value")]
@@ -62,10 +62,10 @@ public class Lookups : ParsingTests
         };
         
         Parser parser = new(tokens.AsLinkedList());
-        var lookup = Lookup.Parse(ref parser);
+        var lookup = Collection.Parse(ref parser) as Collection;
 
-        Assert.IsType<Lookup>(lookup);
+        Assert.IsType<Collection>(lookup);
         Assert.Single(lookup);
-        Assert.IsType<Association.ExpectedValueError>(lookup[0]);
+        Assert.IsType<Collection.Element.ExpectedValueError>(lookup[0]);
     }
 }
