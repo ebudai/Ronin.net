@@ -201,10 +201,11 @@ internal sealed class Resolver
         }
 
         // Only the patterns whose first word is the one actually sitting at «i».
-        // Every pattern begins with a word — a leading hole is left recursive and
-        // rejected at construction — so a pattern that starts with anything else
-        // cannot match this span, and asking it was a table walk per pattern per
-        // span to arrive at the same answer.
+        // Every pattern begins with a word — a leading hole is refused at
+        // construction, and THIS is one of the reasons why: a pattern with no
+        // first word has no key here, so admitting one means either indexing it
+        // by something else or going back to the table walk per pattern per span
+        // that this replaced.
         if (lexemes[i].Kind is not LexemeKind.Word) return;
         if (anchored.TryGetValue(lexemes[i].Text, out var candidates) is false) return;
 
@@ -722,9 +723,21 @@ internal sealed class Pattern : IEquatable<Pattern>
         ArgumentNullException.ThrowIfNull(pinned);
         if (segments.Count is 0) throw new ArgumentException("pattern is empty", nameof(segments));
 
-        // A pattern beginning with a hole is left recursive: resolving an atom at
-        // position p would require resolving an atom at position p. Infix must be
-        // symbolic; word patterns must be prefix.
+        // NOT left recursion, which is what this said for as long as it has
+        // existed. It was copied from a backtracking enumerator, where a leading
+        // hole does recurse at the same position forever — but this table fills
+        // by increasing width, so a leading hole reads only strictly smaller
+        // spans and terminates. A property of one instrument, written up as a
+        // property of the language, and inherited by everything downstream
+        // including this comment.
+        //
+        // What stands in the way is here rather than in the grammar, and it is
+        // three things: the index below keys a pattern by its first word and a
+        // leading hole has none; R6 is stated over anchor runs and a leading
+        // hole has an empty one, which is a prefix of every other; and the
+        // reference resolver and this one disagree about whether the resulting
+        // prefix-postfix composition ties or picks. Refused until those are
+        // settled, and refused for those reasons.
         if (segments[0] is null)
             throw new ArgumentException("a word pattern must begin with a word, not a hole", nameof(segments));
 

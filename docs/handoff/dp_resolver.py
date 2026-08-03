@@ -194,7 +194,13 @@ class DPResolver:
                 bp, leftassoc = OPS[t[k][1]]
                 if bp < m:
                     continue
-                lm = bp + 1 if leftassoc else bp
+                # Precedence climbing: a left-associative operator admits its
+                # own precedence on the LEFT and forbids it on the right, and
+                # vice versa. The first version set both sides to bp + 1, which
+                # forbade equal precedence on both -- so «a + b + c» did not
+                # parse at all. Every same-precedence chain was unwritable and
+                # no test covered one.
+                lm = bp if leftassoc else bp + 1
                 rm = bp + 1 if leftassoc else bp
                 l, r = self.E[i][k][lm], self.E[k + 1][j][rm]
                 if l.cost < INF and r.cost < INF:
