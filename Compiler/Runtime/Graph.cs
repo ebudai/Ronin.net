@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Ronin.Runtime;
 
-internal enum NodeKind { Var, Let, Shadow }
+internal enum NodeKind { Var, Let, Shadow, Member }
 
 /// <summary>
 ///     When a <c>when</c> fires. The two an author can write are edge
@@ -138,6 +138,133 @@ internal sealed class Graph
     public Node Var(string name, object value) => Declare(new Node(name, NodeKind.Var, null, value, dirty: false));
 
     /// <summary>
+    ///     Declares a type: one cell per member, each holding every instance's
+    ///     value for it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     ONE cell and not one node per instance. The graph is then the size of
+    ///     the source text rather than the size of the world, so edges, dirty
+    ///     propagation, cascade analysis and every diagnostic that names a node
+    ///     scale with how much code was written — which is the graph a person
+    ///     debugs, at twelve controls as much as at a hundred thousand entities.
+    /// </remarks>
+    public void Type(string type, params (string Member, object Seed)[] members)
+    {
+        ArgumentNullException.ThrowIfNull(members);
+
+        if (populations.ContainsKey(type))
+            throw new InitialisationFailure($"«{type}» is already declared. Rename one of them.");
+
+        Population population = new(type);
+
+        foreach (var (member, seed) in members)
+        {
+            Declare(new Node(member, NodeKind.Member, null, new List<object>(), dirty: false));
+
+            population.Members.Add(member);
+            seeds[member] = seed;
+            belonging[member] = type;
+        }
+
+        populations[type] = population;
+    }
+
+    /// <summary>A new instance of <paramref name="type"/>, seeded per member.</summary>
+    public Instance Create(string type)
+    {
+        var population = populations[type];
+        var instance = population.Take();
+
+        foreach (var member in population.Members) Values(member).Add(seeds[member]);
+
+        return instance;
+    }
+
+    /// <summary>
+    ///     Removes an instance, moving the last one into its place.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The instance that moved keeps its handle — only the index behind it
+    ///     changes, which is the whole reason a handle is not an index.
+    /// </remarks>
+    public void Remove(Instance instance)
+    {
+        var population = populations[instance.Type];
+
+        if (population[instance] is Population.Absent)
+            throw new InitialisationFailure(
+                $"«{instance.Type}» instance {instance.Slot} was already removed. A handle outlives " +
+                "the instance it named, which is what stops it naming a different one.");
+
+        var (removed, moved) = population.Release(instance);
+
+        foreach (var member in population.Members)
+        {
+            var values = Values(member);
+
+            values[removed] = values[moved];
+            values.RemoveAt(moved);
+        }
+    }
+
+    /// <summary>One instance's value for a member.</summary>
+    public object Read(string member, Instance instance)
+    {
+        // Asked of the MEMBER and not only of the handle. Checking that a handle
+        // is live in its own population says nothing about whether this member
+        // belongs to that population — every type's arrays are indexed the same
+        // way, so a live «Box» handle reads a «Crate» member perfectly well and
+        // answers with whichever crate happens to sit at that index.
+        if (Foreign(member, instance) is Error mismatch) return mismatch;
+
+        var index = populations[instance.Type][instance];
+
+        return index is Population.Absent ? Stale(instance) : ((List<object>)Read(member))[index];
+    }
+
+    /// <summary>Writes one instance's value for a member, as of the next round.</summary>
+    public void Write(string member, Instance instance, object value)
+    {
+        if (Foreign(member, instance) is Error mismatch) throw new PurityViolation(mismatch.Message);
+
+        var index = populations[instance.Type][instance];
+
+        if (index is Population.Absent)
+            throw new PurityViolation(
+                $"«{instance.Type}» instance {instance.Slot} was removed and cannot be written");
+
+        // Staged per index and not per cell. A member is one node holding N
+        // values, so two instances written in one step are two writes to the
+        // same node — last-write-wins over the cell would keep one of them, and
+        // the arriving indices are also exactly the dirty set the next round
+        // wants.
+        if (arriving.TryGetValue(member, out var writes) is false) arriving[member] = writes = [];
+
+        writes[index] = value;
+    }
+
+    private Error Foreign(string member, Instance instance)
+        => belonging.TryGetValue(member, out var type) && type == instance.Type
+         ? null
+         : new Error($"«{member}» is not a member of «{instance.Type}»");
+
+    private static Error Stale(Instance instance)
+        => new($"this handle named an instance of «{instance.Type}» that has been removed. " +
+               "Its slot belongs to a different instance now, which is why the handle is refused " +
+               "rather than answered.");
+
+    private List<object> Values(string member) => (List<object>)nodes[member].Value;
+
+    private readonly Dictionary<string, Population> populations = [];
+    private readonly Dictionary<string, object> seeds = [];
+
+    /// <summary>Which type each member belongs to, which a handle cannot say.</summary>
+    private readonly Dictionary<string, string> belonging = [];
+    private readonly Dictionary<string, Dictionary<int, object>> arriving = [];
+
+    /// <summary>
     ///     A derived node. The body is not evaluated at declaration — it runs on
     ///     first read, and again when a dependency changed and someone asks.
     /// </summary>
@@ -218,6 +345,17 @@ internal sealed class Graph
     }
 
     public Node this[string name] => nodes[name];
+
+    /// <summary>
+    ///     How many nodes there are, which instances must not change.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Exposed for the test that pins the binding decision. It is the whole
+    ///     of what "the graph is the size of the source text" means, and a
+    ///     comment saying so would not survive an optimisation pass.
+    /// </remarks>
+    public int Declared => nodes.Count;
 
     /// <summary>What fired during the last <see cref="Step"/>, in order.</summary>
     public IReadOnlyList<string> Fired => fired;
@@ -708,7 +846,8 @@ internal sealed class Graph
         // when the round that deferred it wrote nothing — a «return» in the head
         // writes no next count — so the tail waited for an unrelated step, and in
         // an event-driven host possibly for an unrelated event.
-        while ((rounds is 0 || pending.Count is not 0 || deferred.Count is not 0) && counted < limit)
+        while ((rounds is 0 || pending.Count is not 0 || arriving.Count is not 0 || deferred.Count is not 0)
+            && counted < limit)
         {
             ++rounds;
             servicing.Clear();
@@ -757,7 +896,8 @@ internal sealed class Graph
 
         // Deferred work outstanding is non-settlement exactly as a pending write
         // is: the step ran out of rounds with something still to do.
-        if (pending.Count is not 0 || deferred.Count is not 0) throw Runaway(rounds, counted);
+        if (pending.Count is not 0 || arriving.Count is not 0 || deferred.Count is not 0)
+            throw Runaway(rounds, counted);
 
         Draining();
 
@@ -780,6 +920,28 @@ internal sealed class Graph
         }
 
         pending.Clear();
+
+        foreach (var (member, writes) in arriving)
+        {
+            var values = Values(member);
+            var node = nodes[member];
+            var moved = false;
+
+            foreach (var (index, value) in writes)
+            {
+                if (Equals(values[index], value)) continue;
+
+                values[index] = value;
+                moved = true;
+            }
+
+            if (moved is false) continue;
+
+            node.Changed = ++clock;
+            MarkDirty(node);
+        }
+
+        arriving.Clear();
     }
 
     private List<string> Triggered()
