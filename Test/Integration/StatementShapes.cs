@@ -579,6 +579,52 @@ public class StatementShapes
         Assert.True(deep < shallow * 3, $"depth 10 took {shallow} group attempts and depth 20 took {deep}");
     }
 
+    [Theory(DisplayName = "and asking whether a nest failed costs one walk, not one per level")]
+    [InlineData(" 1, 2 ")]
+    [InlineData(" 1 2 ")]
+    public void AndAskingWhetherANestFailedCostsOneWalkNotOnePerLevel(string inner)
+    {
+        // Found by audit, and it is the second time this production has lost
+        // its curve to a different mechanism. The reflective error walk is
+        // priced for running ONCE over a file; the collection classifier asked
+        // it as each collection finished, so every level re-descended the level
+        // below and a chain of depth d cost 1 + 2 + … + d.
+        //
+        // BOTH shapes, because the erroneous one hid it: an error short-circuits
+        // the walk at the first level, so the malformed nest looked linear while
+        // the valid one was quadratic. The probe that guards the other
+        // exponential is the malformed shape, which is exactly why it saw
+        // nothing.
+        long Work(int depth)
+        {
+            var source = "var deep = " + new string('[', depth) + inner + new string(']', depth) + ";\n";
+
+            Lexer lexer = new(source);
+            var tokens = lexer.Lex();
+
+            // Allocation and not time. It is deterministic on one thread, where
+            // a stopwatch reports the machine — and the cost here IS allocation:
+            // a fresh set and stack per walk, sized by everything the walk
+            // reaches.
+            var before = GC.GetAllocatedBytesForCurrentThread();
+
+            Parser parser = new(tokens);
+            parser.Parse();
+
+            return GC.GetAllocatedBytesForCurrentThread() - before;
+        }
+
+        Work(8);
+
+        var shallow = Work(24);
+        var deep = Work(48);
+
+        // Twice the depth, under three times the work. Linear is about twice;
+        // the quadratic walk measured 149 KB against 519 KB here, which is
+        // three and a half.
+        Assert.True(deep < shallow * 3, $"depth 24 allocated {shallow} bytes and depth 48 allocated {deep}");
+    }
+
     [Theory(DisplayName = "and a collection that is half a lookup says so, in either order")]
     [InlineData("var v = [ a = 1, 2 ];")]
     [InlineData("var v = [ 2, a = 1 ];")]

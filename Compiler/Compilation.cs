@@ -289,10 +289,20 @@ internal sealed class Compilation
 
     /// <summary>Whatever a node holds that is itself part of the tree.</summary>
     /// <summary>
-    ///     Whether anything at all under this node is an error.
+    ///     Whether anything WITHIN this node — at any depth, not merely
+    ///     directly beneath it — failed to parse.
     /// </summary>
     ///
     /// <remarks>
+    ///     <para>
+    ///     Within, and the node itself is not asked. This is a node asking about
+    ///     what it just built, so it cannot be an error yet — it is asking in
+    ///     order to decide whether to become one. Naming it for that rather than
+    ///     testing the root anyway, because a check no caller can reach is a
+    ///     branch that has to be either covered by a fiction or excluded by an
+    ///     attribute, and both hide that the shape is the invariant.
+    ///     </para>
+    ///     <para>
     ///     The same walk the diagnostic pass uses, asked as a question. A
     ///     shallower test — is this element itself an error — was written for
     ///     the collection classifier and covers only what is directly beneath
@@ -300,13 +310,17 @@ internal sealed class Compilation
     ///     replaced. Every wrapper that wants this question has to ask it
     ///     through the members the grammar declares, which is the whole reason
     ///     that walk is reflective.
+    ///     </para>
     /// </remarks>
-    internal static bool Broken(object node)
+    internal static bool BrokenWithin(object node)
     {
         HashSet<object> seen = new(ReferenceEqualityComparer.Instance);
         Stack<object> pending = new();
 
-        pending.Push(node);
+        // The root's children, not the root. A node asking this about ITSELF has
+        // not answered yet — it is asking in order to have an answer — so
+        // consulting the cache here would read the field it is about to fill.
+        foreach (var child in Children(node)) pending.Push(child);
 
         while (pending.Count is not 0)
         {
@@ -314,6 +328,16 @@ internal sealed class Compilation
 
             if (seen.Add(next) is false) continue;
             if (next is IError) return true;
+
+            // A node that already knows about its own subtree ENDS the descent.
+            // Without this each nested collection re-walked everything beneath
+            // it as it finished, which is the same total answer at d² the cost.
+            if (next is IAnswersBroken answered)
+            {
+                if (answered.Broken) return true;
+
+                continue;
+            }
 
             foreach (var child in Children(next)) pending.Push(child);
         }

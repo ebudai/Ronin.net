@@ -41,8 +41,19 @@ namespace Ronin.Grammar;
 ///     failure whose reason depends on which order the two shapes were typed in.
 ///     </para>
 /// </remarks>
-internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection.Element, Separator, Close.SquareBracket>
+internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection.Element, Separator, Close.SquareBracket>,
+                            IAnswersBroken
 {
+    /// <summary>Whether anything under this collection failed to parse.</summary>
+    ///
+    /// <remarks>
+    ///     Kept, because this is the only wrapper that asks — and asking per
+    ///     node is what turned a walk priced for once per file into one per
+    ///     nesting level. Held by the node so an enclosing collection reads it
+    ///     instead of re-descending; see <see cref="IAnswersBroken"/>.
+    /// </remarks>
+    public bool Broken { get; private set; }
+
     public static new Temporary Parse(ref Parser current)
     {
         Parser start = current;
@@ -59,7 +70,9 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
         //
         // Through the walk the diagnostic pass already uses, because a shallower
         // test per wrapper is what put the hole there twice.
-        if (Compilation.Broken(collection)) return collection;
+        collection.Broken = Compilation.BrokenWithin(collection);
+
+        if (collection.Broken) return collection;
 
         var associated = collection.Count(element => element.Origin is not null);
 
