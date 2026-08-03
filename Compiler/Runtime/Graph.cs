@@ -181,10 +181,14 @@ internal sealed class Graph
             throw new InitialisationFailure($"«{type}» is already declared. Rename one of them.");
 
         HashSet<string> declaring = [];
+        Population population = new(type);
+        List<(string Cell, object Seed)> declaring_seeds = [];
 
-        foreach (var (member, _) in members)
+        foreach (var (member, seed) in members)
         {
-            if (declaring.Add(Qualified(type, member)) is false)
+            var cell = Qualified(type, member);
+
+            if (declaring.Add(cell) is false)
                 throw new InitialisationFailure(
                     $"«{type}» declares «{member}» twice. A member is one cell however many times it is named.");
 
@@ -194,19 +198,27 @@ internal sealed class Graph
             // failure part way through still leaves a type that no successful
             // declaration could produce, and "unspellable today" is not the same
             // as unreachable.
-            Unique(Qualified(type, member));
-        }
+            Unique(cell);
 
-        Population population = new(type);
-
-        foreach (var (member, seed) in members)
-        {
-            var cell = Qualified(type, member);
-
-            Declare(new Node(cell, NodeKind.Member, null, new List<object>(), dirty: false));
-
+            // BUILT here, not after the nodes. This is the last thing left that
+            // can fail — a null member name threw out of the dictionary — and it
+            // was failing on the far side of the first «Declare», which is the
+            // exact partial state the paragraph above says cannot happen.
             population.Members.Add(cell);
             population.Owns[member] = cell;
+
+            // A seed is a value entering the runtime, so it is normalised like
+            // every other one. It was not: a type's members began life holding
+            // the caller's own array, shared by every instance of the type,
+            // mutable behind the graph, and refused by «@» for being the
+            // representation the runtime no longer uses.
+            declaring_seeds.Add((cell, List.Of(seed)));
+        }
+
+        foreach (var (cell, seed) in declaring_seeds)
+        {
+            Declare(new Node(cell, NodeKind.Member, null, new List<object>(), dirty: false));
+
             seeds[cell] = seed;
         }
 

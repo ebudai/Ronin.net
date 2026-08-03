@@ -133,8 +133,14 @@ internal sealed class Scope
 
         Dictionary<string, object> bound = [];
 
-        foreach (var (block, argument) in declaration.Blocks.Zip(arguments))
+        foreach (var (block, raw) in declaration.Blocks.Zip(arguments))
         {
+            // Normalised on the way IN as well as out. An argument is a value
+            // arriving from outside the declaration, and a host that calls this
+            // directly hands over an array it still holds — the same ingress
+            // the type seeds were missing, one call frame along.
+            var argument = List.Of(raw);
+
             if (block.Count is 1)
             {
                 bound[block[0]] = argument;
@@ -156,7 +162,12 @@ internal sealed class Scope
             if (value is Error error) return error;
         }
 
-        return declaration.Body(graph, bound);
+        // Normalised HERE and not only where the graph body finishes. A
+        // declaration returning «new object[] { 7 }» is the host-facing way to
+        // build a list, and «(f) @ 1» asked the operator about it long before
+        // the surrounding graph body returned — so the operator saw the
+        // representation the runtime had stopped accepting and refused it.
+        return List.Of(declaration.Body(graph, bound));
     }
 
     private readonly Dictionary<Pattern, List<Declaration>> declarations = [];

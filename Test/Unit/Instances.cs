@@ -582,4 +582,81 @@ public class Instances
         Assert.Equal(0d, graph.Read("total"));
         Assert.Equal(before, evaluated);
     }
+    [Fact(DisplayName = "and a member seed is a value the runtime admitted, not the caller's array")]
+    public void AndAMemberSeedIsAValueTheRuntimeAdmittedNotTheCallersArray()
+    {
+        // Found by audit. Every other way a value enters the graph normalised
+        // it and this one did not, so a type's members began life holding the
+        // caller's own array — the original confidently-wrong-cache defect,
+        // through the one door the sweep walked past.
+        var seed = new object[] { 1d };
+
+        Graph graph = new();
+        graph.Type("box", ("items", seed));
+
+        var box = graph.Create("box");
+        var held = Assert.IsType<List>(graph.Read("items", box));
+
+        seed[0] = 99d;
+
+        Assert.Equal(1d, Assert.IsType<List>(graph.Read("items", box))[0]);
+        Assert.Equal(1d, held[0]);
+    }
+
+    [Fact(DisplayName = "and two instances of a type do not share one seed to mutate")]
+    public void AndTwoInstancesOfATypeDoNotShareOneSeedToMutate()
+    {
+        // The seed is one object appended into every instance's column, so an
+        // unfrozen one made every instance of the type a view onto the same
+        // mutable array. Sharing an IMMUTABLE value is correct and cheap; it is
+        // sharing a mutable one that was the defect.
+        var seed = new object[] { 1d };
+
+        Graph graph = new();
+        graph.Type("box", ("items", seed));
+
+        var first = graph.Create("box");
+        var second = graph.Create("box");
+
+        seed[0] = 99d;
+
+        Assert.Equal(1d, Assert.IsType<List>(graph.Read("items", first))[0]);
+        Assert.Equal(1d, Assert.IsType<List>(graph.Read("items", second))[0]);
+    }
+
+    [Fact(DisplayName = "and a seed that contains itself is refused where it is written")]
+    public void AndASeedThatContainsItselfIsRefusedWhereItIsWritten()
+    {
+        var looping = new object[1];
+        looping[0] = looping;
+
+        Graph graph = new();
+        graph.Type("box", ("items", looping));
+
+        var box = graph.Create("box");
+
+        Assert.Contains("cannot contain itself", Assert.IsType<Error>(graph.Read("items", box)).Message);
+    }
+
+    [Fact(DisplayName = "and a member name the runtime cannot hold leaves no half-declared type")]
+    public void AndAMemberNameTheRuntimeCannotHoldLeavesNoHalfDeclaredType()
+    {
+        // Found by audit. The ownership table was filled after the member nodes
+        // were declared, so a name the dictionary refuses threw with its member
+        // already in the graph and its type absent — the exact partial state the
+        // method's own comment says it asks every question to avoid. Unspellable
+        // in source; «Graph» is an API, and that comment includes it on purpose.
+        Graph graph = new();
+
+        var before = graph.Declared;
+
+        Assert.Throws<ArgumentNullException>(() => graph.Type("box", (null, 0d)));
+        Assert.Equal(before, graph.Declared);
+
+        // And nothing left behind to collide with, which is the half a count
+        // alone cannot show.
+        graph.Type("box", ("cash", 0d));
+
+        Assert.Equal(0d, graph.Read("cash", graph.Create("box")));
+    }
 }

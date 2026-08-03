@@ -448,4 +448,44 @@ public class Reactions
         Assert.Same(error, Add(error, 2d));
         Assert.Same(error, Add(1d, error));
     }
+    [Fact(DisplayName = "and a declaration's list is a value where it is used, not where the body ends")]
+    public void AndADeclarationsListIsAValueWhereItIsUsedNotWhereTheBodyEnds()
+    {
+        // Found by audit. Returning an array is the host-facing way to build a
+        // list, and the normalisation happened when the whole GRAPH body
+        // returned — far too late for an operator around the call, which asked
+        // «@» about the representation the runtime had stopped accepting and got
+        // a refusal for an ordinary list.
+        Scope scope = new();
+        scope.Declare(new Declaration(Pattern.Parse("pair"), [], (_, _) => new object[] { 7d, 8d }));
+
+        var made = scope.Invoke(new Graph(), Pattern.Parse("pair"), [], insideLet: true);
+
+        Assert.Equal(7d, Assert.IsType<List>(made)[0]);
+        Assert.Equal(7d, Builtin.Operators["@"].Apply(made, 1d));
+    }
+
+    [Fact(DisplayName = "and an argument is admitted on the way in as well as on the way out")]
+    public void AndAnArgumentIsAdmittedOnTheWayInAsWellAsOnTheWayOut()
+    {
+        // The same door from the other side: an argument is a value arriving
+        // from outside the declaration, and a host calling this directly hands
+        // over an array it still holds.
+        // Asked INSIDE the body. Asking outside proves nothing: the result is
+        // admitted on the way out too, so a raw argument returned unchanged
+        // arrives normalised either way and the test passes on the wrong
+        // half — which is what the first draft of this did.
+        object seen = null;
+
+        Scope scope = new();
+        scope.Declare(new Declaration(Pattern.Parse("keep _"), [["it"]], (_, bound) => seen = bound["it"]));
+
+        var given = new object[] { 1d };
+
+        scope.Invoke(new Graph(), Pattern.Parse("keep _"), [given], insideLet: true);
+
+        given[0] = 99d;
+
+        Assert.Equal(1d, Assert.IsType<List>(seen)[0]);
+    }
 }
