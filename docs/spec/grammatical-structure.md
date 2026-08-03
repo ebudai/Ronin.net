@@ -64,36 +64,36 @@ collide with anything in scope.  It is declared into the body it is bound in, so
 a body redeclaring one is shadowing it — and so is a parameter named after
 something the enclosing scope already has.
 
-## 4.4 Declaration
-### 4.4.1 Datum
+## 4.5 Declaration
+### 4.5.1 Datum
 ***mutability***? *identifier* (`=>` ***modifier**** *datatype*)? (`=` *initializer*)?
 - identifier is ***words***
 - datatype is a ***reference***
 - initializer is a ***value***
-### 4.4.2 Function
+### 4.5.2 Function
 ***modifier**** `function` ***identifier*** (`=>` ***modifier**** *datatype*)? (*body*|`;`)
 - modifiers is `export` | `shared`
 - datatype is a ***reference***
 - body is a ***definition***
-### 4.4.3 Datatype
+### 4.5.3 Datatype
 `extends`? `datatype` *identifier* (`=` *algebra*) *body*
 - identifier is a ***name***
 - algebra is a ***reference***
 - body is a ***definition***
-## 4.5 Scope
+## 4.6 Scope
 Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded by `compiled`.
-### 4.5.1 Anonymous
+### 4.6.1 Anonymous
 `export`? *body*
 - body is a ***definition***
-### 4.5.2 Conditional
+### 4.6.2 Conditional
 `if` *condition* *body*
 - condition is a ***refrence***
 - body is a ***definition***
 
 **A heading ends at the brace that opens its body.**  An anonymous value after a
-word is an argument — `thing 7 ("stuff")` is one call — so without that rule
-`if c { 1 }` is the reference `c` applied to the list `{ 1 }`, with no body left
-to find.
+word is an argument — `thing 7 ("stuff")` is one call — so when a brace opened a
+list, `if c { 1 }` was the reference `c` applied to the list `{ 1 }`, with no
+body left to find.
 
 A heading is any **reference that a definition follows**, which is what decides
 where the rule applies rather than a list of the constructs that have one: a
@@ -103,15 +103,22 @@ algebra.  A list left two of them out, and one of those — `type T = Base {}` �
 was silent, because a type may have no members and so nothing was left behind to
 complain about.
 
-It costs a braced value in heading position and nothing else.  Bracket it and it
-is available again — `if takes ({ 1 }) { … }` — because inside brackets there is
-nothing for a brace to be ambiguous with.  Everywhere else a brace means what it
-always meant, including inside the body it opened.
-### 4.5.3 Repeating
+**It costs nothing today.**  Since a list and a lookup moved to brackets, `{`
+opens a block and nothing else (§4.7.4), so no heading has anything to absorb:
+`if takes { 1 } { 2 }` is a heading, a body, and a second block, and
+`if takes [ 1 ] { 2 }` is one conditional with an argument.  The bill the rule
+used to carry was a braced value in heading position, and there is no braced
+value to carry it for.
+
+The rule is stated here rather than retired because the ambiguity comes back
+with the next change that gives a brace a value — a block that is an expression
+— and this is what will stop `if c { a }` being a call again.  Everywhere else a
+brace means what it always meant, including inside the body it opened.
+### 4.6.3 Repeating
 `while` *condition* *body*
 - condition is a ***reference***
 - body is a ***definition***
-### 4.5.4 Iterating
+### 4.6.4 Iterating
 `for each` *loop variable* `in` *collection* *body*
 - loop variable is a ***word***, or a ***bracketed name***
 - collection is a ***reference***
@@ -160,7 +167,7 @@ start from is a detail.
 `index` and `of` are therefore protected: no pattern may use either as glue,
 because a pattern that reserved one would make the injected name illegal
 wherever it is in scope.
-### 4.5.5 Reactive
+### 4.6.5 Reactive
 `when` (*condition* | *name*) *body*
 - condition is a ***reference***
 - name is ***words***
@@ -180,8 +187,12 @@ It is also what lets the lifetime rule be stated whole: a module `when` lives as
 long as the module, and a type `when` as long as the instance.
 
 A `when` inside a ***type*** is **designed and not implemented**.  Writing one
-is refused by name rather than as a syntax error.  What it waits on is the
-instance binding model, which is now decided:
+is refused by name rather than as a syntax error.  What it used to wait on was
+the instance binding model, which is decided *and built* — grouped storage,
+stable handles, creation, removal and member writes all exist and are covered.
+What is left is the **join**: nothing turns a `when` in a type body into the
+type-scope node described below, and there is no liveness mask for `stop` to
+clear.  The model is:
 
 > **One cell per declared member, holding N values.  Not one node per instance.**
 
@@ -202,16 +213,26 @@ performance one: the graph a person debugs is the graph they wrote.  At twelve
 instances grouped storage wins nothing on speed and costs a little indirection.
 It still wins.
 
-What follows from it:
+What follows from it, with what is built marked as built:
 
 - a type-scope `when` is **one** node, evaluating a predicate across the member
-  array and firing its body per instance whose entry changed;
-- `stop` clears the caller's bit in the liveness mask, as above;
-- an instance identity is an **index** into the member arrays, not a pointer;
-- adding or removing an instance is an array operation, and removal wants a free
-  list or swap-with-last plus a stable handle table;
+  array and firing its body per instance whose entry changed — *not built*;
+- `stop` clears the caller's bit in the liveness mask, as above — *not built*;
+- an instance identity is a **stable handle** and not a location: `(type, slot,
+  generation)`, where the generation is what makes a handle held across a
+  removal recognisably stale rather than a name for whoever took the slot next.
+  An **index** into the member arrays exists, but it is an internal transient
+  translated from a handle at the moment of use and never stored — *built*;
+- adding or removing an instance is an array operation: removal is
+  swap-with-last with a free list of slots, so the arrays stay dense and the
+  instance that moved keeps its handle — *built*.  Removal is also a **write**,
+  buffered to the round boundary like any other, so a reader learns of it where
+  it learns of everything else;
+- a member cell's identity carries the type it belongs to, so two unrelated
+  types may each declare a `name` — the storage model has to agree with the
+  scope model, and a type body is its own scope — *built*;
 - cutoff becomes array-valued and so O(N) per cell — a dirty range or a digest,
-  never a full compare;
+  never a full compare — *not built*;
 - adding or removing a *member* is adding or dropping one array rather than
   walking N objects, so live editing gets easier rather than harder.
 
@@ -220,15 +241,15 @@ answering yet: **subtypes**, where members only some instances have make the
 arrays ragged and the answer is one array set per concrete type; **sparse
 firing**, where a predicate over N entries is wasteful when three are armed and
 wants a dirty list rather than the mask, since reading the mask still scans; and
-**references between instances**, where a member holding a reference stores an
-index and a polymorphic one needs a type beside it.
+**references between instances**, where a member holding a reference stores a
+handle and a polymorphic one needs a type beside it.
 
-When instances are built, this decision is pinned by a test rather than a
-comment, because a comment does not survive an optimisation pass: *create N
-instances of a type with M members and one type-scope `when`; assert the graph's
-node count is a function of M alone and is unchanged between N = 1 and
-N = 1000.*  The failure mode to watch for is archetype count growing with
-instance count rather than with type count.
+The decision is pinned by a test rather than a comment, because a comment does
+not survive an optimisation pass: *create N instances of a type with M members;
+assert the graph's node count is a function of M alone and is unchanged between
+N = 1 and N = 1000.*  That test exists.  The failure mode to watch for is
+archetype count growing with instance count rather than with type count, and the
+type-scope `when` joins the same assertion when it is built.
 
 #### `return` and `stop`
 
@@ -456,9 +477,9 @@ Splitting requires the waits to be **statically sequential**, so a `wait until`
 is legal only as a statement directly in the `when` body — not inside a loop,
 not inside an `if`, not in a called function, and not in a `let`.
 
-## 4.6 Aggregates
+## 4.7 Aggregates
 A collection of zero or more specific syntax separated by a given delimiter.  The sequence cannot be ended by the delimiter unless otherwise specified.
-### 4.6.1 Definition
+### 4.7.1 Definition
 `{` (***statement***`;`)* `}`
 - a ***statement*** whose last token is `}` needs no `;`, and neither does the
   last statement before the closing `}`
@@ -489,11 +510,11 @@ So `return 1 return 2;` is one element and not two, and it is one the resolver
 refuses — there is no juxtaposition rule that would let `1 return 2` be an
 expression.  `return return 1` does resolve, because `return` takes an
 expression and a `return` is one.
-### 4.6.2 Inputs
+### 4.7.2 Inputs
 `(` (***value***|***assignment***`,`)* `)`
-### 4.6.3 List
+### 4.7.3 List
 `[` (***value***`,`)* `]`
-### 4.6.4 Lookup
+### 4.7.4 Lookup
 `[` (***value***`=`***value***`,`)* `]`
 
 **`{` opens a block and nothing else.**  It used to open three things — a block,
@@ -512,14 +533,14 @@ brackets is only ever an association separator, never an expression operator.**
 If that stops being true, the kind test needs a speculative parse again.
 
 This says what the grammar *requires*, and `Test/Integration/StatementShapes.cs`
-is where the compiler is held to it.  One thing it is **not** yet held to: a
-nested collection whose body cannot be parsed still costs `2^(d+1) − 2` element
-attempts, which folding the two alternatives into one production did not change.
-That cost is elsewhere and is unfixed.
-### 4.6.6 Parameters
+is where the compiler is held to it — by measuring the work a nest costs at two
+depths and comparing them, rather than by anyone asserting that the sentence is
+true.  A collection whose body cannot be parsed costs work **linear** in its
+depth, at every bracket in the language.
+### 4.7.5 Parameters
 `(` (***datum declaration***`,`)* `)`
 - declarators for each parameter can only be blank, `var` or `let`
-### 4.6.7 Fallback
+### 4.7.6 Fallback
 *value* `otherwise` *value*
 
 `otherwise` answers with the left value unless it is an **error** or **nothing**,
@@ -563,7 +584,7 @@ the word is: over 340,357 multi-word identifiers in a large corpus, `otherwise`
 appears in **one**, and that one is a camelCase artefact.  `to` appears in 5,414.
 The rule is general and the bill is this word's alone.
 
-### 4.6.8 Indexing
+### 4.7.7 Indexing
 *list* `@` *position*
 
 **One-based and closed**, so `list @ 1` is the first element and `list @ n` the
@@ -580,7 +601,7 @@ It binds **tighter than arithmetic**, so `list @ 4 + 1` is `(list @ 4) + 1`: wha
 is indexed is the list beside it and not the sum.  Being tighter than `otherwise`
 as well is what makes the fallback guard the indexing rather than the position.
 
-## 4.7 Reference
+## 4.8 Reference
 A sequence of ***component***s, each a ***words***, an ***anonymous value***, or
 a ***symbol***.  What may lead it decides what may follow.
 
@@ -588,33 +609,38 @@ a ***symbol***.  What may lead it decides what may follow.
 is an *argument*, so `thing 7 ("stuff")`, `f (1) (2)` and `f [0] [1]` are each
 one reference, and `x > 3` is one too.
 
-**An ***anonymous value*** may lead, and then only two things may follow it:**
+**An ***anonymous value*** may lead, and then only one thing may follow it:** a
+***symbol***, which takes what has been built so far as its left operand and
+continues the expression — `3..test`, `3 + 4`, `[ 1, 2 ] @ 1`.
 
-- an ***indexer***, which attaches to the value — `{ 1, 2 } [0]`; or
-- a ***symbol***, which takes what has been built so far as its left operand and
-  continues the expression — `3..test`, `3 + 4`.
-
-**These compose.**  An indexer attaches to a value and the result is a value, so
-another indexer may attach to that, and a symbol may take the whole of it:
-`{ 1, 2 } [0] + 3` and `{ 1, 2 } [0] [1] + 3` are each one reference.
+There were two.  Indexing was a bracketed suffix that attached to the value, so
+the rule had to admit `{ 1, 2 } [0]` as well and then say that the two compose —
+an attached indexer is a value, so another may attach to it and a symbol may
+take the whole.  Indexing is `@` now (§4.7.7), which *is* a symbol, so the
+composition is the symbol rule applied twice and there is no second alternative:
+`[ 1, 2 ] @ 1 @ 2` and `[ 1, 2 ] @ 1 + 3` are each one reference under one rule.
 
 Anything else after a leading anonymous value is a *second* value, and two
-values side by side need the separator §4.6 asks for: `{ 1 } { 2 }` is refused,
-and so is `{ 1 } { 2 } name` — a trailing word does not buy the missing comma.
+values side by side need the separator §4.7 asks for: `[ 1 ] [ 2 ]` is refused,
+and so is `[ 1 ] [ 2 ] name` — a trailing word does not buy the missing comma.
 
-An anonymous value **alone** is not a reference.  It is a value, and §4.9 makes
+An anonymous value **alone** is not a reference.  It is a value, and §4.10 makes
 it a statement.
 
 That is also why `(x) => { … } (1)` is not immediate application: an input block
-is neither an indexer nor a symbol, so the delegate ends the reference and the
-input begins a new statement.  Whether the language wants immediate application
+is not a symbol, so the delegate ends the reference and the input begins a new
+statement.  Whether the language wants immediate application
 is open; today it does not have it, and a source that looks like it is a
 sequence of statements each legal on its own.
-## 4.8 Anonymous value
-Can be ***inline value***, ***delegate***, ***lookup***, ***list***, ***inputs***, or ***indexer***.
-### 4.8.1 Inline value
+## 4.9 Anonymous value
+Can be ***inline value***, ***delegate***, ***lookup***, ***list***, or ***inputs***.
+
+Indexing is not among them.  It was, as a bracketed suffix; it is an operator
+now (§4.7.7), so what it produces is an expression rather than a value with
+something attached to it.
+### 4.9.1 Inline value
 One or more ***literal***s
-### 4.8.2 Delegate
+### 4.9.2 Delegate
 (***name*** | ***delegate parameters***) `=>` *body*
 - delegate parameters is `(` ((***datum declaration*** | ***name***) `,`)* `)`
 - body is a ***definition***
@@ -635,24 +661,24 @@ settled: whether **higher-order cells** are permitted at all, and whether a
 first-class computation is distinct enough from a `let` to want both.  See
 `FAILUREMODES.md` §6 — `() => …` being well formed puts them in scope whether or
 not those decisions are taken.
-## 4.9 Statements
+## 4.10 Statements
 An expression of programmer intent.  All are completed with either ***punctuation*** or the end of file.  ***Reference***s and ***anonymous value***s are also considered statements.
-### 4.9.1 Export
+### 4.10.1 Export
 `part of` *name*
 - name is ***words***
-### 4.9.2 Import
+### 4.10.2 Import
 `import` (*name* | *url*) (`as` *identifier*)?
 - name is ***words***
 - identifier is ***words***
-### 4.9.3 Assignment
+### 4.10.3 Assignment
 *name* `=` | `+=` | `-=` | `*=` | `/=` | `&=` | `|=` *value*
 - name is a ***reference***
 - value is a ***value***
-## 4.10 Alias
+## 4.11 Alias
 `alias` *name* `=` *original*
 - name is ***words***
 - original is ***words***
-## 4.11 Trivium
+## 4.12 Trivium
 (***whitespace*** | ***comment***)+
-## 4.12 Unknown
+## 4.13 Unknown
 Any sequence of tokens which does not match any other syntax

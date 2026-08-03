@@ -565,23 +565,18 @@ public class StatementShapes
                                       .GetValue(null);
         }
 
-        // MEASURED, and it is not linear yet: 2046 at depth 10, which is
-        // 2^11 − 2 exactly — the same curve as before the collection became one
-        // production. So the list/lookup alternation was not what doubled a
-        // late-failing nest, and folding it away did not remove the exponential.
+        // Twice the depth, under three times the work. Exponential would be
+        // about a thousand times: the ordered alternatives cost 2^(d+1) − 2
+        // element attempts, and this is d.
         //
-        // What it DID remove is the duplication on valid input: the nested row
-        // of the group-budget test went 28, then 8, then 1. The remaining
-        // suspect is «Value.Parse», which tries a reference and then a temporary
-        // — one parse when the reference succeeds, two when it fails, which is
-        // every level of a nest whose body is bad.
-        //
-        // The assertion this test is named for is therefore NOT made. Written
-        // and left failing-free rather than deleted, so the sentence in the spec
-        // has something pointing at it, and so the next person measures rather
-        // than assumes.
-        Assert.Equal(2046, Work(10));
-        Assert.True(Work(20) > Work(10) * 100, "still exponential, and this is where that is recorded");
+        // Two measurements and one comparison, so it is machine-independent and
+        // fails on a reintroduction rather than on a refactor. An absolute count
+        // would bake in today's implementation and be edited to fit the first
+        // time it drifted, which is how a claim outlives its evidence.
+        var shallow = Work(10);
+        var deep = Work(20);
+
+        Assert.True(deep < shallow * 3, $"depth 10 took {shallow} group attempts and depth 20 took {deep}");
     }
 
     [Theory(DisplayName = "and a collection that is half a lookup says so, in either order")]

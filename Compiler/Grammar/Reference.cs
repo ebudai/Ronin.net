@@ -76,10 +76,17 @@ internal class Reference : IEnumerable<Reference.Component>
 
         if (current.Token is Keyword) return null;
 
-        var components = parser.ParseRepeating<Component>();
-        if (components.Count is 0) return null;
+        // The first one on its own, so where it ended is known. Every path out
+        // of here that is not a reference has to hand back what it already
+        // parsed — the caller cannot parse it a second time without paying for
+        // the whole nest again, and a nest is where that bill is exponential.
+        if (Component.Parse(ref parser) is not Component first) return null;
 
-        if (components.Count is 1 && components[0].AsTemporary is Temporary only)
+        Parser after = parser;
+
+        List<Component> components = [first, .. parser.ParseRepeating<Component>()];
+
+        if (components.Count is 1 && first.AsTemporary is Temporary only)
         {
             alone = only;
             current = parser;
@@ -95,7 +102,17 @@ internal class Reference : IEnumerable<Reference.Component>
         // later, which any word supplied. So «{ 1 } { 2 }» was refused and
         // «{ 1 } { 2 } name» was one reference, and the missing separator §4.7
         // asks for could be bought with a trailing word.
-        if (components[0].AsTemporary is not null && Leads(components) is false) return null;
+        if (first.AsTemporary is Temporary leading && Leads(components) is false)
+        {
+            // Handed back rather than re-parsed. This is the one shape where a
+            // reference fails with a value already in hand, and the caller used
+            // to rebuild it from the top: «Value.Parse» tried a reference and
+            // then a temporary, so a nest whose body cannot be parsed cost two
+            // attempts at every level and 2^(d+1) − 2 in total.
+            alone = leading;
+            current = after;
+            return null;
+        }
 
         // symbols punctuate a reference, they are never the whole of one
         if (components.TrueForAll(component => component.AsSymbolic is not null)) return null;

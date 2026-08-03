@@ -33,7 +33,11 @@ internal class Value : Statement, IParsable<Value>
         if (Reference.Parse(ref current, out var alone) is Reference reference)
             return new Member.Unresolved { Reference = reference };
 
-        return alone ?? Temporary.Parse(ref current) as Value;
+        // No second attempt. A reference begins by parsing a component, which
+        // begins by parsing a temporary — so falling back to «Temporary.Parse»
+        // asked the same question again, and asked it about the whole nest.
+        // Whatever was parsed comes back as «alone».
+        return alone;
     }
 }
 
