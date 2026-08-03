@@ -501,14 +501,27 @@ expression and a `return` is one.
 
 `otherwise` answers with the left value unless it is an **error** or **nothing**,
 in which case it answers with the right.  A fault is not caught: a body that
-threw is a defect in the program and not a value a fallback should paper over.
+threw is a defect in the program and not a value a fallback should paper over —
+and because it is not caught, the fallback is not evaluated for one either.
+
+The left is inspected **without being inherited**.  A cell adopts the first
+error it reads and applies it to whatever it returns, which is the propagation
+the language wants everywhere else; `otherwise` is the one construct that looks
+at a failure on purpose, so the read that hands it one must not arm adoption.
+Without that it answers with the fallback and the cell answers with the error.
 
 It is an **operator and not a pattern**.  A pattern spelled `(_) otherwise (_)`
 begins with a hole, so its anchor run is empty, and R6 refuses an empty run
 against every anchored pattern there is — the language bans word infix as a
-pattern, and an infix form lives where `+` does.  It binds **looser than any
-arithmetic**, so what it guards is the expression beside it: `total / count
-otherwise 0` guards the division.
+pattern, and an infix form lives where `+` does.
+
+It binds **looser than arithmetic and looser than a call**, so what it guards is
+the whole expression beside it: `total / count otherwise 0` guards the division,
+and `parse text otherwise nothing` guards what `parse` answered rather than the
+argument it was given.  A word pattern is available only where the requested
+binding power is at most its own, so a fallback that bound tighter than a call
+would take the call's last argument and then call with it — which reads the same
+and means something else.
 
 **The right side is not evaluated when the left is good.**  A body's
 dependencies are collected by evaluating it, so an operand that is evaluated is

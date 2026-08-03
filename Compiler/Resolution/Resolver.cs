@@ -994,8 +994,8 @@ internal sealed class Pattern : IEquatable<Pattern>
 internal sealed class Operator
 {
     /// <summary>
-    ///     Whether the right operand is needed, given the left. Null where it
-    ///     always is, which is every arithmetic operator.
+    ///     Which left values this operator replaces with its right operand. Null
+    ///     where it replaces none, which is every arithmetic operator.
     /// </summary>
     ///
     /// <remarks>
@@ -1014,8 +1014,16 @@ internal sealed class Operator
     ///     operator that short-circuits to something else would need a different
     ///     question.
     ///     </para>
+    ///     <para>
+    ///     Being set at all says the operator INSPECTS a failure, which is a
+    ///     second thing and not a coincidence: the graph adopts the first error a
+    ///     body reads and applies it to whatever the body returns, so an operator
+    ///     that examines one has to be handed it without the graph inheriting it
+    ///     on its behalf. <c>Graph.Handling</c> is that boundary and exists for
+    ///     this operator by name.
+    ///     </para>
     /// </remarks>
-    public Func<object, bool> Needs { get; init; }
+    public Func<object, bool> Catches { get; init; }
 
     public Operator(int bindingPower, Func<object, object, object> apply, bool isLeftAssociative = true)
     {
@@ -1100,10 +1108,12 @@ internal sealed class SymbolTable
     ///     definition from a scope would be a different thing entirely.
     ///     </para>
     ///     <para>
-    ///     Every entry must be one the lexer can actually produce. <c>Symbol.Lex</c>
-    ///     advances a single character, so anything longer needs a
-    ///     <c>Symbol.Special</c> of its own — otherwise the entry is dead and the
-    ///     statements using it silently fail to resolve.
+    ///     Every entry must be one the lexer can actually produce. A SYMBOL
+    ///     entry is bounded by <c>Symbol.Lex</c> advancing a single character, so
+    ///     anything longer needs a <c>Symbol.Special</c> of its own — otherwise
+    ///     the entry is dead and the statements using it silently fail to
+    ///     resolve. A WORD entry has no such bound and needs none: «otherwise» is
+    ///     one lexeme however long it is, because that is what a word is.
     ///     </para>
     /// </remarks>
     public Dictionary<string, Operator> Operators { get; } = new(Runtime.Builtin.Operators);

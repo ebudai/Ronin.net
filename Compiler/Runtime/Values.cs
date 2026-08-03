@@ -104,14 +104,21 @@ internal static class Builtin
             // back to the whole sum: what it guards is the expression beside it,
             // which is the only reading that makes it worth writing.
             //
-            // NINE and not something rounder, because a level is not free. The
-            // resolver derives its table from the powers the operators actually
-            // use, and each new one widens every span — «9» borrows the «10»
-            // that «+» already needs for the side that may not repeat it, so it
-            // costs one column where a level with nothing adjacent costs two.
-            // Measured on the 149-lexeme case: 15 MB before, 21.1 at nine, 25.5
-            // at five.
-            ["otherwise"] = new(9, Otherwise) { Needs = value => value is Error or Nothing },
+            // BELOW the pattern binding power, which is where a plumbing
+            // operator belongs and what nine got wrong. A word pattern is
+            // available only where the requested minimum is at most its own
+            // level, so an operator above it takes the call's last argument
+            // instead of its result: «parse input otherwise standby» read as
+            // «parse («input» otherwise «standby»)», guarding the argument and
+            // then calling with it, and the mirror «input otherwise parse
+            // standby» would not resolve at all.
+            //
+            // Six and not something rounder for the same reason nine was chosen:
+            // a level is not free. The resolver derives its table from the
+            // powers the operators use and each new one widens every span, so
+            // six borrows the seven that patterns already need and costs one
+            // column where a level with nothing adjacent costs two.
+            ["otherwise"] = new(6, Otherwise) { Catches = Replaces },
         };
 
     /// <summary>
@@ -147,8 +154,23 @@ internal static class Builtin
     ///     and it catches <see cref="Nothing"/> as well as <see cref="Error"/>.
     ///     This is the whole ergonomic replacement for testing every use site.
     /// </summary>
-    public static object Otherwise(object value, object fallback)
-        => value is Fault ? value
-         : value is Error or Nothing ? fallback
-         : value;
+    public static object Otherwise(object value, object fallback) => Replaces(value) ? fallback : value;
+
+    /// <summary>
+    ///     Which values a fallback replaces, asked before the fallback exists.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     ONE predicate, because it was two and they had already diverged. A
+    ///     <see cref="Fault"/> IS an <see cref="Error"/>, so "does this need a
+    ///     fallback" said yes to one while "does the fallback win" said no — and
+    ///     the fallback was evaluated, and became a dependency, of a cell no
+    ///     value of it could ever repair.
+    ///     <para>
+    ///     A fault is not caught. It is a defect in a body rather than a value a
+    ///     program computed, and papering over one is how a defect becomes a
+    ///     wrong answer instead of a report.
+    ///     </para>
+    /// </remarks>
+    public static bool Replaces(object value) => value is Error and not Fault or Nothing;
 }

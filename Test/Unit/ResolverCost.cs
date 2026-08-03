@@ -68,7 +68,8 @@ public class ResolverCost
         // is 21 with three, because the table carries a column per level that
         // the recurrences can ask for and «otherwise» added one — a language
         // cannot have many more operators than it needs, and this is where that
-        // shows up rather than in a benchmark nobody runs.
+        // shows up rather than in a benchmark nobody runs. Six costs exactly
+        // what nine did: both borrow a level something already asks for.
         //
         // It was 158 MB before the binding-power and lazy-collection work, and
         // 22 before the table went triangular, which scales to about 31 at three
@@ -155,7 +156,7 @@ public class ResolverCost
         // binds at 13, and the table carried it regardless.
         SymbolTable symbols = new();
 
-        Assert.Equal([9, 10, 20], symbols.Operators.Values.Select(op => op.BindingPower).Distinct().Order());
+        Assert.Equal([6, 10, 20], symbols.Operators.Values.Select(op => op.BindingPower).Distinct().Order());
 
         // An operator added at a new level has to widen the table with it.
         // Hard-coding six would leave every statement using the new operator

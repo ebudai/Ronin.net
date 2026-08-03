@@ -113,6 +113,125 @@ public class Fallbacks
         Assert.Equal("«x otherwise y»", shadowed.Reading);
     }
 
+    [Fact(DisplayName = "an error read from another cell is caught, which is the ordinary case")]
+    public void AnErrorReadFromAnotherCellIsCaughtWhichIsTheOrdinaryCase()
+    {
+        // Found by audit. The graph remembers the first error a body READS and
+        // applies it to whatever the body returns, so «otherwise» chose the
+        // fallback and had the choice overwritten by the very error it was asked
+        // to replace. Graph.Handling is the boundary for exactly this and its
+        // own summary says so by name; the evaluator never called it.
+        //
+        // The maintained test could not see it: it divides by zero, which MAKES
+        // an error inside the expression rather than reading one, so adoption
+        // never armed. A test one join short of the thing it names.
+        var (graph, _) = Guarded("failing otherwise standby");
+
+        Assert.Equal(5d, graph.Read("guarded"));
+    }
+
+    [Fact(DisplayName = "and one that a derived cell computed, when that cell is dirty")]
+    public void AndOneThatADerivedCellComputedWhenThatCellIsDirty()
+    {
+        var (graph, _) = Guarded("derived otherwise standby");
+
+        Assert.Equal(5d, graph.Read("guarded"));
+
+        // still caught after the cell it came from has been recomputed
+        graph.Write("reading", 30d);
+        graph.Step();
+
+        Assert.Equal(5d, graph.Read("guarded"));
+    }
+
+    [Fact(DisplayName = "and it recovers, and stops depending on the fallback when it does")]
+    public void AndItRecoversAndStopsDependingOnTheFallbackWhenItDoes()
+    {
+        // The dependency is the fallback's presence in the guarded cell, and it
+        // has to come and go with the failure. While «failing» is an error the
+        // fallback is an input; once it is a number the fallback is not read at
+        // all, and writing to it must wake nothing.
+        var (graph, evaluated) = Guarded("failing otherwise standby");
+
+        Assert.Equal(5d, graph.Read("guarded"));
+        Assert.Contains("standby", graph["guarded"].Dependencies);
+
+        graph.Write("failing", 7d);
+        graph.Step();
+
+        Assert.Equal(7d, graph.Read("guarded"));
+        Assert.DoesNotContain("standby", graph["guarded"].Dependencies);
+
+        var before = evaluated();
+
+        graph.Write("standby", 99d);
+        graph.Step();
+
+        Assert.Equal(7d, graph.Read("guarded"));
+        Assert.Equal(before, evaluated());
+    }
+
+    [Fact(DisplayName = "a fault is not caught, and the fallback is not even asked")]
+    public void AFaultIsNotCaughtAndTheFallbackIsNotEvenAsked()
+    {
+        // Found by audit, and it was one decision written down twice. A Fault IS
+        // an Error, so "does this need a fallback" said yes while "does the
+        // fallback win" said no — and the fallback was evaluated, and became an
+        // input, of a cell no value of it could ever repair. Asserting the Fault
+        // alone passes either way, which is why this asserts the dependency.
+        var (graph, _) = Guarded("buggy otherwise standby");
+
+        Assert.IsType<Fault>(graph.Read("guarded"));
+        Assert.DoesNotContain("standby", graph["guarded"].Dependencies);
+    }
+
+    [Theory(DisplayName = "and it guards a call's result, not its last argument")]
+    [InlineData("parse reading otherwise standby", "(parse «reading» otherwise «standby»)")]
+    [InlineData("reading otherwise parse standby", "(«reading» otherwise parse «standby»)")]
+    public void AndItGuardsACallsResultNotItsLastArgument(string source, string reading)
+    {
+        // Found by audit. A word pattern is available only where the requested
+        // minimum is at most its own level, so an operator ABOVE that level takes
+        // the call's last argument instead of its result — «parse input otherwise
+        // standby» read as «parse («input» otherwise «standby»)», which supplies
+        // a fallback to the argument and then calls with it. The mirror did not
+        // resolve at all.
+        //
+        // The resolver's own summary of the pattern level says where this
+        // belongs: under arithmetic, above the plumbing operators. A fallback is
+        // plumbing.
+        SymbolTable symbols = new();
+        symbols.WithNames("reading", "standby").WithPatterns("parse _");
+
+        Assert.Equal(reading, Of(symbols, source).Reading);
+    }
+
+    [Fact(DisplayName = "and the call's own failure is what it catches")]
+    public void AndTheCallsOwnFailureIsWhatItCatches()
+    {
+        // The reading above is only half of it: this is the value, and it is
+        // what the misreading silently got wrong. «parse» fails here, so the
+        // fallback is the answer — under the old level the fallback went to the
+        // argument, «parse» was called anyway, and its error was the result.
+        SymbolTable symbols = new();
+        symbols.WithNames("reading", "standby").WithPatterns("parse _");
+
+        Assert.True(new Resolver(symbols).Resolve(Lexemes.Lex("parse reading otherwise standby"))
+                                         .TryTree(out var tree));
+
+        Scope scope = new();
+        scope.Declare(new Declaration(Pattern.Parse("parse _"), [["text"]],
+                                      (_, _) => new Error("«parse» could not read that")));
+
+        Graph graph = new();
+        graph.Var("reading", 20d);
+        graph.Var("standby", 5d);
+        graph.Let("guarded", cell => new Evaluator(scope).Evaluate(cell, tree, insideLet: true));
+        graph.Prime();
+
+        Assert.Equal(5d, graph.Read("guarded"));
+    }
+
     /// <summary>
     ///     A «let» whose body is <paramref name="source"/>, and a count of how
     ///     many times it has been evaluated.
@@ -120,7 +239,7 @@ public class Fallbacks
     private static (Graph Graph, Func<int> Recomputed) Guarded(string source)
     {
         SymbolTable symbols = new();
-        symbols.WithNames("reading", "missing", "standby");
+        symbols.WithNames("reading", "missing", "standby", "failing", "derived", "buggy");
 
         Assert.True(new Resolver(symbols).Resolve(Lexemes.Lex(source)).TryTree(out var tree), source);
 
@@ -132,6 +251,13 @@ public class Fallbacks
         graph.Var("reading", 20d);
         graph.Var("missing", 0d);
         graph.Var("standby", 5d);
+
+        // an error a cell HOLDS, and one a cell COMPUTES — the first is what
+        // arms adoption on a plain read, and the second has to survive its own
+        // recompute
+        graph.Var("failing", new Error("bad input"));
+        graph.Let("derived", cell => new Error($"no reading for {cell.Read("reading")}"));
+        graph.Let("buggy", _ => throw new InvalidOperationException("defect"));
 
         graph.Let("guarded", cell =>
         {
