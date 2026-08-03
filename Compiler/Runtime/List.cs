@@ -60,19 +60,36 @@ internal sealed class List : IReadOnlyList<object>
     public object this[int index] => values[index];
 
     /// <summary>
-    ///     The list of <paramref name="elements"/>, deep-copied.
+    ///     <paramref name="value"/> in the form the runtime holds: THE admission
+    ///     boundary, and every value-bearing API crosses it.
     /// </summary>
     ///
     /// <remarks>
+    ///     <para>
+    ///     Named for the boundary rather than for lists, because it was called
+    ///     «Of» and read as a list constructor — so each API that took an
+    ///     «object» from a caller had to remember a call that looked like it was
+    ///     about something else. «Var», two writes, body results, evaluator
+    ///     groups, type seeds, declaration input and output, and constants were
+    ///     found by eight successive sweeps, one door at a time.
+    ///     </para>
+    ///     <para>
     ///     DEEP, because the two cheaper readings of "normalise" preserve the
     ///     defect. Wrapping the caller's array leaves the caller holding it, and
     ///     copying only the top level leaves the same hole one level down —
     ///     which is not exotic, since nested lists arrive with grouped data and
     ///     with match arms.
+    ///     </para>
+    ///     <para>
+    ///     Anything that is not an array is returned unchanged, so this is safe
+    ///     to call on every value rather than only on the ones expected to be
+    ///     lists — which is the point: an API cannot be wrong about whether it
+    ///     needs it.
+    ///     </para>
     /// </remarks>
-    public static object Of(object value)
+    public static object Admit(object value)
     {
-        var normalised = Normalise(value, [], 0);
+        var normalised = Normalise(value, [], new Dictionary<object, object>(ReferenceEqualityComparer.Instance), 0);
 
         return normalised is Refusal refused ? new Error(refused.Reason) : normalised;
     }
@@ -114,14 +131,31 @@ internal sealed class List : IReadOnlyList<object>
         public string Reason { get; } = reason;
     }
 
-    private static object Normalise(object value, HashSet<object> inside, int depth)
+    private static object Normalise(object value, HashSet<object> inside, Dictionary<object, object> done, int depth)
     {
-        if (value is List already)
-            return depth + already.Depth > Deep ? TooDeep() : already;
+        if (value is List already) return Fits(already, depth);
 
         if (value is not object[] array) return value;
-        if (array.Length is 0) return Empty;
+
+        // A SECOND reference to one array is the same value, not another copy of
+        // it. Without this a host DAG — one array per level, mentioned twice —
+        // was expanded into a tree: «inside» drops a child once it completes, so
+        // the next mention rebuilt the whole subtree. Sixteen input arrays
+        // allocated 8.9 MB, and two dozen reach gigabytes, all of it acyclic and
+        // far inside the depth limit.
+        //
+        // Reusing the completed child is invisible: a list is a value, identity
+        // is not its equality, and it cannot be mutated to make the sharing
+        // observable.
+        if (done.TryGetValue(array, out var admitted)) return Fits((List)admitted, depth);
+
+        // Before the empty case and not after it. «[]» took the early return
+        // and skipped this, so a nest of exactly «Deep» wrappers around an empty
+        // list was admitted at depth 257 — past the limit that is supposed to
+        // define what the runtime accepts.
         if (depth >= Deep) return TooDeep();
+
+        if (array.Length is 0) return Empty;
 
         // Here, and not in the comparison. A cycle can only be reported usefully
         // where the value still has a name and a caller: at the boundary the
@@ -135,7 +169,7 @@ internal sealed class List : IReadOnlyList<object>
 
         for (var at = 0; at < array.Length; ++at)
         {
-            copied[at] = Normalise(array[at], inside, depth + 1);
+            copied[at] = Normalise(array[at], inside, done, depth + 1);
 
             // A REFUSAL stops it. An ordinary error is an element like any
             // other and the list keeps it.
@@ -146,8 +180,17 @@ internal sealed class List : IReadOnlyList<object>
 
         inside.Remove(array);
 
-        return new List(copied, deepest + 1);
+        return done[array] = new List(copied, deepest + 1);
     }
+
+    /// <summary>An already-admitted list, if it still fits where it is going.</summary>
+    ///
+    /// <remarks>
+    ///     Asked again on reuse because depth is a property of the WHOLE value:
+    ///     a list admitted at the limit is fine on its own and too deep one
+    ///     level down, and it arrives at both through this.
+    /// </remarks>
+    private static object Fits(List value, int depth) => depth + value.Depth > Deep ? TooDeep() : value;
 
     private static Refusal TooDeep()
         => new($"a list may nest {Deep.ToString(System.Globalization.CultureInfo.InvariantCulture)} deep, and " +

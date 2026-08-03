@@ -139,7 +139,15 @@ internal sealed class Scope
             // arriving from outside the declaration, and a host that calls this
             // directly hands over an array it still holds — the same ingress
             // the type seeds were missing, one call frame along.
-            var argument = List.Of(raw);
+            var argument = List.Admit(raw);
+
+            // Before the shape is classified. A refused argument is not an
+            // «IReadOnlyList», so a cyclic one handed to a two-parameter block
+            // was reported as "given a single argument" — the real failure lost
+            // and the message recommending a repair for a mistake nobody made.
+            // Per argument, so an earlier failure cannot be hidden by a later
+            // argument's shape.
+            if (argument is Error refused) return refused;
 
             if (block.Count is 1)
             {
@@ -167,7 +175,7 @@ internal sealed class Scope
         // build a list, and «(f) @ 1» asked the operator about it long before
         // the surrounding graph body returned — so the operator saw the
         // representation the runtime had stopped accepting and refused it.
-        return List.Of(declaration.Body(graph, bound));
+        return List.Admit(declaration.Body(graph, bound));
     }
 
     private readonly Dictionary<Pattern, List<Declaration>> declarations = [];

@@ -272,11 +272,51 @@ internal static class Builtin
         // that reaches here is comparable.
         if (left is not List first || right is not List second) return Equals(left, right);
 
+        HashSet<(List Left, List Right)> proven = null;
+
+        return Same(first, second, ref proven);
+    }
+
+    /// <summary>
+    ///     Two lists, comparing each shared pair once.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     Admission keeps a host DAG shared rather than expanding it into a
+    ///     tree, which would move the same exponential here the moment two
+    ///     independently admitted DAGs met: each equal subtree would be
+    ///     re-proved once per path that reaches it.
+    ///     </para>
+    ///     <para>
+    ///     Assuming a repeat pair equal is sound because a cycle is refused at
+    ///     admission. With no cycles, a pair met twice is one already PROVED —
+    ///     nothing can still be in progress above it — and an unequal pair
+    ///     returns immediately rather than being recorded.
+    ///     </para>
+    ///     <para>
+    ///     The set is allocated only on the first descent into a nested list, so
+    ///     a flat list — the overwhelmingly common case, and the one cutoff runs
+    ///     on every settle — allocates nothing.
+    ///     </para>
+    /// </remarks>
+    private static bool Same(List first, List second, ref HashSet<(List Left, List Right)> proven)
+    {
         if (ReferenceEquals(first, second)) return true;
         if (first.Count != second.Count) return false;
+        if (proven?.Add((first, second)) is false) return true;
 
         for (var at = 0; at < first.Count; ++at)
         {
+            if (first[at] is List nested && second[at] is List beside)
+            {
+                proven ??= [(first, second)];
+
+                if (Same(nested, beside, ref proven) is false) return false;
+
+                continue;
+            }
+
             if (Same(first[at], second[at]) is false) return false;
         }
 

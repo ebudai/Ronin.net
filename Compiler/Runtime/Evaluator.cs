@@ -108,7 +108,7 @@ internal sealed class Evaluator(Scope scope)
     /// </remarks>
     private object Grouped(Graph graph, Tree.Group group, bool insideLet)
         => group.Collection || group.Parts.Count is not 1
-         ? List.Of(group.Parts.Select(part => Evaluate(graph, part, insideLet)).ToArray())
+         ? List.Admit(group.Parts.Select(part => Evaluate(graph, part, insideLet)).ToArray())
          : Evaluate(graph, group.Parts[0], insideLet);
 
     /// <remarks>

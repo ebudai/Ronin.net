@@ -314,7 +314,7 @@ public class Indexing
 
             for (var at = 0; at < levels; ++at) built = new object[] { built };
 
-            return List.Of(built);
+            return List.Admit(built);
         }
 
         Assert.True(Builtin.Same(Nested(8), Nested(8)));
@@ -334,10 +334,10 @@ public class Indexing
 
         for (var at = 0; at < List.Deep - 1; ++at) built = new object[] { built };
 
-        var admitted = Assert.IsType<List>(List.Of(built));
+        var admitted = Assert.IsType<List>(List.Admit(built));
 
         Assert.Equal(List.Deep, admitted.Depth);
-        Assert.Contains("deeper", Assert.IsType<Error>(List.Of(new object[] { admitted })).Message);
+        Assert.Contains("deeper", Assert.IsType<Error>(List.Admit(new object[] { admitted })).Message);
     }
 
     [Fact(DisplayName = "and an element that failed is an element, not the list's failure")]
@@ -351,7 +351,7 @@ public class Indexing
         // travelled beside.
         Assert.Equal(2d, Value("[ 1 / 0, 2 ] @ 2"));
 
-        var kept = Assert.IsType<List>(List.Of(new object[] { new Error("gone wrong"), 2d }));
+        var kept = Assert.IsType<List>(List.Admit(new object[] { new Error("gone wrong"), 2d }));
 
         Assert.IsType<Error>(kept[0]);
         Assert.Equal(2d, kept[1]);
@@ -367,7 +367,7 @@ public class Indexing
         looping[0] = new Error("gone wrong");
         looping[1] = looping;
 
-        Assert.Contains("cannot contain itself", Assert.IsType<Error>(List.Of(looping)).Message);
+        Assert.Contains("cannot contain itself", Assert.IsType<Error>(List.Admit(looping)).Message);
     }
 
     [Fact(DisplayName = "and a list says what it is when something quotes it")]

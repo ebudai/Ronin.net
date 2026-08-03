@@ -149,7 +149,7 @@ internal sealed class Graph
     ///     mutated at all.
     /// </remarks>
     public Node Var(string name, object value)
-        => Declare(new Node(name, NodeKind.Var, null, List.Of(value), dirty: false));
+        => Declare(new Node(name, NodeKind.Var, null, List.Admit(value), dirty: false));
 
     /// <summary>
     ///     Declares a type: one cell per member, each holding every instance's
@@ -212,7 +212,7 @@ internal sealed class Graph
             // the caller's own array, shared by every instance of the type,
             // mutable behind the graph, and refused by «@» for being the
             // representation the runtime no longer uses.
-            declaring_seeds.Add((cell, List.Of(seed)));
+            declaring_seeds.Add((cell, List.Admit(seed)));
         }
 
         foreach (var (cell, seed) in declaring_seeds)
@@ -365,7 +365,7 @@ internal sealed class Graph
 
         if (into.TryGetValue(cell, out var writes) is false) into[cell] = writes = [];
 
-        writes[instance] = List.Of(value);
+        writes[instance] = List.Admit(value);
     }
 
     /// <summary>
@@ -804,11 +804,19 @@ internal sealed class Graph
     /// </remarks>
     public void Constant(string name, object value)
     {
+        // Admitted BEFORE the failure is looked for, so a cyclic initialiser is
+        // one of the failures this refuses. It was stored verbatim, which made
+        // a constant the worst place for the defect: a read creates no edge, so
+        // a derived cell that cached an element had no write and no clock
+        // advance that could ever wake it, and the two readings disagreed for
+        // the life of the program.
+        var admitted = List.Admit(value);
+
         // An error here can never clear, because nothing recomputes a constant.
         // It would latch and every reader would inherit it for the life of the
         // program, so this stops the program instead. Same argument that decided
         // a shadow seeds with nothing.
-        if (value is Error failure)
+        if (admitted is Error failure)
             throw new InitialisationFailure(
                 $"«{name}» is a constant and its initialiser failed: {failure.Message}. " +
                 "A constant is evaluated once, so that error can never clear and every " +
@@ -817,7 +825,7 @@ internal sealed class Graph
 
         Unique(name);
 
-        constants[name] = value;
+        constants[name] = admitted;
     }
 
     public object Read(string name)
@@ -937,7 +945,7 @@ internal sealed class Graph
 
         // staged while a when body is running, so that a defect part way through
         // it takes every write with it rather than landing half of them
-        if (staged is null) pending[name] = List.Of(value); else staged[name] = List.Of(value);
+        if (staged is null) pending[name] = List.Admit(value); else staged[name] = List.Admit(value);
     }
 
     /// <summary>
@@ -1503,7 +1511,7 @@ internal sealed class Graph
             // array keeps no reference a caller could mutate, but it must still
             // be the same TYPE as everything else or equality cannot dispatch on
             // it — and «changes», «old» and cutoff all ask.
-            value = List.Of(node.Body(this));
+            value = List.Admit(node.Body(this));
         }
         catch (PurityViolation violation)
         {
