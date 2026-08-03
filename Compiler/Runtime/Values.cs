@@ -263,16 +263,13 @@ internal static class Builtin
     ///     arrive with one.
     ///     </para>
     /// </remarks>
-    public static bool Same(object left, object right) => Same(left, right, 0);
-
-    private static bool Same(object left, object right, int depth)
+    public static bool Same(object left, object right)
     {
-        // A cheap cap, kept even though the normaliser refuses a cycle at the
-        // boundary. "This can never see one" is exactly the class of invariant
-        // that keeps turning out to be unenforced, and one integer converts an
-        // unrecoverable process death into an answer.
-        if (depth > Deep) return false;
-
+        // No depth cap. One here returned FALSE for two equal lists that the
+        // runtime had accepted, which is not an equivalence and is visible
+        // through cutoff, «changes» and «old». A list is refused at
+        // construction if it nests past what this can follow, so everything
+        // that reaches here is comparable.
         if (left is not List first || right is not List second) return Equals(left, right);
 
         if (ReferenceEquals(first, second)) return true;
@@ -280,14 +277,11 @@ internal static class Builtin
 
         for (var at = 0; at < first.Count; ++at)
         {
-            if (Same(first[at], second[at], depth + 1) is false) return false;
+            if (Same(first[at], second[at]) is false) return false;
         }
 
         return true;
     }
-
-    /// <summary>How deep a value may nest before comparison gives up.</summary>
-    private const int Deep = 256;
 
     public static object Otherwise(object value, object fallback) => Replaces(value) ? fallback : value;
 

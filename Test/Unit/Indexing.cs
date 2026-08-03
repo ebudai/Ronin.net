@@ -171,11 +171,18 @@ public class Indexing
         graph.Let("watching", scope =>
         {
             ++downstream;
-            return ((object[])scope.Read("list"))[0];
+
+            // Found by audit: this cast to «object[]» outlived the
+            // representation, so the body faulted on its first evaluation and
+            // the count below was counting a broken body's cutoff. It passed —
+            // which is the point. Assert the element, so the count is taken on
+            // the read the name describes.
+            return ((IReadOnlyList<object>)scope.Read("list"))[0];
         });
 
         graph.Prime();
-        graph.Read("watching");
+
+        Assert.Equal(1d, graph.Read("watching"));
 
         var settled = downstream;
 
@@ -183,7 +190,7 @@ public class Indexing
         {
             graph.Write("tick", tick);
             graph.Step();
-            graph.Read("watching");
+            Assert.Equal(1d, graph.Read("watching"));
         }
 
         Assert.Equal(settled, downstream);
@@ -290,14 +297,18 @@ public class Indexing
         Assert.Contains("cannot contain itself", Assert.IsType<Error>(graph.Read("xs")).Message);
     }
 
-    [Fact(DisplayName = "and nesting deeper than comparison follows is an answer, not a crash")]
-    public void AndNestingDeeperThanComparisonFollowsIsAnAnswerNotACrash()
+    [Fact(DisplayName = "and a value too deep to compare is refused rather than admitted and misjudged")]
+    public void AndAValueTooDeepToCompareIsRefusedRatherThanAdmittedAndMisjudged()
     {
-        // The cap is kept even though the boundary refuses a cycle, because
-        // "the comparison can never see one" is the class of invariant this
-        // round keeps finding unenforced. One integer turns an unrecoverable
-        // process death into an answer.
-        static object Deep(int levels)
+        // Found by audit, and it is the same test as before answering the
+        // opposite way. The cap used to be in the comparison, which ACCEPTED a
+        // 300-deep list and then said two equal ones differed — not an
+        // equivalence, and visible wherever the runtime asks whether a value
+        // changed: cutoff, «changes», «old», and «is» when it lands.
+        //
+        // So the limit moved to where the value is admitted. Everything that
+        // reaches the comparison is now something it can answer about honestly.
+        static object Nested(int levels)
         {
             object built = new object[] { 1d };
 
@@ -306,8 +317,57 @@ public class Indexing
             return List.Of(built);
         }
 
-        Assert.True(Builtin.Same(Deep(8), Deep(8)));
-        Assert.False(Builtin.Same(Deep(300), Deep(300)));
+        Assert.True(Builtin.Same(Nested(8), Nested(8)));
+        Assert.True(Builtin.Same(Nested(List.Deep - 2), Nested(List.Deep - 2)));
+
+        Assert.Contains("deeper", Assert.IsType<Error>(Nested(300)).Message);
+    }
+
+    [Fact(DisplayName = "and depth travels with the value, so wrapping cannot walk past the limit")]
+    public void AndDepthTravelsWithTheValueSoWrappingCannotWalkPastTheLimit()
+    {
+        // A counter that starts at zero on every call is bypassed one layer at
+        // a time: build a list at the limit, hand it back in, and the second
+        // call counts from nothing. So the depth is carried by the value rather
+        // than by the call, and the second wrap is refused on what it wraps.
+        object built = new object[] { 1d };
+
+        for (var at = 0; at < List.Deep - 1; ++at) built = new object[] { built };
+
+        var admitted = Assert.IsType<List>(List.Of(built));
+
+        Assert.Equal(List.Deep, admitted.Depth);
+        Assert.Contains("deeper", Assert.IsType<Error>(List.Of(new object[] { admitted })).Message);
+    }
+
+    [Fact(DisplayName = "and an element that failed is an element, not the list's failure")]
+    public void AndAnElementThatFailedIsAnElementNotTheListsFailure()
+    {
+        // Found by audit. The cycle guard reported itself as an «Error» — and an
+        // error IS a value here — so the copy could not tell its own report from
+        // an element it was copying, and any list containing a failed element
+        // became that failure. Nobody asked for lifted construction; it arrived
+        // as a side effect of a sentinel sharing a type with the thing it
+        // travelled beside.
+        Assert.Equal(2d, Value("[ 1 / 0, 2 ] @ 2"));
+
+        var kept = Assert.IsType<List>(List.Of(new object[] { new Error("gone wrong"), 2d }));
+
+        Assert.IsType<Error>(kept[0]);
+        Assert.Equal(2d, kept[1]);
+    }
+
+    [Fact(DisplayName = "and a cycle beside a failed element is still a cycle")]
+    public void AndACycleBesideAFailedElementIsStillACycle()
+    {
+        // The other half of the same confusion: with one type for both, an
+        // error earlier in the value stopped the copy before it reached the
+        // cycle, and the crash the guard exists to prevent came back.
+        var looping = new object[2];
+        looping[0] = new Error("gone wrong");
+        looping[1] = looping;
+
+        Assert.Contains("cannot contain itself", Assert.IsType<Error>(List.Of(looping)).Message);
     }
 
     [Fact(DisplayName = "and a list says what it is when something quotes it")]
