@@ -49,32 +49,42 @@ prospective.
 
 # The concerns
 
-## A. How `nothing` is spelled, and one route has a measured hazard
+## A. WITHDRAWN — there is no takeover, and I measured the wrong pair
 
-Three ways, and they differ in what they cost:
+Budai's answer is right and the measurement is cleaner than the reason given for
+it. Declaring `nothing found` does not change any statement that was already
+working:
 
-| route | cost |
+```
+                              before declaring «nothing found»   after
+x otherwise nothing           («x» otherwise «nothing»)          unchanged
+x otherwise nothing found     NoParse                            («x» otherwise «nothing found»)
+```
+
+The text that "changes" was **not valid before**. Invalid source became valid
+with the obvious meaning; nothing was silently re-read. And `x otherwise
+nothing` is untouched, because it does not contain the longer name.
+
+I had carried the shape over from the `otherwise` finding without checking that
+it applied, which is the error this project keeps naming in other people's work.
+
+### And it narrows that earlier finding, usefully
+
+The `otherwise` hazard is real and this is not, and the difference is exactly
+where the declared name sits:
+
+| declared name | effect |
 |---|---|
-| a **literal**, beside date/numeric/text | the lexer must recognise the word, so it is reserved in practice; `Evaluator.Value` already has the shape for it |
-| a **keyword** | a name may not *begin* with one (§4.4), so `nothing found` becomes undeclarable |
-| a **built-in name**, seeded like the `for each` pattern | costs nothing lexically — and has the hazard below |
+| `x otherwise y` — **spans the operator** | `x otherwise y` was the operation and becomes the name. A working statement changes meaning |
+| `nothing found` — **on one side of it** | no statement changes; a longer name is simply available |
 
-Measured, with `nothing` as a built-in name:
+So the rule is not "a built-in word can be taken over". It is **a declared name
+that spans an operator takes that operator**, which is precisely R5's shape —
+glue inside a name — and it is why R5 exists for patterns. Only the first case
+needs a decision, and it is the narrower one I should have reported.
 
-```
-names {nothing, x}                 x otherwise nothing        («x» otherwise «nothing»)
-names {nothing, x, nothing found}  x otherwise nothing found  («x» otherwise «nothing found»)
-```
-
-Declaring `nothing found` makes the longer name win — **strictly cheaper, one
-lookup against two, so not a tie**. Every `otherwise nothing` already written
-means something else the moment someone declares a name starting with the word.
-That is R5's hazard, and R5 governs pattern glue, so it has no jurisdiction —
-the same gap reported for `otherwise` itself, arriving a second time for a
-second built-in word.
-
-If built-in values are to be ordinary names, that gap needs a rule. If they are
-not, `nothing` is a literal or a keyword and the word is spent.
+Which leaves the spelling of `nothing` an ordinary choice with no hazard
+attached: a built-in name costs nothing lexically and is available.
 
 ## B. `@` is being asked to do two different jobs
 
