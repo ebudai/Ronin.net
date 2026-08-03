@@ -537,13 +537,13 @@ public class StatementShapes
     }
 
     [Theory(DisplayName = "two values with nothing between them are still refused")]
-    [InlineData("var v = { { 1 } { 2 } };")]
-    [InlineData("var v = { { 1 = 2 } { 3 } };")]
-    [InlineData("var r = f ({ 1 } { 2 });")]
+    [InlineData("var v = [ [ 1 ] [ 2 ] ];")]
+    [InlineData("var v = [ [ 1 = 2 ] [ 3 ] ];")]
+    [InlineData("var r = f ([ 1 ] [ 2 ]);")]
     // and a trailing word does not buy the missing separator
-    [InlineData("var v = { { 1 } { 2 } name };")]
-    [InlineData("var v = { (1) (2) name };")]
-    [InlineData("var v = { { 1 } { 2 } one two three };")]
+    [InlineData("var v = [ [ 1 ] [ 2 ] name ];")]
+    [InlineData("var v = [ (1) (2) name ];")]
+    [InlineData("var v = [ [ 1 ] [ 2 ] one two three ];")]
     public void TwoValuesWithNothingBetweenThemAreStillRefused(string source)
     {
         // The other side of the same rule. A reference may lead with an anonymous

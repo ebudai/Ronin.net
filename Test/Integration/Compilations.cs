@@ -331,11 +331,11 @@ public class Compilations
     }
 
     [Theory(DisplayName = "an anonymous value is parsed once, not twice")]
-    [InlineData("var v = [ 1, 2, 3 ];", 2)]
+    [InlineData("var v = [ 1, 2, 3 ];", 1)]
     [InlineData("var c = x => { return x; };", 1)]
-    [InlineData("var l = [ 1 = 2, 3 = 4 ];", 1)]
+    [InlineData("var l = [ 1 = 2, 3 = 4 ];", 2)]
     [InlineData("var i = (1, 2);", 2)]
-    [InlineData("var deep = [ [ 1, 2 ], [ 3, 4 ] ];", 8)]
+    [InlineData("var deep = [ [ 1, 2 ], [ 3, 4 ] ];", 3)]
     public void AnAnonymousValueIsParsedOnceNotTwice(string source, int groups)
     {
         // A reference that turns out to be a single anonymous value used to
@@ -344,7 +344,9 @@ public class Compilations
         // speculative aggregate spends from the group budget that bounds
         // adversarial backtracking, which deliberately does not roll back. So the
         // duplicate did not merely cost time; it halved the budget, and it
-        // compounded with nesting: the last row was 28 entries and is 8.
+        // compounded with nesting: the last row was 28 entries, then 8, and is
+        // 3 since a list is tried before a lookup — a list no longer pays for a
+        // failed lookup first, and only the lookup row pays for a failed list.
         //
         // Counted rather than timed, because a result-only test executes both
         // parses happily and cannot tell that they describe the same input.

@@ -197,7 +197,7 @@ internal sealed class Resolver
         // CLOSED, which is what lets «(compute total for a) + b» resolve
         if (j - i >= 2 && lexemes[i].Kind is LexemeKind.Open && lexemes[j - 1].Kind is LexemeKind.Close)
         {
-            Group(lexemes, cell, i + 1, j - 1);
+            Group(lexemes, cell, i + 1, j - 1, collection: lexemes[i].Text is "[");
         }
 
         // Only the patterns whose first word is the one actually sitting at «i».
@@ -228,8 +228,19 @@ internal sealed class Resolver
     ///     to a hole while the resolver stays ignorant of arity. It costs one
     ///     lookup either way, because it is one bracketed substatement.
     /// </remarks>
-    private void Group(IReadOnlyList<Lexeme> lexemes, Cell cell, int from, int to)
+    private void Group(IReadOnlyList<Lexeme> lexemes, Cell cell, int from, int to, bool collection)
     {
+        // An empty COLLECTION is a value — the list with nothing in it — where an
+        // empty grouping is not: «()» is brackets round no expression and there
+        // is nothing for it to mean. The loop below cannot say that, because it
+        // asks for an expression between each pair of separators and an empty
+        // span has none.
+        if (collection && from == to)
+        {
+            cell.Offer(1, new Node.Group([], collection: true));
+            return;
+        }
+
         List<int> separators = [];
         var depth = 0;
 
@@ -269,7 +280,7 @@ internal sealed class Resolver
             start = end + 1;
         }
 
-        cell.Offer(1 + cost, new Node.Group(parts), count, witness);
+        cell.Offer(1 + cost, new Node.Group(parts, collection), count, witness);
     }
 
     /// <summary>

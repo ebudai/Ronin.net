@@ -99,10 +99,17 @@ internal sealed class Evaluator(Scope scope)
     ///     parameter block of the same size destructures, so the brackets that
     ///     could not be dropped are exactly the ones that carry meaning.
     /// </summary>
+    /// <remarks>
+    ///     A COLLECTION is always its list, at one element as at many. Grouping
+    ///     collapses, because «(x)» is x with brackets round it and the brackets
+    ///     were the resolver's business. Reading them the same way made a
+    ///     singleton list evaluate to its element, so «[10] @ 1» said its left
+    ///     operand was not a list — and an empty one had no list to be at all.
+    /// </remarks>
     private object Grouped(Graph graph, Tree.Group group, bool insideLet)
-        => group.Parts.Count is 1
-         ? Evaluate(graph, group.Parts[0], insideLet)
-         : group.Parts.Select(part => Evaluate(graph, part, insideLet)).ToArray();
+        => group.Collection || group.Parts.Count is not 1
+         ? group.Parts.Select(part => Evaluate(graph, part, insideLet)).ToArray()
+         : Evaluate(graph, group.Parts[0], insideLet);
 
     /// <remarks>
     ///     The operator comes off the node, which is the one the resolver chose.

@@ -80,8 +80,21 @@ internal abstract class Node
     ///     unless separators divided it — «(x, y)» is a group of two, which is how
     ///     a parameter block of two receives its arguments.
     /// </summary>
-    internal sealed class Group(IReadOnlyList<Node> parts) : Node
+    internal sealed class Group(IReadOnlyList<Node> parts, bool collection = false) : Node
     {
+        /// <summary>
+        ///     Whether the brackets were a COLLECTION rather than grouping.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     «(x)» is one value in brackets and «[x]» is a list of one, and the
+        ///     resolver saw the same node for both — so a singleton list
+        ///     evaluated to its element and «[10] @ 1» reported that its left
+        ///     operand was not a list. A two-element list worked by accident,
+        ///     because more than one part had nowhere to collapse to.
+        /// </remarks>
+        public bool Collection { get; } = collection;
+
         /// <remarks>
         ///     Copied: a node caches its rendering, so a caller still holding the
         ///     list it passed could change what the node contains without
@@ -89,7 +102,8 @@ internal abstract class Node
         /// </remarks>
         public IReadOnlyList<Node> Parts { get; } = [.. parts];
 
-        protected override string Render() => $"⟨{string.Join(", ", Parts)}⟩";
+        protected override string Render()
+            => Collection ? $"[{string.Join(", ", Parts)}]" : $"⟨{string.Join(", ", Parts)}⟩";
     }
 
     /// <summary>An operator applied to two operands. Free: no table is consulted.</summary>

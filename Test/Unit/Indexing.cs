@@ -33,6 +33,46 @@ public class Indexing
         return new Evaluator(new Scope()).Evaluate(graph, tree, insideLet: false);
     }
 
+    /// <summary>
+    ///     The same, from SOURCE — no hand-built array anywhere.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Found by audit. Every test above supplies «new object[]» directly,
+    ///     which proves the operator on data somebody built in C# and says
+    ///     nothing about the spelling the language now has. «[10] @ 1» reported
+    ///     that its left operand was not a list, and a two-element list happened
+    ///     to work, so the shape of the fixture decided whether the feature did.
+    /// </remarks>
+    private static object Written(string source)
+    {
+        Assert.True(new Resolver(new SymbolTable()).Resolve(Lexemes.Lex(source)).TryTree(out var tree), source);
+
+        return new Evaluator(new Scope()).Evaluate(new Graph(), tree, insideLet: false);
+    }
+
+    [Theory(DisplayName = "and a list written in source is a list at every size")]
+    [InlineData("[ 10 ] @ 1", 10d)]
+    [InlineData("[ 10, 20 ] @ 2", 20d)]
+    [InlineData("[ 10, 20, 30 ] @ 3", 30d)]
+    [InlineData("[ [ 1, 2 ], [ 3, 4 ] ] @ 1 @ 2", 2d)]
+    public void AndAListWrittenInSourceIsAListAtEverySize(string source, double expected)
+        => Assert.Equal(expected, Written(source));
+
+    [Fact(DisplayName = "and an empty one is a list with nothing in it, not a value")]
+    public void AndAnEmptyOneIsAListWithNothingInItNotAValue()
+    {
+        // «[]» is the settled default for an empty square aggregate, and the
+        // parser tried the lookup first, so it was one. Nothing downstream could
+        // tell — a lookup and a list are the same brackets with nothing between
+        // them — until an indexer asked.
+        Assert.IsType<Error>(Written("[] @ 1"));
+
+        // and a group is still a group: «(10)» is ten in brackets, not a list
+        Assert.Equal(10d, Written("(10)"));
+        Assert.IsType<Error>(Written("(10) @ 1"));
+    }
+
     private static string Reading(string source)
     {
         SymbolTable symbols = new();

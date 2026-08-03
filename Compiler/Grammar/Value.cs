@@ -45,7 +45,13 @@ internal class Temporary : Value
     public new static Temporary Parse(ref Parser current)
         => Literal.Parse(ref current)
         ?? Delegate.Parse(ref current)
-        ?? Lookup.Parse(ref current)
         ?? Inputs.Parse(ref current)
-        ?? List.Parse(ref current) as Temporary;
+
+        // LIST before lookup, which decides «[]». Both accept nothing, and the
+        // settled default for an empty square aggregate is the list — trying the
+        // lookup first made «var empty = [];» a lookup with no way to tell.
+        // «[a = 1]» still reaches the lookup, because a list element is a value
+        // and «a = 1» is not one.
+        ?? List.Parse(ref current)
+        ?? Lookup.Parse(ref current) as Temporary;
 }
