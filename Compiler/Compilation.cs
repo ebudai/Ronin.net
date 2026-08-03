@@ -288,6 +288,39 @@ internal sealed class Compilation
     }
 
     /// <summary>Whatever a node holds that is itself part of the tree.</summary>
+    /// <summary>
+    ///     Whether anything at all under this node is an error.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The same walk the diagnostic pass uses, asked as a question. A
+    ///     shallower test — is this element itself an error — was written for
+    ///     the collection classifier and covers only what is directly beneath
+    ///     it, so an error one level down was still classified over and
+    ///     replaced. Every wrapper that wants this question has to ask it
+    ///     through the members the grammar declares, which is the whole reason
+    ///     that walk is reflective.
+    /// </remarks>
+    internal static bool Broken(object node)
+    {
+        HashSet<object> seen = new(ReferenceEqualityComparer.Instance);
+        Stack<object> pending = new();
+
+        pending.Push(node);
+
+        while (pending.Count is not 0)
+        {
+            var next = pending.Pop();
+
+            if (seen.Add(next) is false) continue;
+            if (next is IError) return true;
+
+            foreach (var child in Children(next)) pending.Push(child);
+        }
+
+        return false;
+    }
+
     private static IEnumerable<object> Children(object node)
     {
         // An aggregate IS its elements and no property exposes them — the

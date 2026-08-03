@@ -599,6 +599,28 @@ public class StatementShapes
         Assert.Contains("entry 2", finding.Message);
     }
 
+    [Theory(DisplayName = "and a syntax error under an entry is not classified over")]
+    [InlineData("var v = [a =, b = 2];")]                 // direct
+    [InlineData("var v = [ [a =, b = 2], c = 3];")]       // under a destination
+    [InlineData("var v = [ c = 3, [a =, b = 2] ];")]      // under one, beside an association
+    [InlineData("var v = [ [1, a =], c = 3];")]           // under a list entry
+    [InlineData("var v = [ c = [a =, b = 2], d = 3];")]   // under an origin
+    public void AndASyntaxErrorUnderAnEntryIsNotClassifiedOver(string source)
+    {
+        // Found by audit, twice. The kind of a collection is decided from its
+        // entries, and an entry that FAILED has no origin — so a missing
+        // association value counted as a plain list value and the whole thing
+        // was reported as neither a list nor a lookup, which hides the real
+        // mistake and recommends a repair for one nobody made.
+        //
+        // Asking whether the element itself is an error fixed the direct case
+        // and left the same hole one level down. It is asked through the walk
+        // the diagnostic pass already uses now, because a shallower test per
+        // wrapper is exactly what put the hole there twice.
+        Assert.Contains("expected value",
+                        Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings).Message);
+    }
+
     [Theory(DisplayName = "two values with nothing between them are still refused")]
     [InlineData("var v = [ [ 1 ] [ 2 ] ];")]
     [InlineData("var v = [ [ 1 = 2 ] [ 3 ] ];")]
