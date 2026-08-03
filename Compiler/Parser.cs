@@ -44,6 +44,14 @@ internal struct Parser
     ///     is a struct copied at every speculative parse, so this reaches the
     ///     component that has to honour it and unwinds with the copy that failed.
     ///     </para>
+    ///     <para>
+    ///     DORMANT since lists and lookups moved to brackets: nothing in
+    ///     <c>Temporary.Parse</c> opens on a brace any more, so no heading can
+    ///     absorb one and removing this check fails no test. It is kept because
+    ///     the next planned change puts a brace-opening value back — a block that
+    ///     is an expression — and the ambiguity returns with it, at which point
+    ///     this is what stops «if c { a }» being a call again.
+    ///     </para>
     /// </remarks>
     public bool Heading;
 

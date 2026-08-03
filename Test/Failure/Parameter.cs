@@ -49,11 +49,11 @@ public class Parameter : ParsingTests
             Returns(),
             Word("money"),
             Separator(),
-            StartIndexer(),
+            StartBracket(),
             Word("thing"),
             Terminal(),
             Word("stuff"),
-            EndIndexer(),
+            EndBracket(),
             EndValues(),
             new Sentinel()
         };

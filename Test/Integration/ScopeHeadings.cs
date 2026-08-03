@@ -93,7 +93,7 @@ public class ScopeHeadings
     [InlineData("if a b { 1 }\n")]
     [InlineData("if a + b { 1 }\n")]
     [InlineData("if c (x) { 1 }\n")]
-    [InlineData("if takes ({ 1 }) { 2 }\n")]
+    [InlineData("if takes ([ 1 ]) { 2 }\n")]
     public void AndTheHeadingIsStillWhateverItWas(string source)
     {
         // A multi-word condition, an operator in one, and a call in one. The
@@ -104,47 +104,37 @@ public class ScopeHeadings
         Assert.IsAssignableFrom<Scope>(Only(source));
     }
 
-    [Theory(DisplayName = "and a brace that is not a body is still a value")]
-    [InlineData("var x = { 1 };\n")]
-    [InlineData("var y = { { 1 }, { 2 } };\n")]
-    [InlineData("if c { { 1 } }\n")]
-    [InlineData("if c { a = { 1 }; }\n")]
+    [Theory(DisplayName = "and a value beside a heading is still a value")]
+    [InlineData("var x = [ 1 ];\n")]
+    [InlineData("var y = [ [ 1 ], [ 2 ] ];\n")]
+    [InlineData("if c { [ 1 ] }\n")]
+    [InlineData("if c { a = [ 1 ]; }\n")]
     [InlineData("if c { if d { 1 } }\n")]
-    public void AndABraceThatIsNotABodyIsStillAValue(string source)
+    public void AndAValueBesideAHeadingIsStillAValue(string source)
     {
-        // The rule is the heading's and reaches no further. Inside a body, and
-        // in ordinary value position, a brace means what it always meant — and
-        // a nested «if» has a heading of its own that ends at its own brace.
+        // The rule is the heading's and reaches no further. A nested «if» has a
+        // heading of its own that ends at its own brace, and a list is a list
+        // wherever it appears.
         Assert.NotNull(Only(source));
     }
 
-    [Fact(DisplayName = "a braced value in a heading costs brackets")]
-    public void ABracedValueInAHeadingCostsBrackets()
+    [Fact(DisplayName = "and a brace in a heading can only be the body now")]
+    public void AndABraceInAHeadingCanOnlyBeTheBodyNow()
     {
-        // The whole bill, and it is not a finding. A list literal in heading
-        // position is the one thing this takes away: the first brace is the
-        // body, so «if takes { 1 } { 2 }» is a conditional whose body is «{ 1 }»
-        // followed by a loose «{ 2 }» — which is two statements, both legal.
+        // This used to be the bill. A list was braced, so «if takes { 1 } { 2 }»
+        // could read the first brace as an argument, and the heading rule was
+        // what stopped it — at the cost of a braced literal in heading position,
+        // which brackets bought back.
         //
-        // Worth pinning because it is a silent reading and not an error, and it
-        // was malformed before. Whether a loose braced value should be a finding
-        // in its own right is a question for the designer and not this rule's.
+        // Lists and lookups are bracketed now, so nothing a heading could
+        // absorb begins with a brace and there is no bill left to pay. The
+        // second brace is a block of its own, which is two statements and legal.
         var compilation = Of("if takes { 1 } { 2 }\n");
 
         Assert.Empty(compilation.Findings);
-        Assert.Collection(compilation.Module.Scopes[0].Statements,
-                          first => Assert.IsAssignableFrom<Scope>(first),
-                          second => Assert.IsType<List>(second));
+        Assert.Equal(2, compilation.Module.Scopes[0].Statements.Count);
 
-        // and bracketing gives the argument back
-        Assert.IsAssignableFrom<Scope>(Only("if takes ({ 1 }) { 2 }\n"));
+        // and the argument no longer needs buying back
+        Assert.IsAssignableFrom<Scope>(Only("if takes [ 1 ] { 2 }\n"));
     }
-
-    [Theory(DisplayName = "and the brackets buy it back in a declaration's heading as well")]
-    [InlineData("function f => Takes ({ 1 }) {}\n")]
-    [InlineData("type T = Base ({ 1 }) {}\n")]
-    public void AndTheBracketsBuyItBackInADeclarationsHeadingAsWell(string source)
-        // One rule, so one escape hatch, and it has to be the same one in every
-        // heading or the rule is really several rules that agree so far.
-        => Assert.NotNull(Only(source));
 }

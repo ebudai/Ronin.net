@@ -47,6 +47,5 @@ internal class Temporary : Value
         ?? Delegate.Parse(ref current)
         ?? Lookup.Parse(ref current)
         ?? Inputs.Parse(ref current)
-        ?? List.Parse(ref current)
-        ?? Index.Parse(ref current) as Temporary;
+        ?? List.Parse(ref current) as Temporary;
 }

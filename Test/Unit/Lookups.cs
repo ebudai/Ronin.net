@@ -12,15 +12,15 @@ public class Lookups : ParsingTests
     [Fact(DisplayName = "basic")]
     public void Basic()
     {
-        // { "dave" = 3 }
+        // [ "dave" = 3 ]
 
         List<Token> tokens = new()
         {
-            StartScope(),
+            StartBracket(),
             Text("dave"),
             Assign(),
             Number(3),
-            EndScope(),
+            EndBracket(),
             new Sentinel()
         };
 
@@ -47,11 +47,11 @@ public class Lookups : ParsingTests
             Keyword.Variable(),
             Word("x"),
             Assign(),
-            StartScope(),
+            StartBracket(),
             Text("stuff"),
             Assign(),
             Number(4),
-            EndScope(),
+            EndBracket(),
             new Sentinel()
         };
 

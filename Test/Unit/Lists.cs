@@ -12,13 +12,13 @@ public class Lists : ParsingTests
     [Fact(DisplayName = "single")]
     public void Single()
     {
-        // { 3 }
+        // [ 3 ]
 
         List<Token> tokens = new()
         {
-            StartScope(),
+            StartBracket(),
             Number(3),
-            EndScope(),
+            EndBracket(),
             new Sentinel()
         };
 
@@ -33,17 +33,17 @@ public class Lists : ParsingTests
     [Fact(DisplayName = "multiple")]
     public void Multiple()
     {
-        // { 3, 4, 5 }
+        // [ 3, 4, 5 ]
 
         List<Token> tokens = new()
         {
-            StartScope(),
+            StartBracket(),
             Number(3),
             Separator(),
             Number(4),
             Separator(),
             Number(5),
-            EndScope(),
+            EndBracket(),
             new Sentinel()
         };
 
@@ -78,13 +78,13 @@ public class Lists : ParsingTests
             Keyword.Variable(),
             Word("x"),
             Assign(),
-            StartScope(),
+            StartBracket(),
             Number(5),
             Separator(),
             Number(2),
             Separator(),
             Word("test"),
-            EndScope(),
+            EndBracket(),
             new Sentinel()
         };
 

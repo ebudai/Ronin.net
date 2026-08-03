@@ -11,14 +11,14 @@ public class Lookups : ParsingTests
     [Fact(DisplayName = "missing assign")]
     public void MissingAssign()
     {
-        // { "thing" 4 }
+        // [ "thing" 4 ]
 
         List<Token> tokens = new()
         {
-            StartScope(),
+            StartBracket(),
             Text("thing"),
             Number(4),
-            EndScope(),
+            EndBracket(),
             new Sentinel()
         };
         
@@ -31,14 +31,14 @@ public class Lookups : ParsingTests
     [Fact(DisplayName = "missing key")]
     public void MissingKey()
     {
-        // { = 4 }
+        // [ = 4 ]
 
         List<Token> tokens = new()
         {
-            StartScope(),
+            StartBracket(),
             Assign(),
             Number(4),
-            EndScope(),
+            EndBracket(),
             new Sentinel()
         };
         
@@ -51,14 +51,14 @@ public class Lookups : ParsingTests
     [Fact(DisplayName = "missing value")]
     public void MissingValue()
     {
-        // { 3 = }
+        // [ 3 = ]
 
         List<Token> tokens = new()
         {
-            StartScope(),
+            StartBracket(),
             Number(3),
             Assign(),
-            EndScope(),
+            EndBracket(),
         };
         
         Parser parser = new(tokens.AsLinkedList());

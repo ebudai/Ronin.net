@@ -331,11 +331,11 @@ public class Compilations
     }
 
     [Theory(DisplayName = "an anonymous value is parsed once, not twice")]
-    [InlineData("var v = { 1, 2, 3 };", 2)]
+    [InlineData("var v = [ 1, 2, 3 ];", 2)]
     [InlineData("var c = x => { return x; };", 1)]
-    [InlineData("var l = { 1 = 2, 3 = 4 };", 1)]
+    [InlineData("var l = [ 1 = 2, 3 = 4 ];", 1)]
     [InlineData("var i = (1, 2);", 2)]
-    [InlineData("var deep = { { 1, 2 }, { 3, 4 } };", 8)]
+    [InlineData("var deep = [ [ 1, 2 ], [ 3, 4 ] ];", 8)]
     public void AnAnonymousValueIsParsedOnceNotTwice(string source, int groups)
     {
         // A reference that turns out to be a single anonymous value used to

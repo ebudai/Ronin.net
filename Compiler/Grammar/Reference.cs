@@ -139,12 +139,15 @@ internal class Reference : IEnumerable<Reference.Component>
     /// </remarks>
     private static bool Leads(List<Component> components)
     {
-        var at = 1;
-
-        while (at < components.Count && components[at].AsTemporary is Index) ++at;
-
-        // the whole of it, or an operator and the rest of the expression
-        return at == components.Count || components[at].AsSymbolic is not null;
+        // An operator, and then the rest of the expression.
+        //
+        // There used to be a walk over «[…]» indexers here, and a check for
+        // having reached the end after it, because indexing was a bracketed
+        // aggregate that could follow a leading value. Indexing is «@» now,
+        // which is a symbol — so the walk covers nothing, and the end is
+        // unreachable: a lone anonymous value is handed back as one above and
+        // never arrives here.
+        return components[1].AsSymbolic is not null;
     }
 
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();

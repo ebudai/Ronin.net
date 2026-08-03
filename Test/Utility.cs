@@ -172,14 +172,14 @@ public class ParsingTests
         return endValues;
     }
 
-    internal static Open.SquareBracket StartIndexer()
+    internal static Open.SquareBracket StartBracket()
     {
         Open.SquareBracket startIndexer = new();
         startIndexer.SetMemory(Open.SquareBracket.symbol.ToString());
         return startIndexer;
     }
 
-    internal static Close.SquareBracket EndIndexer()
+    internal static Close.SquareBracket EndBracket()
     {
         Close.SquareBracket endIndexer = new();
         endIndexer.SetMemory(Close.SquareBracket.symbol.ToString());

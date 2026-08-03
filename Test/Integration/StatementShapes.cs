@@ -89,9 +89,9 @@ public class StatementShapes
     }
 
     [Theory(DisplayName = "the elision is the statement aggregate's, and no other's")]
-    [InlineData("var nested values = { { 1 } { 2 } };\n", "var nested values = { { 1 }, { 2 } };\n")]
-    [InlineData("var lookup = { { 1 } = { 2 } { 3 } = { 4 } };\n", "var lookup = { { 1 } = { 2 }, { 3 } = { 4 } };\n")]
-    [InlineData("var r = f ({ 1 } { 2 });\n", "var r = f ({ 1 }, { 2 });\n")]
+    [InlineData("var nested values = [ [ 1 ] [ 2 ] ];\n", "var nested values = [ [ 1 ], [ 2 ] ];\n")]
+    [InlineData("var lookup = [ [ 1 ] = [ 2 ] [ 3 ] = [ 4 ] ];\n", "var lookup = [ [ 1 ] = [ 2 ], [ 3 ] = [ 4 ] ];\n")]
+    [InlineData("var r = f ([ 1 ] [ 2 ]);\n", "var r = f ([ 1 ], [ 2 ]);\n")]
     public void TheElisionIsTheStatementAggregatesAndNoOthers(string missing, string separated)
     {
         // The generator above cannot see this. It exercises the aggregate at its
@@ -424,7 +424,7 @@ public class StatementShapes
 
     [Theory(DisplayName = "a delegate body is a scope like any other")]
     [InlineData("var callback = (x) => { var d => Number; var d => Number; };")]
-    [InlineData("var handlers = { (x) => { var d => Number; var d => Number; }, 2 };")]
+    [InlineData("var handlers = [ (x) => { var d => Number; var d => Number; }, 2 ];")]
     [InlineData("var outer = (x) => { var inner = (y) => { var d => Number; var d => Number; }; };")]
     [InlineData("function run (callback = (x) => { var d => Number; var d => Number; }) { return 1; }")]
     [InlineData("var callback = (x => Number) => { var d => Number; var d => Number; };")]
@@ -486,8 +486,8 @@ public class StatementShapes
 
     [Theory(DisplayName = "a bare delegate is a delegate, through the real parser")]
     [InlineData("var callback = x => { return x; };")]
-    [InlineData("var handlers = { x => { return x; }, 2 };")]
-    [InlineData("var lookup = { 1 = x => { return x; } };")]
+    [InlineData("var handlers = [ x => { return x; }, 2 ];")]
+    [InlineData("var lookup = [ 1 = x => { return x; } ];")]
     [InlineData("function run (callback = x => { return x; }) { return 1; }")]
     [InlineData("var outer = y => { var inner = x => { return x; }; return 1; };")]
     public void ABareDelegateIsADelegateThroughTheRealParser(string source)
@@ -511,14 +511,14 @@ public class StatementShapes
         Assert.Equal("name", shadowed.Name);
     }
 
-    [Theory(DisplayName = "an anonymous value keeps its indexer")]
-    [InlineData("var r = (x) => { return x; } [0];")]      // a delegate, bracketed
-    [InlineData("var r = x => { return x; } [0];")]        // a delegate, bare
-    [InlineData("var r = { 1, 2 } [0];")]                  // a list
-    [InlineData("var r = { 1 = 2 } [0];")]                 // a lookup
-    [InlineData("var r = (1) [0];")]                       // an input block
-    [InlineData("var vals = { (x) => { return x; } [0] };")]  // and inside an aggregate
-    public void AnAnonymousValueKeepsItsIndexer(string source)
+    [Theory(DisplayName = "an anonymous value keeps what follows it")]
+    [InlineData("var r = (x) => { return x; } @ 1;")]      // a delegate, bracketed
+    [InlineData("var r = x => { return x; } @ 1;")]        // a delegate, bare
+    [InlineData("var r = [ 1, 2 ] @ 1;")]                  // a list
+    [InlineData("var r = [ 1 = 2 ] @ 1;")]                 // a lookup
+    [InlineData("var r = (1) @ 1;")]                       // an input block
+    [InlineData("var vals = [ (x) => { return x; } @ 1 ];")]  // and inside an aggregate
+    public void AnAnonymousValueKeepsWhatFollowsIt(string source)
     {
         // §4.7 admits an anonymous value with an indexer as a reference, and it
         // was never parsed as one: the value won on its own and the indexer
@@ -559,20 +559,21 @@ public class StatementShapes
     }
 
     [Theory(DisplayName = "what may follow a leading value, and what may not")]
-    // may: an indexer attaches to the value, a symbol takes it as a left operand
-    [InlineData("var r = { 1, 2 } [0];", true)]
-    [InlineData("var r = { 1, 2 } [0] [1];", true)]
+    // may: a symbol takes the value as a left operand, indexing included
+    [InlineData("var r = [ 1, 2 ] @ 1;", true)]
+    [InlineData("var r = [ 1, 2 ] @ 1 @ 1;", true)]
     [InlineData("var r = 3..test;", true)]
     [InlineData("var r = 3 + 4;", true)]
-    // and they COMPOSE: an indexer attaches, and what it built is an operand
-    [InlineData("var r = { 1, 2 } [0] + 3;", true)]
-    [InlineData("var r = { 1, 2 } [0] [1] + 3;", true)]
-    [InlineData("var r = { 1, 2 } [0] + { 3 } [0];", true)]
-    [InlineData("var r = x => { return x; } [0] + 3;", true)]
+    // and they COMPOSE, which is now one rule rather than two: «@» is a symbol,
+    // so an index suffix followed by an operator is a chain of operators
+    [InlineData("var r = [ 1, 2 ] @ 1 + 3;", true)]
+    [InlineData("var r = [ 1, 2 ] @ 1 @ 1 + 3;", true)]
+    [InlineData("var r = [ 1, 2 ] @ 1 + [ 3 ] @ 1;", true)]
+    [InlineData("var r = x => { return x; } @ 1 + 3;", true)]
     // may not: a second value is a second value
-    [InlineData("var r = { 1 } { 2 };", false)]
+    [InlineData("var r = [ 1 ] [ 2 ];", false)]
     [InlineData("var r = (1) (2);", false)]
-    [InlineData("var r = { 1 } (2);", false)]
+    [InlineData("var r = [ 1 ] (2);", false)]
     public void WhatMayFollowALeadingValueAndWhatMayNot(string source, bool one)
     {
         // A word may be followed by anything — an anonymous value after a word is
@@ -654,11 +655,15 @@ public class StatementShapes
     [InlineData("var first = 1", 1, false)]
     // elided, because the statement before already said where it stopped
     [InlineData("function f {} var second = 2;", 2, false)]
-    [InlineData("var first = { 1 } var second = 2;", 2, false)]
+    // and a braced statement is the ONLY thing that elides now: a list ends in
+    // «]», so «var first = [ 1 ] var second = 2;» is two statements with nothing
+    // between them and is refused like any other pair
+    [InlineData("var first = x => { return 1; } var second = 2;", 2, false)]
     // and otherwise refused
     [InlineData("1 2;", 1, true)]
     [InlineData("var first = 1 var second = 2;", 1, true)]
     [InlineData("var r = (1) (2);", 1, true)]
+    [InlineData("var first = [ 1 ] var second = 2;", 1, true)]
     public void AStatementNeedsItsTerminatorAtTheTopOfAFileToo(string source, int statements, bool refused)
     {
         // A module is a statement sequence and had none of the rule. It TRIED to

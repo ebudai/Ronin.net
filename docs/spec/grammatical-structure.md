@@ -467,7 +467,11 @@ The elision is what makes `function f { if x { return 1; } return 2; }` — a
 block followed by another statement, which is most programs — read the way it
 looks.  A `;` there is permitted and means the same thing.  The elision is
 scoped to statement sequences: a list or a lookup still needs its commas, so
-`{ { 1 } { 2 } }` is two values with no separator and is refused.
+`[ [ 1 ] [ 2 ] ]` is two values with no separator and is refused.
+
+Since a brace now ends only a block, the elision reaches only statements that
+end in one.  `var first = [ 1 ] var second = 2;` is two statements with nothing
+between them and is refused, where the braced spelling was accepted.
 
 A statement takes a `;` unless its last token is `}`, or it is the last thing in
 the file.  **This is one rule and it holds at every level** — the top of a file
@@ -488,11 +492,19 @@ expression and a `return` is one.
 ### 4.6.2 Inputs
 `(` (***value***|***assignment***`,`)* `)`
 ### 4.6.3 List
-`{` (***value***`,`)* `}`
+`[` (***value***`,`)* `]`
 ### 4.6.4 Lookup
-`{` (***value***`=`***value***`,`)* `}`
-### 4.6.5 Indexer
-`[` (***value***`,`)+ `]`
+`[` (***value***`=`***value***`,`)* `]`
+
+**`{` opens a block and nothing else.**  It used to open three things — a block,
+a list and a lookup — and position told them apart only while a block could not
+be a value.  Each of the three re-parses a nested body before it can tell whether
+it matched, so the cost of a brace nest was exponential in its depth and a
+statement-position brace was speculatively read as two other things first.
+
+A list and a lookup are told apart by whether the first element is an
+assignment, which is a discriminator *inside* the first element: still one parse
+and one decision.
 ### 4.6.6 Parameters
 `(` (***datum declaration***`,`)* `)`
 - declarators for each parameter can only be blank, `var` or `let`
