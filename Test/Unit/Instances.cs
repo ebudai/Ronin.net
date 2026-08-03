@@ -438,10 +438,23 @@ public class Instances
         var graph = Boxes(1, out var boxes);
         graph.Var("armed", false);
 
+        Instance[] ghosts = [];
+
         graph.When("when armed", scope => scope.Read("armed"), scope =>
         {
             scope.Remove(boxes[0]);
-            scope.Create("Box");
+
+            // TWO, and the handles are kept. The old test threw its handle away
+            // and read only instances made afterwards, so a ghost could sit
+            // between them without changing an assertion — and one did: the undo
+            // called an ITERATOR and discarded it, so nothing was released and a
+            // failed body committed everything it created.
+            //
+            // Two of them also establishes the reverse order, where releasing
+            // the last one first is what keeps each release a swap with the end
+            // rather than an accident of there being only one.
+            ghosts = [scope.Create("Box"), scope.Create("Box")];
+
             throw new InvalidOperationException("defect");
         });
 
@@ -452,10 +465,11 @@ public class Instances
 
         Assert.Single(graph.Faults);
 
-        // the removal never reached the round boundary, and the instance the body
-        // made went with it — a handle is usable inside the body that created
-        // it, so creation cannot be buffered and is undone instead
+        // the removal never reached the round boundary, and the instances the
+        // body made went with it — a handle is usable inside the body that
+        // created it, so creation cannot be buffered and is undone instead
         Assert.Equal(0d, graph.Read("cash", boxes[0]));
+        Assert.All(ghosts, ghost => Assert.IsType<Error>(graph.Read("cash", ghost)));
 
         var after = graph.Create("Box");
 

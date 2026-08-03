@@ -192,6 +192,7 @@ internal sealed class Graph
             Declare(new Node(cell, NodeKind.Member, null, new List<object>(), dirty: false));
 
             population.Members.Add(cell);
+            population.Owns[member] = cell;
             seeds[cell] = seed;
         }
 
@@ -350,7 +351,7 @@ internal sealed class Graph
     ///     need it and only the first needs to dirty anything: an instance that
     ///     never survived its own firing was never visible to a reader.
     /// </remarks>
-    private IEnumerable<string> Release(Instance instance)
+    private List<string> Release(Instance instance)
     {
         var population = populations[instance.Type];
         var (removed, moved) = population.Release(instance);
@@ -361,19 +362,33 @@ internal sealed class Graph
 
             values[removed] = values[moved];
             values.RemoveAt(moved);
-
-            yield return member;
         }
+
+        // EAGER, and returning the members rather than yielding them. This was
+        // an iterator, so the undo path — which calls it and ignores the result
+        // — constructed one and discarded it, releasing nothing. A failed body
+        // committed every instance it created while its fault said none of its
+        // effects applied, and the graph kept ghosts nothing could reach.
+        //
+        // A method that mutates state may not hide the mutation behind deferred
+        // enumeration. Nothing warns about that; the type system says both
+        // callers are correct.
+        return population.Members;
     }
 
     /// <summary>The cell this member names for this instance, or null if none.</summary>
     private string Cell(string member, Instance instance)
-        // Asked of the POPULATION and not of the node table. A qualified string
+        // Asked of the POPULATION and not of the node table: a qualified string
         // is this cell's identity and was doing double duty as proof of
         // membership, so anything that could name one could claim it belonged.
+        //
+        // And asked ONCE. Scanning the declared members made every instance read
+        // and write cost O(members) and build the qualified string twice on the
+        // way — grouped storage is meant to keep the graph the size of the
+        // source, not to put the size of the source in the hot path.
         => populations.TryGetValue(instance.Type, out var population)
-        && population.Members.Contains(Qualified(instance.Type, member))
-         ? Qualified(instance.Type, member)
+        && population.Owns.TryGetValue(member, out var cell)
+         ? cell
          : null;
 
     private static Error Stale(Instance instance)
@@ -929,7 +944,11 @@ internal sealed class Graph
         // boundary falls, and Trigger.Previous has to agree with it.
         foreach (var (source, shadow) in shadows)
         {
-            if (Equals(shadow.Value, source.Value)) continue;
+            // The language's, as everywhere else. Comparing by reference made a
+            // rebuilt-but-equal list advance «old x», so the shadow moved when
+            // the value had not — and «Trigger.Previous» and «old» are required
+            // to agree about that boundary.
+            if (Builtin.Same(shadow.Value, source.Value)) continue;
 
             shadow.Value = source.Value;
             shadow.Changed = ++clock;
@@ -1163,7 +1182,11 @@ internal sealed class Graph
             // the first observation establishes a baseline rather than an edge
             var fires = ReferenceEquals(previous, Unobserved) is false && trigger.Mode switch
             {
-                TriggerMode.Changes => Equals(value, previous) is false,
+                // Same equality as everywhere else. By reference, a rebuilt
+                // list of equal elements was a change — so an effect body ran on
+                // an edge that did not happen, and could write, create, remove
+                // or stop on it.
+                TriggerMode.Changes => Builtin.Same(value, previous) is false,
                 TriggerMode.WhileTrue => Equals(value, true),
                 _ => Equals(value, true) && Equals(previous, true) is false,
             };

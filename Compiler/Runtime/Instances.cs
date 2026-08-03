@@ -50,6 +50,17 @@ internal sealed class Population(string type)
     /// <summary>The member cells, in declaration order.</summary>
     public List<string> Members { get; } = [];
 
+    /// <summary>
+    ///     Source member name to cell, which is ownership in one lookup.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The ordered list is what a column walk needs and the wrong shape for
+    ///     the question every read and write asks. Ownership is static after
+    ///     declaration, so it is a table rather than a search.
+    /// </remarks>
+    public Dictionary<string, string> Owns { get; } = [];
+
     /// <summary>Where a live instance's values sit, or <see cref="Absent"/>.</summary>
     public int this[Instance instance]
         => instance.Type == Type

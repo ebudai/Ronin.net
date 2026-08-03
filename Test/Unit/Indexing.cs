@@ -189,6 +189,49 @@ public class Indexing
         Assert.Equal(settled, downstream);
     }
 
+    [Fact(DisplayName = "and a «changes» arm does not fire on a list that did not change")]
+    public void AndAChangesArmDoesNotFireOnAListThatDidNotChange()
+    {
+        // Found by audit. Cutoff learned the language's equality and «changes»
+        // did not, so a rebuilt-but-equal list was an edge — and the body of a
+        // «changes» arm is an EFFECT, so it could write, create, remove or stop
+        // on a change that did not happen.
+        //
+        // Testing «Builtin.Same» or the cutoff cannot show this: the question is
+        // whether each consumer joined the one equality, and only counting the
+        // body can answer it.
+        Graph graph = new();
+        graph.Var("tick", 0d);
+        var fired = 0;
+
+        // The CONDITION rebuilds the list, so «Trigger.Previous» is what compares
+        // it. Reading a list-valued «let» instead cannot see this: recompute
+        // cutoff already holds that node still, so nothing reaches the trigger
+        // either way and the test passes however «changes» compares.
+        graph.When("watching",
+                   scope => new object[] { 1d, scope.Read("tick") is double ? 2d : 2d },
+                   _ => ++fired,
+                   TriggerMode.Changes);
+
+        graph.Prime();
+
+        var settled = fired;
+
+        graph.Write("tick", 1d);
+        graph.Step();
+
+        Assert.Equal(settled, fired);
+    }
+
+    // The «old» half of the same repair has NO test here, deliberately. The
+    // shadow comparison now uses the language's equality like every other
+    // consumer, and I could not build a case that fails when it does not: a
+    // shadow copies a cached value, recompute cutoff already holds a
+    // list-valued «let» still, and every construction I tried passed under
+    // reference equality too. A test that passes either way is the thing this
+    // audit round keeps finding, so there is not one — the gap is recorded
+    // instead of dressed up.
+
     [Theory(DisplayName = "and equality is the language's, all the way down")]
     [InlineData("[ 1, 2 ]", "[ 1, 2 ]", true)]
     [InlineData("[ 1, 2 ]", "[ 2, 1 ]", false)]
