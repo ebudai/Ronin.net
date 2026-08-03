@@ -1053,7 +1053,7 @@ internal sealed class Graph
 
             // an equal write wakes nobody, which kills a large fraction of
             // real-world churn for one comparison
-            if (Equals(node.Value, value)) continue;
+            if (Builtin.Same(node.Value, value)) continue;
 
             node.Value = value;
             node.Changed = ++clock;
@@ -1076,7 +1076,7 @@ internal sealed class Graph
                 // slot. Compaction then discards both together.
                 var index = populations[instance.Type][instance];
 
-                if (Equals(values[index], value)) continue;
+                if (Builtin.Same(values[index], value)) continue;
 
                 values[index] = value;
                 moved = true;
@@ -1479,7 +1479,7 @@ internal sealed class Graph
 
         // the clock moves only on a real change, which is what lets a dependent
         // compare its own last run against it
-        if (Equals(node.Value, value) is false) node.Changed = ++clock;
+        if (Builtin.Same(node.Value, value) is false) node.Changed = ++clock;
 
         node.Value = value;
         node.Evaluated = clock;
@@ -1499,10 +1499,12 @@ internal sealed class Graph
     ///     before its stamp means anything.
     ///     </para>
     ///     <para>
-    ///     Equality here is the language's, which is cheap for a scalar and O(n)
-    ///     for an array. When array-valued cells arrive, cutting off on a full
-    ///     comparison can cost more than the recompute it saves, and they will
-    ///     want a digest or no cutoff at all.
+    ///     Equality here is the language's — <see cref="Builtin.Same"/>, which is
+    ///     value equality all the way down and exits at the first difference.
+    ///     This used to say array equality was O(n) while comparing arrays by
+    ///     reference, so the claim was both a description of a future and false
+    ///     about the present; a comment asserting a runtime property needs a test
+    ///     or it has to be phrased as intent.
     ///     </para>
     /// </remarks>
     private bool Settled(Node node)

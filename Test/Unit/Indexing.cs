@@ -149,6 +149,61 @@ public class Indexing
         Assert.Equal(20d, Value("list @ 2 otherwise 0"));
     }
 
+    [Fact(DisplayName = "a list that recomputes to the same list wakes nobody")]
+    public void AListThatRecomputesToTheSameListWakesNobody()
+    {
+        // Found by audit. A list is a VALUE, so two lists with the same elements
+        // are the same list — and .NET arrays compare by reference, so a
+        // list-valued cell that rebuilt the same contents looked changed and
+        // every reader below it woke on every tick.
+        //
+        // The count is the assertion, not the elements. Every reactive defect
+        // this project has found was invisible in the value and visible in the
+        // evaluation count, so a graph test asserting only on values measures
+        // the one thing that has never been wrong.
+        Graph graph = new();
+        graph.Var("tick", 0d);
+
+        graph.Let("list", scope => new object[] { 1d, scope.Read("tick") is double ? 2d : 2d });
+
+        var downstream = 0;
+
+        graph.Let("watching", scope =>
+        {
+            ++downstream;
+            return ((object[])scope.Read("list"))[0];
+        });
+
+        graph.Prime();
+        graph.Read("watching");
+
+        var settled = downstream;
+
+        for (var tick = 1; tick <= 3; ++tick)
+        {
+            graph.Write("tick", tick);
+            graph.Step();
+            graph.Read("watching");
+        }
+
+        Assert.Equal(settled, downstream);
+    }
+
+    [Theory(DisplayName = "and equality is the language's, all the way down")]
+    [InlineData("[ 1, 2 ]", "[ 1, 2 ]", true)]
+    [InlineData("[ 1, 2 ]", "[ 2, 1 ]", false)]
+    [InlineData("[ 1, 2 ]", "[ 1 ]", false)]
+    [InlineData("[]", "[]", true)]
+    [InlineData("[ [ 1 ], [ 2 ] ]", "[ [ 1 ], [ 2 ] ]", true)]
+    [InlineData("[ [ 1 ], [ 2 ] ]", "[ [ 1 ], [ 3 ] ]", false)]
+    public void AndEqualityIsTheLanguagesAllTheWayDown(string left, string right, bool same)
+        // A list is order-sensitive, and nested lists compare by the same rule.
+        // A LOOKUP would not — it is unordered, so two with the same
+        // associations in a different order are the same lookup — and that is a
+        // different function, unwritten because a lookup has no runtime value
+        // yet: «[a = 1]» does not resolve.
+        => Assert.Equal(same, Builtin.Same(Written(left), Written(right)));
+
     [Fact(DisplayName = "and a failure on either side is the answer")]
     public void AndAFailureOnEitherSideIsTheAnswer()
     {
