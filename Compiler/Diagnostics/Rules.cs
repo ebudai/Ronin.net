@@ -79,6 +79,7 @@ internal static class Rules
                                                 IReadOnlyCollection<Shape> patterns)
     {
         foreach (var finding in Anchors(patterns)) yield return finding;
+        foreach (var finding in Infixes(names)) yield return finding;
         foreach (var finding in Reserved(patterns)) yield return finding;
         foreach (var finding in Injecting(patterns)) yield return finding;
 
@@ -155,6 +156,41 @@ internal static class Rules
     private static bool Structural(Pattern pattern)
         => pattern.Segments.Contains(SymbolTable.Old)
         || Injected.Any(injection => pattern.Glue.Contains(injection.Word));
+
+    /// <summary>
+    ///     The words the language reads as operators between two values.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Read from the one operator table rather than listed again, so a word
+    ///     operator added there is reserved here without anyone remembering to.
+    ///     Symbols are excluded because no name can contain one — a name is a
+    ///     run of WORDS, which is the whole reason a symbolic infix costs
+    ///     nothing and a word one costs a word.
+    /// </remarks>
+    public static IReadOnlyList<string> Infix { get; }
+        = [.. Runtime.Builtin.Operators.Keys.Where(word => word.All(char.IsLetter))
+                                            .OrderBy(word => word, System.StringComparer.Ordinal)];
+
+    /// <summary>
+    ///     A name may not contain an operator word, for R5's reason against a
+    ///     different rival.
+    /// </summary>
+    private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Declared> names)
+    {
+        foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
+        {
+            // An injected name is not the programmer's to rename, and none is
+            // built from an operator word — «old» and «index of» are the whole
+            // set — so one arriving here would be a defect in the injector
+            // rather than something to ask anyone about.
+            if (declared.InjectedBy is not null) continue;
+
+            if (declared.Words.FirstOrDefault(Infix.Contains) is not string word) continue;
+
+            yield return new InfixInName(declared.Span, declared.Name, word);
+        }
+    }
 
     /// <summary>
     ///     The words the compiler builds injected names from, and the name each

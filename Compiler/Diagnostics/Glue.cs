@@ -106,6 +106,18 @@ internal static class Glue
 
         foreach (var (word, pattern) in reserved) registry.AppendLine($"    {word,-12} {pattern}");
 
+        // Reserved by the LANGUAGE and not by anything in scope, so it is not a
+        // count that a program can change. A word operator is glue in everything
+        // but name: a name spanning one is one lookup where the expression is
+        // two, so it wins silently, and R5's remedy is the only one that reaches
+        // it.
+        registry.AppendLine();
+        registry.AppendLine($"## ALWAYS RESERVED ({Rules.Infix.Count}) — a word operator, everywhere, in every scope");
+        registry.AppendLine();
+
+        foreach (var word in Rules.Infix)
+            registry.AppendLine($"    {word,-12} reads as an operator between two values, so no name may contain it");
+
         var free = declared.Where(pattern => pattern.Glue.Any() is false).ToArray();
 
         registry.AppendLine();

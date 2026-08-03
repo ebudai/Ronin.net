@@ -37,6 +37,9 @@ internal enum FindingKind
     /// <summary>A name that is exactly a word some pattern uses as glue.</summary>
     GlueAsName,
 
+    /// <summary>A name containing a word the language reads as an operator.</summary>
+    InfixInName,
+
     /// <summary>A ring of whens, each writing something the next reads.</summary>
     CascadeRing,
 
@@ -143,6 +146,29 @@ internal sealed class Shadowed(Span primary, string name, string where)
 }
 
 /// <summary>A name spelled like one the compiler injects.</summary>
+/// <summary>
+///     A name containing a word the language reads as an operator.
+/// </summary>
+///
+/// <remarks>
+///     R5's shape, for the same reason and against a different rival. A name is
+///     ONE lookup and any composite reading of the same span is at least two, so
+///     a name spanning an operator always wins it — silently, because it is
+///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
+///     otherwise y» already written and makes it mean the name.
+/// </remarks>
+internal sealed class InfixInName(Span primary, string name, string word)
+    : Finding(FindingKind.InfixInName, primary)
+{
+    public string Name { get; } = name;
+    public string Word { get; } = word;
+
+    public override string Message
+        => $"«{Name}» contains «{Word}», which the language reads as an operator between two " +
+           "values. A name spanning one is cheaper than the expression it covers, so every " +
+           $"«… {Word} …» already written would quietly become this name instead. Respell it.";
+}
+
 internal sealed class ReservedPrefix(Span primary, string name, string word)
     : Finding(FindingKind.ReservedPrefix, primary)
 {

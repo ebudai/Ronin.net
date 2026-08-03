@@ -540,12 +540,17 @@ dependencies are collected by evaluating it, so an operand that is evaluated is
 a cell that is read — an eager fallback would make itself an input of the very
 cell it guards, and writing to a fallback nobody wanted would recompute it.
 
-A declared name containing the word takes the words back: minimum lookup scores
-one name below an operation over two, so `x otherwise y` means the name where
-one is declared.  That is a **silent** re-reading of statements that already
-worked, which is the hazard R5 exists to prevent for glue and does not cover
-here, because this is neither glue nor a pattern.  Whether `otherwise` should
-join the protected words is open.
+**No name may contain the word.**  A name is one lookup and any composite
+reading of the same span is at least two, so a name spanning an operator wins it
+outright — not as a tie, which could be reported, but as a strictly cheaper
+reading, which cannot.  Declaring `x otherwise y` would take every `x otherwise
+y` already written and make it mean the name.
+
+That is R5's remedy applied to R5's hazard against a different rival, and it is
+the first word the language reserves outright.  It is affordable because of what
+the word is: over 340,357 multi-word identifiers in a large corpus, `otherwise`
+appears in **one**, and that one is a camelCase artefact.  `to` appears in 5,414.
+The rule is general and the bill is this word's alone.
 
 ### 4.6.8 Indexing
 *list* `@` *position*

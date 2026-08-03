@@ -50,6 +50,7 @@ public class Findings
                      function apply (x => Number) smoothed (y => Number) { return x; }
 
                      """,
+                     "var total otherwise zero => Number;\n",
                      "var x => = 1;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => Number) {}\n",
                      "function (x => Number) rounded { return x; }\n",
@@ -205,6 +206,8 @@ public class Findings
 
             Player.ron:2:10: «smoothed» is the word «apply (_) smoothed (_)» uses to separate its parts, so a reader meets it in two roles at once. Rename it — nothing about the program is ambiguous, but a name that doubles as punctuation is a name that has to be read twice.
                 Player.ron:1:5: the name it collides with
+
+            Player.ron:1:5: «total otherwise zero» contains «otherwise», which the language reads as an operator between two values. A name spanning one is cheaper than the expression it covers, so every «… otherwise …» already written would quietly become this name instead. Respell it.
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
 

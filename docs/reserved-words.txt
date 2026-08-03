@@ -10,6 +10,10 @@
 ## RESERVED (0)
 
 
+## ALWAYS RESERVED (1) — a word operator, everywhere, in every scope
+
+    otherwise    reads as an operator between two values, so no name may contain it
+
 ## RESERVES NOTHING (1) — every hole before a word is determinate
 
     for each «one word, or a bracketed name» in (_)
