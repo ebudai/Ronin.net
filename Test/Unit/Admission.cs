@@ -7,8 +7,8 @@ using Ronin.Runtime;
 namespace Unit;
 
 /// <summary>
-///     The value-admission boundary: what the runtime accepts, and every door
-///     that leads to it.
+///     The runtime's boundary in both directions: what it accepts, and what it
+///     hands back.
 /// </summary>
 ///
 /// <remarks>
@@ -406,6 +406,157 @@ public class Admission
             select $"{type.Name}.{member.Name}";
 
         Assert.Empty(writable);
+    }
+
+    [Fact(DisplayName = "and nothing handed back is writable behind its read-only type")]
+    public void AndNothingHandedBackIsWritableBehindItsReadOnlyType()
+    {
+        // Found by audit, and the previous version of this test is what let it
+        // through: it examined the DECLARED type. Every one of these declared a
+        // read-only interface over a live «List», «HashSet» or «Dictionary», so
+        // the type was concealment rather than protection and one cast reached
+        // «Clear» on graph state, on the compiler's account of its own findings,
+        // and on the language's operator table.
+        //
+        // So this asks the OBJECT. A declared type cannot answer the question;
+        // only the thing actually returned can.
+        Graph graph = new();
+        graph.Var("source", 1d);
+        graph.Let("copy", scope => scope.Read("source"));
+        graph.Read("copy");
+
+        var compilation = Compilation.Of(new SourceText("var x = 1;\nvar x = 2;\n", "twice.ron"));
+
+        var handed = new (string Member, object Handed)[]
+        {
+            ("Builtin.Operators", Builtin.Operators),
+            ("Compilation.Findings", compilation.Findings),
+            ("Finding.Related", compilation.Findings[0].Related),
+            ("Graph.Dependencies", graph.Dependencies("copy")),
+            ("Graph.Faults", graph.Faults),
+            ("Graph.Fired", graph.Fired),
+            ("Graph.Trace", graph.Trace),
+            ("SymbolTable.Builtins", SymbolTable.Builtins),
+        };
+
+        // The CENSUS half: exactly these members promise a read-only collection.
+        // A new one fails here until somebody puts a live object beside it, so
+        // the promise cannot be made without being checked.
+        var family = new[]
+        {
+            typeof(IReadOnlyList<>), typeof(IReadOnlyCollection<>),
+            typeof(IReadOnlyDictionary<,>), typeof(IReadOnlySet<>), typeof(IEnumerable<>),
+        };
+
+        var promising =
+            from owner in new[]
+            {
+                typeof(Graph), typeof(Scope), typeof(Compilation),
+                typeof(Finding), typeof(Builtin), typeof(SymbolTable),
+            }
+            from method in owner.GetMethods(BindingFlags.Public | BindingFlags.Instance
+                                          | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            where method.ReturnType.IsGenericType
+               && family.Contains(method.ReturnType.GetGenericTypeDefinition())
+            orderby owner.Name, method.Name
+            select $"{owner.Name}.{method.Name.Replace("get_", string.Empty)}";
+
+        Assert.Equal(handed.Select(door => door.Member).Order(), promising);
+
+        // The KEPT half: and none of them is writable.
+        static bool Writable(object handed)
+            => handed.GetType()
+                     .GetInterfaces()
+                     .Any(face => face.IsGenericType
+                               && face.GetGenericTypeDefinition() == typeof(ICollection<>)
+                               && (bool)face.GetProperty("IsReadOnly").GetValue(handed) is false);
+
+        Assert.Empty(from door in handed where Writable(door.Handed) select door.Member);
+    }
+
+    [Fact(DisplayName = "and a forged dependency cannot outlive a source that changed")]
+    public void AndAForgedDependencyCannotOutliveASourceThatChanged()
+    {
+        // The failure the writable edge set produced, kept as the thing that
+        // must stay true. Rewriting «copy»'s dependencies left the reverse edge
+        // intact, so it was still dirtied — and then cutoff consulted the forged
+        // set, found the name it now pointed at had not changed, cleared the
+        // dirty bit, and kept a cached answer that was wrong with nothing able
+        // to repair it.
+        Graph graph = new();
+        graph.Var("source", 1d);
+        graph.Var("stable", 0d);
+        graph.Let("copy", scope => scope.Read("source"));
+
+        Assert.Equal(1d, graph.Read("copy"));
+
+        var seen = graph.Dependencies("copy");
+
+        Assert.Throws<InvalidCastException>(() => (HashSet<string>)seen);
+        Assert.Throws<NotSupportedException>(() => ((ICollection<string>)seen).Clear());
+        Assert.Throws<NotSupportedException>(() => ((ICollection<string>)seen).Add("stable"));
+
+        graph.Write("source", 2d);
+        graph.Step();
+
+        Assert.Equal(2d, graph.Read("copy"));
+        Assert.Equal(["source"], graph.Dependencies("copy"));
+    }
+
+    [Fact(DisplayName = "and the runtime's account of its own failures cannot be erased")]
+    public void AndTheRuntimesAccountOfItsOwnFailuresCannotBeErased()
+    {
+        Graph graph = new();
+        graph.Var("armed", false);
+        graph.When("on armed", scope => scope.Read("armed"), _ => throw new InvalidOperationException("bug"));
+        graph.Prime();
+        graph.Write("armed", true);
+        graph.Step();
+
+        Assert.Single(graph.Faults);
+        Assert.NotEmpty(graph.Trace);
+
+        Assert.Throws<NotSupportedException>(() => ((ICollection<Fault>)graph.Faults).Clear());
+        Assert.Throws<NotSupportedException>(() => ((ICollection<string>)graph.Trace).Clear());
+        Assert.Throws<NotSupportedException>(() => ((ICollection<string>)graph.Fired).Clear());
+
+        Assert.Single(graph.Faults);
+    }
+
+    [Fact(DisplayName = "and a malformed file cannot be made to compile clean")]
+    public void AndAMalformedFileCannotBeMadeToCompileClean()
+    {
+        // «Program» chooses success or failure from this count, so the
+        // collection is not cosmetic output.
+        var compilation = Compilation.Of(new SourceText("var x = 1;\nvar x = 2;\n", "twice.ron"));
+
+        Assert.NotEmpty(compilation.Findings);
+        Assert.NotEmpty(compilation.Findings[0].Related);
+
+        Assert.Throws<NotSupportedException>(() => ((ICollection<Finding>)compilation.Findings).Clear());
+        Assert.Throws<NotSupportedException>(
+            () => ((ICollection<Labelled>)compilation.Findings[0].Related).Clear());
+
+        Assert.NotEmpty(compilation.Findings);
+    }
+
+    [Fact(DisplayName = "and a scope may extend the language for itself and never for everyone")]
+    public void AndAScopeMayExtendTheLanguageForItselfAndNeverForEveryone()
+    {
+        // The one fixed table was a mutable dictionary behind a read-only type,
+        // so one cast removed «+» for every resolver built afterwards — which
+        // is exactly what the comments say a scope must not be able to do.
+        Assert.Throws<InvalidCastException>(() => (Dictionary<string, Operator>)Builtin.Operators);
+        Assert.Throws<NotSupportedException>(
+            () => ((IDictionary<string, Operator>)Builtin.Operators).Remove("+"));
+
+        // And the deliberate half still works: a table extends itself, and the
+        // next one is untouched.
+        SymbolTable extended = new();
+        extended.Operators["~"] = Builtin.Operators["+"];
+
+        Assert.True(new SymbolTable().Operators.ContainsKey("+"));
+        Assert.False(new SymbolTable().Operators.ContainsKey("~"));
     }
 
     /// <summary>A leaf that says how often it was asked.</summary>

@@ -3,6 +3,7 @@
 using Ronin.Compiler;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -86,6 +87,16 @@ internal sealed class Graph
 
         limit = cascades;
         Settling = settling;
+
+        // Wrapped ONCE, and not copied per read, because each of these is a live
+        // account of what the graph just did and a snapshot would go stale in
+        // the caller's hand. A wrapper refuses the write and still shows the
+        // truth; the read-only type in front of the raw list did neither, since
+        // one cast reached «Clear» and could erase the runtime's record of its
+        // own failures.
+        Fired = new ReadOnlyCollection<string>(fired);
+        Faults = new ReadOnlyCollection<Fault>(faults);
+        Trace = new ReadOnlyCollection<string>(trace);
     }
 
     /// <summary>
@@ -471,13 +482,24 @@ internal sealed class Graph
     /// </summary>
     ///
     /// <remarks>
+    ///     <para>
     ///     One observation, and not a node. An indexer handing back the node
     ///     itself was five methods' worth of writable graph state reachable from
     ///     a read — and this is the only thing any caller ever wanted from it.
     ///     The rest arrives with its first user, which is the same rule that
     ///     kept the bulk list accessor unwritten.
+    ///     </para>
+    ///     <para>
+    ///     A SNAPSHOT, because handing back the node's own set with a read-only
+    ///     type in front of it is concealment rather than protection. One cast
+    ///     recovered it, and rewriting it made a stale cache permanent: the
+    ///     reverse edge still dirtied the reader, then cutoff consulted the
+    ///     forged set, found nothing had changed, and cleared the dirty bit over
+    ///     a value that was wrong.
+    ///     </para>
     /// </remarks>
-    public IReadOnlyCollection<string> Dependencies(string name) => nodes[name].Dependencies;
+    public IReadOnlyCollection<string> Dependencies(string name)
+        => new ReadOnlyCollection<string>([.. nodes[name].Dependencies]);
 
     /// <summary>
     ///     How many nodes there are, which instances must not change.
@@ -491,7 +513,7 @@ internal sealed class Graph
     public int Declared => nodes.Count;
 
     /// <summary>What fired during the last <see cref="Step"/>, in order.</summary>
-    public IReadOnlyList<string> Fired => fired;
+    public IReadOnlyList<string> Fired { get; }
 
     /// <summary>
     ///     Half of what «return» in a «when» body compiles to: do not advance to
@@ -741,10 +763,10 @@ internal sealed class Graph
     ///     it; a <c>when</c> has no value and no reader, so its faults collect
     ///     here instead of vanishing.
     /// </summary>
-    public IReadOnlyList<Fault> Faults => faults;
+    public IReadOnlyList<Fault> Faults { get; }
 
     /// <summary>What recomputed since the last <see cref="Step"/> or <see cref="Forget"/>.</summary>
-    public IReadOnlyList<string> Trace => trace;
+    public IReadOnlyList<string> Trace { get; }
 
     public void Forget() => trace.Clear();
 

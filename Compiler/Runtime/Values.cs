@@ -2,6 +2,7 @@
 
 using Ronin.Compiler;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -121,6 +122,14 @@ internal static class Builtin
     ///     can now happen: <see cref="SymbolTable"/> seeds from this, so adding an
     ///     operator means giving it both halves in one place.
     /// </remarks>
+    ///     <para>
+    ///     FROZEN, because "one fact about the language" was a mutable
+    ///     dictionary with a read-only type in front of it. One cast removed
+    ///     «+» for every resolver built afterwards — a scope may extend its own
+    ///     table, which is deliberate, and nothing may edit the definition
+    ///     everything else copies from.
+    ///     </para>
+    /// </remarks>
     public static IReadOnlyDictionary<string, Operator> Operators { get; }
         = new Dictionary<string, Operator>
         {
@@ -156,7 +165,7 @@ internal static class Builtin
             // repeat it, so it costs one where a level with nothing adjacent
             // costs two.
             ["@"] = new(21, Indexing()),
-        };
+        }.ToFrozenDictionary();
 
     /// <summary>
     ///     Division, which is the one arithmetic operation with a case that has

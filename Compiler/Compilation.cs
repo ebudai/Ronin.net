@@ -3,6 +3,7 @@
 using Ronin.Grammar;
 using Ronin.Lexicon;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Ronin.Compiler;
@@ -36,7 +37,7 @@ namespace Ronin.Compiler;
 /// </remarks>
 internal sealed class Compilation
 {
-    private Compilation() { }
+    private Compilation() => Findings = new ReadOnlyCollection<Finding>(findings);
 
     public static Compilation Of(SourceText source)
     {
@@ -57,7 +58,13 @@ internal sealed class Compilation
     /// <summary>The outermost scope's declarations, with the nested ones folded in.</summary>
     public Declarations Declarations { get; private set; }
 
-    public IReadOnlyList<Finding> Findings => findings;
+    /// <remarks>
+    ///     Wrapped, not handed over. «Program» chooses success or failure from
+    ///     this count, so a caller that cast the read-only type back to the list
+    ///     and cleared it made a malformed file compile clean — the declared
+    ///     type was concealment rather than protection.
+    /// </remarks>
+    public IReadOnlyList<Finding> Findings { get; }
 
     private void Declare()
     {

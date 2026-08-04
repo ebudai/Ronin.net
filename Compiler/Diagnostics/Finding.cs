@@ -124,7 +124,11 @@ internal abstract class Finding(FindingKind kind, Span primary)
 
     public Span Primary { get; } = primary;
 
-    public IReadOnlyList<Labelled> Related => related;
+    /// <remarks>
+    ///     The same wrapping as everywhere else: labels could be removed or
+    ///     reordered through the read-only type before anything rendered them.
+    /// </remarks>
+    public IReadOnlyList<Labelled> Related => related.AsReadOnly();
 
     /// <summary>The sentence a person reads.</summary>
     public abstract string Message { get; }
