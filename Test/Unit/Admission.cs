@@ -743,6 +743,7 @@ public class Admission
         ("Injection.Of", () => Injection.Shadow.Of(["x"])),
         ("ManyWriters.Writers", () => new ManyWriters(default, "cash", new List<string> { "a" }).Writers),
         ("Owned.Copy", () => Owned.Copy<string>(new List<string> { "one" })),
+        ("Owned.Of", () => Owned.Of<string>(new List<string> { "one" })),
         ("Pattern.Reads", () => Pattern.Reads(["print", null])),
         ("Rules.Infix", () => Rules.Infix),
         ("Rules.Injected", () => Rules.Injected),

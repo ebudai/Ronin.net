@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Ronin.Compiler;
 
@@ -39,6 +40,28 @@ internal static class Owned
         => values is Kept<T> already ? already
          : values.Count is 0 ? Kept<T>.Empty
          : new Kept<T>([.. values]);
+
+    /// <summary>
+    ///     An owned list of <paramref name="values"/>, for a producer that is
+    ///     building one rather than handing one over.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A SEQUENCE and not an array, so the storage is made here and no
+    ///     caller can be holding it. The alternative — a factory taking an array
+    ///     the caller just built — is the same promise-by-convention this class
+    ///     exists to stop being, one call frame further out.
+    ///
+    ///     This is what «Copy» is for after: a producer that builds through this
+    ///     is copied once, where building an ordinary list and letting the
+    ///     consumer copy it pays again at every consumer it passes through.
+    ///
+    ///     No empty case, unlike «Copy». A producer calls this because it is
+    ///     building something, and both that do are already past the test that
+    ///     says there is more than one of it — an empty branch here would be one
+    ///     nothing reaches.
+    /// </remarks>
+    public static IReadOnlyList<T> Of<T>(IEnumerable<T> values) => new Kept<T>([.. values]);
 
     /// <summary>A list whose storage is nobody else's.</summary>
     private sealed class Kept<T>(T[] values) : IReadOnlyList<T>

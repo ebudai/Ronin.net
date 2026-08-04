@@ -607,7 +607,7 @@ internal sealed class Resolver
         /// </remarks>
         private IReadOnlyList<string> Witness
             => order.Count > 1
-             ? [.. order.Select(node => node.ToString())]
+             ? Owned.Of(order.Select(node => node.ToString()))
              : witnesses[order[0].ToString()];
 
         // Keyed by rendering rather than by node: two derivations that read the
@@ -694,10 +694,12 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     unconditional rather than left true by every caller happening to keep
     ///     it.
     ///
-    ///     Copied only when what arrived is writable, which is never in the
-    ///     resolver and costs nothing there: 149 lexemes allocate 21.9 MB with
-    ///     this and 21.9 MB without. Copying every time costs 27.6 MB, past the
-    ///     ceiling — one span's worth of defensive copying, at every span.
+    ///     Kept and not copied, because the resolver's producers build owned
+    ///     witnesses through «Owned.Of» — so this is the type test and nothing
+    ///     more. It said it copied only writable values and never in the
+    ///     resolver, which stopped being true when the rule stopped asking about
+    ///     writability: every unmarked non-empty witness was copied here, and a
+    ///     propagated one was copied again at each level it rose through.
     /// </remarks>
     public IReadOnlyList<string> Witness { get; } = Owned.Copy(Witness);
 
@@ -723,11 +725,15 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     The short case returned the CALLER'S list, so what a parent carried
     ///     was whatever object it was handed — writable when the caller built a
     ///     «List», read-only when it wrote a collection expression. Same
-    ///     declared type either way, which is how it went unnoticed. Both cases
-    ///     now hand back something nobody can write to.
+    ///     declared type either way, which is how it went unnoticed.
+    ///
+    ///     OWNED on the way out, both cases, so the cell that stores it and the
+    ///     «Best» that carries it keep the one value rather than copying it
+    ///     again. A witness travelling up through brackets was copied once per
+    ///     level before this.
     /// </remarks>
     public static IReadOnlyList<string> Pair(IReadOnlyList<string> witness)
-        => witness.Count > 2 ? [witness[0], witness[1]] : [.. witness];
+        => witness.Count > 2 ? Owned.Of(witness.Take(2)) : Owned.Copy(witness);
 }
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }

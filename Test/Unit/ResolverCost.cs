@@ -175,4 +175,36 @@ public class ResolverCost
         // half of the recurrence that needs the «power + 1» slot
         Assert.Equal("(«a» ^ («b» ^ «c»))", added.Resolve("a ^ b ^ c").Reading);
     }
+    [Fact(DisplayName = "a witness is made once and kept as it rises")]
+    public void AWitnessIsMadeOnceAndKeptAsItRises()
+    {
+        // Found by audit. The comments said the resolver's producers made the
+        // owned value once so a «Best» would keep it, and no producer did — they
+        // built ordinary collections, so every non-empty witness was copied at
+        // «Best», and one travelling up through brackets was copied again at
+        // each level it rose through.
+        //
+        //     sum of list            25,976  ->  25,720
+        //     (sum of list)          39,720  ->  39,248
+        //     ((((sum of list))))    96,424  ->  95,304
+        //
+        // IDENTITY and not the byte count. The saving is about one percent, so a
+        // ceiling wide enough not to be brittle would not notice losing it,
+        // where "the same object came out" fails the moment a producer stops
+        // owning what it builds. The numbers are here because they are why.
+        //
+        // This pins ONE of the two producers. The cell's own tie builds its
+        // witness through «Owned.Of» as well, and that change cannot be
+        // discriminated from outside: «Best» owns whatever it is handed, so the
+        // downstream value is identical either way, and the cost is one copy per
+        // TIE rather than per level — a flat 112 bytes at bracket depth 4, 8, 12
+        // and 16 alike. Measured, not assumed, and recorded here because a
+        // reader would otherwise expect this test to cover it.
+        var made = Best.Pair(new List<string> { "one", "two", "three" });
+
+        Assert.Same(made, Owned.Copy(made));
+        Assert.Same(made, Best.Pair(made));
+        Assert.Same(made, Best.Either([], made));
+        Assert.Same(made, new Best(1, null, 2, made).Witness);
+    }
 }
