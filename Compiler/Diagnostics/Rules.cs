@@ -45,13 +45,13 @@ internal readonly record struct Declared(string Name, Span Span, string Injected
     /// </remarks>
     public IReadOnlyList<string> Words
     {
-        // The split gives an ARRAY, which reports «IsReadOnly» as true and still
-        // assigns through a cast, so it is copied. What «init» receives is not:
-        // every caller supplies «Injection.Of» or a canonical name, both already
-        // read-only, and a copy for a case nobody writes is a branch that has to
-        // be either covered by a fiction or excluded by an attribute.
-        get => words ?? [.. Lexemes.Words(Name)];
-        init => words = value;
+        // BOTH ways in, by the one ownership rule. The split gives an array,
+        // which reports «IsReadOnly» as true and still assigns through a cast;
+        // what «init» receives is whatever object a caller built, and the words
+        // a diagnostic rule reads should not change afterwards because that
+        // caller kept a reference.
+        get => words ?? Owned.Copy(Lexemes.Words(Name));
+        init => words = Owned.Copy(value);
     }
 
     private readonly IReadOnlyList<string> words;

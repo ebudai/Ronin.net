@@ -699,7 +699,7 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     this and 21.9 MB without. Copying every time costs 27.6 MB, past the
     ///     ceiling — one span's worth of defensive copying, at every span.
     /// </remarks>
-    public IReadOnlyList<string> Witness { get; } = Witness is List<string> or string[] ? [.. Witness] : Witness;
+    public IReadOnlyList<string> Witness { get; } = Owned.Copy(Witness);
 
     /// <summary>
     ///     The first witness there is, bounded, since one pair explains a tie.

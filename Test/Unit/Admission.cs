@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using System.Collections.ObjectModel;
 using System.Reflection;
 using Test;
 using Finder = Ronin.Compiler.Sources;
@@ -425,7 +426,7 @@ public class Admission
     ///     members that take no arguments, which is why what it opened is
     ///     returned rather than assumed.
     /// </remarks>
-    private static SortedSet<string> Walk(out SortedSet<string> writable)
+    private static SortedSet<string> Walk(out SortedSet<string> writable, out SortedSet<string> failed)
     {
         Graph graph = new();
         graph.Var("armed", false);
@@ -461,6 +462,7 @@ public class Admission
         SortedSet<string> opened = [];
 
         writable = [];
+        failed = [];
 
         while (pending.Count is not 0)
         {
@@ -479,10 +481,24 @@ public class Admission
                     if (member.GetParameters().Length is not 0 || Promises(member.ReturnType) is false) continue;
 
                     var name = $"{type.Name}.{member.Name.Replace("get_", string.Empty)}";
+                    object handed;
+
+                    // Invoked BEFORE the name is recorded, and a failure is kept
+                    // rather than dropped. Recording first meant a getter that
+                    // threw counted as opened and checked.
+                    try
+                    {
+                        handed = member.Invoke(node, null);
+                    }
+                    catch (Exception refused)
+                    {
+                        failed.Add($"{name}: {refused.InnerException?.GetType().Name ?? refused.GetType().Name}");
+                        continue;
+                    }
 
                     opened.Add(name);
 
-                    if (Writable(Deeply(Held(() => member.Invoke(node, null))))) writable.Add(name);
+                    if (Writable(Deeply(handed))) writable.Add(name);
                 }
 
                 for (var walk = type; walk?.Assembly == typeof(Graph).Assembly; walk = walk.BaseType)
@@ -525,11 +541,21 @@ public class Admission
         // walk reached or one a probe below opens, and the two together must be
         // the whole reflection result — so a member cannot be acknowledged
         // without being opened.
-        var opened = Walk(out var writable);
+        var opened = Walk(out var writable, out var failed);
+
+        // Nothing the walk asked for may refuse to answer. A member that throws
+        // is one it stopped exercising, and that is the difference this test
+        // exists to keep.
+        Assert.Empty(failed);
 
         foreach (var (member, probe) in Probes)
         {
-            if (Writable(Deeply(Held(probe)))) writable.Add(member);
+            // Called DIRECTLY, so a probe that throws fails the test. Run
+            // through a swallowing helper it returned null, null is not
+            // writable, and the name was recorded as opened anyway — an opener
+            // whose setup stopped reaching the branch it was written for would
+            // have gone on reporting the promise safe.
+            if (Writable(Deeply(probe()))) writable.Add(member);
 
             opened.Add(member);
         }
@@ -564,6 +590,79 @@ public class Admission
         // outside the file that makes it.
         Assert.Equal(discovered.Distinct().Order(),
                      opened.Concat(["Body.Parameters", "Body.Statements"]).Order());
+    }
+
+    [Theory(DisplayName = "and what a type keeps is decided by what can write to it, not by its name")]
+    [InlineData("list")]
+    [InlineData("collection")]
+    [InlineData("array")]
+    [InlineData("wrapped")]
+    [InlineData("opaque")]
+    public void AndWhatATypeKeepsIsDecidedByWhatCanWriteToItNotByItsName(string built)
+    {
+        // Found by audit. The rule named two CONCRETE TYPES — «List» and an
+        // array — which guesses at what a caller might build instead of asking
+        // what it did. «Collection» is an ordinary writable «IReadOnlyList» and
+        // matched neither name, so it passed through and a later write by the
+        // caller changed what the compiler held. The opener used a «List», which
+        // exercised the branch that worked.
+        IReadOnlyList<string> Given() => built switch
+        {
+            "list" => new List<string> { "one", "two" },
+            "collection" => new Collection<string>(["one", "two"]),
+            "array" => new[] { "one", "two" },
+            "wrapped" => new ReadOnlyCollection<string>(["one", "two"]),
+            _ => new Opaque(["one", "two"]),
+        };
+
+        var given = Given();
+        var best = new Best(1, null, 1, given);
+        var declared = new Declared("print job", default) { Words = given };
+
+        Assert.False(Writable(best.Witness));
+        Assert.False(Writable(declared.Words));
+
+        // And the caller still holding it changes nothing, which is the half a
+        // type test cannot show.
+        if (given is IList<string> { IsReadOnly: false } writable) writable[0] = "changed";
+
+        Assert.Equal("one", best.Witness[0]);
+        Assert.Equal("one", declared.Words[0]);
+
+        // The already-read-only case is kept rather than copied, because copying
+        // every witness costs 27.6 MB against a 26 MB ceiling and nothing the
+        // resolver builds needs it. The opaque one is copied: it cannot be
+        // asked whether anything may write to it, and the safe answer to that
+        // is the copy rather than the promise.
+        Assert.Equal(built is "wrapped", ReferenceEquals(given, best.Witness));
+    }
+
+    /// <summary>A list that answers «IReadOnlyList» and nothing else.</summary>
+    private sealed class Opaque(string[] values) : IReadOnlyList<string>
+    {
+        public int Count => values.Length;
+
+        public string this[int index] => values[index];
+
+        public IEnumerator<string> GetEnumerator() => ((IEnumerable<string>)values).GetEnumerator();
+
+        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => values.GetEnumerator();
+    }
+
+    [Fact(DisplayName = "and a probe that stops working fails rather than reporting safety")]
+    public void AndAProbeThatStopsWorkingFailsRatherThanReportingSafety()
+    {
+        // Found by audit. Every opener ran through a helper that caught
+        // everything and returned null; null is not writable, and the name was
+        // recorded as opened regardless. So an opener whose setup stopped
+        // reaching the branch it was written for went on reporting the promise
+        // safe — which is the difference between a name in a ledger and a
+        // promise somebody opened, the one this whole test exists to keep.
+        //
+        // Asserted on the mechanism rather than trusted: every maintained opener
+        // is called here, and one that throws takes this with it.
+        foreach (var (member, probe) in Probes) Assert.NotNull($"{member}{probe()}");
     }
 
     [Fact(DisplayName = "and one injected name cannot become two definitions again")]
@@ -641,6 +740,7 @@ public class Admission
         ("Injection.All", () => Injection.All),
         ("Injection.Of", () => Injection.Shadow.Of(["x"])),
         ("ManyWriters.Writers", () => new ManyWriters(default, "cash", new List<string> { "a" }).Writers),
+        ("Owned.Copy", () => Owned.Copy<string>(new List<string> { "one" })),
         ("Pattern.Reads", () => Pattern.Reads(["print", null])),
         ("Rules.Infix", () => Rules.Infix),
         ("Rules.Injected", () => Rules.Injected),
