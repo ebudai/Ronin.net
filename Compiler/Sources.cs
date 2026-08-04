@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 
@@ -10,7 +11,17 @@ namespace Ronin.Compiler;
 /// <summary>
 ///     What was found under a folder, and what could not be looked at.
 /// </summary>
-internal sealed record Discovered(IReadOnlyList<FileInfo> Files, IReadOnlyList<string> Unreadable);
+internal sealed record Discovered(IReadOnlyList<FileInfo> Files, IReadOnlyList<string> Unreadable)
+{
+    /// <remarks>
+    ///     Wrapped HERE and not at the one call site, so the promise belongs to
+    ///     the type rather than to whoever remembers to keep it. Both were the
+    ///     walker's own growing lists, which a caller could add to or clear.
+    /// </remarks>
+    public IReadOnlyList<FileInfo> Files { get; } = new ReadOnlyCollection<FileInfo>([.. Files]);
+
+    public IReadOnlyList<string> Unreadable { get; } = new ReadOnlyCollection<string>([.. Unreadable]);
+}
 
 /// <summary>
 ///     Finds the source files under a folder, deterministically and finitely.

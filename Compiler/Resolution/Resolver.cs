@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 
@@ -1308,6 +1309,16 @@ internal sealed class SymbolTable
 
 internal readonly record struct Resolution(ResolutionKind Kind, int Cost, IReadOnlyCollection<string> Readings)
 {
+    /// <remarks>
+    ///     The competing readings of a tie, which the diagnostic quotes and a
+    ///     repair will one day offer as alternatives. Wrapped because every
+    ///     construction below hands over a fresh array, and an array behind
+    ///     «IReadOnlyCollection» still assigns through a cast — it reports
+    ///     «IsReadOnly» as true while an element write succeeds, which is the
+    ///     one shape a collection check has to be told about.
+    /// </remarks>
+    public IReadOnlyCollection<string> Readings { get; } = new ReadOnlyCollection<string>([.. Readings]);
+
     public static readonly Resolution NoParse = new(ResolutionKind.NoParse, 0, []);
 
     /// <summary>

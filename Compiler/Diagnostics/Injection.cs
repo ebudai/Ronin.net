@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Ronin.Compiler;
@@ -30,7 +31,15 @@ internal sealed class Injection
     private Injection(string cause, params string[] words)
     {
         Cause = cause;
-        Words = words;
+
+        // COPIED and wrapped. A «params» array is the caller's, and this one is
+        // a process-wide definition read in two ways: «Words» dynamically by the
+        // reservation and diagnostic rules, «Prefix» computed once here. Writing
+        // an element split those apart — «old» became «prior» for what a rule
+        // reserves while the injected name stayed «old x» — which is exactly the
+        // two-independent-definitions failure this descriptor exists to prevent.
+        Words = new ReadOnlyCollection<string>([.. words]);
+
         Prefix = string.Concat(words.Select(word => word + " "));
     }
 

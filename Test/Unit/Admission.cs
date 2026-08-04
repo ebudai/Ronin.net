@@ -1,6 +1,8 @@
 // Copyright © 2026 Eric Budai
 
 using System.Reflection;
+using Finder = Ronin.Compiler.Sources;
+using System.IO;
 using Ronin.Compiler;
 using Ronin.Runtime;
 
@@ -408,70 +410,207 @@ public class Admission
         Assert.Empty(writable);
     }
 
-    [Fact(DisplayName = "and nothing handed back is writable behind its read-only type")]
-    public void AndNothingHandedBackIsWritableBehindItsReadOnlyType()
+    [Fact(DisplayName = "and nothing the compiler builds is writable behind its read-only type")]
+    public void AndNothingTheCompilerBuildsIsWritableBehindItsReadOnlyType()
     {
-        // Found by audit, and the previous version of this test is what let it
-        // through: it examined the DECLARED type. Every one of these declared a
-        // read-only interface over a live «List», «HashSet» or «Dictionary», so
-        // the type was concealment rather than protection and one cast reached
-        // «Clear» on graph state, on the compiler's account of its own findings,
-        // and on the language's operator table.
+        // Found by audit twice, and both times the TEST was the finding. First
+        // it examined the declared type, which cannot answer this. Then it
+        // examined the object — of six owner types written by hand, so
+        // «Injection», which publishes a process-wide language definition as the
+        // caller's own array, was simply not looked at.
         //
-        // So this asks the OBJECT. A declared type cannot answer the question;
-        // only the thing actually returned can.
+        // A hand-kept list of places to look is the thing that keeps being
+        // wrong. So this walks what the compiler ACTUALLY BUILDS: run a
+        // compilation and a graph, reach everything from them and from every
+        // static in the assembly, and ask each object what it hands back.
+        // Nothing has to be remembered for a new type to be covered.
         Graph graph = new();
-        graph.Var("source", 1d);
-        graph.Let("copy", scope => scope.Read("source"));
+        graph.Var("armed", false);
+        graph.Let("copy", scope => scope.Read("armed"));
+        graph.When("on armed", scope => scope.Read("armed"), _ => throw new InvalidOperationException("bug"));
+        graph.Prime();
+        graph.Write("armed", true);
+        graph.Step();
         graph.Read("copy");
 
-        var compilation = Compilation.Of(new SourceText("var x = 1;\nvar x = 2;\n", "twice.ron"));
+        var compilation = Compilation.Of(new SourceText("""
+            var x = 1;
+            var x = 2;
+            let y = x + 1;
+            function add _ to _ { return 1; }
+            when y { }
+            """, "rich.ron"));
 
-        var handed = new (string Member, object Handed)[]
+        List<object> roots = [graph, compilation, Finder.Under(new DirectoryInfo("."))];
+
+        foreach (var still in
+                 from owner in typeof(Graph).Assembly.GetTypes()
+                 from field in owner.GetFields(BindingFlags.Public | BindingFlags.NonPublic
+                                             | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                 select Held(() => field.GetValue(null)))
         {
-            ("Builtin.Operators", Builtin.Operators),
-            ("Compilation.Findings", compilation.Findings),
-            ("Finding.Related", compilation.Findings[0].Related),
-            ("Graph.Dependencies", graph.Dependencies("copy")),
-            ("Graph.Faults", graph.Faults),
-            ("Graph.Fired", graph.Fired),
-            ("Graph.Trace", graph.Trace),
-            ("SymbolTable.Builtins", SymbolTable.Builtins),
-        };
+            roots.Add(still);
+        }
 
-        // The CENSUS half: exactly these members promise a read-only collection.
-        // A new one fails here until somebody puts a live object beside it, so
-        // the promise cannot be made without being checked.
-        var family = new[]
+        HashSet<object> seen = new(ReferenceEqualityComparer.Instance);
+        Queue<object> pending = new(roots);
+        SortedSet<string> writable = [];
+
+        while (pending.Count is not 0)
         {
-            typeof(IReadOnlyList<>), typeof(IReadOnlyCollection<>),
-            typeof(IReadOnlyDictionary<,>), typeof(IReadOnlySet<>), typeof(IEnumerable<>),
-        };
+            var node = pending.Dequeue();
 
-        var promising =
-            from owner in new[]
+            if (node is null || node is string || node.GetType().IsPrimitive) continue;
+            if (seen.Add(node) is false) continue;
+
+            var type = node.GetType();
+
+            if (type.Assembly == typeof(Graph).Assembly)
             {
-                typeof(Graph), typeof(Scope), typeof(Compilation),
-                typeof(Finding), typeof(Builtin), typeof(SymbolTable),
+                foreach (var member in type.GetMethods(BindingFlags.Public | BindingFlags.Instance
+                                                     | BindingFlags.DeclaredOnly))
+                {
+                    if (member.GetParameters().Length is not 0 || Promises(member.ReturnType) is false) continue;
+
+                    if (Writable(Held(() => member.Invoke(node, null))))
+                        writable.Add($"{type.Name}.{member.Name.Replace("get_", string.Empty)}");
+                }
+
+                for (var walk = type; walk?.Assembly == typeof(Graph).Assembly; walk = walk.BaseType)
+                {
+                    foreach (var field in walk.GetFields(BindingFlags.Public | BindingFlags.NonPublic
+                                                       | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                    {
+                        pending.Enqueue(Held(() => field.GetValue(node)));
+                    }
+                }
             }
-            from method in owner.GetMethods(BindingFlags.Public | BindingFlags.Instance
+
+            if (node is System.Collections.IEnumerable inside)
+            {
+                foreach (var item in inside) pending.Enqueue(item);
+            }
+        }
+
+        Assert.Empty(writable);
+
+        // And the parameterised ones, which a walk cannot call for itself.
+        Assert.False(Writable(graph.Dependencies("copy")));
+        Assert.False(Writable(Injection.Shadow.Of(["x"])));
+    }
+
+    [Fact(DisplayName = "and every read-only promise in the compiler is one somebody decided on")]
+    public void AndEveryReadOnlyPromiseInTheCompilerIsOneSomebodyDecidedOn()
+    {
+        // The walk above covers whatever the pipeline reaches, which is not a
+        // guarantee that it reaches everything. So the promises are counted too:
+        // a member that newly says «IReadOnly…» fails here until somebody adds
+        // it, and adding it is the moment to confirm the walk gets there or to
+        // write a probe that does.
+        //
+        // Names only, and not shapes. This is a ledger of decisions, not a
+        // second description of the code.
+        var promising =
+            from owner in typeof(Graph).Assembly.GetTypes()
+            from member in owner.GetMethods(BindingFlags.Public | BindingFlags.Instance
                                           | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            where method.ReturnType.IsGenericType
-               && family.Contains(method.ReturnType.GetGenericTypeDefinition())
-            orderby owner.Name, method.Name
-            select $"{owner.Name}.{method.Name.Replace("get_", string.Empty)}";
+            where Promises(member.ReturnType)
+            select $"{owner.Name}.{member.Name.Replace("get_", string.Empty)}";
 
-        Assert.Equal(handed.Select(door => door.Member).Order(), promising);
+        Assert.Equal(
+            [
+                "Best.Either", "Best.Pair", "Best.Witness", "Body.Parameters", "Body.Statements",
+                "Builtin.Operators", "Call.Arguments", "Cascades.Cycles", "Compilation.Findings",
+                "Completion.After", "Declaration.Blocks", "Declarations.Problems", "Declared.Words",
+                "Discovered.Files", "Discovered.Unreadable", "Effects.Reads", "Effects.Writes",
+                "Finding.Related", "Glue.Reserved", "Glue.Shapes", "Graph.Dependencies",
+                "Graph.Faults", "Graph.Fired", "Graph.Trace", "Group.Parts", "Identifier.Canonical",
+                "Identifier.Shaped", "Initialisation.Cycles", "Injection.All", "Injection.Of",
+                "Injection.Words", "ManyWriters.Writers", "Pattern.Anchor", "Pattern.Pinned",
+                "Pattern.Reads", "Pattern.Segments", "Resolution.Readings", "Rules.Infix",
+                "Rules.Injected", "Split.Counts", "SymbolTable.Builtins", "Triggers.Distinct",
+            ],
+            promising.Distinct().Order());
+    }
 
-        // The KEPT half: and none of them is writable.
-        static bool Writable(object handed)
-            => handed.GetType()
-                     .GetInterfaces()
-                     .Any(face => face.IsGenericType
-                               && face.GetGenericTypeDefinition() == typeof(ICollection<>)
-                               && (bool)face.GetProperty("IsReadOnly").GetValue(handed) is false);
+    [Fact(DisplayName = "and one injected name cannot become two definitions again")]
+    public void AndOneInjectedNameCannotBecomeTwoDefinitionsAgain()
+    {
+        // Found by audit. The words were the caller's «params» array, and the
+        // descriptor is read two ways: «Words» dynamically by the reservation
+        // and diagnostic rules, «Prefix» computed once at construction. Writing
+        // an element split them —
+        //
+        //     SymbolTable.Old   prior      the rules reserve this
+        //     Of(["x"])         prior x    and count words from it
+        //     Of("x")           old x      while the name actually built
+        //     Prefix            «old »     still says this
+        //
+        // — which is the two-independent-definitions failure the descriptor
+        // exists to prevent, reintroduced from inside.
+        Assert.Throws<InvalidCastException>(() => (string[])Injection.Shadow.Words);
+        Assert.Throws<NotSupportedException>(() => ((IList<string>)Injection.Shadow.Words)[0] = "prior");
 
-        Assert.Empty(from door in handed where Writable(door.Handed) select door.Member);
+        Assert.Equal(Injection.Shadow.Words[0], SymbolTable.Old);
+        Assert.Equal(Injection.Shadow.Prefix, Injection.Shadow.Words[0] + " ");
+        Assert.Equal(Injection.Shadow.Of("x"), string.Join(" ", Injection.Shadow.Of(["x"])));
+    }
+
+    [Fact(DisplayName = "and reading a finding's labels twice allocates nothing the second time")]
+    public void AndReadingAFindingsLabelsTwiceAllocatesNothingTheSecondTime()
+    {
+        // «AsReadOnly» built a fresh wrapper on every read for an object that
+        // never needs to change, where the graph and the compilation each cache
+        // one. Small, and the kind of difference that is only ever noticed by
+        // someone measuring something else.
+        var finding = Compilation.Of(new SourceText("var x = 1;\nvar x = 2;\n", "twice.ron")).Findings[0];
+
+        Assert.NotEmpty(finding.Related);
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+
+        for (var at = 0; at < 1_000; ++at) _ = finding.Related;
+
+        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+    }
+
+    /// <summary>Whether a member promises a collection nobody may write to.</summary>
+    ///
+    /// <remarks>
+    ///     «IEnumerable» is deliberately not here. It promises a sequence and
+    ///     says nothing about storage, so a method returning one is not claiming
+    ///     what these are claiming.
+    /// </remarks>
+    private static bool Promises(Type type)
+        => type.IsGenericType
+        && new[]
+           {
+               typeof(IReadOnlyList<>), typeof(IReadOnlyCollection<>),
+               typeof(IReadOnlyDictionary<,>), typeof(IReadOnlySet<>),
+           }.Contains(type.GetGenericTypeDefinition());
+
+    /// <summary>Whether the thing actually handed back can be written to.</summary>
+    ///
+    /// <remarks>
+    ///     An ARRAY is asked about separately, and it is the case that matters:
+    ///     «string[]» reports «IsReadOnly» as TRUE through «ICollection», while
+    ///     one cast assigns an element. A check that believed the collection
+    ///     about itself walked straight past the finding it was written for.
+    /// </remarks>
+    private static bool Writable(object handed)
+        => handed is Array
+        || handed is not null
+        && handed.GetType()
+                 .GetInterfaces()
+                 .Any(face => face.IsGenericType
+                           && face.GetGenericTypeDefinition() == typeof(ICollection<>)
+                           && (bool)face.GetProperty("IsReadOnly").GetValue(handed) is false);
+
+    /// <summary>Whatever it holds, where asking is allowed to fail.</summary>
+    private static object Held(Func<object> ask)
+    {
+        try { return ask(); }
+        catch (Exception) { return null; }
     }
 
     [Fact(DisplayName = "and a forged dependency cannot outlive a source that changed")]
