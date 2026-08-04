@@ -757,9 +757,14 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     «Best» that carries it keep the one value rather than copying it
     ///     again. A witness travelling up through brackets was copied once per
     ///     level before this.
+    ///
+    ///     Two elements and not «Take(2)»: the iterator costs more than the
+    ///     array it saves, 152 bytes a call against 128. Measured, because the
+    ///     shape that is cheaper in «Readings» is the more expensive one here
+    ///     and no rule of thumb tells them apart.
     /// </remarks>
     public static Owned.Kept<string> Pair(IReadOnlyList<string> witness)
-        => witness.Count > 2 ? Owned.Of(witness.Take(2)) : Owned.Copy(witness);
+        => witness.Count > 2 ? Owned.Of<string>([witness[0], witness[1]]) : Owned.Copy(witness);
 }
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }

@@ -215,17 +215,65 @@ public class ResolverCost
         // satisfy that type — the mutation that used to pass here now fails to
         // compile, which is a better place for it than an assertion.
         //
-        // One rewrite still survives both: building an ordinary collection
-        // inside the producer and copying it, «Owned.Copy([.. …])». It returns
-        // the same value by the same type, one allocation worse, and nothing can
-        // see the difference — not this, because the object is identical; not an
-        // allocation guard, because the resolver's own work is three orders of
-        // magnitude larger than the 112 bytes; and a counter in production to
-        // catch it would be state with no purpose but to be counted. It is
-        // written down instead.
+        // The remaining rewrite — building an ordinary collection inside the
+        // producer and copying it — is guarded separately below, and saying it
+        // could not be was wrong for the third time in the same way: it was a
+        // fact about the arrangement, not about the problem. Extracting the
+        // producer is what made it measurable, and that had already happened.
         var tied = Best.Readings([new Node.Name("one"), new Node.Name("two")]);
 
         Assert.Same(tied, Owned.Copy(tied));
         Assert.Equal(["«one»", "«two»"], tied);
+    }
+    [Fact(DisplayName = "and it builds the readings once, not once into a list and again into a value")]
+    public void AndItBuildsTheReadingsOnceNotOnceIntoAListAndAgainIntoAValue()
+    {
+        // Found by audit, after I recorded the opposite. «Owned.Kept» proves the
+        // value it hands back owns its storage; it cannot prove no throwaway
+        // collection was built on the way. «Owned.Copy([.. …])» satisfies the
+        // type, returns an identical object, and costs twice as much:
+        //
+        //     Owned.Of, directly             112 bytes per call
+        //     an ordinary collection first   224 bytes per call
+        //
+        // I said no allocation guard could see this because the resolver's own
+        // work dwarfs it. That was true of a measurement through the resolver,
+        // and the producer stopped needing one when it was extracted — the same
+        // mistake as "unobservable" and "cannot be discriminated", which is now
+        // three, all of them a limit of the arrangement written down as a limit
+        // of the problem.
+        //
+        // Two measurements in one process, so it is machine-independent: the
+        // producer against the shape it is supposed to have. A ratio and not a
+        // number, so it does not have to be edited when something unrelated
+        // moves.
+        static long Work(Func<object> make)
+        {
+            for (var at = 0; at < 200; ++at) make();
+
+            var before = GC.GetAllocatedBytesForCurrentThread();
+
+            for (var at = 0; at < 1_000; ++at) make();
+
+            return GC.GetAllocatedBytesForCurrentThread() - before;
+        }
+
+        Node[] order = [new Node.Name("one"), new Node.Name("two")];
+
+        var readings = Work(() => Owned.Of(order.Select(node => node.ToString())));
+
+        Assert.True(Work(() => Best.Readings(order)) * 2 < readings * 3,
+                    $"«Owned.Of» allocates {readings} bytes where «Best.Readings» does not match it");
+
+        // «Best.Pair» has no assertion here, and sabotaging it is how that was
+        // settled rather than by symmetry. Building the pair directly costs 128
+        // bytes and «Owned.Of(witness.Take(2))» costs 152, so the shape this
+        // test exists to refuse is the CHEAPER one there — the iterator costs
+        // more than the array it saves. «Pair» takes the direct form now, and a
+        // guard would have been protecting the wrong side.
+        //
+        // Which is the point worth keeping: it is per-producer and measured. A
+        // rule of thumb that ordinary-then-owned is always worse would have made
+        // one of these two wrong.
     }
 }
