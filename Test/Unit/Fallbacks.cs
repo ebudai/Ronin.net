@@ -154,13 +154,13 @@ public class Fallbacks
         var (graph, evaluated) = Guarded("failing otherwise standby");
 
         Assert.Equal(5d, graph.Read("guarded"));
-        Assert.Contains("standby", graph["guarded"].Dependencies);
+        Assert.Contains("standby", graph.Dependencies("guarded"));
 
         graph.Write("failing", 7d);
         graph.Step();
 
         Assert.Equal(7d, graph.Read("guarded"));
-        Assert.DoesNotContain("standby", graph["guarded"].Dependencies);
+        Assert.DoesNotContain("standby", graph.Dependencies("guarded"));
 
         var before = evaluated();
 
@@ -182,7 +182,7 @@ public class Fallbacks
         var (graph, _) = Guarded("buggy otherwise standby");
 
         Assert.IsType<Fault>(graph.Read("guarded"));
-        Assert.DoesNotContain("standby", graph["guarded"].Dependencies);
+        Assert.DoesNotContain("standby", graph.Dependencies("guarded"));
     }
 
     [Theory(DisplayName = "and it guards a call's result, not its last argument")]

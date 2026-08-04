@@ -154,12 +154,12 @@ public class Reactions
         graph.Let("distance", scope => (bool)scope.Read("use metric") ? scope.Read("metres") : scope.Read("feet"));
 
         graph.Read("distance");
-        Assert.Equal(["metres", "use metric"], graph["distance"].Dependencies.Order());
+        Assert.Equal(["metres", "use metric"], graph.Dependencies("distance").Order());
 
         graph.Write("use metric", false);
         graph.Step();
         graph.Read("distance");
-        Assert.Equal(["feet", "use metric"], graph["distance"].Dependencies.Order());
+        Assert.Equal(["feet", "use metric"], graph.Dependencies("distance").Order());
 
         // the branch it no longer looks at must not wake it
         graph.Forget();

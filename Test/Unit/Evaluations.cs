@@ -247,7 +247,7 @@ public class Evaluations
         Assert.Equal(240d, graph.Read("total"));
 
         // and the edges came from the walk, not from anyone declaring them
-        Assert.Equal(["base price", "tax rate"], graph["total"].Dependencies.Order());
+        Assert.Equal(["base price", "tax rate"], graph.Dependencies("total").Order());
     }
 
     [Fact(DisplayName = "a resolved call invokes its declaration")]

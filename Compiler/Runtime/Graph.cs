@@ -43,49 +43,6 @@ internal enum TriggerMode
     WhileTrue,
 }
 
-/// <summary>
-///     One <c>var</c>, <c>let</c> or resource in the dependency graph.
-/// </summary>
-internal sealed class Node
-{
-    public Node(string name, NodeKind kind, Func<Graph, object> body, object value, bool dirty)
-    {
-        Name = name;
-        Kind = kind;
-        Body = body;
-        Value = value;
-        Dirty = dirty;
-    }
-
-    public string Name { get; }
-
-    public NodeKind Kind { get; }
-
-    /// <summary>Null for a <c>var</c>, which has a value rather than a way to get one.</summary>
-    public Func<Graph, object> Body { get; }
-
-    /// <summary>What readers see. A <c>var</c> stores it; a <c>let</c> caches it.</summary>
-    public object Value { get; set; }
-
-    public bool Dirty { get; set; }
-
-    /// <summary>Set while the body runs, so re-entering it is a detected cycle.</summary>
-    public bool Evaluating { get; set; }
-
-    /// <summary>When this node's value last actually changed.</summary>
-    public long Changed { get; set; }
-
-    /// <summary>Where the clock stood when its body last ran.</summary>
-    public long Evaluated { get; set; }
-
-    /// <summary>
-    ///     What this node read last time it ran. Recorded during evaluation, never
-    ///     read off the tree.
-    /// </summary>
-    public HashSet<string> Dependencies { get; } = [];
-
-    public HashSet<string> Dependents { get; } = [];
-}
 
 /// <summary>
 ///     The reactive graph. Push dirty, pull values.
@@ -148,7 +105,7 @@ internal sealed class Graph
     ///     mutable array and copies it, and what comes back out cannot be
     ///     mutated at all.
     /// </remarks>
-    public Node Var(string name, object value)
+    public void Var(string name, object value)
         => Declare(new Node(name, NodeKind.Var, null, List.Admit(value), dirty: false));
 
     /// <summary>
@@ -441,7 +398,7 @@ internal sealed class Graph
     ///     because a shadow taken before the body has ever run copies that cache,
     ///     and a shadow must seed with nothing and never with a null or an error.
     /// </remarks>
-    public Node Let(string name, Func<Graph, object> body)
+    public void Let(string name, Func<Graph, object> body)
         => Declare(new Node(name, NodeKind.Let, body, Nothing.Instance, dirty: true));
 
     /// <summary>
@@ -463,20 +420,18 @@ internal sealed class Graph
     ///     that is handled where it arises rather than guessed at.
     ///     </para>
     /// </remarks>
-    public Node When(string name, Func<Graph, object> trigger, Action<Graph> body,
+    public void When(string name, Func<Graph, object> trigger, Action<Graph> body,
                      TriggerMode mode = TriggerMode.BecomesTrue)
     {
         // Declare first. Recording the trigger before Let had a chance to reject
         // the name meant a refused duplicate still replaced the original's body
         // and mode: the declaration threw, and firing the original condition
         // afterwards ran the code that had just been rejected.
-        var node = Let(name, trigger);
+        Let(name, trigger);
 
         whens[name] = new Trigger(body, mode) { Order = whens.Count };
 
         woken.Add(name);
-
-        return node;
     }
 
     /// <summary>
@@ -500,19 +455,29 @@ internal sealed class Graph
     ///     missing seed a compile error and <c>otherwise</c> supplies it, which
     ///     needs no new checking.
     /// </remarks>
-    public Node Shadow(string name)
+    public string Shadow(string name)
     {
         var source = nodes[name];
         var shadowed = Injection.Shadow.Of(name);
 
-        if (nodes.TryGetValue(shadowed, out var shadow)) return shadow;
+        if (nodes.ContainsKey(shadowed) is false)
+            shadows[source] = Declare(new Node(shadowed, NodeKind.Shadow, null, Nothing.Instance, dirty: false));
 
-        shadow = Declare(new Node(shadowed, NodeKind.Shadow, null, Nothing.Instance, dirty: false));
-        shadows[source] = shadow;
-        return shadow;
+        return shadowed;
     }
 
-    public Node this[string name] => nodes[name];
+    /// <summary>
+    ///     What <paramref name="name"/> read the last time it ran.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     One observation, and not a node. An indexer handing back the node
+    ///     itself was five methods' worth of writable graph state reachable from
+    ///     a read — and this is the only thing any caller ever wanted from it.
+    ///     The rest arrives with its first user, which is the same rule that
+    ///     kept the bulk list accessor unwritten.
+    /// </remarks>
+    public IReadOnlyCollection<string> Dependencies(string name) => nodes[name].Dependencies;
 
     /// <summary>
     ///     How many nodes there are, which instances must not change.
@@ -1988,6 +1953,64 @@ internal sealed class Graph
     private readonly List<string> fired = [];
     private readonly List<Fault> faults = [];
     private long clock;
+    /// <summary>
+    ///     One <c>var</c>, <c>let</c> or resource in the dependency graph.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     NESTED and private, so it is not a type anything outside can name.
+    ///     It was returned live by «Var», «Let», «When», «Shadow» and the
+    ///     indexer, with public setters on its value and its clocks and mutable
+    ///     sets for its edges — so a caller could change a source without
+    ///     advancing the clock or dirtying a reader, install the array
+    ///     representation the admission boundary exists to refuse, or empty a
+    ///     dependency set.
+    ///
+    ///     The census that was meant to cover this asked about PARAMETERS. A
+    ///     door can also be a return value, and one was. What a caller may see
+    ///     of a node is now named one observation at a time.
+    /// </remarks>
+    private sealed class Node
+    {
+        public Node(string name, NodeKind kind, Func<Graph, object> body, object value, bool dirty)
+        {
+            Name = name;
+            Kind = kind;
+            Body = body;
+            Value = value;
+            Dirty = dirty;
+        }
+
+        public string Name { get; }
+
+        public NodeKind Kind { get; }
+
+        /// <summary>Null for a <c>var</c>, which has a value rather than a way to get one.</summary>
+        public Func<Graph, object> Body { get; }
+
+        /// <summary>What readers see. A <c>var</c> stores it; a <c>let</c> caches it.</summary>
+        public object Value { get; set; }
+
+        public bool Dirty { get; set; }
+
+        /// <summary>Set while the body runs, so re-entering it is a detected cycle.</summary>
+        public bool Evaluating { get; set; }
+
+        /// <summary>When this node's value last actually changed.</summary>
+        public long Changed { get; set; }
+
+        /// <summary>Where the clock stood when its body last ran.</summary>
+        public long Evaluated { get; set; }
+
+        /// <summary>
+        ///     What this node read last time it ran. Recorded during evaluation, never
+        ///     read off the tree.
+        /// </summary>
+        public HashSet<string> Dependencies { get; } = [];
+
+        public HashSet<string> Dependents { get; } = [];
+    }
+
 }
 
 /// <summary>

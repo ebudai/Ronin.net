@@ -30,7 +30,7 @@ public class Constants
         Assert.Equal(6.28d, graph.Read("area"));
 
         // only the var is depended on
-        Assert.Equal(["radius"], graph["area"].Dependencies);
+        Assert.Equal(["radius"], graph.Dependencies("area"));
     }
 
     [Fact(DisplayName = "a constant is not a node at all")]
@@ -42,7 +42,7 @@ public class Constants
         graph.Constant("pi", 3.14d);
 
         Assert.Equal(3.14d, graph.Read("pi"));
-        Assert.Throws<KeyNotFoundException>(() => graph["pi"]);
+        Assert.Throws<KeyNotFoundException>(() => graph.Dependencies("pi"));
     }
 
     [Fact(DisplayName = "a name is declared once across both stores")]

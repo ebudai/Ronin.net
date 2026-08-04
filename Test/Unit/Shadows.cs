@@ -48,7 +48,7 @@ public class Shadows
         Graph graph = new();
         graph.Var("reading", 10d);
 
-        Assert.Equal(injected, graph.Shadow("reading").Name);
+        Assert.Equal(injected, graph.Shadow("reading"));
     }
 
     [Fact(DisplayName = "a cell reading its own old is not a cycle")]
@@ -63,7 +63,7 @@ public class Shadows
         graph.Shadow("smoothed");
 
         Assert.Equal(10d, graph.Read("smoothed"));
-        Assert.Contains("old smoothed", graph["smoothed"].Dependencies);
+        Assert.Contains("old smoothed", graph.Dependencies("smoothed"));
     }
 
     [Fact(DisplayName = "a shadow holds the previous step's value all step long")]
@@ -108,7 +108,21 @@ public class Shadows
         Graph graph = new();
         graph.Var("x", 1d);
 
-        Assert.Same(graph.Shadow("x"), graph.Shadow("x"));
+        var before = graph.Declared;
+
+        graph.Shadow("x");
+
+        var once = graph.Declared;
+
+        graph.Shadow("x");
+
+        // The NODE count, not the returned handle. This asked «Assert.Same» on
+        // what «Shadow» handed back, which meant the second call had to return
+        // the live node for the test to say anything — the claim is that one
+        // node exists however many times it is asked for, and that is what the
+        // count says without a caller holding graph state.
+        Assert.Equal(before + 1, once);
+        Assert.Equal(once, graph.Declared);
     }
 
     [Fact(DisplayName = "a let reading its own old advances only when observed")]
