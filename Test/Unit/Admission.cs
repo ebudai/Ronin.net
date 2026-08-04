@@ -442,7 +442,7 @@ public class Admission
             var x = 1;
             var x = 2;
             let y = x + 1;
-            function add _ to _ { return 1; }
+            function add (left => Number) to (right => Number) { return left; }
             when y { }
             """, "rich.ron"));
 
@@ -550,12 +550,17 @@ public class Admission
 
         foreach (var (member, probe) in Probes)
         {
-            // Called DIRECTLY, so a probe that throws fails the test. Run
-            // through a swallowing helper it returned null, null is not
-            // writable, and the name was recorded as opened anyway — an opener
-            // whose setup stopped reaching the branch it was written for would
-            // have gone on reporting the promise safe.
-            if (Writable(Deeply(probe()))) writable.Add(member);
+            // Called DIRECTLY, so a probe that throws fails the test — and its
+            // result is asserted before anything else looks at it, because null
+            // is not writable either. Run through a swallowing helper and then
+            // checked, an opener whose setup stopped reaching the branch it was
+            // written for went on reporting the promise safe, by both routes.
+            var handed = probe();
+
+            Assert.NotNull(handed);
+
+
+            if (Writable(Deeply(handed))) writable.Add(member);
 
             opened.Add(member);
         }
@@ -592,49 +597,61 @@ public class Admission
                      opened.Concat(["Body.Parameters", "Body.Statements"]).Order());
     }
 
-    [Theory(DisplayName = "and what a type keeps is decided by what can write to it, not by its name")]
+    [Theory(DisplayName = "and what a type keeps is what it made, because nothing else can be trusted")]
     [InlineData("list")]
     [InlineData("collection")]
     [InlineData("array")]
     [InlineData("wrapped")]
+    [InlineData("segment")]
     [InlineData("opaque")]
-    public void AndWhatATypeKeepsIsDecidedByWhatCanWriteToItNotByItsName(string built)
+    [InlineData("owned")]
+    public void AndWhatATypeKeepsIsWhatItMadeBecauseNothingElseCanBeTrusted(string built)
     {
-        // Found by audit. The rule named two CONCRETE TYPES — «List» and an
-        // array — which guesses at what a caller might build instead of asking
-        // what it did. «Collection» is an ordinary writable «IReadOnlyList» and
-        // matched neither name, so it passed through and a later write by the
-        // caller changed what the compiler held. The opener used a «List», which
-        // exercised the branch that worked.
-        IReadOnlyList<string> Given() => built switch
+        // Found by audit, and it is the third rule for one question. Two named
+        // concrete types. Then «ICollection.IsReadOnly» — which says mutation is
+        // unavailable THROUGH THAT INTERFACE and nothing about who else holds
+        // the storage:
+        //
+        //     ReadOnlyCollection over a list the caller kept   -> changed
+        //     ArraySegment over an array the caller kept       -> changed
+        //
+        // Both answer "read-only" and both change underneath. The previous
+        // version of this test built its wrapper inline, kept no reference to
+        // the backing, and then asserted the wrapper was RETAINED — so it proved
+        // writes through the view were unavailable and called that ownership.
+        //
+        // Ownership is not asked now, it is established: «Owned» keeps only what
+        // «Owned» made.
+        var backing = new List<string> { "one", "two" };
+        var array = new[] { "one", "two" };
+
+        IReadOnlyList<string> given = built switch
         {
-            "list" => new List<string> { "one", "two" },
-            "collection" => new Collection<string>(["one", "two"]),
-            "array" => new[] { "one", "two" },
-            "wrapped" => new ReadOnlyCollection<string>(["one", "two"]),
-            _ => new Opaque(["one", "two"]),
+            "list" => backing,
+            "collection" => new Collection<string>(backing),
+            "array" => array,
+            "wrapped" => new ReadOnlyCollection<string>(backing),
+            "segment" => new ArraySegment<string>(array),
+            "opaque" => new Opaque(array),
+            _ => Owned.Copy<string>(backing),
         };
 
-        var given = Given();
         var best = new Best(1, null, 1, given);
         var declared = new Declared("print job", default) { Words = given };
 
-        Assert.False(Writable(best.Witness));
-        Assert.False(Writable(declared.Words));
-
-        // And the caller still holding it changes nothing, which is the half a
-        // type test cannot show.
-        if (given is IList<string> { IsReadOnly: false } writable) writable[0] = "changed";
+        // Through whatever the caller still holds, which is the half a type test
+        // cannot show.
+        backing[0] = "changed";
+        array[0] = "changed";
 
         Assert.Equal("one", best.Witness[0]);
         Assert.Equal("one", declared.Words[0]);
-
-        // The already-read-only case is kept rather than copied, because copying
-        // every witness costs 27.6 MB against a 26 MB ceiling and nothing the
-        // resolver builds needs it. The opaque one is copied: it cannot be
-        // asked whether anything may write to it, and the safe answer to that
-        // is the copy rather than the promise.
-        Assert.Equal(built is "wrapped", ReferenceEquals(given, best.Witness));
+        // Only the owned value is kept. Everything else is copied, including the
+        // two that call themselves read-only — and the ceiling survives it
+        // because the resolver's commonest witness is empty, which is one shared
+        // value rather than an allocation.
+        Assert.Equal(built is "owned", ReferenceEquals(given, best.Witness));
+        Assert.Equal(built is "owned", ReferenceEquals(given, declared.Words));
     }
 
     /// <summary>A list that answers «IReadOnlyList» and nothing else.</summary>
@@ -648,21 +665,6 @@ public class Admission
 
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => values.GetEnumerator();
-    }
-
-    [Fact(DisplayName = "and a probe that stops working fails rather than reporting safety")]
-    public void AndAProbeThatStopsWorkingFailsRatherThanReportingSafety()
-    {
-        // Found by audit. Every opener ran through a helper that caught
-        // everything and returned null; null is not writable, and the name was
-        // recorded as opened regardless. So an opener whose setup stopped
-        // reaching the branch it was written for went on reporting the promise
-        // safe — which is the difference between a name in a ledger and a
-        // promise somebody opened, the one this whole test exists to keep.
-        //
-        // Asserted on the mechanism rather than trusted: every maintained opener
-        // is called here, and one that throws takes this with it.
-        foreach (var (member, probe) in Probes) Assert.NotNull($"{member}{probe()}");
     }
 
     [Fact(DisplayName = "and one injected name cannot become two definitions again")]
@@ -783,8 +785,20 @@ public class Admission
         return order;
     }
 
+    /// <remarks>
+    ///     A real declaration, because «print job» is a NAME. It has no hole, so
+    ///     «TryPattern» said false and this opener returned null — for as long as
+    ///     it has existed. Null was not writable and the name was recorded as
+    ///     opened, so the promise went unexercised and the test stayed green,
+    ///     which is what the null check in the opener loop is for.
+    /// </remarks>
     private static object Blocks()
-        => AnalysisTests.Words("print job").TryPattern(out _, out var blocks) ? blocks : null;
+    {
+        var module = Compilation.Of(new SourceText("function add (left => Number) to (right => Number) { return left; }\n", "add.ron")).Module;
+        var declaration = module.Scopes[0].Statements.OfType<Ronin.Grammar.Function>().Single();
+
+        return declaration.Identifier.TryPattern(out _, out var blocks) ? blocks : null;
+    }
 
     /// <summary>The published thing, or the first thing inside it that is writable.</summary>
     ///
