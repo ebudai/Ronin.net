@@ -89,6 +89,18 @@ internal sealed class List : IReadOnlyList<object>
     /// </remarks>
     public static object Admit(object value)
     {
+        // Before the traversal state exists. Nothing but a raw array needs a
+        // path set or a completed-node map, and almost nothing IS one: a scalar,
+        // a text, an error and an already-admitted list are what the reactive
+        // hot path admits, and each was paying 144 bytes for machinery it never
+        // reached. That is the price of making the call universal, which is the
+        // right shape — so the call has to be free when there is nothing to do.
+        //
+        // An admitted list is returned as it stands rather than measured,
+        // because nothing admitted is deeper than the limit; the depth question
+        // only arises where one is placed INSIDE something else.
+        if (value is not object[]) return value;
+
         var normalised = Normalise(value, [], new Dictionary<object, object>(ReferenceEqualityComparer.Instance), 0);
 
         return normalised is Refusal refused ? new Error(refused.Reason) : normalised;

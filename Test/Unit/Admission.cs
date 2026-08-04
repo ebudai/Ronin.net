@@ -154,6 +154,38 @@ public class Admission
                     $"comparing two 20-level shared values took {Counted.Comparisons} leaf comparisons");
     }
 
+    [Theory(DisplayName = "and admitting a value that is not an array costs nothing")]
+    [InlineData("scalar")]
+    [InlineData("text")]
+    [InlineData("error")]
+    [InlineData("list")]
+    public void AndAdmittingAValueThatIsNotAnArrayCostsNothing(string kind)
+    {
+        // Found by audit. Making the call universal is the right shape — it is
+        // what stopped each API having to know whether it might be handed a list
+        // — but it put a set and a dictionary in front of every scalar
+        // recompute, write and declaration crossing, for machinery none of them
+        // reach. 144 bytes each, on the path cutoff runs every settle.
+        //
+        // PRE-BOXED, so the measurement is admission and not boxing.
+        object value = kind switch
+        {
+            "scalar" => 1d,
+            "text" => "hello",
+            "error" => new Error("gone wrong"),
+            _ => List.Admit(new object[] { 1d }),
+        };
+
+        List.Admit(value);
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+
+        for (var at = 0; at < 1_000; ++at) List.Admit(value);
+
+        // Zero, not "less than". There is nothing for this to allocate.
+        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+    }
+
     [Theory(DisplayName = "and nothing admitted is deeper than the limit, whatever the leaf is")]
     [InlineData("scalar")]
     [InlineData("empty")]
@@ -297,6 +329,83 @@ public class Admission
                 "Scope.Invoke/4",       // Reactions.AndAnArgumentIsAdmittedOnTheWayIn…
             ],
             doors);
+    }
+
+    [Fact(DisplayName = "and nothing the graph hands back can be written through")]
+    public void AndNothingTheGraphHandsBackCanBeWrittenThrough()
+    {
+        // Found by audit, and the census above is what missed it: it asked about
+        // PARAMETERS, so it reported every door closed while «Var», «Let»,
+        // «When», «Shadow» and the indexer handed back the live node. Its value
+        // setter changed a source without advancing the clock or dirtying a
+        // reader — «x» became 2 while a cell that read it stayed 1, with nothing
+        // able to repair it — and it installed raw arrays past the admission
+        // boundary. Its clocks and its edge sets were writable too.
+        //
+        // There is no regression for those four mutations because there is no
+        // longer a way to spell them: «Node» is nested and private, so the probe
+        // that found this does not compile. That is the strongest form the
+        // assertion can take, and this test is what keeps it that way.
+        static IEnumerable<Type> Ours(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                foreach (var inner in type.GetGenericArguments().SelectMany(Ours)) yield return inner;
+            }
+
+            if (type.IsArray)
+            {
+                foreach (var inner in Ours(type.GetElementType())) yield return inner;
+            }
+
+            if (type.Assembly == typeof(Graph).Assembly && type.IsEnum is false) yield return type;
+        }
+
+        static bool Constructing(PropertyInfo property)
+            => property.SetMethod
+                       .ReturnParameter
+                       .GetRequiredCustomModifiers()
+                       .Any(modifier => modifier == typeof(System.Runtime.CompilerServices.IsExternalInit));
+
+        static bool Mutable(Type type)
+            => type.IsArray
+            || type.IsGenericType
+            && type.GetGenericTypeDefinition() is var kind
+            && (kind == typeof(HashSet<>) || kind == typeof(List<>) || kind == typeof(Dictionary<,>));
+
+        var returned =
+            (from owner in new[] { typeof(Graph), typeof(Scope) }
+             from method in owner.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+             select (Owner: owner, Method: method)).ToArray();
+
+        // The RETURN TYPE itself, and not only the types it is made of. Handing
+        // back the node's «HashSet» directly is a mutable collection from the
+        // framework rather than from here, so a check that only descends into
+        // our own types walks straight past it — which is half of what was
+        // wrong: «Dependencies» and «Dependents» were writable sets a caller
+        // could simply empty.
+        var handed =
+            from door in returned
+            where Mutable(door.Method.ReturnType)
+            select $"{door.Owner.Name}.{door.Method.Name}";
+
+        Assert.Empty(handed);
+
+        var writable =
+            from type in returned.SelectMany(door => Ours(door.Method.ReturnType)).Distinct()
+            from member in type.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            // «init» is not a setter for this purpose: it runs during
+            // construction and in a «with», and cannot reach a value somebody
+            // already holds. «Instance» is a readonly record struct and would
+            // otherwise be reported for saying what it is made of.
+            let settable = member is PropertyInfo property && property.CanWrite && Constructing(property) is false
+            let assignable = member is FieldInfo field && field.IsInitOnly is false
+            let holds = member is PropertyInfo held && Mutable(held.PropertyType)
+                     || member is FieldInfo kept && Mutable(kept.FieldType)
+            where settable || assignable || holds
+            select $"{type.Name}.{member.Name}";
+
+        Assert.Empty(writable);
     }
 
     /// <summary>A leaf that says how often it was asked.</summary>
