@@ -210,11 +210,19 @@ public class ResolverCost
         // «Best» has normalised it. A 112-byte difference per tie is not
         // something a ceiling can see, and this is exact.
         //
-        // What it pins is the PRODUCER. A cell that stopped calling it and
-        // inlined the collection expression again would still pass — that is
-        // what extracting a helper can and cannot do, and no test downstream can
-        // close it, because «Best» owns whatever it is handed and the two cases
-        // are identical from there on.
+        // The cell that CALLS it is no longer this test's job. Its tie branch is
+        // declared «Owned.Kept», and an ordinary collection expression cannot
+        // satisfy that type — the mutation that used to pass here now fails to
+        // compile, which is a better place for it than an assertion.
+        //
+        // One rewrite still survives both: building an ordinary collection
+        // inside the producer and copying it, «Owned.Copy([.. …])». It returns
+        // the same value by the same type, one allocation worse, and nothing can
+        // see the difference — not this, because the object is identical; not an
+        // allocation guard, because the resolver's own work is three orders of
+        // magnitude larger than the 112 bytes; and a counter in production to
+        // catch it would be state with no purpose but to be counted. It is
+        // written down instead.
         var tied = Best.Readings([new Node.Name("one"), new Node.Name("two")]);
 
         Assert.Same(tied, Owned.Copy(tied));

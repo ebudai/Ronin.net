@@ -713,6 +713,13 @@ public class Admission
     /// </summary>
     ///
     /// <remarks>
+    ///     What LEAVES this table is as informative as what is in it. «Owned.Of»,
+    ///     «Owned.Copy», «Best.Pair», «Best.Either» and «Best.Readings» were
+    ///     here and are not, because each returns «Owned.Kept» now rather than
+    ///     an «IReadOnlyList» — a concrete type nothing can write to makes no
+    ///     promise, so there is nothing here to check. The compiler took over
+    ///     the assertion.
+    ///
     ///     Parameterised members, and types the pipeline builds only as locals.
     ///     Each is here because the test above will not pass without it: a
     ///     promise that is neither walked nor opened here fails, so this table
@@ -720,9 +727,6 @@ public class Admission
     /// </remarks>
     private static readonly (string Member, Func<object> Open)[] Probes =
     [
-        ("Best.Either", () => Best.Either(new List<string> { "one" }, new List<string> { "two" })),
-        ("Best.Pair", () => Best.Pair(new List<string> { "one", "two" })),
-        ("Best.Readings", () => Best.Readings([new Node.Name("one"), new Node.Name("two")])),
         ("Best.Witness", () => new Best(1, null, 1, new List<string> { "one" }).Witness),
         ("Builtin.Operators", () => Builtin.Operators),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
@@ -743,8 +747,6 @@ public class Admission
         ("Injection.All", () => Injection.All),
         ("Injection.Of", () => Injection.Shadow.Of(["x"])),
         ("ManyWriters.Writers", () => new ManyWriters(default, "cash", new List<string> { "a" }).Writers),
-        ("Owned.Copy", () => Owned.Copy<string>(new List<string> { "one" })),
-        ("Owned.Of", () => Owned.Of<string>(new List<string> { "one" })),
         ("Pattern.Reads", () => Pattern.Reads(["print", null])),
         ("Rules.Infix", () => Rules.Infix),
         ("Rules.Injected", () => Rules.Injected),

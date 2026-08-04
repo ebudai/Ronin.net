@@ -605,7 +605,16 @@ internal sealed class Resolver
         ///     when it does not does the tie come from further in, and then the
         ///     witness travelled up with the derivation that carried the count.
         /// </remarks>
-        private IReadOnlyList<string> Witness
+        /// <remarks>
+        ///     Typed «Owned.Kept», which is what stops this branch quietly
+        ///     becoming an ordinary collection again. It was one expression
+        ///     inside a private nested type, so reverting it left every test
+        ///     green — «Best» owns whatever it is handed and repairs both cases
+        ///     before anything downstream can tell them apart. A collection
+        ///     expression cannot satisfy this type, so the compiler refuses what
+        ///     no test could see.
+        /// </remarks>
+        private Owned.Kept<string> Witness
             => order.Count > 1 ? Best.Readings(order) : witnesses[order[0].ToString()];
 
         // Keyed by rendering rather than by node: two derivations that read the
@@ -618,7 +627,10 @@ internal sealed class Resolver
         {
             var reading = node.ToString();
 
-            witness ??= [];
+            // Admitted HERE, so what a cell stores is owned however it arrived.
+            // The storage carries the guarantee rather than each writer
+            // remembering to.
+            var offered = witness is null ? Owned.None<string>() : Owned.Copy(witness);
 
             if (IsEmpty || cost < Cost)
             {
@@ -637,7 +649,7 @@ internal sealed class Resolver
                 witnesses.Clear();
                 order.Add(node);
                 derivations[reading] = count;
-                witnesses[reading] = witness;
+                witnesses[reading] = offered;
                 return;
             }
             if (cost != Cost) return;
@@ -650,7 +662,7 @@ internal sealed class Resolver
             // Ambiguous with no readings at all: a tie reported between a
             // statement and itself, with nothing to show for it.
             derivations[reading] = System.Math.Max(derivations.GetValueOrDefault(reading), count);
-            witnesses[reading] = Best.Either(witnesses.GetValueOrDefault(reading, []), witness);
+            witnesses[reading] = Best.Either(witnesses.GetValueOrDefault(reading) ?? Owned.None<string>(), offered);
         }
 
         public void Merge(Cell other)
@@ -669,7 +681,7 @@ internal sealed class Resolver
         // Both are null until something is offered, which is what «IsEmpty» reads.
         private List<Node> order;
         private Dictionary<string, long> derivations;
-        private Dictionary<string, IReadOnlyList<string>> witnesses;
+        private Dictionary<string, Owned.Kept<string>> witnesses;
     }
 }
 
@@ -714,7 +726,7 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     proves and explains a tie the parent cannot see — and two readings
     ///     prove it as well as ten.
     /// </remarks>
-    public static IReadOnlyList<string> Either(IReadOnlyList<string> witness, IReadOnlyList<string> otherwise)
+    public static Owned.Kept<string> Either(IReadOnlyList<string> witness, IReadOnlyList<string> otherwise)
         => Pair(witness.Count is 0 ? otherwise : witness);
 
     /// <summary>
@@ -730,7 +742,7 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     downstream can tell them apart. A producer whose only witness is a
     ///     112-byte difference needs somewhere a test can stand.
     /// </remarks>
-    public static IReadOnlyList<string> Readings(IEnumerable<Node> order)
+    public static Owned.Kept<string> Readings(IEnumerable<Node> order)
         => Owned.Of(order.Select(node => node.ToString()));
 
     /// <summary>At most two, which is what a parent carries.</summary>
@@ -746,7 +758,7 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     again. A witness travelling up through brackets was copied once per
     ///     level before this.
     /// </remarks>
-    public static IReadOnlyList<string> Pair(IReadOnlyList<string> witness)
+    public static Owned.Kept<string> Pair(IReadOnlyList<string> witness)
         => witness.Count > 2 ? Owned.Of(witness.Take(2)) : Owned.Copy(witness);
 }
 

@@ -36,10 +36,10 @@ namespace Ronin.Compiler;
 /// </remarks>
 internal static class Owned
 {
-    public static IReadOnlyList<T> Copy<T>(IReadOnlyList<T> values)
+    public static Kept<T> Copy<T>(IReadOnlyList<T> values)
         => values is Kept<T> already ? already
          : values.Count is 0 ? Kept<T>.Empty
-         : new Kept<T>([.. values]);
+         : Kept<T>.Of(values);
 
     /// <summary>
     ///     An owned list of <paramref name="values"/>, for a producer that is
@@ -61,16 +61,40 @@ internal static class Owned
     ///     says there is more than one of it — an empty branch here would be one
     ///     nothing reaches.
     /// </remarks>
-    public static IReadOnlyList<T> Of<T>(IEnumerable<T> values) => new Kept<T>([.. values]);
+    public static Kept<T> Of<T>(IEnumerable<T> values) => Kept<T>.Of(values);
+
+    /// <summary>The empty owned list, which is shared.</summary>
+    ///
+    /// <remarks>
+    ///     A cell offering a reading with no witness is the common case, and it
+    ///     should not build one to say so.
+    /// </remarks>
+    public static Kept<T> None<T>() => Kept<T>.Empty;
 
     /// <summary>A list whose storage is nobody else's.</summary>
-    private sealed class Kept<T>(T[] values) : IReadOnlyList<T>
+    ///
+    /// <remarks>
+    ///     NAMED, so a producer can be declared to return it. Its constructor is
+    ///     private and only <see cref="Owned"/> encloses it, so the type says
+    ///     where the value came from — which makes "this is owned where it is
+    ///     made" something the compiler checks rather than something a test
+    ///     asserts about one specimen. A cell's tie branch is declared this way,
+    ///     and an ordinary collection expression cannot satisfy it.
+    /// </remarks>
+    public sealed class Kept<T> : IReadOnlyList<T>
     {
+        private Kept(T[] values) => this.values = values;
+
         /// <remarks>
-        ///     The empty one is shared. A resolver offering a reading with no
-        ///     witness is the common case, and it should not allocate to say so.
+        ///     A SEQUENCE, so the storage is made here and no caller can be
+        ///     holding it. This is the only way to make one — the constructor is
+        ///     private and an enclosing type cannot reach a nested type's
+        ///     private members either — so "owned" is not a promise anybody
+        ///     keeps, it is the only thing this can be.
         /// </remarks>
-        public static Kept<T> Empty { get; } = new([]);
+        internal static Kept<T> Of(IEnumerable<T> values) => new([.. values]);
+
+        internal static Kept<T> Empty { get; } = Of([]);
 
         public int Count => values.Length;
 
@@ -80,5 +104,7 @@ internal static class Owned
 
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
         IEnumerator IEnumerable.GetEnumerator() => values.GetEnumerator();
+
+        private readonly T[] values;
     }
 }
