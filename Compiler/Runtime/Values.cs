@@ -114,6 +114,7 @@ internal static class Builtin
     /// </summary>
     ///
     /// <remarks>
+    ///     <para>
     ///     There were two — binding powers on <see cref="SymbolTable"/> and
     ///     implementations here — with a test asserting their key sets matched. A
     ///     key-set test notices a symbol added to one and not the other, and
@@ -121,7 +122,7 @@ internal static class Builtin
     ///     the other, which are the drifts that would actually mislead. Neither
     ///     can now happen: <see cref="SymbolTable"/> seeds from this, so adding an
     ///     operator means giving it both halves in one place.
-    /// </remarks>
+    ///     </para>
     ///     <para>
     ///     FROZEN, because "one fact about the language" was a mutable
     ///     dictionary with a read-only type in front of it. One cast removed

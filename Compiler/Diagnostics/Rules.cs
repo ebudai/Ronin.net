@@ -187,6 +187,7 @@ internal static class Rules
     ///     name that could reach the whole call, and R5 has refused that already
     ///     — asking both would be two findings for one repair, which is what the
     ///     structural guard below exists to avoid elsewhere.
+    ///     </para>
     ///     <para>
     ///     PROPER prefix, so a name equal to the pattern's words is left alone.
     ///     It cannot capture: the call's argument would have to sit beside it as

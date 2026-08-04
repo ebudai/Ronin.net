@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -128,7 +129,7 @@ internal abstract class Finding(FindingKind kind, Span primary)
     ///     The same wrapping as everywhere else: labels could be removed or
     ///     reordered through the read-only type before anything rendered them.
     /// </remarks>
-    public IReadOnlyList<Labelled> Related => related.AsReadOnly();
+    public IReadOnlyList<Labelled> Related => view ??= new ReadOnlyCollection<Labelled>(related);
 
     /// <summary>The sentence a person reads.</summary>
     public abstract string Message { get; }
@@ -140,6 +141,18 @@ internal abstract class Finding(FindingKind kind, Span primary)
     }
 
     private readonly List<Labelled> related = [];
+
+    /// <remarks>
+    ///     ONE view over the live list, and not one per read. «AsReadOnly» built
+    ///     a fresh wrapper every time — 24 bytes a read, for an object that
+    ///     never needs to change, since a view already shows what «Alongside»
+    ///     adds. The graph and the compilation cache theirs; this did not.
+    ///
+    ///     Built on first ask rather than in a constructor, because the primary
+    ///     constructor has no body to build it in and a field initialiser cannot
+    ///     see «related». A finding that nobody renders never builds one.
+    /// </remarks>
+    private ReadOnlyCollection<Labelled> view;
 }
 
 /// <summary>A name already declared in this scope or an enclosing one.</summary>
