@@ -2,7 +2,9 @@
 
 using Ronin.Compiler;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Ronin.Runtime;
@@ -17,7 +19,18 @@ namespace Ronin.Runtime;
 ///     physics settling, and every state machine that transitions on its own
 ///     state. Declared feedback is deliberate, visible and greppable.
 /// </param>
-internal sealed record Effects(IReadOnlySet<string> Reads, IReadOnlySet<string> Writes, bool Feedback = false);
+internal sealed record Effects(IReadOnlySet<string> Reads, IReadOnlySet<string> Writes, bool Feedback = false)
+{
+    /// <remarks>
+    ///     Frozen, and the compiler is the caller that needed it: cascade
+    ///     analysis builds these with «new HashSet&lt;string&gt;» and published
+    ///     them as read-only sets, so the reads and writes it reasons about were
+    ///     editable by anything holding one.
+    /// </remarks>
+    public IReadOnlySet<string> Reads { get; } = Reads.ToFrozenSet();
+
+    public IReadOnlySet<string> Writes { get; } = Writes.ToFrozenSet();
+}
 
 /// <summary>A <c>when</c> as declared, and where.</summary>
 internal readonly record struct Triggering(string Name, Span Span);
@@ -154,7 +167,11 @@ internal static class Cascades
         ring.Reverse();
         ring.Add(from);
 
-        return ring;
+        // The rings INSIDE the answer, not only the list of them. The outer
+        // collection expression made one read-only and every ring in it stayed
+        // the mutable list built here — a published result is published all the
+        // way down.
+        return ring.AsReadOnly();
     }
 
     /// <summary>

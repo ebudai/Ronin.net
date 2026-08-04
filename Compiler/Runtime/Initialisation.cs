@@ -3,6 +3,7 @@
 using Ronin.Compiler;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Ronin.Runtime;
@@ -79,7 +80,7 @@ internal static class Initialisation
             }
         }
 
-        order = ordered;
+        order = ordered.AsReadOnly();
         return true;
     }
 

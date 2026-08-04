@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Ronin.Compiler;
@@ -59,6 +60,6 @@ internal static class Triggers
             distinct.Add(seen[name] is 1 ? name : $"{name} #{seen[name]}");
         }
 
-        return distinct;
+        return distinct.AsReadOnly();
     }
 }

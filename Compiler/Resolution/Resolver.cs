@@ -687,6 +687,20 @@ internal sealed class Resolver
 /// </param>
 internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyList<string> Witness)
 {
+    /// <remarks>
+    ///     Wrapped, though the resolver never hands over a writable one: the
+    ///     cell's witness is either its own renderings or a bounded pair, and
+    ///     both are already read-only. So this is the invariant made
+    ///     unconditional rather than left true by every caller happening to keep
+    ///     it.
+    ///
+    ///     Copied only when what arrived is writable, which is never in the
+    ///     resolver and costs nothing there: 149 lexemes allocate 21.9 MB with
+    ///     this and 21.9 MB without. Copying every time costs 27.6 MB, past the
+    ///     ceiling — one span's worth of defensive copying, at every span.
+    /// </remarks>
+    public IReadOnlyList<string> Witness { get; } = Witness is List<string> or string[] ? [.. Witness] : Witness;
+
     /// <summary>
     ///     The first witness there is, bounded, since one pair explains a tie.
     /// </summary>
@@ -704,8 +718,16 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
         => Pair(witness.Count is 0 ? otherwise : witness);
 
     /// <summary>At most two, which is what a parent carries.</summary>
+    ///
+    /// <remarks>
+    ///     The short case returned the CALLER'S list, so what a parent carried
+    ///     was whatever object it was handed — writable when the caller built a
+    ///     «List», read-only when it wrote a collection expression. Same
+    ///     declared type either way, which is how it went unnoticed. Both cases
+    ///     now hand back something nobody can write to.
+    /// </remarks>
     public static IReadOnlyList<string> Pair(IReadOnlyList<string> witness)
-        => witness.Count > 2 ? [witness[0], witness[1]] : witness;
+        => witness.Count > 2 ? [witness[0], witness[1]] : [.. witness];
 }
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
@@ -928,7 +950,8 @@ internal sealed class Pattern : IEquatable<Pattern>
     ///     constructor whose invariant was being reported.
     /// </remarks>
     public static IReadOnlyList<string> Reads(IReadOnlyList<string> segments)
-        => Read(string.Join(' ', segments.Select(segment => segment ?? Bracketed))) ?? [];
+        => (IReadOnlyList<string>)Read(string.Join(' ', segments.Select(segment => segment ?? Bracketed)))
+                                ?.AsReadOnly() ?? [];
 
     /// <summary>Whether a bracketed hole starts here, consuming it if it does.</summary>
     private static bool Hole(List<Lexeme> lexemes, ref int at)

@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using System.Reflection;
+using Test;
 using Finder = Ronin.Compiler.Sources;
 using System.IO;
 using Ronin.Compiler;
@@ -410,24 +411,27 @@ public class Admission
         Assert.Empty(writable);
     }
 
-    [Fact(DisplayName = "and nothing the compiler builds is writable behind its read-only type")]
-    public void AndNothingTheCompilerBuildsIsWritableBehindItsReadOnlyType()
+    /// <summary>
+    ///     Everything the compiler actually builds, and what each object hands
+    ///     back — returning the promises it opened, and naming those that were
+    ///     writable.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A hand-kept list of places to look was wrong twice. So this runs a
+    ///     compilation and a graph, reaches everything from them and from every
+    ///     static in the assembly, and asks each object. Nothing has to be
+    ///     remembered for a new type to be covered — but a walk only calls
+    ///     members that take no arguments, which is why what it opened is
+    ///     returned rather than assumed.
+    /// </remarks>
+    private static SortedSet<string> Walk(out SortedSet<string> writable)
     {
-        // Found by audit twice, and both times the TEST was the finding. First
-        // it examined the declared type, which cannot answer this. Then it
-        // examined the object — of six owner types written by hand, so
-        // «Injection», which publishes a process-wide language definition as the
-        // caller's own array, was simply not looked at.
-        //
-        // A hand-kept list of places to look is the thing that keeps being
-        // wrong. So this walks what the compiler ACTUALLY BUILDS: run a
-        // compilation and a graph, reach everything from them and from every
-        // static in the assembly, and ask each object what it hands back.
-        // Nothing has to be remembered for a new type to be covered.
         Graph graph = new();
         graph.Var("armed", false);
         graph.Let("copy", scope => scope.Read("armed"));
         graph.When("on armed", scope => scope.Read("armed"), _ => throw new InvalidOperationException("bug"));
+        graph.Chain("counting", (_ => true, _ => { }));
         graph.Prime();
         graph.Write("armed", true);
         graph.Step();
@@ -454,7 +458,9 @@ public class Admission
 
         HashSet<object> seen = new(ReferenceEqualityComparer.Instance);
         Queue<object> pending = new(roots);
-        SortedSet<string> writable = [];
+        SortedSet<string> opened = [];
+
+        writable = [];
 
         while (pending.Count is not 0)
         {
@@ -472,8 +478,11 @@ public class Admission
                 {
                     if (member.GetParameters().Length is not 0 || Promises(member.ReturnType) is false) continue;
 
-                    if (Writable(Held(() => member.Invoke(node, null))))
-                        writable.Add($"{type.Name}.{member.Name.Replace("get_", string.Empty)}");
+                    var name = $"{type.Name}.{member.Name.Replace("get_", string.Empty)}";
+
+                    opened.Add(name);
+
+                    if (Writable(Deeply(Held(() => member.Invoke(node, null))))) writable.Add(name);
                 }
 
                 for (var walk = type; walk?.Assembly == typeof(Graph).Assembly; walk = walk.BaseType)
@@ -486,51 +495,75 @@ public class Admission
                 }
             }
 
+            // A dictionary's VALUES, separately. Enumerating one yields
+            // «KeyValuePair», a framework struct whose fields this does not walk
+            // — so everything the graph keeps in a dictionary was invisible,
+            // and that is most of what the graph keeps.
+            if (node is System.Collections.IDictionary keyed)
+            {
+                foreach (var value in keyed.Values) pending.Enqueue(value);
+            }
+
             if (node is System.Collections.IEnumerable inside)
             {
                 foreach (var item in inside) pending.Enqueue(item);
             }
         }
 
-        Assert.Empty(writable);
-
-        // And the parameterised ones, which a walk cannot call for itself.
-        Assert.False(Writable(graph.Dependencies("copy")));
-        Assert.False(Writable(Injection.Shadow.Of(["x"])));
+        return opened;
     }
 
-    [Fact(DisplayName = "and every read-only promise in the compiler is one somebody decided on")]
-    public void AndEveryReadOnlyPromiseInTheCompilerIsOneSomebodyDecidedOn()
+    [Fact(DisplayName = "and every read-only promise is one something actually opened")]
+    public void AndEveryReadOnlyPromiseIsOneSomethingActuallyOpened()
     {
-        // The walk above covers whatever the pipeline reaches, which is not a
-        // guarantee that it reaches everything. So the promises are counted too:
-        // a member that newly says «IReadOnly…» fails here until somebody adds
-        // it, and adding it is the moment to confirm the walk gets there or to
-        // write a probe that does.
+        // Found by audit. The ledger this replaces listed all the promises and
+        // proved nothing about most of them: the walk only calls members that
+        // take no arguments, so a NAME in the list recorded that somebody had
+        // seen a declaration. Five members were writable while it was green.
         //
-        // Names only, and not shapes. This is a ledger of decisions, not a
-        // second description of the code.
-        var promising =
+        // Discovery is joined to execution here. Every promise must be one the
+        // walk reached or one a probe below opens, and the two together must be
+        // the whole reflection result — so a member cannot be acknowledged
+        // without being opened.
+        var opened = Walk(out var writable);
+
+        foreach (var (member, probe) in Probes)
+        {
+            if (Writable(Deeply(Held(probe)))) writable.Add(member);
+
+            opened.Add(member);
+        }
+
+        Assert.Empty(writable);
+
+        // «Deconstruct» is not discovered, and it is the one exclusion. A
+        // record's deconstructor hands out its positional properties, each of
+        // which is discovered on its own — measured rather than assumed, on the
+        // two records whose properties SHADOW their parameters, since those are
+        // the ones where it could have handed back the raw input instead.
+        var discovered =
             from owner in typeof(Graph).Assembly.GetTypes()
             from member in owner.GetMethods(BindingFlags.Public | BindingFlags.Instance
                                           | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            where member.Name is not "Deconstruct"
+
+               // «out» too. «TryOrder» promises a read-only order through one
+               // and returns a bool, so nothing that looked at return types
+               // ever saw it.
             where Promises(member.ReturnType)
+               || member.GetParameters()
+                        .Any(parameter => parameter.ParameterType.HasElementType
+                                       && Promises(parameter.ParameterType.GetElementType()))
             select $"{owner.Name}.{member.Name.Replace("get_", string.Empty)}";
 
-        Assert.Equal(
-            [
-                "Best.Either", "Best.Pair", "Best.Witness", "Body.Parameters", "Body.Statements",
-                "Builtin.Operators", "Call.Arguments", "Cascades.Cycles", "Compilation.Findings",
-                "Completion.After", "Declaration.Blocks", "Declarations.Problems", "Declared.Words",
-                "Discovered.Files", "Discovered.Unreadable", "Effects.Reads", "Effects.Writes",
-                "Finding.Related", "Glue.Reserved", "Glue.Shapes", "Graph.Dependencies",
-                "Graph.Faults", "Graph.Fired", "Graph.Trace", "Group.Parts", "Identifier.Canonical",
-                "Identifier.Shaped", "Initialisation.Cycles", "Injection.All", "Injection.Of",
-                "Injection.Words", "ManyWriters.Writers", "Pattern.Anchor", "Pattern.Pinned",
-                "Pattern.Reads", "Pattern.Segments", "Resolution.Readings", "Rules.Infix",
-                "Rules.Injected", "Split.Counts", "SymbolTable.Builtins", "Triggers.Distinct",
-            ],
-            promising.Distinct().Order());
+        // «Compilation.Body» is the one exclusion, and it is structural rather
+        // than a decision to skip something: a private record struct used as a
+        // local inside «Declare», never stored anywhere, and not a type anything
+        // outside «Compilation» can name. There is no instance to reach and no
+        // holder to keep one, so the promise it makes cannot be broken from
+        // outside the file that makes it.
+        Assert.Equal(discovered.Distinct().Order(),
+                     opened.Concat(["Body.Parameters", "Body.Statements"]).Order());
     }
 
     [Fact(DisplayName = "and one injected name cannot become two definitions again")]
@@ -572,6 +605,106 @@ public class Admission
         for (var at = 0; at < 1_000; ++at) _ = finding.Related;
 
         Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+    }
+
+    /// <summary>
+    ///     One opener for every promise the walk cannot reach by itself.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Parameterised members, and types the pipeline builds only as locals.
+    ///     Each is here because the test above will not pass without it: a
+    ///     promise that is neither walked nor opened here fails, so this table
+    ///     cannot quietly fall behind the code the way a list of names did.
+    /// </remarks>
+    private static readonly (string Member, Func<object> Open)[] Probes =
+    [
+        ("Best.Either", () => Best.Either(new List<string> { "one" }, new List<string> { "two" })),
+        ("Best.Pair", () => Best.Pair(new List<string> { "one", "two" })),
+        ("Best.Witness", () => new Best(1, null, 1, new List<string> { "one" }).Witness),
+        ("Builtin.Operators", () => Builtin.Operators),
+        ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
+        ("Cascades.Cycles", () => Cascades.Cycles(Ringed)),
+        ("Completion.After", () => new Completion(new SymbolTable().WithNames("total")).After(Lexemes.Lex("tot"))),
+        ("Declaration.Blocks", () => new Declaration(Pattern.Parse("twice _"), [["a"]], (_, _) => 1d).Blocks),
+        ("Declared.Words", () => new Declared("print job", default).Words),
+        ("Effects.Reads", () => Ringed["a"].Reads),
+        ("Effects.Writes", () => Ringed["a"].Writes),
+        ("Finding.Related", () => Twice.Findings[0].Related),
+        ("Glue.Reserved", () => Glue.Reserved([Pattern.Parse("send _ to _")])),
+        ("Glue.Shapes", () => Glue.Shapes),
+        ("Graph.Dependencies", () => Reading.Dependencies("copy")),
+        ("Group.Parts", () => new Node.Group(new List<Node> { new Node.Name("x") }).Parts),
+        ("Identifier.TryPattern", () => Blocks()),
+        ("Initialisation.Cycles", () => Initialisation.Cycles(Reads)),
+        ("Initialisation.TryOrder", () => Ordered()),
+        ("Injection.All", () => Injection.All),
+        ("Injection.Of", () => Injection.Shadow.Of(["x"])),
+        ("ManyWriters.Writers", () => new ManyWriters(default, "cash", new List<string> { "a" }).Writers),
+        ("Pattern.Reads", () => Pattern.Reads(["print", null])),
+        ("Rules.Infix", () => Rules.Infix),
+        ("Rules.Injected", () => Rules.Injected),
+        ("SymbolTable.Builtins", () => SymbolTable.Builtins),
+        ("Triggers.Distinct", () => Triggers.Distinct(["a", "a"])),
+    ];
+
+    /// <summary>Two whens that write what each other reads, which is a ring.</summary>
+    private static Dictionary<string, Effects> Ringed { get; } = new()
+    {
+        ["a"] = new Effects(new HashSet<string> { "b" }, new HashSet<string> { "b" }),
+        ["b"] = new Effects(new HashSet<string> { "a" }, new HashSet<string> { "a" }),
+    };
+
+    private static Dictionary<string, IReadOnlySet<string>> Reads { get; } = new()
+    {
+        ["a"] = new HashSet<string>(),
+        ["b"] = new HashSet<string> { "a" },
+    };
+
+    private static Compilation Twice { get; }
+        = Compilation.Of(new SourceText("var x = 1;\nvar x = 2;\n", "twice.ron"));
+
+    private static Graph Reading { get; } = Watching();
+
+    private static Graph Watching()
+    {
+        Graph graph = new();
+        graph.Var("source", 1d);
+        graph.Let("copy", scope => scope.Read("source"));
+        graph.Read("copy");
+
+        return graph;
+    }
+
+    private static object Ordered()
+    {
+        Initialisation.TryOrder(Reads, out var order);
+
+        return order;
+    }
+
+    private static object Blocks()
+        => AnalysisTests.Words("print job").TryPattern(out _, out var blocks) ? blocks : null;
+
+    /// <summary>The published thing, or the first thing inside it that is writable.</summary>
+    ///
+    /// <remarks>
+    ///     A result is published all the way down. The rings inside a cycle
+    ///     report were each the mutable list that built them while the
+    ///     collection holding them was read-only, so a check that looked only at
+    ///     the outer object said the answer was safe.
+    /// </remarks>
+    private static object Deeply(object handed)
+    {
+        if (Writable(handed) || handed is not System.Collections.IEnumerable inside || handed is string)
+            return handed;
+
+        foreach (var item in inside)
+        {
+            if (Deeply(item) is object found && Writable(found)) return found;
+        }
+
+        return handed;
     }
 
     /// <summary>Whether a member promises a collection nobody may write to.</summary>

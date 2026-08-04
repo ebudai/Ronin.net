@@ -45,7 +45,12 @@ internal readonly record struct Declared(string Name, Span Span, string Injected
     /// </remarks>
     public IReadOnlyList<string> Words
     {
-        get => words ?? Lexemes.Words(Name);
+        // The split gives an ARRAY, which reports «IsReadOnly» as true and still
+        // assigns through a cast, so it is copied. What «init» receives is not:
+        // every caller supplies «Injection.Of» or a canonical name, both already
+        // read-only, and a copy for a case nobody writes is a branch that has to
+        // be either covered by a fiction or excluded by an attribute.
+        get => words ?? [.. Lexemes.Words(Name)];
         init => words = value;
     }
 

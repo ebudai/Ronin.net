@@ -1690,7 +1690,7 @@ internal sealed class Graph
         ///     otherwise is how the superseded model keeps being read back out of
         ///     the code.
         /// </remarks>
-        public IReadOnlyList<string> Counts { get; } = counters;
+        public IReadOnlyList<string> Counts { get; } = [.. counters];
         public List<string> Reacting { get; } = [];
 
         /// <summary>The fewest runs pending at any point in this window.</summary>
