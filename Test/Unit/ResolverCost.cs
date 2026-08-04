@@ -225,28 +225,29 @@ public class ResolverCost
         Assert.Same(tied, Owned.Copy(tied));
         Assert.Equal(["«one»", "«two»"], tied);
     }
-    [Fact(DisplayName = "and it builds the readings once, not once into a list and again into a value")]
-    public void AndItBuildsTheReadingsOnceNotOnceIntoAListAndAgainIntoAValue()
+    [Fact(DisplayName = "and each producer builds its value once, in the cheapest shape that owns it")]
+    public void AndEachProducerBuildsItsValueOnceInTheCheapestShapeThatOwnsIt()
     {
-        // Found by audit, after I recorded the opposite. «Owned.Kept» proves the
-        // value it hands back owns its storage; it cannot prove no throwaway
-        // collection was built on the way. «Owned.Copy([.. …])» satisfies the
-        // type, returns an identical object, and costs twice as much:
+        // Found by audit twice over. «Owned.Kept» proves the value it hands back
+        // owns its storage; it cannot prove nothing was built on the way there,
+        // and three shapes all satisfy it:
         //
-        //     Owned.Of, directly             112 bytes per call
-        //     an ordinary collection first   224 bytes per call
+        //     Readings   mapped factory              64 bytes per call
+        //                «Select» into «Owned.Of»   112
+        //                ordinary collection, copy  224
         //
-        // I said no allocation guard could see this because the resolver's own
-        // work dwarfs it. That was true of a measurement through the resolver,
-        // and the producer stopped needing one when it was extracted — the same
-        // mistake as "unobservable" and "cannot be discriminated", which is now
-        // three, all of them a limit of the arrangement written down as a limit
-        // of the problem.
+        //     Pair       the two values              64
+        //                a collection holding them  128
+        //                «Take(2)»                  152
         //
-        // Two measurements in one process, so it is machine-independent: the
-        // producer against the shape it is supposed to have. A ratio and not a
-        // number, so it does not have to be edited when something unrelated
-        // moves.
+        // I compared two of each and picked the better, which is how a choice
+        // between two looks settled while the answer is neither. The baseline
+        // here is now the CHEAPEST shape rather than whichever one production
+        // happens to use — against the middle form as oracle, a regression to it
+        // would have passed.
+        //
+        // Two measurements in one process, so it is machine-independent, and a
+        // ratio rather than a number so unrelated movement does not edit it.
         static long Work(Func<object> make)
         {
             for (var at = 0; at < 200; ++at) make();
@@ -260,20 +261,17 @@ public class ResolverCost
 
         Node[] order = [new Node.Name("one"), new Node.Name("two")];
 
-        var readings = Work(() => Owned.Of(order.Select(node => node.ToString())));
+        var mapped = Work(() => Owned.Of(order, static node => node.ToString()));
 
-        Assert.True(Work(() => Best.Readings(order)) * 2 < readings * 3,
-                    $"«Owned.Of» allocates {readings} bytes where «Best.Readings» does not match it");
+        Assert.True(Work(() => Best.Readings(order)) * 2 < mapped * 3,
+                    $"the mapped factory allocates {mapped} bytes and «Best.Readings» does not match it");
 
-        // «Best.Pair» has no assertion here, and sabotaging it is how that was
-        // settled rather than by symmetry. Building the pair directly costs 128
-        // bytes and «Owned.Of(witness.Take(2))» costs 152, so the shape this
-        // test exists to refuse is the CHEAPER one there — the iterator costs
-        // more than the array it saves. «Pair» takes the direct form now, and a
-        // guard would have been protecting the wrong side.
-        //
-        // Which is the point worth keeping: it is per-producer and measured. A
-        // rule of thumb that ordinary-then-owned is always worse would have made
-        // one of these two wrong.
+        // «Pair» has one too now. It had none, and the round that changed it
+        // recorded its measurements without asserting anything about them.
+        var witness = Owned.Copy<string>(["one", "two", "three"]);
+        var elements = Work(() => Owned.Of(witness[0], witness[1]));
+
+        Assert.True(Work(() => Best.Pair(witness)) * 2 < elements * 3,
+                    $"the element factory allocates {elements} bytes and «Best.Pair» does not match it");
     }
 }

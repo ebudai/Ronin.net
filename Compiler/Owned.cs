@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,27 +42,33 @@ internal static class Owned
          : values.Count is 0 ? Kept<T>.Empty
          : Kept<T>.Of(values);
 
+    /// <summary>An owned list of exactly two, for a producer that has both.</summary>
+    ///
+    /// <remarks>
+    ///     The VALUES and not a collection of them, which is what makes this
+    ///     safe as well as cheap: the storage is made here, so no caller can be
+    ///     holding it. A producer that already knew its two elements had to
+    ///     manufacture something enumerable to say so, and that intermediate was
+    ///     half the cost of the call.
+    ///
+    ///     A sequence overload was here for the producer that maps, and went
+    ///     when the mapping moved inside. An «Of» nobody calls is a door with no
+    ///     traffic and no test.
+    /// </remarks>
+    public static Kept<T> Of<T>(T first, T second) => Kept<T>.Of(first, second);
+
     /// <summary>
-    ///     An owned list of <paramref name="values"/>, for a producer that is
-    ///     building one rather than handing one over.
+    ///     An owned list of what <paramref name="select"/> makes of each of
+    ///     <paramref name="values"/>.
     /// </summary>
     ///
     /// <remarks>
-    ///     A SEQUENCE and not an array, so the storage is made here and no
-    ///     caller can be holding it. The alternative — a factory taking an array
-    ///     the caller just built — is the same promise-by-convention this class
-    ///     exists to stop being, one call frame further out.
-    ///
-    ///     This is what «Copy» is for after: a producer that builds through this
-    ///     is copied once, where building an ordinary list and letting the
-    ///     consumer copy it pays again at every consumer it passes through.
-    ///
-    ///     No empty case, unlike «Copy». A producer calls this because it is
-    ///     building something, and both that do are already past the test that
-    ///     says there is more than one of it — an empty branch here would be one
-    ///     nothing reaches.
+    ///     The mapping happens INSIDE, so the final array is filled in place and
+    ///     there is no iterator between the source and the storage. A producer
+    ///     mapping an indexable input through «Select» paid for one either way.
     /// </remarks>
-    public static Kept<T> Of<T>(IEnumerable<T> values) => Kept<T>.Of(values);
+    public static Kept<T> Of<TSource, T>(IReadOnlyList<TSource> values, Func<TSource, T> select)
+        => Kept<T>.Of(values, select);
 
     /// <summary>The empty owned list, which is shared.</summary>
     ///
@@ -93,6 +100,17 @@ internal static class Owned
         ///     keeps, it is the only thing this can be.
         /// </remarks>
         internal static Kept<T> Of(IEnumerable<T> values) => new([.. values]);
+
+        internal static Kept<T> Of(T first, T second) => new([first, second]);
+
+        internal static Kept<T> Of<TSource>(IReadOnlyList<TSource> values, Func<TSource, T> select)
+        {
+            var made = new T[values.Count];
+
+            for (var at = 0; at < made.Length; ++at) made[at] = select(values[at]);
+
+            return new(made);
+        }
 
         internal static Kept<T> Empty { get; } = Of([]);
 

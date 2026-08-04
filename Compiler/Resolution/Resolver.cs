@@ -742,8 +742,8 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     downstream can tell them apart. A producer whose only witness is a
     ///     112-byte difference needs somewhere a test can stand.
     /// </remarks>
-    public static Owned.Kept<string> Readings(IEnumerable<Node> order)
-        => Owned.Of(order.Select(node => node.ToString()));
+    public static Owned.Kept<string> Readings(IReadOnlyList<Node> order)
+        => Owned.Of(order, static node => node.ToString());
 
     /// <summary>At most two, which is what a parent carries.</summary>
     ///
@@ -758,13 +758,15 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     ///     again. A witness travelling up through brackets was copied once per
     ///     level before this.
     ///
-    ///     Two elements and not «Take(2)»: the iterator costs more than the
-    ///     array it saves, 152 bytes a call against 128. Measured, because the
-    ///     shape that is cheaper in «Readings» is the more expensive one here
-    ///     and no rule of thumb tells them apart.
+    ///     The two VALUES, and not a collection holding them. Three shapes
+    ///     were measured before this one: «Take(2)» at 152 bytes a call, a
+    ///     collection expression at 128, and handing over the elements
+    ///     themselves at 64. The first comparison stopped at the second, which
+    ///     is how a choice between two can look settled while the answer is
+    ///     neither.
     /// </remarks>
     public static Owned.Kept<string> Pair(IReadOnlyList<string> witness)
-        => witness.Count > 2 ? Owned.Of<string>([witness[0], witness[1]]) : Owned.Copy(witness);
+        => witness.Count > 2 ? Owned.Of(witness[0], witness[1]) : Owned.Copy(witness);
 }
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
