@@ -18,6 +18,31 @@
     <NoWarn>1701;1702;S1135;S1125;S3267;S3218;S1168;S907;S1125</NoWarn>
   </PropertyGroup>
 
+  <!--
+    Documentation. CS1570 is malformed XML and is an ERROR, because it is a real
+    defect that was invisible: the maintained build generated no documentation
+    file, so nothing ever read the comments and two broken nests sat there until
+    an audit went looking with a flag nobody uses.
+
+    The rest are suppressed for now and are their own cleanup, listed with what
+    they cost today so the size of that job is written down rather than
+    rediscovered:
+
+      1591  missing XML comment for a visible member   1526
+      1573  a parameter with no matching param tag       44
+      1574  a cref that does not resolve                  8
+      1734  a param name that matches no parameter        6
+       419  an ambiguous cref                             4
+
+    1574, 1734 and 419 are wrong references rather than absent ones, so they are
+    the half of that list worth doing first.
+  -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591;1573;1574;1734;419</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);1570</WarningsAsErrors>
+  </PropertyGroup>
+
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Ronin.Test</_Parameter1>
