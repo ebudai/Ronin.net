@@ -606,9 +606,7 @@ internal sealed class Resolver
         ///     witness travelled up with the derivation that carried the count.
         /// </remarks>
         private IReadOnlyList<string> Witness
-            => order.Count > 1
-             ? Owned.Of(order.Select(node => node.ToString()))
-             : witnesses[order[0].ToString()];
+            => order.Count > 1 ? Best.Readings(order) : witnesses[order[0].ToString()];
 
         // Keyed by rendering rather than by node: two derivations that read the
         // same way ARE the same reading, and counting them separately would
@@ -718,6 +716,22 @@ internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyL
     /// </remarks>
     public static IReadOnlyList<string> Either(IReadOnlyList<string> witness, IReadOnlyList<string> otherwise)
         => Pair(witness.Count is 0 ? otherwise : witness);
+
+    /// <summary>
+    ///     A cell's own tied readings, owned where they are made.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     NAMED, and not left inline in the cell that calls it. It was one
+    ///     expression inside a private nested type, so nothing could reach it —
+    ///     reverting it to an ordinary collection left every test green,
+    ///     including the one written to protect exactly this, because «Best»
+    ///     owns whatever it is handed and repairs both cases before anything
+    ///     downstream can tell them apart. A producer whose only witness is a
+    ///     112-byte difference needs somewhere a test can stand.
+    /// </remarks>
+    public static IReadOnlyList<string> Readings(IEnumerable<Node> order)
+        => Owned.Of(order.Select(node => node.ToString()));
 
     /// <summary>At most two, which is what a parent carries.</summary>
     ///

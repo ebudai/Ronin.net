@@ -193,18 +193,31 @@ public class ResolverCost
         // where "the same object came out" fails the moment a producer stops
         // owning what it builds. The numbers are here because they are why.
         //
-        // This pins ONE of the two producers. The cell's own tie builds its
-        // witness through «Owned.Of» as well, and that change cannot be
-        // discriminated from outside: «Best» owns whatever it is handed, so the
-        // downstream value is identical either way, and the cost is one copy per
-        // TIE rather than per level — a flat 112 bytes at bracket depth 4, 8, 12
-        // and 16 alike. Measured, not assumed, and recorded here because a
-        // reader would otherwise expect this test to cover it.
+        // BOTH producers, now that the other one has somewhere to be tested
+        // from. Saying it could not be discriminated was true of the factoring
+        // and not of the code: the cell's tie was one expression inside a
+        // private nested type, so reverting it left every test green — «Best»
+        // owns whatever it is handed and repairs both cases before anything
+        // downstream can tell them apart.
         var made = Best.Pair(new List<string> { "one", "two", "three" });
 
         Assert.Same(made, Owned.Copy(made));
         Assert.Same(made, Best.Pair(made));
         Assert.Same(made, Best.Either([], made));
         Assert.Same(made, new Best(1, null, 2, made).Witness);
+
+        // The other producer, asserted where it produces rather than after
+        // «Best» has normalised it. A 112-byte difference per tie is not
+        // something a ceiling can see, and this is exact.
+        //
+        // What it pins is the PRODUCER. A cell that stopped calling it and
+        // inlined the collection expression again would still pass — that is
+        // what extracting a helper can and cannot do, and no test downstream can
+        // close it, because «Best» owns whatever it is handed and the two cases
+        // are identical from there on.
+        var tied = Best.Readings([new Node.Name("one"), new Node.Name("two")]);
+
+        Assert.Same(tied, Owned.Copy(tied));
+        Assert.Equal(["«one»", "«two»"], tied);
     }
 }

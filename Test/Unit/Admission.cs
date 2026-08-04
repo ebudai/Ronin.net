@@ -722,6 +722,7 @@ public class Admission
     [
         ("Best.Either", () => Best.Either(new List<string> { "one" }, new List<string> { "two" })),
         ("Best.Pair", () => Best.Pair(new List<string> { "one", "two" })),
+        ("Best.Readings", () => Best.Readings([new Node.Name("one"), new Node.Name("two")])),
         ("Best.Witness", () => new Best(1, null, 1, new List<string> { "one" }).Witness),
         ("Builtin.Operators", () => Builtin.Operators),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
