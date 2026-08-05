@@ -87,7 +87,15 @@ internal static class Glue
     /// </remarks>
     public static string Registry(IEnumerable<Pattern> patterns)
     {
-        var declared = patterns.OrderBy(pattern => pattern.ToString(), System.StringComparer.Ordinal).ToArray();
+        // SOUND ones only, and by the same predicate the diagnostics use. This
+        // built its tables from everything it was handed, so a pattern refused
+        // for an operator word still had its refinement printed here — under a
+        // header saying these are the patterns in scope and that adding a line
+        // is a breaking change. It cannot enter the language, so it reserves
+        // nothing, and a safety report that says otherwise is worse than none.
+        var declared = patterns.Where(Rules.Sound)
+                               .OrderBy(pattern => pattern.ToString(), System.StringComparer.Ordinal)
+                               .ToArray();
         var reserved = Reserved(declared);
 
         StringBuilder registry = new();

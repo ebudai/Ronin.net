@@ -102,7 +102,7 @@ internal static class Rules
         // them and only one of them obeyed it, so an invalid pattern went on
         // reserving prefixes through R6b and refinements through R7 — the same
         // amplification, by a different door.
-        var sound = patterns.Where(shape => Structural(shape.Pattern) is false).ToArray();
+        var sound = patterns.Where(shape => Sound(shape.Pattern)).ToArray();
 
         // What a pattern is wrong about IN ITSELF, asked of all of them: these
         // are the findings that make a pattern unsound, so filtering their input
@@ -170,6 +170,20 @@ internal static class Rules
             yield return new ReservedSegment(span, pattern.ToString(), SymbolTable.Old);
         }
     }
+
+    /// <summary>
+    ///     Whether a pattern is legal in itself, and so allowed to reserve
+    ///     anything against anyone.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     PUBLIC because the registry has to ask it too. The predicate was
+    ///     private here while «Glue.Registry» built its tables from every
+    ///     pattern it was given, so the generated file could publish a
+    ///     reservation from a pattern the compiler refuses to admit — a
+    ///     breaking-change report about a relationship that cannot exist.
+    /// </remarks>
+    public static bool Sound(Pattern pattern) => Structural(pattern) is false;
 
     /// <summary>
     ///     Whether a pattern is wrong in itself, rather than in company. One of

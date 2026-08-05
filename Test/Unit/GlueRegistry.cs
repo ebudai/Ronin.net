@@ -174,4 +174,31 @@ public class GlueRegistry
         Assert.Contains("## RESERVES A NAME PREFIX BY REFINING (1)", registry);
         Assert.Contains("all          send (_) to all (_) is send (_) to (_) with it at a hole", registry);
     }
+
+    [Fact(DisplayName = "and a pattern the compiler refuses reserves nothing here either")]
+    public void AndAPatternTheCompilerRefusesReservesNothingHereEither()
+    {
+        // Found by audit. This file's header says these are the patterns in
+        // scope and that adding a line is a breaking change — so a reservation
+        // from a pattern that cannot enter the language is worse than no report
+        // at all. «send (_) to otherwise (_)» uses an operator word and is
+        // refused; it reserved «otherwise» here anyway, because soundness was a
+        // predicate private to the rules while this built its tables from
+        // everything it was handed.
+        //
+        // BOTH SIDES asserted, because the point is that they agree: one
+        // structural finding from validation, and nothing claimed here.
+        Pattern[] patterns = [Pattern.Parse("send _ to _"), Pattern.Parse("send _ to otherwise _")];
+
+        var findings = Compilation.Of(new SourceText(
+            "var otherwise things => Number;\n"
+          + "function send (x => Number) to (y => Number) { return x; }\n"
+          + "function send (x => Number) to otherwise (y => Number) { return x; }\n",
+            "Player.ron")).Findings;
+
+        Assert.Equal(nameof(InfixInPattern), Assert.Single(findings).GetType().Name);
+
+        Assert.Contains("## RESERVES A NAME PREFIX BY REFINING (0)", Glue.Registry(patterns));
+        Assert.DoesNotContain("otherwise    send", Glue.Registry(patterns));
+    }
 }
