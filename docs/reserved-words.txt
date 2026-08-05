@@ -23,6 +23,9 @@
 ## RESERVES A NAME PREFIX (0) — no name may begin with these words
 
 
+## RESERVES A NAME PREFIX BY REFINING (0) — no name may begin with these
+
+
 ## PROTECTED (3) — no pattern may use these as glue
 
     old          builds old «a name», and is refused in any segment, not only glue

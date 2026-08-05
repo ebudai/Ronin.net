@@ -217,7 +217,7 @@ public class Findings
             Player.ron:2:10: «hello to alice» contains «to», which is glue in «send (_) to (_)». A name containing glue silently re-reads statements that already worked, so one of the two has to be respelled — and it is the later declaration that gives way.
                 Player.ron:1:5: the name it collides with
 
-            Player.ron:2:10: «smoothed» is made only of words «apply (_) smoothed (_)» uses to separate its parts, so it can sit in a hole beside the very literal it is glue for and a call has two readings at the same cost. Respell it — and it is the later declaration that gives way.
+            Player.ron:2:10: «smoothed» is made only of words «apply (_) smoothed (_)» uses to separate its parts. Names like that can sit in a hole beside the very literal they are glue for, and once two of them exist a call has two readings at the same cost with no bracketing between them. Refused as a class, because by the second one there is nothing left to point at. Respell it.
                 Player.ron:1:5: the name it collides with
 
             Player.ron:1:5: «total otherwise zero» has «otherwise» inside it, which the language reads as an operator between two values. A name spanning one is cheaper than the expression it covers, so every «… otherwise …» already written would quietly become this name instead. Respell it.
@@ -245,7 +245,7 @@ public class Findings
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
 
-            Player.ron:4:10: «all things» cannot be declared: «send (_) to all (_)» is «send (_) to (_)» with «all» at the start of its hole, so «all things» can stand where «all» and a name should be and the two readings cost the same. Respell it, or drop one of the two patterns.
+            Player.ron:4:10: «send (_) to all (_)» cannot be declared while «all things» is: the second pattern is the first with «all» at the start of a hole, so a call written for it also reads as «send (_) to (_)» with «all things» as that argument — for no more than the intended reading costs, and sometimes for less, in which case nothing reports it. Respell the pattern, or the name.
                 Player.ron:2:5: the name that would absorb it
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.

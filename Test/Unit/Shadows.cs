@@ -305,4 +305,48 @@ public class Shadows
 
         Assert.Equal(refines, findings.OfType<NameAbsorbsRefinement>().Any());
     }
+
+    [Fact(DisplayName = "validating a scope derives the pattern relation once, not once per name")]
+    public void ValidatingAScopeDerivesThePatternRelationOnceNotOncePerName()
+    {
+        // Found by audit. R7b recomputed the relation for every name against
+        // every ordered pair of patterns — cubic in a scope, with LINQ slices
+        // allocating on every comparison that failed. Fifty names and fifty
+        // patterns took 360 ms and 140 MB to report nothing at all.
+        //
+        // The relation depends only on the pattern table, so it is derived once
+        // and indexed by the word it reserves. Adding names then costs what
+        // reading them costs.
+        //
+        // TIME, and reluctantly. The allocation this round removed was the LINQ
+        // half; what is left of the cubic shape is work rather than garbage, and
+        // total allocation is dominated by the other rules, which scale with
+        // names too — 165 KB to 7.9 MB either way, so it cannot see this at all.
+        // Patterns are held FIXED and only the names grow, which is what makes
+        // the two shapes separate at all:
+        //
+        //     derived once      1.5 ms -> 14.3 ms      9.5x
+        //     derived per name  1.3 ms -> 78.3 ms       60x
+        //
+        // The bound sits between them with about two and a half times the margin
+        // on each side.
+        static double Work(int names)
+        {
+            Shape[] patterns = [.. Enumerable.Range(0, 150).Select(n => Shape($"p{n} _ q{n} _"))];
+            Declared[] declared = [.. Enumerable.Range(0, names).Select(n => Declares($"alpha{n} beta{n}"))];
+
+            for (var warm = 0; warm < 3; ++warm) Rules.Validate(declared, patterns).ToArray();
+
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            Assert.Empty(Rules.Validate(declared, patterns));
+
+            return watch.Elapsed.TotalMilliseconds;
+        }
+
+        var one = Work(1);
+        var many = Work(150);
+
+        Assert.True(many < one * 25, $"one name took {one:F1} ms and 150 took {many:F1} ms");
+    }
 }

@@ -156,4 +156,22 @@ public class GlueRegistry
 
         Assert.Equal("(_) rounded", Assert.IsType<LeadingHole>(finding).Pattern);
     }
+
+    [Fact(DisplayName = "and a pattern refined by another reserves that word as a name prefix")]
+    public void AndAPatternRefinedByAnotherReservesThatWordAsANamePrefix()
+    {
+        // Found by audit. R7b was a relationship computed privately inside one
+        // rule, so the generated file that says what the language reserves could
+        // not see it — and told a reader that «all» is ordinary glue, free at an
+        // edge, while validation refused every name beginning with it. The file
+        // said the opposite of the rule.
+        //
+        // A SYNTHETIC pair, because the builtin table has one pattern and one
+        // pattern makes no pair. The checked-in file stays the change detector
+        // for what the language actually ships.
+        var registry = Glue.Registry([Pattern.Parse("send _ to _"), Pattern.Parse("send _ to all _")]);
+
+        Assert.Contains("## RESERVES A NAME PREFIX BY REFINING (1)", registry);
+        Assert.Contains("all          send (_) to all (_) is send (_) to (_) with it at a hole", registry);
+    }
 }

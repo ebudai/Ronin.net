@@ -317,11 +317,51 @@ public class NameShadowing
 
     [Fact(DisplayName = "and inserting at the first hole is R6's, not this")]
     public void AndInsertingAtTheFirstHoleIsR6sNotThis()
-        // «sum of all (_)» refines «sum of (_)» the same way, and one anchor run
-        // then begins the other — so the pattern pair is refused before a name
-        // is looked at. What is left for R7b is insertion at a LATER hole, where
+    {
+        // «sum all (_)» refines «sum (_)» the same way, and one anchor run then
+        // begins the other — so the pattern pair is refused before a name is
+        // looked at. What is left for R7b is insertion at a LATER hole, where
         // the anchors are equal and R6 has nothing to say.
-        => Assert.Equal(FindingKind.AnchorPrefix,
-                        Only("function sum of (x => Number) { return x; }\n"
-                           + "function sum of all (x => Number) { return x; }\n").Kind);
+        //
+        // WITH A NAME in scope, which is what the audit found missing: this
+        // asserted on the patterns alone, so R7b firing as well was invisible.
+        // One structural mistake grew into one finding per name beginning
+        // «all», every one of them with the same repair — fix the pattern pair.
+        var findings = Compilation.Of(new SourceText(
+            "var all things => Number;\n"
+          + "function sum (x => Number) { return x; }\n"
+          + "function sum all (x => Number) { return x; }\n",
+            "Player.ron")).Findings;
+
+        Assert.Equal(FindingKind.AnchorPrefix, Assert.Single(findings).Kind);
+    }
+
+    [Fact(DisplayName = "and the repair asks for whichever declaration the caret is on")]
+    public void AndTheRepairAsksForWhicheverDeclarationTheCaretIsOn()
+    {
+        // Found by audit. The sentence said «all things» cannot be declared
+        // whichever declaration was later, so a caret on the PATTERN arrived
+        // with a message blaming the name — sending someone to change the
+        // earlier of the two, against the convention every other rule follows.
+        const string patterns = "function send (x => Number) to (y => Number) { return x; }\n"
+                              + "function send (x => Number) to all (y => Number) { return x; }\n";
+
+        const string names = "var things => Number;\nvar all things => Number;\n";
+
+        Assert.Contains("«send (_) to all (_)» cannot be declared while «all things» is",
+                        Only(names + patterns).Message);
+
+        Assert.Contains("«all things» cannot be declared while", Only(patterns + names).Message);
+    }
+
+    [Fact(DisplayName = "and it does not claim the two readings cost the same")]
+    public void AndItDoesNotClaimTheTwoReadingsCostTheSame()
+        // They do when the remainder is a name and they do not when it is a
+        // call — where the absorbing reading is CHEAPER and wins outright. The
+        // message said "the same" unconditionally, denying the stronger of the
+        // two reasons the rule exists, and no test rendered it.
+        => Assert.Contains("for no more than the intended reading costs, and sometimes for less",
+                           Only("var things => Number;\nvar all things => Number;\n"
+                              + "function send (x => Number) to (y => Number) { return x; }\n"
+                              + "function send (x => Number) to all (y => Number) { return x; }\n").Message);
 }

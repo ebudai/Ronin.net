@@ -172,6 +172,57 @@ internal sealed class Shadowed(Span primary, string name, string where)
 }
 
 /// <summary>
+///     R7b. A name beginning with the word that distinguishes one pattern from
+///     a shorter one, where the rest of it is a name too.
+/// </summary>
+internal sealed class NameAbsorbsRefinement(Span primary,
+                                            string name,
+                                            string word,
+                                            string refined,
+                                            string refining,
+                                            bool blamed)
+    : Finding(FindingKind.NameAbsorbsRefinement, primary)
+{
+    public string Name { get; } = name;
+    public string Word { get; } = word;
+    public string Refined { get; } = refined;
+    public string Refining { get; } = refining;
+
+    /// <summary>Whether the NAME is the later declaration, and so the one asked to give way.</summary>
+    public bool Blamed { get; } = blamed;
+
+    /// <remarks>
+    ///     <para>
+    ///     The CAUSE and not the rule. Two patterns and the word between them is
+    ///     what a reader can act on, where "R7b" is for us — and it says which
+    ///     pair to look at when more than one rule fires on one name, which a
+    ///     rule name actively hides.
+    ///     </para>
+    ///     <para>
+    ///     The repair follows the CARET. This said "«all things» cannot be
+    ///     declared" whichever declaration was later, so a caret on the pattern
+    ///     came with a sentence blaming the name — sending someone to change the
+    ///     earlier of the two, against the convention every other rule here
+    ///     follows.
+    ///     </para>
+    ///     <para>
+    ///     And it claimed the readings cost the SAME. They do when the remainder
+    ///     is a name; when it is a call the absorbing reading is cheaper and
+    ///     wins outright, which is the stronger reason this rule is blanket and
+    ///     the one the sentence used to deny.
+    ///     </para>
+    /// </remarks>
+    public override string Message
+        => (Blamed
+                ? $"«{Name}» cannot be declared while «{Refined}» and «{Refining}» are: "
+                : $"«{Refining}» cannot be declared while «{Name}» is: ")
+         + $"the second pattern is the first with «{Word}» at the start of a hole, so a call written for "
+         + $"it also reads as «{Refined}» with «{Name}» as that argument — for no more than the intended "
+         + "reading costs, and sometimes for less, in which case nothing reports it. "
+         + (Blamed ? "Respell the name, or drop one of the two patterns." : "Respell the pattern, or the name.");
+}
+
+/// <summary>
 ///     A name beginning with every word of a pattern, which swallows its call.
 /// </summary>
 ///
@@ -187,30 +238,6 @@ internal sealed class Shadowed(Span primary, string name, string where)
 ///     also why it is the anchor-only shapes that the registry has to warn about.
 ///     </para>
 /// </remarks>
-/// <summary>
-///     R7b. A name beginning with the word that distinguishes one pattern from
-///     a shorter one, where the rest of it is a name too.
-/// </summary>
-internal sealed class NameAbsorbsRefinement(Span primary, string name, string word, string refined, string refining)
-    : Finding(FindingKind.NameAbsorbsRefinement, primary)
-{
-    public string Name { get; } = name;
-    public string Word { get; } = word;
-    public string Refined { get; } = refined;
-    public string Refining { get; } = refining;
-
-    /// <remarks>
-    ///     The CAUSE and not the rule. Two patterns and the word between them is
-    ///     what a reader can act on, where "R7b" is for us — and it says which
-    ///     pair to look at when more than one rule fires on one name, which a
-    ///     rule name actively hides.
-    /// </remarks>
-    public override string Message
-        => $"«{Name}» cannot be declared: «{Refining}» is «{Refined}» with «{Word}» at the start of its " +
-           $"hole, so «{Name}» can stand where «{Word}» and a name should be and the two readings cost " +
-           "the same. Respell it, or drop one of the two patterns.";
-}
-
 internal sealed class NameShadowsPattern(Span primary, string name, string pattern)
     : Finding(FindingKind.NameShadowsPattern, primary)
 {
@@ -361,18 +388,25 @@ internal sealed class GlueInName(Span primary, string name, string word, string 
 }
 
 /// <summary>
-///     A name that is exactly a word some pattern uses as glue.
+///     A name made only of words some pattern uses as glue, of any length.
 /// </summary>
 ///
 /// <remarks>
-///     Legibility rather than safety, and it matters which: a single-word name
-///     cannot capture anything, because capture needs a multi-word name
-///     straddling a hole and that is what <see cref="GlueInName"/> governs. «for
-///     each bank in in» resolves uniquely. So this rule is here to stop a reader
-///     meeting «in» as a variable in a language where «in» separates a loop
-///     header — and being a legibility rule is exactly why it is enforced at the
-///     declaration, where the message can name the pattern responsible, rather
-///     than in the lexer, where it would be untyped, unscoped and permanent.
+///     <para>
+///     A CLASS is refused here, not a demonstrated ambiguity, and the two
+///     arities differ in which. Declaring «to» beside «send (_) to (_)» changes
+///     the reading of nothing — measured, zero of thirty-four statements — so
+///     one all-glue name is harmless on its own. Declaring «to to» as well makes
+///     «send to to to to» two readings at the same cost, and by then the second
+///     declaration is the one refused, with the first perfectly innocent and
+///     nothing to point at.
+///     </para>
+///     <para>
+///     So the rule refuses the class rather than waiting for the pair, and the
+///     message has to say that rather than claim this declaration already broke
+///     something. It did not, and telling someone it did is a diagnostic that
+///     cannot be checked against the program in front of them.
+///     </para>
 /// </remarks>
 internal sealed class GlueAsName(Span primary, string name, string pattern)
     : Finding(FindingKind.GlueAsName, primary)
@@ -381,16 +415,16 @@ internal sealed class GlueAsName(Span primary, string name, string pattern)
     public string Pattern { get; } = pattern;
 
     /// <remarks>
-    ///     A CAPTURE reason and not a legibility one. This was "a name that
-    ///     doubles as punctuation has to be read twice", which is a style
-    ///     complaint — and it left the two-word all-glue case admitted, with the
-    ///     statement unwritable and no rule pointing at why. It is the one-word
-    ///     arity of the same rule, so it gives the same reason.
+    ///     What the CLASS permits, not what this declaration did. It said a call
+    ///     "has two readings at the same cost", which is false for a one-word
+    ///     name and provably so — the maintained resolver test beside it shows
+    ///     the call still resolving until a second all-glue name exists.
     /// </remarks>
     public override string Message
-        => $"«{Name}» is made only of words «{Pattern}» uses to separate its parts, so it can sit in " +
-           "a hole beside the very literal it is glue for and a call has two readings at the same " +
-           "cost. Respell it — and it is the later declaration that gives way.";
+        => $"«{Name}» is made only of words «{Pattern}» uses to separate its parts. Names like that can " +
+           "sit in a hole beside the very literal they are glue for, and once two of them exist a call " +
+           "has two readings at the same cost with no bracketing between them. Refused as a class, " +
+           "because by the second one there is nothing left to point at. Respell it.";
 }
 
 /// <summary>A ring of whens, each writing something the next reads.</summary>

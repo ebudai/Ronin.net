@@ -55,18 +55,6 @@ internal static class Glue
                        .ThenBy(entry => entry.Pattern, System.StringComparer.Ordinal)];
 
     /// <summary>
-    ///     The registry, as a file to check in and diff.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     Patterns that reserve nothing are listed too, and deliberately: the
-    ///     shape to prefer is only visible beside the shape that costs something.
-    ///     The heading says «determinate», not «all words precede the first hole»,
-    ///     because the second is the common case and not the condition — «for each
-    ///     (_) in (_)» has a word after a hole and still reserves nothing, since
-    ///     the hole it follows is PINNED and so cannot grow over it.
-    /// </remarks>
-    /// <summary>
     ///     Every shape the compiler builds a name out of, and what causes it.
     /// </summary>
     ///
@@ -85,6 +73,18 @@ internal static class Glue
     public static IReadOnlyList<(string Shape, string Cause)> Shapes { get; } =
         [.. Injection.All.Select(injection => (injection.Shape, injection.Cause))];
 
+    /// <summary>
+    ///     The registry, as a file to check in and diff.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Patterns that reserve nothing are listed too, and deliberately: the
+    ///     shape to prefer is only visible beside the shape that costs something.
+    ///     The heading says «determinate», not «all words precede the first hole»,
+    ///     because the second is the common case and not the condition — «for each
+    ///     (_) in (_)» has a word after a hole and still reserves nothing, since
+    ///     the hole it follows is PINNED and so cannot grow over it.
+    /// </remarks>
     public static string Registry(IEnumerable<Pattern> patterns)
     {
         var declared = patterns.OrderBy(pattern => pattern.ToString(), System.StringComparer.Ordinal).ToArray();
@@ -145,6 +145,23 @@ internal static class Glue
         foreach (var pattern in anchored)
         {
             registry.AppendLine($"    {string.Join(" ", pattern.Anchor),-12} from {pattern}");
+        }
+
+        // R7b, and it belongs in this section rather than a third one: what it
+        // reserves is a name PREFIX, the same thing R6b reserves, differing only
+        // in what makes it reserved. It was computed privately inside one rule
+        // and so could not be printed at all — leaving this file telling a
+        // reader that «all» is ordinary glue and free at an edge, while
+        // validation refused every name beginning with it.
+        var refining = Rules.Refinements([.. declared.Select(pattern => new Shape(pattern, default))]);
+
+        registry.AppendLine();
+        registry.AppendLine($"## RESERVES A NAME PREFIX BY REFINING ({refining.Count}) — no name may begin with these");
+        registry.AppendLine();
+
+        foreach (var (word, shorter, longer) in refining)
+        {
+            registry.AppendLine($"    {word,-12} {longer.Pattern} is {shorter.Pattern} with it at a hole");
         }
 
         // The dual list. Glue words may not be names; injection words may not be

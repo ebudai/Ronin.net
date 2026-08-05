@@ -61,6 +61,12 @@ internal readonly record struct Declared(string Name, Span Span, string Injected
 internal readonly record struct Shape(Pattern Pattern, Span Span, bool Inherited = false);
 
 /// <summary>
+///     One pattern being another with <paramref name="Word"/> and possibly more
+///     words at the start of a hole, which reserves that word as a name prefix.
+/// </summary>
+internal readonly record struct Refinement(string Word, Shape Shorter, Shape Longer);
+
+/// <summary>
 ///     The scope-wide rules, checked over what was declared rather than over the
 ///     table the resolver probes.
 /// </summary>
@@ -293,35 +299,84 @@ internal static class Rules
     private static IEnumerable<Finding> Refining(IReadOnlyCollection<Declared> names,
                                                  IReadOnlyCollection<Shape> patterns)
     {
+        // Derived ONCE and indexed by the word it reserves. It was recomputed
+        // for every name against every ordered pair of patterns, which is cubic
+        // in a scope and allocates on every comparison that fails — fifty names
+        // and fifty patterns took 360 ms and 140 MB to report nothing at all.
+        // The relation depends only on the pattern table, so a name has no
+        // business being in the loop that computes it.
+        var reserved = Refinements(patterns).ToLookup(refinement => refinement.Word, System.StringComparer.Ordinal);
+
         foreach (var name in names.OrderBy(name => name.Name, System.StringComparer.Ordinal))
         {
             if (name.InjectedBy is not null) continue;
             if (name.Words.Count < 2) continue;
 
-            foreach (var shorter in patterns)
+            foreach (var (word, shorter, longer) in reserved[name.Words[0]])
             {
-                foreach (var longer in patterns)
-                {
-                    if (Refines(shorter.Pattern, longer.Pattern) != name.Words[0]) continue;
+                var blamed = IsLater(name.Inherited, name.Span, longer.Inherited, longer.Span);
 
-                    var blamed = IsLater(name.Inherited, name.Span, longer.Inherited, longer.Span);
-
-                    yield return new NameAbsorbsRefinement(blamed ? name.Span : longer.Span,
-                                                           name.Name,
-                                                           name.Words[0],
-                                                           shorter.Pattern.ToString(),
-                                                           longer.Pattern.ToString())
-                        .Alongside(blamed ? longer.Span : name.Span,
-                                   blamed ? "the pattern it would absorb into" : "the name that would absorb it");
-                }
+                yield return new NameAbsorbsRefinement(blamed ? name.Span : longer.Span,
+                                                       name.Name,
+                                                       word,
+                                                       shorter.Pattern.ToString(),
+                                                       longer.Pattern.ToString(),
+                                                       blamed)
+                    .Alongside(blamed ? longer.Span : name.Span,
+                               blamed ? "the pattern it would absorb into" : "the name that would absorb it");
             }
         }
+    }
+
+    /// <summary>
+    ///     Every word that turns one pattern in this set into a longer one, with
+    ///     the pair that reserves it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     PUBLIC because the registry has to print it. R7b was a relationship
+    ///     computed privately inside one rule, so the generated file that says
+    ///     what the language reserves could not see it — and told a reader that
+    ///     «all» is ordinary glue, free at an edge, while validation refused
+    ///     every name beginning with it.
+    /// </remarks>
+    public static List<Refinement> Refinements(IReadOnlyCollection<Shape> patterns)
+    {
+        List<Refinement> found = [];
+
+        foreach (var shorter in patterns)
+        {
+            foreach (var longer in patterns)
+            {
+                if (Refines(shorter.Pattern, longer.Pattern) is not string word) continue;
+
+                found.Add(new Refinement(word, shorter, longer));
+            }
+        }
+
+        return found;
     }
 
     /// <summary>
     ///     The word <paramref name="longer"/> inserts at the start of one of
     ///     <paramref name="shorter"/>'s holes, if that is all it does to it.
     /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     The FIRST hole is skipped, and that is R6 rather than an optimisation:
+    ///     inserting there extends the anchor run, so the shorter pattern's
+    ///     anchor becomes a prefix of the longer's and R6 refuses the pair
+    ///     outright. Reporting a name as well turns one structural mistake into
+    ///     one finding per name in scope, all with the same repair — the
+    ///     amplification the «sound» filter above exists to prevent elsewhere.
+    ///     </para>
+    ///     <para>
+    ///     By INDEX and not by «Skip»/«Take»/«SequenceEqual». This runs once per
+    ///     ordered pair of patterns, and the slices allocated on every pair that
+    ///     did not match, which is almost all of them.
+    ///     </para>
+    /// </remarks>
     private static string Refines(Pattern shorter, Pattern longer)
     {
         var less = shorter.Segments;
@@ -330,18 +385,43 @@ internal static class Rules
 
         if (run < 1) return null;
 
-        for (var hole = 0; hole < less.Count; ++hole)
+        for (var hole = shorter.Anchor.Count + 1; hole < less.Count; ++hole)
         {
             if (less[hole] is not null) continue;
-            if (less.Take(hole).SequenceEqual(more.Take(hole)) is false) continue;
-            if (more.Skip(hole).Take(run).Any(segment => segment is null)) continue;
+            if (Alike(less, 0, more, 0, hole) is false) continue;
+            if (Wordy(more, hole, run) is false) continue;
             if (more[hole + run] is not null) continue;
-            if (less.Skip(hole + 1).SequenceEqual(more.Skip(hole + run + 1)) is false) continue;
+            if (Alike(less, hole + 1, more, hole + run + 1, less.Count - hole - 1) is false) continue;
 
             return more[hole];
         }
 
         return null;
+    }
+
+    /// <summary>Whether two segment runs of <paramref name="count"/> match.</summary>
+    private static bool Alike(IReadOnlyList<string> less, int from,
+                              IReadOnlyList<string> more, int to, int count)
+    {
+        for (var at = 0; at < count; ++at)
+        {
+            // Holes match holes: «null» on both sides is one segment agreeing
+            // with another, not two absences being confused.
+            if (string.Equals(less[from + at], more[to + at], System.StringComparison.Ordinal) is false) return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>Whether a run of segments is all words, with no hole among them.</summary>
+    private static bool Wordy(IReadOnlyList<string> segments, int from, int count)
+    {
+        for (var at = 0; at < count; ++at)
+        {
+            if (segments[from + at] is null) return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -371,10 +451,6 @@ internal static class Rules
                                             .OrderBy(word => word, System.StringComparer.Ordinal)];
 
     /// <summary>
-    ///     A name may not contain an operator word, for R5's reason against a
-    ///     different rival.
-    /// </summary>
-    /// <summary>
     ///     Nor may a pattern use one, which fails the other way.
     /// </summary>
     ///
@@ -395,6 +471,10 @@ internal static class Rules
         }
     }
 
+    /// <summary>
+    ///     A name may not contain an operator word, for R5's reason against a
+    ///     different rival.
+    /// </summary>
     private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Declared> names)
     {
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
