@@ -847,6 +847,7 @@ public class StatementShapes
     [InlineData("var v = [ a = 1, a = 2 ];", "«a» is the key of entry 1 and of entry 2")]
     [InlineData("var v = [ a = 1, b = 2, a = 3 ];", "«a» is the key of entry 1 and of entry 3")]
     [InlineData("var v = [ 1 = x, 1 = y ];", "«1» is the key of entry 1 and of entry 2")]
+    [InlineData("var v = [ a b = 1, a b = 2 ];", "«a b» is the key of entry 1 and of entry 2")]
     [InlineData("var v = [ a = 1, a = 2, a = 3 ];", "«a» is the key of entry 1 and of entry 2")]
     public void AndALookupMayNotUseOneKeyTwice(string source, string expected)
     {
@@ -868,6 +869,8 @@ public class StatementShapes
 
     [Theory(DisplayName = "and nothing else in brackets is asked about keys")]
     [InlineData("var v = [ a = 1, b = 2 ];")]
+    [InlineData("var v = [ a bc = 1, ab c = 2 ];")]
+    [InlineData("var v = [ ab = 1, a b = 2 ];")]
     [InlineData("var v = [ 1, 2, 1 ];")]
     [InlineData("var v = [ a = 1 ];")]
     [InlineData("var v = [ ];")]
@@ -875,5 +878,12 @@ public class StatementShapes
         // A LIST has a null key on every entry, so asking there would call every
         // list of two or more a duplicate — «[1, 2, 1]» repeats a value, which is
         // an ordinary list and nobody's mistake.
+        //
+        // Found by audit: «a bc» and «ab c» are DIFFERENT keys, and joining
+        // their tokens made both «abc» — valid source refused for a collision
+        // the compiler invented. Two keys are the same key when they are the
+        // same sequence of tokens, and an encoding that forgets where one token
+        // ended cannot say that. No separator fixes it either: whatever
+        // character is chosen can occur inside a token.
         => Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
 }
