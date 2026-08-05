@@ -87,4 +87,44 @@ public class NameShadowing
         // is no reservation — «print job» is an ordinary name in a file that
         // never mentions «print (_)».
         => Assert.Empty(Compilation.Of(new SourceText(Name, "Player.ron")).Findings);
+
+    [Theory(DisplayName = "an operator word is refused inside a name and nowhere else")]
+    [InlineData("total otherwise zero", true)]
+    [InlineData("a otherwise b otherwise c", true)]
+    [InlineData("otherwise valid", false)]
+    [InlineData("valid otherwise", false)]
+    [InlineData("otherwise", false)]
+    [InlineData("otherwise otherwise", false)]
+    public void AnOperatorWordIsRefusedInsideANameAndNowhereElse(string name, bool refused)
+    {
+        // R5′. An infix reading needs an operand on EACH SIDE, so a name can
+        // only be its rival where the word has words on both sides of it. The
+        // blanket form refused every name containing one — which is «is valid»,
+        // «to uppercase», «not found», the shape a spaces-in-names grammar most
+        // encourages — for a rivalry those names cannot enter.
+        //
+        // «otherwise otherwise» is two words and therefore has no interior at
+        // all, which follows from the rule rather than being an exception to it.
+        var findings = Compilation.Of(new SourceText($"var {name} => Number;\n", "Player.ron")).Findings;
+
+        if (refused is false)
+        {
+            Assert.Empty(findings);
+            return;
+        }
+
+        var finding = Assert.IsType<InfixInName>(Assert.Single(findings));
+
+        Assert.Equal(name, finding.Name);
+        Assert.Equal("otherwise", finding.Word);
+    }
+
+    [Fact(DisplayName = "and a pattern is still refused for using one anywhere")]
+    public void AndAPatternIsStillRefusedForUsingOneAnywhere()
+        // The narrowing is about NAMES. A name competes with the infix reading
+        // and needs an operand each side to do it; a pattern using the word is
+        // the other failure — it costs exactly what the operation costs and ties
+        // — and that is true wherever the word sits.
+        => Assert.Equal(FindingKind.InfixInPattern,
+                        Only("function otherwise (value => Number) { return value; }\n").Kind);
 }

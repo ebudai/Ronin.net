@@ -116,7 +116,7 @@ internal static class Glue
         registry.AppendLine();
 
         foreach (var word in Rules.Infix)
-            registry.AppendLine($"    {word,-12} reads as an operator between two values, so no name may contain it");
+            registry.AppendLine($"    {word,-12} reads as an operator between two values, so no name may have it inside");
 
         var free = declared.Where(pattern => pattern.Glue.Any() is false).ToArray();
 

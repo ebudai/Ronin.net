@@ -231,6 +231,17 @@ internal static class Rules
     }
 
     /// <summary>
+    ///     The words of <paramref name="words"/> that have a word on each side.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     «Take» of a negative count is empty rather than an error, so a name
+    ///     of one word needs no case of its own.
+    /// </remarks>
+    private static IEnumerable<string> Interior(IReadOnlyList<string> words)
+        => words.Skip(1).Take(words.Count - 2);
+
+    /// <summary>
     ///     The words the language reads as operators between two values.
     /// </summary>
     ///
@@ -280,7 +291,15 @@ internal static class Rules
             // rather than something to ask anyone about.
             if (declared.InjectedBy is not null) continue;
 
-            if (declared.Words.FirstOrDefault(Infix.Contains) is not string word) continue;
+            // INTERIOR only, which is R5′. An infix reading needs an operand on
+            // each side, so a name can only be its rival where the word has
+            // words on both sides of it — one that merely begins or ends with
+            // the word has nothing on one side and cannot compete. The blanket
+            // form refused «is valid» and «to uppercase», which is the name
+            // shape a spaces-in-names grammar most encourages, while «time to
+            // live» and «y is x» stay refused. The rule tracks the reading
+            // rather than the spelling.
+            if (Interior(declared.Words).FirstOrDefault(Infix.Contains) is not string word) continue;
 
             yield return new InfixInName(declared.Span, declared.Name, word);
         }

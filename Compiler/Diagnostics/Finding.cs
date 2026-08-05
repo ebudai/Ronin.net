@@ -238,7 +238,7 @@ internal sealed class InfixInName(Span primary, string name, string word)
     public string Word { get; } = word;
 
     public override string Message
-        => $"«{Name}» contains «{Word}», which the language reads as an operator between two " +
+        => $"«{Name}» has «{Word}» inside it, which the language reads as an operator between two " +
            "values. A name spanning one is cheaper than the expression it covers, so every " +
            $"«… {Word} …» already written would quietly become this name instead. Respell it.";
 }
