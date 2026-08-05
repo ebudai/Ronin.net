@@ -139,25 +139,6 @@ internal static class Builtin
             ["*"] = new(20, Arithmetic("*", (left, right) => left * right)),
             ["/"] = new(20, Divide()),
 
-            // Loosest of them, so «a + b otherwise 0» is the fallback of the
-            // sum and not the sum of a fallback, and «a otherwise b + c» falls
-            // back to the whole sum: what it guards is the expression beside it,
-            // which is the only reading that makes it worth writing.
-            //
-            // BELOW the pattern binding power, which is where a plumbing
-            // operator belongs and what nine got wrong. A word pattern is
-            // available only where the requested minimum is at most its own
-            // level, so an operator above it takes the call's last argument
-            // instead of its result: «parse input otherwise standby» read as
-            // «parse («input» otherwise «standby»)», guarding the argument and
-            // then calling with it, and the mirror «input otherwise parse
-            // standby» would not resolve at all.
-            //
-            // Six and not something rounder for the same reason nine was chosen:
-            // a level is not free. The resolver derives its table from the
-            // powers the operators use and each new one widens every span, so
-            // six borrows the seven that patterns already need and costs one
-            // column where a level with nothing adjacent costs two.
             // The language's equality, and the same function cutoff, «changes»
             // and «old» already ask — one comparison rather than two that can
             // disagree. For anything with identity, identity IS its equality, so
@@ -181,6 +162,30 @@ internal static class Builtin
             // and take the room with it.
             ["is"] = new(5, Lift((left, right) => Same(left, right))),
 
+            // The fallback level, and looser than everything it guards, so
+            // «a + b otherwise 0» is the fallback of the
+            // sum and not the sum of a fallback, and «a otherwise b + c» falls
+            // back to the whole sum: what it guards is the expression beside it,
+            // which is the only reading that makes it worth writing.
+            //
+            // BELOW the pattern binding power, which is where a plumbing
+            // operator belongs and what nine got wrong. A word pattern is
+            // available only where the requested minimum is at most its own
+            // level, so an operator above it takes the call's last argument
+            // instead of its result: «parse input otherwise standby» read as
+            // «parse («input» otherwise «standby»)», guarding the argument and
+            // then calling with it, and the mirror «input otherwise parse
+            // standby» would not resolve at all.
+            //
+            // Looser than «is» too, at five, so «a is total otherwise 0» falls
+            // back on «total» rather than on the comparison — a truth can never
+            // be nothing, so guarding one guards nothing.
+            //
+            // Six and not something rounder for the same reason nine was chosen:
+            // a level is not free. The resolver derives its table from the
+            // powers the operators use and each new one widens every span, so
+            // six borrows the seven that patterns already need and costs one
+            // column where a level with nothing adjacent costs two.
             ["otherwise"] = new(6, Otherwise) { Catches = Replaces },
 
             // Tighter than arithmetic, so «list @ 4 + 1» is «(list @ 4) + 1»:

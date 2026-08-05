@@ -45,6 +45,17 @@ namespace Unit;
 [Trait(nameof(Resolver), null)]
 public class ResolverCost
 {
+    /// <summary>
+    ///     The resolver's allocation budget, in megabytes.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     ONE constant, used by the comparison and by the message. They were two
+    ///     numbers and the raise moved only one, so a regression between them
+    ///     would have failed while quoting a limit nothing enforced.
+    /// </remarks>
+    private const int Ceiling = 32;
+
     [Fact(DisplayName = "resolving stays within its allocation budget")]
     public void ResolvingStaysWithinItsAllocationBudget()
     {
@@ -82,8 +93,8 @@ public class ResolverCost
         // want their own levels. One more is about 31 MB and two are about 35.
         // The next operator has to move this number again and say what it did to
         // the margin, as this one has.
-        Assert.True(megabytes < 32,
-                    $"resolving 149 lexemes allocated {megabytes:F1} MB, past the 26 MB ceiling");
+        Assert.True(megabytes < Ceiling,
+                    $"resolving 149 lexemes allocated {megabytes:F1} MB, past the {Ceiling} MB ceiling");
     }
 
     [Fact(DisplayName = "a statement past the ceiling is refused, not resolved slowly")]

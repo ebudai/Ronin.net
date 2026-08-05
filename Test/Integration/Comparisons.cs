@@ -33,7 +33,42 @@ public class Comparisons
 
         symbols.WithNames("a", "b", "c", "d", "total").WithPatterns("sum of _", "not _");
 
-        return new Resolver(symbols).Resolve(Lexemes.Lex(source));
+        var resolution = new Resolver(symbols).Resolve(Lexemes.Lex(source));
+
+        // Asserted, not assumed. A reading is rendered whatever the kind is, so
+        // a test comparing only the rendering passes just as happily on a tie
+        // as on the answer.
+        Assert.Equal("Resolved", resolution.Kind.ToString());
+
+        return resolution;
+    }
+
+    /// <summary>
+    ///     From source, through the resolver, to a value — the whole pipeline
+    ///     rather than either end of it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Found by audit. The precedence rows asked the resolver and the
+    ///     semantic rows called «Apply» on hand-built values, so neither half
+    ///     proved that the operator the resolver SELECTS is the one that
+    ///     evaluates. That is the same splice earlier rounds found at the
+    ///     parser, declaration and runtime joins, and it is the join that would
+    ///     break silently.
+    /// </remarks>
+    private static object Value(string source, params (string Name, object Value)[] world)
+    {
+        SymbolTable symbols = new();
+
+        symbols.WithNames([.. world.Select(each => each.Name)]);
+
+        Assert.True(new Resolver(symbols).Resolve(Lexemes.Lex(source)).TryTree(out var tree), source);
+
+        Graph graph = new();
+
+        foreach (var (name, value) in world) graph.Var(name, value);
+
+        return new Evaluator(new Scope()).Evaluate(graph, tree, insideLet: false);
     }
 
     [Theory(DisplayName = "«is» binds looser than everything it has to")]
@@ -59,19 +94,92 @@ public class Comparisons
         Assert.Equal(reading, Read(source).Reading);
     }
 
-    [Theory(DisplayName = "and it groups to the left, which is where the type error goes")]
+    [Theory(DisplayName = "and it groups to the left")]
     [InlineData("a is b is c", "((«a» is «b») is «c»)")]
     [InlineData("not a is b", "(not «a» is «b»)")]
-    public void AndItGroupsToTheLeftWhichIsWhereTheTypeErrorGoes(string source, string reading)
-        // «a is b is c» compares a truth to «c», which is a TYPE error rather
-        // than a parse error — and that is the better place for it: "you
-        // compared a truth to a number" beats "unexpected «is»".
-        //
+    public void AndItGroupsToTheLeft(string source, string reading)
         // «not a is b» is «(not a) is b» and not what the English suggests,
         // because «not (_)» is a pattern at 7. That is the argument for «is not»
         // being its own form rather than a composition of the two, which is the
         // plan and is not this slice.
         => Assert.Equal(reading, Read(source).Reading);
+
+    [Fact(DisplayName = "and chaining it compares a truth to a number, which nothing yet refuses")]
+    public void AndChainingItComparesATruthToANumberWhichNothingYetRefuses()
+    {
+        // Found by audit, and the previous version of this test claimed the
+        // opposite. It was called "where the type error goes" and said comparing
+        // the intermediate truth with «c» is one — while asserting only the
+        // resolver's brackets, so nothing ever asked any layer to produce the
+        // error it promised.
+        //
+        // Run end to end it is «false»: «Same» hands a non-list pair to
+        // «object.Equals», and true does not equal 1. That is a total,
+        // heterogeneous equality, and it is the current behaviour whatever the
+        // design eventually says.
+        //
+        // The DESIGN says type error, and there is no type layer to produce one
+        // — «Evaluator.Apply» checks nothing before invoking an operator. So
+        // this records what happens rather than what is intended, and the
+        // intention is an unmet dependency rather than an established
+        // invariant. When the type layer lands, this row is what has to change,
+        // and it will fail rather than quietly keep agreeing.
+        Assert.Equal(false, Value("a is b is c", ("a", 1d), ("b", 1d), ("c", 1d)));
+    }
+
+    [Theory(DisplayName = "and the operator the resolver picks is the one that evaluates")]
+    [InlineData("a is b", true)]
+    [InlineData("a is c", false)]
+    public void AndTheOperatorTheResolverPicksIsTheOneThatEvaluates(string source, bool answer)
+        // From source rather than from «Operators["is"]» by hand. Registering an
+        // operator and reaching it are two things, and only one of them was
+        // tested.
+        => Assert.Equal(answer, Value(source, ("a", 1d), ("b", 1d), ("c", 2d)));
+
+    [Fact(DisplayName = "and a failure read through it stays a failure")]
+    public void AndAFailureReadThroughItStaysAFailure()
+        // End to end, because «Lift» is invoked by the evaluator and asserting
+        // it on the operator alone proves the operator, not the wiring.
+        => Assert.IsType<Error>(Value("a is b", ("a", new Error("boom")), ("b", 1d)));
+
+    [Fact(DisplayName = "and two instances are two instances, however alike")]
+    public void AndTwoInstancesAreTwoInstancesHoweverAlike()
+    {
+        // The class's own claim, and it had no test: "two boxes with equal
+        // members are two boxes". That sentence is the whole reason there is no
+        // separate identity operator, so it is the one thing here that must not
+        // be able to drift.
+        //
+        // Through «Graph» rather than by building «Instance» records, so this
+        // guards the producer of identity as well as its consumer — a slot and
+        // a generation are its parts, and a reused slot must not equal what held
+        // it before.
+        Graph graph = new();
+        graph.Type("box", ("cash", 0d));
+
+        var first = graph.Create("box");
+        var second = graph.Create("box");
+
+        var comparing = Builtin.Operators["is"];
+
+        Assert.Equal(true, comparing.Apply(first, first));
+        Assert.Equal(false, comparing.Apply(first, second));
+
+        // Equal members, still two boxes.
+        graph.Write("cash", first, 5d);
+        graph.Write("cash", second, 5d);
+        graph.Step();
+
+        Assert.Equal(graph.Read("cash", first), graph.Read("cash", second));
+        Assert.Equal(false, comparing.Apply(first, second));
+
+        // And a slot that comes back is not what it held: the generation is
+        // what makes a stale handle stale, so it has to be part of equality.
+        graph.Remove(second);
+        graph.Step();
+
+        Assert.Equal(false, comparing.Apply(second, graph.Create("box")));
+    }
 
     [Fact(DisplayName = "and it is the same comparison the graph already used")]
     public void AndItIsTheSameComparisonTheGraphAlreadyUsed()
