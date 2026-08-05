@@ -76,9 +76,18 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
 
         var associated = collection.Count(element => element.Origin is not null);
 
-        if (associated is 0 || associated == collection.Count) return collection;
+        if (associated is not 0 && associated != collection.Count) return Mixed(collection, start.AdvanceTo(current));
 
-        return Mixed(collection, start.AdvanceTo(current));
+        // A lookup, so its keys have to be distinct. Two entries under one key
+        // are two answers with no basis to choose between them — the same
+        // shape as a tie, and refused for the same reason rather than by
+        // taking the first or the last.
+        //
+        // Asked only of a LOOKUP: in a list every entry has a null key, so
+        // asking there would call every list of two or more a duplicate.
+        if (associated is 0) return collection;
+
+        return Repeated(collection) ?? collection;
     }
 
     /// <summary>
@@ -89,11 +98,32 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
         public Value Destination { get; init; }
         public Value Origin { get; init; }
 
+        /// <summary>
+        ///     The tokens the key was written with, kept for comparing one key
+        ///     against another.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     TOKENS and not the parsed value, because two keys are the same
+        ///     key when they are the same run of tokens and a «Value» tree has
+        ///     no equality — building one for this would be building the
+        ///     runtime's key relation in the parser, a second implementation of
+        ///     something that has to be single.
+        ///
+        ///     So this answers the SPELLED duplicate, which is what a literal
+        ///     can answer. Two keys that differ in spelling and agree in value
+        ///     are the runtime's question and arrive with the lookup value.
+        /// </remarks>
+        public System.ReadOnlyMemory<Token> Key { get; init; }
+
         public static new Element Parse(ref Parser current)
         {
             Parser parser = current;
+            Parser start = current;
 
             if (Value.Parse(ref parser) is not Value destination) return null;
+
+            var key = start.AdvanceTo(parser);
 
             // Parsed once and asked afterwards, which is the whole change. The
             // key is a value either way, so nothing is speculative: what follows
@@ -101,7 +131,7 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
             if (parser.TryAdvance<Assignment>() is false)
             {
                 current = parser;
-                return new Element { Destination = destination };
+                return new Element { Destination = destination, Key = key };
             }
 
             if (Value.Parse(ref parser) is not Value origin)
@@ -110,7 +140,7 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
             }
 
             current = parser;
-            return new Element { Destination = destination, Origin = origin };
+            return new Element { Destination = destination, Origin = origin, Key = key };
         }
 
         public class ExpectedValueError : Element, IError
@@ -118,6 +148,37 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
             public string Reason { get; } = "expected value";
             public System.ReadOnlyMemory<Token> Tokens { get; init; }
         }
+    }
+
+    /// <summary>
+    ///     The first key written twice, if one is.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     FIRST and not all of them, which is the rule the diagnostics already
+    ///     follow: a literal with one key repeated four times is one mistake,
+    ///     and four findings saying so are four copies of it.
+    /// </remarks>
+    private static Duplicated Repeated(Collection collection)
+    {
+        Dictionary<string, int> seen = [];
+
+        foreach (var (element, at) in collection.Select((element, at) => (element, at)))
+        {
+            var key = string.Concat(element.Key.ToArray().Select(token => token.Canonical));
+
+            if (seen.TryAdd(key, at + 1)) continue;
+
+            return new Duplicated
+            {
+                Tokens = element.Key,
+                Key = key,
+                First = seen[key],
+                Again = at + 1,
+            };
+        }
+
+        return null;
     }
 
     private static Mismatched Mixed(Collection collection, System.ReadOnlyMemory<Token> tokens)
@@ -137,6 +198,21 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
     }
 
     /// <summary>A collection that is part list and part lookup.</summary>
+    /// <summary>One key used by two entries, so a lookup has two answers for it.</summary>
+    public class Duplicated : Collection, IError
+    {
+        public string Key { get; init; }
+        public int First { get; init; }
+        public int Again { get; init; }
+
+        public string Reason
+            => $"«{Key}» is the key of entry {First.ToString(System.Globalization.CultureInfo.InvariantCulture)} "
+             + $"and of entry {Again.ToString(System.Globalization.CultureInfo.InvariantCulture)}, so a lookup "
+             + "of it has two answers and no reason to prefer either. Remove one, or give them different keys";
+
+        public System.ReadOnlyMemory<Token> Tokens { get; init; }
+    }
+
     public class Mismatched : Collection, IError
     {
         public int Value { get; init; }

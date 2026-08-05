@@ -842,4 +842,38 @@ public class StatementShapes
 
         return Sequences(length - 1).SelectMany(_ => elements, (rest, element) => ((string, string)[])[.. rest, element]);
     }
+
+    [Theory(DisplayName = "and a lookup may not use one key twice")]
+    [InlineData("var v = [ a = 1, a = 2 ];", "«a» is the key of entry 1 and of entry 2")]
+    [InlineData("var v = [ a = 1, b = 2, a = 3 ];", "«a» is the key of entry 1 and of entry 3")]
+    [InlineData("var v = [ 1 = x, 1 = y ];", "«1» is the key of entry 1 and of entry 2")]
+    [InlineData("var v = [ a = 1, a = 2, a = 3 ];", "«a» is the key of entry 1 and of entry 2")]
+    public void AndALookupMayNotUseOneKeyTwice(string source, string expected)
+    {
+        // Two entries under one key are two answers with no basis to choose
+        // between them — the same shape as a tie, refused for the same reason
+        // rather than by silently taking the first or the last.
+        //
+        // It is also what makes lookup equality answerable at all: with
+        // duplicates admitted there is no fact about whether «[a = 1, a = 2]»
+        // equals «[a = 2, a = 1]», and either answer is defensible.
+        //
+        // ONE finding for a key repeated three times, because that is one
+        // mistake and three copies of it help nobody.
+        var finding = Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+
+        Assert.Equal(FindingKind.Malformed, finding.Kind);
+        Assert.Contains(expected, finding.Message);
+    }
+
+    [Theory(DisplayName = "and nothing else in brackets is asked about keys")]
+    [InlineData("var v = [ a = 1, b = 2 ];")]
+    [InlineData("var v = [ 1, 2, 1 ];")]
+    [InlineData("var v = [ a = 1 ];")]
+    [InlineData("var v = [ ];")]
+    public void AndNothingElseInBracketsIsAskedAboutKeys(string source)
+        // A LIST has a null key on every entry, so asking there would call every
+        // list of two or more a duplicate — «[1, 2, 1]» repeats a value, which is
+        // an ordinary list and nobody's mistake.
+        => Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
 }
