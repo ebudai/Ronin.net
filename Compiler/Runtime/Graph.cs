@@ -100,11 +100,9 @@ internal sealed class Graph
     }
 
     /// <summary>
-    ///     A source. Its initialiser is evaluated once, now, so declaration order
-    ///     matters for a <c>var</c> and not for a <c>let</c>.
-    /// </summary>
-    /// <summary>
-    ///     A cell holding a value, which is normalised on the way in.
+    ///     A source: a cell holding a value, normalised on the way in. Its
+    ///     initialiser is evaluated once, now, so declaration order matters for
+    ///     a <c>var</c> and not for a <c>let</c>.
     /// </summary>
     ///
     /// <remarks>

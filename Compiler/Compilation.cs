@@ -294,7 +294,6 @@ internal sealed class Compilation
         }
     }
 
-    /// <summary>Whatever a node holds that is itself part of the tree.</summary>
     /// <summary>
     ///     Whether anything WITHIN this node — at any depth, not merely
     ///     directly beneath it — failed to parse.
@@ -352,6 +351,7 @@ internal sealed class Compilation
         return false;
     }
 
+    /// <summary>Whatever a node holds that is itself part of the tree.</summary>
     private static IEnumerable<object> Children(object node)
     {
         // An aggregate IS its elements and no property exposes them — the

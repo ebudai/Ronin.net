@@ -235,11 +235,6 @@ internal static class Builtin
                                : new Error($"«{symbol}» needs two numbers"));
 
     /// <summary>
-    ///     The only thing that inspects a value's failure without inheriting it,
-    ///     and it catches <see cref="Nothing"/> as well as <see cref="Error"/>.
-    ///     This is the whole ergonomic replacement for testing every use site.
-    /// </summary>
-    /// <summary>
     ///     The language's equality: value equality, all the way down.
     /// </summary>
     ///
@@ -333,6 +328,11 @@ internal static class Builtin
         return true;
     }
 
+    /// <summary>
+    ///     The only thing that inspects a value's failure without inheriting it,
+    ///     and it catches <see cref="Nothing"/> as well as <see cref="Error"/>.
+    ///     This is the whole ergonomic replacement for testing every use site.
+    /// </summary>
     public static object Otherwise(object value, object fallback) => Replaces(value) ? fallback : value;
 
     /// <summary>

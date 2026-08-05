@@ -8,17 +8,6 @@ namespace Ronin.Lexicon;
 public abstract class Token : ReadOnlySequenceSegment<char>
 {
     /// <summary>
-    ///     Where this token begins in the text it was lexed from.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     Not <see cref="ReadOnlySequenceSegment{T}.RunningIndex"/>, which is the
-    ///     offset within the sequence of tokens that were kept — and trivia is
-    ///     not kept, so every skipped space and comment shifts it away from the
-    ///     source. The memory is a slice of the source string and knows where it
-    ///     was cut from.
-    /// </remarks>
-    /// <summary>
     ///     This token's identity: what it IS, rather than how it was written.
     /// </summary>
     ///
@@ -41,6 +30,17 @@ public abstract class Token : ReadOnlySequenceSegment<char>
     /// </remarks>
     public virtual string Canonical => Memory.ToString();
 
+    /// <summary>
+    ///     Where this token begins in the text it was lexed from.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Not <see cref="ReadOnlySequenceSegment{T}.RunningIndex"/>, which is the
+    ///     offset within the sequence of tokens that were kept — and trivia is
+    ///     not kept, so every skipped space and comment shifts it away from the
+    ///     source. The memory is a slice of the source string and knows where it
+    ///     was cut from.
+    /// </remarks>
     public int Offset
     {
         get

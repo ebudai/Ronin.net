@@ -300,33 +300,6 @@ internal sealed class Resolver
     }
 
     /// <summary>
-    ///     Whether a span could be a name, which is to say whether it is words
-    ///     and nothing else.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     <para>
-    ///     LOAD-BEARING, far beyond this method. Every argument that a glue word
-    ///     is safe to leave unreserved rests on this one line: a name cannot
-    ///     contain a bracket or a symbol, so it cannot STRADDLE one, so a word
-    ///     sitting beside a bracket cannot be swallowed by a longer name. That is
-    ///     why «send (hello) to alice» is safe where «send hello to alice» is
-    ///     not, and it is the whole of why bracket-delimited and symbol-separated
-    ///     patterns cost nothing.
-    ///     </para>
-    ///     <para>
-    ///     The exhaustive searches did not verify that. They counted TIES, and
-    ///     ties are all any of them measured — 2,382,240 resolutions over
-    ///     anchor-first word patterns with no brackets, 45,131,520 over the
-    ///     narrower bracket runs, and 294,333,696 over pattern pairs at three
-    ///     units. The no-capture property is structural and comes from here, so
-    ///     widening what may be part of a name would invalidate it silently and
-    ///     no fuzzer would notice: the resolutions would stay unique, they would
-    ///     simply be unique and wrong.
-    ///     <c>ANameIsWordsAndNothingElse</c> is the test that would.
-    ///     </para>
-    /// </remarks>
-    /// <summary>
     ///     The name a binding hole declares and how far it reaches, or null where
     ///     the span does not start with one.
     /// </summary>
@@ -398,6 +371,33 @@ internal sealed class Resolver
         return null;
     }
 
+    /// <summary>
+    ///     Whether a span could be a name, which is to say whether it is words
+    ///     and nothing else.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     LOAD-BEARING, far beyond this method. Every argument that a glue word
+    ///     is safe to leave unreserved rests on this one line: a name cannot
+    ///     contain a bracket or a symbol, so it cannot STRADDLE one, so a word
+    ///     sitting beside a bracket cannot be swallowed by a longer name. That is
+    ///     why «send (hello) to alice» is safe where «send hello to alice» is
+    ///     not, and it is the whole of why bracket-delimited and symbol-separated
+    ///     patterns cost nothing.
+    ///     </para>
+    ///     <para>
+    ///     The exhaustive searches did not verify that. They counted TIES, and
+    ///     ties are all any of them measured — 2,382,240 resolutions over
+    ///     anchor-first word patterns with no brackets, 45,131,520 over the
+    ///     narrower bracket runs, and 294,333,696 over pattern pairs at three
+    ///     units. The no-capture property is structural and comes from here, so
+    ///     widening what may be part of a name would invalidate it silently and
+    ///     no fuzzer would notice: the resolutions would stay unique, they would
+    ///     simply be unique and wrong.
+    ///     <c>ANameIsWordsAndNothingElse</c> is the test that would.
+    ///     </para>
+    /// </remarks>
     internal static bool CanName(IReadOnlyList<Lexeme> lexemes, int i, int j)
     {
         for (var k = i; k < j; ++k) if (lexemes[k].Kind is not LexemeKind.Word) return false;
