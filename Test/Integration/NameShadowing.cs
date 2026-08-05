@@ -296,6 +296,60 @@ public class NameShadowing
         Assert.Equal(3, reported.Length);
     }
 
+    [Fact(DisplayName = "and the reading it takes can be cheaper rather than merely equal")]
+    public void AndTheReadingItTakesCanBeCheaperRatherThanMerelyEqual()
+    {
+        // The case that decided blanket. Where the remainder is a NAME the two
+        // readings cost the same and the tie is reported; where it is a CALL the
+        // name is cheaper and simply wins, with nothing said.
+        //
+        // A condition on "the remainder is a declared name" is silent here,
+        // which is the worse of the two to be silent about — and it is why the
+        // condition, had one been kept, would have had to be "the remainder
+        // resolves" rather than "the remainder is declared".
+        SymbolTable without = new();
+        SymbolTable with = new();
+
+        without.WithNames("x", "items").WithPatterns("send _ to _", "send _ to all _", "count of _");
+        with.WithNames("x", "items", "all count of items")
+            .WithPatterns("send _ to _", "send _ to all _", "count of _");
+
+        var lexemes = Lexemes.Lex("send x to all count of items");
+
+        var alone = new Resolver(without).Resolve(lexemes);
+        var absorbed = new Resolver(with).Resolve(lexemes);
+
+        Assert.Equal("send «x» to all count of «items»", alone.Reading);
+        Assert.Equal("send «x» to «all count of items»", absorbed.Reading);
+
+        // Both resolve. Nothing reports it. The cost is the only thing that
+        // moved, and a reader has no way to see that it did.
+        Assert.Equal("Resolved", alone.Kind.ToString());
+        Assert.Equal("Resolved", absorbed.Kind.ToString());
+        Assert.True(absorbed.Cost < alone.Cost, $"{absorbed.Cost} against {alone.Cost}");
+    }
+
+    [Fact(DisplayName = "and inserting at the first hole is R6's, not this")]
+    public void AndInsertingAtTheFirstHoleIsR6sNotThis()
+    {
+        // «sum all (_)» refines «sum (_)» the same way, and one anchor run then
+        // begins the other — so the pattern pair is refused before a name is
+        // looked at. What is left for R7b is insertion at a LATER hole, where
+        // the anchors are equal and R6 has nothing to say.
+        //
+        // WITH A NAME in scope, which is what the audit found missing: this
+        // asserted on the patterns alone, so R7b firing as well was invisible.
+        // One structural mistake grew into one finding per name beginning
+        // «all», every one of them with the same repair — fix the pattern pair.
+        var findings = Compilation.Of(new SourceText(
+            "var all things => Number;\n"
+          + "function sum (x => Number) { return x; }\n"
+          + "function sum all (x => Number) { return x; }\n",
+            "Player.ron")).Findings;
+
+        Assert.Equal(FindingKind.AnchorPrefix, Assert.Single(findings).Kind);
+    }
+
     [Fact(DisplayName = "and it does not claim the two readings cost the same")]
     public void AndItDoesNotClaimTheTwoReadingsCostTheSame()
         // They do when the remainder is a name and they do not when it is a

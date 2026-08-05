@@ -314,40 +314,40 @@ public class Shadows
         // allocating on every comparison that failed. Fifty names and fifty
         // patterns took 360 ms and 140 MB to report nothing at all.
         //
-        // The relation depends only on the pattern table, so it is derived once
-        // and indexed by the word it reserves. Adding names then costs what
-        // reading them costs.
+        // ALLOCATION, and this is the second attempt. The first timed one run at
+        // each size, and a wall clock inside a parallel suite measures the
+        // machine's load as much as the algorithm — it failed once under an
+        // ordinary run and passed in isolation, which is the worst way for a
+        // gate to behave, because it teaches people to rerun.
         //
-        // TIME, and reluctantly. The allocation this round removed was the LINQ
-        // half; what is left of the cubic shape is work rather than garbage, and
-        // total allocation is dominated by the other rules, which scale with
-        // names too — 165 KB to 7.9 MB either way, so it cannot see this at all.
-        // Patterns are held FIXED and only the names grow, which is what makes
-        // the two shapes separate at all:
+        // The signal is made deterministic by giving the derivation something to
+        // allocate: two hundred patterns that all refine one shorter pattern, so
+        // the relation is two hundred records rather than none. Deriving it per
+        // name then multiplies THAT, and holding the patterns fixed while the
+        // names grow is what isolates it.
         //
-        //     derived once      1.5 ms -> 14.3 ms      9.5x
-        //     derived per name  1.3 ms -> 78.3 ms       60x
-        //
-        // The bound sits between them with about two and a half times the margin
-        // on each side.
-        static double Work(int names)
+        //     derived once      282 KB -> 1,543 KB      5.5x
+        //     derived per name  465 KB -> 6,655 KB     14.3x
+        static long Work(int count)
         {
-            Shape[] patterns = [.. Enumerable.Range(0, 150).Select(n => Shape($"p{n} _ q{n} _"))];
-            Declared[] declared = [.. Enumerable.Range(0, names).Select(n => Declares($"alpha{n} beta{n}"))];
+            Shape[] patterns = [Shape("send _ to _"),
+                                .. Enumerable.Range(0, 200).Select(n => Shape($"send _ to w{n} _"))];
 
-            for (var warm = 0; warm < 3; ++warm) Rules.Validate(declared, patterns).ToArray();
+            Declared[] names = [.. Enumerable.Range(0, count).Select(n => Declares($"alpha{n} beta{n}"))];
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            Rules.Validate(names, patterns).ToArray();
 
-            Assert.Empty(Rules.Validate(declared, patterns));
+            var before = GC.GetAllocatedBytesForCurrentThread();
 
-            return watch.Elapsed.TotalMilliseconds;
+            Assert.Empty(Rules.Validate(names, patterns));
+
+            return GC.GetAllocatedBytesForCurrentThread() - before;
         }
 
         var one = Work(1);
-        var many = Work(150);
+        var many = Work(20);
 
-        Assert.True(many < one * 25, $"one name took {one:F1} ms and 150 took {many:F1} ms");
+        Assert.True(many < one * 9, $"one name allocated {one} bytes and twenty allocated {many}");
     }
 
     [Theory(DisplayName = "a pattern wrong in itself reserves nothing against anyone")]
