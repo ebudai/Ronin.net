@@ -290,12 +290,24 @@ internal static class Rules
     ///     </para>
     ///     <para>
     ///     Removing the skip on its own DOUBLES the report: a name that offends
-    ///     and its «old» shadow both say so, with one repair between them. So
-    ///     the exemption cannot go until an injected collision knows whether it
-    ///     is universal to the injection or particular to this subject, and
-    ///     which declaration owns the repair. That is the blame-and-dedup
-    ///     question still awaiting direction, and this comment is the marker for
-    ///     it rather than a justification.
+    ///     and its «old» shadow both say so, with one repair between them. The
+    ///     settled rule is three rows — suppress the shadow when the SOURCE also
+    ///     fails, blame the source when only the injection fails and a rename
+    ///     would help, blame the pattern once when no rename would — and the
+    ///     first row is what makes removing this skip add no messages at all.
+    ///     </para>
+    ///     <para>
+    ///     BLOCKED ON «REAUDIT46» findings 2 and 3, which are that machinery.
+    ///     Named here so the two halves find each other; this is the open half
+    ///     of a rule and not a reason the skip is here.
+    ///     </para>
+    ///     <para>
+    ///     Safe to wait, and worth saying why. Under minimum lookup an exempted
+    ///     injected name was a real hazard — a self-ambiguous span resolved
+    ///     silently to whichever reading was cheaper. Ambiguity is the error
+    ///     now, so any span with two readings fails at the use site whatever is
+    ///     in the table: this can produce a confusing message, not a wrong
+    ///     reading. Diagnostics debt rather than soundness debt.
     ///     </para>
     /// </remarks>
     private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Declared> names)
