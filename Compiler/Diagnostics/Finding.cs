@@ -353,10 +353,17 @@ internal sealed class GlueAsName(Span primary, string name, string pattern)
     public string Name { get; } = name;
     public string Pattern { get; } = pattern;
 
+    /// <remarks>
+    ///     A CAPTURE reason and not a legibility one. This was "a name that
+    ///     doubles as punctuation has to be read twice", which is a style
+    ///     complaint — and it left the two-word all-glue case admitted, with the
+    ///     statement unwritable and no rule pointing at why. It is the one-word
+    ///     arity of the same rule, so it gives the same reason.
+    /// </remarks>
     public override string Message
-        => $"«{Name}» is the word «{Pattern}» uses to separate its parts, so a reader meets it in " +
-           "two roles at once. Rename it — nothing about the program is ambiguous, but a name that " +
-           "doubles as punctuation is a name that has to be read twice.";
+        => $"«{Name}» is made only of words «{Pattern}» uses to separate its parts, so it can sit in " +
+           "a hole beside the very literal it is glue for and a call has two readings at the same " +
+           "cost. Respell it — and it is the later declaration that gives way.";
 }
 
 /// <summary>A ring of whens, each writing something the next reads.</summary>

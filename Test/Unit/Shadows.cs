@@ -208,12 +208,19 @@ public class Shadows
     [Fact(DisplayName = "a name that only looks injected is an ordinary name")]
     public void ANameThatOnlyLooksInjectedIsAnOrdinaryName()
     {
-        // WithNames is the raw scope and injects nothing, so «old growth» with no
-        // «growth» beside it was written by someone rather than generated — and
-        // it is theirs to rename, so it gets the ordinary message
-        var complaint = Assert.Single(Rules.Validate([Declares("old growth")], [Shape("apply _ growth _")]));
+        // WithNames is the raw scope and injects nothing, so «old growth rings»
+        // with no «growth rings» beside it was written by someone rather than
+        // generated — and it is theirs to rename, so it gets the ordinary
+        // message.
+        //
+        // THREE words since R5′: «old growth» has its glue at the edge and is
+        // admitted now, which is the narrowing working rather than a hole. That
+        // also means an injected shadow can no longer reach this rule on its
+        // own — every one of them is «old » and a name, so the glue it carries
+        // is always at an edge.
+        var complaint = Assert.Single(Rules.Validate([Declares("old growth rings")], [Shape("apply _ growth _")]));
 
-        Assert.Equal("old growth", Assert.IsType<GlueInName>(complaint).Name);
+        Assert.Equal("old growth rings", Assert.IsType<GlueInName>(complaint).Name);
     }
 
     [Fact(DisplayName = "a collision with an injected name is a declaration error")]

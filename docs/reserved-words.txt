@@ -1,6 +1,8 @@
 # Reserved words, generated from the patterns in scope. Do not edit.
 #
-# A word here may not appear in a name wherever its pattern is visible.
+# A word here may not appear INSIDE a name wherever its pattern is visible,
+# nor may a name be made only of words from this file. At an edge it is free:
+# «to uppercase» is a name, «time to live» is not.
 # Adding a line is a breaking change for every program that sees it.
 #
 # A pattern below is written as it is declared, and «guillemets» mark the one

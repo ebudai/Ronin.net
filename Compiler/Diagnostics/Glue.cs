@@ -12,7 +12,7 @@ namespace Ronin.Compiler;
 ///
 /// <remarks>
 ///     <para>
-///     A pattern's glue — the words after its first hole — may not appear in a
+///     A pattern's glue — the words after its first hole — may not appear inside a
 ///     name. So the union of every in-scope pattern's glue IS this language's
 ///     reserved-word list, and nothing wrote it down. Three things want it and
 ///     prose satisfies none of them:
@@ -94,7 +94,9 @@ internal static class Glue
 
         registry.AppendLine("# Reserved words, generated from the patterns in scope. Do not edit.");
         registry.AppendLine("#");
-        registry.AppendLine("# A word here may not appear in a name wherever its pattern is visible.");
+        registry.AppendLine("# A word here may not appear INSIDE a name wherever its pattern is visible,");
+        registry.AppendLine("# nor may a name be made only of words from this file. At an edge it is free:");
+        registry.AppendLine("# «to uppercase» is a name, «time to live» is not.");
         registry.AppendLine("# Adding a line is a breaking change for every program that sees it.");
         registry.AppendLine("#");
         registry.AppendLine("# A pattern below is written as it is declared, and «guillemets» mark the one");

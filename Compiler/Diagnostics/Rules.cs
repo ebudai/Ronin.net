@@ -359,7 +359,8 @@ internal static class Rules
         {
             if (offending[declared.Name] is not Shape offender) continue;
 
-            var word = offender.Pattern.Glue.First(declared.Words.Contains);
+            var wholly = Wholly(declared.Words, offender);
+            var word = wholly ? declared.Words[0] : Interior(declared.Words).First(offender.Pattern.Glue.Contains);
 
             // Whichever was written later is the one being asked to give way, and
             // that is where the caret goes. An inner pattern can invalidate a
@@ -371,10 +372,11 @@ internal static class Rules
             var related = blamed ? offender.Span : declared.Span;
             var label = blamed ? "which makes it glue" : "the name it collides with";
 
-            // A name that is exactly the glue word, rather than one containing
-            // it. Never injected: every injected name begins with «old », so it
-            // has at least two words.
-            if (declared.Name.Contains(' ') is false)
+            // A name made only of glue, of whatever length — one rule and one
+            // reason, two arities. Never injected: an injected name would have
+            // to be wholly glue, which needs «old» to be glue, and a pattern
+            // using it that way is structurally refused before this runs.
+            if (wholly)
             {
                 yield return new GlueAsName(primary, declared.Name, offender.Pattern.ToString())
                     .Alongside(related, label);
@@ -406,14 +408,21 @@ internal static class Rules
     /// </remarks>
     private static Shape? Offender(IReadOnlyList<string> words, IReadOnlyCollection<Shape> patterns)
     {
-        // Single-word names included. A name that IS a glue word is a different
-        // finding from a name that CONTAINS one — the first is legibility, the
-        // second is capture — but they are found the same way.
+        // Two clauses, and both are capture. INTERIOR glue, because a name can
+        // only re-read a call it spans and it needs a word on each side of the
+        // glue to do that. And WHOLLY glue, because a name made only of glue
+        // words has none interiorly and still captures — «to to» beside «to»
+        // gives «send to to to to» two readings at the same cost, one with the
+        // literal at each viable position, and the statement becomes unwritable.
         foreach (var candidate in patterns)
         {
-            if (candidate.Pattern.Glue.Any(words.Contains)) return candidate;
+            if (Wholly(words, candidate) || Interior(words).Any(candidate.Pattern.Glue.Contains)) return candidate;
         }
 
         return null;
     }
+
+    /// <summary>Whether every word of the name is glue in this pattern.</summary>
+    private static bool Wholly(IReadOnlyList<string> words, Shape candidate)
+        => words.All(candidate.Pattern.Glue.Contains);
 }

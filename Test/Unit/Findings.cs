@@ -210,7 +210,7 @@ public class Findings
             Player.ron:2:10: «hello to alice» contains «to», which is glue in «send (_) to (_)». A name containing glue silently re-reads statements that already worked, so one of the two has to be respelled — and it is the later declaration that gives way.
                 Player.ron:1:5: the name it collides with
 
-            Player.ron:2:10: «smoothed» is the word «apply (_) smoothed (_)» uses to separate its parts, so a reader meets it in two roles at once. Rename it — nothing about the program is ambiguous, but a name that doubles as punctuation is a name that has to be read twice.
+            Player.ron:2:10: «smoothed» is made only of words «apply (_) smoothed (_)» uses to separate its parts, so it can sit in a hole beside the very literal it is glue for and a call has two readings at the same cost. Respell it — and it is the later declaration that gives way.
                 Player.ron:1:5: the name it collides with
 
             Player.ron:1:5: «total otherwise zero» has «otherwise» inside it, which the language reads as an operator between two values. A name spanning one is cheaper than the expression it covers, so every «… otherwise …» already written would quietly become this name instead. Respell it.

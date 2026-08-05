@@ -127,4 +127,62 @@ public class NameShadowing
         // — and that is true wherever the word sits.
         => Assert.Equal(FindingKind.InfixInPattern,
                         Only("function otherwise (value => Number) { return value; }\n").Kind);
+
+    [Theory(DisplayName = "pattern glue is refused inside a name, or as the whole of one")]
+    [InlineData("send to me", nameof(GlueInName))]
+    [InlineData("time to live", nameof(GlueInName))]
+    [InlineData("to uppercase", null)]
+    [InlineData("delivered to", null)]
+    [InlineData("to", nameof(GlueAsName))]
+    [InlineData("to to", nameof(GlueAsName))]
+    [InlineData("to to to", nameof(GlueAsName))]
+    public void PatternGlueIsRefusedInsideANameOrAsTheWholeOfOne(string name, string refused)
+    {
+        // R5′ over pattern glue, which is the half «IS-AND-EQUALITY» §4 was
+        // always about: «to uppercase» becomes legal while «time to live» stays
+        // refused. A name can only re-read a call it spans, and spanning one
+        // needs a word on each side of the glue.
+        //
+        // And the SECOND clause, which the first statement of R5′ was missing: a
+        // name made only of glue has none interiorly and still captures. That is
+        // one rule with two arities rather than a capture rule beside a
+        // legibility one — see the tie it prevents, below.
+        var findings = Compilation.Of(new SourceText(
+            $"var {name} => Number;\nfunction send (x => Number) to (y => Number) {{ return x; }}\n",
+            "Player.ron")).Findings;
+
+        if (refused is null)
+        {
+            Assert.Empty(findings);
+            return;
+        }
+
+        Assert.Equal(refused, Assert.Single(findings).GetType().Name);
+    }
+
+    [Theory(DisplayName = "and the whole-glue name is what makes a call unwritable")]
+    [InlineData("send to to to", false)]
+    [InlineData("send to to to to", true)]
+    public void AndTheWholeGlueNameIsWhatMakesACallUnwritable(string source, bool ties)
+    {
+        // The reason the second clause is a capture rule and not a style rule.
+        // With «to» alone there is one reading at every length. Add «to to» and
+        // the literal has two viable positions at the same cost, so the
+        // statement cannot be written at all — and no bracketing at the call
+        // site repairs a tie its own declaration created.
+        //
+        // FIVE tokens and not four: at four the literal can only sit in one
+        // place, because putting it last leaves the second hole empty. Measured,
+        // because the prediction that four would do it was wrong.
+        SymbolTable one = new();
+        SymbolTable two = new();
+
+        one.WithNames("to").WithPatterns("send _ to _");
+        two.WithNames("to", "to to").WithPatterns("send _ to _");
+
+        var lexemes = Lexemes.Lex(source);
+
+        Assert.Equal(ties ? "NoParse" : "Resolved", new Resolver(one).Resolve(lexemes).Kind.ToString());
+        Assert.Equal(ties ? "Ambiguous" : "Resolved", new Resolver(two).Resolve(lexemes).Kind.ToString());
+    }
 }
