@@ -158,6 +158,29 @@ internal static class Builtin
             // powers the operators use and each new one widens every span, so
             // six borrows the seven that patterns already need and costs one
             // column where a level with nothing adjacent costs two.
+            // The language's equality, and the same function cutoff, «changes»
+            // and «old» already ask — one comparison rather than two that can
+            // disagree. For anything with identity, identity IS its equality, so
+            // this needs no reference-equality partner: two boxes with equal
+            // members are two boxes, and «is» on a handle says so by comparing
+            // handles.
+            //
+            // FIVE, and the number is measured rather than analogous. Below
+            // «PatternBindingPower» at 7, or «sum of a is b» reads as
+            // «sum of (a is b)» — a trailing free hole parses its argument at
+            // the pattern's own level, so the pattern swallows every comparison
+            // written after a call. And below «otherwise» at 6, or
+            // «a is total otherwise 0» reads as «(a is total) otherwise 0» —
+            // the fallback catching a truth, which can never be nothing, when
+            // the thing that might be nothing is «total».
+            //
+            // 1 TO 4 ARE RESERVED for «and» and «or», which must be looser than
+            // comparison so «a is b and c is d» groups as two comparisons.
+            // Written down because nothing distinguishes 5 from 1 today — they
+            // do not exist yet — and the next person to look would compact it
+            // and take the room with it.
+            ["is"] = new(5, Lift((left, right) => Same(left, right))),
+
             ["otherwise"] = new(6, Otherwise) { Catches = Replaces },
 
             // Tighter than arithmetic, so «list @ 4 + 1» is «(list @ 4) + 1»:

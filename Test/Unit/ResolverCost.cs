@@ -64,19 +64,25 @@ public class ResolverCost
         resolver.Resolve(lexemes);
         var megabytes = (GC.GetAllocatedBytesForCurrentThread() - before) / 1024.0 / 1024.0;
 
-        // 21 MB as this is written. It was 15 with two operator precedences and
-        // is 21 with three, because the table carries a column per level that
-        // the recurrences can ask for and «otherwise» added one — a language
-        // cannot have many more operators than it needs, and this is where that
-        // shows up rather than in a benchmark nobody runs. Six costs exactly
-        // what nine did: both borrow a level something already asks for.
+        // 26.2 MB as this is written, and «is» is what moved it — 15 with two
+        // operator precedences, 21.7 with three, 26.2 with four. The table
+        // carries a column per level the recurrences can ask for, so a level
+        // costs about 4.5 MB and an operator that borrows an existing one costs
+        // nothing: six cost exactly what nine did. A language cannot have many
+        // more operators than it needs, and this is where that shows up rather
+        // than in a benchmark nobody runs.
         //
         // It was 158 MB before the binding-power and lazy-collection work, and
-        // 22 before the table went triangular, which scales to about 31 at three
-        // levels. So 26 still fails on losing any of the three, with less room
-        // than it had — the next operator has to move this number again, and
-        // should say what it did to the margin when it does.
-        Assert.True(megabytes < 26,
+        // 22 before the table went triangular, which scales to about 37 at four
+        // levels. So 32 still fails on losing any of the three, and keeps about
+        // the margin 26 kept over 21.7 — 22% against 20%.
+        //
+        // WHAT IS COMING, so the budget is known before it is spent: «and» and
+        // «or» are reserved at 1 to 4 and are looser than comparison, so they
+        // want their own levels. One more is about 31 MB and two are about 35.
+        // The next operator has to move this number again and say what it did to
+        // the margin, as this one has.
+        Assert.True(megabytes < 32,
                     $"resolving 149 lexemes allocated {megabytes:F1} MB, past the 26 MB ceiling");
     }
 
@@ -151,12 +157,16 @@ public class ResolverCost
     [Fact(DisplayName = "only the binding powers something asks for get a slot")]
     public void OnlyTheBindingPowersSomethingAsksForGetASlot()
     {
-        // Six levels: zero, the pattern binding power, and each operator's own
-        // power and one above it. «E[i, j, 13]» is reachable only if an operator
-        // binds at 13, and the table carried it regardless.
+        // Zero, the pattern binding power, and each operator's own power and one
+        // above it. «E[i, j, 13]» is reachable only if an operator binds at 13,
+        // and the table carried it regardless.
+        //
+        // The list is the operator table's, so an operator added at a new level
+        // shows up here — «is» at 5 did — and the cost of that level shows up in
+        // the budget above.
         SymbolTable symbols = new();
 
-        Assert.Equal([6, 10, 20, 21], symbols.Operators.Values.Select(op => op.BindingPower).Distinct().Order());
+        Assert.Equal([5, 6, 10, 20, 21], symbols.Operators.Values.Select(op => op.BindingPower).Distinct().Order());
 
         // An operator added at a new level has to widen the table with it.
         // Hard-coding six would leave every statement using the new operator

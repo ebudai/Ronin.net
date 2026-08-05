@@ -12,8 +12,9 @@
 ## RESERVED (0)
 
 
-## ALWAYS RESERVED (1) — a word operator, everywhere, in every scope
+## ALWAYS RESERVED (2) — a word operator, everywhere, in every scope
 
+    is           reads as an operator between two values, so no name may have it inside
     otherwise    reads as an operator between two values, so no name may have it inside
 
 ## RESERVES NOTHING (1) — every hole before a word is determinate
