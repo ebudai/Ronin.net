@@ -171,6 +171,19 @@ internal sealed class Shadowed(Span primary, string name, string where)
            "when both readings are legal. Rename this one.";
 }
 
+/// <summary>Which of an R7b conflict's three declarations arrived last.</summary>
+internal enum Absorbing
+{
+    /// <summary>The name that would be read where a word and an argument should be.</summary>
+    Name,
+
+    /// <summary>The pattern the absorbing reading goes through.</summary>
+    Shorter,
+
+    /// <summary>The pattern that refines it, and whose word the name begins with.</summary>
+    Longer,
+}
+
 /// <summary>
 ///     R7b. A name beginning with the word that distinguishes one pattern from
 ///     a shorter one, where the rest of it is a name too.
@@ -180,7 +193,7 @@ internal sealed class NameAbsorbsRefinement(Span primary,
                                             string word,
                                             string refined,
                                             string refining,
-                                            bool blamed)
+                                            Absorbing blamed)
     : Finding(FindingKind.NameAbsorbsRefinement, primary)
 {
     public string Name { get; } = name;
@@ -188,8 +201,8 @@ internal sealed class NameAbsorbsRefinement(Span primary,
     public string Refined { get; } = refined;
     public string Refining { get; } = refining;
 
-    /// <summary>Whether the NAME is the later declaration, and so the one asked to give way.</summary>
-    public bool Blamed { get; } = blamed;
+    /// <summary>Which of the three declarations arrived last, and so gives way.</summary>
+    public Absorbing Blamed { get; } = blamed;
 
     /// <remarks>
     ///     <para>
@@ -206,6 +219,13 @@ internal sealed class NameAbsorbsRefinement(Span primary,
     ///     follows.
     ///     </para>
     ///     <para>
+    ///     THREE declarations, not two. The conflict needs the shorter pattern,
+    ///     the longer one and the name, and ordering only two of them blamed the
+    ///     wrong declaration in two of the six orders they can be written in —
+    ///     including the one where the shorter pattern arrives last and is the
+    ///     thing that completed the conflict.
+    ///     </para>
+    ///     <para>
     ///     And it claimed the readings cost the SAME. They do when the remainder
     ///     is a name; when it is a call the absorbing reading is cheaper and
     ///     wins outright, which is the stronger reason this rule is blanket and
@@ -213,13 +233,18 @@ internal sealed class NameAbsorbsRefinement(Span primary,
     ///     </para>
     /// </remarks>
     public override string Message
-        => (Blamed
-                ? $"«{Name}» cannot be declared while «{Refined}» and «{Refining}» are: "
-                : $"«{Refining}» cannot be declared while «{Name}» is: ")
-         + $"the second pattern is the first with «{Word}» at the start of a hole, so a call written for "
-         + $"it also reads as «{Refined}» with «{Name}» as that argument — for no more than the intended "
+        => Blamed switch
+           {
+               Absorbing.Name => $"«{Name}» cannot be declared while «{Refined}» and «{Refining}» are: ",
+               Absorbing.Shorter => $"«{Refined}» cannot be declared while «{Refining}» and «{Name}» are: ",
+               _ => $"«{Refining}» cannot be declared while «{Refined}» and «{Name}» are: ",
+           }
+         + $"«{Refining}» is «{Refined}» with «{Word}» at the start of a hole, so a call to «{Refining}» "
+         + $"also reads as «{Refined}» with «{Name}» as that argument — for no more than the intended "
          + "reading costs, and sometimes for less, in which case nothing reports it. "
-         + (Blamed ? "Respell the name, or drop one of the two patterns." : "Respell the pattern, or the name.");
+         + (Blamed is Absorbing.Name
+                ? "Respell the name, or drop one of the two patterns."
+                : "Respell it, or the name.");
 }
 
 /// <summary>

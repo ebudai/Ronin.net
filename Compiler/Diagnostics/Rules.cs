@@ -89,14 +89,6 @@ internal static class Rules
     public static IEnumerable<Finding> Validate(IReadOnlyCollection<Declared> names,
                                                 IReadOnlyCollection<Shape> patterns)
     {
-        foreach (var finding in Anchors(patterns)) yield return finding;
-        foreach (var finding in Infixes(names)) yield return finding;
-        foreach (var finding in Infixes(patterns)) yield return finding;
-        foreach (var finding in Shadowing(names, patterns)) yield return finding;
-        foreach (var finding in Refining(names, patterns)) yield return finding;
-        foreach (var finding in Reserved(patterns)) yield return finding;
-        foreach (var finding in Injecting(patterns)) yield return finding;
-
         // A pattern that is structurally wrong does not then get to reserve
         // words. «recall (_) old (_)» is refused once for using «old» as a
         // segment — and it was ALSO run through the name scan, so every mutable
@@ -104,8 +96,26 @@ internal static class Rules
         // «old» had just invalidated. Three variables, three extra findings; a
         // hundred, a hundred. Every one of them had the same repair as the
         // first, which is the thing the structural finding already says.
+        //
+        // Computed FIRST, and applied to every relational rule rather than to
+        // the glue scan alone. That comment stated the invariant for all of
+        // them and only one of them obeyed it, so an invalid pattern went on
+        // reserving prefixes through R6b and refinements through R7 — the same
+        // amplification, by a different door.
         var sound = patterns.Where(shape => Structural(shape.Pattern) is false).ToArray();
 
+        // What a pattern is wrong about IN ITSELF, asked of all of them: these
+        // are the findings that make a pattern unsound, so filtering their input
+        // by soundness would be asking a pattern to report itself.
+        foreach (var finding in Infixes(patterns)) yield return finding;
+        foreach (var finding in Reserved(patterns)) yield return finding;
+        foreach (var finding in Injecting(patterns)) yield return finding;
+
+        // What a pattern does to something else, asked only of the sound ones.
+        foreach (var finding in Infixes(names)) yield return finding;
+        foreach (var finding in Anchors(sound)) yield return finding;
+        foreach (var finding in Shadowing(names, sound)) yield return finding;
+        foreach (var finding in Refining(names, sound)) yield return finding;
         foreach (var finding in Glue(names, sound)) yield return finding;
     }
 
@@ -314,16 +324,38 @@ internal static class Rules
 
             foreach (var (word, shorter, longer) in reserved[name.Words[0]])
             {
-                var blamed = IsLater(name.Inherited, name.Span, longer.Inherited, longer.Span);
+                // THREE declarations make this conflict, so the one asked to
+                // give way is the latest of all three. Ordering the name against
+                // the longer pattern alone blamed whichever of those two came
+                // second even when the SHORTER pattern arrived after both and
+                // was the thing that completed it.
+                (bool Inherited, Span Span, Absorbing Role, string Label)[] parties =
+                [
+                    (name.Inherited, name.Span, Absorbing.Name, "the name that would absorb it"),
+                    (shorter.Inherited, shorter.Span, Absorbing.Shorter, "the pattern it would be read through"),
+                    (longer.Inherited, longer.Span, Absorbing.Longer, "the pattern it would absorb into"),
+                ];
 
-                yield return new NameAbsorbsRefinement(blamed ? name.Span : longer.Span,
-                                                       name.Name,
-                                                       word,
-                                                       shorter.Pattern.ToString(),
-                                                       longer.Pattern.ToString(),
-                                                       blamed)
-                    .Alongside(blamed ? longer.Span : name.Span,
-                               blamed ? "the pattern it would absorb into" : "the name that would absorb it");
+                var blamed = parties[0];
+
+                foreach (var party in parties)
+                {
+                    if (IsLater(party.Inherited, party.Span, blamed.Inherited, blamed.Span)) blamed = party;
+                }
+
+                var finding = new NameAbsorbsRefinement(blamed.Span,
+                                                        name.Name,
+                                                        word,
+                                                        shorter.Pattern.ToString(),
+                                                        longer.Pattern.ToString(),
+                                                        blamed.Role);
+
+                foreach (var party in parties)
+                {
+                    if (party.Role != blamed.Role) finding.Alongside(party.Span, party.Label);
+                }
+
+                yield return finding;
             }
         }
     }
@@ -388,15 +420,55 @@ internal static class Rules
         for (var hole = shorter.Anchor.Count + 1; hole < less.Count; ++hole)
         {
             if (less[hole] is not null) continue;
+
+            // The refined hole must be FREE. A pinned one takes exactly one word
+            // or one bracketed name, so it cannot swallow the multi-word name
+            // the rival reading needs — «send x to all things» has no reading
+            // through «send (_) to «_»», because the pin takes «all» and leaves
+            // «things» with nowhere to go. Reserving «all» there reserves a
+            // prefix against an ambiguity that cannot happen.
+            if (shorter.Pinned.Contains(hole)) continue;
+
             if (Alike(less, 0, more, 0, hole) is false) continue;
             if (Wordy(more, hole, run) is false) continue;
             if (more[hole + run] is not null) continue;
             if (Alike(less, hole + 1, more, hole + run + 1, less.Count - hole - 1) is false) continue;
+            if (Pinned(shorter, longer, hole, run) is false) continue;
 
             return more[hole];
         }
 
         return null;
+    }
+
+    /// <summary>
+    ///     Whether the two patterns pin the same holes, once the inserted run is
+    ///     accounted for.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Pinning is part of a pattern's identity, and the relation compared
+    ///     only spellings — so two patterns that differ in what they pin looked
+    ///     like one being the other plus a word. The hole the words go into
+    ///     keeps its index in the shorter and gains the run in the longer;
+    ///     everything before it keeps its index, everything after gains the run.
+    /// </remarks>
+    private static bool Pinned(Pattern shorter, Pattern longer, int hole, int run)
+    {
+        for (var at = 0; at < shorter.Segments.Count; ++at)
+        {
+            if (shorter.Segments[at] is not null) continue;
+
+            // The refined hole itself is not compared. Its freedom in the
+            // SHORTER is what the rival reading needs and is required above;
+            // what the longer does with the hole it kept is its own business,
+            // and both readings exist either way.
+            if (at == hole) continue;
+
+            if (shorter.Pinned.Contains(at) != longer.Pinned.Contains(at < hole ? at : at + run)) return false;
+        }
+
+        return true;
     }
 
     /// <summary>Whether two segment runs of <paramref name="count"/> match.</summary>

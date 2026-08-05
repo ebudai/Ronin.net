@@ -245,8 +245,9 @@ public class Findings
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
 
-            Player.ron:4:10: «send (_) to all (_)» cannot be declared while «all things» is: the second pattern is the first with «all» at the start of a hole, so a call written for it also reads as «send (_) to (_)» with «all things» as that argument — for no more than the intended reading costs, and sometimes for less, in which case nothing reports it. Respell the pattern, or the name.
+            Player.ron:4:10: «send (_) to all (_)» cannot be declared while «send (_) to (_)» and «all things» are: «send (_) to all (_)» is «send (_) to (_)» with «all» at the start of a hole, so a call to «send (_) to all (_)» also reads as «send (_) to (_)» with «all things» as that argument — for no more than the intended reading costs, and sometimes for less, in which case nothing reports it. Respell it, or the name.
                 Player.ron:2:5: the name that would absorb it
+                Player.ron:3:10: the pattern it would be read through
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

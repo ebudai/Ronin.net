@@ -349,4 +349,98 @@ public class Shadows
 
         Assert.True(many < one * 25, $"one name took {one:F1} ms and 150 took {many:F1} ms");
     }
+
+    [Theory(DisplayName = "a pattern wrong in itself reserves nothing against anyone")]
+    [InlineData("var otherwise things => Number;\n"
+              + "function send (x => Number) to (y => Number) { return x; }\n"
+              + "function send (x => Number) to otherwise (y => Number) { return x; }\n",
+                nameof(InfixInPattern))]
+    [InlineData("var compute old things => Number;\n"
+              + "function compute old (x => Number) { return x; }\n",
+                nameof(ReservedSegment))]
+    public void APatternWrongInItselfReservesNothingAgainstAnyone(string source, string only)
+    {
+        // Found by audit. The «sound» filter's own comment states the invariant
+        // for every rule — a pattern wrong in itself does not then get to
+        // reserve words — and it was applied to the glue scan alone. So a
+        // pattern already refused for an operator word went on reserving a
+        // prefix through R7, and one refused for «old» went on reserving one
+        // through R6b, each adding a finding whose repair the structural one
+        // already states.
+        var findings = Compilation.Of(new SourceText(source, "Player.ron")).Findings;
+
+        Assert.Equal(only, Assert.Single(findings).GetType().Name);
+    }
+
+    [Fact(DisplayName = "and it stays one finding however many names are in scope")]
+    public void AndItStaysOneFindingHoweverManyNamesAreInScope()
+    {
+        // The amplification is the reason, not the tidiness: every name
+        // beginning «otherwise» collected its own copy, all with the same
+        // repair — fix the pattern.
+        var names = string.Concat(Enumerable.Range(0, 8).Select(n => $"var otherwise thing{n} => Number;\n"));
+
+        var findings = Compilation.Of(new SourceText(
+            names
+          + "function send (x => Number) to (y => Number) { return x; }\n"
+          + "function send (x => Number) to otherwise (y => Number) { return x; }\n",
+            "Player.ron")).Findings;
+
+        Assert.Equal(nameof(InfixInPattern), Assert.Single(findings).GetType().Name);
+    }
+
+    [Theory(DisplayName = "and a pinned hole reserves nothing, because no rival can reach it")]
+    [InlineData(new int[] { 3 }, new int[] { 4 }, false)]
+    [InlineData(new int[] { }, new int[] { }, true)]
+    [InlineData(new int[] { }, new int[] { 4 }, true)]
+    [InlineData(new int[] { 1 }, new int[] { }, false)]
+    public void AndAPinnedHoleReservesNothingBecauseNoRivalCanReachIt(int[] shorter, int[] longer, bool refines)
+    {
+        // Found by audit. A pinned hole takes exactly one word or one bracketed
+        // name, so it cannot swallow the multi-word name the rival reading
+        // needs — «send x to all things» has no reading through «send (_) to
+        // «_»», because the pin takes «all» and leaves «things» nowhere to go.
+        // The relation compared spellings only, so it reserved «all» against an
+        // ambiguity that cannot happen.
+        //
+        // The refined hole's own pin in the LONGER pattern is not compared:
+        // what the rival needs is the shorter one being free, and both readings
+        // exist whatever the longer does with the hole it kept. Row three.
+        //
+        // Built directly, because source has no pin syntax — the one built-in
+        // pin is a first hole, which R7b skips — so the constructor is the only
+        // way this shape is reachable, and it is reachable.
+        Refinement[] found = [.. Rules.Refinements(
+        [
+            new Shape(new Pattern(["send", null, "to", null], shorter), default),
+            new Shape(new Pattern(["send", null, "to", "all", null], longer), default),
+        ])];
+
+        Assert.Equal(refines, found.Length is not 0);
+    }
+
+    [Theory(DisplayName = "and a hole after the inserted words is compared where it moved to")]
+    [InlineData(new int[] { 5 }, new int[] { 6 }, true)]
+    [InlineData(new int[] { 5 }, new int[] { }, false)]
+    public void AndAHoleAfterTheInsertedWordsIsComparedWhereItMovedTo(int[] shorter, int[] longer, bool refines)
+    {
+        // A hole BEFORE the insertion keeps its index and one after it gains the
+        // run, so comparing pins needs to know which side of the hole it is on.
+        // Every other row in these tests has its holes before the refined one,
+        // where the two indices agree and an off-by-run would go unnoticed.
+        //
+        // «send (_) to (_) from (_)» refined at its second hole: the third hole
+        // is at 5 in the shorter and 6 in the longer, so pinning 5 and 6 is the
+        // same pattern and pinning it in one alone is not. The mismatch is
+        // written as a missing pin rather than a moved one because the
+        // constructor refuses a pin on a word, and index 5 of the longer is
+        // «from» — so an off-by-run cannot even be spelled there.
+        Refinement[] found = [.. Rules.Refinements(
+        [
+            new Shape(new Pattern(["send", null, "to", null, "from", null], shorter), default),
+            new Shape(new Pattern(["send", null, "to", "all", null, "from", null], longer), default),
+        ])];
+
+        Assert.Equal(refines, found.Length is not 0);
+    }
 }

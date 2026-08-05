@@ -258,100 +258,42 @@ public class NameShadowing
         Assert.Equal("Ambiguous", new Resolver(with).Resolve(lexemes).Kind.ToString());
     }
 
-    [Theory(DisplayName = "and whichever was written later is the one asked to give way")]
-    [InlineData(true, "Player.ron:4:10", "Player.ron:2:5", "the name that would absorb it")]
-    [InlineData(false, "Player.ron:4:5", "Player.ron:2:10", "the pattern it would absorb into")]
-    public void AndWhicheverWasWrittenLaterIsTheOneAskedToGiveWay(bool namesFirst,
-                                                                 string caret,
-                                                                 string related,
-                                                                 string label)
+    [Theory(DisplayName = "and whichever of the three was written last is the one asked to give way")]
+    [InlineData("SLN", "«all things» cannot be declared while")]
+    [InlineData("SNL", "«send (_) to all (_)» cannot be declared while")]
+    [InlineData("LSN", "«all things» cannot be declared while")]
+    [InlineData("LNS", "«send (_) to (_)» cannot be declared while")]
+    [InlineData("NSL", "«send (_) to all (_)» cannot be declared while")]
+    [InlineData("NLS", "«send (_) to (_)» cannot be declared while")]
+    public void AndWhicheverOfTheThreeWasWrittenLastIsTheOneAskedToGiveWay(string order, string expected)
     {
-        // Nothing in the earlier file changed, so blaming it is both wrong and
-        // unactionable. Every rule here names two declarations and the caret
-        // goes on the later one — which for this rule can be either side, since
-        // a name can predate the pattern pair that makes it ambiguous or follow
-        // it.
-        const string patterns = "function send (x => Number) to (y => Number) { return x; }\n"
-                              + "function send (x => Number) to all (y => Number) { return x; }\n";
-
-        const string names = "var things => Number;\nvar all things => Number;\n";
-
-        var reported = Diagnostics.Report(Only(namesFirst ? names + patterns : patterns + names)).Split('\n');
-
-        Assert.StartsWith(caret + ":", reported[0]);
-        Assert.Equal($"    {related}: {label}", reported[1]);
-    }
-
-    [Fact(DisplayName = "and the reading it takes can be cheaper rather than merely equal")]
-    public void AndTheReadingItTakesCanBeCheaperRatherThanMerelyEqual()
-    {
-        // The case that decided blanket. Where the remainder is a NAME the two
-        // readings cost the same and the tie is reported; where it is a CALL the
-        // name is cheaper and simply wins, with nothing said.
+        // Found by audit. THREE declarations make this conflict — the shorter
+        // pattern, the longer one, and the name — and only two of them were
+        // ordered. So in two of the six orders the caret landed on a
+        // declaration that was not last, and the sentence asked someone to
+        // change something innocent: «L N S» blamed the name although the
+        // shorter pattern arrived after it and completed the conflict.
         //
-        // A condition on "the remainder is a declared name" is silent here,
-        // which is the worse of the two to be silent about — and it is why the
-        // condition, had one been kept, would have had to be "the remainder
-        // resolves" rather than "the remainder is declared".
-        SymbolTable without = new();
-        SymbolTable with = new();
+        // All six, because five of them passing is exactly what the previous
+        // version of this test established.
+        const string shorter = "function send (x => Number) to (y => Number) { return x; }\n";
+        const string longer = "function send (x => Number) to all (y => Number) { return x; }\n";
+        const string name = "var all things => Number;\n";
 
-        without.WithNames("x", "items").WithPatterns("send _ to _", "send _ to all _", "count of _");
-        with.WithNames("x", "items", "all count of items")
-            .WithPatterns("send _ to _", "send _ to all _", "count of _");
+        var source = string.Concat(order.Select(part => part switch
+        {
+            'S' => shorter,
+            'L' => longer,
+            _ => name,
+        }));
 
-        var lexemes = Lexemes.Lex("send x to all count of items");
+        var reported = Diagnostics.Report(Only(source)).Split('\n');
 
-        var alone = new Resolver(without).Resolve(lexemes);
-        var absorbed = new Resolver(with).Resolve(lexemes);
-
-        Assert.Equal("send «x» to all count of «items»", alone.Reading);
-        Assert.Equal("send «x» to «all count of items»", absorbed.Reading);
-
-        // Both resolve. Nothing reports it. The cost is the only thing that
-        // moved, and a reader has no way to see that it did.
-        Assert.Equal("Resolved", alone.Kind.ToString());
-        Assert.Equal("Resolved", absorbed.Kind.ToString());
-        Assert.True(absorbed.Cost < alone.Cost, $"{absorbed.Cost} against {alone.Cost}");
-    }
-
-    [Fact(DisplayName = "and inserting at the first hole is R6's, not this")]
-    public void AndInsertingAtTheFirstHoleIsR6sNotThis()
-    {
-        // «sum all (_)» refines «sum (_)» the same way, and one anchor run then
-        // begins the other — so the pattern pair is refused before a name is
-        // looked at. What is left for R7b is insertion at a LATER hole, where
-        // the anchors are equal and R6 has nothing to say.
-        //
-        // WITH A NAME in scope, which is what the audit found missing: this
-        // asserted on the patterns alone, so R7b firing as well was invisible.
-        // One structural mistake grew into one finding per name beginning
-        // «all», every one of them with the same repair — fix the pattern pair.
-        var findings = Compilation.Of(new SourceText(
-            "var all things => Number;\n"
-          + "function sum (x => Number) { return x; }\n"
-          + "function sum all (x => Number) { return x; }\n",
-            "Player.ron")).Findings;
-
-        Assert.Equal(FindingKind.AnchorPrefix, Assert.Single(findings).Kind);
-    }
-
-    [Fact(DisplayName = "and the repair asks for whichever declaration the caret is on")]
-    public void AndTheRepairAsksForWhicheverDeclarationTheCaretIsOn()
-    {
-        // Found by audit. The sentence said «all things» cannot be declared
-        // whichever declaration was later, so a caret on the PATTERN arrived
-        // with a message blaming the name — sending someone to change the
-        // earlier of the two, against the convention every other rule follows.
-        const string patterns = "function send (x => Number) to (y => Number) { return x; }\n"
-                              + "function send (x => Number) to all (y => Number) { return x; }\n";
-
-        const string names = "var things => Number;\nvar all things => Number;\n";
-
-        Assert.Contains("«send (_) to all (_)» cannot be declared while «all things» is",
-                        Only(names + patterns).Message);
-
-        Assert.Contains("«all things» cannot be declared while", Only(patterns + names).Message);
+        // The caret is on the third line whichever three they are, and the
+        // other two are named beneath it.
+        Assert.StartsWith("Player.ron:3:", reported[0]);
+        Assert.Contains(expected, reported[0]);
+        Assert.Equal(3, reported.Length);
     }
 
     [Fact(DisplayName = "and it does not claim the two readings cost the same")]
