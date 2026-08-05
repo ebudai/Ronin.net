@@ -245,14 +245,37 @@ internal static class Rules
     ///     a declaration somewhere else.
     ///     </para>
     ///     <para>
-    ///     CONDITIONAL on the remainder being a name, because that is what makes
-    ///     the second reading exist: with «things» undeclared there is one
-    ///     reading and nothing to refuse. Measured both ways. Conditional is not
-    ///     the general answer — the all-glue clause above is unconditional
-    ///     because its two readings are two placements of one literal and there
-    ///     is nothing to condition on — it is the right answer where the hazard
-    ///     actually has a condition, and this one does.
+    ///     BLANKET, and the reason is which table the condition would be against
+    ///     rather than a preference. Conditioning on the remainder resolving
+    ///     makes a name's legality depend on the value language, which grows all
+    ///     session — so a later declaration invalidates an earlier name, and the
+    ///     convention refuses whichever arrived second:
     ///     </para>
+    ///     <para>
+    ///     <code>
+    ///     var all things = …   legal, «things» is not declared yet
+    ///     var things = …       refused — for a name far more natural than the
+    ///                          one it collides with, about a variable its
+    ///                          author may not own
+    ///     </code>
+    ///     </para>
+    ///     <para>
+    ///     Condition against a stable table, go blanket against a volatile one.
+    ///     The article will be conditional for that reason and not this one:
+    ///     types are few and declared early, so the re-check almost never fires.
+    ///     </para>
+    ///     <para>
+    ///     A first attempt conditioned on the remainder being a DECLARED NAME,
+    ///     which was too narrow twice over. What makes a second reading exist is
+    ///     the remainder resolving as an expression, and a call is one:
+    ///     «all count of items» is not a name, so the condition stayed silent —
+    ///     and that case is worse than the tie, because the name is CHEAPER and
+    ///     wins outright.
+    ///     </para>
+    ///     <code>
+    ///     send x to all count of items   4 -> 3   resolved both ways, silently
+    ///     send x to all things           3 -> 3   ambiguous, reported
+    ///     </code>
     ///     <para>
     ///     The FIRST hole is R6's, not this: inserting there makes one anchor
     ///     run a prefix of the other and «sum of (_)» beside «sum of all (_)» is
@@ -270,13 +293,10 @@ internal static class Rules
     private static IEnumerable<Finding> Refining(IReadOnlyCollection<Declared> names,
                                                  IReadOnlyCollection<Shape> patterns)
     {
-        var declared = names.Select(name => name.Name).ToHashSet(System.StringComparer.Ordinal);
-
         foreach (var name in names.OrderBy(name => name.Name, System.StringComparer.Ordinal))
         {
             if (name.InjectedBy is not null) continue;
             if (name.Words.Count < 2) continue;
-            if (declared.Contains(string.Join(' ', name.Words.Skip(1))) is false) continue;
 
             foreach (var shorter in patterns)
             {

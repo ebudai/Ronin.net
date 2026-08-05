@@ -188,7 +188,8 @@ public class NameShadowing
 
     [Theory(DisplayName = "a name may not absorb the word that tells two patterns apart")]
     [InlineData("var things => Number;\nvar all things => Number;\n", true)]
-    [InlineData("var all things => Number;\n", false)]
+    [InlineData("var all things => Number;\n", true)]
+    [InlineData("var all count of items => Number;\n", true)]
     [InlineData("var things => Number;\n", false)]
     [InlineData("var some things => Number;\nvar things => Number;\n", false)]
     public void ANameMayNotAbsorbTheWordThatTellsTwoPatternsApart(string names, bool refused)
@@ -199,11 +200,24 @@ public class NameShadowing
         // costs reading it through «things». A tie at a call site, created by a
         // declaration somewhere else.
         //
-        // CONDITIONAL on the remainder being a name, because that is what makes
-        // the second reading exist at all: rows two and three are «all things»
-        // with no «things», and «things» with no name in front of it. Row four
-        // is a name whose first word no pattern inserts, which is every ordinary
-        // two-word name and has to stay silent. Conditional is not the general answer: the
+        // BLANKET, and the reason is the table rather than a preference.
+        // Conditioning on the remainder resolving makes legality depend on the
+        // value language, which grows all session — so «var all things» would be
+        // legal until someone declared «things», and then the convention refuses
+        // «var things», the more natural of the two, about a variable its author
+        // may not own.
+        //
+        // Row three is why the condition could not have been "the remainder is a
+        // declared name" even if the table were stable: «count of items» is a
+        // CALL, not a name, and that case is worse than the tie —
+        //
+        //     send x to all count of items   4 -> 3   resolved both ways
+        //     send x to all things           3 -> 3   ambiguous
+        //
+        // — because the name is cheaper and wins with nothing reported.
+        //
+        // The last two rows still have to stay silent: a name that does not
+        // begin with an inserted word is every ordinary name there is. Conditional is not the general answer: the
         // all-glue clause above has no condition to test, because its two
         // readings are two placements of one literal. It is the right answer
         // where the hazard has a condition, and this one does.
@@ -220,7 +234,6 @@ public class NameShadowing
 
         var finding = Assert.IsType<NameAbsorbsRefinement>(Assert.Single(findings));
 
-        Assert.Equal("all things", finding.Name);
         Assert.Equal("all", finding.Word);
         Assert.Equal("send (_) to (_)", finding.Refined);
         Assert.Equal("send (_) to all (_)", finding.Refining);
@@ -267,6 +280,39 @@ public class NameShadowing
 
         Assert.StartsWith(caret + ":", reported[0]);
         Assert.Equal($"    {related}: {label}", reported[1]);
+    }
+
+    [Fact(DisplayName = "and the reading it takes can be cheaper rather than merely equal")]
+    public void AndTheReadingItTakesCanBeCheaperRatherThanMerelyEqual()
+    {
+        // The case that decided blanket. Where the remainder is a NAME the two
+        // readings cost the same and the tie is reported; where it is a CALL the
+        // name is cheaper and simply wins, with nothing said.
+        //
+        // A condition on "the remainder is a declared name" is silent here,
+        // which is the worse of the two to be silent about — and it is why the
+        // condition, had one been kept, would have had to be "the remainder
+        // resolves" rather than "the remainder is declared".
+        SymbolTable without = new();
+        SymbolTable with = new();
+
+        without.WithNames("x", "items").WithPatterns("send _ to _", "send _ to all _", "count of _");
+        with.WithNames("x", "items", "all count of items")
+            .WithPatterns("send _ to _", "send _ to all _", "count of _");
+
+        var lexemes = Lexemes.Lex("send x to all count of items");
+
+        var alone = new Resolver(without).Resolve(lexemes);
+        var absorbed = new Resolver(with).Resolve(lexemes);
+
+        Assert.Equal("send «x» to all count of «items»", alone.Reading);
+        Assert.Equal("send «x» to «all count of items»", absorbed.Reading);
+
+        // Both resolve. Nothing reports it. The cost is the only thing that
+        // moved, and a reader has no way to see that it did.
+        Assert.Equal("Resolved", alone.Kind.ToString());
+        Assert.Equal("Resolved", absorbed.Kind.ToString());
+        Assert.True(absorbed.Cost < alone.Cost, $"{absorbed.Cost} against {alone.Cost}");
     }
 
     [Fact(DisplayName = "and inserting at the first hole is R6's, not this")]
