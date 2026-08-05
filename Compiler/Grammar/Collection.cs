@@ -205,9 +205,15 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
 
         foreach (var token in key)
         {
-            identity.Append(token.Canonical.Length.ToString(System.Globalization.CultureInfo.InvariantCulture))
+            // Read ONCE. «Canonical» is «Memory.ToString()» for an ordinary
+            // token and more than that for a composite keyword, so asking it
+            // for the length and again for the text allocated two strings per
+            // token on a path that had just been made allocation-conscious.
+            var canonical = token.Canonical;
+
+            identity.Append(canonical.Length.ToString(System.Globalization.CultureInfo.InvariantCulture))
                     .Append(':')
-                    .Append(token.Canonical);
+                    .Append(canonical);
         }
 
         return identity.ToString();
