@@ -260,18 +260,67 @@ public class ResolverCost
         }
 
         Node[] order = [new Node.Name("one"), new Node.Name("two")];
+        var witness = Owned.Copy<string>(["one", "two", "three"]);
 
+        // ONE: each producer against the factory it calls. This catches a
+        // rewrite in the producer — «Owned.Copy([.. …])», «Select», «Take(2)» —
+        // because the factory stays where it is while the producer moves.
         var mapped = Work(() => Owned.Of(order, static node => node.ToString()));
+        var elements = Work(() => Owned.Of(witness[0], witness[1]));
 
         Assert.True(Work(() => Best.Readings(order)) * 2 < mapped * 3,
                     $"the mapped factory allocates {mapped} bytes and «Best.Readings» does not match it");
 
-        // «Pair» has one too now. It had none, and the round that changed it
-        // recorded its measurements without asserting anything about them.
-        var witness = Owned.Copy<string>(["one", "two", "three"]);
-        var elements = Work(() => Owned.Of(witness[0], witness[1]));
-
         Assert.True(Work(() => Best.Pair(witness)) * 2 < elements * 3,
                     $"the element factory allocates {elements} bytes and «Best.Pair» does not match it");
+
+        // TWO: each factory against something that does not call it. Found by
+        // audit — the assertions above compare a producer with the very factory
+        // it invokes, so a factory that got slower moved both sides together and
+        // the ratio never noticed. They guard delegation, which is worth
+        // guarding, and they cannot guard shape.
+        //
+        // «Barely» is the shape the answer has to be: one array of the right
+        // size, filled, and one object holding it. Nothing in the compiler is
+        // reached to measure it.
+        //
+        //     a bare array and wrapper   64 bytes per call
+        //     the factory               64
+        //     the producer              64
+        //
+        // Every layer at the floor, so the bound has its whole margin against
+        // the shapes that fail it — 112 for the iterator and 128 for the
+        // intermediate collection.
+        Assert.True(mapped * 2 < Work(() => Barely.Mapping(order)) * 3,
+                    $"a bare array and wrapper allocates {Work(() => Barely.Mapping(order))} bytes and the mapped factory does not match it");
+
+        Assert.True(elements * 2 < Work(() => Barely.Two(witness[0], witness[1])) * 3,
+                    $"a bare array and wrapper allocates {Work(() => Barely.Two(witness[0], witness[1]))} bytes and the element factory does not match it");
+    }
+
+    /// <summary>
+    ///     The least a list of these values can cost: one array, one object.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A test-only oracle, and it exists because the obvious baseline was
+    ///     the implementation. Comparing «Owned.Of» with «Owned.Of» measures
+    ///     nothing about how «Owned.Of» is written.
+    /// </remarks>
+    private sealed class Barely(string[] values)
+    {
+        public static Barely Two(string first, string second) => new([first, second]);
+
+        public static Barely Mapping(IReadOnlyList<Node> order)
+        {
+            var made = new string[order.Count];
+
+            for (var at = 0; at < made.Length; ++at) made[at] = order[at].ToString();
+
+            return new(made);
+        }
+
+        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+        public override string ToString() => string.Join(", ", values);
     }
 }
