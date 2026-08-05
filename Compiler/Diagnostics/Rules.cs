@@ -240,9 +240,12 @@ internal static class Rules
 
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
         {
-            // Not the programmer's to rename, and its origin is reported already.
-            if (declared.InjectedBy is not null) continue;
-
+            // GENERATED names are asked too, which they were not. The skip read
+            // "not the programmer's to rename, and its origin is reported
+            // already" — true of the rename and false of the reporting: nothing
+            // else reports this, so a pattern «index of (_)» beside any loop at
+            // all was shadowed by the counter that loop generates, silently and
+            // with nothing refused.
             foreach (var shape in exposed)
             {
                 var words = shape.Pattern.Segments.Where(segment => segment is not null).ToArray();
@@ -250,11 +253,18 @@ internal static class Rules
                 if (declared.Words.Count <= words.Length) continue;
                 if (declared.Words.Take(words.Length).SequenceEqual(words) is false) continue;
 
-                var blamed = IsLater(declared.Inherited, declared.Span, shape.Inherited, shape.Span);
+                // A generated name always loses the ordering, whenever it was
+                // written. The convention asks the LATER declaration to give
+                // way because the earlier author cannot have known — and here
+                // neither author can, since the name has no spelling anyone
+                // chose. What is left to change is the pattern.
+                var blamed = declared.InjectedBy is null
+                          && IsLater(declared.Inherited, declared.Span, shape.Inherited, shape.Span);
 
                 yield return new NameShadowsPattern(blamed ? declared.Span : shape.Span,
                                                    declared.Name,
-                                                   shape.Pattern.ToString())
+                                                   shape.Pattern.ToString(),
+                                                   declared.InjectedBy)
                     .Alongside(blamed ? shape.Span : declared.Span,
                                blamed ? "the pattern it would shadow" : "the name that would shadow it");
             }
@@ -565,10 +575,21 @@ internal static class Rules
     {
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
         {
-            // An injected name is not the programmer's to rename, and none is
-            // built from an operator word — «old» and «index of» are the whole
-            // set — so one arriving here would be a defect in the injector
-            // rather than something to ask anyone about.
+            // FALSE as written, and left here as a marker rather than deleted:
+            // it said no injected name can be built from an operator word
+            // because «old» and «index of» are the whole set. That accounts for
+            // the fixed prefix and forgets the SUBJECT, which is copied from
+            // source — so «for each (is valid) in …» generates «index of is
+            // valid», which has «is» interiorly, and captures «index of is
+            // valid» from an author who wrote a comparison.
+            //
+            // Still skipped, because the honest rule is not the one this scan
+            // applies. A generated name only captures when the words before the
+            // operator resolve — «index of» is a declared name in that witness
+            // and «old» is not, which is why the shadow «old is valid» is
+            // harmless — and refusing every one of them would make «is valid»
+            // illegal as a reactive name, which is the shape R5′ exists to save.
+            // Awaiting a ruling; see the audit note.
             if (declared.InjectedBy is not null) continue;
 
             // INTERIOR only, which is R5′. An infix reading needs an operand on

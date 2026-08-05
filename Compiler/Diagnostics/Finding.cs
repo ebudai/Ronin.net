@@ -263,16 +263,31 @@ internal sealed class NameAbsorbsRefinement(Span primary,
 ///     also why it is the anchor-only shapes that the registry has to warn about.
 ///     </para>
 /// </remarks>
-internal sealed class NameShadowsPattern(Span primary, string name, string pattern)
+internal sealed class NameShadowsPattern(Span primary, string name, string pattern, string injectedBy = null)
     : Finding(FindingKind.NameShadowsPattern, primary)
 {
     public string Name { get; } = name;
     public string Pattern { get; } = pattern;
 
+    /// <summary>The declaration the compiler built this name from, where it built it.</summary>
+    public string InjectedBy { get; } = injectedBy;
+
+    /// <remarks>
+    ///     A GENERATED name gets its own sentence, because the repair is not the
+    ///     same. Nobody wrote «index of bank» and nobody can respell it — every
+    ///     loop makes one — so the pattern is what gives way, whichever was
+    ///     declared first. Saying "rename it" about a name that does not appear
+    ///     in the source is worse than saying nothing.
+    /// </remarks>
     public override string Message
-        => $"«{Name}» begins with every word of «{Pattern}», so it would be read instead of that " +
+        => InjectedBy is null
+         ? $"«{Name}» begins with every word of «{Pattern}», so it would be read instead of that " +
            "call wherever both are in scope — and more cheaply, so nothing would report it. " +
-           "Rename it, or respell the pattern.";
+           "Rename it, or respell the pattern."
+         : $"«{Pattern}» cannot be declared: the compiler builds «{Name}» from «{InjectedBy}», and that " +
+           "name begins with every word of the pattern — so it would be read instead of the call, more " +
+           "cheaply, with nothing to report it. Respell the pattern; the generated name is not yours to " +
+           "change.";
 }
 
 /// <summary>

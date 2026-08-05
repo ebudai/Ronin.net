@@ -360,4 +360,47 @@ public class NameShadowing
                            Only("var things => Number;\nvar all things => Number;\n"
                               + "function send (x => Number) to (y => Number) { return x; }\n"
                               + "function send (x => Number) to all (y => Number) { return x; }\n").Message);
+
+    [Fact(DisplayName = "a name the compiler generates may shadow a pattern too")]
+    public void ANameTheCompilerGeneratesMayShadowAPatternToo()
+    {
+        // Found by audit. Generated names were skipped here, and the skip's own
+        // words were "not the programmer's to rename, and its origin is reported
+        // already" — true of the rename and false of the reporting. Nothing else
+        // reported this, so declaring «index of (_)» beside ANY loop meant the
+        // counter that loop generates shadowed the call, more cheaply, with
+        // nothing refused:
+        //
+        //     for each bank in banks { return index of bank; }
+        //         with «index of (_)» declared  ->  the generated counter
+        //         without it                    ->  the call
+        //
+        // The PATTERN is blamed whichever was written first, which is the one
+        // place this rule departs from "the later declaration gives way". Both
+        // authors are innocent of a name neither of them spelled, so what is
+        // left to change is the pattern — and the message says so rather than
+        // asking for a rename nobody can perform.
+        var finding = Assert.IsType<NameShadowsPattern>(Only(
+            "function index of (x => Number) { return x; }\n"
+          + "var banks => Number;\n"
+          + "for each bank in banks { return index of bank; }\n"));
+
+        Assert.Equal("index of bank", finding.Name);
+        Assert.Equal("index of (_)", finding.Pattern);
+        Assert.Equal("bank", finding.InjectedBy);
+        Assert.Contains("the generated name is not yours to change", finding.Message);
+
+        // The CARET on the pattern, which is line 1 here — earlier than the loop
+        // on line 3, and blamed anyway. Asserting the message alone leaves the
+        // span free to point at the loop while the sentence asks for the
+        // pattern, which is the mismatch a previous round found on another rule.
+        Assert.StartsWith("Player.ron:1:10:", Diagnostics.Report(finding));
+    }
+
+    [Fact(DisplayName = "and an ordinary loop still generates nothing to complain about")]
+    public void AndAnOrdinaryLoopStillGeneratesNothingToComplainAbout()
+        // The rule is about a collision, so with no «index of» pattern in scope
+        // the counter is an ordinary generated name and says nothing.
+        => Assert.Empty(Compilation.Of(new SourceText(
+            "var banks => Number;\nfor each bank in banks { return bank; }\n", "Player.ron")).Findings);
 }
