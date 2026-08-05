@@ -19,21 +19,21 @@ namespace Unit;
 public class Resolutions
 {
     [Theory(DisplayName = "resolves")]
-    [InlineData("maximal munch beats splitting a name",
+    [InlineData("a longer name and a shorter one are two readings, not a winner",
         new[] { "base", "base price", "price", "tax" },
         new[] { "base _" },
-        "base price + tax", "Resolved", 2,
-        new[] { "(«base price» + «tax»)" })]
+        "base price + tax", "Ambiguous", 2,
+        new[] { "(«base price» + «tax»)", "base («price» + «tax»)" })]
     [InlineData("overlapping pattern prefixes tie",
         new[] { "list", "of list" },
         new[] { "sum _", "sum of _" },
         "sum of list", "Ambiguous", 2,
         new[] { "sum of «list»", "sum «of list»" })]
-    [InlineData("a long name swallows a call segment",
+    [InlineData("a long name over a call segment is two readings, not a capture",
         new[] { "alice", "hello", "hello to alice" },
         new[] { "send _", "send _ to _" },
-        "send hello to alice", "Resolved", 2,
-        new[] { "send «hello to alice»" })]
+        "send hello to alice", "Ambiguous", 2,
+        new[] { "send «hello to alice»", "send «hello» to «alice»" })]
     [InlineData("control: no swallowing name in scope",
         new[] { "alice", "hello" },
         new[] { "send _", "send _ to _" },
@@ -693,21 +693,6 @@ public class Resolutions
 
         Assert.Equal(["(_) rounded", "(_) squared"],
                      findings.Cast<LeadingHole>().Select(finding => finding.Pattern).Order());
-    }
-
-    [Fact(DisplayName = "names may not contain pattern glue")]
-    public void NamesMayNotContainPatternGlue()
-    {
-        // Without this, defining «hello to alice» silently re-resolves
-        // «send hello to alice» from a two-argument call to a one-argument one.
-        var complaint = Assert.Single(Rules.Validate([Declares("hello to alice")], [Shape("send _ to _")]));
-
-        Assert.Equal(FindingKind.GlueInName, complaint.Kind);
-        var glue = Assert.IsType<GlueInName>(complaint);
-
-        Assert.Equal("hello to alice", glue.Name);
-        Assert.Equal("to", glue.Word);
-        Assert.Equal("send (_) to (_)", glue.Pattern);
     }
 
     [Fact(DisplayName = "operators of one precedence chain")]

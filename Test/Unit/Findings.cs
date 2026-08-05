@@ -40,17 +40,6 @@ public class Findings
 
                      """,
                      "function recall (x => Number) old (y => Number) { return x; }\n",
-                     """
-                     var hello to alice => Number;
-                     function send (x => Number) to (y => Number) { return x; }
-
-                     """,
-                     """
-                     var smoothed => Number;
-                     function apply (x => Number) smoothed (y => Number) { return x; }
-
-                     """,
-                     "var total otherwise zero => Number;\n",
                      "function x otherwise (value => Number) { return value; }\n",
                      """
                      var print job => Number;
@@ -68,13 +57,6 @@ public class Findings
                      """
                      function item (which => Number) of (list => Number) { return which; }
                      for each bank in banks { return bank; }
-
-                     """,
-                     """
-                     var things => Number;
-                     var all things => Number;
-                     function send (x => Number) to (y => Number) { return x; }
-                     function send (x => Number) to all (y => Number) { return x; }
 
                      """,
                  })
@@ -214,14 +196,6 @@ public class Findings
 
             Player.ron:1:10: «recall (_) old (_)» uses the reserved word «old» as a segment, which would make it glue and reject every injected name in scope. Respell that segment.
 
-            Player.ron:2:10: «hello to alice» contains «to», which is glue in «send (_) to (_)». A name containing glue silently re-reads statements that already worked, so one of the two has to be respelled — and it is the later declaration that gives way.
-                Player.ron:1:5: the name it collides with
-
-            Player.ron:2:10: «smoothed» is made only of words «apply (_) smoothed (_)» uses to separate its parts. Names like that can sit in a hole beside the very literal they are glue for, and once two of them exist a call has two readings at the same cost with no bracketing between them. Refused as a class, because by the second one there is nothing left to point at. Respell it.
-                Player.ron:1:5: the name it collides with
-
-            Player.ron:1:5: «total otherwise zero» has «otherwise» inside it, which the language reads as an operator between two values. A name spanning one is cheaper than the expression it covers, so every «… otherwise …» already written would quietly become this name instead. Respell it.
-
             Player.ron:1:10: «x otherwise (_)» uses «otherwise», which the language reads as an operator between two values. A call to it would cost exactly what the operation costs, so every «… otherwise …» in scope would be ambiguous rather than wrong. Respell it.
 
             Player.ron:2:10: «print job» begins with every word of «print (_)», so it would be read instead of that call wherever both are in scope — and more cheaply, so nothing would report it. Rename it, or respell the pattern.
@@ -244,10 +218,6 @@ public class Findings
             Player.ron:1:12: a «when» inside a type is not implemented yet. Instances are built — one cell per member, and a handle that survives removal — but nothing yet fires a type-scope «when» per instance, so declare it at module scope, or track the instance explicitly.
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
-
-            Player.ron:4:10: «send (_) to all (_)» cannot be declared while «send (_) to (_)» and «all things» are: «send (_) to all (_)» is «send (_) to (_)» with «all» at the start of a hole, so a call to «send (_) to all (_)» also reads as «send (_) to (_)» with «all things» as that argument — for no more than the intended reading costs, and sometimes for less, in which case nothing reports it. Respell it, or the name.
-                Player.ron:2:5: the name that would absorb it
-                Player.ron:3:10: the pattern it would be read through
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

@@ -102,16 +102,21 @@ internal static class Glue
 
         registry.AppendLine("# Reserved words, generated from the patterns in scope. Do not edit.");
         registry.AppendLine("#");
-        registry.AppendLine("# A word here may not appear INSIDE a name wherever its pattern is visible,");
-        registry.AppendLine("# nor may a name be made only of words from this file. At an edge it is free:");
-        registry.AppendLine("# «to uppercase» is a name, «time to live» is not.");
-        registry.AppendLine("# Adding a line is a breaking change for every program that sees it.");
+        registry.AppendLine("# Most of this is ADVICE now. A name may contain any of these words: a");
+        registry.AppendLine("# statement with two readings is an error that offers the bracketings, so");
+        registry.AppendLine("# nothing is refused at the declaration for what it might do to a reading.");
+        registry.AppendLine("# Using a word here still costs a bracket wherever the two meanings meet.");
+        registry.AppendLine("#");
+        registry.AppendLine("# Two sections are still rules, and say so: no name may BEGIN with the words");
+        registry.AppendLine("# of an anchor-only pattern, because those readings are not all reachable by");
+        registry.AppendLine("# bracketing; and no pattern may use a word operator or an injection word.");
+        registry.AppendLine("# Adding a line to either is a breaking change for every program that sees it.");
         registry.AppendLine("#");
         registry.AppendLine("# A pattern below is written as it is declared, and «guillemets» mark the one");
         registry.AppendLine("# thing that cannot be: a PINNED hole, which takes one word and has no");
         registry.AppendLine("# declaration syntax yet. Everything outside them is ordinary source.");
         registry.AppendLine();
-        registry.AppendLine($"## RESERVED ({reserved.Count})");
+        registry.AppendLine($"## COSTS A BRACKET INSIDE A NAME ({reserved.Count}) — advice");
         registry.AppendLine();
 
         foreach (var (word, pattern) in reserved) registry.AppendLine($"    {word,-12} {pattern}");
@@ -122,16 +127,16 @@ internal static class Glue
         // two, so it wins silently, and R5's remedy is the only one that reaches
         // it.
         registry.AppendLine();
-        registry.AppendLine($"## ALWAYS RESERVED ({Rules.Infix.Count}) — a word operator, everywhere, in every scope");
+        registry.AppendLine($"## NO PATTERN MAY USE ({Rules.Infix.Count}) — a word operator, everywhere, in every scope");
         registry.AppendLine();
 
         foreach (var word in Rules.Infix)
-            registry.AppendLine($"    {word,-12} reads as an operator between two values, so no name may have it inside");
+            registry.AppendLine($"    {word,-12} reads as an operator between two values, so a pattern using it would tie");
 
         var free = declared.Where(pattern => pattern.Glue.Any() is false).ToArray();
 
         registry.AppendLine();
-        registry.AppendLine($"## RESERVES NOTHING ({free.Length}) — every hole before a word is determinate");
+        registry.AppendLine($"## COSTS NOTHING ({free.Length}) — every hole before a word is determinate");
         registry.AppendLine();
 
         foreach (var pattern in free) registry.AppendLine($"    {pattern}");
@@ -147,29 +152,12 @@ internal static class Glue
                                .ToArray();
 
         registry.AppendLine();
-        registry.AppendLine($"## RESERVES A NAME PREFIX ({anchored.Length}) — no name may begin with these words");
+        registry.AppendLine($"## NO NAME MAY BEGIN WITH ({anchored.Length}) — a rule, not advice");
         registry.AppendLine();
 
         foreach (var pattern in anchored)
         {
             registry.AppendLine($"    {string.Join(" ", pattern.Anchor),-12} from {pattern}");
-        }
-
-        // R7b, and it belongs in this section rather than a third one: what it
-        // reserves is a name PREFIX, the same thing R6b reserves, differing only
-        // in what makes it reserved. It was computed privately inside one rule
-        // and so could not be printed at all — leaving this file telling a
-        // reader that «all» is ordinary glue and free at an edge, while
-        // validation refused every name beginning with it.
-        var refining = Rules.Refinements([.. declared.Select(pattern => new Shape(pattern, default))]);
-
-        registry.AppendLine();
-        registry.AppendLine($"## RESERVES A NAME PREFIX BY REFINING ({refining.Count}) — no name may begin with these");
-        registry.AppendLine();
-
-        foreach (var (word, shorter, longer) in refining)
-        {
-            registry.AppendLine($"    {word,-12} {longer.Pattern} is {shorter.Pattern} with it at a hole");
         }
 
         // The dual list. Glue words may not be names; injection words may not be

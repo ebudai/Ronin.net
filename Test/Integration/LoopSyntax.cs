@@ -214,22 +214,27 @@ public class LoopSyntax
     {
         // 5, and the item the design note calls easy to miss: a loop variable is
         // a declaration site, and if it skips the scope rules the whole argument
-        // for this spelling collapses. Shown with «to» rather than «in», since
-        // the lexer now takes «in» first.
+        // for this spelling collapses.
+        //
+        // Through R6b now. This used to be shown with pattern glue, and glue in
+        // a name stopped being refused when ambiguity became the error — R6b is
+        // the name rule that survived, because the readings it prevents are not
+        // all reachable by bracketing.
         var findings = Of("""
-                          function send (x => Number) to (y => Number) { return x; }
-                          for each (hello to alice) in orders { return alice; }
+                          function send (x => Number) { return x; }
+                          for each (send it) in orders { return it; }
 
                           """);
 
-        var glue = Assert.IsType<GlueInName>(Assert.Single(findings, finding => finding is GlueInName));
+        var shadow = Assert.IsType<NameShadowsPattern>(
+            Assert.Single(findings, finding => finding is NameShadowsPattern));
 
-        Assert.Equal("hello to alice", glue.Name);
-        Assert.Equal("to", glue.Word);
+        Assert.Equal("send it", shadow.Name);
+        Assert.Equal("send (_)", shadow.Pattern);
 
-        // the span is on the variable inside the loop, not on the pattern that
-        // made the word glue
-        Assert.Contains("for each ", glue.Primary.Source.Text[..glue.Primary.Offset]);
+        // the span is on the variable inside the loop, not on the pattern it
+        // would shadow
+        Assert.Contains("for each ", shadow.Primary.Source.Text[..shadow.Primary.Offset]);
     }
 
     [Fact(DisplayName = "a loop variable that is fine is simply declared")]

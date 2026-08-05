@@ -32,14 +32,8 @@ internal enum FindingKind
     /// <summary>A pattern uses as glue a word the compiler injects names with.</summary>
     InjectionWordAsGlue,
 
-    /// <summary>A multi-word name contains a word that is glue in some pattern.</summary>
-    GlueInName,
 
-    /// <summary>A name that is exactly a word some pattern uses as glue.</summary>
-    GlueAsName,
 
-    /// <summary>A name containing a word the language reads as an operator.</summary>
-    InfixInName,
 
     /// <summary>A pattern using a word the language reads as an operator.</summary>
     InfixInPattern,
@@ -80,8 +74,6 @@ internal enum FindingKind
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
 
-    /// <summary>A name beginning with the word that tells two patterns apart.</summary>
-    NameAbsorbsRefinement,
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -171,81 +163,6 @@ internal sealed class Shadowed(Span primary, string name, string where)
            "when both readings are legal. Rename this one.";
 }
 
-/// <summary>Which of an R7b conflict's three declarations arrived last.</summary>
-internal enum Absorbing
-{
-    /// <summary>The name that would be read where a word and an argument should be.</summary>
-    Name,
-
-    /// <summary>The pattern the absorbing reading goes through.</summary>
-    Shorter,
-
-    /// <summary>The pattern that refines it, and whose word the name begins with.</summary>
-    Longer,
-}
-
-/// <summary>
-///     R7b. A name beginning with the word that distinguishes one pattern from
-///     a shorter one, where the rest of it is a name too.
-/// </summary>
-internal sealed class NameAbsorbsRefinement(Span primary,
-                                            string name,
-                                            string word,
-                                            string refined,
-                                            string refining,
-                                            Absorbing blamed)
-    : Finding(FindingKind.NameAbsorbsRefinement, primary)
-{
-    public string Name { get; } = name;
-    public string Word { get; } = word;
-    public string Refined { get; } = refined;
-    public string Refining { get; } = refining;
-
-    /// <summary>Which of the three declarations arrived last, and so gives way.</summary>
-    public Absorbing Blamed { get; } = blamed;
-
-    /// <remarks>
-    ///     <para>
-    ///     The CAUSE and not the rule. Two patterns and the word between them is
-    ///     what a reader can act on, where "R7b" is for us — and it says which
-    ///     pair to look at when more than one rule fires on one name, which a
-    ///     rule name actively hides.
-    ///     </para>
-    ///     <para>
-    ///     The repair follows the CARET. This said "«all things» cannot be
-    ///     declared" whichever declaration was later, so a caret on the pattern
-    ///     came with a sentence blaming the name — sending someone to change the
-    ///     earlier of the two, against the convention every other rule here
-    ///     follows.
-    ///     </para>
-    ///     <para>
-    ///     THREE declarations, not two. The conflict needs the shorter pattern,
-    ///     the longer one and the name, and ordering only two of them blamed the
-    ///     wrong declaration in two of the six orders they can be written in —
-    ///     including the one where the shorter pattern arrives last and is the
-    ///     thing that completed the conflict.
-    ///     </para>
-    ///     <para>
-    ///     And it claimed the readings cost the SAME. They do when the remainder
-    ///     is a name; when it is a call the absorbing reading is cheaper and
-    ///     wins outright, which is the stronger reason this rule is blanket and
-    ///     the one the sentence used to deny.
-    ///     </para>
-    /// </remarks>
-    public override string Message
-        => Blamed switch
-           {
-               Absorbing.Name => $"«{Name}» cannot be declared while «{Refined}» and «{Refining}» are: ",
-               Absorbing.Shorter => $"«{Refined}» cannot be declared while «{Refining}» and «{Name}» are: ",
-               _ => $"«{Refining}» cannot be declared while «{Refined}» and «{Name}» are: ",
-           }
-         + $"«{Refining}» is «{Refined}» with «{Word}» at the start of a hole, so a call to «{Refining}» "
-         + $"also reads as «{Refined}» with «{Name}» as that argument — for no more than the intended "
-         + "reading costs, and sometimes for less, in which case nothing reports it. "
-         + (Blamed is Absorbing.Name
-                ? "Respell the name, or drop one of the two patterns."
-                : "Respell it, or the name.");
-}
 
 /// <summary>
 ///     A name beginning with every word of a pattern, which swallows its call.
@@ -314,28 +231,6 @@ internal sealed class InfixInPattern(Span primary, string pattern, string word)
            $"«… {Word} …» in scope would be ambiguous rather than wrong. Respell it.";
 }
 
-/// <summary>
-///     A name containing a word the language reads as an operator.
-/// </summary>
-///
-/// <remarks>
-///     R5's shape, for the same reason and against a different rival. A name is
-///     ONE lookup and any composite reading of the same span is at least two, so
-///     a name spanning an operator always wins it — silently, because it is
-///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
-///     otherwise y» already written and makes it mean the name.
-/// </remarks>
-internal sealed class InfixInName(Span primary, string name, string word)
-    : Finding(FindingKind.InfixInName, primary)
-{
-    public string Name { get; } = name;
-    public string Word { get; } = word;
-
-    public override string Message
-        => $"«{Name}» has «{Word}» inside it, which the language reads as an operator between two " +
-           "values. A name spanning one is cheaper than the expression it covers, so every " +
-           $"«… {Word} …» already written would quietly become this name instead. Respell it.";
-}
 
 /// <summary>A name spelled like one the compiler injects.</summary>
 internal sealed class ReservedPrefix(Span primary, string name, string word)
@@ -413,59 +308,7 @@ internal sealed class InjectionWordAsGlue(Span primary, string pattern, string w
            "everywhere this pattern is in scope. Respell the pattern.";
 }
 
-/// <summary>A multi-word name contains a word that is glue in some pattern.</summary>
-internal sealed class GlueInName(Span primary, string name, string word, string pattern)
-    : Finding(FindingKind.GlueInName, primary)
-{
-    public string Name { get; } = name;
-    public string Word { get; } = word;
-    public string Pattern { get; } = pattern;
 
-    public override string Message
-        => $"«{Name}» contains «{Word}», which is glue in «{Pattern}». A name containing glue " +
-           "silently re-reads statements that already worked, so one of the two has to be " +
-           "respelled — and it is the later declaration that gives way.";
-}
-
-/// <summary>
-///     A name made only of words some pattern uses as glue, of any length.
-/// </summary>
-///
-/// <remarks>
-///     <para>
-///     A CLASS is refused here, not a demonstrated ambiguity, and the two
-///     arities differ in which. Declaring «to» beside «send (_) to (_)» changes
-///     the reading of nothing — measured, zero of thirty-four statements — so
-///     one all-glue name is harmless on its own. Declaring «to to» as well makes
-///     «send to to to to» two readings at the same cost, and by then the second
-///     declaration is the one refused, with the first perfectly innocent and
-///     nothing to point at.
-///     </para>
-///     <para>
-///     So the rule refuses the class rather than waiting for the pair, and the
-///     message has to say that rather than claim this declaration already broke
-///     something. It did not, and telling someone it did is a diagnostic that
-///     cannot be checked against the program in front of them.
-///     </para>
-/// </remarks>
-internal sealed class GlueAsName(Span primary, string name, string pattern)
-    : Finding(FindingKind.GlueAsName, primary)
-{
-    public string Name { get; } = name;
-    public string Pattern { get; } = pattern;
-
-    /// <remarks>
-    ///     What the CLASS permits, not what this declaration did. It said a call
-    ///     "has two readings at the same cost", which is false for a one-word
-    ///     name and provably so — the maintained resolver test beside it shows
-    ///     the call still resolving until a second all-glue name exists.
-    /// </remarks>
-    public override string Message
-        => $"«{Name}» is made only of words «{Pattern}» uses to separate its parts. Names like that can " +
-           "sit in a hole beside the very literal they are glue for, and once two of them exist a call " +
-           "has two readings at the same cost with no bracketing between them. Refused as a class, " +
-           "because by the second one there is nothing left to point at. Respell it.";
-}
 
 /// <summary>A ring of whens, each writing something the next reads.</summary>
 internal sealed class CascadeRing(Span primary, string ring)

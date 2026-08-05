@@ -1,30 +1,32 @@
 # Reserved words, generated from the patterns in scope. Do not edit.
 #
-# A word here may not appear INSIDE a name wherever its pattern is visible,
-# nor may a name be made only of words from this file. At an edge it is free:
-# «to uppercase» is a name, «time to live» is not.
-# Adding a line is a breaking change for every program that sees it.
+# Most of this is ADVICE now. A name may contain any of these words: a
+# statement with two readings is an error that offers the bracketings, so
+# nothing is refused at the declaration for what it might do to a reading.
+# Using a word here still costs a bracket wherever the two meanings meet.
+#
+# Two sections are still rules, and say so: no name may BEGIN with the words
+# of an anchor-only pattern, because those readings are not all reachable by
+# bracketing; and no pattern may use a word operator or an injection word.
+# Adding a line to either is a breaking change for every program that sees it.
 #
 # A pattern below is written as it is declared, and «guillemets» mark the one
 # thing that cannot be: a PINNED hole, which takes one word and has no
 # declaration syntax yet. Everything outside them is ordinary source.
 
-## RESERVED (0)
+## COSTS A BRACKET INSIDE A NAME (0) — advice
 
 
-## ALWAYS RESERVED (2) — a word operator, everywhere, in every scope
+## NO PATTERN MAY USE (2) — a word operator, everywhere, in every scope
 
-    is           reads as an operator between two values, so no name may have it inside
-    otherwise    reads as an operator between two values, so no name may have it inside
+    is           reads as an operator between two values, so a pattern using it would tie
+    otherwise    reads as an operator between two values, so a pattern using it would tie
 
-## RESERVES NOTHING (1) — every hole before a word is determinate
+## COSTS NOTHING (1) — every hole before a word is determinate
 
     for each «one word, or a bracketed name» in (_)
 
-## RESERVES A NAME PREFIX (0) — no name may begin with these words
-
-
-## RESERVES A NAME PREFIX BY REFINING (0) — no name may begin with these
+## NO NAME MAY BEGIN WITH (0) — a rule, not advice
 
 
 ## PROTECTED (3) — no pattern may use these as glue

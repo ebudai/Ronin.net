@@ -614,8 +614,17 @@ internal sealed class Resolver
         ///     expression cannot satisfy this type, so the compiler refuses what
         ///     no test could see.
         /// </remarks>
+        /// <remarks>
+        ///     CHEAPEST FIRST, because the diagnostic offers these in order and
+        ///     the likeliest reading should be the first one a person sees. That
+        ///     is the whole of what cost does now: it may order the suggestions
+        ///     and it may never choose among them. The moment it chooses, every
+        ///     silent capture this replaced comes back looking like a feature.
+        /// </remarks>
         private Owned.Kept<string> Witness
-            => order.Count > 1 ? Best.Readings(order) : witnesses[order[0].ToString()];
+            => order.Count > 1
+             ? Best.Readings([.. order.OrderBy(node => costs[node.ToString()])])
+             : witnesses[order[0].ToString()];
 
         // Keyed by rendering rather than by node: two derivations that read the
         // same way ARE the same reading, and counting them separately would
@@ -632,7 +641,18 @@ internal sealed class Resolver
             // remembering to.
             var offered = witness is null ? Owned.None<string>() : Owned.Copy(witness);
 
-            if (IsEmpty || cost < Cost)
+            // EVERY derivation is kept, not only the cheapest. Minimum lookup
+            // used to discard the dearer ones here, which is what made a
+            // strictly cheaper reading win in silence — «send time to live»
+            // simply meant the name, and nothing said so.
+            //
+            // Ambiguity is the error now, so what this holds becomes "how many
+            // derivations, and what they are" rather than "the cheapest, and how
+            // many achieve it". Same table and same asymptotics: measured
+            // identical at 149 lexemes, 26.2 MB either way, because the
+            // derivations it used to drop were few — adjacency does not compose
+            // in this grammar, so there are no cut points to multiply.
+            if (IsEmpty)
             {
                 Cost = cost;
 
@@ -641,19 +661,28 @@ internal sealed class Resolver
                 // still gets one per binding power — so eagerly allocating both
                 // collections was two objects per cell for nothing.
                 order ??= [];
+                costs ??= [];
                 derivations ??= [];
                 witnesses ??= [];
 
                 order.Clear();
+                costs.Clear();
                 derivations.Clear();
                 witnesses.Clear();
-                order.Add(node);
-                derivations[reading] = count;
-                witnesses[reading] = offered;
-                return;
             }
-            if (cost != Cost) return;
+
+            // Kept for RANKING and never for choosing. The cheapest reading is
+            // the one to offer first in the diagnostic, and the moment it is
+            // allowed to decide instead, every silent capture this removes comes
+            // back looking like a feature.
+            if (cost < Cost) Cost = cost;
+
             if (derivations.ContainsKey(reading) is false) order.Add(node);
+
+            // The CHEAPEST way to reach a reading, where two derivations render
+            // alike: they are one reading, so they rank once and rank at their
+            // best.
+            costs[reading] = costs.TryGetValue(reading, out var already) ? System.Math.Min(already, cost) : cost;
 
             // The LARGER and not the sum, because two derivations that read the
             // same way are the same reading — which this said in a comment and
@@ -680,6 +709,17 @@ internal sealed class Resolver
         // be deterministic, so order is tracked explicitly alongside the counts.
         // Both are null until something is offered, which is what «IsEmpty» reads.
         private List<Node> order;
+
+        /// <summary>What each reading costs, for ordering them.</summary>
+        ///
+        /// <remarks>
+        ///     Kept per READING now that the cell holds every derivation rather
+        ///     than only the cheapest. Cost used to decide which survived, so one
+        ///     number was enough; it ranks them instead, and a rank needs one
+        ///     number each.
+        /// </remarks>
+        private Dictionary<string, int> costs;
+
         private Dictionary<string, long> derivations;
         private Dictionary<string, Owned.Kept<string>> witnesses;
     }

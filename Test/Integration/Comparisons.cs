@@ -210,32 +210,36 @@ public class Comparisons
         Assert.IsType<Error>(comparing.Apply(1d, new Error("boom")));
     }
 
-    [Theory(DisplayName = "and reserving it costs the names it was measured to cost")]
-    [InlineData("is valid", true)]
-    [InlineData("valid is", true)]
-    [InlineData("is", true)]
-    [InlineData("y is x", false)]
-    [InlineData("this is that thing", false)]
-    public void AndReservingItCostsTheNamesItWasMeasuredToCost(string name, bool legal)
-    {
-        // Nothing wired this up: «Rules.Infix» reads the operator table, so
-        // registering «is» reserved it in the same commit and by the same
-        // derivation that reserved «otherwise».
+    [Theory(DisplayName = "and it reserves nothing in a name")]
+    [InlineData("is valid")]
+    [InlineData("valid is")]
+    [InlineData("is")]
+    [InlineData("y is x")]
+    [InlineData("this is that thing")]
+    public void AndItReservesNothingInAName(string name)
+        // «is» was reserved inside names the moment it joined the operator
+        // table, because «Rules.Infix» reads that table — and then the name
+        // rules were deleted, so it reserves nothing at all. «y is x» is a legal
+        // name again, and «y is x» as a statement has two readings and says so.
         //
-        // And R5′ is what makes the bill affordable. «is» is the sixth commonest
-        // word in identifiers, and the blanket rule would have refused «is
-        // valid» — the canonical boolean-name shape, and the one a
-        // spaces-in-names grammar most encourages. Interior only, so what is
-        // refused is what a reader would also misparse: «y is x» reads as a
-        // comparison and «is valid» does not.
-        var findings = Compilation.Of(new SourceText($"var {name} => Number;\n", "Player.ron")).Findings;
+        // A pattern still may not use it: «Infixes(patterns)» is a pattern-side
+        // rule and stayed. The two halves were always separate rules that shared
+        // a word set.
+        => Assert.Empty(Compilation.Of(new SourceText($"var {name} => Number;\n", "Player.ron")).Findings);
 
-        if (legal)
-        {
-            Assert.Empty(findings);
-            return;
-        }
+    [Fact(DisplayName = "and a name that spans it makes the statement ambiguous, not the name illegal")]
+    public void AndANameThatSpansItMakesTheStatementAmbiguousNotTheNameIllegal()
+    {
+        // Where the refusal moved to. Declaring «y is x» is fine; writing it is
+        // what has two readings, and that is reported where a reader can see
+        // both and bracket one.
+        SymbolTable symbols = new();
 
-        Assert.Equal(nameof(InfixInName), Assert.Single(findings).GetType().Name);
+        symbols.WithNames("x", "y", "y is x");
+
+        var resolution = new Resolver(symbols).Resolve(Lexemes.Lex("y is x"));
+
+        Assert.Equal("Ambiguous", resolution.Kind.ToString());
+        Assert.Equal(["«y is x»", "(«y» is «x»)"], resolution.Readings);
     }
 }

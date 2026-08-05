@@ -94,23 +94,23 @@ public class Fallbacks
     [Fact(DisplayName = "a declared name takes the words back, silently")]
     public void ADeclaredNameTakesTheWordsBackSilently()
     {
-        // Pinned because it is a silent reading and not a tie. Minimum lookup
-        // scores one name below an operation over two, so declaring «x otherwise
-        // y» does not make the statement ambiguous — it makes it mean something
-        // else, and every statement already written that way changes with it.
+        // It used to be silent, and that is the point of the test now. Minimum
+        // lookup scored one name below an operation over two, so declaring «x
+        // otherwise y» did not make the statement ambiguous — it made it mean
+        // something else, and every statement already written that way changed
+        // with it.
         //
-        // That is R5's hazard exactly, and R5 has no jurisdiction: it governs
-        // pattern GLUE, and this is neither glue nor a pattern. Whether
-        // «otherwise» should join the protected words is a question for the
-        // designer — it costs an ordinary English word in every program, which
-        // is the bill R5 is willing to pay for glue and has never been asked to
-        // pay for an operator.
+        // The question this asked was whether «otherwise» should join the
+        // protected words. It has a different answer: nothing is protected
+        // against names any more, and the statement reports both readings
+        // instead. The cheaper one is still first, because cost ranks the
+        // suggestions — and it never chooses between them again.
         Assert.Equal("(«x» otherwise «y»)", Of(Names("x", "y"), "x otherwise y").Reading);
 
         var shadowed = Of(Names("x", "y", "x otherwise y"), "x otherwise y");
 
-        Assert.Equal(ResolutionKind.Resolved, shadowed.Kind);
-        Assert.Equal("«x otherwise y»", shadowed.Reading);
+        Assert.Equal(ResolutionKind.Ambiguous, shadowed.Kind);
+        Assert.Equal(["«x otherwise y»", "(«x» otherwise «y»)"], shadowed.Readings);
     }
 
     [Fact(DisplayName = "an error read from another cell is caught, which is the ordinary case")]

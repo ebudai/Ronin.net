@@ -79,13 +79,14 @@ public class NameInvariant
         Assert.False(Resolver.CanName([new Lexeme(LexemeKind.Word, "a"), new Lexeme(LexemeKind.Close, ")")], 0, 2));
 
 
-        // The capture that R5 exists to prevent: a longer name swallows a call
-        // segment, costs FEWER lookups because a name is one lookup and a call
-        // is more, and wins outright. Nothing reports it — the reading is unique.
+        // The capture R5 used to prevent by refusing the NAME, now reported
+        // where it happens: a longer name swallows a call segment, and both
+        // readings stand. It used to win outright and silently, because it is
+        // the cheaper one and cost decided.
         var captured = Resolve(["hello", "alice", "hello to alice"], "send hello to alice");
 
-        Assert.Equal("Resolved", captured.Kind.ToString());
-        Assert.Equal("send «hello to alice»", captured.Reading);
+        Assert.Equal("Ambiguous", captured.Kind.ToString());
+        Assert.Equal(["send «hello to alice»", "send «hello» to «alice»"], captured.Readings);
 
         // A bracket cannot be inside a name, so the same name cannot reach
         // across one.
@@ -94,20 +95,18 @@ public class NameInvariant
         Assert.Equal("Resolved", safe.Kind.ToString());
         Assert.Equal("send ⟨«hello»⟩ to «alice»", safe.Reading);
 
-        // ABSENT, not merely dearer, and proved by cost rather than asserted by
-        // listing readings — «Readings» carries only the winning cost, so asking
-        // it whether the capturing reading is there answers nothing.
-        //
-        // A name is ONE lookup and the call it swallows is more, so capture is
-        // always the cheaper reading where it can be built at all: unbracketed
-        // it wins at 2. If it could be built across a bracket it would still
-        // cost 2 and would still win. The bracketed statement resolves at 4, so
-        // the cheaper reading was not available to lose — it does not exist.
+        // ABSENT, and this is the half that still has to be proved by cost. The
+        // bracketed statement has ONE reading, so the capturing one is not
+        // merely dearer — it cannot be built at all. A name is one lookup and
+        // the call it swallows is more, so across a bracket it would still cost
+        // 2 and would still appear; at 4 with a single reading, it does not
+        // exist.
         //
         // This is what fails loudly if someone later lets a name span a bracket:
-        // the cost drops back to 2 and the reading changes with it.
+        // the second reading comes back and «safe» stops being unambiguous.
         Assert.Equal(2, captured.Cost);
         Assert.Equal(4, safe.Cost);
+        Assert.Single(safe.Readings);
     }
 
     [Fact(DisplayName = "a symbol cannot be part of a name either")]

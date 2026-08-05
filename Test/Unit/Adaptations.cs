@@ -80,13 +80,19 @@ public class Adaptations : ParsingTests
     public void ResolvesWhatTheLexerActuallyProduced()
     {
         // End to end through the real lexer: the resolver never sees a string.
+        //
+        // «base», «base price» and the pattern «base (_)» all fit the same span,
+        // so this is three readings rather than the cheapest of them. It used to
+        // be one, silently — maximal munch by cost — and the readings are
+        // ordered by cost still, which is what puts the intended one first in
+        // the message.
         SymbolTable symbols = new();
         symbols.WithNames("base", "base price", "price", "tax").WithPatterns("base _");
 
         Resolver resolver = new(symbols);
         var resolution = resolver.Resolve(Lexemes.Lex("base price + tax"));
 
-        Assert.Equal("Resolved", resolution.Kind.ToString());
+        Assert.Equal("Ambiguous", resolution.Kind.ToString());
         Assert.Equal(2, resolution.Cost);
         Assert.Equal("(«base price» + «tax»)", resolution.Reading);
     }

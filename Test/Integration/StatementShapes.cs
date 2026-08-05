@@ -214,26 +214,6 @@ public class StatementShapes
         Assert.Equal(4, compilation.Declarations.Symbols.Names.Count);
     }
 
-    [Fact(DisplayName = "a name containing pattern glue is refused, composite keyword and all")]
-    public void ANameContainingPatternGlueIsRefusedCompositeKeywordAndAll()
-    {
-        // R5, bypassed by ordinary source. The glue segment «part of» is ONE
-        // word, and the rule compared it against a name split on spaces — so it
-        // was matched against «part» and «of», matched neither, and a name
-        // containing the glue was declared with nothing said. That is the rule
-        // whose entire job is stopping silent capture.
-        var finding = Assert.Single(Compilation.Of(new SourceText("""
-                                                                  var hello part of alice => Number;
-                                                                  function send (x => Number) via part of (y => Number) { return x; }
-
-                                                                  """, "P.ron")).Findings);
-
-        var glue = Assert.IsType<GlueInName>(finding);
-
-        Assert.Equal("hello part of alice", glue.Name);
-        Assert.Equal("part of", glue.Word);
-    }
-
     [Theory(DisplayName = "a keyword may not lead a declaration, and may do anything else")]
     [InlineData("if")]
     [InlineData("while")]

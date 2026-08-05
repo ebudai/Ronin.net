@@ -122,10 +122,10 @@ public class GlueRegistry
         // tax nobody can avoid, when in fact avoiding it is a respelling.
         var registry = Glue.Registry([Pattern.Parse("send _ to _"), Pattern.Parse("sum of _")]);
 
-        Assert.Contains("## RESERVED (1)", registry);
+        Assert.Contains("## COSTS A BRACKET INSIDE A NAME (1)", registry);
         Assert.Contains("to           send (_) to (_)", registry);
 
-        Assert.Contains("## RESERVES NOTHING (1)", registry);
+        Assert.Contains("## COSTS NOTHING (1)", registry);
         Assert.Contains("    sum of (_)", registry);
     }
 
@@ -157,48 +157,4 @@ public class GlueRegistry
         Assert.Equal("(_) rounded", Assert.IsType<LeadingHole>(finding).Pattern);
     }
 
-    [Fact(DisplayName = "and a pattern refined by another reserves that word as a name prefix")]
-    public void AndAPatternRefinedByAnotherReservesThatWordAsANamePrefix()
-    {
-        // Found by audit. R7b was a relationship computed privately inside one
-        // rule, so the generated file that says what the language reserves could
-        // not see it — and told a reader that «all» is ordinary glue, free at an
-        // edge, while validation refused every name beginning with it. The file
-        // said the opposite of the rule.
-        //
-        // A SYNTHETIC pair, because the builtin table has one pattern and one
-        // pattern makes no pair. The checked-in file stays the change detector
-        // for what the language actually ships.
-        var registry = Glue.Registry([Pattern.Parse("send _ to _"), Pattern.Parse("send _ to all _")]);
-
-        Assert.Contains("## RESERVES A NAME PREFIX BY REFINING (1)", registry);
-        Assert.Contains("all          send (_) to all (_) is send (_) to (_) with it at a hole", registry);
-    }
-
-    [Fact(DisplayName = "and a pattern the compiler refuses reserves nothing here either")]
-    public void AndAPatternTheCompilerRefusesReservesNothingHereEither()
-    {
-        // Found by audit. This file's header says these are the patterns in
-        // scope and that adding a line is a breaking change — so a reservation
-        // from a pattern that cannot enter the language is worse than no report
-        // at all. «send (_) to otherwise (_)» uses an operator word and is
-        // refused; it reserved «otherwise» here anyway, because soundness was a
-        // predicate private to the rules while this built its tables from
-        // everything it was handed.
-        //
-        // BOTH SIDES asserted, because the point is that they agree: one
-        // structural finding from validation, and nothing claimed here.
-        Pattern[] patterns = [Pattern.Parse("send _ to _"), Pattern.Parse("send _ to otherwise _")];
-
-        var findings = Compilation.Of(new SourceText(
-            "var otherwise things => Number;\n"
-          + "function send (x => Number) to (y => Number) { return x; }\n"
-          + "function send (x => Number) to otherwise (y => Number) { return x; }\n",
-            "Player.ron")).Findings;
-
-        Assert.Equal(nameof(InfixInPattern), Assert.Single(findings).GetType().Name);
-
-        Assert.Contains("## RESERVES A NAME PREFIX BY REFINING (0)", Glue.Registry(patterns));
-        Assert.DoesNotContain("otherwise    send", Glue.Registry(patterns));
-    }
 }
