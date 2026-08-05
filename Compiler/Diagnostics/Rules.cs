@@ -87,6 +87,7 @@ internal static class Rules
         foreach (var finding in Infixes(names)) yield return finding;
         foreach (var finding in Infixes(patterns)) yield return finding;
         foreach (var finding in Shadowing(names, patterns)) yield return finding;
+        foreach (var finding in Refining(names, patterns)) yield return finding;
         foreach (var finding in Reserved(patterns)) yield return finding;
         foreach (var finding in Injecting(patterns)) yield return finding;
 
@@ -228,6 +229,99 @@ internal static class Rules
                                blamed ? "the pattern it would shadow" : "the name that would shadow it");
             }
         }
+    }
+
+    /// <summary>
+    ///     R7b. No name may begin with the word that tells one pattern from a
+    ///     shorter one, where what follows is itself a name.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     «send (_) to all (_)» is «send (_) to (_)» with «all» at the start of
+    ///     its second hole. A name «all things» then reads the whole of «send x
+    ///     to all things» through the SHORTER pattern for what the longer one
+    ///     costs reading it through «things» — a tie, at a call site, created by
+    ///     a declaration somewhere else.
+    ///     </para>
+    ///     <para>
+    ///     CONDITIONAL on the remainder being a name, because that is what makes
+    ///     the second reading exist: with «things» undeclared there is one
+    ///     reading and nothing to refuse. Measured both ways. Conditional is not
+    ///     the general answer — the all-glue clause above is unconditional
+    ///     because its two readings are two placements of one literal and there
+    ///     is nothing to condition on — it is the right answer where the hazard
+    ///     actually has a condition, and this one does.
+    ///     </para>
+    ///     <para>
+    ///     The FIRST hole is R6's, not this: inserting there makes one anchor
+    ///     run a prefix of the other and «sum of (_)» beside «sum of all (_)» is
+    ///     refused before this runs. What is left for this is insertion at a
+    ///     later hole, where the anchors are equal.
+    ///     </para>
+    ///     <para>
+    ///     Patterns only, for now. The same relation runs over word operators —
+    ///     «is» to «is not» is prefix extension of a word run — and there is no
+    ///     multi-word operator in the tree to generate from, so that half
+    ///     arrives with the machinery that makes one possible rather than as
+    ///     code nothing can reach.
+    ///     </para>
+    /// </remarks>
+    private static IEnumerable<Finding> Refining(IReadOnlyCollection<Declared> names,
+                                                 IReadOnlyCollection<Shape> patterns)
+    {
+        var declared = names.Select(name => name.Name).ToHashSet(System.StringComparer.Ordinal);
+
+        foreach (var name in names.OrderBy(name => name.Name, System.StringComparer.Ordinal))
+        {
+            if (name.InjectedBy is not null) continue;
+            if (name.Words.Count < 2) continue;
+            if (declared.Contains(string.Join(' ', name.Words.Skip(1))) is false) continue;
+
+            foreach (var shorter in patterns)
+            {
+                foreach (var longer in patterns)
+                {
+                    if (Refines(shorter.Pattern, longer.Pattern) != name.Words[0]) continue;
+
+                    var blamed = IsLater(name.Inherited, name.Span, longer.Inherited, longer.Span);
+
+                    yield return new NameAbsorbsRefinement(blamed ? name.Span : longer.Span,
+                                                           name.Name,
+                                                           name.Words[0],
+                                                           shorter.Pattern.ToString(),
+                                                           longer.Pattern.ToString())
+                        .Alongside(blamed ? longer.Span : name.Span,
+                                   blamed ? "the pattern it would absorb into" : "the name that would absorb it");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///     The word <paramref name="longer"/> inserts at the start of one of
+    ///     <paramref name="shorter"/>'s holes, if that is all it does to it.
+    /// </summary>
+    private static string Refines(Pattern shorter, Pattern longer)
+    {
+        var less = shorter.Segments;
+        var more = longer.Segments;
+        var run = more.Count - less.Count;
+
+        if (run < 1) return null;
+
+        for (var hole = 0; hole < less.Count; ++hole)
+        {
+            if (less[hole] is not null) continue;
+            if (less.Take(hole).SequenceEqual(more.Take(hole)) is false) continue;
+            if (more.Skip(hole).Take(run).Any(segment => segment is null)) continue;
+            if (more[hole + run] is not null) continue;
+            if (less.Skip(hole + 1).SequenceEqual(more.Skip(hole + run + 1)) is false) continue;
+
+            return more[hole];
+        }
+
+        return null;
     }
 
     /// <summary>

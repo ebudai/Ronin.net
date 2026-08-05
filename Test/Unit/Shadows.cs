@@ -270,4 +270,39 @@ public class Shadows
 
         Assert.Equal(3d, graph.Read("log"));
     }
+
+    [Theory(DisplayName = "one pattern refines another only by adding words at a hole, and nothing else")]
+    [InlineData("send _ to _", "send _ to all _", true)]
+    [InlineData("send _ to _ now", "send _ to all _ later", false)]
+    [InlineData("send _ to _", "send _ to all _ now", false)]
+    [InlineData("send _ to _", "post _ to all _", false)]
+    [InlineData("send _ to _", "send _ _ to _", false)]
+    [InlineData("send _ to _", "send _ to all _ _", false)]
+    [InlineData("send _ to _", "send _ to all now", false)]
+    public void OnePatternRefinesAnotherOnlyByAddingWordsAtAHoleAndNothingElse(string shorter,
+                                                                              string longer,
+                                                                              bool refines)
+    {
+        // R7b's relation, one rejection at a time. Each row is a way two
+        // patterns can look alike without one being the other plus a word at a
+        // hole — a different TAIL, a longer tail, a different anchor, an
+        // inserted HOLE rather than a word, and a longer form whose hole did not
+        // survive the insertion.
+        //
+        // The last row is the one that needs its own guard: a hole LATER in the
+        // inserted run leaves «all» first, so everything else lines up and the
+        // relation would answer «all» for a pattern that is not «send (_) to
+        // (_)» with a word added. A hole first answers null and is refused by
+        // arithmetic; a hole second is not.
+        //
+        // Built directly rather than declared, because several of these are
+        // shapes the grammar refuses on their own and the relation still has to
+        // be right about them: it runs over whatever pair of patterns is in
+        // scope, and being wrong here would refuse a name for a rivalry that
+        // does not exist.
+        var findings = Rules.Validate([Declares("all things"), Declares("things")],
+                                      [Shape(shorter), Shape(longer)]);
+
+        Assert.Equal(refines, findings.OfType<NameAbsorbsRefinement>().Any());
+    }
 }

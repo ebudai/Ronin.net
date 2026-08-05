@@ -70,6 +70,13 @@ public class Findings
                      for each bank in banks { return bank; }
 
                      """,
+                     """
+                     var things => Number;
+                     var all things => Number;
+                     function send (x => Number) to (y => Number) { return x; }
+                     function send (x => Number) to all (y => Number) { return x; }
+
+                     """,
                  })
         {
             // Through the whole pipeline rather than one phase of it, so an
@@ -237,6 +244,9 @@ public class Findings
             Player.ron:1:12: a «when» inside a type is not implemented yet. Instances are built — one cell per member, and a handle that survives removal — but nothing yet fires a type-scope «when» per instance, so declare it at module scope, or track the instance explicitly.
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
+
+            Player.ron:4:10: «all things» cannot be declared: «send (_) to all (_)» is «send (_) to (_)» with «all» at the start of its hole, so «all things» can stand where «all» and a name should be and the two readings cost the same. Respell it, or drop one of the two patterns.
+                Player.ron:2:5: the name that would absorb it
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

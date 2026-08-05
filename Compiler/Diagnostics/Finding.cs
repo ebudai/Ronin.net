@@ -79,6 +79,9 @@ internal enum FindingKind
 
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
+
+    /// <summary>A name beginning with the word that tells two patterns apart.</summary>
+    NameAbsorbsRefinement,
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -184,6 +187,30 @@ internal sealed class Shadowed(Span primary, string name, string where)
 ///     also why it is the anchor-only shapes that the registry has to warn about.
 ///     </para>
 /// </remarks>
+/// <summary>
+///     R7b. A name beginning with the word that distinguishes one pattern from
+///     a shorter one, where the rest of it is a name too.
+/// </summary>
+internal sealed class NameAbsorbsRefinement(Span primary, string name, string word, string refined, string refining)
+    : Finding(FindingKind.NameAbsorbsRefinement, primary)
+{
+    public string Name { get; } = name;
+    public string Word { get; } = word;
+    public string Refined { get; } = refined;
+    public string Refining { get; } = refining;
+
+    /// <remarks>
+    ///     The CAUSE and not the rule. Two patterns and the word between them is
+    ///     what a reader can act on, where "R7b" is for us — and it says which
+    ///     pair to look at when more than one rule fires on one name, which a
+    ///     rule name actively hides.
+    /// </remarks>
+    public override string Message
+        => $"«{Name}» cannot be declared: «{Refining}» is «{Refined}» with «{Word}» at the start of its " +
+           $"hole, so «{Name}» can stand where «{Word}» and a name should be and the two readings cost " +
+           "the same. Respell it, or drop one of the two patterns.";
+}
+
 internal sealed class NameShadowsPattern(Span primary, string name, string pattern)
     : Finding(FindingKind.NameShadowsPattern, primary)
 {

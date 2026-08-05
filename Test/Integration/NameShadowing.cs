@@ -185,4 +185,97 @@ public class NameShadowing
         Assert.Equal(ties ? "NoParse" : "Resolved", new Resolver(one).Resolve(lexemes).Kind.ToString());
         Assert.Equal(ties ? "Ambiguous" : "Resolved", new Resolver(two).Resolve(lexemes).Kind.ToString());
     }
+
+    [Theory(DisplayName = "a name may not absorb the word that tells two patterns apart")]
+    [InlineData("var things => Number;\nvar all things => Number;\n", true)]
+    [InlineData("var all things => Number;\n", false)]
+    [InlineData("var things => Number;\n", false)]
+    [InlineData("var some things => Number;\nvar things => Number;\n", false)]
+    public void ANameMayNotAbsorbTheWordThatTellsTwoPatternsApart(string names, bool refused)
+    {
+        // R7b. «send (_) to all (_)» is «send (_) to (_)» with «all» at the
+        // start of its second hole, so «all things» reads the whole of «send x
+        // to all things» through the SHORTER pattern for what the longer one
+        // costs reading it through «things». A tie at a call site, created by a
+        // declaration somewhere else.
+        //
+        // CONDITIONAL on the remainder being a name, because that is what makes
+        // the second reading exist at all: rows two and three are «all things»
+        // with no «things», and «things» with no name in front of it. Row four
+        // is a name whose first word no pattern inserts, which is every ordinary
+        // two-word name and has to stay silent. Conditional is not the general answer: the
+        // all-glue clause above has no condition to test, because its two
+        // readings are two placements of one literal. It is the right answer
+        // where the hazard has a condition, and this one does.
+        const string patterns = "function send (x => Number) to (y => Number) { return x; }\n"
+                              + "function send (x => Number) to all (y => Number) { return x; }\n";
+
+        var findings = Compilation.Of(new SourceText(names + patterns, "Player.ron")).Findings;
+
+        if (refused is false)
+        {
+            Assert.Empty(findings);
+            return;
+        }
+
+        var finding = Assert.IsType<NameAbsorbsRefinement>(Assert.Single(findings));
+
+        Assert.Equal("all things", finding.Name);
+        Assert.Equal("all", finding.Word);
+        Assert.Equal("send (_) to (_)", finding.Refined);
+        Assert.Equal("send (_) to all (_)", finding.Refining);
+    }
+
+    [Fact(DisplayName = "and the tie it prevents is real at the call site")]
+    public void AndTheTieItPreventsIsRealAtTheCallSite()
+    {
+        // Why the rule exists, rather than that it fires. Without «all things»
+        // the call resolves; with it, two readings cost the same and the
+        // statement cannot be written — and no bracketing at the call repairs a
+        // tie its own declaration created.
+        SymbolTable without = new();
+        SymbolTable with = new();
+
+        without.WithNames("x", "things").WithPatterns("send _ to _", "send _ to all _");
+        with.WithNames("x", "things", "all things").WithPatterns("send _ to _", "send _ to all _");
+
+        var lexemes = Lexemes.Lex("send x to all things");
+
+        Assert.Equal("Resolved", new Resolver(without).Resolve(lexemes).Kind.ToString());
+        Assert.Equal("Ambiguous", new Resolver(with).Resolve(lexemes).Kind.ToString());
+    }
+
+    [Theory(DisplayName = "and whichever was written later is the one asked to give way")]
+    [InlineData(true, "Player.ron:4:10", "Player.ron:2:5", "the name that would absorb it")]
+    [InlineData(false, "Player.ron:4:5", "Player.ron:2:10", "the pattern it would absorb into")]
+    public void AndWhicheverWasWrittenLaterIsTheOneAskedToGiveWay(bool namesFirst,
+                                                                 string caret,
+                                                                 string related,
+                                                                 string label)
+    {
+        // Nothing in the earlier file changed, so blaming it is both wrong and
+        // unactionable. Every rule here names two declarations and the caret
+        // goes on the later one — which for this rule can be either side, since
+        // a name can predate the pattern pair that makes it ambiguous or follow
+        // it.
+        const string patterns = "function send (x => Number) to (y => Number) { return x; }\n"
+                              + "function send (x => Number) to all (y => Number) { return x; }\n";
+
+        const string names = "var things => Number;\nvar all things => Number;\n";
+
+        var reported = Diagnostics.Report(Only(namesFirst ? names + patterns : patterns + names)).Split('\n');
+
+        Assert.StartsWith(caret + ":", reported[0]);
+        Assert.Equal($"    {related}: {label}", reported[1]);
+    }
+
+    [Fact(DisplayName = "and inserting at the first hole is R6's, not this")]
+    public void AndInsertingAtTheFirstHoleIsR6sNotThis()
+        // «sum of all (_)» refines «sum of (_)» the same way, and one anchor run
+        // then begins the other — so the pattern pair is refused before a name
+        // is looked at. What is left for R7b is insertion at a LATER hole, where
+        // the anchors are equal and R6 has nothing to say.
+        => Assert.Equal(FindingKind.AnchorPrefix,
+                        Only("function sum of (x => Number) { return x; }\n"
+                           + "function sum of all (x => Number) { return x; }\n").Kind);
 }
