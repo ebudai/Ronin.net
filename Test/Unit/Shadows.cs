@@ -233,9 +233,9 @@ public class Shadows
         // Found by audit. The «sound» filter's own comment states the invariant
         // for every rule — a pattern wrong in itself does not then get to
         // reserve words — and it was applied to the glue scan alone. So a
-        // pattern already refused for «old» went on reserving a prefix through
-        // R6b, adding a finding whose repair the structural one already states.
-        // The R7 half of this went with R7.
+        // pattern already refused for an operator word went on reserving a
+        // prefix, adding a finding whose repair the structural one already
+        // states.
         var findings = Compilation.Of(new SourceText(source, "Player.ron")).Findings;
 
         Assert.Equal(only, Assert.Single(findings).GetType().Name);

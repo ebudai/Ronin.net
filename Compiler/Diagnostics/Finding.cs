@@ -74,6 +74,9 @@ internal enum FindingKind
     /// <summary>A pattern that begins with a hole, which is infix and not a word pattern.</summary>
     LeadingHole,
 
+    /// <summary>A name containing a word the language reads as an operator.</summary>
+    InfixInName,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -231,6 +234,29 @@ internal sealed class InfixInPattern(Span primary, string pattern, string word)
            $"«… {Word} …» in scope would be ambiguous rather than wrong. Respell it.";
 }
 
+
+/// <summary>
+///     A name containing a word the language reads as an operator.
+/// </summary>
+///
+/// <remarks>
+///     R5's shape, for the same reason and against a different rival. A name is
+///     ONE lookup and any composite reading of the same span is at least two, so
+///     a name spanning an operator always wins it — silently, because it is
+///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
+///     otherwise y» already written and makes it mean the name.
+/// </remarks>
+internal sealed class InfixInName(Span primary, string name, string word)
+    : Finding(FindingKind.InfixInName, primary)
+{
+    public string Name { get; } = name;
+    public string Word { get; } = word;
+
+    public override string Message
+        => $"«{Name}» has «{Word}» inside it, which the language reads as an operator between two " +
+           "values. A name spanning one is cheaper than the expression it covers, so every " +
+           $"«… {Word} …» already written would quietly become this name instead. Respell it.";
+}
 
 /// <summary>A name spelled like one the compiler injects.</summary>
 internal sealed class ReservedPrefix(Span primary, string name, string word)

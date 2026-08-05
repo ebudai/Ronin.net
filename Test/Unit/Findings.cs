@@ -40,6 +40,7 @@ public class Findings
 
                      """,
                      "function recall (x => Number) old (y => Number) { return x; }\n",
+                     "var total otherwise zero => Number;\n",
                      "function x otherwise (value => Number) { return value; }\n",
                      """
                      var print job => Number;
@@ -195,6 +196,8 @@ public class Findings
                 Player.ron:1:10: the anchor it collides with
 
             Player.ron:1:10: «recall (_) old (_)» uses the reserved word «old» as a segment, which would make it glue and reject every injected name in scope. Respell that segment.
+
+            Player.ron:1:5: «total otherwise zero» has «otherwise» inside it, which the language reads as an operator between two values. A name spanning one is cheaper than the expression it covers, so every «… otherwise …» already written would quietly become this name instead. Respell it.
 
             Player.ron:1:10: «x otherwise (_)» uses «otherwise», which the language reads as an operator between two values. A call to it would cost exactly what the operation costs, so every «… otherwise …» in scope would be ambiguous rather than wrong. Respell it.
 

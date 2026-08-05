@@ -210,22 +210,38 @@ public class Comparisons
         Assert.IsType<Error>(comparing.Apply(1d, new Error("boom")));
     }
 
-    [Theory(DisplayName = "and it reserves nothing in a name")]
-    [InlineData("is valid")]
-    [InlineData("valid is")]
-    [InlineData("is")]
-    [InlineData("y is x")]
-    [InlineData("this is that thing")]
-    public void AndItReservesNothingInAName(string name)
-        // «is» was reserved inside names the moment it joined the operator
-        // table, because «Rules.Infix» reads that table — and then the name
-        // rules were deleted, so it reserves nothing at all. «y is x» is a legal
-        // name again, and «y is x» as a statement has two readings and says so.
+    [Theory(DisplayName = "and a name may not span it, because no bracket selects one that does")]
+    [InlineData("is valid", true)]
+    [InlineData("valid is", true)]
+    [InlineData("is", true)]
+    [InlineData("y is x", false)]
+    [InlineData("this is that thing", false)]
+    public void AndANameMayNotSpanItBecauseNoBracketSelectsOneThatDoes(string name, bool legal)
+    {
+        // Nothing wired this up: «Rules.Infix» reads the operator table, so
+        // registering «is» reserved it by the same derivation that reserved
+        // «otherwise».
         //
-        // A pattern still may not use it: «Infixes(patterns)» is a pattern-side
-        // rule and stayed. The two halves were always separate rules that shared
-        // a word set.
-        => Assert.Empty(Compilation.Of(new SourceText($"var {name} => Number;\n", "Player.ron")).Findings);
+        // And this is the half of R5′ that SURVIVED ambiguity becoming an error,
+        // where the pattern-glue half did not. «a to b» reads only as itself, so
+        // the ambiguity it causes is in some other statement and a bracket there
+        // reaches it. «y is x» reads as a comparison of its own words — no
+        // bracketing selects the name, so declaring it would be declaring
+        // something unwriteable.
+        //
+        // Interior only, so «is valid» stays legal: an infix needs an operand on
+        // each side, and a name that begins or ends with the word has nothing on
+        // one side to compete with.
+        var findings = Compilation.Of(new SourceText($"var {name} => Number;\n", "Player.ron")).Findings;
+
+        if (legal)
+        {
+            Assert.Empty(findings);
+            return;
+        }
+
+        Assert.Equal(nameof(InfixInName), Assert.Single(findings).GetType().Name);
+    }
 
     [Fact(DisplayName = "and a name that spans it makes the statement ambiguous, not the name illegal")]
     public void AndANameThatSpansItMakesTheStatementAmbiguousNotTheNameIllegal()

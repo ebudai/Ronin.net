@@ -106,6 +106,7 @@ internal static class Rules
         foreach (var finding in Injecting(patterns)) yield return finding;
 
         // What a pattern does to something else, asked only of the sound ones.
+        foreach (var finding in Infixes(names)) yield return finding;
         foreach (var finding in Anchors(sound)) yield return finding;
         foreach (var finding in Shadowing(names, sound)) yield return finding;
     }
@@ -261,6 +262,63 @@ internal static class Rules
             }
         }
     }
+
+    /// <summary>
+    ///     Half of R5′, and one of the two ways a name's own span reads as
+    ///     something else: it spans an infix operator.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     KEPT where the glue half went, and the difference is repairability.
+    ///     «a to b» reads only as itself — the ambiguity it causes is in some
+    ///     other statement, and a bracket there reaches it. «x is y» reads as a
+    ///     comparison of its own words, so no bracketing selects the name: the
+    ///     declaration would be unwriteable.
+    ///     </para>
+    ///     <para>
+    ///     INTERIOR only. An infix reading needs an operand on each side, so a
+    ///     name that merely begins or ends with the word has nothing on one side
+    ///     and cannot compete — «is valid» is legal and «y is x» is not.
+    ///     </para>
+    ///     <para>
+    ///     GENERATED names are still skipped, and that is the open half. The
+    ///     design says there is no exemption — an injected span containing an
+    ///     operator word is self-ambiguous like any other, and «for each (is
+    ///     valid) in …» generates «index of is valid», which captured a
+    ///     comparison its author wrote.
+    ///     </para>
+    ///     <para>
+    ///     Removing the skip on its own DOUBLES the report: a name that offends
+    ///     and its «old» shadow both say so, with one repair between them. So
+    ///     the exemption cannot go until an injected collision knows whether it
+    ///     is universal to the injection or particular to this subject, and
+    ///     which declaration owns the repair. That is the blame-and-dedup
+    ///     question still awaiting direction, and this comment is the marker for
+    ///     it rather than a justification.
+    ///     </para>
+    /// </remarks>
+    private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Declared> names)
+    {
+        foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
+        {
+            if (declared.InjectedBy is not null) continue;
+            if (Interior(declared.Words).FirstOrDefault(Infix.Contains) is not string word) continue;
+
+            yield return new InfixInName(declared.Span, declared.Name, word);
+        }
+    }
+
+    /// <summary>
+    ///     The words of <paramref name="words"/> that have a word on each side.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     «Take» of a negative count is empty rather than an error, so a name
+    ///     of one word needs no case of its own.
+    /// </remarks>
+    private static IEnumerable<string> Interior(IReadOnlyList<string> words)
+        => words.Skip(1).Take(words.Count - 2);
 
     /// <summary>
     ///     The words the language reads as operators between two values.
