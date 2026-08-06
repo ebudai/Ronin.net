@@ -127,6 +127,21 @@ internal abstract class Node
     }
 
     /// <summary>
+    ///     The previous value of one reactive name. Unlike a call argument, the
+    ///     reference is not evaluated first: doing so would record a dependency
+    ///     on the current value and turn a self-reference through «old» into a
+    ///     cycle. The resolver has already proved that <see cref="Argument"/> is
+    ///     only that name, optionally grouped.
+    /// </summary>
+    internal sealed class Previous(string name, Node argument) : Node
+    {
+        public string Words { get; } = name;
+        public Node Argument { get; } = argument;
+
+        protected override string Render() => $"{SymbolTable.Old} {Argument}";
+    }
+
+    /// <summary>
     ///     A word pattern applied to its arguments, in hole order. One lookup.
     /// </summary>
     internal sealed class Call(Pattern pattern, IReadOnlyList<Node> arguments) : Node

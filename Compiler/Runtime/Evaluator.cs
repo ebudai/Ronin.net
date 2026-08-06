@@ -51,8 +51,11 @@ internal sealed class Evaluator(Scope scope)
 
             Tree.Operation operation => Apply(graph, operation, insideLet),
 
-            // Tree has exactly six shapes and Call is the sixth. Naming it and
-            // adding a default would leave the default unreachable.
+            // «old (_)» keeps its reference unevaluated and reads the shadow
+            // instead, so it is not an ordinary invocation.
+            Tree.Previous previous => Previous(graph, previous),
+
+            // Tree has exactly seven shapes and Call is the seventh.
             _ => Invoke(graph, (Tree.Call)tree, insideLet),
         };
     }
@@ -141,6 +144,14 @@ internal sealed class Evaluator(Scope scope)
 
         return operation.Operator.Apply(left, Evaluate(graph, operation.Right, insideLet));
     }
+
+    /// <summary>
+    ///     Reads a reactive's lazily allocated previous-value node without ever
+    ///     reading the current node. That missing current edge is what makes
+    ///     «let x = old x otherwise 0» history rather than a self-cycle.
+    /// </summary>
+    private static object Previous(Graph graph, Tree.Previous previous)
+        => graph.Read(graph.Shadow(previous.Words));
 
     /// <summary>
     ///     A call, with its value arguments evaluated and its binding arguments

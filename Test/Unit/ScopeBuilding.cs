@@ -26,13 +26,18 @@ public class ScopeBuilding
         var declared = Of("""
             var base price => Number;
             let tax => Number;
+            var late bound => reactive Number;
             function compute total for (order => Number) { return order; }
             """);
 
         Assert.Empty(declared.Problems);
 
-        // the two cells, each with its shadow injected
-        Assert.Equal(["base price", "old base price", "old tax", "tax"], declared.Symbols.Names.Order());
+        // All declarations are names; the let and explicitly reactive var are
+        // marked reactive for «old (_)». No shadow name is injected.
+        Assert.Equal(["base price", "late bound", "tax"], declared.Symbols.Names.Order());
+        Assert.Equal("NoParse", new Resolver(declared.Symbols).Resolve("old base price").Kind.ToString());
+        Assert.Equal("Resolved", new Resolver(declared.Symbols).Resolve("old tax").Kind.ToString());
+        Assert.Equal("Resolved", new Resolver(declared.Symbols).Resolve("old late bound").Kind.ToString());
 
         // and the function, whose parameter block became the hole
         var pattern = Assert.Single(declared.Symbols.Patterns);
@@ -69,13 +74,14 @@ public class ScopeBuilding
         Assert.Equal(2, overloaded.Count);
     }
 
-    [Fact(DisplayName = "a constant is named but gets no shadow")]
-    public void AConstantIsNamedButGetsNoShadow()
+    [Fact(DisplayName = "a constant and an imperative variable are not reactive")]
+    public void AConstantAndAnImperativeVariableAreNotReactive()
     {
         var declared = Of("constant pi => Number; var radius => Number;");
 
-        Assert.Equal(["old radius", "pi", "radius"], declared.Symbols.Names.Order());
+        Assert.Equal(["pi", "radius"], declared.Symbols.Names.Order());
         Assert.Contains("is a constant", declared.Symbols.Explain("old pi"));
+        Assert.Contains("not reactive", declared.Symbols.Explain("old radius"));
     }
 
     [Fact(DisplayName = "the scope it builds resolves the statements beside it")]
@@ -84,7 +90,7 @@ public class ScopeBuilding
         // the point of the whole pass: a file's own declarations are what its
         // statements are read against
         var declared = Of("""
-            var base price => Number;
+            let base price => reactive Number;
             var tax => Number;
             function compute total for (amount => Number) { return amount; }
             """);
@@ -94,9 +100,9 @@ public class ScopeBuilding
         Assert.Equal("compute total for («base price» + «tax»)",
                      resolver.Resolve(Lexemes.Lex("compute total for base price + tax")).Reading);
 
-        // and «old» is in scope during resolution, unconditionally, because
-        // whether anything reads it is not known until after
-        Assert.Equal("(«base price» - «old base price»)",
+        // The pattern is always part of the language, and this reference is
+        // admitted because the declaration records that base price is reactive.
+        Assert.Equal("(«base price» - old «base price»)",
                      resolver.Resolve(Lexemes.Lex("base price - old base price")).Reading);
     }
 
@@ -147,8 +153,7 @@ public class ScopeBuilding
         var declared = Nested("var base price => Number;", "var discount => Number;");
 
         Assert.Empty(declared.Problems);
-        Assert.Equal(["base price", "discount", "old base price", "old discount"],
-                     declared.Symbols.Names.Order());
+        Assert.Equal(["base price", "discount"], declared.Symbols.Names.Order());
 
         Assert.Equal("(«base price» - «discount»)",
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("base price - discount")).Reading);
@@ -205,25 +210,27 @@ public class ScopeBuilding
         Assert.Equal("in this scope", Assert.IsType<Shadowed>(twice).Where);
     }
 
-    [Fact(DisplayName = "a name may not be spelled like an injected one")]
-    public void ANameMayNotBeSpelledLikeAnInjectedOne()
+    [Fact(DisplayName = "a name may not cover the built-in old pattern")]
+    public void ANameMayNotCoverTheBuiltinOldPattern()
     {
         var declared = Of("var old total => Number;");
 
         var problem = Assert.Single(declared.Problems);
 
-        Assert.Equal(FindingKind.ReservedPrefix, problem.Kind);
-        Assert.Equal("old total", Assert.IsType<ReservedPrefix>(problem).Name);
+        Assert.Equal(FindingKind.NameShadowsPattern, problem.Kind);
+        var shadows = Assert.IsType<NameShadowsPattern>(problem);
+        Assert.True(shadows.Builtin);
+        Assert.Equal("old total", shadows.Name);
     }
 
     [Fact(DisplayName = "a type is a name that holds no value")]
     public void ATypeIsANameThatHoldsNoValue()
     {
-        // named so it can be referred to, but no shadow: only a cell has a
-        // previous value
+        // Named so it can be referred to. The imperative pet is not eligible
+        // for «old (_)».
         var declared = Of("type Dog { } var pet => Dog;");
 
-        Assert.Equal(["Dog", "old pet", "pet"], declared.Symbols.Names.Order());
+        Assert.Equal(["Dog", "pet"], declared.Symbols.Names.Order());
     }
 
     [Fact(DisplayName = "statements that declare nothing declare nothing")]
@@ -233,7 +240,7 @@ public class ScopeBuilding
         // introduces one
         var declared = Of("var x => Number; x + x; x = 3;");
 
-        Assert.Equal(["old x", "x"], declared.Symbols.Names.Order());
+        Assert.Equal(["x"], declared.Symbols.Names.Order());
         Assert.Empty(declared.Symbols.Patterns);
     }
 }

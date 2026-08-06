@@ -210,6 +210,11 @@ public class Comparisons
         Assert.IsType<Error>(comparing.Apply(1d, new Error("boom")));
     }
 
+    // EXPIRES for these rows and not for the rule: both refused names here are
+    // declared numbers, and a comparison is a truth whatever its operands are,
+    // so eliminating by type leaves one reading. What survives the shrink is the
+    // row below — a name spanning a comparison and declared a truth itself.
+    [Trait(Expiry.Shrink, Expiry.Expires)]
     [Theory(DisplayName = "and a name may not span it, because no bracket selects one that does")]
     [InlineData("is valid", true)]
     [InlineData("valid is", true)]
@@ -247,42 +252,23 @@ public class Comparisons
         Assert.Equal(nameof(InfixInName), Assert.Single(findings).GetType().Name);
     }
 
-    [Fact(DisplayName = "and a name the operator only reaches once built is refused too")]
-    public void AndANameTheOperatorOnlyReachesOnceBuiltIsRefusedToo()
+    // EXPIRES: the loop's element/counter is a Number, while the comparison the
+    // generated counter spans is a truth. The former «old is valid» half no
+    // longer exists: «old (_)» is a pattern and builds no name beside the
+    // source declaration.
+    [Trait(Expiry.Shrink, Expiry.Expires)]
+    [Fact(DisplayName = "and a counter name the operator only reaches once built is refused too")]
+    public void AndACounterNameTheOperatorOnlyReachesOnceBuiltIsRefusedToo()
     {
-        // Found by audit, and the case the exemption was hiding. «is valid» has
-        // nothing on the left of the operator, so it passes the rule on its own
-        // account — and «old is valid» does not, because the compiler put a word
-        // there. «old» is a declarable name, so that span really does read two
-        // ways.
-        //
-        // Which narrows the language, and the narrowing is worth stating: a name
-        // beginning with an operator word can only be a constant. Everything else
-        // gets a shadow, and the shadow is what the operator reaches.
         var finding = Assert.IsType<InfixInName>(Assert.Single(
-            Compilation.Of(new SourceText("var is valid => Number;\n", "Player.ron")).Findings));
-
-        // Against «is valid», which is the only thing anyone can change: the
-        // operator cannot be respelled and «old is valid» was never written.
-        Assert.True(finding.Built);
-        Assert.Equal("is valid", finding.Name);
-        Assert.StartsWith("Player.ron:1:5:", Diagnostics.Report(finding));
-
-        // And the sentence has to be the built one, not merely carry the flag.
-        // The written sentence says the name has the word inside it, which of
-        // «is valid» is false — the caret would sit on a name the message
-        // describes wrongly, about a word that is not where it says it is.
-        Assert.Contains("the compiler builds names from it", finding.Message);
-
-        // ONE finding, though the same name is reached by two different built
-        // names in the loop case — «index of is valid» as well as «old is valid»,
-        // the same word inside each and one rename between them.
-        var loop = Assert.IsType<InfixInName>(Assert.Single(
-            Compilation.Of(new SourceText("var index of => Number;\nvar valid => Number;\nvar banks => Number;\n"
+            Compilation.Of(new SourceText("var banks => List of Number;\n"
                                         + "for each (is valid) in banks { return index of is valid; }\n",
                                           "Player.ron")).Findings));
 
-        Assert.Equal("is valid", loop.Name);
+        Assert.True(finding.Built);
+        Assert.Equal("is valid", finding.Name);
+        Assert.StartsWith("Player.ron:2:11:", Diagnostics.Report(finding));
+        Assert.Contains("the compiler builds names from it", finding.Message);
     }
 
     [Fact(DisplayName = "and the comparison it was swallowing comes back when it is renamed")]

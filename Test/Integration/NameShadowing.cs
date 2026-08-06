@@ -5,8 +5,7 @@ using Ronin.Compiler;
 namespace Integration;
 
 /// <summary>
-///     R6b — a name that begins with every word of a pattern would be read
-///     instead of that pattern's call, and more cheaply.
+///     A name whose own complete span also reads as a pattern call.
 /// </summary>
 ///
 /// <remarks>
@@ -24,9 +23,17 @@ public class NameShadowing
     private static IReadOnlyList<Finding> All(string source)
         => Compilation.Of(new SourceText(source, "Player.ron")).Findings;
 
-    private const string Pattern = "function print (x => Number) { return x; }\n";
+    // AN ACTION, and the return is what decides which side of the shrink this
+    // sits on rather than a detail of the fixture. «print» is conceptually one,
+    // and «print job» is the example the design gives of a name the type
+    // checker takes back: «nothing» differs from every value type, so the call
+    // reading is eliminated in a value position and the name in a statement
+    // one. Written as returning a Number it would have been the opposite case
+    // while claiming to be this one.
+    private const string Pattern = "function print (x => Number) { }\n";
     private const string Name = "var print job => Number;\n";
 
+    [Trait(Expiry.Shrink, Expiry.Expires)]
     [Theory(DisplayName = "whichever was written later is the one asked to give way")]
     [InlineData(true)]
     [InlineData(false)]
@@ -44,6 +51,71 @@ public class NameShadowing
         // line 1 is whichever came first, so the blame lands on line 2 either way
         Assert.StartsWith("Player.ron:2:", finding.Primary.ToString());
         Assert.StartsWith("Player.ron:1:", Assert.Single(finding.Related).Span.ToString());
+    }
+
+    // EXPIRES in both rows, by the declaration text alone: send returns nothing
+    // against a Number name; sort returns a List against a Text name. The
+    // criterion is the pattern's return type rather than action-versus-value.
+    [Trait(Expiry.Shrink, Expiry.Expires)]
+    [Theory(DisplayName = "and glued own-span calls are refused until types eliminate them")]
+    [InlineData("var send x to y => Number;\n"
+              + "function send (x => Number) to (y => Number) { }\n",
+                "send x to y", "send (_) to (_)")]
+    [InlineData("var sort order => Text;\n"
+              + "function sort (items => List) => List { return items; }\n",
+                "sort order", "sort (_)")]
+    public void AndGluedOwnSpanCallsAreRefusedUntilTypesEliminateThem(string source, string name, string pattern)
+    {
+        var finding = Assert.IsType<NameShadowsPattern>(Only(source));
+
+        Assert.Equal(name, finding.Name);
+        Assert.Equal(pattern, finding.Pattern);
+    }
+
+    [Trait(Expiry.Shrink, Expiry.Survives)]
+    [Fact(DisplayName = "and a same-type own-span call survives the shrink")]
+    public void AndASameTypeOwnSpanCallSurvivesTheShrink()
+    {
+        var finding = Assert.IsType<NameShadowsPattern>(Only(
+            "var sum of items => Number;\n"
+          + "function sum of (items => Number) => Number { return items; }\n"));
+
+        Assert.Equal("sum of items", finding.Name);
+        Assert.Equal("sum of (_)", finding.Pattern);
+    }
+
+    [Fact(DisplayName = "but glue inside a name is legal when its own span is not a call")]
+    public void ButGlueInsideANameIsLegalWhenItsOwnSpanIsNotACall()
+        => Assert.Empty(All("var a to b => Number;\n"
+                          + "function send (x => Number) to (y => Number) { }\n"));
+
+    [Fact(DisplayName = "and pinned holes consume exactly one name word")]
+    public void AndPinnedHolesConsumeExactlyOneNameWord()
+    {
+        SourceText source = new(string.Empty);
+        var span = source.Span(0, 0);
+        Shape pattern = new(new Ronin.Compiler.Pattern(["take", null, "in", null], [1]), span);
+
+        Assert.Single(Rules.Validate([new Declared("take one in things", span)], [pattern]));
+        Assert.Empty(Rules.Validate([new Declared("take one two in things", span)], [pattern]));
+
+        // Nothing remains for the pinned hole. This is distinct from a free
+        // trailing hole, which could consume several words but still needs one.
+        Shape trailing = new(new Ronin.Compiler.Pattern(["take", null], [1]), span);
+        Assert.Empty(Rules.Validate([new Declared("take", span)], [trailing]));
+    }
+
+    [Fact(DisplayName = "and overlapping hole partitions are memoized")]
+    public void AndOverlappingHolePartitionsAreMemoized()
+    {
+        // Adjacent free holes reach the same suffix through several partitions.
+        // The failed literal keeps every route live long enough to exercise the
+        // memoized state rather than returning on the first successful split.
+        SourceText source = new(string.Empty);
+        var span = source.Span(0, 0);
+
+        Assert.Empty(Rules.Validate([new Declared("send a b c", span)],
+                                    [new Shape(Ronin.Compiler.Pattern.Parse("send _ _ end"), span)]));
     }
 
     [Fact(DisplayName = "and a name equal to the pattern's words is left alone")]
@@ -111,6 +183,10 @@ public class NameShadowing
     private const string Counter = "function index of (x => Number) { return x; }\n";
     private const string Reaching = "function index of bank (x => Number) { return x; }\n";
 
+    // SURVIVES: a loop counter is a number and «index of (_)» returns one, so
+    // both readings are numbers in the same position and nothing eliminates
+    // either. The same is true of every «index of» fixture below.
+    [Trait(Expiry.Shrink, Expiry.Survives)]
     [Fact(DisplayName = "a name the compiler generates may shadow a pattern too")]
     public void ANameTheCompilerGeneratesMayShadowAPatternToo()
     {
@@ -155,6 +231,7 @@ public class NameShadowing
         Assert.Empty(finding.Related);
     }
 
+    [Trait(Expiry.Shrink, Expiry.Survives)]
     [Fact(DisplayName = "and it is reported once however many loops there are")]
     public void AndItIsReportedOnceHoweverManyLoopsThereAre()
     {
@@ -176,6 +253,7 @@ public class NameShadowing
         Assert.StartsWith("Player.ron:1:10:", Diagnostics.Report(finding));
     }
 
+    [Trait(Expiry.Shrink, Expiry.Survives)]
     [Theory(DisplayName = "and a pattern reaching into the subject blames the later declaration")]
     [InlineData(true)]
     [InlineData(false)]
@@ -227,6 +305,7 @@ public class NameShadowing
                           + "var accounts => Number;\n"
                           + $"for each ({variable}) in accounts {{ return index of {variable}; }}\n"));
 
+    [Trait(Expiry.Shrink, Expiry.Survives)]
     [Fact(DisplayName = "and a subject already blamed does not offend a second time")]
     public void AndASubjectAlreadyBlamedDoesNotOffendASecondTime()
     {

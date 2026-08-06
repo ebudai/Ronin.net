@@ -113,10 +113,10 @@ public class Compilations
 
         Assert.Empty(compilation.Findings);
 
-        // and the declarations are the outermost scope's, with «old base price»
-        // injected beside the name that caused it
+        // The declaration contributes one name. «old (_)» is a built-in
+        // pattern, not a second symbol manufactured beside every datum.
         Assert.Contains("base price", compilation.Declarations.Symbols.Names);
-        Assert.Contains("old base price", compilation.Declarations.Symbols.Names);
+        Assert.DoesNotContain("old base price", compilation.Declarations.Symbols.Names);
         Assert.Single(compilation.Declarations.Symbols.Patterns);
     }
 

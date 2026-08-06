@@ -17,17 +17,14 @@ internal enum FindingKind
     /// <summary>A name already declared in this scope or an enclosing one.</summary>
     Shadowed,
 
-    /// <summary>A name spelled like one the compiler injects.</summary>
-    ReservedPrefix,
-
     /// <summary>More declarations of one shape than can yet be chosen between.</summary>
     Overloaded,
 
+    /// <summary>A pattern shape already supplied by the language.</summary>
+    BuiltinPattern,
+
     /// <summary>One pattern's anchor run begins another's.</summary>
     AnchorPrefix,
-
-    /// <summary>A pattern uses a reserved word as a segment.</summary>
-    ReservedSegment,
 
     /// <summary>A pattern uses as glue a word the compiler injects names with.</summary>
     InjectionWordAsGlue,
@@ -100,7 +97,7 @@ internal readonly record struct Labelled(Span Span, string Label);
 ///     editor can make them clickable. Interpolating forecloses both.
 ///     </para>
 ///     <para>
-///     A symbol the compiler generated has no text of its own — «old smoothed»
+///     A symbol the compiler generated has no text of its own — «index of bank»
 ///     was never written — so it carries the span of the declaration that caused
 ///     it, and the message explains the indirection. That is the alternative to a
 ///     null span, which would otherwise become a special case in the renderer,
@@ -167,9 +164,7 @@ internal sealed class Shadowed(Span primary, string name, string where)
 }
 
 
-/// <summary>
-///     A name beginning with every word of a pattern, which swallows its call.
-/// </summary>
+/// <summary>A name whose complete span also reads as a pattern call.</summary>
 ///
 /// <remarks>
 ///     R6 compares patterns with patterns. This is the pattern-versus-NAME case,
@@ -177,13 +172,14 @@ internal sealed class Shadowed(Span primary, string name, string where)
 ///     lookup and a call is one plus its arguments, so a name covering the call's
 ///     whole span is always cheaper and always wins, without a tie to report.
 ///     <para>
-///     Only a pattern with no glue can be caught this way. One with glue needs
-///     that word inside the name to reach the whole call, and R5 has already
-///     refused it — so this asks only the patterns R5 leaves exposed, which is
-///     also why it is the anchor-only shapes that the registry has to warn about.
+///     The whole span is load-bearing. An anchor-only pattern collides with any
+///     longer name beginning with its anchor, while a glued or pinned pattern
+///     collides only with a complete name that conforms to its shape. «a to b»
+///     is therefore legal beside «send (_) to (_)» and «send x to y» is not.
 ///     </para>
 /// </remarks>
-internal sealed class NameShadowsPattern(Span primary, string name, string pattern, string injectedBy = null, bool universal = false)
+internal sealed class NameShadowsPattern(Span primary, string name, string pattern, string injectedBy = null,
+                                         bool universal = false, bool builtin = false)
     : Finding(FindingKind.NameShadowsPattern, primary)
 {
     public string Name { get; } = name;
@@ -194,6 +190,9 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
 
     /// <summary>Whether every name that injection could build collides, not only this one.</summary>
     public bool Universal { get; } = universal;
+
+    /// <summary>Whether the rival is supplied by the language and cannot be respelled.</summary>
+    public bool Builtin { get; } = builtin;
 
     /// <remarks>
     ///     <para>
@@ -217,16 +216,18 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
     public override string Message
         => Universal
          ? $"«{Pattern}» cannot be declared: the compiler builds «{Name}» wherever one is needed, and " +
-           "that name begins with every word of the pattern — so it would be read instead of the call, " +
-           "more cheaply, with nothing to report it. Respell the pattern; the words that collide are the " +
-           "compiler's own, so no name in the source avoids this."
+           "that name's complete span also reads as a call to the pattern. No bracketing selects the name " +
+           "reading. Respell the pattern; the collision is in the compiler's own words, so no name in " +
+           "the source avoids this."
+         : Builtin
+         ? $"«{Name}» cannot be a name: its complete span also reads as a call to the built-in " +
+           $"«{Pattern}», and no bracketing selects the name reading. Rename it; a built-in cannot be respelled."
          : InjectedBy is null
-         ? $"«{Name}» begins with every word of «{Pattern}», so it would be read instead of that " +
-           "call wherever both are in scope — and more cheaply, so nothing would report it. " +
-           "Rename it, or respell the pattern."
-         : $"«{Name}» begins with every word of «{Pattern}», so it would be read instead of that call " +
-           "wherever both are in scope — and more cheaply, so nothing would report it. The compiler " +
-           $"builds it from «{InjectedBy}»: rename that, or respell the pattern.";
+         ? $"«{Name}» cannot be a name: its complete span also reads as a call to «{Pattern}», and no " +
+           "bracketing selects the name reading. Rename it, or respell the pattern."
+         : $"«{Name}» has another reading over its complete span: a call to «{Pattern}», with no " +
+           $"bracketing that selects the name. The compiler builds it from «{InjectedBy}»: rename that, " +
+           "or respell the pattern.";
 }
 
 /// <summary>
@@ -282,13 +283,8 @@ internal sealed class InfixInName(Span primary, string name, string word, bool b
     ///     the subject the compiler copied is the only actionable party — and it
     ///     is what the caret is already on, since a built name has no span but
     ///     its origin's.
-    ///     <para>
-    ///     Which is also why no built name is named here. One subject builds one
-    ///     per injection — «index of is valid» and «old is valid» — with the same
-    ///     word inside each and one rename between them, so naming them says the
-    ///     same thing twice about names nobody wrote. Saying it of the subject
-    ///     says it once.
-    ///     </para>
+    ///     The subject is named rather than the counter nobody wrote, so the
+    ///     one available rename is stated once at its source.
     /// </remarks>
     public override string Message
         => Built
@@ -299,18 +295,6 @@ internal sealed class InfixInName(Span primary, string name, string word, bool b
          : $"«{Name}» has «{Word}» inside it, which the language reads as an operator between two " +
            "values. A name spanning one is cheaper than the expression it covers, so every " +
            $"«… {Word} …» already written would quietly become this name instead. Respell it.";
-}
-
-/// <summary>A name spelled like one the compiler injects.</summary>
-internal sealed class ReservedPrefix(Span primary, string name, string word)
-    : Finding(FindingKind.ReservedPrefix, primary)
-{
-    public string Name { get; } = name;
-    public string Word { get; } = word;
-
-    public override string Message
-        => $"«{Name}» begins with the reserved word «{Word}», which is injected rather than " +
-           "declared. Respell it.";
 }
 
 /// <summary>More declarations of one shape than can yet be chosen between.</summary>
@@ -326,6 +310,16 @@ internal sealed class Overloaded(Span primary, string pattern, int count)
            "yet. Give them different shapes for now.";
 }
 
+/// <summary>A pattern shape already supplied by the language.</summary>
+internal sealed class BuiltinPattern(Span primary, string pattern)
+    : Finding(FindingKind.BuiltinPattern, primary)
+{
+    public string Pattern { get; } = pattern;
+
+    public override string Message
+        => $"«{Pattern}» is supplied by the language and cannot be declared again. Respell it.";
+}
+
 /// <summary>One pattern's anchor run begins another's.</summary>
 internal sealed class AnchorPrefix(Span primary, string pattern, string prefix)
     : Finding(FindingKind.AnchorPrefix, primary)
@@ -336,18 +330,6 @@ internal sealed class AnchorPrefix(Span primary, string pattern, string prefix)
     public override string Message
         => $"the anchor of «{Prefix}» begins that of «{Pattern}», so a statement can read as " +
            "either and no bracketing tells them apart. Respell one of them.";
-}
-
-/// <summary>A pattern uses a reserved word as a segment.</summary>
-internal sealed class ReservedSegment(Span primary, string pattern, string word)
-    : Finding(FindingKind.ReservedSegment, primary)
-{
-    public string Pattern { get; } = pattern;
-    public string Word { get; } = word;
-
-    public override string Message
-        => $"«{Pattern}» uses the reserved word «{Word}» as a segment, which would make it glue " +
-           "and reject every injected name in scope. Respell that segment.";
 }
 
 /// <summary>

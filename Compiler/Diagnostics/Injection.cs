@@ -21,9 +21,9 @@ namespace Ronin.Compiler;
 ///     chain standing in for source.
 ///     </para>
 ///     <para>
-///     One description, and the three consume it. Adding an injection is adding
-///     an entry; forgetting to protect its words is a failing test rather than a
-///     trap someone finds in the field.
+///     One description, and every consumer reads it. Source-level injections
+///     appear in <see cref="All"/>; the runtime-only shadow descriptor is kept
+///     outside that list because «old (_)» no longer inserts a symbol.
 ///     </para>
 /// </remarks>
 internal sealed class Injection
@@ -33,11 +33,11 @@ internal sealed class Injection
         Cause = cause;
 
         // COPIED and wrapped. A «params» array is the caller's, and this one is
-        // a process-wide definition read in two ways: «Words» dynamically by the
-        // reservation and diagnostic rules, «Prefix» computed once here. Writing
-        // an element split those apart — «old» became «prior» for what a rule
-        // reserves while the injected name stayed «old x» — which is exactly the
-        // two-independent-definitions failure this descriptor exists to prevent.
+        // a process-wide definition read in two ways: «Words» dynamically by
+        // the resolver or reservation rules, «Prefix» computed once here.
+        // Writing an element would split those apart — the pattern could become
+        // «prior» while the graph node stayed «old x» — which is exactly the
+        // two-independent-definitions failure this descriptor prevents.
         Words = new ReadOnlyCollection<string>([.. words]);
 
         Prefix = string.Concat(words.Select(word => word + " "));
@@ -64,23 +64,23 @@ internal sealed class Injection
     private string Subject { get; init; }
 
     /// <summary>
-    ///     The previous value of a cell that has one.
+    ///     The runtime name of the previous value allocated by <c>old (_)</c>.
     /// </summary>
     ///
     /// <remarks>
-    ///     Every mutable declaration, not only a reactive one — the registry used
-    ///     to say "a reactive declaration's previous value" while
-    ///     <c>Declarations.Cell</c> injected it for every non-constant datum. A
-    ///     constant is excepted because its previous value is provably its
-    ///     current one.
+    ///     This is no longer an injected source-level name. The resolver admits
+    ///     <c>old x</c> only as the built-in pattern over a bare reactive
+    ///     reference, and evaluation allocates this private graph node lazily.
+    ///     Keeping its spelling here still gives the resolver and graph one
+    ///     definition without putting the generated name in a symbol table.
     /// </remarks>
     public static Injection Shadow { get; } =
-        new("the previous value of a mutable declaration", "old") { Subject = "«a name»" };
+        new("the previous value selected by «old (_)»", "old") { Subject = "«a reactive name»" };
 
     /// <summary>The loop counter, named after the variable it counts for.</summary>
     public static Injection Counter { get; } =
         new("a loop's counter", "index", "of") { Subject = "«a loop variable»" };
 
-    /// <summary>Every injection there is, which is what the registry and the rule read.</summary>
-    public static IReadOnlyList<Injection> All { get; } = [Shadow, Counter];
+    /// <summary>Every source-level name injection, which is what the registry and rules read.</summary>
+    public static IReadOnlyList<Injection> All { get; } = [Counter];
 }

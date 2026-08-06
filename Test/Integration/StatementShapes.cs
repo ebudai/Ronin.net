@@ -210,8 +210,8 @@ public class StatementShapes
         Assert.Equal(2, compilation.Findings.Count);
         Assert.All(compilation.Findings, finding => Assert.IsType<Shadowed>(finding));
 
-        // «old X» is injected for each, so two names are four
-        Assert.Equal(4, compilation.Declarations.Symbols.Names.Count);
+        // Exactly the two written names: «old (_)» injects nothing.
+        Assert.Equal(2, compilation.Declarations.Symbols.Names.Count);
     }
 
     [Theory(DisplayName = "a keyword may not lead a declaration, and may do anything else")]

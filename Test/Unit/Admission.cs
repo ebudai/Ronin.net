@@ -667,18 +667,18 @@ public class Admission
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => values.GetEnumerator();
     }
 
-    [Fact(DisplayName = "and one injected name cannot become two definitions again")]
-    public void AndOneInjectedNameCannotBecomeTwoDefinitionsAgain()
+    [Fact(DisplayName = "and the old pattern and runtime name cannot become two definitions again")]
+    public void AndTheOldPatternAndRuntimeNameCannotBecomeTwoDefinitionsAgain()
     {
         // Found by audit. The words were the caller's «params» array, and the
-        // descriptor is read two ways: «Words» dynamically by the reservation
-        // and diagnostic rules, «Prefix» computed once at construction. Writing
+        // descriptor is read two ways: «Words» dynamically by the built-in
+        // pattern, «Prefix» by the runtime graph. Writing
         // an element split them —
         //
-        //     SymbolTable.Old   prior      the rules reserve this
-        //     Of(["x"])         prior x    and count words from it
-        //     Of("x")           old x      while the name actually built
-        //     Prefix            «old »     still says this
+        //     SymbolTable.Old   prior      the resolver recognises this
+        //     Of(["x"])         prior x    a word view says this
+        //     Of("x")           old x      while the graph name stays this
+        //     Prefix            «old »     and still says this
         //
         // — which is the two-independent-definitions failure the descriptor
         // exists to prevent, reintroduced from inside.

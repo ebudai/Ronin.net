@@ -109,6 +109,12 @@ internal sealed class Resolver
         anchored = [];
         foreach (var pattern in symbols.Patterns)
         {
+            // The same shape may be present when a caller folds every built-in
+            // into a table. Its hole is not an ordinary expression hole and is
+            // handled by Previous below, so admitting it here as a normal call
+            // would reopen «old (x + 1)» through a second path.
+            if (pattern.Equals(SymbolTable.Previous)) continue;
+
             var first = pattern.Segments[0];
 
             if (anchored.TryGetValue(first, out var sharing) is false) anchored[first] = sharing = [];
@@ -201,6 +207,14 @@ internal sealed class Resolver
             Group(lexemes, cell, i + 1, j - 1, collection: lexemes[i].Text is "[");
         }
 
+        // A language pattern with a stricter hole than an ordinary expression.
+        // Offered as CLOSED: once the hole is known to be one bare reference,
+        // its extent is fixed, so «old x + 1» can only be «(old x) + 1».
+        // Treating it as an ordinary open-ended pattern would either swallow
+        // «x + 1» (which is not a reference) or make «old x» unavailable as
+        // the left operand at arithmetic binding power.
+        Previous(lexemes, cell, i, j);
+
         // Only the patterns whose first word is the one actually sitting at «i».
         // Every pattern begins with a word — a leading hole is refused at
         // construction, and THIS is one of the reasons why: a pattern with no
@@ -216,6 +230,40 @@ internal sealed class Resolver
             foreach (var (cost, arguments, count, witness) in Match(pattern, 0, lexemes, i, j))
                 target.Offer(1 + cost, new Node.Call(pattern, arguments), count, witness);
         }
+    }
+
+    /// <summary>
+    ///     Offers «old (_)» only when its argument is a bare reactive name,
+    ///     optionally bracketed. The resulting node retains the name rather than
+    ///     evaluating it, so evaluation can read the graph's shadow without
+    ///     first recording an edge on the current value.
+    /// </summary>
+    private void Previous(IReadOnlyList<Lexeme> lexemes, Cell cell, int i, int j)
+    {
+        if (j - i < 2) return;
+        if (lexemes[i] is not { Kind: LexemeKind.Word } || lexemes[i].Text != SymbolTable.Old) return;
+
+        var from = i + 1;
+        var to = j;
+        var bracketed = false;
+
+        if (lexemes[from] is { Kind: LexemeKind.Open, Text: "(" }
+            && lexemes[j - 1] is { Kind: LexemeKind.Close, Text: ")" })
+        {
+            ++from;
+            --to;
+            bracketed = true;
+        }
+
+        if (from == to || CanName(lexemes, from, to) is false) return;
+
+        var name = string.Join(' ', lexemes.Skip(from).Take(to - from).Select(lexeme => lexeme.Text));
+        if (symbols.Names.Contains(name) is false || symbols.IsReactive(name) is false) return;
+
+        Node argument = new Node.Name(name);
+        if (bracketed) argument = new Node.Group([argument]);
+
+        cell.Offer(bracketed ? 3 : 2, new Node.Previous(name, argument));
     }
 
     /// <summary>
@@ -1221,7 +1269,12 @@ internal sealed class SymbolTable
     ///
     /// <remarks>
     ///     <para>
-    ///     Here for their SHAPE, and it reserves nothing — which is the point.
+    ///     Here for their SHAPES. The loop pattern describes a grammar production
+    ///     whose declaring hole is pinned; «old (_)» describes a resolver atom
+    ///     whose hole is constrained to a reactive name. Neither is admitted as
+    ///     an ordinary expression-hole pattern through <see cref="Patterns"/>.
+    ///     </para>
+    ///     <para>
     ///     A loop header needs exactly one reading, and the first way to get one
     ///     was to reserve «in» against names; see LOOPSYNTAX.md, where the
     ///     alternative is not a tie but a strictly-cheaper wrong reading that
@@ -1231,14 +1284,12 @@ internal sealed class SymbolTable
     ///     away from anyone, and «in» is an ordinary name again.
     ///     </para>
     ///     <para>
-    ///     Not in <see cref="Patterns"/>, because today the loop is a grammar
-    ///     production and the resolver never sees a loop header. It is now able
-    ///     to: its declaring hole is a BINDING hole, so it recognises the new
-    ///     name without looking it up, and resolves against the enclosing scope
-    ///     the real path actually presents — one where the loop variable is
-    ///     absent, because the loop is what declares it. Every loop test used to
-    ///     supply it by hand, and the valid header returned NoParse the moment
-    ///     anything real was handed over.
+    ///     The loop is not in <see cref="Patterns"/>, because today it is a
+    ///     grammar production and the resolver never sees a loop header. The
+    ///     resolver can still probe it directly: its declaring hole is a BINDING
+    ///     hole, so it recognises the new name without looking it up and resolves
+    ///     against the enclosing scope the real path actually presents — one
+    ///     where the loop variable is absent, because the loop declares it.
     ///     </para>
     ///     <para>
     ///     Spelled in the LEXER's words and not the reader's: «for each» is one
@@ -1247,7 +1298,13 @@ internal sealed class SymbolTable
     ///     produce — «for» and «each» as two segments would never match anything.
     ///     </para>
     /// </remarks>
-    public static IReadOnlyList<Pattern> Builtins { get; } = [new Pattern(["for each", null, "in", null], [1])];
+    internal static Pattern Previous { get; } = new([Injection.Shadow.Words[0], null]);
+
+    public static IReadOnlyList<Pattern> Builtins { get; } =
+    [
+        new Pattern(["for each", null, "in", null], [1]),
+        Previous,
+    ];
 
     /// <summary>
     ///     Fixed at language design time. No user defined operators, which is
@@ -1288,6 +1345,7 @@ internal sealed class SymbolTable
     {
         foreach (var name in enclosing.Names) Names.Add(name);
         foreach (var name in enclosing.constants) constants.Add(name);
+        foreach (var name in enclosing.reactives) reactives.Add(name);
 
         Patterns.AddRange(enclosing.Patterns);
 
@@ -1302,54 +1360,22 @@ internal sealed class SymbolTable
     }
 
     /// <summary>
-    ///     Declares cells, each of which injects its shadow into the same scope.
+    ///     Adds reactive names. The built-in «old (_)» accepts exactly these
+    ///     after its hole has resolved to a bare name reference.
     /// </summary>
-    ///
-    /// <remarks>
-    ///     <para>
-    ///     «old x» is an injected NAME rather than an operator or a pattern, and
-    ///     that is what makes it cost nothing: a name is already an atom and an
-    ///     atom is already an operand at every binding level. Spelling it as a
-    ///     word pattern would make «old» swallow the rest of the expression, and
-    ///     spelling it as a prefix operator would need a new atom kind, a binding
-    ///     power, and an exemption so that reading «old x» does not put an edge on
-    ///     «x». Injection gets that last one free, because «old x» IS a different
-    ///     cell — «let smoothed = old smoothed * 0.9 + reading * 0.1» is not a
-    ///     self-cycle by construction rather than by exemption.
-    ///     </para>
-    ///     <para>
-    ///     Injection is unconditional and allocation is not. Whether anything
-    ///     reads «old x» is unknown until resolution has finished, but the name
-    ///     has to be in scope during it, so the symbol always appears and
-    ///     <c>Graph.Shadow</c> allocates only where a reference was found.
-    ///     </para>
-    /// </remarks>
-    public SymbolTable Declaring(params string[] names)
+    public SymbolTable WithReactives(params string[] names)
     {
         foreach (var name in names)
         {
-            if (name.StartsWith(Shadowed, StringComparison.Ordinal))
-                throw new ArgumentException(
-                    $"«{name}» begins with the reserved word «{Old}». There is no «old old x»: " +
-                    "injection applies to declared cells and never to injected ones, so a second " +
-                    "generation has to be captured by declaring a let for it.", nameof(names));
-
-            var shadow = Injection.Shadow.Of(name);
-
-            if (Names.Contains(shadow))
-                throw new ArgumentException(
-                    $"«{shadow}» is already in scope, and declaring «{name}» injects it. " +
-                    "Rename whichever of the two you own.", nameof(names));
-
             Names.Add(name);
-            Names.Add(shadow);
+            reactives.Add(name);
         }
 
         return this;
     }
 
     /// <summary>
-    ///     Declares constants, which are named but get no shadow.
+    ///     Declares constants, which are named but are not reactive.
     /// </summary>
     ///
     /// <remarks>
@@ -1378,25 +1404,32 @@ internal sealed class SymbolTable
         if (name.StartsWith(Shadowed, System.StringComparison.Ordinal) is false) return null;
 
         var cell = name[Shadowed.Length..];
-        if (constants.Contains(cell) is false) return null;
+        if (constants.Contains(cell))
+            return $"no reading «{name}». «{cell}» is a constant, so it has no previous " +
+                   $"value — use «{cell}».";
 
-        return $"no name «{name}» in scope. «{cell}» is a constant, so it has no previous " +
-               $"value — use «{cell}».";
+        if (Names.Contains(cell) && reactives.Contains(cell) is false)
+            return $"no reading «{name}». «old (_)» takes a reactive name, and «{cell}» is not reactive.";
+
+        return null;
     }
 
     private readonly HashSet<string> constants = [];
+    private readonly HashSet<string> reactives = [];
+
+    /// <summary>Whether a resolved name may fill the hole of «old (_)».</summary>
+    internal bool IsReactive(string name) => reactives.Contains(name);
 
     /// <summary>
-    ///     The prefix a declaration injects, and the reserved word it is built
-    ///     from — both read from the descriptor rather than spelled again.
+    ///     The built-in pattern's word and the runtime shadow prefix, both read
+    ///     from the descriptor rather than spelled independently.
     /// </summary>
     ///
     /// <remarks>
     ///     Found by audit. These were a second, independent definition of the
-    ///     same word: changing <see cref="Injection.Shadow"/> moved the
-    ///     diagnostics, the protection rule and the generated registry while the
-    ///     resolver and the runtime went on injecting «old ». One description and
-    ///     everything consumes it, or the description is decoration.
+    ///     same word. Changing <see cref="Injection.Shadow"/> must move both the
+    ///     resolver pattern and the runtime node it allocates; one description
+    ///     keeps those halves joined.
     /// </remarks>
     internal static string Old => Injection.Shadow.Words[0];
     internal static string Shadowed => Injection.Shadow.Prefix;

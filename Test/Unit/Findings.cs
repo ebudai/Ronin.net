@@ -34,19 +34,14 @@ public class Findings
                      function area of (shape => Text) { return shape; }
 
                      """,
+                     "function old (value => Number) { return value; }\n",
                      """
                      function b (x => Number) { return x; }
                      function b b (y => Number) { return y; }
 
                      """,
-                     "function recall (x => Number) old (y => Number) { return x; }\n",
                      "var total otherwise zero => Number;\n",
                      "function x otherwise (value => Number) { return value; }\n",
-                     """
-                     var print job => Number;
-                     function print (x => Number) { return x; }
-
-                     """,
                      "var x => = 1;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => Number) {}\n",
                      "function (x => Number) rounded { return x; }\n",
@@ -128,13 +123,15 @@ public class Findings
         Assert.Equal(Enum.GetValues<FindingKind>().Length, declared.Length);
     }
 
-    [Fact(DisplayName = "a reserved word points at nothing else")]
-    public void AReservedWordPointsAtNothingElse()
+    [Fact(DisplayName = "a built-in pattern points at no invented declaration")]
+    public void ABuiltinPatternPointsAtNoInventedDeclaration()
     {
-        // there is no prior declaration of «old total», so there is nowhere to
-        // point, and pointing anywhere would be inventing a site
-        var reserved = Examples().Single(finding => finding.Kind is FindingKind.ReservedPrefix);
+        // The language supplies «old (_)» without a source declaration, so
+        // its zero-width bookkeeping span is not a related location.
+        var reserved = Assert.IsType<NameShadowsPattern>(
+            Examples().Single(finding => finding.Kind is FindingKind.NameShadowsPattern));
 
+        Assert.True(reserved.Builtin);
         Assert.Empty(reserved.Related);
     }
 
@@ -187,22 +184,19 @@ public class Findings
             Player.ron:2:5: «total» is already declared in this scope. Shadowing is not allowed, because reading a value has to tell you where it came from, and the compiler cannot flag the ambiguity when both readings are legal. Rename this one.
                 Player.ron:1:5: first declared here
 
-            Player.ron:1:5: «old total» begins with the reserved word «old», which is injected rather than declared. Respell it.
+            Player.ron:1:5: «old total» cannot be a name: its complete span also reads as a call to the built-in «old (_)», and no bracketing selects the name reading. Rename it; a built-in cannot be respelled.
 
             Player.ron:1:10: «area of (_)» has 2 declarations and type-directed selection is not implemented, so there is no way to choose between them yet. Give them different shapes for now.
                 Player.ron:2:10: also declared here
 
+            Player.ron:1:10: «old (_)» is supplied by the language and cannot be declared again. Respell it.
+
             Player.ron:2:10: the anchor of «b (_)» begins that of «b b (_)», so a statement can read as either and no bracketing tells them apart. Respell one of them.
                 Player.ron:1:10: the anchor it collides with
-
-            Player.ron:1:10: «recall (_) old (_)» uses the reserved word «old» as a segment, which would make it glue and reject every injected name in scope. Respell that segment.
 
             Player.ron:1:5: «total otherwise zero» has «otherwise» inside it, which the language reads as an operator between two values. A name spanning one is cheaper than the expression it covers, so every «… otherwise …» already written would quietly become this name instead. Respell it.
 
             Player.ron:1:10: «x otherwise (_)» uses «otherwise», which the language reads as an operator between two values. A call to it would cost exactly what the operation costs, so every «… otherwise …» in scope would be ambiguous rather than wrong. Respell it.
-
-            Player.ron:2:10: «print job» begins with every word of «print (_)», so it would be read instead of that call wherever both are in scope — and more cheaply, so nothing would report it. Rename it, or respell the pattern.
-                Player.ron:1:5: the name that would shadow it
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
 

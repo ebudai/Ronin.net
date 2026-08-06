@@ -43,7 +43,8 @@ internal sealed class Declarations
     /// </remarks>
     public IReadOnlyList<Finding> Problems => found ??= [.. problems.Concat(Rules.Validate(symbols,
         [
-            .. SymbolTable.Builtins.Select(pattern => new Shape(pattern, source.Span(0, 0), Inherited: true)),
+            .. SymbolTable.Builtins.Select(pattern => new Shape(pattern, source.Span(0, 0),
+                                                               Inherited: true, Builtin: true)),
             .. shapes.SelectMany(shape => shape.Value.Select(shaped => new Shape(shape.Key, shaped.Span, shaped.Inherited))),
         ]))];
 
@@ -146,10 +147,9 @@ internal sealed class Declarations
         if (Refused(name, span)) return;
 
         written[name] = span;
-        Symbols.Declaring(name);
+        Symbols.WithNames(name);
 
         symbols.Add(new Declared(name, span) { Words = words });
-        symbols.Add(new Declared(Injection.Shadow.Of(name), span, InjectedBy: name) { Words = Injection.Shadow.Of(words) });
 
         // The loop's counter, derived from the variable rather than a bare
         // «index». There is no shadowing in this language, so a bare one would
@@ -158,9 +158,9 @@ internal sealed class Declarations
         // grammar exists to avoid. Derived, it nests for free: «index of bank»
         // and «index of branch» coexist with no rule to say how.
         //
-        // No shadow of its own. «old index of bank» would be the previous
-        // iteration's counter, which is the current one minus one, and a synonym
-        // that looks like it means something is what «old pi» was refused for.
+        // Not reactive. «old index of bank» would be the previous iteration's
+        // counter, which is the current one minus one, and a synonym that looks
+        // like it means something is what «old pi» is refused for.
         // Through the same refusal, because it is a declaration too. Skipping
         // it meant an existing «index of bank» let the symbol set silently
         // absorb the duplicate while the diagnostic metadata took a second
@@ -188,8 +188,8 @@ internal sealed class Declarations
     ///     canonical words differ but whose renderings agree became one runtime
     ///     key, and the second argument silently overwrote the first.
     ///     <para>
-    ///     No shadow and no counter. «old x» is the previous value of a cell that
-    ///     has one, and a parameter is bound once per call.
+    ///     No counter, and not reactive. «old (_)» accepts only a reactive
+    ///     reference, while a parameter is bound once per call.
     ///     </para>
     /// </remarks>
     private void Receive(Identifier parameter)
@@ -214,14 +214,6 @@ internal sealed class Declarations
     /// </summary>
     private bool Refused(string name, Span span)
     {
-        // No related span: a reserved word has no prior declaration to point at,
-        // and pointing anywhere would be inventing one.
-        if (name.StartsWith(SymbolTable.Shadowed, System.StringComparison.Ordinal))
-        {
-            problems.Add(new ReservedPrefix(span, name, SymbolTable.Old));
-            return true;
-        }
-
         if (Symbols.Names.Contains(name) is false) return false;
 
         var shadowed = new Shadowed(span, name, Where(name));
@@ -268,6 +260,12 @@ internal sealed class Declarations
             return;
         }
 
+        if (SymbolTable.Builtins.Contains(pattern))
+        {
+            problems.Add(new BuiltinPattern(member.Identifier.Span(source), pattern.ToString()));
+            return;
+        }
+
         // A shape goes into the table ONCE. Two declarations sharing one are two
         // things a call could mean, not two ways to read it — inserting both made
         // R3's tie machinery answer a question it was never asked, so every call
@@ -284,8 +282,8 @@ internal sealed class Declarations
     }
 
     /// <summary>
-    ///     A value-holding declaration. Only these inject a shadow, and a constant
-    ///     does not even do that — its previous value is provably its current one.
+    ///     A value-holding declaration. Lets and explicitly reactive data are
+    ///     recorded as the references the built-in «old (_)» may accept.
     /// </summary>
     private void Cell(Member member)
     {
@@ -306,14 +304,16 @@ internal sealed class Declarations
             Symbols.Constants(name);
             symbols.Add(new Declared(name, span) { Words = words });
         }
-        else if (member is Datum)
+        else if (member is Datum datum)
         {
-            Symbols.Declaring(name);
+            // Reactive is a property of the referenced symbol, not of a name
+            // generated beside it. The built-in «old (_)» asks this set after
+            // its hole has resolved to a bare name; imperative data remains an
+            // ordinary name and therefore cannot be passed to it.
+            if (datum.Mutability is Let || datum.Modifiers.Is<Reactive>()) Symbols.WithReactives(name);
+            else Symbols.WithNames(name);
 
-            // the shadow carries its origin's span, because it has none of its
-            // own and is not the programmer's to rename
             symbols.Add(new Declared(name, span) { Words = words });
-            symbols.Add(new Declared(Injection.Shadow.Of(name), span, InjectedBy: name) { Words = Injection.Shadow.Of(words) });
         }
         else
         {

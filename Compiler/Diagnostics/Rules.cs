@@ -13,7 +13,7 @@ namespace Ronin.Compiler;
 ///     The declaration that generated this name, when nobody wrote it. An
 ///     injected symbol has no text of its own, so it carries the span of its
 ///     origin — which is also the only thing a diagnostic can ask anyone to
-///     change, since «old smoothed» is not the programmer's to rename.
+///     change, since «index of bank» is not the programmer's to rename.
 /// </param>
 /// <param name="Inherited">
 ///     Whether this came from an enclosing scope, which is the provenance the
@@ -58,7 +58,7 @@ internal readonly record struct Declared(string Name, Span Span, string Injected
 }
 
 /// <summary>A pattern as declared, and where.</summary>
-internal readonly record struct Shape(Pattern Pattern, Span Span, bool Inherited = false);
+internal readonly record struct Shape(Pattern Pattern, Span Span, bool Inherited = false, bool Builtin = false);
 
 /// <summary>
 ///     The scope-wide rules, checked over what was declared rather than over the
@@ -84,12 +84,9 @@ internal static class Rules
                                                 IReadOnlyCollection<Shape> patterns)
     {
         // A pattern that is structurally wrong does not then get to reserve
-        // words. «recall (_) old (_)» is refused once for using «old» as a
-        // segment — and it was ALSO run through the name scan, so every mutable
-        // declaration in the file collected its own complaint about the shadow
-        // «old» had just invalidated. Three variables, three extra findings; a
-        // hundred, a hundred. Every one of them had the same repair as the
-        // first, which is the thing the structural finding already says.
+        // words. It is still examined for its own structural finding, but not
+        // allowed to amplify that mistake into a complaint against every name
+        // or pattern beside it.
         //
         // Computed FIRST, and applied to every relational rule rather than to
         // the glue scan alone. That comment stated the invariant for all of
@@ -102,7 +99,6 @@ internal static class Rules
         // are the findings that make a pattern unsound, so filtering their input
         // by soundness would be asking a pattern to report itself.
         foreach (var finding in Infixes(patterns)) yield return finding;
-        foreach (var finding in Reserved(patterns)) yield return finding;
         foreach (var finding in Injecting(patterns)) yield return finding;
 
         // What a pattern does to something else, asked only of the sound ones.
@@ -156,20 +152,6 @@ internal static class Rules
     }
 
     /// <summary>
-    ///     One pattern using «old» as a segment would put it in the glue set, and
-    ///     R5 would then reject every injected name in scope.
-    /// </summary>
-    private static IEnumerable<Finding> Reserved(IReadOnlyCollection<Shape> patterns)
-    {
-        foreach (var (pattern, span, _) in patterns)
-        {
-            if (pattern.Segments.Contains(SymbolTable.Old) is false) continue;
-
-            yield return new ReservedSegment(span, pattern.ToString(), SymbolTable.Old);
-        }
-    }
-
-    /// <summary>
     ///     Whether a pattern is legal in itself, and so allowed to reserve
     ///     anything against anyone.
     /// </summary>
@@ -190,14 +172,32 @@ internal static class Rules
     ///     first one covers.
     /// </summary>
     private static bool Structural(Pattern pattern)
-        => pattern.Segments.Contains(SymbolTable.Old)
-        || pattern.Segments.Any(Infix.Contains)
+        => pattern.Segments.Any(Infix.Contains)
         || Injected.Any(injection => pattern.Glue.Contains(injection.Word));
 
     /// <summary>
-    ///     R6b. No name may have a pattern's whole word content as a proper
-    ///     prefix, or it is read instead of the call and more cheaply.
+    ///     A name may not have another reading over its own complete span. One
+    ///     such reading is a pattern whose holes can consume all of the name's
+    ///     remaining words.
     /// </summary>
+    ///
+    /// <remarks>
+    ///     THE PRE-TYPE-CHECKER FORM of a narrower rule, and this paragraph is
+    ///     the expiry rather than the justification. What makes a second reading
+    ///     fatal is that nothing can eliminate it: brackets group and do not
+    ///     classify, so «print (job)» is still the call and the name reading has
+    ///     no spelling. Well-typedness does classify, and eliminating by it is
+    ///     not a silent pick — so once types exist this shrinks to
+    ///     <em>a name may not have another reading of the same type in the same
+    ///     position</em>, and what is left is only a name declared with the
+    ///     return type of the call it swallows.
+    ///     <para>
+    ///     Which is most of what this refuses today. Not to be relaxed before
+    ///     then: between here and there, relaxing it makes programs unwritable
+    ///     with no diagnostic, and that is the one outcome worse than a refused
+    ///     name. <c>Test.Expiry</c> tags which fixtures go and which stay.
+    ///     </para>
+    /// </remarks>
     ///
     /// <remarks>
     ///     WITHIN A MODULE, and this is the place that will be got wrong. R5 and
@@ -217,25 +217,21 @@ internal static class Rules
     ///     nothing more.
     ///     </para>
     ///     <para>
-    ///     Glue-free patterns only. One with glue needs its glue word inside any
-    ///     name that could reach the whole call, and R5 has refused that already
-    ///     — asking both would be two findings for one repair, which is what the
-    ///     structural guard below exists to avoid elsewhere.
-    ///     </para>
-    ///     <para>
-    ///     PROPER prefix, so a name equal to the pattern's words is left alone.
-    ///     It cannot capture: the call's argument would have to sit beside it as
-    ///     a second juxtaposed name, and that is not an expression.
+    ///     Glued patterns are included. The deleted blanket glue rule correctly
+    ///     made «a to b» legal, but it also removed the narrower own-span case:
+    ///     «send x to y» itself reads as «send (_) to (_)», and no bracket
+    ///     selects the name. Testing the complete span states that boundary
+    ///     directly instead of approximating it by an anchor prefix.
     ///     </para>
     /// </remarks>
     private static IEnumerable<Finding> Shadowing(IReadOnlyCollection<Declared> names,
                                                   IReadOnlyCollection<Shape> patterns,
                                                   IEnumerable<string> refused)
     {
-        // Anchor-only, which is not the same as glue-free: a pinned hole makes
-        // the word after it free of glue and still leaves the words apart, so
-        // there is no contiguous run for a name to begin with.
-        var exposed = patterns.Where(shape => shape.Pattern.IsAnchorOnly).ToArray();
+        // A literal-only pattern has no application over a name. Every pattern
+        // with a hole can have one, whether its words are all in the anchor or
+        // separated by glue.
+        var exposed = patterns.Where(shape => shape.Pattern.Segments.Contains(null)).ToArray();
 
         // GENERATED names are asked too, which they were not. The skip read
         // "not the programmer's to rename, and its origin is reported already" —
@@ -245,10 +241,8 @@ internal static class Rules
         var collisions =
             (from declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal)
              from shape in exposed
-             let anchor = shape.Pattern.Segments.Where(segment => segment is not null).ToArray()
-             where declared.Words.Count > anchor.Length
-             where declared.Words.Take(anchor.Length).SequenceEqual(anchor)
-             select (Declared: declared, Shape: shape, Anchor: anchor)).ToArray();
+             where ReadsAs(declared.Words, shape.Pattern)
+             select (Declared: declared, Shape: shape)).ToArray();
 
         // Every written name a name rule has already blamed. The compiler copies
         // one of these into each name it builds from it, so the built name
@@ -259,7 +253,7 @@ internal static class Rules
                                      .Select(collision => collision.Declared.Name)),
             System.StringComparer.Ordinal);
 
-        foreach (var (declared, shape, anchor) in collisions)
+        foreach (var (declared, shape) in collisions)
         {
             // A UNIVERSAL collision is the pattern's alone: its words end inside
             // the prefix the compiler adds, so every name built by that
@@ -267,7 +261,7 @@ internal static class Rules
             // avoids it. Naming one generated example instead reported the same
             // pattern once per loop in scope, each message differing only in the
             // subject it interpolated and each asking for the same one edit.
-            if (Universal(declared, anchor.Length))
+            if (Universal(declared, shape.Pattern))
             {
                 yield return new NameShadowsPattern(shape.Span, Built(declared), shape.Pattern.ToString(), universal: true);
                 continue;
@@ -287,13 +281,55 @@ internal static class Rules
             // asked for a larger change than the one that fixes it.
             var blamed = IsLater(declared.Inherited, declared.Span, shape.Inherited, shape.Span);
 
-            yield return new NameShadowsPattern(blamed ? declared.Span : shape.Span,
-                                                declared.Name,
-                                                shape.Pattern.ToString(),
-                                                declared.InjectedBy)
-                .Alongside(blamed ? shape.Span : declared.Span,
-                           blamed ? "the pattern it would shadow" : "the name that would shadow it");
+            var finding = new NameShadowsPattern(blamed ? declared.Span : shape.Span,
+                                                 declared.Name,
+                                                 shape.Pattern.ToString(),
+                                                 declared.InjectedBy,
+                                                 builtin: shape.Builtin);
+
+            // A built-in has no source declaration. Its zero-width bookkeeping
+            // span is not a place a diagnostic may point.
+            if (shape.Builtin is false)
+                finding.Alongside(blamed ? shape.Span : declared.Span,
+                                  blamed ? "the pattern it would shadow" : "the name that would shadow it");
+
+            yield return finding;
         }
+    }
+
+    /// <summary>
+    ///     Whether a name's complete words can also be a call to
+    ///     <paramref name="pattern"/>. A free hole consumes one or more possible
+    ///     name words; a pinned hole consumes exactly one in an unbracketed name.
+    /// </summary>
+    private static bool ReadsAs(IReadOnlyList<string> words, Pattern pattern)
+    {
+        bool[,] answer = new bool[pattern.Segments.Count + 1, words.Count + 1];
+        bool[,] known = new bool[pattern.Segments.Count + 1, words.Count + 1];
+
+        bool Read(int segment, int word)
+        {
+            if (known[segment, word]) return answer[segment, word];
+            known[segment, word] = true;
+
+            if (segment == pattern.Segments.Count)
+                return answer[segment, word] = word == words.Count;
+
+            if (pattern.Segments[segment] is string literal)
+                return answer[segment, word] = word < words.Count
+                                              && words[word] == literal
+                                              && Read(segment + 1, word + 1);
+
+            if (pattern.Pinned.Contains(segment))
+                return answer[segment, word] = word < words.Count && Read(segment + 1, word + 1);
+
+            for (var after = word + 1; after <= words.Count; ++after)
+                if (Read(segment + 1, after)) return answer[segment, word] = true;
+
+            return false;
+        }
+
+        return Read(0, 0);
     }
 
     /// <summary>
@@ -303,19 +339,21 @@ internal static class Rules
     ///
     /// <remarks>
     ///     The test is to substitute a fresh, otherwise-unused subject and ask
-    ///     again; this is that in closed form. A built name is a fixed prefix
-    ///     plus a copied subject, so the answer is only whether the pattern's
-    ///     words run out before the copy begins — a fresh subject changes every
-    ///     word from there on and cannot match.
+    ///     again. A built name is a fixed prefix plus a copied subject, and the
+    ///     substitution is asked through the same complete-span predicate as
+    ///     the actual collision so glued patterns cannot be misclassified.
     ///     <para>
     ///     A written name is never universal. There is no prefix the compiler
     ///     chose and no hole to substitute into, so the collision is exactly as
     ///     particular as the name is.
     ///     </para>
     /// </remarks>
-    private static bool Universal(Declared declared, int anchor)
+    private static bool Universal(Declared declared, Pattern pattern)
         => declared.InjectedBy is not null
-        && anchor <= declared.Words.Count - Lexemes.Words(declared.InjectedBy).Length;
+        && ReadsAs(Injection.All.First(injection => declared.Words.Take(injection.Words.Count)
+                                                            .SequenceEqual(injection.Words))
+                                      .Of(["a-fresh-name"]),
+                   pattern);
 
     /// <summary>How the compiler describes what it builds, when no subject is to blame.</summary>
     private static string Built(Declared declared)
@@ -344,23 +382,30 @@ internal static class Rules
     ///     BUILT names are asked too, and were exempt. «for each (is valid) in …»
     ///     builds «index of is valid», whose interior spans the operator — so
     ///     the name won the comparison its author wrote, and nothing said so.
-    ///     Neither injection contributes the offending word: «old», «index» and
-    ///     «of» are not operators, so what collides always came from the subject
-    ///     and a rename always answers it. There is no case here where the
-    ///     collision holds whatever the subject is, which is why this rule needs
-    ///     no counterpart to the universal split next door.
+    ///     The counter injection contributes only «index of», neither of which
+    ///     is an operator, so what collides always came from the subject and a
+    ///     rename always answers it. There is no case here where the collision
+    ///     holds whatever the subject is, which is why this rule needs no
+    ///     counterpart to the universal split next door.
     ///     </para>
     ///     <para>
     ///     Which leaves the operator as the other party, and it cannot be
     ///     respelled — so the originating name is blamed rather than the built
     ///     one, and the ordering convention never runs.
     ///     </para>
+    ///     <para>
+    ///     THE PRE-TYPE-CHECKER FORM, on the same expiry as its other half next
+    ///     door: a comparison is a truth whatever its operands are, so a name
+    ///     spanning one is eliminated by type unless it is declared a truth
+    ///     itself. What survives is «a name that spans a comparison operator and
+    ///     is itself a truth» — a boolean called «y is x» sitting beside the
+    ///     comparison «y is x», where the reader cannot tell them apart either.
+    ///     </para>
     /// </remarks>
     private static IEnumerable<InfixInName> Infixes(IReadOnlyCollection<Declared> names)
     {
-        // ONE MISTAKE, one diagnostic. Dropping the exemption without this said
-        // it twice for the commonest shape by far: «var p is q» offends, and so
-        // does the «old p is q» built from it, by the same word for the same
+        // ONE MISTAKE, one diagnostic. A loop subject can offend on its own and
+        // again inside the counter built from it, by the same word for the same
         // reason with one rename between them.
         var offending = new HashSet<string>(
             names.Where(declared => declared.InjectedBy is null)
@@ -416,7 +461,7 @@ internal static class Rules
     /// </remarks>
     private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Shape> patterns)
     {
-        foreach (var (pattern, span, _) in patterns)
+        foreach (var (pattern, span, _, _) in patterns)
         {
             if (pattern.Segments.FirstOrDefault(Infix.Contains) is not string word) continue;
 
@@ -430,15 +475,14 @@ internal static class Rules
     /// </summary>
     ///
     /// <remarks>
-    ///     «old» is refused as any segment by <see cref="Reserved"/>, which is
-    ///     stricter and stays. These are refused as GLUE only, because they are
-    ///     ordinary words in anchor position and the language wants them there —
-    ///     «sum of (_)» and «count of (_)» are the shapes to prefer, and banning
-    ///     «of» outright would take them away.
+    ///     Refused as GLUE only, because they are ordinary words in anchor
+    ///     position and the language wants them there — «sum of (_)» and
+    ///     «count of (_)» are the shapes to prefer, and banning «of» outright
+    ///     would take them away. «old» is absent: it names a pattern now and
+    ///     injects no source-level symbol.
     /// </remarks>
     public static IReadOnlyList<(string Word, string Injects)> Injected { get; } =
-        [.. Injection.All.Where(injection => injection != Injection.Shadow)
-                         .SelectMany(injection => injection.Words.Select(word => (word, injection.Shape)))];
+        [.. Injection.All.SelectMany(injection => injection.Words.Select(word => (word, injection.Shape)))];
 
     /// <summary>
     ///     Injection words may not be glue. The dual of glue words not being
@@ -446,7 +490,7 @@ internal static class Rules
     /// </summary>
     private static IEnumerable<Finding> Injecting(IReadOnlyCollection<Shape> patterns)
     {
-        foreach (var (pattern, span, _) in patterns)
+        foreach (var (pattern, span, _, _) in patterns)
         {
             foreach (var (word, injects) in Injected)
             {

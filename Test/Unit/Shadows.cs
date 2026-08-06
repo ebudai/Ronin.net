@@ -6,7 +6,7 @@ using Ronin.Runtime;
 namespace Unit;
 
 /// <summary>
-///     «old x» as an injected name, and the shadow cell it allocates.
+///     «old (_)» as a constrained pattern, and the shadow cell it allocates.
 /// </summary>
 [Trait(nameof(Graph), null)]
 public class Shadows
@@ -14,56 +14,55 @@ public class Shadows
     private static readonly Func<object, object, object> Add
         = Builtin.Lift((left, right) => (double)left + (double)right);
 
-    [Fact(DisplayName = "declaring a cell injects its shadow")]
-    public void DeclaringACellInjectsItsShadow()
+    [Fact(DisplayName = "old is a pattern rather than an injected name")]
+    public void OldIsAPatternRatherThanAnInjectedName()
     {
         SymbolTable symbols = new();
-        symbols.Declaring("smoothed", "reading");
+        symbols.WithReactives("smoothed", "reading");
 
-        Assert.Equal(["old reading", "old smoothed", "reading", "smoothed"], symbols.Names.Order());
+        Assert.Equal(["reading", "smoothed"], symbols.Names.Order());
 
-        // and the injected name is an ordinary name, so it is an operand at every
-        // binding level with nothing added to the resolver
+        // The constrained reference fixes the pattern's extent, so arithmetic
+        // cannot be swallowed into the hole: this is (old smoothed) * ..., not
+        // old (smoothed * ...).
         Resolver resolver = new(symbols);
-        Assert.Equal("((«old smoothed» * 0.9) + («reading» * 0.1))",
+        Assert.Equal("((old «smoothed» * 0.9) + («reading» * 0.1))",
                      resolver.Resolve("old smoothed * 0.9 + reading * 0.1").Reading);
     }
 
-    [Fact(DisplayName = "and the name it injects is the descriptor's, in both halves")]
-    public void AndTheNameItInjectsIsTheDescriptorsInBothHalves()
+    [Fact(DisplayName = "and evaluation allocates the descriptor's runtime shadow")]
+    public void AndEvaluationAllocatesTheDescriptorsRuntimeShadow()
     {
-        // Found by audit, and the point of the finding is that the test above
-        // cannot see it: it spells «old reading» by hand, so the resolver and the
-        // runtime could each hold their own copy of the word and it would still
-        // pass. Changing the descriptor would then move the diagnostics, the
-        // protection rule and the generated registry and leave these two behind.
-        //
-        // So this asserts the joins rather than the spelling: whatever the
-        // descriptor says, that is what goes in scope and that is what gets
-        // allocated.
         var injected = Injection.Shadow.Of("reading");
+        SymbolTable symbols = new();
+        symbols.WithReactives("reading");
 
-        Assert.Contains(injected, new SymbolTable().Declaring("reading").Names);
+        Assert.True(new Resolver(symbols).Resolve("old reading").TryTree(out var tree));
 
         Graph graph = new();
         graph.Var("reading", 10d);
+        var before = graph.Declared;
 
+        Assert.Same(Nothing.Instance, new Evaluator(new Scope()).Evaluate(graph, tree, insideLet: false));
+        Assert.Equal(before + 1, graph.Declared);
         Assert.Equal(injected, graph.Shadow("reading"));
     }
 
     [Fact(DisplayName = "a cell reading its own old is not a cycle")]
     public void ACellReadingItsOwnOldIsNotACycle()
     {
-        // «old x» IS a different cell, so the edge lands on the shadow. Not a
-        // self-cycle by construction rather than by exemption.
+        SymbolTable symbols = new();
+        symbols.WithReactives("smoothed", "reading");
+
+        Assert.True(new Resolver(symbols).Resolve("old smoothed otherwise 0 + reading").TryTree(out var tree));
+
         Graph graph = new();
         graph.Var("reading", 10d);
-        graph.Let("smoothed", scope => Add(Builtin.Otherwise(scope.Read("old smoothed"), 0d),
-                                           scope.Read("reading")));
-        graph.Shadow("smoothed");
+        graph.Let("smoothed", new Evaluator(new Scope()).Body(tree));
 
         Assert.Equal(10d, graph.Read("smoothed"));
         Assert.Contains("old smoothed", graph.Dependencies("smoothed"));
+        Assert.DoesNotContain("smoothed", graph.Dependencies("smoothed"));
     }
 
     [Fact(DisplayName = "a shadow holds the previous step's value all step long")]
@@ -158,38 +157,84 @@ public class Shadows
 
     private static Ronin.Compiler.Shape Shape(string pattern) => new(Pattern.Parse(pattern), Nowhere.Span(0, 0));
 
-    [Fact(DisplayName = "old is reserved against pattern segments")]
-    public void OldIsReservedAgainstPatternSegments()
+    [Fact(DisplayName = "old is an ordinary pattern segment now")]
+    public void OldIsAnOrdinaryPatternSegmentNow()
     {
-        // One hostile pattern would put «old» in the glue set, and R5 would then
-        // reject every injected name in scope.
-        var complaint = Assert.Single(Rules.Validate([Declares("smoothed")], [Shape("recall _ old _")]),
-                                      finding => finding.Kind is FindingKind.ReservedSegment);
-
-        var reserved = Assert.IsType<ReservedSegment>(complaint);
-
-        Assert.Equal("old", reserved.Word);
-        Assert.Equal("recall (_) old (_)", reserved.Pattern);
+        Assert.Empty(Rules.Validate([Declares("smoothed")], [Shape("recall _ old _")]));
     }
 
-    [Fact(DisplayName = "a collision with an injected name is a declaration error")]
-    public void ACollisionWithAnInjectedNameIsADeclarationError()
+    [Fact(DisplayName = "old takes a bare reactive reference")]
+    public void OldTakesABareReactiveReference()
     {
         SymbolTable symbols = new();
-        symbols.Declaring("smoothed");
+        symbols.WithReactives("x").WithNames("y").Constants("pi");
+        Resolver resolver = new(symbols);
 
-        // the injector is named, because that is the half the programmer forgot
-        var collision = Assert.Throws<ArgumentException>(() => symbols.WithNames("old smoothed").Declaring("smoothed"));
-        Assert.Contains("declaring «smoothed» injects it", collision.Message);
+        Assert.Equal("Resolved", resolver.Resolve("old x").Kind.ToString());
+        Assert.Equal("Resolved", resolver.Resolve("old (x)").Kind.ToString());
+        Assert.Equal("(old «x» + 1)", resolver.Resolve("old x + 1").Reading);
+
+        Assert.Equal("NoParse", resolver.Resolve("old (x + 1)").Kind.ToString());
+        Assert.Equal("NoParse", resolver.Resolve("old y").Kind.ToString());
+        Assert.Equal("NoParse", resolver.Resolve("old pi").Kind.ToString());
+
+        // An EMPTY hole, which the bracketed form can reach and the bare one
+        // cannot: stripping the brackets leaves nothing between them, and a
+        // pattern whose argument is no words at all has no reference to be
+        // constrained to.
+        Assert.Equal("NoParse", resolver.Resolve("old ()").Kind.ToString());
+
+        Assert.Contains("not reactive", symbols.Explain("old y"));
+        Assert.Contains("constant", symbols.Explain("old pi"));
+
+        // And SILENT where there is nothing better to say than what the caller
+        // already knows. «old x» reads, so there is nothing to explain; «old
+        // zzz» fails because «zzz» is not a name, which is the ordinary missing
+        // name the caller reports anyway. Explaining either would be inventing a
+        // reason for something that has one.
+        Assert.Null(symbols.Explain("old x"));
+        Assert.Null(symbols.Explain("old zzz"));
     }
 
-    [Fact(DisplayName = "there is no old old x")]
-    public void ThereIsNoOldOldX()
+    [Fact(DisplayName = "and brackets select it from a comparison")]
+    public void AndBracketsSelectItFromAComparison()
     {
         SymbolTable symbols = new();
+        symbols.WithNames("old", "valid").WithReactives("is valid");
+        Resolver resolver = new(symbols);
 
-        var refused = Assert.Throws<ArgumentException>(() => symbols.Declaring("old smoothed"));
-        Assert.Contains("no «old old x»", refused.Message);
+        var ambiguous = resolver.Resolve("old is valid");
+
+        Assert.Equal("Ambiguous", ambiguous.Kind.ToString());
+        Assert.Equal(["old «is valid»", "(«old» is «valid»)"], ambiguous.Readings);
+        Assert.Equal("old ⟨«is valid»⟩", resolver.Resolve("old (is valid)").Reading);
+        Assert.Equal("(⟨«old»⟩ is ⟨«valid»⟩)", resolver.Resolve("(old) is (valid)").Reading);
+    }
+
+    [Fact(DisplayName = "the old pattern reserves its name prefix")]
+    public void TheOldPatternReservesItsNamePrefix()
+    {
+        var finding = Assert.IsType<NameShadowsPattern>(Assert.Single(
+            Compilation.Of(new SourceText("let old smoothed => reactive Number;\n", "Player.ron")).Findings));
+
+        Assert.True(finding.Builtin);
+        Assert.Equal("old smoothed", finding.Name);
+        Assert.Equal("old (_)", finding.Pattern);
+        Assert.Empty(finding.Related);
+
+        // Proper prefix only: the word itself cannot cover a call with an
+        // argument, so there is no rival reading to refuse.
+        Assert.Empty(Compilation.Of(new SourceText("var old => Number;\n", "Player.ron")).Findings);
+    }
+
+    [Fact(DisplayName = "and its exact shape cannot be redeclared")]
+    public void AndItsExactShapeCannotBeRedeclared()
+    {
+        var finding = Assert.IsType<BuiltinPattern>(Assert.Single(
+            Compilation.Of(new SourceText("function old (value => Number) { return value; }\n",
+                                          "Player.ron")).Findings));
+
+        Assert.Equal("old (_)", finding.Pattern);
     }
 
     [Fact(DisplayName = "a changes trigger fires exactly when old disagrees")]
@@ -221,17 +266,10 @@ public class Shadows
     }
 
     [Theory(DisplayName = "a pattern wrong in itself reserves nothing against anyone")]
-    // CONSTANT, and not incidentally: a mutable «otherwise things» would be
-    // refused in its own right, because the «old otherwise things» built from it
-    // spans the operator. Leaving it a var would make this assert two rules at
-    // once and fail on the one it is not about.
     [InlineData("constant otherwise things = 1;\n"
               + "function send (x => Number) to (y => Number) { return x; }\n"
               + "function send (x => Number) to otherwise (y => Number) { return x; }\n",
                 nameof(InfixInPattern))]
-    [InlineData("var compute old things => Number;\n"
-              + "function compute old (x => Number) { return x; }\n",
-                nameof(ReservedSegment))]
     public void APatternWrongInItselfReservesNothingAgainstAnyone(string source, string only)
     {
         // Found by audit. The «sound» filter's own comment states the invariant

@@ -107,10 +107,10 @@ internal static class Glue
         registry.AppendLine("# nothing is refused at the declaration for what it might do to a reading.");
         registry.AppendLine("# Using a word here still costs a bracket wherever the two meanings meet.");
         registry.AppendLine("#");
-        registry.AppendLine("# Two sections are still rules, and say so: no name may BEGIN with the words");
-        registry.AppendLine("# of an anchor-only pattern, because those readings are not all reachable by");
-        registry.AppendLine("# bracketing; and no pattern may use a word operator or an injection word.");
-        registry.AppendLine("# Adding a line to either is a breaking change for every program that sees it.");
+        registry.AppendLine("# Three sections are still rules, and say so: no name may BEGIN with the words");
+        registry.AppendLine("# of an anchor-only pattern; no complete name may also have a glued or pinned");
+        registry.AppendLine("# pattern's shape; and no pattern may use a word operator or injection word.");
+        registry.AppendLine("# Those competing name readings are not reachable by bracketing.");
         registry.AppendLine("#");
         registry.AppendLine("# A pattern below is written as it is declared, and «guillemets» mark the one");
         registry.AppendLine("# thing that cannot be: a PINNED hole, which takes one word and has no");
@@ -145,8 +145,9 @@ internal static class Glue
         // cannot show. An anchor-only pattern reserves no word ANYWHERE — and it
         // does reserve its own word run as a name prefix, because a name
         // covering the whole call is one lookup where the call is at least two,
-        // so it wins silently. A pattern with glue is not here: R5 already
-        // refuses any name that could reach across it.
+        // so it creates an own-span collision. A pattern with glue is not a
+        // blanket prefix reservation; the rule asks whether a complete name
+        // actually conforms to that pattern instead.
         var anchored = declared.Where(pattern => pattern.IsAnchorOnly
                                               && pattern.Segments.Any(segment => segment is null))
                                .ToArray();
@@ -160,20 +161,24 @@ internal static class Glue
             registry.AppendLine($"    {string.Join(" ", pattern.Anchor),-12} from {pattern}");
         }
 
+        var shaped = declared.Where(pattern => pattern.IsAnchorOnly is false
+                                            && pattern.Segments.Any(segment => segment is null))
+                             .ToArray();
+
+        registry.AppendLine();
+        registry.AppendLine($"## NO COMPLETE NAME MAY HAVE THE SHAPE ({shaped.Length}) — a rule, not advice");
+        registry.AppendLine();
+
+        foreach (var pattern in shaped) registry.AppendLine($"    {pattern}");
+
         // The dual list. Glue words may not be names; injection words may not be
         // glue — and a reader of this file wants both directions, because they
         // are the same trap seen from either end.
         //
-        // «old» is here because it is protected, not because it is protected the
-        // same way: it is refused in ANY segment and reported as a reserved word,
-        // where «index» and «of» are refused as glue. That is a difference in
-        // which rule fires, not in what a pattern author may write, and this file
-        // answers the second question — so leaving it off made the list read as
-        // complete when it was not.
-        var protectedWords = Rules.Injected
-                                  .Prepend((SymbolTable.Old,
-                                            $"{Injection.Shadow.Shape}, and is refused in any segment, not only glue"))
-                                  .ToArray();
+        // «old» is no longer an injection word. It appears above as the anchor
+        // of «old (_)», where its actual cost is visible: a name prefix rather
+        // than a blanket ban on pattern segments.
+        var protectedWords = Rules.Injected.ToArray();
 
         registry.AppendLine();
         registry.AppendLine($"## PROTECTED ({protectedWords.Length}) — no pattern may use these as glue");

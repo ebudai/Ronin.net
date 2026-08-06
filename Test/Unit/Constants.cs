@@ -83,20 +83,19 @@ public class Constants
         Assert.Contains("can never clear", failure.Message);
     }
 
-    [Fact(DisplayName = "a constant gets no shadow, and the diagnostic says why")]
-    public void AConstantGetsNoShadowAndTheDiagnosticSaysWhy()
+    [Fact(DisplayName = "old accepts the reactive and explains why it rejects the constant")]
+    public void OldAcceptsTheReactiveAndExplainsWhyItRejectsTheConstant()
     {
         SymbolTable symbols = new();
-        symbols.Constants("pi").Declaring("reading");
+        symbols.Constants("pi").WithReactives("reading");
 
-        Assert.Equal(["old reading", "pi", "reading"], symbols.Names.Order());
+        Assert.Equal(["pi", "reading"], symbols.Names.Order());
 
-        // «old pi» would be a synonym that looks like it means something
         Assert.Equal(
-            "no name «old pi» in scope. «pi» is a constant, so it has no previous value — use «pi».",
+            "no reading «old pi». «pi» is a constant, so it has no previous value — use «pi».",
             symbols.Explain("old pi"));
 
-        // and there is nothing to say about names that are simply absent
+        // A valid pattern use and a simply absent name need no explanation.
         Assert.Null(symbols.Explain("old reading"));
         Assert.Null(symbols.Explain("bogus"));
     }
