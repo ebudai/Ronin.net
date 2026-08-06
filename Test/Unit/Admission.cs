@@ -1,12 +1,12 @@
 // Copyright © 2026 Eric Budai
 
+using Ronin.Compiler;
+using Ronin.Runtime;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Reflection;
 using Test;
 using Finder = Ronin.Compiler.Sources;
-using System.IO;
-using Ronin.Compiler;
-using Ronin.Runtime;
 
 namespace Unit;
 
