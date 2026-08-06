@@ -151,10 +151,16 @@ internal sealed class Resolver
         }
 
         var top = Expressions(0, n, 0);
-        if (top.TryBest(out var best) is false) return Resolution.NoParse;
+        if (top.IsEmpty) return Resolution.NoParse;
 
-        return best.Count > 1 ? Resolution.Ambiguous(best.Cost, best.Witness)
-                              : Resolution.Resolved(best.Cost, best.Node);
+        var readings = top.Alternatives;
+
+        return top.Total > 1
+             ? Resolution.Ambiguous(readings[0].Cost,
+                                    readings.Select(reading => reading.Node.ToString()),
+                                    top.Total,
+                                    top.Bounded)
+             : Resolution.Resolved(readings[0].Cost, readings[0].Node);
     }
 
     /// <summary>
@@ -227,8 +233,8 @@ internal sealed class Resolver
         foreach (var pattern in candidates)
         {
             var target = pattern.IsOpenEnded ? open[Span(i, j)] : cell;
-            foreach (var (cost, arguments, count, witness) in Match(pattern, 0, lexemes, i, j))
-                target.Offer(1 + cost, new Node.Call(pattern, arguments), count, witness);
+            foreach (var (cost, arguments, bounded) in Match(pattern, 0, lexemes, i, j))
+                target.Offer(1 + cost, new Node.Call(pattern, arguments), bounded);
         }
     }
 
@@ -304,10 +310,7 @@ internal sealed class Resolver
             }
         }
 
-        var cost = 0;
-        IReadOnlyList<string> witness = [];
-        var count = 1L;
-        List<Node> parts = [];
+        List<int> bounds = [];
         var start = from;
 
         // A TRAILING separator ends the last part rather than starting an empty
@@ -324,27 +327,91 @@ internal sealed class Resolver
             separators.RemoveAt(separators.Count - 1);
         }
 
+        List<Cell> divided = [];
+
         foreach (var end in separators.Append(to))
         {
             // an empty part — a leading or doubled separator — is not a
             // substatement at all
-            if (Expressions(start, end, 0).TryBest(out var part) is false) return;
+            var part = Expressions(start, end, 0);
 
-            cost += part.Cost;
+            if (part.IsEmpty) return;
 
-            // Saturate every step, as Match and Expression already do. Saturating
-            // only at the end left a raw product across the parts, and a group of
-            // 63 independently ambiguous parts reached 2^63 — which wraps to
-            // negative, is duly reported as fewer than two derivations, and
-            // returns a genuine tie as Resolved.
-            count = Cell.Saturating(count * part.Count);
-            witness = Best.Either(witness, part.Witness);
-
-            parts.Add(part.Node);
+            divided.Add(part);
+            bounds.Add(end);
             start = end + 1;
         }
 
-        cell.Offer(1 + cost, new Node.Group(parts, collection), count, witness);
+        // EVERY part against every other, so a group carries the readings of
+        // each of its parts rather than one tree and a count. A tie inside «(x,
+        // y)» used to arrive at the group as "two derivations" with two
+        // renderings of whichever part was ambiguous; it arrives as two
+        // renderings of the GROUP now, which is what a person would bracket.
+        var readings = divided.Aggregate(1L, (product, part) => Cell.Saturating(product * part.Total));
+        var bounded = divided.Any(part => part.Bounded);
+        var built = 0;
+
+        foreach (var combination in Combinations([.. divided.Select(part => part.Alternatives)]))
+        {
+            ++built;
+
+            cell.Offer(1 + combination.Sum(part => part.Cost),
+                       new Node.Group([.. combination.Select(part => part.Node)], collection),
+                       bounded);
+        }
+
+        cell.Beyond(readings - built, bounded || readings > built);
+    }
+
+    /// <summary>
+    ///     The cheapest ways of taking one derivation from each part.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     ONE combination where nothing is ambiguous, which is the case that
+    ///     has to stay free: an unambiguous part contributes one alternative and
+    ///     the product of ones is one, so an ordinary group yields a single
+    ///     combination and allocates a single array.
+    ///     </para>
+    ///     <para>
+    ///     CHEAPEST FIRST and BOUNDED, which the odometer that was here was
+    ///     neither. Sixty-three independently ambiguous parts have 2^63
+    ///     combinations, and a group of them is a maintained test — enumerating
+    ///     them takes longer than the universe has. Cost is additive, so the
+    ///     frontier walk below reaches the cheapest few without visiting the
+    ///     rest: start at all-cheapest, and each step advances one part by one.
+    ///     </para>
+    /// </remarks>
+    private static IEnumerable<IReadOnlyList<Best>> Combinations(IReadOnlyList<IReadOnlyList<Best>> parts)
+    {
+        PriorityQueue<int[], int> frontier = new();
+        HashSet<string> seen = [];
+
+        var first = new int[parts.Count];
+
+        frontier.Enqueue(first, parts.Select((part, at) => part[0].Cost).Sum());
+        seen.Add(string.Join(',', first));
+
+        for (var taken = 0; taken < Cell.Most && frontier.Count is not 0; ++taken)
+        {
+            var at = frontier.Dequeue();
+
+            yield return [.. at.Select((index, part) => parts[part][index])];
+
+            for (var part = 0; part < parts.Count; ++part)
+            {
+                if (at[part] + 1 >= parts[part].Count) continue;
+
+                var next = (int[])at.Clone();
+
+                ++next[part];
+
+                if (seen.Add(string.Join(',', next)) is false) continue;
+
+                frontier.Enqueue(next, next.Select((index, which) => parts[which][index].Cost).Sum());
+            }
+        }
     }
 
     /// <summary>
@@ -459,12 +526,12 @@ internal sealed class Resolver
     ///     here at all — <see cref="Node.Call"/> puts them back by walking the
     ///     same segments when it renders.
     /// </summary>
-    private IEnumerable<(int Cost, IReadOnlyList<Node> Arguments, long Count, IReadOnlyList<string> Witness)> Match(
+    private IEnumerable<(int Cost, IReadOnlyList<Node> Arguments, bool Bounded)> Match(
         Pattern pattern, int segment, IReadOnlyList<Lexeme> lexemes, int position, int end)
     {
         if (segment == pattern.Segments.Count)
         {
-            if (position == end) yield return (0, [], 1, []);
+            if (position == end) yield return (0, [], false);
             yield break;
         }
 
@@ -505,12 +572,12 @@ internal sealed class Resolver
 
             if (segment == pattern.Segments.Count - 1)
             {
-                if (only == end) yield return (0, [name], 1, []);
+                if (only == end) yield return (0, [name], false);
                 yield break;
             }
 
-            foreach (var (bound, arguments, count, witness) in Match(pattern, segment + 1, lexemes, only, end))
-                yield return (bound, [name, .. arguments], count, witness);
+            foreach (var (bound, arguments, bounded) in Match(pattern, segment + 1, lexemes, only, end))
+                yield return (bound, [name, .. arguments], bounded);
 
             yield break;
         }
@@ -519,20 +586,36 @@ internal sealed class Resolver
         {
             // trailing argument: reaches the end of the span, parsed at the
             // pattern's own binding power
-            if (Expressions(position, end, PatternBindingPower).TryBest(out var trailing))
-                yield return (trailing.Cost, [trailing.Node], trailing.Count, Best.Pair(trailing.Witness));
+            var last = Expressions(position, end, PatternBindingPower);
+
+            if (last.IsEmpty is false)
+            {
+                foreach (var trailing in last.Alternatives)
+                {
+                    yield return (trailing.Cost, [trailing.Node], last.Bounded);
+                }
+            }
+
             yield break;
         }
 
         for (var split = position + 1; split <= end; ++split)
         {
             // medial args cross any operator
-            if (Expressions(position, split, 0).TryBest(out var argument) is false) continue;
-            foreach (var (cost, arguments, count, witness) in Match(pattern, segment + 1, lexemes, split, end))
-                yield return (argument.Cost + cost,
-                              [argument.Node, .. arguments],
-                              Cell.Saturating(argument.Count * count),
-                              Best.Either(argument.Witness, witness));
+            var medial = Expressions(position, split, 0);
+
+            if (medial.IsEmpty) continue;
+
+            // EVERY argument against every completion. Taking one tree here is
+            // what dropped a reading whose only alternative was inside an
+            // argument the parent had already chosen for.
+            foreach (var argument in medial.Alternatives)
+            {
+                foreach (var (cost, arguments, bounded) in Match(pattern, segment + 1, lexemes, split, end))
+                {
+                    yield return (argument.Cost + cost, [argument.Node, .. arguments], medial.Bounded || bounded);
+                }
+            }
         }
     }
 
@@ -576,13 +659,29 @@ internal sealed class Resolver
             var leftminimum = op.IsLeftAssociative ? repeats : excludes;
             var rightminimum = op.IsLeftAssociative ? excludes : repeats;
 
-            if (Expressions(i, k, leftminimum).TryBest(out var left) is false) continue;
-            if (Expressions(k + 1, j, rightminimum).TryBest(out var right) is false) continue;
+            var before = Expressions(i, k, leftminimum);
+            var after = Expressions(k + 1, j, rightminimum);
 
-            cell.Offer(left.Cost + right.Cost,
-                       new Node.Operation(left.Node, lexemes[k].Text, op, right.Node),
-                       Cell.Saturating(left.Count * right.Count),
-                       Best.Either(left.Witness, right.Witness));
+            if (before.IsEmpty || after.IsEmpty) continue;
+
+            // EVERY operand against every other, and the count of what they
+            // would have been. Taking one tree each side is what lost a reading
+            // whose only alternative was inside an operand — «(sum of list) + x»
+            // had one derivation at the top, because the operator combined two
+            // operands and did not care that one of them was a tie.
+            foreach (var left in before.Alternatives)
+            {
+                foreach (var right in after.Alternatives)
+                {
+                    cell.Offer(left.Cost + right.Cost,
+                               new Node.Operation(left.Node, lexemes[k].Text, op, right.Node),
+                               before.Bounded || after.Bounded);
+                }
+            }
+
+            cell.Beyond(Cell.Saturating(before.Total * after.Total)
+                      - (before.Alternatives.Count * after.Alternatives.Count),
+                        before.Bounded || after.Bounded);
         }
     }
 
@@ -591,6 +690,9 @@ internal sealed class Resolver
     ///     recurrences can ask for have a slot, so this maps one to the other.
     /// </summary>
     private Cell Expressions(int i, int j, int minimum) => expressions[(Span(i, j) * minima.Length) + slots[minimum]];
+
+    /// <summary>How many readings of one statement are kept and offered as repairs.</summary>
+    public const int Kept = Cell.Most;
 
     private Dictionary<string, List<Pattern>> anchored;
     private readonly int[] minima;
@@ -602,10 +704,35 @@ internal sealed class Resolver
     private Cell[] expressions;
 
     /// <summary>
-    ///     Cheapest cost for a span, and how many derivations achieve it. The
-    ///     count has to propagate through <see cref="Merge"/> or a tie inside a
-    ///     subspan disappears the moment a larger span uses it.
+    ///     Every derivation of one span, and what each costs.
     /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     It used to hold one derivation, a count, and a WITNESS — two
+    ///     renderings carried up from wherever the tie actually was, because a
+    ///     parent kept one child tree and could not say what the others were.
+    ///     That lost a reading whenever both halves were true at once: a span
+    ///     with its own alternative, one of whose branches contained an
+    ///     ambiguous child, reported its own two and dropped the child's
+    ///     remaining one. Three readings, two offered, and the missing one was a
+    ///     bracketing a person could have chosen.
+    ///     </para>
+    ///     <para>
+    ///     A parent enumerates its children instead, so a cell holds every
+    ///     reading of its own span and the witness has nothing left to do. There
+    ///     is no longer a difference between where a tie IS and where it is
+    ///     carried through, which is what the two shapes were for.
+    ///     </para>
+    ///     <para>
+    ///     UNCAPPED here. The cap belongs to the diagnostic, which shows a few
+    ///     and says how many there are — capping in the table would make the
+    ///     total a guess at the one place it has to be a fact. Enumeration is
+    ///     bounded by the ambiguity actually present: an unambiguous span has
+    ///     one derivation and a parent combining two of them does one unit of
+    ///     work, so a program with no ambiguity pays nothing for this.
+    ///     </para>
+    /// </remarks>
     private sealed class Cell
     {
         public int Cost { get; private set; } = int.MaxValue;
@@ -613,55 +740,9 @@ internal sealed class Resolver
         public bool IsEmpty => order is null;
 
         /// <summary>
-        ///     How many derivations reach the cheapest cost, saturating at two.
+        ///     The cheapest derivations, in order, at most <see cref="Most"/>.
         /// </summary>
         ///
-        /// <remarks>
-        ///     The only question ever asked of this is unique-versus-ambiguous, so
-        ///     counting past two buys nothing and costs correctness: unbounded
-        ///     multiplication across spans can wrap, and a genuinely ambiguous
-        ///     parse that wraps to one is reported as resolved.
-        /// </remarks>
-        public long Count => Saturating(derivations.Values.Sum());
-
-        /// <summary>
-        ///     The cheapest reading, when the span has one. Every caller of this
-        ///     used to read <c>Cost</c>, <c>Reading</c> and <c>Count</c> off the
-        ///     cell behind its own <see cref="IsEmpty"/> check, so the empty case
-        ///     was tested twice and <c>Reading</c> carried a fallback that could
-        ///     not be reached. A span with no parse now has no <see cref="Best"/>
-        ///     to hand out, and the caller has to say what it does about that.
-        /// </summary>
-        public bool TryBest(out Best best)
-        {
-            if (IsEmpty)
-            {
-                best = default;
-                return false;
-            }
-
-            best = new Best(Cost, order[0], Count, Witness);
-            return true;
-        }
-
-        /// <summary>
-        ///     Two readings and no more, because two prove a tie and explain it.
-        /// </summary>
-        ///
-        /// <remarks>
-        ///     Its own pair when it has one — this cell IS where the tie is. Only
-        ///     when it does not does the tie come from further in, and then the
-        ///     witness travelled up with the derivation that carried the count.
-        /// </remarks>
-        /// <remarks>
-        ///     Typed «Owned.Kept», which is what stops this branch quietly
-        ///     becoming an ordinary collection again. It was one expression
-        ///     inside a private nested type, so reverting it left every test
-        ///     green — «Best» owns whatever it is handed and repairs both cases
-        ///     before anything downstream can tell them apart. A collection
-        ///     expression cannot satisfy this type, so the compiler refuses what
-        ///     no test could see.
-        /// </remarks>
         /// <remarks>
         ///     CHEAPEST FIRST, because the diagnostic offers these in order and
         ///     the likeliest reading should be the first one a person sees. That
@@ -669,15 +750,40 @@ internal sealed class Resolver
         ///     and it may never choose among them. The moment it chooses, every
         ///     silent capture this replaced comes back looking like a feature.
         /// </remarks>
-        private Owned.Kept<string> Witness
-            => order.Count > 1
-             ? Best.Readings([.. order.OrderBy(node => costs[node])])
-             : witnesses[order[0]];
+        public Owned.Kept<Best> Alternatives
+            => alternatives ??= Owned.Of(order.OrderBy(node => costs[node])
+                                              .Take(Most)
+                                              .Select(node => new Best(costs[node], node)));
 
-        /// <summary>Two is as many as anything needs to be counted.</summary>
-        public static long Saturating(long count) => count < 2 ? count : 2;
+        /// <summary>
+        ///     How many derivations there are, which is not how many are kept.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     The diagnostic shows a few and says how many there are, so the
+        ///     count has to outlive the cap. Saturating, because past a point the
+        ///     only true thing to say is "more than anyone wants to read", and a
+        ///     product across parts overflows long before that: a group of 63
+        ///     independently ambiguous parts has 2^63 readings, which wraps
+        ///     negative and is duly reported as unambiguous.
+        /// </remarks>
+        public long Total { get; private set; }
 
-        public void Offer(int cost, Node node, long count = 1, IReadOnlyList<string> witness = null)
+        /// <summary>
+        ///     Whether derivations were dropped here or anywhere below.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     Cost is additive, so the cheapest few of a part are what the
+        ///     cheapest few of the whole are built from — keeping <see
+        ///     cref="Most"/> per span keeps the right ones. What it cannot keep
+        ///     is an honest total, so this says when <see cref="Total"/> became a
+        ///     floor rather than a count, and the diagnostic says "at least"
+        ///     rather than quoting a number it made up.
+        /// </remarks>
+        public bool Bounded { get; private set; }
+
+        public void Offer(int cost, Node node, bool bounded = false)
         {
             // Keyed by SHAPE and not by rendering. It was keyed by the
             // rendering, under a comment that made it a claim — two derivations
@@ -686,62 +792,56 @@ internal sealed class Resolver
             // «print (send a) to b» arrived here as the same string. The second
             // was dropped as a duplicate and the statement came back Resolved
             // with one meaning out of two.
-            // Admitted HERE, so what a cell stores is owned however it arrived.
-            // The storage carries the guarantee rather than each writer
-            // remembering to.
-            var offered = witness is null ? Owned.None<string>() : Owned.Copy(witness);
-
+            //
             // EVERY derivation is kept, not only the cheapest. Minimum lookup
             // used to discard the dearer ones here, which is what made a
             // strictly cheaper reading win in silence — «send time to live»
             // simply meant the name, and nothing said so.
-            //
-            // Ambiguity is the error now, so what this holds becomes "how many
-            // derivations, and what they are" rather than "the cheapest, and how
-            // many achieve it". Same table and same asymptotics: measured
-            // identical at 149 lexemes, 26.2 MB either way, because the
-            // derivations it used to drop were few — adjacency does not compose
-            // in this grammar, so there are no cut points to multiply.
             if (IsEmpty)
             {
-                Cost = cost;
-
                 // On first offer, not at construction. Most cells in the table
                 // are never offered anything — a span that is not an expression
                 // still gets one per binding power — so eagerly allocating both
                 // collections was two objects per cell for nothing.
-                order ??= [];
-                costs ??= new(Node.Same);
-                derivations ??= new(Node.Same);
-                witnesses ??= new(Node.Same);
-
-                order.Clear();
-                costs.Clear();
-                derivations.Clear();
-                witnesses.Clear();
+                order = [];
+                costs = new(Node.Same);
             }
 
-            // Kept for RANKING and never for choosing. The cheapest reading is
-            // the one to offer first in the diagnostic, and the moment it is
-            // allowed to decide instead, every silent capture this removes comes
-            // back looking like a feature.
+            alternatives = null;
+            Bounded |= bounded;
+
             if (cost < Cost) Cost = cost;
 
-            if (derivations.ContainsKey(node) is false) order.Add(node);
+            if (costs.ContainsKey(node) is false)
+            {
+                order.Add(node);
+                Total = Saturating(Total + 1);
+                Bounded |= order.Count > Most;
+            }
 
-            // The CHEAPEST way to reach a reading, where two derivations render
-            // alike: they are one reading, so they rank once and rank at their
-            // best.
+            // The CHEAPEST way to reach a shape, where two derivations arrive at
+            // the same one: they are one reading, so they rank once and rank at
+            // their best. Two identical declarations of a pattern are the
+            // commonest way that happens, and collapsing them is overloading's
+            // policy rather than this one's to undo.
             costs[node] = costs.TryGetValue(node, out var already) ? System.Math.Min(already, cost) : cost;
+        }
 
-            // The LARGER and not the sum, because two derivations that read the
-            // same way are the same reading — which this said in a comment and
-            // then did not do. Two identical patterns in a table made «take x»
-            // count two while leaving one rendering in order, so it came back
-            // Ambiguous with no readings at all: a tie reported between a
-            // statement and itself, with nothing to show for it.
-            derivations[node] = System.Math.Max(derivations.GetValueOrDefault(node), count);
-            witnesses[node] = Best.Either(witnesses.GetValueOrDefault(node) ?? Owned.None<string>(), offered);
+        /// <summary>
+        ///     The derivations a site knows about and did not enumerate.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     Counting the offers alone would say a group of 63 ambiguous parts
+        ///     has five readings, which is the count of what fit rather than of
+        ///     what there is. The product is known without building any of them,
+        ///     so the total stays a fact and only the list is short.
+        /// </remarks>
+        public void Beyond(long extra, bool bounded)
+        {
+            Bounded |= bounded;
+
+            if (extra > 0) Total = Saturating(Total + extra);
         }
 
         public void Merge(Cell other)
@@ -754,115 +854,48 @@ internal sealed class Resolver
             // dearer pattern declared first, the dearer reading was offered
             // first. Cost may no longer choose, and it had quietly stopped
             // ordering either.
-            foreach (var node in other.order)
-            {
-                Offer(other.costs[node], node, other.derivations[node], other.witnesses[node]);
-            }
+            foreach (var alternative in other.Alternatives) Offer(alternative.Cost, alternative.Node, other.Bounded);
+
+            Beyond(other.Total - other.Alternatives.Count, other.Bounded);
         }
 
         // Dictionary is NOT insertion ordered in .NET, and the chosen reading must
-        // be deterministic, so order is tracked explicitly alongside the counts.
+        // be deterministic, so order is tracked explicitly alongside the costs.
         // Both are null until something is offered, which is what «IsEmpty» reads.
         private List<Node> order;
 
-        /// <summary>What each reading costs, for ordering them.</summary>
-        ///
-        /// <remarks>
-        ///     Kept per READING now that the cell holds every derivation rather
-        ///     than only the cheapest. Cost used to decide which survived, so one
-        ///     number was enough; it ranks them instead, and a rank needs one
-        ///     number each.
-        /// </remarks>
+        /// <summary>What each derivation costs, for ordering them.</summary>
         private Dictionary<Node, int> costs;
 
-        private Dictionary<Node, long> derivations;
-        private Dictionary<Node, Owned.Kept<string>> witnesses;
+        private Owned.Kept<Best> alternatives;
+
+        /// <summary>How many derivations of one span are kept and offered as repairs.</summary>
+        ///
+        /// <remarks>
+        ///     The same number the diagnostic shows, and that is not a
+        ///     coincidence: keeping more than it shows would cost work at every
+        ///     span to produce readings nobody sees, and keeping fewer would
+        ///     leave it unable to fill its own list.
+        /// </remarks>
+        public const int Most = 5;
+
+        /// <summary>Beyond this a total is only "more than anyone wants to read".</summary>
+        public static long Saturating(long total) => total < Ceiling ? total : Ceiling;
+
+        private const long Ceiling = 1000;
     }
 }
 
-/// <summary>The cheapest reading of one span, and how many derivations reach it.</summary>
+/// <summary>One derivation of one span, and what it cost.</summary>
 ///
-/// <param name="Witness">
-///     The two readings that make <paramref name="Count"/> two, which is not
-///     always this span's own pair. A parent combining children keeps one node
-///     and a count, so an ambiguity inside a bracket, an operator or an outer
-///     call arrives here as "two derivations" with nothing to show — and the
-///     message then invited the reader to choose between one reading and
-///     nothing. Empty when the span is unambiguous.
-/// </param>
-internal readonly record struct Best(int Cost, Node Node, long Count, IReadOnlyList<string> Witness)
-{
-    /// <remarks>
-    ///     Wrapped, though the resolver never hands over a writable one: the
-    ///     cell's witness is either its own renderings or a bounded pair, and
-    ///     both are already read-only. So this is the invariant made
-    ///     unconditional rather than left true by every caller happening to keep
-    ///     it.
-    ///
-    ///     Kept and not copied, because the resolver's producers build owned
-    ///     witnesses through «Owned.Of» — so this is the type test and nothing
-    ///     more. It said it copied only writable values and never in the
-    ///     resolver, which stopped being true when the rule stopped asking about
-    ///     writability: every unmarked non-empty witness was copied here, and a
-    ///     propagated one was copied again at each level it rose through.
-    /// </remarks>
-    public IReadOnlyList<string> Witness { get; } = Owned.Copy(Witness);
-
-    /// <summary>
-    ///     The first witness there is, bounded, since one pair explains a tie.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     Bounded HERE and not at the tie itself, which is the whole
-    ///     distinction. A cell that is ambiguous hands out every reading it has,
-    ///     because each one is a bracketing the reader could choose and listing
-    ///     two of three would hide a repair. A witness travelling UP through a
-    ///     bracket, an operator or an outer call is doing a different job — it
-    ///     proves and explains a tie the parent cannot see — and two readings
-    ///     prove it as well as ten.
-    /// </remarks>
-    public static Owned.Kept<string> Either(IReadOnlyList<string> witness, IReadOnlyList<string> otherwise)
-        => Pair(witness.Count is 0 ? otherwise : witness);
-
-    /// <summary>
-    ///     A cell's own tied readings, owned where they are made.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     NAMED, and not left inline in the cell that calls it. It was one
-    ///     expression inside a private nested type, so nothing could reach it —
-    ///     reverting it to an ordinary collection left every test green,
-    ///     including the one written to protect exactly this, because «Best»
-    ///     owns whatever it is handed and repairs both cases before anything
-    ///     downstream can tell them apart. A producer whose only witness is a
-    ///     112-byte difference needs somewhere a test can stand.
-    /// </remarks>
-    public static Owned.Kept<string> Readings(IReadOnlyList<Node> order)
-        => Owned.Of(order, static node => node.ToString());
-
-    /// <summary>At most two, which is what a parent carries.</summary>
-    ///
-    /// <remarks>
-    ///     The short case returned the CALLER'S list, so what a parent carried
-    ///     was whatever object it was handed — writable when the caller built a
-    ///     «List», read-only when it wrote a collection expression. Same
-    ///     declared type either way, which is how it went unnoticed.
-    ///
-    ///     OWNED on the way out, both cases, so the cell that stores it and the
-    ///     «Best» that carries it keep the one value rather than copying it
-    ///     again. A witness travelling up through brackets was copied once per
-    ///     level before this.
-    ///
-    ///     The two VALUES, and not a collection holding them. Three shapes
-    ///     were measured before this one: «Take(2)» at 152 bytes a call, a
-    ///     collection expression at 128, and handing over the elements
-    ///     themselves at 64. The first comparison stopped at the second, which
-    ///     is how a choice between two can look settled while the answer is
-    ///     neither.
-    /// </remarks>
-    public static Owned.Kept<string> Pair(IReadOnlyList<string> witness)
-        => witness.Count > 2 ? Owned.Of(witness[0], witness[1]) : Owned.Copy(witness);
-}
+/// <remarks>
+///     It carried a COUNT and a WITNESS too, because a parent kept one child
+///     tree and needed some way to say that the child had others. A parent
+///     enumerates its children now, so the alternatives are the alternatives and
+///     there is nothing to carry beside them — which also ends the distinction
+///     between a tie a cell can see and a tie it was only told about.
+/// </remarks>
+internal readonly record struct Best(int Cost, Node Node);
 
 internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
 
@@ -1473,8 +1506,25 @@ internal readonly record struct Resolution(ResolutionKind Kind, int Cost, IReadO
     public static Resolution Resolved(int cost, Node tree)
         => new(ResolutionKind.Resolved, cost, [tree.ToString()]) { Tree = tree };
 
-    public static Resolution Ambiguous(int cost, IEnumerable<string> readings)
-        => new(ResolutionKind.Ambiguous, cost, [.. readings]);
+    /// <param name="total">
+    ///     How many readings there are, which is not how many are shown.
+    /// </param>
+    ///
+    /// <param name="bounded">
+    ///     Whether <paramref name="total"/> is a floor rather than a count,
+    ///     because a span somewhere had more derivations than were kept. A
+    ///     message quoting a number it made up is worse than one saying "at
+    ///     least" — and a cap nobody is told about reads as "these are all of
+    ///     them", which is the shape of every silent thing this design removes.
+    /// </param>
+    public static Resolution Ambiguous(int cost, IEnumerable<string> readings, long total, bool bounded)
+        => new(ResolutionKind.Ambiguous, cost, [.. readings]) { Total = total, Bounded = bounded };
+
+    /// <summary>How many readings the statement has, of which <see cref="Readings"/> shows a few.</summary>
+    public long Total { get; private init; } = 1;
+
+    /// <summary>Whether <see cref="Total"/> is a floor rather than a count.</summary>
+    public bool Bounded { get; private init; }
 
     public string Reading => Readings.FirstOrDefault() ?? string.Empty;
 

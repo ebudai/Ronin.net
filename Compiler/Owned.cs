@@ -37,46 +37,18 @@ namespace Ronin.Compiler;
 /// </remarks>
 internal static class Owned
 {
+    /// <summary>An owned list of a sequence, whose storage is made here.</summary>
+    ///
+    /// <remarks>
+    ///     For a producer whose value is a query rather than a collection it
+    ///     already holds. Going through <see cref="Copy"/> would materialise the
+    ///     query and then copy what it materialised, which is two allocations to
+    ///     own something nobody else ever had.
+    /// </remarks>
+    public static Kept<T> Of<T>(IEnumerable<T> values) => Kept<T>.Of(values);
+
     public static Kept<T> Copy<T>(IReadOnlyList<T> values)
-        => values is Kept<T> already ? already
-         : values.Count is 0 ? Kept<T>.Empty
-         : Kept<T>.Of(values);
-
-    /// <summary>An owned list of exactly two, for a producer that has both.</summary>
-    ///
-    /// <remarks>
-    ///     The VALUES and not a collection of them, which is what makes this
-    ///     safe as well as cheap: the storage is made here, so no caller can be
-    ///     holding it. A producer that already knew its two elements had to
-    ///     manufacture something enumerable to say so, and that intermediate was
-    ///     half the cost of the call.
-    ///
-    ///     A sequence overload was here for the producer that maps, and went
-    ///     when the mapping moved inside. An «Of» nobody calls is a door with no
-    ///     traffic and no test.
-    /// </remarks>
-    public static Kept<T> Of<T>(T first, T second) => Kept<T>.Of(first, second);
-
-    /// <summary>
-    ///     An owned list of what <paramref name="select"/> makes of each of
-    ///     <paramref name="values"/>.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     The mapping happens INSIDE, so the final array is filled in place and
-    ///     there is no iterator between the source and the storage. A producer
-    ///     mapping an indexable input through «Select» paid for one either way.
-    /// </remarks>
-    public static Kept<T> Of<TSource, T>(IReadOnlyList<TSource> values, Func<TSource, T> select)
-        => Kept<T>.Of(values, select);
-
-    /// <summary>The empty owned list, which is shared.</summary>
-    ///
-    /// <remarks>
-    ///     A cell offering a reading with no witness is the common case, and it
-    ///     should not build one to say so.
-    /// </remarks>
-    public static Kept<T> None<T>() => Kept<T>.Empty;
+        => values is Kept<T> already ? already : Kept<T>.Of(values);
 
     /// <summary>A list whose storage is nobody else's.</summary>
     ///
@@ -100,19 +72,6 @@ internal static class Owned
         ///     keeps, it is the only thing this can be.
         /// </remarks>
         internal static Kept<T> Of(IEnumerable<T> values) => new([.. values]);
-
-        internal static Kept<T> Of(T first, T second) => new([first, second]);
-
-        internal static Kept<T> Of<TSource>(IReadOnlyList<TSource> values, Func<TSource, T> select)
-        {
-            var made = new T[values.Count];
-
-            for (var at = 0; at < made.Length; ++at) made[at] = select(values[at]);
-
-            return new(made);
-        }
-
-        internal static Kept<T> Empty { get; } = Of([]);
 
         public int Count => values.Length;
 

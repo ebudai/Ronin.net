@@ -636,7 +636,6 @@ public class Admission
             _ => Owned.Copy<string>(backing),
         };
 
-        var best = new Best(1, null, 1, given);
         var declared = new Declared("print job", default) { Words = given };
 
         // Through whatever the caller still holds, which is the half a type test
@@ -644,13 +643,9 @@ public class Admission
         backing[0] = "changed";
         array[0] = "changed";
 
-        Assert.Equal("one", best.Witness[0]);
         Assert.Equal("one", declared.Words[0]);
         // Only the owned value is kept. Everything else is copied, including the
-        // two that call themselves read-only — and the ceiling survives it
-        // because the resolver's commonest witness is empty, which is one shared
-        // value rather than an allocation.
-        Assert.Equal(built is "owned", ReferenceEquals(given, best.Witness));
+        // two that call themselves read-only.
         Assert.Equal(built is "owned", ReferenceEquals(given, declared.Words));
     }
 
@@ -727,7 +722,6 @@ public class Admission
     /// </remarks>
     private static readonly (string Member, Func<object> Open)[] Probes =
     [
-        ("Best.Witness", () => new Best(1, null, 1, new List<string> { "one" }).Witness),
         ("Builtin.Operators", () => Builtin.Operators),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
         ("Cascades.Cycles", () => Cascades.Cycles(Ringed)),

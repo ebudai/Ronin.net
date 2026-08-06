@@ -1,6 +1,7 @@
 // Copyright © 2026 Eric Budai
 
 using Ronin.Compiler;
+using System.Globalization;
 
 namespace Unit;
 
@@ -216,43 +217,44 @@ public class Resolutions
         }
     }
 
-    [Theory(DisplayName = "a tie buried under composition still shows both readings")]
-    [InlineData("sum of list")]                 // the tie itself, as the control
-    [InlineData("(sum of list) + x")]           // under an operator
-    [InlineData("((sum of list))")]             // under a group, and a second one
-    [InlineData("compute (sum of list)")]       // under an outer pattern
-    [InlineData("x + (sum of list) + x")]       // with something either side of it
-    public void ATieBuriedUnderCompositionStillShowsBothReadings(string source)
+    [Theory(DisplayName = "a tie buried under composition is shown where a reader would bracket it")]
+    [InlineData("sum of list", "sum «of list»", "sum of «list»")]
+    [InlineData("(sum of list) + x", "(⟨sum «of list»⟩ + «x»)", "(⟨sum of «list»⟩ + «x»)")]
+    [InlineData("((sum of list))", "⟨⟨sum «of list»⟩⟩", "⟨⟨sum of «list»⟩⟩")]
+    [InlineData("compute (sum of list)", "compute ⟨sum «of list»⟩", "compute ⟨sum of «list»⟩")]
+    [InlineData("x + (sum of list) + x", "((«x» + ⟨sum «of list»⟩) + «x»)", "((«x» + ⟨sum of «list»⟩) + «x»)")]
+    public void ATieBuriedUnderCompositionIsShownWhereAReaderWouldBracketIt(string source, string one, string other)
     {
-        // The top cell of «(sum of list) + x» has ONE derivation — the operator
-        // combines two operands and does not care that one of them was a tie —
-        // so the readings it carried were a single entry, and the message said
-        // "bracket an argument to choose" while printing one choice. The bracket
-        // is already there; the ambiguity is inside it.
+        // The top cell of «(sum of list) + x» had ONE derivation — an operator
+        // combined two operands and did not care that one of them was a tie — so
+        // the readings had to be carried up separately, as the innermost
+        // ambiguous span's own pair. The message then showed a fragment of a
+        // statement nobody had written down that way.
         //
-        // Two witnesses prove and explain a tie, and no number beyond two adds
-        // anything, so the innermost ambiguous span is what gets reported.
+        // A parent enumerates its children now, so every reading is a reading of
+        // the WHOLE span, and the difference between them is where the reader
+        // would put a bracket. Nothing is carried and nothing is a fragment.
         SymbolTable symbols = new();
         symbols.WithNames("list", "of list", "x").WithPatterns("sum _", "sum of _", "compute _");
 
         var tie = new Resolver(symbols).Resolve(source);
 
         Assert.Equal("Ambiguous", tie.Kind.ToString());
-        Assert.Equal(["sum «of list»", "sum of «list»"], tie.Readings);
+        Assert.Equal([one, other], tie.Readings);
     }
 
-    [Fact(DisplayName = "the witnesses come from the reading that was chosen")]
-    public void TheWitnessesComeFromTheReadingThatWasChosen()
+    [Fact(DisplayName = "and only the spans that took part in the parse are in it")]
+    public void AndOnlyTheSpansThatTookPartInTheParseAreInIt()
     {
-        // The witnesses used to be found by scanning every span in the table,
+        // The readings used to be found by scanning every span in the table,
         // narrowest first, for one with two readings. Nothing required that span
-        // to take part in the parse that won — so here the message named an
-        // ambiguity inside «prefix sum of list», which resolves uniquely and
-        // cheaply as one whole name and contributes nothing to the tie.
+        // to take part in the parse that won — so the message named an ambiguity
+        // inside «prefix sum of list», which resolves uniquely and cheaply as one
+        // whole name and contributes nothing to the tie.
         //
-        // The tie is in the bracket. Carrying provenance up with the derivation
-        // that made the count two says so; rediscovering it afterwards cannot,
-        // because by then there is nothing left to say which cells were used.
+        // Enumerating from the top makes that structural rather than careful: a
+        // reading is built out of the derivations that compose it, so a span the
+        // winning parse never used cannot appear in one.
         SymbolTable symbols = new();
         symbols.WithNames("list", "of list", "prefix sum of list", "box", "from box")
                .WithPatterns("sum _", "sum of _", "take _", "take from _");
@@ -260,16 +262,18 @@ public class Resolutions
         var tie = new Resolver(symbols).Resolve("prefix sum of list + (take from box)");
 
         Assert.Equal("Ambiguous", tie.Kind.ToString());
-        Assert.Equal(["take «from box»", "take from «box»"], tie.Readings);
+        Assert.Equal(["(«prefix sum of list» + ⟨take «from box»⟩)",
+                      "(«prefix sum of list» + ⟨take from «box»⟩)"], tie.Readings);
     }
 
-    [Fact(DisplayName = "a tie shows every repair where it is, and a pair where it is not")]
-    public void ATieShowsEveryRepairWhereItIsAndAPairWhereItIsNot()
+    [Fact(DisplayName = "a tie shows every repair, wherever it is")]
+    public void ATieShowsEveryRepairWhereverItIs()
     {
-        // Two readings prove a tie and explain it, so a witness travelling up
-        // through a bracket carries no more than two. At the tie itself there is
-        // nothing to carry and every reading is a bracketing the reader could
-        // choose — listing two of three would hide a repair.
+        // Three readings and three offered, bracketed or not. It used to be
+        // three at the tie and TWO through a bracket, because what travelled up
+        // was a pair — two readings prove a tie, and proving is all a parent
+        // could do with them. Listing two of three hides a repair, which the old
+        // name for this conceded by describing the two cases separately.
         SymbolTable symbols = new();
         symbols.WithNames("report", "the report", "the report today", "today")
                .WithPatterns("send _", "send _ today", "send the report _");
@@ -277,7 +281,88 @@ public class Resolutions
         Resolver resolver = new(symbols);
 
         Assert.Equal(3, resolver.Resolve("send the report today").Readings.Count);
-        Assert.Equal(2, resolver.Resolve("(send the report today)").Readings.Count);
+        Assert.Equal(3, resolver.Resolve("(send the report today)").Readings.Count);
+    }
+
+    [Fact(DisplayName = "and an outer alternative does not hide one inside a child")]
+    public void AndAnOuterAlternativeDoesNotHideOneInsideAChild()
+    {
+        // Found by audit, and it needed both facts at once to show: a span with
+        // its own alternative, ONE OF WHOSE branches contains an ambiguous
+        // child. The cell chose — its own readings if it had two, otherwise the
+        // child's — so the child's remaining reading fell down the gap between
+        // the two cases. The suite had a local three-way tie and a buried
+        // two-way tie and never their conjunction.
+        SymbolTable symbols = new();
+        symbols.WithNames("a", "b", "c", "a to b around c", "b around c")
+               .WithPatterns("send _", "send _ to _", "print _", "print _ around _");
+
+        var tie = new Resolver(symbols).Resolve("print send a to b around c");
+
+        // The middle one is the reading that used to vanish: it lives inside the
+        // first outer shape, and the second outer shape is what made the cell
+        // stop looking.
+        Assert.Equal(["print send «a to b around c»",
+                      "print send «a» to «b around c»",
+                      "print send «a» to «b» around «c»"], tie.Readings);
+    }
+
+    [Fact(DisplayName = "and a statement with more readings than fit says how many there are")]
+    public void AndAStatementWithMoreReadingsThanFitSaysHowManyThereAre()
+    {
+        // A cap that says nothing reads as "these are all of them", which is the
+        // shape of every silent thing this design exists to remove. Sixty-three
+        // independently ambiguous parts have more readings than atoms worth
+        // counting, so the answer is a floor and says so.
+        SymbolTable symbols = new();
+        symbols.WithNames("list", "of list").WithPatterns("sum _", "sum of _");
+
+        Resolver resolver = new(symbols);
+
+        var few = resolver.Resolve("(sum of list, sum of list)");
+
+        Assert.Equal(4, few.Total);
+        Assert.False(few.Bounded);
+
+        // FOUR readings and four shown, so nothing is hidden at this size and
+        // the cap below is the only thing that changes.
+        Assert.Equal(4, few.Readings.Count);
+
+        var many = resolver.Resolve("(" + string.Join(", ", Enumerable.Repeat("sum of list", 63)) + ")");
+
+        Assert.Equal("Ambiguous", many.Kind.ToString());
+        Assert.True(many.Bounded);
+        Assert.Equal(Resolver.Kept, many.Readings.Count);
+
+        // Saturated rather than wrapped. 2^63 overflows a long into a negative
+        // number, which is duly reported as fewer than two derivations — a
+        // genuine tie returning Resolved, which is what the counting this
+        // replaced actually did before it was made to saturate.
+        Assert.True(many.Total > many.Readings.Count);
+    }
+
+    [Theory(DisplayName = "and a span built on a bounded one is bounded too")]
+    [InlineData("({0})")]
+    [InlineData("{0} + list")]
+    public void AndASpanBuiltOnABoundedOneIsBoundedToo(string around)
+    {
+        // The count says "at least" only if every span above the cut knows it
+        // was cut. A parent enumerates its child's KEPT readings, so it sees a
+        // handful and would otherwise report a handful as a fact — the child's
+        // own total is the only place the truth survives, and it has to travel.
+        //
+        // Both ways up: a group around it, and an operator beside it. Each was a
+        // path the flag reached by a different line.
+        SymbolTable symbols = new();
+        symbols.WithNames("list", "of list").WithPatterns("sum _", "sum of _");
+
+        var inner = "(" + string.Join(", ", Enumerable.Repeat("sum of list", 63)) + ")";
+
+        var resolution = new Resolver(symbols).Resolve(string.Format(CultureInfo.InvariantCulture, around, inner));
+
+        Assert.Equal("Ambiguous", resolution.Kind.ToString());
+        Assert.True(resolution.Bounded);
+        Assert.True(resolution.Total > resolution.Readings.Count);
     }
 
     [Theory(DisplayName = "two calls that read the same way are still two calls")]
