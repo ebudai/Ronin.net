@@ -265,14 +265,38 @@ internal sealed class InfixInPattern(Span primary, string pattern, string word)
 ///     cheaper rather than equal. Declaring «x otherwise y» takes every «x
 ///     otherwise y» already written and makes it mean the name.
 /// </remarks>
-internal sealed class InfixInName(Span primary, string name, string word)
+internal sealed class InfixInName(Span primary, string name, string word, bool built = false)
     : Finding(FindingKind.InfixInName, primary)
 {
+    /// <summary>The name to rename, which is not always the name that offends.</summary>
     public string Name { get; } = name;
+
     public string Word { get; } = word;
 
+    /// <summary>Whether what offends is built from <see cref="Name"/> rather than being it.</summary>
+    public bool Built { get; } = built;
+
+    /// <remarks>
+    ///     A BUILT name asks for the same edit somewhere else. Nobody wrote
+    ///     «index of is valid» and nobody can respell the operator it spans, so
+    ///     the subject the compiler copied is the only actionable party — and it
+    ///     is what the caret is already on, since a built name has no span but
+    ///     its origin's.
+    ///     <para>
+    ///     Which is also why no built name is named here. One subject builds one
+    ///     per injection — «index of is valid» and «old is valid» — with the same
+    ///     word inside each and one rename between them, so naming them says the
+    ///     same thing twice about names nobody wrote. Saying it of the subject
+    ///     says it once.
+    ///     </para>
+    /// </remarks>
     public override string Message
-        => $"«{Name}» has «{Word}» inside it, which the language reads as an operator between two " +
+        => Built
+         ? $"«{Name}» cannot be a name: the compiler builds names from it that have «{Word}» inside " +
+           "them, which the language reads as an operator between two values. A name spanning one is " +
+           $"cheaper than the expression it covers, so every «… {Word} …» already written would " +
+           "quietly become one of those instead. Rename it."
+         : $"«{Name}» has «{Word}» inside it, which the language reads as an operator between two " +
            "values. A name spanning one is cheaper than the expression it covers, so every " +
            $"«… {Word} …» already written would quietly become this name instead. Respell it.";
 }

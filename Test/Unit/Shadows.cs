@@ -221,7 +221,11 @@ public class Shadows
     }
 
     [Theory(DisplayName = "a pattern wrong in itself reserves nothing against anyone")]
-    [InlineData("var otherwise things => Number;\n"
+    // CONSTANT, and not incidentally: a mutable «otherwise things» would be
+    // refused in its own right, because the «old otherwise things» built from it
+    // spans the operator. Leaving it a var would make this assert two rules at
+    // once and fail on the one it is not about.
+    [InlineData("constant otherwise things = 1;\n"
               + "function send (x => Number) to (y => Number) { return x; }\n"
               + "function send (x => Number) to otherwise (y => Number) { return x; }\n",
                 nameof(InfixInPattern))]

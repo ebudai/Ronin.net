@@ -218,6 +218,10 @@ public class Comparisons
     [InlineData("this is that thing", false)]
     public void AndANameMayNotSpanItBecauseNoBracketSelectsOneThatDoes(string name, bool legal)
     {
+        // A CONSTANT, which is the only declaration that builds nothing from its
+        // name. Every other one gets an «old» shadow, and that shadow has its own
+        // answer to this question — see below, where a name legal in itself is
+        // refused for what the compiler would build from it.
         // Nothing wired this up: «Rules.Infix» reads the operator table, so
         // registering «is» reserved it by the same derivation that reserved
         // «otherwise».
@@ -232,7 +236,7 @@ public class Comparisons
         // Interior only, so «is valid» stays legal: an infix needs an operand on
         // each side, and a name that begins or ends with the word has nothing on
         // one side to compete with.
-        var findings = Compilation.Of(new SourceText($"var {name} => Number;\n", "Player.ron")).Findings;
+        var findings = Compilation.Of(new SourceText($"constant {name} = 1;\n", "Player.ron")).Findings;
 
         if (legal)
         {
@@ -241,6 +245,67 @@ public class Comparisons
         }
 
         Assert.Equal(nameof(InfixInName), Assert.Single(findings).GetType().Name);
+    }
+
+    [Fact(DisplayName = "and a name the operator only reaches once built is refused too")]
+    public void AndANameTheOperatorOnlyReachesOnceBuiltIsRefusedToo()
+    {
+        // Found by audit, and the case the exemption was hiding. «is valid» has
+        // nothing on the left of the operator, so it passes the rule on its own
+        // account — and «old is valid» does not, because the compiler put a word
+        // there. «old» is a declarable name, so that span really does read two
+        // ways.
+        //
+        // Which narrows the language, and the narrowing is worth stating: a name
+        // beginning with an operator word can only be a constant. Everything else
+        // gets a shadow, and the shadow is what the operator reaches.
+        var finding = Assert.IsType<InfixInName>(Assert.Single(
+            Compilation.Of(new SourceText("var is valid => Number;\n", "Player.ron")).Findings));
+
+        // Against «is valid», which is the only thing anyone can change: the
+        // operator cannot be respelled and «old is valid» was never written.
+        Assert.True(finding.Built);
+        Assert.Equal("is valid", finding.Name);
+        Assert.StartsWith("Player.ron:1:5:", Diagnostics.Report(finding));
+
+        // And the sentence has to be the built one, not merely carry the flag.
+        // The written sentence says the name has the word inside it, which of
+        // «is valid» is false — the caret would sit on a name the message
+        // describes wrongly, about a word that is not where it says it is.
+        Assert.Contains("the compiler builds names from it", finding.Message);
+
+        // ONE finding, though the same name is reached by two different built
+        // names in the loop case — «index of is valid» as well as «old is valid»,
+        // the same word inside each and one rename between them.
+        var loop = Assert.IsType<InfixInName>(Assert.Single(
+            Compilation.Of(new SourceText("var index of => Number;\nvar valid => Number;\nvar banks => Number;\n"
+                                        + "for each (is valid) in banks { return index of is valid; }\n",
+                                          "Player.ron")).Findings));
+
+        Assert.Equal("is valid", loop.Name);
+    }
+
+    [Fact(DisplayName = "and the comparison it was swallowing comes back when it is renamed")]
+    public void AndTheComparisonItWasSwallowingComesBackWhenItIsRenamed()
+    {
+        // The point of refusing it, rather than that it is refused. With «is
+        // valid» as a loop variable the body's «index of is valid» meant the
+        // counter; renamed, it means the comparison its author wrote — and the
+        // rule is what stands between those two readings.
+        var source = "var index of => Number;\nvar valid => Number;\nvar banks => Number;\n"
+                   + "for each (valid check) in banks { return index of is valid; }\n";
+
+        Assert.Empty(Compilation.Of(new SourceText(source, "Player.ron")).Findings);
+
+        SymbolTable symbols = new();
+
+        symbols.WithNames("index of", "valid", "index of is valid");
+
+        // Both readings are in the table here, which is the situation the loop
+        // used to create — and it is now an ambiguity rather than a silent win
+        // for the cheaper one. That is the use-site half; the declaration half
+        // above is what stops it arising from a name nobody wrote.
+        Assert.Equal("Ambiguous", new Resolver(symbols).Resolve(Lexemes.Lex("index of is valid")).Kind.ToString());
     }
 
     [Fact(DisplayName = "and a name that spans it makes the statement ambiguous, not the name illegal")]

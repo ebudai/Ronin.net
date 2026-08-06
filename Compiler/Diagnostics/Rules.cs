@@ -341,42 +341,39 @@ internal static class Rules
     ///     and cannot compete — «is valid» is legal and «y is x» is not.
     ///     </para>
     ///     <para>
-    ///     GENERATED names are still skipped, and that is the open half. The
-    ///     design says there is no exemption — an injected span containing an
-    ///     operator word is self-ambiguous like any other, and «for each (is
-    ///     valid) in …» generates «index of is valid», which captured a
-    ///     comparison its author wrote.
+    ///     BUILT names are asked too, and were exempt. «for each (is valid) in …»
+    ///     builds «index of is valid», whose interior spans the operator — so
+    ///     the name won the comparison its author wrote, and nothing said so.
+    ///     Neither injection contributes the offending word: «old», «index» and
+    ///     «of» are not operators, so what collides always came from the subject
+    ///     and a rename always answers it. There is no case here where the
+    ///     collision holds whatever the subject is, which is why this rule needs
+    ///     no counterpart to the universal split next door.
     ///     </para>
     ///     <para>
-    ///     Removing the skip on its own DOUBLES the report: a name that offends
-    ///     and its «old» shadow both say so, with one repair between them. The
-    ///     settled rule is three rows — suppress the shadow when the SOURCE also
-    ///     fails, blame the source when only the injection fails and a rename
-    ///     would help, blame the pattern once when no rename would — and the
-    ///     first row is what makes removing this skip add no messages at all.
-    ///     </para>
-    ///     <para>
-    ///     BLOCKED ON «REAUDIT46» findings 2 and 3, which are that machinery.
-    ///     Named here so the two halves find each other; this is the open half
-    ///     of a rule and not a reason the skip is here.
-    ///     </para>
-    ///     <para>
-    ///     Safe to wait, and worth saying why. Under minimum lookup an exempted
-    ///     injected name was a real hazard — a self-ambiguous span resolved
-    ///     silently to whichever reading was cheaper. Ambiguity is the error
-    ///     now, so any span with two readings fails at the use site whatever is
-    ///     in the table: this can produce a confusing message, not a wrong
-    ///     reading. Diagnostics debt rather than soundness debt.
+    ///     Which leaves the operator as the other party, and it cannot be
+    ///     respelled — so the originating name is blamed rather than the built
+    ///     one, and the ordering convention never runs.
     ///     </para>
     /// </remarks>
     private static IEnumerable<InfixInName> Infixes(IReadOnlyCollection<Declared> names)
     {
+        // ONE MISTAKE, one diagnostic. Dropping the exemption without this said
+        // it twice for the commonest shape by far: «var p is q» offends, and so
+        // does the «old p is q» built from it, by the same word for the same
+        // reason with one rename between them.
+        var offending = new HashSet<string>(
+            names.Where(declared => declared.InjectedBy is null)
+                 .Where(declared => Interior(declared.Words).Any(Infix.Contains))
+                 .Select(declared => declared.Name),
+            System.StringComparer.Ordinal);
+
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
         {
-            if (declared.InjectedBy is not null) continue;
+            if (declared.InjectedBy is not null && offending.Contains(declared.InjectedBy)) continue;
             if (Interior(declared.Words).FirstOrDefault(Infix.Contains) is not string word) continue;
 
-            yield return new InfixInName(declared.Span, declared.Name, word);
+            yield return new InfixInName(declared.Span, declared.InjectedBy ?? declared.Name, word, declared.InjectedBy is not null);
         }
     }
 
