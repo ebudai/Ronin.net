@@ -671,19 +671,21 @@ internal sealed class Resolver
         /// </remarks>
         private Owned.Kept<string> Witness
             => order.Count > 1
-             ? Best.Readings([.. order.OrderBy(node => costs[node.ToString()])])
-             : witnesses[order[0].ToString()];
+             ? Best.Readings([.. order.OrderBy(node => costs[node])])
+             : witnesses[order[0]];
 
-        // Keyed by rendering rather than by node: two derivations that read the
-        // same way ARE the same reading, and counting them separately would
-        // report a tie between a statement and itself.
         /// <summary>Two is as many as anything needs to be counted.</summary>
         public static long Saturating(long count) => count < 2 ? count : 2;
 
         public void Offer(int cost, Node node, long count = 1, IReadOnlyList<string> witness = null)
         {
-            var reading = node.ToString();
-
+            // Keyed by SHAPE and not by rendering. It was keyed by the
+            // rendering, under a comment that made it a claim — two derivations
+            // that read the same way ARE the same reading — and a nested call
+            // renders without delimiting itself, so «print (send a to b)» and
+            // «print (send a) to b» arrived here as the same string. The second
+            // was dropped as a duplicate and the statement came back Resolved
+            // with one meaning out of two.
             // Admitted HERE, so what a cell stores is owned however it arrived.
             // The storage carries the guarantee rather than each writer
             // remembering to.
@@ -709,9 +711,9 @@ internal sealed class Resolver
                 // still gets one per binding power — so eagerly allocating both
                 // collections was two objects per cell for nothing.
                 order ??= [];
-                costs ??= [];
-                derivations ??= [];
-                witnesses ??= [];
+                costs ??= new(Node.Same);
+                derivations ??= new(Node.Same);
+                witnesses ??= new(Node.Same);
 
                 order.Clear();
                 costs.Clear();
@@ -725,12 +727,12 @@ internal sealed class Resolver
             // back looking like a feature.
             if (cost < Cost) Cost = cost;
 
-            if (derivations.ContainsKey(reading) is false) order.Add(node);
+            if (derivations.ContainsKey(node) is false) order.Add(node);
 
             // The CHEAPEST way to reach a reading, where two derivations render
             // alike: they are one reading, so they rank once and rank at their
             // best.
-            costs[reading] = costs.TryGetValue(reading, out var already) ? System.Math.Min(already, cost) : cost;
+            costs[node] = costs.TryGetValue(node, out var already) ? System.Math.Min(already, cost) : cost;
 
             // The LARGER and not the sum, because two derivations that read the
             // same way are the same reading — which this said in a comment and
@@ -738,18 +740,23 @@ internal sealed class Resolver
             // count two while leaving one rendering in order, so it came back
             // Ambiguous with no readings at all: a tie reported between a
             // statement and itself, with nothing to show for it.
-            derivations[reading] = System.Math.Max(derivations.GetValueOrDefault(reading), count);
-            witnesses[reading] = Best.Either(witnesses.GetValueOrDefault(reading) ?? Owned.None<string>(), offered);
+            derivations[node] = System.Math.Max(derivations.GetValueOrDefault(node), count);
+            witnesses[node] = Best.Either(witnesses.GetValueOrDefault(node) ?? Owned.None<string>(), offered);
         }
 
         public void Merge(Cell other)
         {
             if (other.IsEmpty) return;
 
+            // ITS OWN cost, not the cell's. «other.Cost» is the cheapest
+            // anything in that cell reaches, so merging flattened every reading
+            // to the minimum and the ranking became insertion order — with the
+            // dearer pattern declared first, the dearer reading was offered
+            // first. Cost may no longer choose, and it had quietly stopped
+            // ordering either.
             foreach (var node in other.order)
             {
-                var reading = node.ToString();
-                Offer(other.Cost, node, other.derivations[reading], other.witnesses[reading]);
+                Offer(other.costs[node], node, other.derivations[node], other.witnesses[node]);
             }
         }
 
@@ -766,10 +773,10 @@ internal sealed class Resolver
         ///     number was enough; it ranks them instead, and a rank needs one
         ///     number each.
         /// </remarks>
-        private Dictionary<string, int> costs;
+        private Dictionary<Node, int> costs;
 
-        private Dictionary<string, long> derivations;
-        private Dictionary<string, Owned.Kept<string>> witnesses;
+        private Dictionary<Node, long> derivations;
+        private Dictionary<Node, Owned.Kept<string>> witnesses;
     }
 }
 

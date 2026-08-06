@@ -280,6 +280,66 @@ public class Resolutions
         Assert.Equal(2, resolver.Resolve("(send the report today)").Readings.Count);
     }
 
+    [Theory(DisplayName = "two calls that read the same way are still two calls")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TwoCallsThatReadTheSameWayAreStillTwoCalls(bool nestedFirst)
+    {
+        // Found by audit, and the worst kind: the resolver said «Resolved» to a
+        // statement with two meanings, and picked one by declaration order.
+        //
+        // A call renders its arguments without delimiting itself, so these two
+        // trees produce the same sentence —
+        //
+        //     print( send(a, b) )        print «send a to b»
+        //     print-to( send(a), b )     print «send a» to «b»
+        //
+        // — and the cell identified a derivation by that sentence, under a
+        // comment that made it a claim. The second arrived looking like a
+        // duplicate of the first and was dropped.
+        //
+        // Both orders, because the survivor was whichever was offered first.
+        SymbolTable symbols = new();
+
+        symbols.WithNames("a", "b")
+               .WithPatterns(nestedFirst ? ["send _", "send _ to _", "print _", "print _ to _"]
+                                         : ["print _ to _", "print _", "send _ to _", "send _"]);
+
+        var resolution = new Resolver(symbols).Resolve("print send a to b");
+
+        Assert.Equal("Ambiguous", resolution.Kind.ToString());
+        Assert.Equal(2, resolution.Readings.Count);
+
+        // And each is reachable, which is what makes reporting the tie a repair
+        // rather than a dead end — the readings alone cannot say so, because
+        // they are the same string.
+        Assert.Equal("print ⟨send «a» to «b»⟩", new Resolver(symbols).Resolve("print (send a to b)").Reading);
+        Assert.Equal("print ⟨send «a»⟩ to «b»", new Resolver(symbols).Resolve("print (send a) to b").Reading);
+    }
+
+    [Theory(DisplayName = "and the cheapest is offered first however the patterns were declared")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AndTheCheapestIsOfferedFirstHoweverThePatternsWereDeclared(bool dearestFirst)
+    {
+        // Found by audit. «Merge» offered every reading at the cell's cheapest
+        // cost rather than at its own, so after one merge they were all tied and
+        // the stable sort left them in the order the patterns happened to be
+        // declared. Every existing ranking fixture declared the cheap one first,
+        // so the flattening was invisible.
+        //
+        // Cost may order the suggestions and may never choose among them — and
+        // it had quietly stopped doing the one thing it is still for.
+        SymbolTable symbols = new();
+
+        symbols.WithNames("a", "b", "a to b")
+               .WithPatterns(dearestFirst ? ["send _ to _", "send _"] : ["send _", "send _ to _"]);
+
+        // «send «a to b»» is two lookups and «send «a» to «b»» is three.
+        Assert.Equal(["send «a to b»", "send «a» to «b»"],
+                     new Resolver(symbols).Resolve("send a to b").Readings);
+    }
+
     [Theory(DisplayName = "a multi-word keyword matches however it was spaced")]
     [InlineData("for each bank in banks")]
     [InlineData("for  each bank in banks")]

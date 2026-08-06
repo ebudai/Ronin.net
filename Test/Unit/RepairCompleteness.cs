@@ -106,6 +106,14 @@ public class RepairCompleteness
     ///     Exact, because a property test that proves the property over zero
     ///     cases passes forever. The check that sent this direction down the
     ///     wrong path reported "all readings expressible" on no cases at all.
+    ///     <para>
+    ///     These were 20 and 24, and they were counting the resolver's mistakes
+    ///     as agreement: two call trees that rendered alike were one derivation,
+    ///     so a statement with two meanings arrived here Resolved and was never
+    ///     examined. More than half the ambiguity in this space was invisible.
+    ///     The property held over the larger set unchanged, which is worth more
+    ///     than it holding over the smaller one did.
+    ///     </para>
     /// </param>
     ///
     /// <remarks>
@@ -115,8 +123,8 @@ public class RepairCompleteness
     ///     one pattern's words leading another's call.
     /// </remarks>
     [Theory(DisplayName = "every reading of an ambiguous statement is selectable by bracketing")]
-    [InlineData("a, b, to, send, print", "a, b, a to b, b to a, to a, to to", "print _, send _ to _, send _, sum of _", 24)]
-    [InlineData("a, b, to, send, is", "a, b, to, a to b, to to, to b, a to", "send _, send _ to _", 20)]
+    [InlineData("a, b, to, send, print", "a, b, a to b, b to a, to a, to to", "print _, send _ to _, send _, sum of _", 50)]
+    [InlineData("a, b, to, send, is", "a, b, to, a to b, to to, to b, a to", "send _, send _ to _", 55)]
     public void EveryReadingOfAnAmbiguousStatementIsSelectableByBracketing(string vocabulary, string names, string patterns, int ambiguities)
     {
         string[] words = [.. Split(vocabulary)];
