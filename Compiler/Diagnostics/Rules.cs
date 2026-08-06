@@ -106,9 +106,15 @@ internal static class Rules
         foreach (var finding in Injecting(patterns)) yield return finding;
 
         // What a pattern does to something else, asked only of the sound ones.
-        foreach (var finding in Infixes(names)) yield return finding;
+        // The infix findings are held rather than streamed because the shadowing
+        // rule needs to know which written names have been blamed already: a
+        // name the compiler copies into one it builds carries its offence along,
+        // and the copy is not a second mistake.
+        var infixes = Infixes(names).ToArray();
+
+        foreach (var finding in infixes) yield return finding;
         foreach (var finding in Anchors(sound)) yield return finding;
-        foreach (var finding in Shadowing(names, sound)) yield return finding;
+        foreach (var finding in Shadowing(names, sound, infixes.Select(finding => finding.Name))) yield return finding;
     }
 
     /// <summary>
@@ -223,45 +229,98 @@ internal static class Rules
     ///     </para>
     /// </remarks>
     private static IEnumerable<Finding> Shadowing(IReadOnlyCollection<Declared> names,
-                                                  IReadOnlyCollection<Shape> patterns)
+                                                  IReadOnlyCollection<Shape> patterns,
+                                                  IEnumerable<string> refused)
     {
         // Anchor-only, which is not the same as glue-free: a pinned hole makes
         // the word after it free of glue and still leaves the words apart, so
         // there is no contiguous run for a name to begin with.
         var exposed = patterns.Where(shape => shape.Pattern.IsAnchorOnly).ToArray();
 
-        foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
+        // GENERATED names are asked too, which they were not. The skip read
+        // "not the programmer's to rename, and its origin is reported already" —
+        // true of the rename and false of the reporting: nothing else reports
+        // this, so a pattern «index of (_)» beside any loop at all was shadowed
+        // by the counter that loop generates, silently and with nothing refused.
+        var collisions =
+            (from declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal)
+             from shape in exposed
+             let anchor = shape.Pattern.Segments.Where(segment => segment is not null).ToArray()
+             where declared.Words.Count > anchor.Length
+             where declared.Words.Take(anchor.Length).SequenceEqual(anchor)
+             select (Declared: declared, Shape: shape, Anchor: anchor)).ToArray();
+
+        // Every written name a name rule has already blamed. The compiler copies
+        // one of these into each name it builds from it, so the built name
+        // offends for the same reason and by the same words — one mistake, and
+        // the rename that answers it answers both.
+        var offending = new System.Collections.Generic.HashSet<string>(
+            refused.Concat(collisions.Where(collision => collision.Declared.InjectedBy is null)
+                                     .Select(collision => collision.Declared.Name)),
+            System.StringComparer.Ordinal);
+
+        foreach (var (declared, shape, anchor) in collisions)
         {
-            // GENERATED names are asked too, which they were not. The skip read
-            // "not the programmer's to rename, and its origin is reported
-            // already" — true of the rename and false of the reporting: nothing
-            // else reports this, so a pattern «index of (_)» beside any loop at
-            // all was shadowed by the counter that loop generates, silently and
-            // with nothing refused.
-            foreach (var shape in exposed)
+            // A UNIVERSAL collision is the pattern's alone: its words end inside
+            // the prefix the compiler adds, so every name built by that
+            // injection begins with them and no rename anyone can perform
+            // avoids it. Naming one generated example instead reported the same
+            // pattern once per loop in scope, each message differing only in the
+            // subject it interpolated and each asking for the same one edit.
+            if (Universal(declared, anchor.Length))
             {
-                var words = shape.Pattern.Segments.Where(segment => segment is not null).ToArray();
-
-                if (declared.Words.Count <= words.Length) continue;
-                if (declared.Words.Take(words.Length).SequenceEqual(words) is false) continue;
-
-                // A generated name always loses the ordering, whenever it was
-                // written. The convention asks the LATER declaration to give
-                // way because the earlier author cannot have known — and here
-                // neither author can, since the name has no spelling anyone
-                // chose. What is left to change is the pattern.
-                var blamed = declared.InjectedBy is null
-                          && IsLater(declared.Inherited, declared.Span, shape.Inherited, shape.Span);
-
-                yield return new NameShadowsPattern(blamed ? declared.Span : shape.Span,
-                                                   declared.Name,
-                                                   shape.Pattern.ToString(),
-                                                   declared.InjectedBy)
-                    .Alongside(blamed ? shape.Span : declared.Span,
-                               blamed ? "the pattern it would shadow" : "the name that would shadow it");
+                yield return new NameShadowsPattern(shape.Span, Built(declared), shape.Pattern.ToString(), universal: true);
+                continue;
             }
+
+            // ONE MISTAKE, so one diagnostic. A built name whose subject was
+            // blamed on its own account offends by the words it was given, and
+            // the rename already asked for is the whole repair — reporting the
+            // copy as well is a second message about a name nobody wrote.
+            if (declared.InjectedBy is not null && offending.Contains(declared.InjectedBy)) continue;
+
+            // PARTICULAR, so both parties are actionable — the pattern can be
+            // respelled and the name the subject was copied from can be renamed
+            // — and the standing convention decides between them. A generated
+            // name used to lose this ordering whenever it was written, which
+            // pointed at a pattern that was correct when it was declared and
+            // asked for a larger change than the one that fixes it.
+            var blamed = IsLater(declared.Inherited, declared.Span, shape.Inherited, shape.Span);
+
+            yield return new NameShadowsPattern(blamed ? declared.Span : shape.Span,
+                                                declared.Name,
+                                                shape.Pattern.ToString(),
+                                                declared.InjectedBy)
+                .Alongside(blamed ? shape.Span : declared.Span,
+                           blamed ? "the pattern it would shadow" : "the name that would shadow it");
         }
     }
+
+    /// <summary>
+    ///     Whether a built name's collision holds for every name it could have
+    ///     been built from, rather than for the one it was.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The test is to substitute a fresh, otherwise-unused subject and ask
+    ///     again; this is that in closed form. A built name is a fixed prefix
+    ///     plus a copied subject, so the answer is only whether the pattern's
+    ///     words run out before the copy begins — a fresh subject changes every
+    ///     word from there on and cannot match.
+    ///     <para>
+    ///     A written name is never universal. There is no prefix the compiler
+    ///     chose and no hole to substitute into, so the collision is exactly as
+    ///     particular as the name is.
+    ///     </para>
+    /// </remarks>
+    private static bool Universal(Declared declared, int anchor)
+        => declared.InjectedBy is not null
+        && anchor <= declared.Words.Count - Lexemes.Words(declared.InjectedBy).Length;
+
+    /// <summary>How the compiler describes what it builds, when no subject is to blame.</summary>
+    private static string Built(Declared declared)
+        => Injection.All.First(injection => declared.Words.Take(injection.Words.Count).SequenceEqual(injection.Words))
+                        .Shape;
 
     /// <summary>
     ///     Half of R5′, and one of the two ways a name's own span reads as
@@ -310,7 +369,7 @@ internal static class Rules
     ///     reading. Diagnostics debt rather than soundness debt.
     ///     </para>
     /// </remarks>
-    private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Declared> names)
+    private static IEnumerable<InfixInName> Infixes(IReadOnlyCollection<Declared> names)
     {
         foreach (var declared in names.OrderBy(declared => declared.Name, System.StringComparer.Ordinal))
         {

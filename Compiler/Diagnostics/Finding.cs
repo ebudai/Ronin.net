@@ -183,7 +183,7 @@ internal sealed class Shadowed(Span primary, string name, string where)
 ///     also why it is the anchor-only shapes that the registry has to warn about.
 ///     </para>
 /// </remarks>
-internal sealed class NameShadowsPattern(Span primary, string name, string pattern, string injectedBy = null)
+internal sealed class NameShadowsPattern(Span primary, string name, string pattern, string injectedBy = null, bool universal = false)
     : Finding(FindingKind.NameShadowsPattern, primary)
 {
     public string Name { get; } = name;
@@ -192,22 +192,41 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
     /// <summary>The declaration the compiler built this name from, where it built it.</summary>
     public string InjectedBy { get; } = injectedBy;
 
+    /// <summary>Whether every name that injection could build collides, not only this one.</summary>
+    public bool Universal { get; } = universal;
+
     /// <remarks>
-    ///     A GENERATED name gets its own sentence, because the repair is not the
-    ///     same. Nobody wrote «index of bank» and nobody can respell it — every
-    ///     loop makes one — so the pattern is what gives way, whichever was
-    ///     declared first. Saying "rename it" about a name that does not appear
-    ///     in the source is worse than saying nothing.
+    ///     <para>
+    ///     A BUILT name gets its own sentence, because the repair is not the
+    ///     same, and which sentence depends on how much of the pattern lands in
+    ///     the words the compiler chose. All of it, and no loop variable in any
+    ///     program avoids the collision — so the pattern is the only party and
+    ///     one message covers every loop in scope, rather than one message per
+    ///     loop naming a different counter and asking for the same edit.
+    ///     </para>
+    ///     <para>
+    ///     Past it, and the subject is load-bearing: «index of bank (_)» collides
+    ///     only with counters for variables starting «bank», so renaming the
+    ///     variable works as well as respelling the pattern. Both parties are
+    ///     actionable, so the standing convention applies and the later
+    ///     declaration gives way — the same rule as any two written names, which
+    ///     it stopped being when a built name was treated as unchangeable
+    ///     whichever half of it collided.
+    ///     </para>
     /// </remarks>
     public override string Message
-        => InjectedBy is null
+        => Universal
+         ? $"«{Pattern}» cannot be declared: the compiler builds «{Name}» wherever one is needed, and " +
+           "that name begins with every word of the pattern — so it would be read instead of the call, " +
+           "more cheaply, with nothing to report it. Respell the pattern; the words that collide are the " +
+           "compiler's own, so no name in the source avoids this."
+         : InjectedBy is null
          ? $"«{Name}» begins with every word of «{Pattern}», so it would be read instead of that " +
            "call wherever both are in scope — and more cheaply, so nothing would report it. " +
            "Rename it, or respell the pattern."
-         : $"«{Pattern}» cannot be declared: the compiler builds «{Name}» from «{InjectedBy}», and that " +
-           "name begins with every word of the pattern — so it would be read instead of the call, more " +
-           "cheaply, with nothing to report it. Respell the pattern; the generated name is not yours to " +
-           "change.";
+         : $"«{Name}» begins with every word of «{Pattern}», so it would be read instead of that call " +
+           "wherever both are in scope — and more cheaply, so nothing would report it. The compiler " +
+           $"builds it from «{InjectedBy}»: rename that, or respell the pattern.";
 }
 
 /// <summary>
