@@ -116,7 +116,18 @@ internal sealed class Compilation
             }
         }
 
-        foreach (var reading in Readings(statements, declared)) Add(reading);
+        foreach (var reading in Read(statements, declared))
+        {
+            readings.Add(reading);
+
+            if (reading.Resolution.Kind is ResolutionKind.Ambiguous)
+            {
+                Add(new Ambiguous(reading.Span,
+                                  [.. reading.Resolution.Readings],
+                                  reading.Resolution.Total,
+                                  reading.Resolution.Bounded));
+            }
+        }
 
         foreach (var body in statements.SelectMany(Bodies))
         {
@@ -149,6 +160,19 @@ internal sealed class Compilation
     ///     twice wherever the enclosing table could also read them.
     ///     </para>
     ///     <para>
+    ///     NOT A TYPE, which is the other thing the walk stops at. A type
+    ///     annotation is a reference too — «=> list of number» is a run of words
+    ///     awaiting a meaning exactly as a statement is — so the walk read every
+    ///     one of them against the VALUE table, where they mean nothing. Mostly
+    ///     that produced a no-reading nobody reports; where the annotation's
+    ///     words happened to be ambiguous as values, it reported an ambiguity
+    ///     about a type, quoting readings that were never in question.
+    ///     <para>
+    ///     Types resolve against a table that does not exist yet, and reading
+    ///     them against the wrong one is worse than not reading them at all.
+    ///     </para>
+    ///     </para>
+    ///     <para>
     ///     Only ambiguity, for now. A span with no reading at all is the other
     ///     half and wants its own message: "no reading" covers an undeclared
     ///     name, a call that does not fit, and a phase this compiler has not
@@ -156,7 +180,7 @@ internal sealed class Compilation
     ///     most of the time.
     ///     </para>
     /// </remarks>
-    private IEnumerable<Finding> Readings(IReadOnlyList<Statement> statements, Declarations declared)
+    private IEnumerable<Reading> Read(IReadOnlyList<Statement> statements, Declarations declared)
     {
         Resolver resolver = new(declared.Symbols);
 
@@ -170,19 +194,30 @@ internal sealed class Compilation
             // they are the ones a reader would bracket.
             foreach (var reference in Walk<Reference>(statement,
                                                       into: node => node is not Grammar.Scope
+                                                                 && node is not Grammar.Type
                                                                  && node is not Reference))
             {
-                var resolution = resolver.Resolve(reference.ToLexemes());
-
-                if (resolution.Kind is not ResolutionKind.Ambiguous) continue;
-
-                yield return new Ambiguous(reference.Where(Source),
-                                           [.. resolution.Readings],
-                                           resolution.Total,
-                                           resolution.Bounded);
+                yield return new Reading(reference.Where(Source), resolver.Resolve(reference.ToLexemes()));
             }
         }
     }
+
+    /// <summary>
+    ///     What one statement was read as, and where it sits.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Kept rather than derived from the findings, because the reading that
+    ///     matters most to a reader is the one that SUCCEEDED — "what did the
+    ///     compiler think I wrote" is the question a candy grammar provokes, and
+    ///     an unambiguous statement produces no finding to answer it from.
+    /// </remarks>
+    internal readonly record struct Reading(Span Span, Resolution Resolution);
+
+    /// <summary>Every statement's reading, in the scope that owns it.</summary>
+    public IReadOnlyList<Reading> Readings => new ReadOnlyCollection<Reading>(readings);
+
+    private readonly List<Reading> readings = [];
 
     /// <summary>The span of one token, for a finding that points at a keyword.</summary>
     private Span Where(Token token) => Source.Span(token.Offset, token.Memory.Length);

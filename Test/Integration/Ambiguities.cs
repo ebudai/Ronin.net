@@ -130,6 +130,21 @@ public class Ambiguities
                         + "function go { var r = send a to b; }\n"));
     }
 
+    [Fact(DisplayName = "and a type annotation is not read as a value")]
+    public void AndATypeAnnotationIsNotReadAsAValue()
+    {
+        // A type is a reference too — «=> list of number» is a run of words
+        // awaiting a meaning, exactly as a statement is — so the walk read every
+        // annotation in the file against the VALUE table, where they mean
+        // nothing. Mostly that produced a no-reading nobody reports. Here it
+        // reported an ambiguity about a TYPE, quoting two readings that were
+        // never in question, at a position where neither could be written.
+        //
+        // Types resolve against a table that does not exist yet, and reading
+        // them against the wrong one is worse than not reading them at all.
+        Assert.Empty(All(Colliding + "var a => Number;\nvar b => Number;\nvar thing => send a to b;\n"));
+    }
+
     [Fact(DisplayName = "and an unambiguous file says nothing")]
     public void AndAnUnambiguousFileSaysNothing()
         // The same statement with the colliding name gone. Without it there is

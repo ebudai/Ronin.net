@@ -117,6 +117,12 @@
       },
       "Ronin": {
         "type": "Project"
+      },
+      "Ronin.Server": {
+        "type": "Project",
+        "dependencies": {
+          "Ronin": "[1.0.0, )"
+        }
       }
     }
   }
