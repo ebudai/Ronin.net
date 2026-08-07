@@ -119,7 +119,7 @@ internal sealed class Resolver
         // Patterns by their first word, rebuilt per call because a scope may have
         // gained one since the last.
         anchored = [];
-        foreach (var pattern in symbols.Patterns)
+        foreach (var pattern in symbols.Callable)
         {
             // The same shape may be present when a caller folds every built-in
             // into a table. Its hole is not an ordinary expression hole and is
@@ -1316,6 +1316,26 @@ internal sealed class SymbolTable
     public List<Pattern> Patterns { get; } = [];
 
     /// <summary>
+    ///     Every pattern a call in this scope may resolve against.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     What was DECLARED, plus the builtins that are ordinary patterns —
+    ///     which today is «return (_)» alone. The other two are in
+    ///     <see cref="Builtins"/> for their shapes rather than as calls: a loop
+    ///     header never reaches the resolver, and «old (_)» has a hole no
+    ///     expression may fill, so each is probed directly.
+    ///     <para>
+    ///     Kept apart from <see cref="Patterns"/> rather than seeded into it,
+    ///     because "what did this scope declare" is a question several things
+    ///     ask and a builtin is not an answer to it. A pattern nobody wrote
+    ///     showing up in a scope's declarations is the same confusion as a
+    ///     generated name showing up among written ones.
+    ///     </para>
+    /// </remarks>
+    public IEnumerable<Pattern> Callable => Patterns.Append(Answer);
+
+    /// <summary>
     ///     Patterns the grammar provides, in every scope, always.
     /// </summary>
     ///
@@ -1352,11 +1372,32 @@ internal sealed class SymbolTable
     /// </remarks>
     internal static Pattern Previous { get; } = new([Injection.Shadow.Words[0], null]);
 
+    /// <summary>
+    ///     «return (_)» — a pattern, and deliberately not a keyword.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A word that parses must live in the table the name rules run over,
+    ///     because a keyword is a name those rules cannot see. As a keyword,
+    ///     «return value» stays declarable — and it then WINS, at one lookup
+    ///     against the call's two, silently. As a pattern the same rule that
+    ///     refuses every other capture refuses it, with the message it already
+    ///     produces.
+    ///     <para>
+    ///     It costs what an anchor-only pattern costs: no name may begin
+    ///     «return». Measured at 0.058% of a large corpus, which is less than
+    ///     half of what «old» was already taken for.
+    ///     </para>
+    /// </remarks>
+    internal static Pattern Answer { get; } = new(["return", null]);
+
     public static IReadOnlyList<Pattern> Builtins { get; } =
     [
         new Pattern(["for each", null, "in", null], [1]),
         Previous,
+        Answer,
     ];
+
 
     /// <summary>
     ///     Fixed at language design time. No user defined operators, which is

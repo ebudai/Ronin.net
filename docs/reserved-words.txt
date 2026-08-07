@@ -22,14 +22,16 @@
     is           reads as an operator between two values, and no bracket tells the two apart
     otherwise    reads as an operator between two values, and no bracket tells the two apart
 
-## COSTS NOTHING (2) — every hole before a word is determinate
+## COSTS NOTHING (3) — every hole before a word is determinate
 
     for each «one word, or a bracketed name» in (_)
     old (_)
+    return (_)
 
-## NO NAME MAY BEGIN WITH (1) — a rule, not advice
+## NO NAME MAY BEGIN WITH (2) — a rule, not advice
 
     old          from old (_)
+    return       from return (_)
 
 ## NO COMPLETE NAME MAY HAVE THE SHAPE (1) — a rule, not advice
 

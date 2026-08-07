@@ -145,6 +145,41 @@ public class Ambiguities
         Assert.Empty(All(Colliding + "var a => Number;\nvar b => Number;\nvar thing => send a to b;\n"));
     }
 
+    [Fact(DisplayName = "«return» is a pattern, so a name may not capture it")]
+    public void ReturnIsAPatternSoANameMayNotCaptureIt()
+    {
+        // A word that parses must live in the table the name rules run over,
+        // because a keyword is a name those rules cannot see. As a keyword,
+        // «return value» stays declarable — and then WINS, at one lookup against
+        // the call's two, silently. As a pattern the rule that refuses every
+        // other capture refuses it.
+        var finding = Assert.IsType<NameShadowsPattern>(Assert.Single(All("var return value => Number;\n")));
+
+        Assert.Equal("return (_)", finding.Pattern);
+        Assert.True(finding.Builtin);
+
+        // EQUAL is left alone, as with every other pattern: «return» cannot
+        // swallow the call, because the argument would have to sit beside it as
+        // a second juxtaposed name and that is not an expression.
+        Assert.Empty(All("var return => Number;\n"));
+    }
+
+    [Fact(DisplayName = "and a body's return is read, where it used to be nothing at all")]
+    public void AndABodysReturnIsReadWhereItUsedToBeNothingAtAll()
+    {
+        // It was in every fixture in this suite and resolved in none of them:
+        // «return» was not a keyword, not a pattern, not in any table, so a
+        // function body's last statement was a run of words containing one
+        // nothing could look up. The runtime has had a «Return» the whole time.
+        var compilation = Compilation.Of(new SourceText(
+            "function twice (x => Number) { return x; }\nvar n => Number;\nvar r = twice n;\n", "Player.ron"));
+
+        Assert.Empty(compilation.Findings);
+
+        Assert.Equal(["return «x»", "twice «n»"],
+                     compilation.Readings.Select(reading => reading.Resolution.Reading).Order());
+    }
+
     [Fact(DisplayName = "and an unambiguous file says nothing")]
     public void AndAnUnambiguousFileSaysNothing()
         // The same statement with the colliding name gone. Without it there is

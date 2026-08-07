@@ -20,6 +20,22 @@ public class NameShadowing
     private static Finding Only(string source)
         => Assert.Single(All(source));
 
+    /// <summary>
+    ///     The one declaration finding, past the use sites it causes.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A shape these fixtures could not have before «return (_)» became a
+    ///     callable pattern: «return index of bank» now reads two ways, as the
+    ///     counter or as a call, so the very collision the declaration rule
+    ///     refuses is ALSO reported where it is written. Both are true and both
+    ///     go together when the pattern is respelled — this asks about the
+    ///     declaration half, and the test below asks that the other half is
+    ///     there rather than letting it hide behind a filter.
+    /// </remarks>
+    private static NameShadowsPattern Declared(string source)
+        => Assert.Single(All(source).OfType<NameShadowsPattern>());
+
     private static IReadOnlyList<Finding> All(string source)
         => Compilation.Of(new SourceText(source, "Player.ron")).Findings;
 
@@ -207,8 +223,15 @@ public class NameShadowing
         // nobody could have avoided it either, because the pattern's words end
         // inside the «index of» the compiler adds, so every loop in every
         // program collides.
-        var finding = Assert.IsType<NameShadowsPattern>(Only(
-            Counter + "var banks => Number;\nfor each bank in banks { return index of bank; }\n"));
+        const string Looping = "var banks => Number;\nfor each bank in banks { return index of bank; }\n";
+
+        var finding = Declared(Counter + Looping);
+
+        // And the use site says so too, because it genuinely does read two ways
+        // once «return» is a call: the counter, or a return of the call. That is
+        // the capture this rule refuses, arriving where it would have been felt.
+        Assert.Equal([FindingKind.NameShadowsPattern, FindingKind.Ambiguous],
+                     All(Counter + Looping).Select(each => each.Kind));
 
         Assert.True(finding.Universal);
         Assert.Equal("index of (_)", finding.Pattern);
@@ -244,11 +267,11 @@ public class NameShadowing
         // The dedup is not a special case here: the finding stopped naming a
         // particular counter, so the two are the same finding and the ordinary
         // rule that a finding is recorded once does the rest.
-        var finding = Assert.IsType<NameShadowsPattern>(Only(
+        var finding = Declared(
             Counter
           + "var banks => Number;\nvar branches => Number;\n"
           + "for each bank in banks { return index of bank; }\n"
-          + "for each branch in branches { return index of branch; }\n"));
+          + "for each branch in branches { return index of branch; }\n");
 
         Assert.StartsWith("Player.ron:1:10:", Diagnostics.Report(finding));
     }
@@ -336,13 +359,16 @@ public class NameShadowing
         var source = "var p => Number;\nvar q => Number;\nvar banks => Number;\n"
                    + "for each (p is q) in banks { return index of p is q; }\n";
 
-        Assert.Equal([FindingKind.InfixInName, FindingKind.NameShadowsPattern],
-                     All(Counter + source).Select(finding => finding.Kind));
+        // The third is the use site, which now reads two ways for the same
+        // reason the second refuses the declaration — «return index of p is q»
+        // is the counter or a return of the call, and both are real.
+        Assert.Equal([FindingKind.InfixInName, FindingKind.NameShadowsPattern, FindingKind.Ambiguous],
+                     All(Counter + source).Select(each => each.Kind).Distinct());
 
         // The evidence that they are, rather than the assertion that they are:
         // the repair the first one asks for leaves the second standing.
-        Assert.Equal(FindingKind.NameShadowsPattern,
-                     Only(Counter + source.Replace("p is q", "p and q")).Kind);
+        Assert.Contains(FindingKind.NameShadowsPattern,
+                        All(Counter + source.Replace("p is q", "p and q")).Select(each => each.Kind));
     }
 
     [Fact(DisplayName = "and an ordinary loop still generates nothing to complain about")]
