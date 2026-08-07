@@ -453,11 +453,15 @@ internal static class Rules
     /// </summary>
     ///
     /// <remarks>
-    ///     A name is cheaper than the expression it covers and wins silently; a
-    ///     pattern costs exactly what the operator costs and ties. So this is an
-    ///     ambiguity rather than a capture — reported at every call site, far
-    ///     from the declaration that caused it, which is why the declaration is
-    ///     what gets refused.
+    ///     The same reason from the other side. A call to «x otherwise (_)»
+    ///     covers exactly the span the operation covers, so every «… otherwise
+    ///     …» in scope reads both ways and no bracketing tells them apart —
+    ///     «(x) otherwise (y)» is still both.
+    ///     <para>
+    ///     Refused at the DECLARATION because that is where it can be said once.
+    ///     An unrepairable ambiguity is otherwise reported at every call site,
+    ///     none of which is where the mistake was made.
+    ///     </para>
     /// </remarks>
     private static IEnumerable<Finding> Infixes(IReadOnlyCollection<Shape> patterns)
     {

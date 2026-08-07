@@ -294,19 +294,34 @@ public class Comparisons
         Assert.Equal("Ambiguous", new Resolver(symbols).Resolve(Lexemes.Lex("index of is valid")).Kind.ToString());
     }
 
-    [Fact(DisplayName = "and a name that spans it makes the statement ambiguous, not the name illegal")]
-    public void AndANameThatSpansItMakesTheStatementAmbiguousNotTheNameIllegal()
+    [Fact(DisplayName = "and what the refusal buys is a statement nobody could have repaired")]
+    public void AndWhatTheRefusalBuysIsAStatementNobodyCouldHaveRepaired()
     {
-        // Where the refusal moved to. Declaring «y is x» is fine; writing it is
-        // what has two readings, and that is reported where a reader can see
-        // both and bracket one.
+        // An ILLEGAL table, built by hand because the declaration rule is what
+        // stops it existing — «var y is x» is refused, two tests above. This
+        // said the opposite: that declaring it was fine and only writing it was
+        // the problem, which is the premise the rule was deleted under and is
+        // false of the compiler as it stands.
+        //
+        // What it shows is why the refusal is at the declaration. Admit the name
+        // and every use of those three words has two readings and NO repair:
+        // brackets group, so one inside the span selects the comparison and one
+        // around it leaves both readings where they were. There is no spelling
+        // for the name, so the error would be reported at every use and answered
+        // at none of them.
         SymbolTable symbols = new();
 
         symbols.WithNames("x", "y", "y is x");
 
-        var resolution = new Resolver(symbols).Resolve(Lexemes.Lex("y is x"));
+        Resolver resolver = new(symbols);
+        var resolution = resolver.Resolve(Lexemes.Lex("y is x"));
 
         Assert.Equal("Ambiguous", resolution.Kind.ToString());
         Assert.Equal(["«y is x»", "(«y» is «x»)"], resolution.Readings);
+
+        // The comparison is reachable and the name is not, which is the whole
+        // asymmetry: a rule that refused a repairable name would be over-refusing.
+        Assert.Equal("(⟨«y»⟩ is ⟨«x»⟩)", resolver.Resolve(Lexemes.Lex("(y) is (x)")).Reading);
+        Assert.Equal("Ambiguous", resolver.Resolve(Lexemes.Lex("(y is x)")).Kind.ToString());
     }
 }

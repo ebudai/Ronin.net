@@ -123,15 +123,14 @@ internal static class Glue
 
         // Reserved by the LANGUAGE and not by anything in scope, so it is not a
         // count that a program can change. A word operator is glue in everything
-        // but name: a name spanning one is one lookup where the expression is
-        // two, so it wins silently, and R5's remedy is the only one that reaches
-        // it.
+        // but name: a span containing one reads as the operation whatever else
+        // it also reads as, and no bracketing tells the two apart.
         registry.AppendLine();
         registry.AppendLine($"## NO PATTERN MAY USE ({Rules.Infix.Count}) — a word operator, everywhere, in every scope");
         registry.AppendLine();
 
         foreach (var word in Rules.Infix)
-            registry.AppendLine($"    {word,-12} reads as an operator between two values, so a pattern using it would tie");
+            registry.AppendLine($"    {word,-12} reads as an operator between two values, and no bracket tells the two apart");
 
         var free = declared.Where(pattern => pattern.Glue.Any() is false).ToArray();
 
@@ -144,8 +143,8 @@ internal static class Glue
         // The other half of what a pattern costs, and the half a word count
         // cannot show. An anchor-only pattern reserves no word ANYWHERE — and it
         // does reserve its own word run as a name prefix, because a name
-        // covering the whole call is one lookup where the call is at least two,
-        // so it creates an own-span collision. A pattern with glue is not a
+        // covering the whole call reads as that call too, and no bracketing
+        // inside the name selects the name. A pattern with glue is not a
         // blanket prefix reservation; the rule asks whether a complete name
         // actually conforms to that pattern instead.
         var anchored = declared.Where(pattern => pattern.IsAnchorOnly

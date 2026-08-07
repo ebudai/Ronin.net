@@ -19,8 +19,8 @@
 
 ## NO PATTERN MAY USE (2) — a word operator, everywhere, in every scope
 
-    is           reads as an operator between two values, so a pattern using it would tie
-    otherwise    reads as an operator between two values, so a pattern using it would tie
+    is           reads as an operator between two values, and no bracket tells the two apart
+    otherwise    reads as an operator between two values, and no bracket tells the two apart
 
 ## COSTS NOTHING (2) — every hole before a word is determinate
 

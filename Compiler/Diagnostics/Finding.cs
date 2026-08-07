@@ -235,12 +235,15 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
 /// </summary>
 ///
 /// <remarks>
-///     The other half of <see cref="InfixInName"/>, and it fails differently: a
-///     name is cheaper than the expression it covers and wins silently, while a
-///     pattern costs exactly what the operator costs and TIES. So the name case
-///     is a silent capture and this one is an ambiguity at every call site —
-///     which is a worse diagnostic for the same defect, because it is reported
-///     far from the declaration that caused it and once per use.
+///     The other half of <see cref="InfixInName"/>, refused for the same reason
+///     from the other side: a call to this pattern and the operator expression
+///     cover the same span, and no bracketing tells them apart. «(x) otherwise
+///     (y)» is still both.
+///     <para>
+///     Refused at the DECLARATION because that is the one place it can be said
+///     once. An unrepairable ambiguity is otherwise reported at every call site,
+///     none of which is where the mistake was made.
+///     </para>
 /// </remarks>
 internal sealed class InfixInPattern(Span primary, string pattern, string word)
     : Finding(FindingKind.InfixInPattern, primary)
@@ -250,8 +253,8 @@ internal sealed class InfixInPattern(Span primary, string pattern, string word)
 
     public override string Message
         => $"«{Pattern}» uses «{Word}», which the language reads as an operator between two " +
-           "values. A call to it would cost exactly what the operation costs, so every " +
-           $"«… {Word} …» in scope would be ambiguous rather than wrong. Respell it.";
+           $"values. A call to it covers the same span as the operation, so every «… {Word} …» in " +
+           "scope would have both readings and no bracketing would tell them apart. Respell it.";
 }
 
 
@@ -288,13 +291,14 @@ internal sealed class InfixInName(Span primary, string name, string word, bool b
     /// </remarks>
     public override string Message
         => Built
-         ? $"«{Name}» cannot be a name: the compiler builds names from it that have «{Word}» inside " +
-           "them, which the language reads as an operator between two values. A name spanning one is " +
-           $"cheaper than the expression it covers, so every «… {Word} …» already written would " +
-           "quietly become one of those instead. Rename it."
-         : $"«{Name}» has «{Word}» inside it, which the language reads as an operator between two " +
-           "values. A name spanning one is cheaper than the expression it covers, so every " +
-           $"«… {Word} …» already written would quietly become this name instead. Respell it.";
+         ? $"«{Name}» cannot be a name: the compiler builds names from it whose complete span also " +
+           $"reads as a comparison, because «{Word}» is an operator between two values and the words " +
+           "added in front supply the operand this name does not. No bracketing selects the built " +
+           "name. Rename it."
+         : $"«{Name}» cannot be a name: its complete span also reads as a comparison, because " +
+           $"«{Word}» is an operator between two values. No bracketing selects the name reading — a " +
+           "bracket inside the span selects the comparison, and one around it leaves the same two " +
+           "readings inside. Respell it.";
 }
 
 /// <summary>More declarations of one shape than can yet be chosen between.</summary>

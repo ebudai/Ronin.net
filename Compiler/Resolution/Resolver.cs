@@ -9,7 +9,7 @@ using System.Text;
 namespace Ronin.Compiler;
 
 /// <summary>
-///     Resolves a statement to a unique meaning by minimum lookup count.
+///     Finds every meaning a statement has, and ranks them by lookup count.
 /// </summary>
 ///
 /// <remarks>
@@ -17,8 +17,8 @@ namespace Ronin.Compiler;
 ///     Replaces <c>Identifier.Resolve</c>. That method received a single greedy
 ///     <c>Name</c> spanning every consecutive word, and tried to recover the real
 ///     boundaries afterwards by enumerating index permutations. This never
-///     commits to a boundary at all: a phrase is a SPAN, every span is scored,
-///     and the cheapest scoring wins.
+///     commits to a boundary at all: a phrase is a SPAN, and every span keeps
+///     every way of reading it.
 ///     </para>
 ///     <para>
 ///     <c>E[i, j, m]</c> is the cheapest expression over tokens <c>i..j-1</c>
@@ -33,9 +33,21 @@ namespace Ronin.Compiler;
 ///     Cost is the number of symbol table lookups: one per name reference, one
 ///     per pattern call, one per bracketed substatement regardless of its size.
 ///     Literals and operators are free because neither consults the table.
-///     Equal-cost readings are a tie, and a tie is an error — never a silent
-///     pick. The repair is to bracket, which promotes an argument to its own
-///     substatement.
+///     </para>
+///     <para>
+///     MORE THAN ONE READING IS THE ERROR, whatever they cost. Cost used to
+///     decide, and a strictly cheaper reading won in silence — «send time to
+///     live» simply meant the name, with nothing to report because nothing tied.
+///     What cost does now is order the readings, so the likeliest is the first a
+///     person sees. It may order the suggestions and it may never choose among
+///     them: the moment it chooses, every silent capture this replaced comes
+///     back looking like a feature.
+///     </para>
+///     <para>
+///     The repair is to bracket, which promotes an argument to its own
+///     substatement — and every reading has one, which is the property the whole
+///     direction rests on and the reason two declaration rules survived the
+///     others.
 ///     </para>
 /// </remarks>
 internal sealed class Resolver

@@ -194,9 +194,9 @@ public class Findings
             Player.ron:2:10: the anchor of «b (_)» begins that of «b b (_)», so a statement can read as either and no bracketing tells them apart. Respell one of them.
                 Player.ron:1:10: the anchor it collides with
 
-            Player.ron:1:5: «total otherwise zero» has «otherwise» inside it, which the language reads as an operator between two values. A name spanning one is cheaper than the expression it covers, so every «… otherwise …» already written would quietly become this name instead. Respell it.
+            Player.ron:1:5: «total otherwise zero» cannot be a name: its complete span also reads as a comparison, because «otherwise» is an operator between two values. No bracketing selects the name reading — a bracket inside the span selects the comparison, and one around it leaves the same two readings inside. Respell it.
 
-            Player.ron:1:10: «x otherwise (_)» uses «otherwise», which the language reads as an operator between two values. A call to it would cost exactly what the operation costs, so every «… otherwise …» in scope would be ambiguous rather than wrong. Respell it.
+            Player.ron:1:10: «x otherwise (_)» uses «otherwise», which the language reads as an operator between two values. A call to it covers the same span as the operation, so every «… otherwise …» in scope would have both readings and no bracketing would tell them apart. Respell it.
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
 
