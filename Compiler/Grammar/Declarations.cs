@@ -274,7 +274,7 @@ internal sealed class Declarations
 
         if (Overloads.TryGetValue(pattern, out var declared) is false) Overloads[pattern] = declared = [];
 
-        declared.Add(blocks);
+        declared.Add(new Signature(blocks, member.Identifier.Annotations));
 
         if (shapes.TryGetValue(pattern, out var spans) is false) shapes[pattern] = spans = [];
 
@@ -395,16 +395,36 @@ internal sealed class Declarations
     private string Where(string name) => inherited.Contains(name) ? "in an enclosing scope" : "in this scope";
 
     /// <summary>
-    ///     Every declaration of each shape, each as its parameter names by hole.
+    ///     Every declaration of each shape — what its parameters are called, and
+    ///     what they were declared to be.
     /// </summary>
     ///
     /// <remarks>
-    ///     A list because overloads share a shape and are separated later by type.
-    ///     Overload choice is a phase after resolution — enumerate, type-filter,
-    ///     rank by lookup, tie is an error — and not something the resolver can
-    ///     see, which is why the shape reaches it only once.
+    ///     ALREADY A SET, and it always was: a shape goes into the symbol table
+    ///     once and its declarations accumulate here, which is why the runtime
+    ///     can say "ambiguous after type filtering" about a case the declaration
+    ///     rule currently refuses outright. What was missing is the types, so a
+    ///     narrowing pass had nothing to narrow ON.
+    ///     <para>
+    ///     This said overload choice was "a phase AFTER resolution", which was
+    ///     measured and is wrong: a pattern with several declarations has no one
+    ///     parameter type while readings are being eliminated, so a later pass
+    ///     cannot narrow on it — and every call to an overloaded shape becomes
+    ///     ambiguous between readings only one of which could ever type-check.
+    ///     The narrowing belongs in the same pass, on a candidate set carried by
+    ///     the derivation, so that emptying the set kills the reading through the
+    ///     elimination that already exists.
+    ///     </para>
     /// </remarks>
-    public Dictionary<Compiler.Pattern, List<Blocks>> Overloads { get; } = [];
+    public Dictionary<Compiler.Pattern, List<Signature>> Overloads { get; } = [];
+
+    /// <summary>One declaration of a shape: its parameters' names, and their declared types.</summary>
+    ///
+    /// <param name="Types">
+    ///     One per parameter, positionally matching <paramref name="Names"/>, and
+    ///     null where the parameter was written without one.
+    /// </param>
+    public readonly record struct Signature(Blocks Names, Blocks Types);
 
     private readonly List<Finding> problems = [];
     private readonly Dictionary<string, Span> written = [];

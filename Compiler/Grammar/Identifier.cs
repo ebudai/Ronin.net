@@ -277,6 +277,32 @@ internal class Identifier : IEnumerable<Identifier.Component>
     /// <summary>A parameter's name, which every parameter has.</summary>
     private static string Named(Parameters.Parameter parameter) => parameter.AsDatum.Identifier.Words;
 
+    /// <summary>
+    ///     Each parameter's declared type, block by block, as it was written.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Parallel to the blocks <see cref="TryPattern"/> hands back, which
+    ///     project a parameter's NAME and drop this. So the record of a
+    ///     declaration could not tell two declarations of one shape apart — a
+    ///     genuine duplicate and an overload differing only in its parameter
+    ///     types were the same entry, and the rule that refuses both could not
+    ///     say which it was refusing.
+    ///     <para>
+    ///     NULL where the annotation was omitted, which is a type rather than a
+    ///     gap: an omitted parameter type is generic, so «print (x)» and «print
+    ///     (x => Number)» are different declarations and not the same one twice.
+    ///     </para>
+    /// </remarks>
+    public IReadOnlyList<IReadOnlyList<string>> Annotations
+        => [.. Components.Where(component => component.AsParameters is not null)
+                         .Select(component => (IReadOnlyList<string>)[.. component.AsParameters.Select(Annotated)])];
+
+    private static string Annotated(Parameters.Parameter parameter)
+        => parameter.AsDatum.Type is Type.Unresolved { Reference: { } reference }
+         ? string.Join(' ', reference.ToLexemes().Select(lexeme => lexeme.Text))
+         : null;
+
     public IEnumerator<Component> GetEnumerator() => Components.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();

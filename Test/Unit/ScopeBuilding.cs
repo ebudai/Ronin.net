@@ -42,7 +42,7 @@ public class ScopeBuilding
         // and the function, whose parameter block became the hole
         var pattern = Assert.Single(declared.Symbols.Patterns);
         Assert.Equal("compute total for (_)", pattern.ToString());
-        Assert.Equal([["order"]], Assert.Single(declared.Overloads[pattern]));
+        Assert.Equal([["order"]], Assert.Single(declared.Overloads[pattern]).Names);
     }
 
     [Fact(DisplayName = "overloads are one shape, not one ambiguity")]
@@ -60,6 +60,24 @@ public class ScopeBuilding
 
         var pattern = Assert.Single(declared.Symbols.Patterns);
         Assert.Equal(2, declared.Overloads[pattern].Count);
+
+        // WHAT THEY DIFFER IN, which the record could not say. Two declarations
+        // of one shape were the same entry twice — a genuine duplicate and an
+        // overload were indistinguishable, so the rule refusing both could not
+        // name which it was refusing, and a narrowing pass would have had
+        // nothing to narrow on.
+        Assert.Equal([["Number"], ["Text"]],
+                     declared.Overloads[pattern].Select(signature => Assert.Single(signature.Types)));
+
+        // And an OMITTED type is null rather than blank, because omission is a
+        // type and not a gap: «print (x)» is the generic declaration and «print
+        // (x => Number)» is a different one, so a record that flattened the two
+        // would make the generic look like a duplicate of whichever concrete
+        // declaration was written beside it.
+        var mixed = Of("function volume of (shape => Text) and (n) { return shape; }");
+
+        Assert.Equal([["Text"], [null]],
+                     Assert.Single(mixed.Overloads[Assert.Single(mixed.Symbols.Patterns)]).Types);
 
         Assert.Equal("area of «wheel»",
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);
@@ -113,7 +131,7 @@ public class ScopeBuilding
 
         var pattern = Assert.Single(declared.Symbols.Patterns);
         Assert.Equal("draw (_) at (_)", pattern.ToString());
-        Assert.Equal([["shape"], ["x", "y"]], Assert.Single(declared.Overloads[pattern]));
+        Assert.Equal([["shape"], ["x", "y"]], Assert.Single(declared.Overloads[pattern]).Names);
     }
 
     [Fact(DisplayName = "a parameter may be bare or defaulted")]
@@ -125,13 +143,13 @@ public class ScopeBuilding
         var defaulted = Of("function compute total for (order = 3) { return order; }");
 
         Assert.Empty(defaulted.Problems);
-        Assert.Equal([["order"]], Assert.Single(defaulted.Overloads[Assert.Single(defaulted.Symbols.Patterns)]));
+        Assert.Equal([["order"]], Assert.Single(defaulted.Overloads[Assert.Single(defaulted.Symbols.Patterns)]).Names);
 
         // «function fetch (the ball)» is the guide's own example
         var bare = Of("function fetch (the ball) { return the ball; }");
 
         Assert.Empty(bare.Problems);
-        Assert.Equal([["the ball"]], Assert.Single(bare.Overloads[Assert.Single(bare.Symbols.Patterns)]));
+        Assert.Equal([["the ball"]], Assert.Single(bare.Overloads[Assert.Single(bare.Symbols.Patterns)]).Names);
     }
 
     private static Declarations Nested(string outer, string inner)
@@ -174,7 +192,17 @@ public class ScopeBuilding
         Assert.Empty(declared.Problems);
 
         var pattern = Assert.Single(declared.Symbols.Patterns);
-        Assert.Equal([["radius"]], Assert.Single(declared.Overloads[pattern]));
+        Assert.Equal([["radius"]], Assert.Single(declared.Overloads[pattern]).Names);
+
+        // And an OMITTED type is null rather than blank, because omission is a
+        // type and not a gap: «print (x)» is the generic declaration and «print
+        // (x => Number)» is a different one, so a record that flattened the two
+        // would make the generic look like a duplicate of whichever concrete
+        // declaration was written beside it.
+        var mixed = Of("function volume of (shape => Text) and (n) { return shape; }");
+
+        Assert.Equal([["Text"], [null]],
+                     Assert.Single(mixed.Overloads[Assert.Single(mixed.Symbols.Patterns)]).Types);
 
         Assert.Equal("area of «wheel»",
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);

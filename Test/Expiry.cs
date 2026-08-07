@@ -39,12 +39,54 @@ namespace Test;
 ///     nor a reader has anything to go on, so it stays.
 ///     </para>
 ///     <para>
-///     Tagged NOW, while the reasoning is in hand. Landing the type checker is
-///     then a deletion of a named group rather than a reread of every fixture
-///     to work out which of them was about this, and a tag that states its own
-///     expiry is the difference between an approximation being tracked and one
-///     nobody dares touch.
+///     Tagged NOW, while the reasoning is in hand, so landing the type checker
+///     reaches a named group rather than a reread of every fixture to work out
+///     which of them was about this.
 ///     </para>
+///     <para>
+///     AND WHAT EACH BECOMES, which is the half a bare expiry leaves out. Every
+///     approximation here is a NARROWING and not one of them disappears, so a
+///     ledger that records only "expires" schedules a surprise: the group is
+///     found, deleted, and the successor rule is written under time pressure by
+///     whoever found it.
+///     </para>
+///     <list type="table">
+///         <listheader>
+///             <term>rule</term>
+///             <description>approximates → becomes</description>
+///         </listheader>
+///         <item>
+///             <term>self-ambiguity — <c>Infixes</c> and <c>Shadowing</c> over names</term>
+///             <description>
+///                 approximates «a name may not have another reading OF THE SAME
+///                 TYPE in the same position» → becomes that rule with the type
+///                 clause restored. What is left is a name whose rival reading
+///                 agrees with it in type, which nothing can eliminate and no
+///                 bracket can select.
+///             </description>
+///         </item>
+///         <item>
+///             <term>duplicate shapes with differing parameter types</term>
+///             <description>
+///                 approximates type-directed selection at the call site →
+///                 becomes a USE-SITE overload ambiguity, not a deletion. It
+///                 needs a repair vocabulary that does not exist: brackets group
+///                 rather than classify, so nothing selects between two
+///                 declarations of one shape, and an expression-level type
+///                 ascription is the prerequisite. Refusing at the declaration is
+///                 what keeps that error out of the language meanwhile.
+///             </description>
+///         </item>
+///         <item>
+///             <term>duplicate shapes with the SAME parameter types</term>
+///             <description>
+///                 approximates nothing and never expires — two identical
+///                 declarations are a duplicate whatever the type layer knows.
+///                 It shares a diagnostic with the row above and should not,
+///                 which is why it is named here before the two are told apart.
+///             </description>
+///         </item>
+///     </list>
 /// </remarks>
 internal static class Expiry
 {
