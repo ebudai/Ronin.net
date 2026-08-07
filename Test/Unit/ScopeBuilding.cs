@@ -45,6 +45,55 @@ public class ScopeBuilding
         Assert.Equal([["order"]], Assert.Single(declared.Overloads[pattern]).Names);
     }
 
+    [Fact(DisplayName = "a resolved call reaches every declaration it could mean")]
+    public void AResolvedCallReachesEveryDeclarationItCouldMean()
+    {
+        // The seam a type filter narrows on, pinned before there is one.
+        //
+        // The design expected a CANDIDATE SET to be a missing field on the call
+        // node. It is not missing: a call carries its shape, the shape is what
+        // «Overloads» is keyed by, and the set is a lookup away — which is also
+        // why the runtime can already say "ambiguous after type filtering" about
+        // a case nothing filters yet.
+        //
+        // What a field would hold is the NARROWED set, which is per call site
+        // rather than per shape. Nothing narrows, so nothing would fill it, and
+        // a slot with no producer is the sort of thing this suite deletes rather
+        // than tests. It can arrive with the pass that needs it.
+        var declared = Of("""
+            var wheel => Number;
+            function area of (radius => Number) { return radius; }
+            function area of (shape => Text) { return shape; }
+            """);
+
+        Assert.True(new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).TryTree(out var tree));
+
+        var call = Assert.IsType<Node.Call>(tree);
+
+        // Both, and told apart by the thing that will decide between them.
+        Assert.Equal([["Number"], ["Text"]],
+                     declared.Overloads[call.Pattern].Select(signature => Assert.Single(signature.Types)));
+    }
+
+    [Fact(DisplayName = "and an unoverloaded call reaches exactly one")]
+    public void AndAnUnoverloadedCallReachesExactlyOne()
+    {
+        // The common case, which has to stay a set of one rather than become a
+        // special case: narrowing a singleton is the identity, so a type filter
+        // written against the set above does nothing here and costs nothing.
+        var declared = Of("""
+            var wheel => Number;
+            function area of (radius => Number) { return radius; }
+            """);
+
+        Assert.True(new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).TryTree(out var tree));
+
+        var only = Assert.Single(declared.Overloads[Assert.IsType<Node.Call>(tree).Pattern]);
+
+        Assert.Equal([["radius"]], only.Names);
+        Assert.Equal([["Number"]], only.Types);
+    }
+
     [Fact(DisplayName = "overloads are one shape, not one ambiguity")]
     public void OverloadsAreOneShapeNotOneAmbiguity()
     {
