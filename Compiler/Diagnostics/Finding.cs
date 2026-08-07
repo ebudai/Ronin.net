@@ -78,6 +78,12 @@ internal enum FindingKind
     /// <summary>A statement whose words have more than one reading.</summary>
     Ambiguous,
 
+    /// <summary>A «when» body answering, when nothing consumes a reaction's value.</summary>
+    AnsweringReaction,
+
+    /// <summary>A body that both answers and does not.</summary>
+    MixedExits,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -273,6 +279,42 @@ internal sealed class Ambiguous(Span primary, IReadOnlyList<string> readings, lo
         => Readings.Aggregate(new StringBuilder(),
                               (shown, reading) => shown.Append(Environment.NewLine).Append("    ").Append(reading),
                               shown => shown.Append(Environment.NewLine).Append(Environment.NewLine).ToString());
+}
+
+/// <summary>
+///     A «when» body carrying a value out of itself.
+/// </summary>
+///
+/// <remarks>
+///     «return (_)» and bare «return» are one concept at two arities — leave this
+///     body now, with or without an answer. A reaction has nobody to answer, so
+///     only the second is legal in one, and the message says which of the two
+///     neighbouring words is wanted rather than leaving the reader to guess.
+/// </remarks>
+internal sealed class AnsweringReaction(Span primary)
+    : Finding(FindingKind.AnsweringReaction, primary)
+{
+    public override string Message
+        => "«return (_)» in a «when» body — a reaction has nobody to answer. Use «return» to end this " +
+           "run, or «stop» to disarm the «when».";
+}
+
+/// <summary>
+///     A body that both answers and does not.
+/// </summary>
+///
+/// <remarks>
+///     A body has one exit flavour, decided by whether any «return (_)» appears
+///     in it — and this is not a rule of its own. It is the check that stops the
+///     return type having two answers, seen from the other side: a body that
+///     sometimes carries a value and sometimes does not has no one type to infer.
+/// </remarks>
+internal sealed class MixedExits(Span primary)
+    : Finding(FindingKind.MixedExits, primary)
+{
+    public override string Message
+        => "this body both answers and leaves without answering. A body does one or the other — give " +
+           "every «return» a value, or none of them.";
 }
 
 /// <summary>A pattern using a word the language reads as an operator.</summary>

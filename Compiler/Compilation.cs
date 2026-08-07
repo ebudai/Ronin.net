@@ -99,7 +99,7 @@ internal sealed class Compilation
     /// </summary>
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
                                Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
-                               string inside = null)
+                               string inside = null, bool reacting = false)
     {
         var declared = Declarations.Of(statements, Source, enclosing, variable, parameters);
 
@@ -129,9 +129,11 @@ internal sealed class Compilation
             }
         }
 
+        foreach (var finding in Exits(reacting)) Add(finding);
+
         foreach (var body in statements.SelectMany(Bodies))
         {
-            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside);
+            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts);
         }
 
         return declared;
@@ -201,6 +203,77 @@ internal sealed class Compilation
             }
         }
     }
+
+    /// <summary>
+    ///     How this body leaves itself, and whether it agrees with itself.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     One concept at two arities: «return (_)» and bare «return» both mean
+    ///     leave this body now, and differ in whether there is an answer to
+    ///     carry. So a body has ONE exit flavour, decided by whether any
+    ///     «return (_)» appears in it — and that is not a rule of its own. It is
+    ///     the check that stops the return type having two answers, seen from
+    ///     the other side.
+    ///     </para>
+    ///     <para>
+    ///     The other half of the same collection is the INFERENCE: no «return
+    ///     (_)» means the answer type is the action type, and some means unify
+    ///     their arguments into it. That half waits for a type to unify into,
+    ///     and this is the walk it will read.
+    ///     </para>
+    /// </remarks>
+    private IEnumerable<Finding> Exits(bool reacting)
+    {
+        var answering = readings.Skip(exits)
+                                .Where(reading => reading.Resolution.TryTree(out _))
+                                .SelectMany(reading => Called(reading))
+                                .ToArray();
+
+        exits = readings.Count;
+
+        var carrying = answering.Where(exit => exit.Answers).ToArray();
+
+        // A reaction has nobody to answer, so only the valueless form is legal
+        // in one. Reported at each site rather than once for the body, because
+        // each is a separate edit.
+        if (reacting)
+        {
+            foreach (var exit in carrying) yield return new AnsweringReaction(exit.Span);
+
+            yield break;
+        }
+
+        if (carrying.Length is 0) yield break;
+
+        foreach (var exit in answering.Where(exit => exit.Answers is false))
+        {
+            yield return new MixedExits(exit.Span);
+        }
+    }
+
+    /// <summary>The exits one statement contains, at whatever depth.</summary>
+    ///
+    /// <remarks>
+    ///     At DEPTH, because «return» is a call like any other and a call can sit
+    ///     inside one. Looking only at the top of a statement would answer for
+    ///     the shapes people write and stay silent on the ones they do not, which
+    ///     is the wrong way round for a rule about legality.
+    /// </remarks>
+    private static IEnumerable<(Span Span, bool Answers)> Called(Reading reading)
+    {
+        reading.Resolution.TryTree(out var tree);
+
+        foreach (var node in tree.Whole)
+        {
+            if (node is not Node.Call call) continue;
+            if (call.Pattern.Equals(SymbolTable.Answer)) yield return (reading.Span, true);
+            if (call.Pattern.Equals(SymbolTable.Exit)) yield return (reading.Span, false);
+        }
+    }
+
+    private int exits;
 
     /// <summary>
     ///     What one statement was read as, and where it sits.
@@ -294,7 +367,7 @@ internal sealed class Compilation
                     continue;
 
                 case Grammar.Scope scope:
-                    yield return new Body(scope.Statements, null, [], scope.Reacts ? "another «when»" : "a block");
+                    yield return new Body(scope.Statements, null, [], scope.Reacts ? "another «when»" : "a block", scope.Reacts);
                     continue;
 
                 default:
@@ -342,7 +415,8 @@ internal sealed class Compilation
     ///     may be declared in. Only the module and a type's members are null.
     /// </param>
     private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable,
-                                        IReadOnlyList<Identifier> Parameters, string Inside);
+                                        IReadOnlyList<Identifier> Parameters, string Inside,
+                                        bool Reacts = false);
 
     /// <summary>A declaration as a message would quote it.</summary>
     private static string Named(Identifier identifier) => $"«{identifier.Words}»";

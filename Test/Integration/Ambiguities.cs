@@ -196,6 +196,45 @@ public class Ambiguities
         Assert.Empty(All("var optional => Number;\n"));
     }
 
+    [Theory(DisplayName = "a body leaves one way or the other, and a reaction never answers")]
+    [InlineData("function twice (x => Number) { return x; }", null)]
+    [InlineData("function shout (x => Number) { return; }", null)]
+    [InlineData("var ready => Number;\nwhen ready { return; }", null)]
+    [InlineData("var ready => Number;\nwhen ready { return 1; }", "AnsweringReaction")]
+    [InlineData("function odd (x => Number) { return; return x; }", "MixedExits")]
+    [InlineData("let reading = 1;\nfunction smooth { return old reading; }", null)]
+    public void ABodyLeavesOneWayOrTheOtherAndAReactionNeverAnswers(string source, string refused)
+    {
+        // «return (_)» and bare «return» are one concept at two arities — leave
+        // this body now, with or without an answer — so a body has ONE exit
+        // flavour, decided by whether any «return (_)» appears in it. That is
+        // not a rule of its own: it is the check that stops the return type
+        // having two answers, seen from the other side.
+        //
+        // A reaction has nobody to answer, so only the valueless form is legal
+        // in a «when». Its message names the two neighbouring words rather than
+        // leaving a newcomer to work out which of «return» and «stop» they
+        // wanted.
+        var findings = All(source + "\n");
+
+        if (refused is null)
+        {
+            Assert.Empty(findings);
+            return;
+        }
+
+        Assert.Equal(refused, Assert.Single(findings).Kind.ToString());
+    }
+
+    [Fact(DisplayName = "and an exit is found wherever it sits, not only at the top")]
+    public void AndAnExitIsFoundWhereverItSitsNotOnlyAtTheTop()
+        // «return» is a call like any other, so it can sit inside one. Looking
+        // only at the top of a statement would answer for the shapes people
+        // write and stay silent on the ones they do not, which is the wrong way
+        // round for a rule about legality.
+        => Assert.Equal("AnsweringReaction",
+                        Assert.Single(All("var ready => Number;\nwhen ready { return (return 1); }\n")).Kind.ToString());
+
     [Fact(DisplayName = "and an unambiguous file says nothing")]
     public void AndAnUnambiguousFileSaysNothing()
         // The same statement with the colliding name gone. Without it there is

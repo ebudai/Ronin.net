@@ -89,6 +89,12 @@ internal abstract class Node
     /// </remarks>
     public abstract bool Alike(Node other);
 
+    /// <summary>What this node is built from, for a walk that asks about a whole tree.</summary>
+    protected virtual IReadOnlyList<Node> Within => [];
+
+    /// <summary>Every node in this tree, this one included.</summary>
+    public IEnumerable<Node> Whole => Within.SelectMany(part => part.Whole).Prepend(this);
+
     /// <summary>The shape's hash, cached: the tables ask once per offer and per lookup.</summary>
     protected int Shape => shape ??= Hash();
 
@@ -198,6 +204,8 @@ internal abstract class Node
         public override bool Alike(Node other)
             => other is Group group && group.Collection == Collection && group.Parts.SequenceEqual(Parts, Same);
 
+        protected override IReadOnlyList<Node> Within => Parts;
+
         protected override int Hash() => Parts.Aggregate(HashCode.Combine('g', Collection),
                                                          (hash, part) => HashCode.Combine(hash, part.Shape));
     }
@@ -228,6 +236,8 @@ internal abstract class Node
             && operation.Left.Alike(Left)
             && operation.Right.Alike(Right);
 
+        protected override IReadOnlyList<Node> Within => [Left, Right];
+
         protected override int Hash() => HashCode.Combine('o', Symbol, Left.Shape, Right.Shape);
     }
 
@@ -247,6 +257,8 @@ internal abstract class Node
 
         public override bool Alike(Node other)
             => other is Previous previous && previous.Words == Words && previous.Argument.Alike(Argument);
+
+        protected override IReadOnlyList<Node> Within => [Argument];
 
         protected override int Hash() => HashCode.Combine('p', Words, Argument.Shape);
     }
@@ -281,6 +293,8 @@ internal abstract class Node
         // already lives there; what does not belong is collapsing two trees.
         public override bool Alike(Node other)
             => other is Call call && call.Pattern.Equals(Pattern) && call.Arguments.SequenceEqual(Arguments, Same);
+
+        protected override IReadOnlyList<Node> Within => Arguments;
 
         protected override int Hash() => Arguments.Aggregate(HashCode.Combine('c', Pattern),
                                                              (hash, argument) => HashCode.Combine(hash, argument.Shape));

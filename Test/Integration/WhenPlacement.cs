@@ -30,22 +30,22 @@ public class WhenPlacement
         => Compilation.Of(new SourceText(source, "Player.ron")).Findings;
 
     [Theory(DisplayName = "a «when» at module scope is where it belongs")]
-    [InlineData("when ready { return 1; }")]
-    [InlineData("when changing ready { return 1; }")]
-    [InlineData("var ready => Number;\nwhen ready { return 1; }")]
+    [InlineData("when ready { return; }")]
+    [InlineData("when changing ready { return; }")]
+    [InlineData("var ready => Number;\nwhen ready { return; }")]
     public void AWhenAtModuleScopeIsWhereItBelongs(string source) => Assert.Empty(Of(source + "\n"));
 
     [Theory(DisplayName = "and anywhere a scope closes around it, it is refused")]
     // both spellings, because «when changing x» and «when x» are different
     // productions and only one of them is the type the other's name suggests
-    [InlineData("function update path { when ready { return 1; } }", "«update path»")]
-    [InlineData("function update path { when changing ready { return 1; } }", "«update path»")]
-    [InlineData("for each bank in banks { when ready { return 1; } }", "a loop")]
-    [InlineData("when ready { when other { return 1; } }", "another «when»")]
-    [InlineData("var c = (x) => { when ready { return 1; } };", "a delegate")]
-    [InlineData("compiled { when ready { return 1; } }", "a block")]
-    [InlineData("if ready { when other { return 1; } }", "a block")]
-    [InlineData("while ready { when other { return 1; } }", "a block")]
+    [InlineData("function update path { when ready { return; } }", "«update path»")]
+    [InlineData("function update path { when changing ready { return; } }", "«update path»")]
+    [InlineData("for each bank in banks { when ready { return; } }", "a loop")]
+    [InlineData("when ready { when other { return; } }", "another «when»")]
+    [InlineData("var c = (x) => { when ready { return; } };", "a delegate")]
+    [InlineData("compiled { when ready { return; } }", "a block")]
+    [InlineData("if ready { when other { return; } }", "a block")]
+    [InlineData("while ready { when other { return; } }", "a block")]
     public void AndAnywhereAScopeClosesAroundItItIsRefused(string source, string inside)
     {
         var misplaced = Assert.IsType<MisplacedWhen>(Assert.Single(Of(source + "\n")));
@@ -56,9 +56,9 @@ public class WhenPlacement
     }
 
     [Theory(DisplayName = "inside a type it is refused by name, not as a syntax error")]
-    [InlineData("type Box { when ready { return 1; } }")]
-    [InlineData("type Box { when changing ready { return 1; } }")]
-    [InlineData("type Box { var a => Number; when ready { return 1; } }")]
+    [InlineData("type Box { when ready { return; } }")]
+    [InlineData("type Box { when changing ready { return; } }")]
+    [InlineData("type Box { var a => Number; when ready { return; } }")]
     public void InsideATypeItIsRefusedByNameNotAsASyntaxError(string source)
     {
         // A type «when» is designed — it lives as long as the instance — and the
@@ -74,8 +74,8 @@ public class WhenPlacement
     }
 
     [Theory(DisplayName = "a «when» nobody could parse is malformed, not refused by name")]
-    [InlineData("type Box { when { return 1; } }")]
-    [InlineData("type Box { when changing { return 1; } }")]
+    [InlineData("type Box { when { return; } }")]
+    [InlineData("type Box { when changing { return; } }")]
     public void AWhenNobodyCouldParseIsMalformedNotRefusedByName(string source)
     {
         // Found by audit. A parse-error node for a «when» is a reactive Scope
@@ -107,7 +107,7 @@ public class WhenPlacement
         // forms read the keyword to build their trigger and then let it go, so
         // the token is kept rather than counted back to.
         var misplaced = Assert.IsType<MisplacedWhen>(
-            Assert.Single(Of("function f { when ready { return 1; } }\n")));
+            Assert.Single(Of("function f { when ready { return; } }\n")));
 
         // 1:14 is the «when», not the «{» at 26 nor the condition at 19
         Assert.Equal("Player.ron:1:14", Diagnostics.Report(misplaced).Split(':')[0..3] is var parts

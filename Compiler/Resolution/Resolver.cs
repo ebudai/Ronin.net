@@ -1333,7 +1333,7 @@ internal sealed class SymbolTable
     ///     generated name showing up among written ones.
     ///     </para>
     /// </remarks>
-    public IEnumerable<Pattern> Callable => Patterns.Append(Answer);
+    public IEnumerable<Pattern> Callable => Patterns.Append(Answer).Append(Exit);
 
     /// <summary>
     ///     Patterns the grammar provides, in every scope, always.
@@ -1414,11 +1414,31 @@ internal sealed class SymbolTable
     /// </remarks>
     internal static Pattern Optional { get; } = new(["optional", null]);
 
+    /// <summary>
+    ///     «return» with nothing after it — leaving a body that has no answer.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     One concept at two arities rather than two operations that collided
+    ///     on a word: both mean «leave this body now», and they differ in
+    ///     whether there is an answer to carry. The runtime has had this one
+    ///     since before either was spelled.
+    ///     <para>
+    ///     Prefix-related to <see cref="Answer"/> and not ambiguous with it,
+    ///     which the deleted prefix-free clause is what permits: there is no
+    ///     juxtaposition, so «return» followed by a word is not a composition of
+    ///     the nullary form with anything. It is not a reading at all, so «return
+    ///     x» can only be the one-hole pattern and «return» alone only this.
+    ///     </para>
+    /// </remarks>
+    internal static Pattern Exit { get; } = new(["return"]);
+
     public static IReadOnlyList<Pattern> Builtins { get; } =
     [
         new Pattern(["for each", null, "in", null], [1]),
         Previous,
         Answer,
+        Exit,
         Optional,
     ];
 
