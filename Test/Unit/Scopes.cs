@@ -38,7 +38,6 @@ public class Scopes : ParsingTests
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
-        Assert.False(datum.Modifiers.Is<Optional>());
 
         var scalar = datum.Initializer as Ronin.Grammar.Literal;
         Assert.Single(scalar?.Tokens.ToArray());

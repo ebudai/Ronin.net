@@ -30,7 +30,7 @@ public class Boundaries
     public static TheoryData<string> Keywords =>
     [
         Ronin.Lexicon.Type.keyword, Ronin.Lexicon.Function.keyword, Variable.keyword, Constant.keyword,
-        Let.keyword, Reactive.keyword, Compiled.keyword, Global.keyword, Optional.keyword, Hidden.keyword,
+        Let.keyword, Reactive.keyword, Compiled.keyword, Global.keyword, Hidden.keyword,
         PartOf.keyword, Ronin.Lexicon.Import.keyword, If.keyword, While.keyword, When.keyword,
         Changing.keyword, ForEach.keyword, Extend.keyword,
     ];

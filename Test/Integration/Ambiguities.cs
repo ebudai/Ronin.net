@@ -180,6 +180,22 @@ public class Ambiguities
                      compilation.Readings.Select(reading => reading.Resolution.Reading).Order());
     }
 
+    [Fact(DisplayName = "«optional» is a type constructor, so a name may not capture it either")]
+    public void OptionalIsATypeConstructorSoANameMayNotCaptureItEither()
+    {
+        // It was a MODIFIER keyword — a word that parses and is not in the table
+        // the name rules run over — so «optional value» was declarable and
+        // captured. It was also the last type constructor that was not a
+        // pattern, every other one already being one, so leaving it a keyword
+        // was the fork rather than the change.
+        var finding = Assert.IsType<NameShadowsPattern>(Assert.Single(All("var optional value => Number;\n")));
+
+        Assert.Equal("optional (_)", finding.Pattern);
+        Assert.True(finding.Builtin);
+
+        Assert.Empty(All("var optional => Number;\n"));
+    }
+
     [Fact(DisplayName = "and an unambiguous file says nothing")]
     public void AndAnUnambiguousFileSaysNothing()
         // The same statement with the colliding name gone. Without it there is

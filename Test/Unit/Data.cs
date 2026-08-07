@@ -32,7 +32,6 @@ public class Data : ParsingTests
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
-        Assert.False(datum.Modifiers.Is<Optional>());
         Assert.Single(datum.Identifier);
         var unresolved = datum.Type as Type.Unresolved;
         Assert.Single(unresolved?.Reference);
@@ -143,17 +142,21 @@ public class Data : ParsingTests
         Assert.Null(datum.Initializer);
     }
 
-    [Fact(DisplayName = $"{Optional.keyword}")]
-    public void OptionalDatatype()
+    [Fact(DisplayName = "an optional type is a type, not a modifier")]
+    public void AnOptionalTypeIsATypeNotAModifier()
     {
         // let x => optional text;
-
+        //
+        // «optional» was a MODIFIER keyword, so this parsed as a modified
+        // declaration of type «text». It is the pattern «optional (_)» now — the
+        // last type constructor that was not one — so the type is two words and
+        // the declaration has no modifiers at all.
         List<Token> tokens = new()
         {
             Keyword.Let(),
             Word("x"),
             Returns(),
-            Keyword.Optional(),
+            Word("optional"),
             Word("text"),
             Terminal()
         };
@@ -162,17 +165,11 @@ public class Data : ParsingTests
         var datum = Datum.Parse(ref parser);
 
         Assert.IsType<Let>(datum?.Mutability);
-
-        Assert.Single(datum.Modifiers?.Tokens.ToArray());
-        Assert.True(datum.Modifiers.Is<Optional>());
-
-        Assert.Single(datum.Identifier);
+        Assert.Empty(datum.Modifiers?.Tokens.ToArray());
 
         var unresolved = datum.Type as Type.Unresolved;
-        Assert.Single(unresolved?.Reference);
-        var name = unresolved.Reference.Span[0].AsName;
-        Assert.Single(name?.Tokens.ToArray());
-        
+
+        Assert.Equal(["optional", "text"], unresolved?.Reference.ToLexemes().Select(lexeme => lexeme.Text));
         Assert.Null(datum.Initializer);
     }
 
@@ -198,7 +195,6 @@ public class Data : ParsingTests
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
-        Assert.False(datum.Modifiers.Is<Optional>());
 
         Assert.Single(datum.Identifier);
 
@@ -234,7 +230,6 @@ public class Data : ParsingTests
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
-        Assert.False(datum.Modifiers.Is<Optional>());
 
         Assert.Single(datum.Identifier);
 

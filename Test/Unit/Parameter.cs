@@ -36,7 +36,6 @@ public class Parameter : ParsingTests
 
         Assert.False(datum.Modifiers.Is<Compiled>());
         Assert.False(datum.Modifiers.Is<Global>());
-        Assert.False(datum.Modifiers.Is<Optional>());
 
         Assert.Single(datum.Identifier);
 

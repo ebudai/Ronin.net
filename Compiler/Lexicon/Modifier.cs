@@ -7,7 +7,6 @@ internal class Modifier : Keyword
     public static new Keyword Lex(ref Lexer lexer)
         => Compiled.Lex(ref lexer)
         ?? Hidden.Lex(ref lexer)
-        ?? Optional.Lex(ref lexer)
         ?? Reactive.Lex(ref lexer)
         ?? Global.Lex(ref lexer);
 }
@@ -39,17 +38,6 @@ internal class Hidden : Modifier
     public static new Keyword Lex(ref Lexer lexer)
     {
         return Lex<Hidden>(ref lexer, keyword);
-    }
-}
-
-
-internal class Optional : Modifier
-{
-    internal const string keyword = "optional";
-
-    public static new Keyword Lex(ref Lexer lexer)
-    {
-        return Lex<Optional>(ref lexer, keyword);
     }
 }
 

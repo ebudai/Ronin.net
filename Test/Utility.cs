@@ -293,13 +293,6 @@ public class ParsingTests
             return shared;
         }
 
-        internal static Optional Optional()
-        {
-            Optional optional = new();
-            optional.SetMemory(Ronin.Lexicon.Optional.keyword);
-            return optional;
-        }
-
         internal static ForEach ForEach()
         {
             ForEach forEach = new();

@@ -10,7 +10,7 @@ namespace Ronin.Grammar;
 ///     Modifies a <see cref="Type"/> or used to restrict a <see cref="Datum"/> or a <see cref="Function"/>
 /// </summary>
 /// 
-/// <remarks>Currently limited to <see cref="Compiled"/>, <see cref="Global"/>, and <see cref="Optional"/></remarks>
+/// <remarks>Currently limited to <see cref="Compiled"/> and <see cref="Global"/>.</remarks>
 internal class Modifiers
 {
     public ReadOnlyMemory<Token> Tokens { get; init; }

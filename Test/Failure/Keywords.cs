@@ -48,7 +48,7 @@ public class Keywords
             $"{ForEach.keyword}ing",
             $"{Function.keyword}s",
             $"{Import.keyword}s",
-            $"{Optional.keyword}s",
+            "optionals",
             $"{PartOf.keyword}fer",
             $"{Reactive.keyword}tion",
             $"{Global.keyword}ding",

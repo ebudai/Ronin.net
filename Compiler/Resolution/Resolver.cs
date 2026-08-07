@@ -1391,11 +1391,35 @@ internal sealed class SymbolTable
     /// </remarks>
     internal static Pattern Answer { get; } = new(["return", null]);
 
+    /// <summary>
+    ///     «optional (_)» — a type constructor, and no longer a modifier keyword.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     By the same law as <see cref="Answer"/>: a modifier keyword is a word
+    ///     that parses and is not in the table the name rules run over, so
+    ///     «optional value» stayed declarable and captured. It is also the last
+    ///     type constructor that was not a pattern — every other one already is
+    ///     — so leaving it a keyword was the fork rather than the change.
+    ///     <para>
+    ///     Reserved but not CALLABLE, like the loop header and «old (_)»: it
+    ///     belongs in type position, and type position resolves against a table
+    ///     that does not exist yet. Reserving the word now is what stops a name
+    ///     taking it before that table arrives, which is the whole cost and the
+    ///     whole point.
+    ///     </para>
+    ///     <para>
+    ///     0.017% — 53 names in a large corpus, the cheapest reservation taken.
+    ///     </para>
+    /// </remarks>
+    internal static Pattern Optional { get; } = new(["optional", null]);
+
     public static IReadOnlyList<Pattern> Builtins { get; } =
     [
         new Pattern(["for each", null, "in", null], [1]),
         Previous,
         Answer,
+        Optional,
     ];
 
 

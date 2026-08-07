@@ -13,7 +13,6 @@ public class Keywords
     private const string reactive = Reactive.keyword;
     private const string compiled = Compiled.keyword;
     private const string shared = Global.keyword;
-    private const string optional = Optional.keyword;
     private const string partof = PartOf.keyword;
     private const string import = Import.keyword;
     private const string @foreach = ForEach.keyword;
@@ -100,17 +99,6 @@ public class Keywords
         var keyword = Keyword.Lex(ref lexer) as Global;
 
         Assert.Equal(shared, keyword?.Memory.ToString());
-    }
-
-    [Fact(DisplayName = optional)]
-    public void OptionalKeyword()
-    {
-        const string sourcecode = $"{optional} thing";
-
-        Lexer lexer = new(sourcecode);
-        var keyword = Keyword.Lex(ref lexer) as Optional;
-
-        Assert.Equal(optional, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = partof)]
