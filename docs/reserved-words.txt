@@ -5,10 +5,10 @@
 # nothing is refused at the declaration for what it might do to a reading.
 # Using a word here still costs a bracket wherever the two meanings meet.
 #
-# Two sections are still rules, and say so: no name may BEGIN with the words
-# of an anchor-only pattern, because those readings are not all reachable by
-# bracketing; and no pattern may use a word operator or an injection word.
-# Adding a line to either is a breaking change for every program that sees it.
+# Three sections are still rules, and say so: no name may BEGIN with the words
+# of an anchor-only pattern; no complete name may also have a glued or pinned
+# pattern's shape; and no pattern may use a word operator or injection word.
+# Those competing name readings are not reachable by bracketing.
 #
 # A pattern below is written as it is declared, and «guillemets» mark the one
 # thing that cannot be: a PINNED hole, which takes one word and has no
@@ -22,20 +22,24 @@
     is           reads as an operator between two values, so a pattern using it would tie
     otherwise    reads as an operator between two values, so a pattern using it would tie
 
-## COSTS NOTHING (1) — every hole before a word is determinate
+## COSTS NOTHING (2) — every hole before a word is determinate
+
+    for each «one word, or a bracketed name» in (_)
+    old (_)
+
+## NO NAME MAY BEGIN WITH (1) — a rule, not advice
+
+    old          from old (_)
+
+## NO COMPLETE NAME MAY HAVE THE SHAPE (1) — a rule, not advice
 
     for each «one word, or a bracketed name» in (_)
 
-## NO NAME MAY BEGIN WITH (0) — a rule, not advice
+## PROTECTED (2) — no pattern may use these as glue
 
-
-## PROTECTED (3) — no pattern may use these as glue
-
-    old          builds old «a name», and is refused in any segment, not only glue
     index        builds index of «a loop variable»
     of           builds index of «a loop variable»
 
-## INJECTED (2) — names the compiler builds, and never asks anyone to rename
+## INJECTED (1) — names the compiler builds, and never asks anyone to rename
 
-    old «a name»                 the previous value of a mutable declaration
     index of «a loop variable»   a loop's counter
