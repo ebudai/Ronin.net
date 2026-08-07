@@ -1,5 +1,6 @@
 // Copyright © 2026 Eric Budai
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -73,6 +74,9 @@ internal enum FindingKind
 
     /// <summary>A name containing a word the language reads as an operator.</summary>
     InfixInName,
+
+    /// <summary>A statement whose words have more than one reading.</summary>
+    Ambiguous,
 
 }
 
@@ -239,6 +243,44 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
 ///     from the other side: a call to this pattern and the operator expression
 ///     cover the same span, and no bracketing tells them apart. «(x) otherwise
 ///     (y)» is still both.
+///     <para>
+///     Refused at the DECLARATION because that is the one place it can be said
+///     once. An unrepairable ambiguity is otherwise reported at every call site,
+///     none of which is where the mistake was made.
+///     </para>
+/// </remarks>
+internal sealed class Ambiguous(Span primary, IReadOnlyList<string> readings, long total, bool bounded)
+    : Finding(FindingKind.Ambiguous, primary)
+{
+    /// <summary>The cheapest readings, in order, which is not always all of them.</summary>
+    public IReadOnlyList<string> Readings { get; } = Owned.Copy(readings);
+
+    /// <summary>How many readings there are.</summary>
+    public long Total { get; } = total;
+
+    /// <summary>Whether <see cref="Total"/> is a floor rather than a count.</summary>
+    public bool Bounded { get; } = bounded;
+
+    public override string Message
+        => $"this reads {Count} ways and the compiler will not choose between them:{Shown}Bracket the one you meant.";
+
+    private string Count
+        => Bounded
+         ? "at least " + Total.ToString(CultureInfo.InvariantCulture)
+         : Total.ToString(CultureInfo.InvariantCulture);
+
+    private string Shown
+        => Readings.Aggregate(new StringBuilder(),
+                              (shown, reading) => shown.Append(Environment.NewLine).Append("    ").Append(reading),
+                              shown => shown.Append(Environment.NewLine).Append(Environment.NewLine).ToString());
+}
+
+/// <summary>A pattern using a word the language reads as an operator.</summary>
+///
+/// <remarks>
+///     The same reason from the other side. A call to this pattern and the
+///     operator expression cover the same span, and no bracketing tells them
+///     apart — «(x) otherwise (y)» is still both.
 ///     <para>
 ///     Refused at the DECLARATION because that is the one place it can be said
 ///     once. An unrepairable ambiguity is otherwise reported at every call site,

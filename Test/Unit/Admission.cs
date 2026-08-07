@@ -722,6 +722,7 @@ public class Admission
     /// </remarks>
     private static readonly (string Member, Func<object> Open)[] Probes =
     [
+        ("Ambiguous.Readings", () => new Ambiguous(default, new List<string> { "one" }, 2, false).Readings),
         ("Builtin.Operators", () => Builtin.Operators),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
         ("Cascades.Cycles", () => Cascades.Cycles(Ringed)),

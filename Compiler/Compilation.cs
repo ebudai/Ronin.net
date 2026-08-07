@@ -2,6 +2,7 @@
 
 using Ronin.Grammar;
 using Ronin.Lexicon;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -115,12 +116,72 @@ internal sealed class Compilation
             }
         }
 
+        foreach (var reading in Readings(statements, declared)) Add(reading);
+
         foreach (var body in statements.SelectMany(Bodies))
         {
             Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside);
         }
 
         return declared;
+    }
+
+    /// <summary>
+    ///     What each of this scope's statements can be read as.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     The join between the two halves of the frontend, which had not been
+    ///     made: the resolver was reachable only from its own tests, so an
+    ///     ambiguous statement in a real file produced no finding and could not
+    ///     fail a build. Every rule that refuses a name at its declaration exists
+    ///     to keep this error answerable, and none of them was answering to
+    ///     anything.
+    ///     </para>
+    ///     <para>
+    ///     THIS scope's table and not an enclosing one, because a nested body
+    ///     declares into its own — so the walk stops at every body and the
+    ///     recursion below picks it up with the right symbols. Stopping at the
+    ///     body's STATEMENT LIST instead never stopped at all: the walk yields a
+    ///     collection's elements and never the collection, so the node compared
+    ///     against was one it could not reach, and a body's statements were read
+    ///     twice wherever the enclosing table could also read them.
+    ///     </para>
+    ///     <para>
+    ///     Only ambiguity, for now. A span with no reading at all is the other
+    ///     half and wants its own message: "no reading" covers an undeclared
+    ///     name, a call that does not fit, and a phase this compiler has not
+    ///     built yet, and reporting them as one thing would say the wrong one
+    ///     most of the time.
+    ///     </para>
+    /// </remarks>
+    private IEnumerable<Finding> Readings(IReadOnlyList<Statement> statements, Declarations declared)
+    {
+        Resolver resolver = new(declared.Symbols);
+
+        foreach (var statement in statements)
+        {
+            // The OUTERMOST reference and no further. A bracketed part is a
+            // reference of its own, so «(send a to b) + (send a to b)» held
+            // three — the whole expression and each half — and reported one
+            // mistake three times at three spans. The whole expression's
+            // readings already contain every combination of its parts', and
+            // they are the ones a reader would bracket.
+            foreach (var reference in Walk<Reference>(statement,
+                                                      into: node => node is not Grammar.Scope
+                                                                 && node is not Reference))
+            {
+                var resolution = resolver.Resolve(reference.ToLexemes());
+
+                if (resolution.Kind is not ResolutionKind.Ambiguous) continue;
+
+                yield return new Ambiguous(reference.Where(Source),
+                                           [.. resolution.Readings],
+                                           resolution.Total,
+                                           resolution.Bounded);
+            }
+        }
     }
 
     /// <summary>The span of one token, for a finding that points at a keyword.</summary>
@@ -274,7 +335,20 @@ internal sealed class Compilation
     ///     an acceptable price for a completeness guarantee.
     ///     </para>
     /// </remarks>
-    private static IEnumerable<IError> Errors(object root)
+    private static IEnumerable<IError> Errors(object root) => Walk<IError>(root, into: _ => true);
+
+    /// <summary>
+    ///     Every <typeparamref name="T"/> anywhere beneath <paramref name="root"/>,
+    ///     by the same walk and for the same reason.
+    /// </summary>
+    ///
+    /// <param name="into">
+    ///     Whether to descend past a node. A scope's statements are resolved
+    ///     against that scope's own table, so a walk gathering expressions has to
+    ///     stop where a nested body begins — the error walk descends everywhere,
+    ///     because a malformed node is malformed wherever it sits.
+    /// </param>
+    private static IEnumerable<T> Walk<T>(object root, Func<object, bool> into)
     {
         HashSet<object> seen = new(ReferenceEqualityComparer.Instance);
         Stack<object> pending = new();
@@ -288,7 +362,9 @@ internal sealed class Compilation
 
             if (seen.Add(node) is false) continue;
 
-            if (node is IError error) yield return error;
+            if (node is T found) yield return found;
+
+            if (into(node) is false) continue;
 
             foreach (var child in Children(node)) pending.Push(child);
         }

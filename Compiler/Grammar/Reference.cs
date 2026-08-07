@@ -36,6 +36,22 @@ internal class Reference : IEnumerable<Reference.Component>
     /// </remarks>
     public List<Lexeme> ToLexemes() => Start.ToLexemes(End);
 
+    /// <summary>Where the whole expression sits, for a finding that points at it.</summary>
+    ///
+    /// <remarks>
+    ///     Named for the question rather than the type, because «Span» here
+    ///     already means the components — a reference IS a sequence of them, and
+    ///     that is what every existing caller of the name wants.
+    /// </remarks>
+    ///
+    /// <remarks>
+    ///     From the first token to wherever parsing stopped, which is the same
+    ///     run <see cref="ToLexemes"/> hands the resolver. A diagnostic about a
+    ///     statement's readings has to underline the statement, not a word in it.
+    /// </remarks>
+    public Compiler.Span Where(SourceText source)
+        => source.Span(Start.Offset, End.Offset - Start.Offset);
+
     /// <remarks>
     ///     Every caller but one wants a reference or nothing, so this consumes
     ///     nothing when it finds a lone anonymous value — see the overload, which
