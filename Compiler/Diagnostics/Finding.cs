@@ -290,13 +290,20 @@ internal sealed class Ambiguous(Span primary, IReadOnlyList<string> readings, lo
 ///     body now, with or without an answer. A reaction has nobody to answer, so
 ///     only the second is legal in one, and the message says which of the two
 ///     neighbouring words is wanted rather than leaving the reader to guess.
+///     <para>
+///     REMOVE rather than disarm, which is the word the design offered and the
+///     one thing in its sentence that is not what happens. «Graph.Stop» says it
+///     itself — "it REMOVES the node rather than disabling it" — and disarm reads
+///     as reversible when nothing can re-arm a «when». The pair this message
+///     exists to separate is not helped by describing one of them loosely.
+///     </para>
 /// </remarks>
 internal sealed class AnsweringReaction(Span primary)
     : Finding(FindingKind.AnsweringReaction, primary)
 {
     public override string Message
         => "«return (_)» in a «when» body — a reaction has nobody to answer. Use «return» to end this " +
-           "run, or «stop» to disarm the «when».";
+           "firing and leave the «when» in place, or «stop» to remove it.";
 }
 
 /// <summary>

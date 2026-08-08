@@ -227,7 +227,7 @@ public class Findings
 
             Player.ron:1:10: «item (_) of (_)» may not use «of» as glue: «of» is how the compiler builds the injected name «index of «a loop variable»». A pattern that reserves it makes that name illegal everywhere this pattern is in scope. Respell the pattern.
 
-            Player.ron:2:14: «return (_)» in a «when» body — a reaction has nobody to answer. Use «return» to end this run, or «stop» to disarm the «when».
+            Player.ron:2:14: «return (_)» in a «when» body — a reaction has nobody to answer. Use «return» to end this firing and leave the «when» in place, or «stop» to remove it.
 
             Player.ron:1:30: this body both answers and leaves without answering. A body does one or the other — give every «return» a value, or none of them.
 

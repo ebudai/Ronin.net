@@ -173,12 +173,33 @@ then becomes either a belt-and-braces assertion or dead — and dead is deleted
 here rather than tested. Worth deciding deliberately when the filter lands,
 because deleting it removes the only place that currently names the condition.
 
-## 6. Where the `return` / `stop` sentences should live
+## 6. The `return` / `stop` sentences — one word changed, and nowhere to put them
 
-Taken, and I have nowhere to put them. `docs/guide` is a single `README.md` and
-`docs/spec` has no per-keyword reference, so the two entries that point at each
-other have no page to sit on. Tell me where they belong and I will write them; I
-would rather ask than invent a documentation structure.
+**«Disarm» is the wrong verb**, and it is the one thing in
+`MONOMORPH-AND-RETURN.md` §4's otherwise-good pair that is not what happens.
+`Graph.Stop` says so itself:
+
+> And it REMOVES the node rather than disabling it. A stopped «when» that lingers
+> still costs an edge walk and still counts toward cascades, and "stopped" that
+> is not gone is the same leak the placement rule exists to prevent.
+
+Budai's wording is the same: *`return` exits the current iteration, `stop` means
+remove this event.* Disarm reads as reversible and nothing can re-arm a `when`,
+so the pair these sentences exist to separate is not helped by describing one of
+them loosely. The diagnostic now says *end this firing and leave the «when» in
+place, or «stop» to remove it*, and the reference entries should match:
+
+> **`return`** — ends the current body. In a function that answers, write
+> `return (the answer)`. In an action or a `when` body there is nothing to
+> answer, so write `return` on its own. In a `when`, this ends the current firing
+> and leaves the `when` in place; to remove it, see `stop`.
+
+> **`stop`** — removes this `when`, so it does not fire again and stops costing
+> anything. To end only the current firing and leave it in place, see `return`.
+
+**But there is nowhere to put them.** `docs/guide` is a single `README.md` and
+`docs/spec` has no per-keyword reference. Tell me where they belong and I will
+write them; I would rather ask than invent a documentation structure.
 
 ---
 
