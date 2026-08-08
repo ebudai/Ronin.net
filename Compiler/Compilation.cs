@@ -123,7 +123,7 @@ internal sealed class Compilation
             if (reading.Resolution.Kind is ResolutionKind.Ambiguous)
             {
                 Add(new Ambiguous(reading.Span,
-                                  [.. reading.Resolution.Readings],
+                                  reading.Repairs,
                                   reading.Resolution.Total,
                                   reading.Resolution.Bounded));
             }
@@ -199,7 +199,17 @@ internal sealed class Compilation
                                                                  && node is not Grammar.Type
                                                                  && node is not Reference))
             {
-                yield return new Reading(reference.Where(Source), resolver.Resolve(reference.ToLexemes()));
+                var lexemes = reference.ToLexemes();
+                var resolution = resolver.Resolve(lexemes);
+
+                // Searched only where there is something to repair. The search
+                // resolves a candidate per subspan, which is affordable on an
+                // error path and would not be on every statement in a file.
+                yield return new Reading(reference.Where(Source),
+                                         resolution,
+                                         resolution.Kind is ResolutionKind.Ambiguous
+                                       ? Repairs.For(resolver, lexemes, resolution)
+                                       : []);
             }
         }
     }
@@ -285,7 +295,22 @@ internal sealed class Compilation
     ///     compiler think I wrote" is the question a candy grammar provokes, and
     ///     an unambiguous statement produces no finding to answer it from.
     /// </remarks>
-    internal readonly record struct Reading(Span Span, Resolution Resolution);
+    internal readonly record struct Reading
+    {
+        public Reading(Span span, Resolution resolution, IReadOnlyList<Repair> repairs)
+        {
+            Span = span;
+            Resolution = resolution;
+            Repairs = Owned.Copy(repairs);
+        }
+
+        public Span Span { get; }
+
+        public Resolution Resolution { get; }
+
+        /// <summary>The bracketings, owned where the reading is recorded.</summary>
+        public IReadOnlyList<Repair> Repairs { get; }
+    }
 
     /// <summary>Every statement's reading, in the scope that owns it.</summary>
     public IReadOnlyList<Reading> Readings => new ReadOnlyCollection<Reading>(readings);

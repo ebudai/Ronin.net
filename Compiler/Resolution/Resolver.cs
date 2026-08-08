@@ -918,7 +918,24 @@ internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
 ///     ordinary word everywhere else, so it cannot be a <see cref="LexemeKind"/>
 ///     of its own without taking «var ready if needed» out of the language.
 /// </param>
-internal readonly record struct Lexeme(LexemeKind Kind, string Text, bool Announces = false)
+/// <param name="Text">
+///     The CANONICAL spelling, which is not always the source slice: «for  each»
+///     is the same keyword as «for each» and has to be the same lexeme.
+/// </param>
+///
+/// <param name="Offset">Where it starts in the source it was lexed from.</param>
+///
+/// <param name="Length">How long it is THERE, which the canonical text cannot say.</param>
+///
+/// <remarks>
+///     The position is carried because <see cref="Text"/> cannot answer for it.
+///     A repair is an EDIT — an editor needs somewhere to put a bracket, not a
+///     sentence describing where one would go — and a name is a run of words, so
+///     colouring one as a unit needs to know where the run starts and stops. Both
+///     were unanswerable from a lexeme, and both were sitting on the token it was
+///     built from.
+/// </remarks>
+internal readonly record struct Lexeme(LexemeKind Kind, string Text, bool Announces = false, int Offset = 0, int Length = 0)
 {
 }
 

@@ -720,9 +720,24 @@ public class Admission
     ///     promise that is neither walked nor opened here fails, so this table
     ///     cannot quietly fall behind the code the way a list of names did.
     /// </remarks>
+    /// <summary>A table with a tie in it, for the repair search to have something to search.</summary>
+    private static readonly SymbolTable Ambiguity =
+        new SymbolTable().WithNames("a", "b", "a to b").WithPatterns("send _", "send _ to _");
+
+    /// <summary>One ambiguity, for the three promises it hands out.</summary>
+    private static readonly Ambiguous Tie =
+        new(default,
+            new List<Repair> { new("one", 0, new List<Insertion> { new(0, "(") }) },
+            2,
+            false);
+
     private static readonly (string Member, Func<object> Open)[] Probes =
     [
-        ("Ambiguous.Readings", () => new Ambiguous(default, new List<string> { "one" }, 2, false).Readings),
+        ("Ambiguous.Readings", () => Tie.Readings),
+        ("Ambiguous.Repairs", () => Tie.Repairs),
+        ("Repair.Insertions", () => Tie.Repairs[0].Insertions),
+        ("Repairs.For", () => Repairs.For(new Resolver(Ambiguity), Lexemes.Lex("send a to b"),
+                                          new Resolver(Ambiguity).Resolve("send a to b"))),
         ("Builtin.Operators", () => Builtin.Operators),
         ("Descriptor.Forms", () => SymbolTable.Supplies[0].Forms),
         ("Descriptor.SeeAlso", () => SymbolTable.Supplies.First(s => s.SeeAlso.Count is not 0).SeeAlso),

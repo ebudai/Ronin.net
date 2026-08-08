@@ -258,6 +258,53 @@ public class Ambiguities
         Assert.Contains("«true» is supplied by the language", refused.Message);
     }
 
+    [Fact(DisplayName = "the error carries the edits that answer it")]
+    public void TheErrorCarriesTheEditsThatAnswerIt()
+    {
+        // A message cannot be clicked. The bracketings are IN the error and are
+        // edits with positions, because an editor applies those and can only
+        // print a sentence describing where a bracket would go.
+        const string Source = "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+                            + "var result = send a to b;\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        // CHEAPEST FIRST, which is the whole of what cost does now: it may order
+        // the suggestions and may never choose among them.
+        Assert.Equal([0, 1], finding.Repairs.Select(repair => repair.Rank));
+        Assert.Equal(["send «a to b»", "send «a» to «b»"], finding.Repairs.Select(repair => repair.Reading));
+
+        // And APPLYING each one leaves a file that compiles, reading the way the
+        // repair said it would. Asserting the offsets alone would let this offer
+        // an edit that puts a bracket somewhere plausible and wrong — which is
+        // the defect a suggestion has when nobody types it.
+        foreach (var repair in finding.Repairs)
+        {
+            var edited = Source;
+
+            foreach (var insertion in repair.Insertions.OrderByDescending(insertion => insertion.At))
+            {
+                edited = edited[..insertion.At] + insertion.Text + edited[insertion.At..];
+            }
+
+            var repaired = Compilation.Of(new SourceText(edited, "Player.ron"));
+
+            Assert.Empty(repaired.Findings);
+            Assert.Contains(repair.Reading.Replace("«", string.Empty, StringComparison.Ordinal)
+                                          .Replace("»", string.Empty, StringComparison.Ordinal)
+                                          .Replace(" ", string.Empty, StringComparison.Ordinal),
+                            Assert.Single(repaired.Readings, reading => reading.Span.Offset > 100)
+                                  .Resolution.Reading
+                                  .Replace("«", string.Empty, StringComparison.Ordinal)
+                                  .Replace("»", string.Empty, StringComparison.Ordinal)
+                                  .Replace("⟨", string.Empty, StringComparison.Ordinal)
+                                  .Replace("⟩", string.Empty, StringComparison.Ordinal)
+                                  .Replace(" ", string.Empty, StringComparison.Ordinal));
+        }
+    }
+
     [Fact(DisplayName = "and an unambiguous file says nothing")]
     public void AndAnUnambiguousFileSaysNothing()
         // The same statement with the colliding name gone. Without it there is

@@ -255,11 +255,24 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
 ///     none of which is where the mistake was made.
 ///     </para>
 /// </remarks>
-internal sealed class Ambiguous(Span primary, IReadOnlyList<string> readings, long total, bool bounded)
+internal sealed class Ambiguous(Span primary, IReadOnlyList<Repair> repairs, long total, bool bounded)
     : Finding(FindingKind.Ambiguous, primary)
 {
+    /// <summary>
+    ///     Each reading and the edit that selects it, cheapest first.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The repair is data rather than prose because a message cannot be
+    ///     clicked. Every reading here is reachable by one bracket pair — which
+    ///     is the property the whole direction rests on and is searched for
+    ///     rather than assumed — so this is an error that carries its own
+    ///     answers.
+    /// </remarks>
+    public IReadOnlyList<Repair> Repairs { get; } = Owned.Copy(repairs);
+
     /// <summary>The cheapest readings, in order, which is not always all of them.</summary>
-    public IReadOnlyList<string> Readings { get; } = Owned.Copy(readings);
+    public IReadOnlyList<string> Readings { get; } = Owned.Of(repairs.Select(repair => repair.Reading));
 
     /// <summary>How many readings there are.</summary>
     public long Total { get; } = total;
