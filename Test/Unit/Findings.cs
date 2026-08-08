@@ -34,6 +34,11 @@ public class Findings
                      function area of (shape => Text) { return shape; }
 
                      """,
+                     """
+                     function width of (box => Number) { return box; }
+                     function width of (frame => Number) { return frame; }
+
+                     """,
                      "function old (value => Number) { return value; }\n",
                      """
                      function b (x => Number) { return x; }
@@ -199,6 +204,9 @@ public class Findings
             Player.ron:1:5: «old total» cannot be a name: its complete span also reads as a call to the built-in «old (_)», and no bracketing selects the name reading. Rename it; a built-in cannot be respelled.
 
             Player.ron:1:10: «area of (_)» has 2 declarations and type-directed selection is not implemented, so there is no way to choose between them yet. Give them different shapes for now.
+                Player.ron:2:10: also declared here
+
+            Player.ron:1:10: «width of (_)» is declared more than once with the same parameter types, so nothing could ever choose between them. Remove one, or give them different types.
                 Player.ron:2:10: also declared here
 
             Player.ron:1:10: «old (_)» is supplied by the language and cannot be declared again. Respell it.

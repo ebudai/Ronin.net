@@ -82,8 +82,9 @@ namespace Test;
 ///             <description>
 ///                 approximates nothing and never expires — two identical
 ///                 declarations are a duplicate whatever the type layer knows.
-///                 It shares a diagnostic with the row above and should not,
-///                 which is why it is named here before the two are told apart.
+///                 It has its own diagnostic now; it shared one with the row
+///                 above, and being named here before they were told apart is
+///                 what a successor column is for.
 ///             </description>
 ///         </item>
 ///     </list>

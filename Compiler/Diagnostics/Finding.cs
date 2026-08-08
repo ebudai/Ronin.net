@@ -21,6 +21,9 @@ internal enum FindingKind
     /// <summary>More declarations of one shape than can yet be chosen between.</summary>
     Overloaded,
 
+    /// <summary>One shape declared twice with the same parameter types.</summary>
+    DuplicateSignature,
+
     /// <summary>A name or shape already supplied by the language.</summary>
     Supplied,
 
@@ -424,6 +427,38 @@ internal sealed class InfixInName(Span primary, string name, string word, bool b
            $"«{Word}» is an operator between two values. No bracketing selects the name reading — a " +
            "bracket inside the span selects the comparison, and one around it leaves the same two " +
            "readings inside. Respell it.";
+}
+
+/// <summary>
+///     One shape declared twice with the same parameter types.
+/// </summary>
+///
+/// <remarks>
+///     Split from <see cref="Overloaded"/> because they expire differently and
+///     only one of them expires. Two declarations of a shape whose parameter
+///     types DIFFER are waiting for type-directed selection, and the message
+///     saying so is temporary. Two whose types are the same are waiting for
+///     nothing: no type information could ever tell them apart, so this is a
+///     duplicate declaration and always will be.
+///     <para>
+///     Sharing a diagnostic meant landing the type checker would have required
+///     picking the two apart under time pressure — which is what a ledger entry
+///     recording only "expires" schedules.
+///     </para>
+///     <para>
+///     Parameter NAMES are not part of the identity. «area of (radius => Number)»
+///     and «area of (r => Number)» are the same declaration written twice, and a
+///     caller cannot tell which they reached.
+///     </para>
+/// </remarks>
+internal sealed class DuplicateSignature(Span primary, string pattern)
+    : Finding(FindingKind.DuplicateSignature, primary)
+{
+    public string Pattern { get; } = pattern;
+
+    public override string Message
+        => $"«{Pattern}» is declared more than once with the same parameter types, so nothing could " +
+           "ever choose between them. Remove one, or give them different types.";
 }
 
 /// <summary>More declarations of one shape than can yet be chosen between.</summary>

@@ -94,6 +94,40 @@ public class ScopeBuilding
         Assert.Equal([["Number"]], only.Types);
     }
 
+    [Theory(DisplayName = "a shape declared twice is two different mistakes")]
+    [InlineData("(radius => Number)", "(shape => Text)", "Overloaded")]
+    [InlineData("(box => Number)", "(frame => Number)", "DuplicateSignature")]
+    [InlineData("(box => Number)", "(frame)", "Overloaded")]
+    public void AShapeDeclaredTwiceIsTwoDifferentMistakes(string one, string other, string refused)
+    {
+        // TWO RULES wearing one name, and only one of them expires. Declarations
+        // whose parameter types DIFFER are waiting for type-directed selection.
+        // Declarations whose types are the SAME are waiting for nothing — no
+        // type information could ever tell them apart — so that one is a
+        // duplicate and always will be.
+        //
+        // Sharing a diagnostic meant landing the type checker would have meant
+        // picking the two apart under time pressure, which is what a ledger
+        // entry recording only "expires" schedules.
+        //
+        // The third row is the one that makes «same types» mean something: an
+        // OMITTED type is generic, so it differs from a written one rather than
+        // matching everything.
+        var declared = Of($"function area of {one} {{ return 1; }}\n"
+                        + $"function area of {other} {{ return 1; }}\n");
+
+        Assert.Equal(refused, Assert.Single(declared.Problems).Kind.ToString());
+    }
+
+    [Fact(DisplayName = "and what a parameter is called is not part of the difference")]
+    public void AndWhatAParameterIsCalledIsNotPartOfTheDifference()
+        // «area of (radius => Number)» and «area of (r => Number)» are the same
+        // declaration written twice, and a caller cannot tell which of them they
+        // reached. What a parameter is called is the callee's business.
+        => Assert.Equal(FindingKind.DuplicateSignature,
+                        Assert.Single(Of("function area of (radius => Number) { return 1; }\n"
+                                       + "function area of (r => Number) { return 1; }\n").Problems).Kind);
+
     [Fact(DisplayName = "overloads are one shape, not one ambiguity")]
     public void OverloadsAreOneShapeNotOneAmbiguity()
     {

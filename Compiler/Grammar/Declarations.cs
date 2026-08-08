@@ -119,6 +119,24 @@ internal sealed class Declarations
         {
             if (spans.Count < 2) continue;
 
+            // TWO RULES wearing one name until now, and only one of them ever
+            // expires. Declarations of a shape whose parameter types DIFFER are
+            // waiting for type-directed selection; declarations whose types are
+            // the SAME are waiting for nothing, because no type information
+            // could ever tell them apart. Sharing a diagnostic meant landing the
+            // type checker would have meant picking the two apart under time
+            // pressure.
+            var signatures = declarations.Overloads[pattern];
+            var distinct = signatures.Select(Typed).Distinct(System.StringComparer.Ordinal).Count();
+
+            if (distinct < signatures.Count)
+            {
+                declarations.problems.Add(new DuplicateSignature(spans[0].Span, pattern.ToString())
+                    .Alongside(spans[^1].Span, "also declared here"));
+
+                continue;
+            }
+
             var finding = new Overloaded(spans[0].Span, pattern.ToString(), spans.Count);
 
             foreach (var shaped in spans.Skip(1)) finding.Alongside(shaped.Span, "also declared here");
@@ -128,6 +146,25 @@ internal sealed class Declarations
 
         return declarations;
     }
+
+    /// <summary>
+    ///     A declaration's parameter types, as one comparable spelling.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     NAMES are absent on purpose. «area of (radius => Number)» and «area of
+    ///     (r => Number)» are the same declaration written twice, and a caller
+    ///     cannot tell which of them they reached — what a parameter is called is
+    ///     the callee's business.
+    ///     <para>
+    ///     Length prefixed, so a block of «a b» and two blocks of «a» and «b» are
+    ///     not the same spelling. A separator would be a promise about what a
+    ///     type name may contain, and a type is a run of words.
+    ///     </para>
+    /// </remarks>
+    private static string Typed(Signature signature)
+        => string.Concat(signature.Types.Select(block =>
+               string.Concat(block.Select(type => $"{(type ?? string.Empty).Length}:{type}"))));
 
     /// <summary>Declares a loop's variable into the body it is bound in.</summary>
     ///
