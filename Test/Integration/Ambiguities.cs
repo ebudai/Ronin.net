@@ -235,6 +235,29 @@ public class Ambiguities
         => Assert.Equal("AnsweringReaction",
                         Assert.Single(All("var ready => Number;\nwhen ready { return (return 1); }\n")).Kind.ToString());
 
+    [Fact(DisplayName = "the two truths are supplied, not declared")]
+    public void TheTwoTruthsAreSuppliedNotDeclared()
+    {
+        // A literal is a NULLARY entry — a name, not a pattern — so each reserves
+        // its own spelling and nothing else. «true positive» and «truth table»
+        // stay legal, which they would not if these were anchor-only patterns.
+        var compilation = Compilation.Of(new SourceText("var ok = true;\nvar off = false;\n", "Player.ron"));
+
+        Assert.Empty(compilation.Findings);
+        Assert.Equal(["«false»", "«true»"], compilation.Readings.Select(r => r.Resolution.Reading).Order());
+
+        Assert.Empty(Compilation.Of(new SourceText("var true positive => Number;\n", "Player.ron")).Findings);
+
+        // SUPPLIED rather than declared, so «already declared here, rename this
+        // one» would point at a declaration that does not exist. The pattern
+        // case has said this properly since «old (_)» arrived, and this is the
+        // same sentence about the same thing.
+        var refused = Assert.Single(Compilation.Of(new SourceText("var true => Number;\n", "Player.ron")).Findings);
+
+        Assert.Equal(FindingKind.Supplied, refused.Kind);
+        Assert.Contains("«true» is supplied by the language", refused.Message);
+    }
+
     [Fact(DisplayName = "and an unambiguous file says nothing")]
     public void AndAnUnambiguousFileSaysNothing()
         // The same statement with the colliding name gone. Without it there is

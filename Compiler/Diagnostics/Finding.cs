@@ -21,8 +21,8 @@ internal enum FindingKind
     /// <summary>More declarations of one shape than can yet be chosen between.</summary>
     Overloaded,
 
-    /// <summary>A pattern shape already supplied by the language.</summary>
-    BuiltinPattern,
+    /// <summary>A name or shape already supplied by the language.</summary>
+    Supplied,
 
     /// <summary>One pattern's anchor run begins another's.</summary>
     AnchorPrefix,
@@ -406,8 +406,8 @@ internal sealed class Overloaded(Span primary, string pattern, int count)
 }
 
 /// <summary>A pattern shape already supplied by the language.</summary>
-internal sealed class BuiltinPattern(Span primary, string pattern)
-    : Finding(FindingKind.BuiltinPattern, primary)
+internal sealed class Supplied(Span primary, string pattern)
+    : Finding(FindingKind.Supplied, primary)
 {
     public string Pattern { get; } = pattern;
 

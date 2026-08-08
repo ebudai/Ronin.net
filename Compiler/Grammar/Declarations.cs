@@ -214,6 +214,16 @@ internal sealed class Declarations
     /// </summary>
     private bool Refused(string name, Span span)
     {
+        // Supplied rather than declared, so «already declared, rename this one»
+        // would point at a declaration that does not exist. The pattern case has
+        // said this properly since «old (_)» arrived; the name case is the same
+        // sentence about the same thing.
+        if (SymbolTable.Truths.Contains(name))
+        {
+            problems.Add(new Supplied(span, name));
+            return true;
+        }
+
         if (Symbols.Names.Contains(name) is false) return false;
 
         var shadowed = new Shadowed(span, name, Where(name));
@@ -262,7 +272,7 @@ internal sealed class Declarations
 
         if (SymbolTable.Builtins.Contains(pattern))
         {
-            problems.Add(new BuiltinPattern(member.Identifier.Span(source), pattern.ToString()));
+            problems.Add(new Supplied(member.Identifier.Span(source), pattern.ToString()));
             return;
         }
 

@@ -215,7 +215,7 @@ internal sealed class Resolver
         if (CanName(lexemes, i, j))
         {
             var name = string.Join(' ', Enumerable.Range(i, j - i).Select(k => lexemes[k].Text));
-            if (symbols.Names.Contains(name)) cell.Offer(1, new Node.Name(name));
+            if (symbols.Known.Contains(name)) cell.Offer(1, new Node.Name(name));
         }
 
         // a bracketed substatement is one lookup however large it is, and it is
@@ -1334,6 +1334,37 @@ internal sealed class SymbolTable
     ///     </para>
     /// </remarks>
     public IEnumerable<Pattern> Callable => Patterns.Append(Answer).Append(Exit);
+
+    /// <summary>
+    ///     The two truths, which the language supplies rather than anyone
+    ///     declaring.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A literal is a NULLARY entry — a name, not a pattern — so each
+    ///     reserves its own spelling and nothing else. «true positive» and
+    ///     «truth table» stay legal, which they would not if these were
+    ///     anchor-only patterns.
+    ///     <para>
+    ///     They arrive with the type rather than after it: a fixture cannot
+    ///     declare something a truth and then initialise it without one, so a
+    ///     «truth» whose literals were deferred would be a type nothing could
+    ///     test.
+    ///     </para>
+    /// </remarks>
+    public static IReadOnlyList<string> Truths { get; } = ["false", "true"];
+
+    /// <summary>
+    ///     Every name a reference in this scope may resolve to.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     What was DECLARED plus what the language supplies, kept apart for the
+    ///     reason <see cref="Callable"/> is: "what did this scope declare" is a
+    ///     question several things ask, and a word nobody wrote is not an answer
+    ///     to it.
+    /// </remarks>
+    public IEnumerable<string> Known => Names.Concat(Truths);
 
     /// <summary>
     ///     Patterns the grammar provides, in every scope, always.

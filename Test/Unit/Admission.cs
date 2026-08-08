@@ -724,6 +724,7 @@ public class Admission
     [
         ("Ambiguous.Readings", () => new Ambiguous(default, new List<string> { "one" }, 2, false).Readings),
         ("Builtin.Operators", () => Builtin.Operators),
+        ("SymbolTable.Truths", () => SymbolTable.Truths),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
         ("Cascades.Cycles", () => Cascades.Cycles(Ringed)),
         ("Completion.After", () => new Completion(new SymbolTable().WithNames("total")).After(Lexemes.Lex("tot"))),

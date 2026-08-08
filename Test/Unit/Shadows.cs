@@ -230,7 +230,7 @@ public class Shadows
     [Fact(DisplayName = "and its exact shape cannot be redeclared")]
     public void AndItsExactShapeCannotBeRedeclared()
     {
-        var finding = Assert.IsType<BuiltinPattern>(Assert.Single(
+        var finding = Assert.IsType<Supplied>(Assert.Single(
             Compilation.Of(new SourceText("function old (value => Number) { return value; }\n",
                                           "Player.ron")).Findings));
 
