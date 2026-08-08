@@ -187,8 +187,6 @@ internal class Reference : IEnumerable<Reference.Component>
 
     IEnumerator IEnumerable.GetEnumerator() => Components.GetEnumerator();
 
-    public Component this[int i] => Components[i];
-
     public class Component : Compiler.IParsable<Component>
     {
         private Component(Name name) => value = name;

@@ -724,6 +724,9 @@ public class Admission
     [
         ("Ambiguous.Readings", () => new Ambiguous(default, new List<string> { "one" }, 2, false).Readings),
         ("Builtin.Operators", () => Builtin.Operators),
+        ("Descriptor.Forms", () => SymbolTable.Supplies[0].Forms),
+        ("Descriptor.SeeAlso", () => SymbolTable.Supplies.First(s => s.SeeAlso.Count is not 0).SeeAlso),
+        ("SymbolTable.Supplies", () => SymbolTable.Supplies),
         ("SymbolTable.Truths", () => SymbolTable.Truths),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
         ("Cascades.Cycles", () => Cascades.Cycles(Ringed)),

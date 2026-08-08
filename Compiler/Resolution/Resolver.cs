@@ -1335,24 +1335,6 @@ internal sealed class SymbolTable
     /// </remarks>
     public IEnumerable<Pattern> Callable => Patterns.Append(Answer).Append(Exit);
 
-    /// <summary>
-    ///     The two truths, which the language supplies rather than anyone
-    ///     declaring.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     A literal is a NULLARY entry — a name, not a pattern — so each
-    ///     reserves its own spelling and nothing else. «true positive» and
-    ///     «truth table» stay legal, which they would not if these were
-    ///     anchor-only patterns.
-    ///     <para>
-    ///     They arrive with the type rather than after it: a fixture cannot
-    ///     declare something a truth and then initialise it without one, so a
-    ///     «truth» whose literals were deferred would be a type nothing could
-    ///     test.
-    ///     </para>
-    /// </remarks>
-    public static IReadOnlyList<string> Truths { get; } = ["false", "true"];
 
     /// <summary>
     ///     Every name a reference in this scope may resolve to.
@@ -1464,14 +1446,78 @@ internal sealed class SymbolTable
     /// </remarks>
     internal static Pattern Exit { get; } = new(["return"]);
 
-    public static IReadOnlyList<Pattern> Builtins { get; } =
+    /// <summary>
+    ///     Everything the language supplies, described where it is defined.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     ONE LIST, from which the patterns and the names are derived rather
+    ///     than kept beside it. A pattern and a literal were an
+    ///     «IReadOnlyList&lt;Pattern&gt;» beside an «IReadOnlyList&lt;string&gt;»,
+    ///     which is the fragmentation the one-table ruling is against showing up
+    ///     in a second place.
+    /// </remarks>
+    public static IReadOnlyList<Descriptor> Supplies { get; } =
     [
-        new Pattern(["for each", null, "in", null], [1]),
-        Previous,
-        Answer,
-        Exit,
-        Optional,
+        Descriptor.Shaped("Runs its body once for each element, binding the element to a name.",
+                          new Pattern(["for each", null, "in", null], [1]))
+            with { Forms = ["for each «one name» in (the list)"] },
+
+        Descriptor.Shaped("The value a reactive name held before this step.", Previous)
+            with
+            {
+                Forms = ["old (a reactive name)"],
+                Legal = "Its argument must be a bare reactive name — «old (x + 1)» is not a previous value of anything.",
+            },
+
+        Descriptor.Shaped("Ends the current body, carrying an answer out of it.", Answer)
+            with
+            {
+                Forms = ["return (the answer)"],
+                Legal = "A function that answers. An action and a «when» body have nothing to answer, "
+                      + "so they take the form with no argument.",
+                SeeAlso = ["return"],
+            },
+
+        Descriptor.Shaped("Ends the current body without an answer.", Exit)
+            with
+            {
+                Forms = ["return"],
+                Legal = "An action, or a «when» body — where it ends the current firing and leaves the "
+                      + "«when» in place. A body answers or it does not, and mixing the two forms is refused.",
+                SeeAlso = ["return (_)"],
+            },
+
+        Descriptor.Shaped("A type whose value may be absent.", Optional)
+            with { Forms = ["optional (a type)"] },
+
+        Descriptor.Spelled("Truth.", "true") with { SeeAlso = ["false"] },
+        Descriptor.Spelled("Untruth.", "false") with { SeeAlso = ["true"] },
     ];
+
+    /// <summary>
+    ///     The two truths, which the language supplies rather than anyone
+    ///     declaring.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A literal is a NULLARY entry — a name, not a pattern — so each
+    ///     reserves its own spelling and nothing else. «true positive» and
+    ///     «truth table» stay legal, which they would not if these were
+    ///     anchor-only patterns.
+    ///     <para>
+    ///     They arrive with the type rather than after it: a fixture cannot
+    ///     declare something a truth and then initialise it without one, so a
+    ///     «truth» whose literals were deferred would be a type nothing could
+    ///     test.
+    ///     </para>
+    /// </remarks>
+    public static IReadOnlyList<string> Truths { get; }
+        = [.. Supplies.Where(supplied => supplied.Shape is null).Select(supplied => supplied.Name).Order(System.StringComparer.Ordinal)];
+
+    /// <summary>The supplied patterns, for the rules that ask what words are taken.</summary>
+    public static IReadOnlyList<Pattern> Builtins { get; }
+        = [.. Supplies.Where(supplied => supplied.Shape is not null).Select(supplied => supplied.Shape)];
 
 
     /// <summary>

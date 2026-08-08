@@ -1,145 +1,72 @@
+// Copyright © 2026 Eric Budai
+
 using Ronin.Compiler;
-using Ronin.Grammar;
-using Ronin.Lexicon;
-using System.Collections;
-using Test;
-using Literal = Ronin.Grammar.Literal;
+using System.IO;
 
 namespace Unit;
 
-[Trait(nameof(Parser), null)]
-public class References : ParsingTests
+/// <summary>
+///     The reference is what the language says about itself.
+/// </summary>
+///
+/// <remarks>
+///     Two gates, and they are deliberately only two. An entry with NO summary is
+///     impossible rather than tested — it is a constructor parameter, so the
+///     thought never occurs. What a type cannot see is whether a summary is
+///     empty, and whether a cross-reference names anything; those are here.
+///     <para>
+///     Make the wrong state unrepresentable before making it detectable. A test
+///     tells you an entry is missing its description; a required parameter means
+///     nobody writes one without it.
+///     </para>
+/// </remarks>
+[Trait(nameof(Manual), null)]
+public class References
 {
-    [Fact(DisplayName = "basic")]
-    public void Basic()
+    private static readonly string Committed =
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs", "reference.md");
+
+    [Fact(DisplayName = "every supplied thing says what it is")]
+    public void EverySuppliedThingSaysWhatItIs()
     {
-        // thing 7 ("stuff")
-
-        List<Token> tokens = new()
+        // The type demands a summary; it cannot demand a useful one. A blank or a
+        // placeholder satisfies the constructor and defeats the purpose, and
+        // "TODO" in a generated reference is worse than an absent page because it
+        // looks like the answer.
+        Assert.All(SymbolTable.Supplies, supplied =>
         {
-            Word("thing"),
-            Number(7),
-            StartValues(),
-            Text("stuff"),
-            EndValues(),
-            new Sentinel()
-        };
-        
-        Parser parser = new(tokens.AsLinkedList());
-        var reference = Reference.Parse(ref parser);
-
-        Assert.Equal(3, reference?.Span.Length);
-
-        {
-            var name = reference.Span[0].AsName;
-            Assert.Single(name?.Tokens.ToArray());
-        }
-
-        {
-            var scalar = reference.Span[1].AsTemporary as Literal;
-            Assert.Single(scalar?.Tokens.ToArray());
-        }
-
-        {
-            var arguments = reference.Span[2].AsTemporary as Inputs;
-            Assert.Single(arguments);
-            var scalar = arguments[0].AsValue as Literal;
-            Assert.Single(scalar?.Tokens.ToArray());
-        }
+            Assert.False(string.IsNullOrWhiteSpace(supplied.Summary), $"{supplied.Name} has no summary");
+            Assert.DoesNotContain("TODO", supplied.Summary, StringComparison.OrdinalIgnoreCase);
+            Assert.EndsWith(".", supplied.Summary.Trim(), StringComparison.Ordinal);
+        });
     }
 
-    [Fact(DisplayName = "symbols are components, not part of a name")]
-    public void SymbolsAreComponents()
+    [Fact(DisplayName = "and every cross-reference names something that exists")]
+    public void AndEveryCrossReferenceNamesSomethingThatExists()
     {
-        // x > 3
-        List<Token> tokens = new()
-        {
-            Word("x"),
-            Symbol(">"),
-            Number(3),
-            new Sentinel()
-        };
+        // The pair this was built for exists BECAUSE each names the other, so a
+        // cross-reference that can rot is one that will. Names rather than prose
+        // is what makes this checkable at all — and it is why «stop» has no entry
+        // here yet: it is a runtime operation with no source form, so the other
+        // end does not exist and the reference to it is not written. A checked
+        // reference with one end missing is the check working.
+        var named = SymbolTable.Supplies.Select(supplied => supplied.Name).ToHashSet(StringComparer.Ordinal);
 
-        Parser parser = new(tokens.AsLinkedList());
-        var reference = Reference.Parse(ref parser);
-
-        // three components, not one name spanning «x >» — the parser records that a
-        // symbol occurred and leaves what it means to the resolver
-        Assert.Equal(3, reference?.Span.Length);
-        Assert.NotNull(reference[0].AsName);
-        Assert.NotNull(reference[1].AsSymbolic);
-        Assert.NotNull(reference[2].AsTemporary);
-        Assert.Equal(">", reference[1].AsSymbolic.Token.Memory.ToString());
+        Assert.All(SymbolTable.Supplies, supplied => Assert.All(supplied.SeeAlso,
+            name => Assert.True(named.Contains(name), $"{supplied.Name} points at «{name}», which is not an entry")));
     }
 
-    [Fact(DisplayName = "punctuation ends a reference")]
-    public void PunctuationEndsAReference()
+    [Fact(DisplayName = "and the committed reference is what the table produces")]
+    public void AndTheCommittedReferenceIsWhatTheTableProduces()
     {
-        // x; y   — the terminator is a boundary, not a component
-        List<Token> tokens = new()
-        {
-            Word("x"),
-            Terminal(),
-            Word("y"),
-            new Sentinel()
-        };
+        // The same discipline as the reserved-words registry, and the same
+        // reason: a generated artefact nobody compares is a generated artefact
+        // that silently stops matching. Normalised for line endings, because a
+        // checkout's are its own business and not the language's.
+        var reference = Manual.Of(SymbolTable.Supplies);
 
-        Parser parser = new(tokens.AsLinkedList());
-        var reference = Reference.Parse(ref parser);
+        Assert.True(File.Exists(Committed), $"{Committed} is missing — regenerate it");
 
-        Assert.Single(reference);
-        Assert.NotNull(reference[0].AsName);
-    }
-
-    [Fact(DisplayName = "only a symbol parses as symbolic")]
-    public void OnlyASymbolParsesAsSymbolic()
-    {
-        // Reference.Component only offers Symbolic a token that is not a name and
-        // not a value, but the guard is the component's own, not the caller's.
-        List<Token> tokens = new() { Word("x"), Terminal(), Symbol("+"), new Sentinel() };
-
-        Parser parser = new(tokens.AsLinkedList());
-
-        Assert.Null(Symbolic.Parse(ref parser));   // a word is not symbolic
-        parser.Advance();
-        Assert.Null(Symbolic.Parse(ref parser));   // nor is punctuation
-        parser.Advance();
-        Assert.NotNull(Symbolic.Parse(ref parser));
-    }
-
-    [Fact(DisplayName = "symbols alone are not a reference")]
-    public void SymbolsAloneAreNotAReference()
-    {
-        // + *  — punctuating nothing
-        List<Token> tokens = new()
-        {
-            Symbol("+"),
-            Symbol("*"),
-            new Sentinel()
-        };
-
-        Parser parser = new(tokens.AsLinkedList());
-
-        Assert.Null(Reference.Parse(ref parser));
-    }
-
-    [Fact(DisplayName = "enumerable")]
-    public void Enumerable()
-    {
-        List<Token> tokens = new()
-        {
-            Word("thing"),
-            Number(7),
-            StartValues(),
-            Text("stuff"),
-            EndValues(),
-            new Sentinel()
-        };
-
-        Parser parser = new(tokens.AsLinkedList());
-        var reference = Reference.Parse(ref parser);
-        IEnumerable enumerable = reference;
-
-        Assert.Equivalent(enumerable.GetEnumerator(), reference.GetEnumerator());
+        Assert.Equal(File.ReadAllText(Committed).ReplaceLineEndings("\n"), reference.ReplaceLineEndings("\n"));
     }
 }
