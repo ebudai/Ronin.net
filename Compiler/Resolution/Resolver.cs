@@ -208,12 +208,13 @@ internal sealed class Resolver
     {
         var cell = closed[Span(i, j)];
 
-        if (j - i is 1 && lexemes[i].Kind is LexemeKind.Number) cell.Offer(0, new Node.Literal(lexemes[i].Text));
+        if (j - i is 1 && lexemes[i].Kind is LexemeKind.Number)
+            cell.Offer(0, new Node.Literal(lexemes[i].Text).At(Offset(lexemes, i), Length(lexemes, i, j)));
 
         if (CanName(lexemes, i, j))
         {
             var name = string.Join(' ', Enumerable.Range(i, j - i).Select(k => lexemes[k].Text));
-            if (symbols.Known.Contains(name)) cell.Offer(1, new Node.Name(name));
+            if (symbols.Known.Contains(name)) cell.Offer(1, new Node.Name(name).At(Offset(lexemes, i), Length(lexemes, i, j)));
         }
 
         // a bracketed substatement is one lookup however large it is, and it is
@@ -247,10 +248,8 @@ internal sealed class Resolver
 
             foreach (var filling in filled.Tuples)
                 target.Offer(1 + filling.Cost,
-                             new Node.Call(pattern,
-                                           filling.Arguments,
-                                           lexemes[i].Offset,
-                                           lexemes[j - 1].Offset + lexemes[j - 1].Length - lexemes[i].Offset),
+                             new Node.Call(pattern, filling.Arguments)
+                                 .At(Offset(lexemes, i), Length(lexemes, i, j)),
                              filled.Bounded);
 
             // The fillings past the «Most» that were kept — a call is one lookup,
@@ -291,7 +290,7 @@ internal sealed class Resolver
         Node argument = new Node.Name(name);
         if (bracketed) argument = new Node.Group([argument]);
 
-        cell.Offer(bracketed ? 3 : 2, new Node.Previous(name, argument));
+        cell.Offer(bracketed ? 3 : 2, new Node.Previous(name, argument).At(Offset(lexemes, i), Length(lexemes, i, j)));
     }
 
     /// <summary>
@@ -779,7 +778,8 @@ internal sealed class Resolver
                 foreach (var right in after.Alternatives)
                 {
                     cell.Offer(left.Cost + right.Cost,
-                               new Node.Operation(left.Node, lexemes[k].Text, op, right.Node),
+                               new Node.Operation(left.Node, lexemes[k].Text, op, right.Node)
+                                   .At(Offset(lexemes, i), Length(lexemes, i, j)),
                                before.Bounded || after.Bounded);
                 }
             }
@@ -789,6 +789,13 @@ internal sealed class Resolver
                         before.Bounded || after.Bounded);
         }
     }
+
+    /// <summary>The source offset a lexeme range starts at.</summary>
+    private static int Offset(IReadOnlyList<Lexeme> lexemes, int i) => lexemes[i].Offset;
+
+    /// <summary>The source length a lexeme range covers.</summary>
+    private static int Length(IReadOnlyList<Lexeme> lexemes, int i, int j)
+        => lexemes[j - 1].Offset + lexemes[j - 1].Length - lexemes[i].Offset;
 
     /// <summary>
     ///     The cell for a span at a minimum binding power. Only the minima the

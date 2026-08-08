@@ -398,29 +398,34 @@ public class Ambiguities
         Assert.Contains(repaired, edited => edited.Contains("print (send a) to b", StringComparison.Ordinal));
     }
 
-    [Fact(DisplayName = "and a reading no single bracket reaches is reported without a repair, not with an empty one")]
-    public void AndAReadingNoSingleBracketReachesIsReportedWithoutARepairNotWithAnEmptyOne()
+    [Fact(DisplayName = "and a reading that needs two brackets gets two brackets")]
+    public void AndAReadingThatNeedsTwoBracketsGetsTwoBrackets()
     {
-        // Found by audit, and half open. Each of these four readings chooses a
-        // meaning for the LEFT child and one for the RIGHT, so selecting one
-        // means disambiguating both — two bracket pairs, and the search looks
-        // for one. I claimed one always suffices, citing the repair-completeness
-        // property; that property generates flat word sequences and never
-        // composes ambiguous children through a group or an operator, so it
-        // never reaches this shape. A measured result quoted past its domain.
+        // Found by audit. Each of these four readings chooses a meaning for the
+        // LEFT child and one for the RIGHT, so selecting one means disambiguating
+        // both — two bracket pairs, where the search used to look for exactly one
+        // and publish an empty repair when none was found.
         //
-        // What is fixed is the lying: an empty repair looks selectable in an
-        // editor and does nothing when selected, which is worse than an error
-        // offering none — the second says where you are and the first does not.
-        //
-        // So the readings are all reported and the repairs are absent, and this
-        // test is here to fail when the search learns to find them.
-        var finding = Assert.IsType<Ambiguous>(Assert.Single(
-            All(Colliding + "var a => Number;\nvar b => Number;\n"
-              + "var result = (send a to b) + (send a to b);\n")));
+        // I claimed one pair always suffices, citing the repair-completeness
+        // property — which generates flat word sequences and never composes
+        // ambiguous children, so it never reaches this shape. The search tries
+        // the tree's own spans now and, where a single fails, pairs of them.
+        const string Source = "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+                            + "var result = (send a to b) + (send a to b);\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
 
         Assert.Equal(4, finding.Readings.Count);
-        Assert.Empty(finding.Repairs);
+        Assert.Equal(4, finding.Repairs.Count);
+
+        // Two pairs each, and applying every one leaves a file that compiles.
+        Assert.All(finding.Repairs, repair =>
+        {
+            Assert.Equal(4, repair.Insertions.Count);
+            Assert.Empty(All(Applied(Source, repair)));
+        });
     }
 
     /// <summary>The source with one repair's brackets typed into it.</summary>
@@ -434,6 +439,25 @@ public class Ambiguities
         }
 
         return edited;
+    }
+
+    [Fact(DisplayName = "and an ambiguity inside a list is bracketed inside the list")]
+    public void AndAnAmbiguityInsideAListIsBracketedInsideTheList()
+    {
+        // A collection's element is its own reference, so the ambiguity in
+        // «[send a to b]» is reported on the element and repaired there — a
+        // bracket around «a to b», inside the list. This is the list standing in
+        // for the ordinary case, to show the finding and its repairs arrive
+        // through a collection as they do anywhere.
+        const string Source = "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+                            + "var result = [send a to b];\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        Assert.Equal(2, finding.Repairs.Count);
+        Assert.All(finding.Repairs, repair => Assert.Empty(All(Applied(Source, repair))));
     }
 
     [Fact(DisplayName = "and an unambiguous file says nothing")]

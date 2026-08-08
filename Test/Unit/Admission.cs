@@ -594,15 +594,16 @@ public class Admission
         // keep one, so the promise it makes cannot be broken from outside the file
         // that makes it.
         //
-        // «Resolver.Filling» is the same kind of exclusion: a private nested
-        // struct the memoised «Match» builds and consumes, never handed to
-        // anything past the resolver. Its «Fillings» container IS reached — an
-        // empty one is left in the memo — so «Fillings.Tuples» is opened by the
-        // walk, but no «Filling» is in it to reach «Arguments» through. It owns
-        // its list at construction even so; the code it cannot escape is the code
-        // that would misuse it.
+        // «Resolver.Filling» and «Repairs.Search» are the same kind of exclusion:
+        // private nested things one file builds and consumes, never handed to
+        // anything past it. «Filling.Arguments» owns its list at construction;
+        // «Search.Selecting» hands its result straight into an owned «Repair»,
+        // and the walk cannot reach either to check — but the code they cannot
+        // escape is the code that would misuse them. «Fillings.Tuples» IS reached
+        // — an empty one is left in the memo — so it is opened, not excluded.
         Assert.Equal(discovered.Distinct().Order(),
-                     opened.Concat(["Body.Parameters", "Body.Statements", "Filling.Arguments"]).Order());
+                     opened.Concat(["Body.Parameters", "Body.Statements", "Filling.Arguments",
+                                    "Search.Selecting"]).Order());
     }
 
     [Theory(DisplayName = "and what a type keeps is what it made, because nothing else can be trusted")]

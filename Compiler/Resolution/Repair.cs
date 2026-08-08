@@ -57,128 +57,238 @@ internal sealed class Repair
 ///
 /// <remarks>
 ///     <para>
-///     ONE PAIR, always, at these lengths — searched rather than assumed. The
-///     repair-completeness property found that a single bracket pair reaches
-///     every reading of every ambiguous statement in a 19,525-statement space,
-///     twice over, where the design allowed for two. So this looks for one pair
-///     and reports honestly when it finds none, rather than pretending a
-///     suggestion exists.
+///     FROM THE TREE, not from every subspan there is. A repair brackets a
+///     subtree — so the spans worth trying are the spans the reading's own nodes
+///     occupy, which a node knows because it carries its extent. Trying every
+///     «(from, width)» instead was «O(n²)» candidates, each a full re-resolve of
+///     the statement, and a twenty-word ambiguity took seconds. The nodes of a
+///     reading are «O(n)», so this is «O(n)» candidates for a single bracket.
 ///     </para>
 ///     <para>
-///     MINIMAL because a suggestion that brackets everything is correct and
-///     useless. The narrowest span that selects the reading is the one a person
-///     would have written, and it is found by trying narrow spans first.
+///     A SET, not a single pair. Some readings choose a meaning for two children
+///     at once — «(send a to b) + (send a to b)» has a reading for each way of
+///     reading each half — and no one bracket selects it. Where a single fails,
+///     pairs of the tree's spans are tried, which the previous version could not
+///     express: it searched one pair and published an empty repair when none was
+///     found, a suggestion that looks selectable and does nothing.
 ///     </para>
 ///     <para>
-///     By RESOLVING the candidate rather than by reasoning about the tree. The
+///     By RESOLVING each candidate rather than reasoning about the tree. The
 ///     claim a repair makes is "type this and the ambiguity is gone", so the
-///     only honest way to produce one is to type it and look — which is what the
-///     property test does, and it is why the property is a property rather than
-///     a hope.
+///     honest way to produce one is to type it and look. Each distinct candidate
+///     is resolved once and cached, because two readings ask about the same
+///     brackets.
+///     </para>
+///     <para>
+///     BOUNDED. Singles are «O(n)», pairs «O(n²)» and only reached when a single
+///     fails; past a budget of candidate resolutions the search stops and the
+///     reading is reported without a repair — which is honest, where a hang is
+///     not, and the readings are all there regardless.
 ///     </para>
 /// </remarks>
 internal static class Repairs
 {
+    /// <summary>How many candidate resolutions a statement's repairs may cost.</summary>
+    private const int Budget = 4000;
+
     public static IReadOnlyList<Repair> For(Resolver resolver, IReadOnlyList<Lexeme> lexemes, Resolution ambiguity)
+        => For(resolver, lexemes, ambiguity, Budget);
+
+    /// <summary>
+    ///     The repairs, spending at most <paramref name="budget"/> candidate
+    ///     resolutions.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The budget is a parameter only so a test can set it low enough to
+    ///     reach the guard deterministically — the pathological statement that
+    ///     spends four thousand resolutions is near the lexeme limit and slow to
+    ///     build, and the behaviour past the budget is what matters: the reading
+    ///     is reported and the repair is absent, never a hang.
+    /// </remarks>
+    internal static IReadOnlyList<Repair> For(Resolver resolver,
+                                              IReadOnlyList<Lexeme> lexemes,
+                                              Resolution ambiguity,
+                                              int budget)
     {
+        Search search = new(resolver, lexemes, budget);
         List<Repair> found = [];
 
         foreach (var alternative in ambiguity.Alternatives)
         {
-            // NOT PUBLISHED when there is none. A repair with no insertions
-            // looks selectable in an editor and does nothing when selected,
-            // which is worse than an error that offers nothing — the second
-            // says where you are and the first lies about it.
-            if (Selecting(resolver, lexemes, alternative) is not IReadOnlyList<Insertion> insertions) continue;
+            // NOT PUBLISHED when there is none. A repair with no insertions looks
+            // selectable in an editor and does nothing when selected, which is
+            // worse than an error that offers nothing — the second says where you
+            // are and the first lies about it.
+            if (search.Selecting(alternative) is not IReadOnlyList<Insertion> insertions) continue;
 
             found.Add(new Repair(alternative.ToString(), found.Count, insertions));
         }
 
-        // Owned on the way out, like every other value this compiler hands
-        // over: what an editor is about to apply should not change under it
-        // because the thing that built it kept a reference.
+        // Owned on the way out, like every other value this compiler hands over:
+        // what an editor is about to apply should not change under it because the
+        // thing that built it kept a reference.
         return Owned.Copy(found);
     }
 
-    /// <summary>The narrowest bracket pair that leaves only this reading.</summary>
-    ///
-    /// <remarks>
-    ///     A reading is a fragment of the whole statement's rendering: the
-    ///     witness carries the readings of the span where the tie IS, which a
-    ///     parent cannot see. So selecting one means the bracketed statement
-    ///     resolves uniquely and reads that way over that span, not that its
-    ///     whole rendering equals it.
-    /// </remarks>
-    private static IReadOnlyList<Insertion> Selecting(Resolver resolver,
-                                                      IReadOnlyList<Lexeme> lexemes,
-                                                      Node target)
+    /// <summary>One statement's repair search, with its cache and budget.</summary>
+    private sealed class Search(Resolver resolver, IReadOnlyList<Lexeme> lexemes, int budget)
     {
-        for (var width = 1; width <= lexemes.Count; ++width)
+        private readonly Dictionary<string, Node> resolved = [];
+        private int spent;
+
+        /// <summary>
+        ///     The narrowest set of brackets that leaves only this reading.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     A reading is the whole statement's tree: selecting it means the
+        ///     bracketed statement resolves uniquely and reads that way, ignoring
+        ///     the brackets the repair itself added — «Same» unwraps those.
+        /// </remarks>
+        public IReadOnlyList<Insertion> Selecting(Node target)
         {
-            for (var from = 0; from + width <= lexemes.Count; ++from)
+            // The tree's own spans, narrowest first for minimality, and never the
+            // whole statement — bracketing all of it disambiguates nothing.
+            var spans = target.Whole
+                              .Where(node => node.Length > 0)
+                              .Select(node => Range(node))
+                              .Where(range => range.To - range.From < lexemes.Count)
+                              .Distinct()
+                              .OrderBy(range => range.To - range.From)
+                              .ToArray();
+
+            foreach (var span in spans)
             {
-                var resolution = resolver.Resolve(Bracketed(lexemes, from, from + width));
-
-                if (resolution.TryTree(out var tree) is false) continue;
-                if (Same(tree, target) is false) continue;
-
-                return Owned.Copy<Insertion>(
-                [
-                    new Insertion(lexemes[from].Offset, "("),
-                    new Insertion(lexemes[from + width - 1].Offset + lexemes[from + width - 1].Length, ")"),
-                ]);
+                if (Selects(target, [span])) return Brackets([span]);
             }
+
+            // A single did not select it, so it is a reading that fixes two
+            // children at once. Pairs of non-overlapping spans, fewest and
+            // narrowest first.
+            foreach (var pair in Pairs(spans))
+            {
+                if (Selects(target, pair)) return Brackets(pair);
+            }
+
+            return null;
         }
 
-        return null;
+        /// <summary>Non-overlapping span pairs, by total width.</summary>
+        private static IEnumerable<(int From, int To)[]> Pairs((int From, int To)[] spans)
+            => from a in spans.Select((span, at) => (span, at))
+               from b in spans.Select((span, at) => (span, at))
+               where a.at < b.at
+               where a.span.To <= b.span.From || b.span.To <= a.span.From
+               orderby (a.span.To - a.span.From) + (b.span.To - b.span.From)
+               select new[] { a.span, b.span };
+
+        /// <summary>Whether bracketing these spans resolves uniquely to the target.</summary>
+        private bool Selects(Node target, IReadOnlyList<(int From, int To)> spans)
+        {
+            var bracketed = Bracketed(spans);
+            var key = string.Concat(bracketed.Select(lexeme => lexeme.Text + " "));
+
+            if (resolved.TryGetValue(key, out var tree) is false)
+            {
+                if (spent >= budget) return false;
+
+                ++spent;
+                resolved[key] = tree = resolver.Resolve(bracketed).TryTree(out var only) ? only : null;
+            }
+
+            return tree is not null && Same(tree, target);
+        }
+
+        /// <summary>A node's lexeme range, found from its source extent.</summary>
+        private (int From, int To) Range(Node node)
+        {
+            var from = 0;
+            while (lexemes[from].Offset != node.Offset) ++from;
+
+            var to = from;
+            while (lexemes[to].Offset + lexemes[to].Length < node.Offset + node.Length) ++to;
+
+            return (from, to + 1);
+        }
+
+        /// <summary>The lexemes with a bracket pair around each span.</summary>
+        private List<Lexeme> Bracketed(IReadOnlyList<(int From, int To)> spans)
+        {
+            List<Lexeme> bracketed = [.. lexemes];
+
+            // Right to left, so an earlier span's indices are untouched by a
+            // later one's brackets.
+            foreach (var span in spans.OrderByDescending(span => span.From))
+            {
+                bracketed.Insert(span.To, new Lexeme(LexemeKind.Close, ")"));
+                bracketed.Insert(span.From, new Lexeme(LexemeKind.Open, "("));
+            }
+
+            return bracketed;
+        }
+
+        /// <summary>The source edits that bracket each span.</summary>
+        private IReadOnlyList<Insertion> Brackets(IReadOnlyList<(int From, int To)> spans)
+            => Owned.Copy<Insertion>(
+               [.. spans.SelectMany(span => new[]
+               {
+                   new Insertion(lexemes[span.From].Offset, "("),
+                   new Insertion(lexemes[span.To - 1].Offset + lexemes[span.To - 1].Length, ")"),
+               })]);
     }
 
     /// <summary>
-    ///     Whether two trees are the same reading, ignoring the brackets a
-    ///     repair added.
+    ///     Whether two trees are the same reading, ignoring the brackets a repair
+    ///     added.
     /// </summary>
     ///
     /// <remarks>
-    ///     A repair works by GROUPING, so what it produces is the target with a
-    ///     bracket somewhere in it — never the target itself. Unwrapping single
-    ///     bracketed parts is what makes "did this select the reading" a question
-    ///     about the reading.
     ///     <para>
-    ///     This compared RENDERINGS, and stripped the bracket marks out of a
-    ///     string to do it. That recreated one layer later the very defect the
-    ///     cell had been taught to avoid: two calls spanning the same words
-    ///     render alike, so both searches found the same bracket and one meaning
-    ///     was offered twice while the other was unreachable.
+    ///     A repair works by GROUPING, so what it produces is the target with a
+    ///     bracket somewhere in it — never the target itself. Stripping the
+    ///     brackets from both and asking whether they are then structurally the
+    ///     same is what makes "did this select the reading" a question about the
+    ///     reading, and it is <see cref="Node.Same"/>'s question once the
+    ///     brackets are gone.
+    ///     </para>
+    ///     <para>
+    ///     This compared RENDERINGS once, stripping bracket marks out of a string.
+    ///     That recreated one layer later the very defect the cell was taught to
+    ///     avoid: two calls spanning the same words render alike, so both searches
+    ///     found the same bracket and one meaning was offered twice while the
+    ///     other was unreachable.
     ///     </para>
     /// </remarks>
-    private static bool Same(Node tree, Node target)
+    private static bool Same(Node tree, Node target) => Node.Same.Equals(Stripped(tree), Stripped(target));
+
+    /// <summary>
+    ///     A tree with the brackets a repair added stripped away.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A bracket around ONE value is a no-op grouping — «(x)» and «x» are the
+    ///     same reading — so single non-collection groups come off, everywhere a
+    ///     repair could put one: inside a call's arguments and an operator's
+    ///     operands, which are the segmentation points an ambiguity turns on.
+    ///     Nothing else is recursed into, because a repair does not bracket
+    ///     inside it — a collection's element is its own reference, reported and
+    ///     repaired on its own, and a name or literal has no inside.
+    /// </remarks>
+    private static Node Stripped(Node tree)
     {
-        var here = Ungrouped(tree);
-        var there = Ungrouped(target);
+        var bare = Bare(tree);
 
-        if (Node.Same.Equals(here, there)) return true;
+        if (bare is Node.Call call)
+            return new Node.Call(call.Pattern, [.. call.Arguments.Select(Stripped)]);
 
-        return here is Node.Call call
-            && there is Node.Call other
-            && call.Pattern.Equals(other.Pattern)
-            && call.Arguments.Count == other.Arguments.Count
-            && call.Arguments.Zip(other.Arguments).All(pair => Same(pair.First, pair.Second));
+        if (bare is Node.Operation operation)
+            return new Node.Operation(Stripped(operation.Left), operation.Symbol, operation.Operator, Stripped(operation.Right));
+
+        return bare;
     }
 
-    /// <summary>A tree without the brackets around it.</summary>
-    private static Node Ungrouped(Node tree)
-        => tree is Node.Group { Collection: false, Parts.Count: 1 } group ? Ungrouped(group.Parts[0]) : tree;
-
-    private static List<Lexeme> Bracketed(IReadOnlyList<Lexeme> lexemes, int from, int to)
-    {
-        List<Lexeme> bracketed = [.. lexemes.Take(from)];
-
-        bracketed.Add(new Lexeme(LexemeKind.Open, "("));
-        bracketed.AddRange(lexemes.Skip(from).Take(to - from));
-        bracketed.Add(new Lexeme(LexemeKind.Close, ")"));
-        bracketed.AddRange(lexemes.Skip(to));
-
-        return bracketed;
-    }
-
+    /// <summary>A tree with the outermost repair brackets removed.</summary>
+    private static Node Bare(Node tree)
+        => tree is Node.Group { Collection: false, Parts.Count: 1 } group ? Bare(group.Parts[0]) : tree;
 }
