@@ -54,7 +54,7 @@ public class ResolverCost
     ///     numbers and the raise moved only one, so a regression between them
     ///     would have failed while quoting a limit nothing enforced.
     /// </remarks>
-    private const int Ceiling = 32;
+    private const int Ceiling = 20;
 
     [Fact(DisplayName = "resolving stays within its allocation budget")]
     public void ResolvingStaysWithinItsAllocationBudget()
@@ -75,24 +75,31 @@ public class ResolverCost
         resolver.Resolve(lexemes);
         var megabytes = (GC.GetAllocatedBytesForCurrentThread() - before) / 1024.0 / 1024.0;
 
-        // 26.2 MB as this is written, and «is» is what moved it — 15 with two
-        // operator precedences, 21.7 with three, 26.2 with four. The table
-        // carries a column per level the recurrences can ask for, so a level
-        // costs about 4.5 MB and an operator that borrows an existing one costs
-        // nothing: six cost exactly what nine did. A language cannot have many
-        // more operators than it needs, and this is where that shows up rather
-        // than in a benchmark nobody runs.
+        // 11.3 MB as this is written, and this comment said 26.2 until someone
+        // measured it. Nothing had gone wrong: the witness machinery was deleted
+        // when parents began enumerating their children, and that took more than
+        // half the allocation with it. Nobody re-ran the number, so a stale
+        // figure sat here with a ceiling of 32 above a program using 11.
         //
-        // It was 158 MB before the binding-power and lazy-collection work, and
-        // 22 before the table went triangular, which scales to about 37 at four
-        // levels. So 32 still fails on losing any of the three, and keeps about
-        // the margin 26 kept over 21.7 — 22% against 20%.
+        // WHICH MATTERED, because the stale figure was quoted into a design
+        // decision. It said a binding-power level costs about 4.5 MB, and that
+        // number was used to argue against a ladder of eight. Measured on this
+        // statement with levels added:
         //
-        // WHAT IS COMING, so the budget is known before it is spent: «and» and
-        // «or» are reserved at 1 to 4 and are looser than comparison, so they
-        // want their own levels. One more is about 31 MB and two are about 35.
-        // The next operator has to move this number again and say what it did to
-        // the margin, as this one has.
+        //     none  11.3      two  12.1      four  13.5      eight  16.3
+        //
+        // About 0.6 MB a level. An eight-rung ladder is about 5 MB, not the 36
+        // the old figure implied, and the price was never a reason to choose a
+        // smaller number. A measurement written down is a measurement that stops
+        // being true; this one is now the thing the ceiling is set from rather
+        // than a sentence beside it.
+        //
+        // It was 158 MB before the binding-power and lazy-collection work, and 22
+        // before the table went triangular. 20 leaves room for the ladder above
+        // and still fails on losing any of those.
+        //
+        // The next thing to move this has to say what it did to the margin, and
+        // to re-measure rather than quote — which is what was skipped.
         Assert.True(megabytes < Ceiling,
                     $"resolving 149 lexemes allocated {megabytes:F1} MB, past the {Ceiling} MB ceiling");
     }
