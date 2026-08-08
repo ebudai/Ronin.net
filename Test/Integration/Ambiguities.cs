@@ -158,10 +158,20 @@ public class Ambiguities
         Assert.Equal("return (_)", finding.Pattern);
         Assert.True(finding.Builtin);
 
-        // EQUAL is left alone, as with every other pattern: «return» cannot
-        // swallow the call, because the argument would have to sit beside it as
-        // a second juxtaposed name and that is not an expression.
-        Assert.Empty(All("var return => Number;\n"));
+        // EQUAL is NOT left alone, and this asserted that it was. The rule that
+        // leaves a name equal to a pattern's words alone reasons that the call's
+        // argument would have to sit beside it as a second juxtaposed name — but
+        // bare «return» has no argument, so nothing has to sit anywhere and the
+        // name covers exactly the span the call does.
+        //
+        // Which is a capture: with «var return» declared, every bare «return» in
+        // scope reads two ways, and no bracket separates a name from a call over
+        // one span. So the whole spelling is reserved, by the same door the two
+        // truths use.
+        var whole = Assert.Single(All("var return => Number;\n"));
+
+        Assert.Equal(FindingKind.Supplied, whole.Kind);
+        Assert.Contains("«return» is supplied by the language", whole.Message);
     }
 
     [Fact(DisplayName = "and a body's return is read, where it used to be nothing at all")]
@@ -303,6 +313,34 @@ public class Ambiguities
                                   .Replace("⟩", string.Empty, StringComparison.Ordinal)
                                   .Replace(" ", string.Empty, StringComparison.Ordinal));
         }
+    }
+
+    [Theory(DisplayName = "«stop» is reserved everywhere and legal only in a «when»")]
+    [InlineData("var ready => Number;\nwhen ready { stop; }", null)]
+    [InlineData("function go { stop; }", "MisplacedStop")]
+    [InlineData("var stop => Number;", "Supplied")]
+    [InlineData("var stop word => Number;", null)]
+    public void StopIsReservedEverywhereAndLegalOnlyInAWhen(string source, string refused)
+    {
+        // RESERVED globally and LEGAL only in a «when», which are separate on
+        // purpose. Scoping the reservation to a «when» is tempting and wrong for
+        // a reason already paid for: the self-ambiguity check is deliberately
+        // pessimistic so that it is order-independent, and a reservation that
+        // depends on where you are standing gives that check two answers for one
+        // span — and lets a name declared outside a «when» be captured inside
+        // one.
+        //
+        // Whole-name only, so «stop word» stays legal: a nullary entry reserves
+        // its own spelling and nothing else.
+        var findings = All(source + "\n");
+
+        if (refused is null)
+        {
+            Assert.Empty(findings);
+            return;
+        }
+
+        Assert.Equal(refused, Assert.Single(findings).Kind.ToString());
     }
 
     [Fact(DisplayName = "and an unambiguous file says nothing")]

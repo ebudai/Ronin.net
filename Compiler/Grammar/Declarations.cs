@@ -218,7 +218,13 @@ internal sealed class Declarations
         // would point at a declaration that does not exist. The pattern case has
         // said this properly since «old (_)» arrived; the name case is the same
         // sentence about the same thing.
-        if (SymbolTable.Truths.Contains(name))
+        //
+        // WHOLE spellings, which is every nullary thing the language supplies —
+        // the two truths, and «return» and «stop». A nullary pattern reserved
+        // nothing before this: «var return» was declarable and then every bare
+        // «return» in scope had two readings, with no bracket able to separate a
+        // name from a call over the same span.
+        if (SymbolTable.Whole.Contains(name))
         {
             problems.Add(new Supplied(span, name));
             return true;

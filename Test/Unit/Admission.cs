@@ -743,6 +743,7 @@ public class Admission
         ("Descriptor.SeeAlso", () => SymbolTable.Supplies.First(s => s.SeeAlso.Count is not 0).SeeAlso),
         ("SymbolTable.Supplies", () => SymbolTable.Supplies),
         ("SymbolTable.Truths", () => SymbolTable.Truths),
+        ("SymbolTable.Whole", () => SymbolTable.Whole),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
         ("Cascades.Cycles", () => Cascades.Cycles(Ringed)),
         ("Completion.After", () => new Completion(new SymbolTable().WithNames("total")).After(Lexemes.Lex("tot"))),

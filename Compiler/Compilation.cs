@@ -243,6 +243,15 @@ internal sealed class Compilation
 
         exits = readings.Count;
 
+        // RESERVED everywhere and LEGAL only in a «when», which is why the
+        // spelling is refused globally and the placement is reported here. A
+        // «stop» outside one is the builtin misplaced rather than a word nobody
+        // declared, and the message can say what was probably meant.
+        foreach (var halt in answering.Where(exit => exit.Halts && reacting is false))
+        {
+            yield return new MisplacedStop(halt.Span);
+        }
+
         var carrying = answering.Where(exit => exit.Answers).ToArray();
 
         // A reaction has nobody to answer, so only the valueless form is legal
@@ -271,15 +280,16 @@ internal sealed class Compilation
     ///     the shapes people write and stay silent on the ones they do not, which
     ///     is the wrong way round for a rule about legality.
     /// </remarks>
-    private static IEnumerable<(Span Span, bool Answers)> Called(Reading reading)
+    private static IEnumerable<(Span Span, bool Answers, bool Halts)> Called(Reading reading)
     {
         reading.Resolution.TryTree(out var tree);
 
         foreach (var node in tree.Whole)
         {
             if (node is not Node.Call call) continue;
-            if (call.Pattern.Equals(SymbolTable.Answer)) yield return (reading.Span, true);
-            if (call.Pattern.Equals(SymbolTable.Exit)) yield return (reading.Span, false);
+            if (call.Pattern.Equals(SymbolTable.Answer)) yield return (reading.Span, true, false);
+            if (call.Pattern.Equals(SymbolTable.Exit)) yield return (reading.Span, false, false);
+            if (call.Pattern.Equals(SymbolTable.Halt)) yield return (reading.Span, false, true);
         }
     }
 

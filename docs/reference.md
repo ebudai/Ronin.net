@@ -53,6 +53,16 @@ A function that answers. An action and a «when» body have nothing to answer, s
 
 See also: «return».
 
+## stop
+
+Removes this «when», so it does not fire again and stops costing anything.
+
+    stop
+
+Only inside a «when» body. To end the current firing and leave the «when» in place, write «return».
+
+See also: «return».
+
 ## true
 
 Truth.

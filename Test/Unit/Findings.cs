@@ -57,6 +57,7 @@ public class Findings
                      """,
                      "var ready => Number;\nwhen ready { return 1; }\n",
                      "function odd (x => Number) { return; return x; }\n",
+                     "function go { stop; }\n",
                      """
                      function send (x => Number) { return x; }
                      function send (x => Number) to (y => Number) { return x; }
@@ -230,6 +231,8 @@ public class Findings
             Player.ron:2:14: «return (_)» in a «when» body — a reaction has nobody to answer. Use «return» to end this firing and leave the «when» in place, or «stop» to remove it.
 
             Player.ron:1:30: this body both answers and leaves without answering. A body does one or the other — give every «return» a value, or none of them.
+
+            Player.ron:1:15: «stop» removes the «when» it is written in, and there is none here. To leave this body, write «return».
 
             Player.ron:6:14: this reads 2 ways and the compiler will not choose between them:
                 send «a to b»

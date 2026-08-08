@@ -1350,7 +1350,7 @@ internal sealed class SymbolTable
     ///     generated name showing up among written ones.
     ///     </para>
     /// </remarks>
-    public IEnumerable<Pattern> Callable => Patterns.Append(Answer).Append(Exit);
+    public IEnumerable<Pattern> Callable => Patterns.Append(Answer).Append(Exit).Append(Halt);
 
 
     /// <summary>
@@ -1464,6 +1464,26 @@ internal sealed class SymbolTable
     internal static Pattern Exit { get; } = new(["return"]);
 
     /// <summary>
+    ///     «stop» — removes this «when», so it does not fire again.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Nullary, like bare <see cref="Exit"/>, and reserved GLOBALLY rather
+    ///     than inside a «when». Scoping the reservation is tempting and is
+    ///     wrong for a reason already paid for: the self-ambiguity check is
+    ///     deliberately pessimistic so that it is order-independent, and a
+    ///     reservation that depends on where you are standing gives that check
+    ///     two answers for one span — and lets a name declared outside a «when»
+    ///     be captured inside one.
+    ///     <para>
+    ///     The reservation and the legality are separate, as they are for
+    ///     «return (_)». That is what buys a five-name cost AND a good message,
+    ///     rather than choosing between them.
+    ///     </para>
+    /// </remarks>
+    internal static Pattern Halt { get; } = new(["stop"]);
+
+    /// <summary>
     ///     Everything the language supplies, described where it is defined.
     /// </summary>
     ///
@@ -1505,12 +1525,45 @@ internal sealed class SymbolTable
                 SeeAlso = ["return (_)"],
             },
 
+        Descriptor.Shaped("Removes this «when», so it does not fire again and stops costing anything.", Halt)
+            with
+            {
+                Forms = ["stop"],
+                Legal = "Only inside a «when» body. To end the current firing and leave the «when» in "
+                      + "place, write «return».",
+                SeeAlso = ["return"],
+            },
+
         Descriptor.Shaped("A type whose value may be absent.", Optional)
             with { Forms = ["optional (a type)"] },
 
         Descriptor.Spelled("Truth.", "true") with { SeeAlso = ["false"] },
         Descriptor.Spelled("Untruth.", "false") with { SeeAlso = ["true"] },
     ];
+
+    /// <summary>
+    ///     Spellings the language supplies whole, which nobody may declare.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A NULLARY entry reserves its own spelling and nothing else — that is
+    ///     what makes «true positive» and «stop word» legal beside «true» and
+    ///     «stop». What it does not do is reserve nothing at all, which is what
+    ///     it did: «var return» was declarable, and then every bare «return» in
+    ///     scope read two ways with no bracket able to separate them. The prefix
+    ///     reservation «return (_)» pays for does not reach the whole name,
+    ///     because a name equal to a pattern's words is deliberately left alone
+    ///     — an argument cannot sit beside it.
+    ///     <para>
+    ///     Nullary is exactly where that reasoning stops holding: with no hole
+    ///     there is no argument to sit anywhere, so the name and the call cover
+    ///     the same span and neither is reachable past the other.
+    ///     </para>
+    /// </remarks>
+    public static IReadOnlyList<string> Whole { get; }
+        = [.. Supplies.Where(supplied => supplied.Shape?.Segments.Any(segment => segment is null) is not true)
+                      .Select(supplied => supplied.Name)
+                      .Order(System.StringComparer.Ordinal)];
 
     /// <summary>
     ///     The two truths, which the language supplies rather than anyone

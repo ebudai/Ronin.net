@@ -84,6 +84,9 @@ internal enum FindingKind
     /// <summary>A body that both answers and does not.</summary>
     MixedExits,
 
+    /// <summary>«stop» where there is no «when» to remove.</summary>
+    MisplacedStop,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -317,6 +320,24 @@ internal sealed class AnsweringReaction(Span primary)
     public override string Message
         => "«return (_)» in a «when» body — a reaction has nobody to answer. Use «return» to end this " +
            "firing and leave the «when» in place, or «stop» to remove it.";
+}
+
+/// <summary>
+///     A body that both answers and does not.
+/// </summary>
+///
+/// <remarks>
+///     A body has one exit flavour, decided by whether any «return (_)» appears
+///     in it — and this is not a rule of its own. It is the check that stops the
+///     return type having two answers, seen from the other side: a body that
+///     sometimes carries a value and sometimes does not has no one type to infer.
+/// </remarks>
+internal sealed class MisplacedStop(Span primary)
+    : Finding(FindingKind.MisplacedStop, primary)
+{
+    public override string Message
+        => "«stop» removes the «when» it is written in, and there is none here. To leave this body, " +
+           "write «return».";
 }
 
 /// <summary>
