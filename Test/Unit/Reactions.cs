@@ -312,14 +312,22 @@ public class Reactions
             scope.Invoke(graph, Pattern.Parse("no such _"), [1d], insideLet: false));
         Assert.Contains("no declaration", undeclared.Message);
 
-        // overloads share a shape and are separated by type; one that survives
-        // the type filter twice is a tie, and a tie is an error
+        // AN ASSERTION rather than a diagnostic, and its message says so.
+        // Nothing reaches this from source — the declaration rule refuses a
+        // second declaration of a shape today, and when the compile-time filter
+        // replaces that rule it is the filter's job to leave one candidate. So
+        // if it fires the filter is wrong, and a user-facing sentence at a place
+        // no user can reach guarantees someone eventually reads one with no
+        // action available.
+        //
+        // Kept rather than deleted: the alternative to a check that cannot fire
+        // is a filter bug making a wrong call in silence.
         scope.Declare(new Declaration(Pattern.Parse("twice _"), [["a"]], (_, _) => 1d));
         scope.Declare(new Declaration(Pattern.Parse("twice _"), [["a"]], (_, _) => 2d));
 
         var ambiguous = Assert.IsType<Error>(
             scope.Invoke(graph, Pattern.Parse("twice _"), [1d], insideLet: false));
-        Assert.Contains("ambiguous", ambiguous.Message);
+        Assert.Contains("this is a compiler bug", ambiguous.Message);
     }
 
     [Fact(DisplayName = "a declaration needs one block per hole")]

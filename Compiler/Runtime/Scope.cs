@@ -3,6 +3,7 @@
 using Ronin.Compiler;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Ronin.Runtime;
@@ -116,7 +117,24 @@ internal sealed class Scope
         if (declarations.TryGetValue(pattern, out var overloads) is false)
             return new Error($"no declaration for «{pattern}»");
 
-        if (overloads.Count > 1) return new Error($"«{pattern}» is ambiguous after type filtering");
+        // AN ASSERTION, addressed to whoever maintains this rather than to
+        // whoever ran the program. Nothing can reach it from source: the
+        // declaration rule refuses a second declaration of a shape today, and
+        // when the compile-time filter replaces that rule it is the filter's job
+        // to leave exactly one candidate. So if this fires the filter is wrong,
+        // and the person who can act on that is not the one holding the
+        // keyboard.
+        //
+        // Kept rather than deleted, because the alternative to a check that
+        // cannot fire is a filter bug making a WRONG CALL in silence, which is
+        // the failure this whole direction exists to remove. One comparison is a
+        // cheap price for the cheapest possible detection of it.
+        if (overloads.Count > 1)
+        {
+            return new Error($"internal: {overloads.Count.ToString(CultureInfo.InvariantCulture)} declarations of " +
+                             $"«{pattern}» survived the compile-time filter — this is a compiler bug, not a mistake " +
+                             "in this program.");
+        }
 
         var declaration = overloads[0];
 
