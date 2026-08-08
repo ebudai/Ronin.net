@@ -18,11 +18,13 @@ namespace Ronin.Server;
 ///
 /// <remarks>
 ///     <para>
-///     EXCLUDED from coverage, like the compiler's own entry point and for the
-///     same reason: everything here reads bytes, writes bytes, or looks a method
-///     name up in a switch. What it does with a file is <see cref="Language"/>,
-///     which is a function from source text to an answer and is tested as one.
-///     Testing this would mean testing «Console.OpenStandardInput».
+///     STREAMS rather than the console, which is the whole of what makes this
+///     testable. It was excluded from coverage as "everything here reads bytes"
+///     — true of the two lines that open a console, and a cover story for the
+///     rest: an unconditional read loop that answered «shutdown» and then went
+///     back to waiting, so a conforming client could not end the process it had
+///     just been told was finished. Nothing was watching, because nothing could
+///     be.
 ///     </para>
 ///     <para>
 ///     Hand written rather than a library, so «restore --locked-mode» keeps
@@ -36,17 +38,34 @@ namespace Ronin.Server;
 ///     standard — so this is the plugin, for every editor that speaks it.
 ///     </para>
 /// </remarks>
-[ExcludeFromCodeCoverage]
-internal static class Host
+internal sealed class Host
 {
-    private static readonly Dictionary<string, string> Open = [];
-
-    private static void Main()
+    /// <summary>
+    ///     Serves until the client says to stop, and answers with its status.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The lifecycle the specification asks for: «shutdown» prepares, «exit»
+    ///     ends, and ending WITHOUT having been shut down is a failure — a
+    ///     client that exits unprepared has lost track of the conversation, and
+    ///     saying so is the difference between a clean stop and a crash nobody
+    ///     can tell from one.
+    ///     <para>
+    ///     End of input ends it too. A client that dies takes its half of the
+    ///     pipe with it, and a server left blocking on a closed stream is a
+    ///     process nobody owns.
+    ///     </para>
+    /// </remarks>
+    public int Serve(Stream input, Stream output)
     {
-        using var input = Console.OpenStandardInput();
-        using var output = Console.OpenStandardOutput();
+        while (Read(input) is JsonObject message)
+        {
+            if (message["method"]?.GetValue<string>() is "exit") break;
 
-        while (Read(input) is JsonObject message) Handle(message, output);
+            Handle(message, output);
+        }
+
+        return closing ? 0 : 1;
     }
 
     /// <summary>One message, framed by its length.</summary>
@@ -73,7 +92,27 @@ internal static class Host
             read += taken;
         }
 
-        return JsonNode.Parse(Encoding.UTF8.GetString(body)) as JsonObject;
+        return Parsed(Encoding.UTF8.GetString(body));
+    }
+
+    /// <summary>A body, or nothing when it is not JSON at all.</summary>
+    ///
+    /// <remarks>
+    ///     A malformed body is the client's fault and not this process's to die
+    ///     of, but it is also not something to answer — there is no id to answer
+    ///     to. Ending is the honest response: the framing held and the meaning
+    ///     did not, and a stream whose meaning is in doubt cannot be re-entered.
+    /// </remarks>
+    private static JsonObject Parsed(string body)
+    {
+        try
+        {
+            return JsonNode.Parse(body) as JsonObject;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
     }
 
     private static string Line(Stream input)
@@ -90,12 +129,11 @@ internal static class Host
         return null;
     }
 
-    private static void Handle(JsonObject message, Stream output)
+    private void Handle(JsonObject message, Stream output)
     {
-        var method = message["method"]?.GetValue<string>();
         var id = message["id"];
 
-        switch (method)
+        switch (message["method"]?.GetValue<string>())
         {
             case "initialize":
                 Reply(output, id, new JsonObject
@@ -118,6 +156,7 @@ internal static class Host
                 break;
 
             case "shutdown":
+                closing = true;
                 Reply(output, id, null);
                 break;
 
@@ -127,18 +166,18 @@ internal static class Host
         }
     }
 
-    private static void Publish(JsonObject message, Stream output)
+    private void Publish(JsonObject message, Stream output)
     {
         var document = message["params"]["textDocument"];
         var uri = document["uri"].GetValue<string>();
 
-        Open[uri] = message["params"]["contentChanges"] is JsonArray changes
+        open[uri] = message["params"]["contentChanges"] is JsonArray changes
                   ? changes[0]["text"].GetValue<string>()
                   : document["text"].GetValue<string>();
 
         JsonArray reported = [];
 
-        foreach (var finding in Language.Diagnostics(new SourceText(Open[uri], uri)))
+        foreach (var finding in Language.Diagnostics(new SourceText(open[uri], uri)))
         {
             reported.Add(new JsonObject
             {
@@ -158,11 +197,11 @@ internal static class Host
         });
     }
 
-    private static JsonObject Hovered(JsonObject message)
+    private JsonObject Hovered(JsonObject message)
     {
         var uri = message["params"]["textDocument"]["uri"].GetValue<string>();
 
-        if (Open.TryGetValue(uri, out var text) is false) return null;
+        if (open.TryGetValue(uri, out var text) is false) return null;
 
         var position = message["params"]["position"];
         var at = new Place(position["line"].GetValue<int>(), position["character"].GetValue<int>());
@@ -197,5 +236,40 @@ internal static class Host
         output.Write(Encoding.UTF8.GetBytes($"Content-Length: {body.Length}\r\n\r\n"));
         output.Write(body);
         output.Flush();
+    }
+
+    /// <summary>
+    ///     The documents the client has open, by uri.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Per host rather than per process. It was static, which is invisible
+    ///     with one server to a process and is what makes two of them in one test
+    ///     run answer for each other.
+    /// </remarks>
+    private readonly Dictionary<string, string> open = [];
+
+    /// <summary>Whether the client has said it is finished.</summary>
+    private bool closing;
+}
+
+/// <summary>
+///     The process, which is the two lines that cannot be tested.
+/// </summary>
+///
+/// <remarks>
+///     Everything above takes streams and returns a status. What is left is
+///     opening the console's pair and handing the status to the operating
+///     system, which is the whole of what an exclusion should ever cover.
+/// </remarks>
+[ExcludeFromCodeCoverage]
+internal static class Serving
+{
+    private static int Main()
+    {
+        using var input = Console.OpenStandardInput();
+        using var output = Console.OpenStandardOutput();
+
+        return new Host().Serve(input, output);
     }
 }
