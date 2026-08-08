@@ -587,14 +587,22 @@ public class Admission
                                        && Promises(parameter.ParameterType.GetElementType()))
             select $"{owner.Name}.{member.Name.Replace("get_", string.Empty)}";
 
-        // «Compilation.Body» is the one exclusion, and it is structural rather
-        // than a decision to skip something: a private record struct used as a
-        // local inside «Declare», never stored anywhere, and not a type anything
-        // outside «Compilation» can name. There is no instance to reach and no
-        // holder to keep one, so the promise it makes cannot be broken from
-        // outside the file that makes it.
+        // «Compilation.Body» is one exclusion, and it is structural rather than a
+        // decision to skip something: a private record struct used as a local
+        // inside «Declare», never stored anywhere, and not a type anything outside
+        // «Compilation» can name. There is no instance to reach and no holder to
+        // keep one, so the promise it makes cannot be broken from outside the file
+        // that makes it.
+        //
+        // «Resolver.Filling» is the same kind of exclusion: a private nested
+        // struct the memoised «Match» builds and consumes, never handed to
+        // anything past the resolver. Its «Fillings» container IS reached — an
+        // empty one is left in the memo — so «Fillings.Tuples» is opened by the
+        // walk, but no «Filling» is in it to reach «Arguments» through. It owns
+        // its list at construction even so; the code it cannot escape is the code
+        // that would misuse it.
         Assert.Equal(discovered.Distinct().Order(),
-                     opened.Concat(["Body.Parameters", "Body.Statements"]).Order());
+                     opened.Concat(["Body.Parameters", "Body.Statements", "Filling.Arguments"]).Order());
     }
 
     [Theory(DisplayName = "and what a type keeps is what it made, because nothing else can be trusted")]

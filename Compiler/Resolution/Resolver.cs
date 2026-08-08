@@ -147,6 +147,7 @@ internal sealed class Resolver
         open = NewTable(spans);
 
         expressions = new Cell[spans * minima.Length];
+        fillings = [];
         for (var cell = 0; cell < expressions.Length; ++cell) expressions[cell] = new Cell();
 
         for (var width = 1; width <= n; ++width)
@@ -242,13 +243,20 @@ internal sealed class Resolver
         foreach (var pattern in candidates)
         {
             var target = pattern.IsOpenEnded ? open[Span(i, j)] : cell;
-            foreach (var (cost, arguments, bounded) in Match(pattern, 0, lexemes, i, j))
-                target.Offer(1 + cost,
+            var filled = Match(pattern, 0, lexemes, i, j);
+
+            foreach (var filling in filled.Tuples)
+                target.Offer(1 + filling.Cost,
                              new Node.Call(pattern,
-                                           arguments,
+                                           filling.Arguments,
                                            lexemes[i].Offset,
                                            lexemes[j - 1].Offset + lexemes[j - 1].Length - lexemes[i].Offset),
-                             bounded);
+                             filled.Bounded);
+
+            // The fillings past the «Most» that were kept — a call is one lookup,
+            // so the pattern contributes «filled.Total» readings and only its
+            // cheapest few were offered.
+            target.Beyond(filled.Total - filled.Tuples.Count, filled.Bounded);
         }
     }
 
@@ -534,66 +542,134 @@ internal sealed class Resolver
     }
 
     /// <summary>
-    ///     Every way <paramref name="pattern"/> can cover the span, given as the
-    ///     arguments filling its holes left to right. A literal segment has to
-    ///     match but contributes no argument, which is why the words do not appear
-    ///     here at all — <see cref="Node.Call"/> puts them back by walking the
-    ///     same segments when it renders.
+    ///     One way to fill a pattern's holes: the argument nodes, and their cost.
     /// </summary>
-    private IEnumerable<(int Cost, IReadOnlyList<Node> Arguments, bool Bounded)> Match(
-        Pattern pattern, int segment, IReadOnlyList<Lexeme> lexemes, int position, int end)
+    ///
+    /// <remarks>
+    ///     A literal segment has to match but contributes no argument, which is
+    ///     why the words do not appear here — <see cref="Node.Call"/> puts them
+    ///     back by walking the same segments when it renders.
+    /// </remarks>
+    private readonly record struct Filling
     {
-        if (segment == pattern.Segments.Count)
+        public Filling(int cost, IReadOnlyList<Node> arguments)
         {
-            if (position == end) yield return (0, [], false);
-            yield break;
+            Cost = cost;
+            Arguments = Owned.Copy(arguments);
         }
 
+        public int Cost { get; }
+
+        /// <summary>The argument nodes, owned where the filling is made.</summary>
+        public IReadOnlyList<Node> Arguments { get; }
+    }
+
+    /// <summary>
+    ///     The cheapest ways to fill the rest of a pattern's holes over a span.
+    /// </summary>
+    ///
+    private readonly record struct Fillings
+    {
+        public Fillings(IReadOnlyList<Filling> tuples, long total, bool bounded)
+        {
+            Tuples = Owned.Copy(tuples);
+            Total = total;
+            Bounded = bounded;
+        }
+
+        /// <summary>At most <see cref="Cell.Most"/>, cheapest first.</summary>
+        public IReadOnlyList<Filling> Tuples { get; }
+
+        /// <summary>How many fillings there are, saturated.</summary>
+        public long Total { get; }
+
+        /// <summary>Whether <see cref="Total"/> is a floor.</summary>
+        public bool Bounded { get; }
+
+        public static readonly Fillings None = new([], 0, false);
+    }
+
+    /// <summary>
+    ///     Every way to match a pattern's holes against a span, cheapest first
+    ///     and bounded.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     BOUNDED, which it was not, and that was a hang rather than a slow
+    ///     path. The medial case combined every split point with every argument
+    ///     and every completion and yielded them all — so a pattern of ten
+    ///     adjacent holes over twenty words enumerated «C(19, 9)» fillings before
+    ///     anything trimmed them, and a twenty-five-lexeme statement took twelve
+    ///     seconds to resolve.
+    ///     </para>
+    ///     <para>
+    ///     Cost is additive and never negative, so the cheapest few fillings of a
+    ///     whole are built from the cheapest few of its parts — keeping <see
+    ///     cref="Cell.Most"/> per subproblem is enough to reconstruct the
+    ///     cheapest <see cref="Cell.Most"/> of the pattern. That is the same
+    ///     property the cell relies on, applied to the recursion that feeds it,
+    ///     and it turns the exponential enumeration polynomial.
+    ///     </para>
+    ///     <para>
+    ///     MEMOISED by «(pattern, segment, position, end)» within one resolve,
+    ///     because the same suffix over the same span is reached by every way of
+    ///     splitting the holes before it. «end» belongs in the key: the table
+    ///     fills «Atoms» for every span, so one «(pattern, segment, position)» is
+    ///     asked for many ends, and a memo that dropped it would hand a filling
+    ///     of one span back for another. The reads are all of strictly smaller
+    ///     spans already final in the table, so a materialised result is stable.
+    ///     </para>
+    ///     <para>
+    ///     The count is the sum over splits of the product of the parts' counts,
+    ///     saturated — the honest number of fillings, not the number kept, so the
+    ///     diagnostic can still say how many there are.
+    ///     </para>
+    /// </remarks>
+    private Fillings Match(Pattern pattern, int segment, IReadOnlyList<Lexeme> lexemes, int position, int end)
+    {
+        if (fillings.TryGetValue((pattern, segment, position, end), out var memo)) return memo;
+
+        return fillings[(pattern, segment, position, end)] = Matching(pattern, segment, lexemes, position, end);
+    }
+
+    private Fillings Matching(Pattern pattern, int segment, IReadOnlyList<Lexeme> lexemes, int position, int end)
+    {
+        if (segment == pattern.Segments.Count)
+            return position == end ? new Fillings([new Filling(0, [])], 1, false) : Fillings.None;
+
         var word = pattern.Segments[segment];
+
         if (word is not null)
         {
             if (position < end && lexemes[position].Kind is LexemeKind.Word && lexemes[position].Text == word)
-                foreach (var match in Match(pattern, segment + 1, lexemes, position + 1, end))
-                    yield return match;
-            yield break;
+                return Match(pattern, segment + 1, lexemes, position + 1, end);
+
+            return Fillings.None;
         }
 
         // A pinned hole is exactly one word, which is what makes the split
         // around it structural rather than scored: nothing can grow across it,
-        // so the word after it needs no reserving. Enforced HERE and not only in
-        // the glue calculation, or the pattern would claim a guarantee the
-        // resolver does not give.
-        var pinned = pattern.Pinned.Contains(segment);
-
-        // One word, or one bracketed group where a word will not do. Both are
-        // determinate in EXTENT — the word by being one token, the group by
-        // being matched — which is the property that fixes the split and makes
-        // the word after it safe to leave unreserved.
-        if (pinned)
+        // so the word after it needs no reserving.
+        if (pattern.Pinned.Contains(segment))
         {
             // A BINDING occurrence, not a value. The hole declares the name, so
-            // there is nothing to look up and nothing to score — and resolving
-            // it as an expression meant «for each bank in banks» only resolved
-            // when «bank» was ALREADY declared, which is the one table the real
-            // path can never present: the loop is what declares it.
-            //
-            // It also over-accepted in the other direction, because an
-            // expression is happy to be a literal, an operator, several values,
-            // or any bracket at all: «for each (3) in banks», «for each (a + b)
-            // in banks» and «for each [x] in banks» all resolved. None is a name
-            // anything could bind.
-            if (Binding(lexemes, position, end, out var only) is not Node.Binding name) yield break;
+            // there is nothing to look up and nothing to score — resolving it as
+            // an expression meant «for each bank in banks» only resolved when
+            // «bank» was already declared, the one table the real path can never
+            // present, and over-accepted «for each (a + b) in banks» besides.
+            if (Binding(lexemes, position, end, out var only) is not Node.Binding name) return Fillings.None;
 
             if (segment == pattern.Segments.Count - 1)
-            {
-                if (only == end) yield return (0, [name], false);
-                yield break;
-            }
+                return only == end ? new Fillings([new Filling(0, [name])], 1, false) : Fillings.None;
 
-            foreach (var (bound, arguments, bounded) in Match(pattern, segment + 1, lexemes, only, end))
-                yield return (bound, [name, .. arguments], bounded);
+            var after = Match(pattern, segment + 1, lexemes, only, end);
 
-            yield break;
+            // Prepending a binding costs nothing and adds nothing to count — the
+            // name was determined, so the fillings after it are the fillings.
+            return new Fillings([.. after.Tuples.Select(rest => new Filling(rest.Cost, [name, .. rest.Arguments]))],
+                                after.Total,
+                                after.Bounded);
         }
 
         if (segment == pattern.Segments.Count - 1)
@@ -602,16 +678,15 @@ internal sealed class Resolver
             // pattern's own binding power
             var last = Expressions(position, end, PatternBindingPower);
 
-            if (last.IsEmpty is false)
-            {
-                foreach (var trailing in last.Alternatives)
-                {
-                    yield return (trailing.Cost, [trailing.Node], last.Bounded);
-                }
-            }
+            if (last.IsEmpty) return Fillings.None;
 
-            yield break;
+            return new Fillings([.. last.Alternatives.Select(trailing => new Filling(trailing.Cost, [trailing.Node]))],
+                                last.Total,
+                                last.Bounded);
         }
+
+        List<Filling> combined = [];
+        var total = 0L;
 
         for (var split = position + 1; split <= end; ++split)
         {
@@ -620,17 +695,33 @@ internal sealed class Resolver
 
             if (medial.IsEmpty) continue;
 
-            // EVERY argument against every completion. Taking one tree here is
-            // what dropped a reading whose only alternative was inside an
-            // argument the parent had already chosen for.
+            var after = Match(pattern, segment + 1, lexemes, split, end);
+
+            if (after.Tuples.Count is 0) continue;
+
+            // EVERY argument against every completion — the cheapest «Most» of
+            // each, which is enough for the cheapest «Most» of the pair. Taking
+            // one tree here is what dropped a reading whose only alternative was
+            // inside an argument the parent had already chosen for.
             foreach (var argument in medial.Alternatives)
             {
-                foreach (var (cost, arguments, bounded) in Match(pattern, segment + 1, lexemes, split, end))
+                foreach (var rest in after.Tuples)
                 {
-                    yield return (argument.Cost + cost, [argument.Node, .. arguments], medial.Bounded || bounded);
+                    combined.Add(new Filling(argument.Cost + rest.Cost, [argument.Node, .. rest.Arguments]));
                 }
             }
+
+            total = Cell.Saturating(total + Cell.Saturating(medial.Total * after.Total));
         }
+
+        var kept = combined.OrderBy(filling => filling.Cost).Take(Cell.Most).ToArray();
+
+        // BOUNDED is exactly "were readings dropped, here or below". A part that
+        // capped reports a saturated «Total» of at least «Most» + 1, which its
+        // product carries into «total» — so «total > kept.Length» already covers
+        // a bound below this level, and tracking each part's flag as well would
+        // be testing a term that can never be the one that decides it.
+        return new Fillings(kept, total, total > kept.Length);
     }
 
     private void Expression(IReadOnlyList<Lexeme> lexemes, int i, int j, int minimum)
@@ -709,6 +800,7 @@ internal sealed class Resolver
     public const int Kept = Cell.Most;
 
     private Dictionary<string, List<Pattern>> anchored;
+    private Dictionary<(Pattern, int, int, int), Fillings> fillings;
     private readonly int[] minima;
     private readonly int[] slots;
     private readonly SymbolTable symbols;

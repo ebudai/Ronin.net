@@ -104,6 +104,68 @@ public class ResolverCost
                     $"resolving 149 lexemes allocated {megabytes:F1} MB, past the {Ceiling} MB ceiling");
     }
 
+    [Fact(DisplayName = "adjacent free holes do not enumerate every way to split them")]
+    public void AdjacentFreeHolesDoNotEnumerateEveryWayToSplitThem()
+    {
+        // Found by audit, and it was a hang rather than a slow path. A pattern of
+        // h adjacent holes over n words has «C(n-1, h-1)» ways to split, and the
+        // matcher yielded every one, combined with every argument alternative,
+        // before anything trimmed them — so a twenty-five-lexeme statement took
+        // twelve SECONDS to resolve and a thirty-lexeme one did not finish.
+        //
+        // Keeping the cheapest «Most» fillings per subproblem, memoised, makes it
+        // polynomial: the cheapest few of a whole are built from the cheapest few
+        // of its parts, because cost is additive. This is the same top-K property
+        // the cell already relied on, applied to the recursion that feeds it.
+        SymbolTable symbols = new();
+        symbols.WithPatterns("p " + string.Join(" ", Enumerable.Repeat("_", 12)));
+        for (var n = 1; n <= 24; ++n) symbols.WithNames(string.Join(" ", Enumerable.Repeat("x", n)));
+
+        var lexemes = Lexemes.Lex("p " + string.Join(" ", Enumerable.Repeat("x", 24)));
+
+        Assert.Equal(25, lexemes.Count);
+
+        Resolver resolver = new(symbols);
+        resolver.Resolve(lexemes);
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        resolver.Resolve(lexemes);
+        var megabytes = (GC.GetAllocatedBytesForCurrentThread() - before) / 1024.0 / 1024.0;
+
+        // 10 MB as this is written. The number is not the point — its GROWTH is:
+        // exponential enumeration allocated a Filling per split-combination, which
+        // for this case is «C(23, 11)» ≈ 1.3 million and reached gigabytes. A
+        // ceiling of 30 has three times the margin and still fails by two orders
+        // of magnitude on a return to enumerating them all.
+        Assert.True(megabytes < 30,
+                    $"resolving twelve adjacent holes over 24 words allocated {megabytes:F1} MB — the split enumeration is back");
+    }
+
+    [Fact(DisplayName = "and a bound below one hole is carried up like a bound below the pattern")]
+    public void AndABoundBelowOneHoleIsCarriedUpLikeABoundBelowThePattern()
+    {
+        // The count a matcher reports is a floor when a part was capped, and a
+        // part is either a completion of the remaining holes or an ARGUMENT of
+        // one hole. The completion case rides every deep resolution; the argument
+        // case needs an argument that is itself ambiguous past the cap, which is
+        // a call inside a call.
+        //
+        // «wrap _ up» forces its hole to span exactly the middle, and that middle
+        // is a three-hole call over eight words — twenty-one readings, more than
+        // are kept. So the argument cell is bounded, and «wrap» is bounded
+        // because its argument is.
+        SymbolTable symbols = new();
+        symbols.WithPatterns("wrap _ up", "p " + string.Join(" ", Enumerable.Repeat("_", 3)));
+        for (var n = 1; n <= 8; ++n) symbols.WithNames(string.Join(" ", Enumerable.Repeat("x", n)));
+
+        var resolution = new Resolver(symbols).Resolve(
+            "wrap p " + string.Join(" ", Enumerable.Repeat("x", 8)) + " up");
+
+        Assert.Equal("Ambiguous", resolution.Kind.ToString());
+        Assert.True(resolution.Bounded);
+        Assert.True(resolution.Total > Resolver.Kept);
+    }
+
     [Fact(DisplayName = "a statement past the ceiling is refused, not resolved slowly")]
     public void AStatementPastTheCeilingIsRefusedNotResolvedSlowly()
     {
