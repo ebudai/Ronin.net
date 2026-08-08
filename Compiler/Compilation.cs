@@ -238,7 +238,7 @@ internal sealed class Compilation
     {
         var answering = readings.Skip(exits)
                                 .Where(reading => reading.Resolution.TryTree(out _))
-                                .SelectMany(reading => Called(reading))
+                                .SelectMany(Called)
                                 .ToArray();
 
         exits = readings.Count;
@@ -279,17 +279,29 @@ internal sealed class Compilation
     ///     inside one. Looking only at the top of a statement would answer for
     ///     the shapes people write and stay silent on the ones they do not, which
     ///     is the wrong way round for a rule about legality.
+    ///     <para>
+    ///     At its OWN span, which it did not have. Every match yielded the whole
+    ///     statement's, so «send (return 1) to (return 2)» reported one finding
+    ///     over the whole expression rather than two at the two «return»s — and
+    ///     one of them silently, because two findings sharing a kind, a span and
+    ///     a message are recorded once. Two edits, one message, and the contract
+    ///     three lines up says each site is separate precisely so each is a
+    ///     separate edit.
+    ///     </para>
     /// </remarks>
-    private static IEnumerable<(Span Span, bool Answers, bool Halts)> Called(Reading reading)
+    private IEnumerable<(Span Span, bool Answers, bool Halts)> Called(Reading reading)
     {
         reading.Resolution.TryTree(out var tree);
 
         foreach (var node in tree.Whole)
         {
             if (node is not Node.Call call) continue;
-            if (call.Pattern.Equals(SymbolTable.Answer)) yield return (reading.Span, true, false);
-            if (call.Pattern.Equals(SymbolTable.Exit)) yield return (reading.Span, false, false);
-            if (call.Pattern.Equals(SymbolTable.Halt)) yield return (reading.Span, false, true);
+
+            var at = Source.Span(call.Offset, call.Length);
+
+            if (call.Pattern.Equals(SymbolTable.Answer)) yield return (at, true, false);
+            if (call.Pattern.Equals(SymbolTable.Exit)) yield return (at, false, false);
+            if (call.Pattern.Equals(SymbolTable.Halt)) yield return (at, false, true);
         }
     }
 

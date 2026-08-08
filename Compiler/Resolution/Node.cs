@@ -266,8 +266,30 @@ internal abstract class Node
     /// <summary>
     ///     A word pattern applied to its arguments, in hole order. One lookup.
     /// </summary>
-    internal sealed class Call(Pattern pattern, IReadOnlyList<Node> arguments) : Node
+    internal sealed class Call(Pattern pattern, IReadOnlyList<Node> arguments, int offset = 0, int length = 0)
+        : Node
     {
+        /// <summary>Where the call sits in the source it was resolved from.</summary>
+        ///
+        /// <remarks>
+        ///     <para>
+        ///     A tree knew what a statement meant and not where any of it was, so
+        ///     a diagnostic about one call inside a statement had only the
+        ///     statement to point at. Two «return»s in one expression became one
+        ///     finding over the whole of it — deduplicated, because they shared a
+        ///     kind, a span and a message — which is one message about two edits.
+        ///     </para>
+        ///     <para>
+        ///     NOT part of identity. Two derivations of one span differ in shape
+        ///     and not in extent, so including it would add a field that is equal
+        ///     whenever the rest is — and identity is the one thing on this type
+        ///     that has already been wrong once.
+        ///     </para>
+        /// </remarks>
+        public int Offset { get; } = offset;
+
+        public int Length { get; } = length;
+
         public Pattern Pattern { get; } = pattern;
 
         /// <summary>One per hole in <see cref="Pattern"/>, left to right.</summary>

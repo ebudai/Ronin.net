@@ -238,12 +238,36 @@ public class Ambiguities
 
     [Fact(DisplayName = "and an exit is found wherever it sits, not only at the top")]
     public void AndAnExitIsFoundWhereverItSitsNotOnlyAtTheTop()
+    {
         // «return» is a call like any other, so it can sit inside one. Looking
         // only at the top of a statement would answer for the shapes people
         // write and stay silent on the ones they do not, which is the wrong way
         // round for a rule about legality.
-        => Assert.Equal("AnsweringReaction",
-                        Assert.Single(All("var ready => Number;\nwhen ready { return (return 1); }\n")).Kind.ToString());
+        //
+        // TWO, because there are two of them. This asserted one, and got one
+        // because every match reported the whole statement's span and two
+        // findings sharing a kind, a span and a message are recorded once. Two
+        // edits arriving as one message, and the assertion agreed with it.
+        var nested = All("var ready => Number;\nwhen ready { return (return 1); }\n");
+
+        Assert.Equal(2, nested.Count);
+        Assert.All(nested, finding => Assert.Equal(FindingKind.AnsweringReaction, finding.Kind));
+    }
+
+    [Fact(DisplayName = "and two exits in one statement are two edits at two places")]
+    public void AndTwoExitsInOneStatementAreTwoEditsAtTwoPlaces()
+    {
+        // Found by audit. Neither «return» is at the top of the statement and
+        // neither contains the other, so nothing about the shape hides one — the
+        // span did, because a resolved call knew what it meant and not where it
+        // was.
+        var findings = All("function send (x => Number) to (y => Number) { return x; }\n"
+                         + "var ready => Number;\n"
+                         + "when ready { send (return 1) to (return 2); }\n");
+
+        Assert.Equal(["Player.ron:3:20:", "Player.ron:3:34:"],
+                     findings.Select(finding => Diagnostics.Report(finding)[..16]).Order());
+    }
 
     [Fact(DisplayName = "the two truths are supplied, not declared")]
     public void TheTwoTruthsAreSuppliedNotDeclared()

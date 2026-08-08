@@ -246,7 +246,12 @@ internal sealed class Resolver
         {
             var target = pattern.IsOpenEnded ? open[Span(i, j)] : cell;
             foreach (var (cost, arguments, bounded) in Match(pattern, 0, lexemes, i, j))
-                target.Offer(1 + cost, new Node.Call(pattern, arguments), bounded);
+                target.Offer(1 + cost,
+                             new Node.Call(pattern,
+                                           arguments,
+                                           lexemes[i].Offset,
+                                           lexemes[j - 1].Offset + lexemes[j - 1].Length - lexemes[i].Offset),
+                             bounded);
         }
     }
 
