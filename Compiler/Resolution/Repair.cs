@@ -81,13 +81,23 @@ internal static class Repairs
 {
     public static IReadOnlyList<Repair> For(Resolver resolver, IReadOnlyList<Lexeme> lexemes, Resolution ambiguity)
     {
+        List<Repair> found = [];
+
+        foreach (var alternative in ambiguity.Alternatives)
+        {
+            // NOT PUBLISHED when there is none. A repair with no insertions
+            // looks selectable in an editor and does nothing when selected,
+            // which is worse than an error that offers nothing — the second
+            // says where you are and the first lies about it.
+            if (Selecting(resolver, lexemes, alternative) is not IReadOnlyList<Insertion> insertions) continue;
+
+            found.Add(new Repair(alternative.ToString(), found.Count, insertions));
+        }
+
         // Owned on the way out, like every other value this compiler hands
         // over: what an editor is about to apply should not change under it
         // because the thing that built it kept a reference.
-        return Owned.Of(ambiguity.Readings
-                                 .Select((reading, rank) => new Repair(reading,
-                                                                       rank,
-                                                                       Selecting(resolver, lexemes, reading))));
+        return Owned.Copy(found);
     }
 
     /// <summary>The narrowest bracket pair that leaves only this reading.</summary>
@@ -101,16 +111,16 @@ internal static class Repairs
     /// </remarks>
     private static IReadOnlyList<Insertion> Selecting(Resolver resolver,
                                                       IReadOnlyList<Lexeme> lexemes,
-                                                      string reading)
+                                                      Node target)
     {
         for (var width = 1; width <= lexemes.Count; ++width)
         {
             for (var from = 0; from + width <= lexemes.Count; ++from)
             {
-                var bracketed = Bracketed(lexemes, from, from + width);
+                var resolution = resolver.Resolve(Bracketed(lexemes, from, from + width));
 
-                if (resolver.Resolve(bracketed).Kind is not ResolutionKind.Resolved) continue;
-                if (Bare(resolver.Resolve(bracketed).Reading).Contains(reading) is false) continue;
+                if (resolution.TryTree(out var tree) is false) continue;
+                if (Same(tree, target) is false) continue;
 
                 return Owned.Copy<Insertion>(
                 [
@@ -120,8 +130,44 @@ internal static class Repairs
             }
         }
 
-        return Owned.Copy<Insertion>([]);
+        return null;
     }
+
+    /// <summary>
+    ///     Whether two trees are the same reading, ignoring the brackets a
+    ///     repair added.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A repair works by GROUPING, so what it produces is the target with a
+    ///     bracket somewhere in it — never the target itself. Unwrapping single
+    ///     bracketed parts is what makes "did this select the reading" a question
+    ///     about the reading.
+    ///     <para>
+    ///     This compared RENDERINGS, and stripped the bracket marks out of a
+    ///     string to do it. That recreated one layer later the very defect the
+    ///     cell had been taught to avoid: two calls spanning the same words
+    ///     render alike, so both searches found the same bracket and one meaning
+    ///     was offered twice while the other was unreachable.
+    ///     </para>
+    /// </remarks>
+    private static bool Same(Node tree, Node target)
+    {
+        var here = Ungrouped(tree);
+        var there = Ungrouped(target);
+
+        if (Node.Same.Equals(here, there)) return true;
+
+        return here is Node.Call call
+            && there is Node.Call other
+            && call.Pattern.Equals(other.Pattern)
+            && call.Arguments.Count == other.Arguments.Count
+            && call.Arguments.Zip(other.Arguments).All(pair => Same(pair.First, pair.Second));
+    }
+
+    /// <summary>A tree without the brackets around it.</summary>
+    private static Node Ungrouped(Node tree)
+        => tree is Node.Group { Collection: false, Parts.Count: 1 } group ? Ungrouped(group.Parts[0]) : tree;
 
     private static List<Lexeme> Bracketed(IReadOnlyList<Lexeme> lexemes, int from, int to)
     {
@@ -135,8 +181,4 @@ internal static class Repairs
         return bracketed;
     }
 
-    /// <summary>A rendering without the marks a bracket leaves in it.</summary>
-    private static string Bare(string reading)
-        => reading.Replace("⟨", string.Empty, System.StringComparison.Ordinal)
-                  .Replace("⟩", string.Empty, System.StringComparison.Ordinal);
 }

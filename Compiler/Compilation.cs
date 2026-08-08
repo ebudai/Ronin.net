@@ -123,6 +123,7 @@ internal sealed class Compilation
             if (reading.Resolution.Kind is ResolutionKind.Ambiguous)
             {
                 Add(new Ambiguous(reading.Span,
+                                  [.. reading.Resolution.Readings],
                                   reading.Repairs,
                                   reading.Resolution.Total,
                                   reading.Resolution.Bounded));

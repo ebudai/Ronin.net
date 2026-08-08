@@ -261,7 +261,11 @@ internal sealed class NameShadowsPattern(Span primary, string name, string patte
 ///     none of which is where the mistake was made.
 ///     </para>
 /// </remarks>
-internal sealed class Ambiguous(Span primary, IReadOnlyList<Repair> repairs, long total, bool bounded)
+internal sealed class Ambiguous(Span primary,
+                               IReadOnlyList<string> readings,
+                               IReadOnlyList<Repair> repairs,
+                               long total,
+                               bool bounded)
     : Finding(FindingKind.Ambiguous, primary)
 {
     /// <summary>
@@ -277,8 +281,17 @@ internal sealed class Ambiguous(Span primary, IReadOnlyList<Repair> repairs, lon
     /// </remarks>
     public IReadOnlyList<Repair> Repairs { get; } = Owned.Copy(repairs);
 
-    /// <summary>The cheapest readings, in order, which is not always all of them.</summary>
-    public IReadOnlyList<string> Readings { get; } = Owned.Of(repairs.Select(repair => repair.Reading));
+    /// <summary>
+    ///     The cheapest readings, in order, which is not always all of them.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Every reading, and not only the ones a repair was found for. Deriving
+    ///     these FROM the repairs made a statement whose repairs need two
+    ///     brackets report that it reads no ways at all — a count of two above
+    ///     an empty list, which is worse than either half alone.
+    /// </remarks>
+    public IReadOnlyList<string> Readings { get; } = Owned.Copy(readings);
 
     /// <summary>How many readings there are.</summary>
     public long Total { get; } = total;

@@ -727,6 +727,7 @@ public class Admission
     /// <summary>One ambiguity, for the three promises it hands out.</summary>
     private static readonly Ambiguous Tie =
         new(default,
+            new List<string> { "one" },
             new List<Repair> { new("one", 0, new List<Insertion> { new(0, "(") }) },
             2,
             false);
@@ -743,6 +744,7 @@ public class Admission
         ("Descriptor.SeeAlso", () => SymbolTable.Supplies.First(s => s.SeeAlso.Count is not 0).SeeAlso),
         ("SymbolTable.Supplies", () => SymbolTable.Supplies),
         ("SymbolTable.Truths", () => SymbolTable.Truths),
+        ("Resolution.Alternatives", () => new Resolver(Ambiguity).Resolve("send a to b").Alternatives),
         ("SymbolTable.Whole", () => SymbolTable.Whole),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
         ("Cascades.Cycles", () => Cascades.Cycles(Ringed)),

@@ -168,10 +168,7 @@ internal sealed class Resolver
         var readings = top.Alternatives;
 
         return top.Total > 1
-             ? Resolution.Ambiguous(readings[0].Cost,
-                                    readings.Select(reading => reading.Node.ToString()),
-                                    top.Total,
-                                    top.Bounded)
+             ? Resolution.Ambiguous(readings[0].Cost, readings, top.Total, top.Bounded)
              : Resolution.Resolved(readings[0].Cost, readings[0].Node);
     }
 
@@ -1766,8 +1763,32 @@ internal readonly record struct Resolution(ResolutionKind Kind, int Cost, IReadO
     ///     least" — and a cap nobody is told about reads as "these are all of
     ///     them", which is the shape of every silent thing this design removes.
     /// </param>
-    public static Resolution Ambiguous(int cost, IEnumerable<string> readings, long total, bool bounded)
-        => new(ResolutionKind.Ambiguous, cost, [.. readings]) { Total = total, Bounded = bounded };
+    public static Resolution Ambiguous(int cost, IReadOnlyList<Best> readings, long total, bool bounded)
+        => new(ResolutionKind.Ambiguous, cost, [.. readings.Select(reading => reading.Node.ToString())])
+        {
+            Total = total,
+            Bounded = bounded,
+            Alternatives = Owned.Of(readings.Select(reading => reading.Node)),
+        };
+
+    /// <summary>
+    ///     The competing readings as TREES, which is what they are.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The resolver was taught to keep alternatives apart by shape rather
+    ///     than by how they read, and then handed them over as renderings — so
+    ///     everything downstream inherited exactly the non-injectivity that was
+    ///     removed. Two different calls spanning the same words print the same
+    ///     sentence, and a repair searching for that sentence found the same
+    ///     bracket twice and offered one meaning as though it were two.
+    ///     <para>
+    ///     Rendering is a presentation of a tree and belongs at the boundary
+    ///     where something is presented. This is the boundary where something is
+    ///     REPAIRED, and a repair is about the tree.
+    ///     </para>
+    /// </remarks>
+    public IReadOnlyList<Node> Alternatives { get; private init; } = Owned.Copy<Node>([]);
 
     /// <summary>How many readings the statement has, of which <see cref="Readings"/> shows a few.</summary>
     public long Total { get; private init; } = 1;

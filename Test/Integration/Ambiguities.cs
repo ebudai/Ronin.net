@@ -367,6 +367,75 @@ public class Ambiguities
         Assert.Equal(refused, Assert.Single(findings).Kind.ToString());
     }
 
+    [Fact(DisplayName = "two readings that print alike get the two different repairs")]
+    public void TwoReadingsThatPrintAlikeGetTheTwoDifferentRepairs()
+    {
+        // Found by audit. The resolver was taught to keep alternatives apart by
+        // shape rather than by how they read, and then handed them over as
+        // renderings — so the repair layer inherited exactly the non-injectivity
+        // that had been removed one level down. Both searches looked for the
+        // same sentence, both found the same bracket, and one of the two
+        // meanings could not be selected from the diagnostic at all.
+        const string Source = "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "function print (x => Number) { return x; }\n"
+                            + "function print (x => Number) to (y => Number) { return x; }\n"
+                            + "var a => Number;\nvar b => Number;\nvar result = print send a to b;\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        // The same sentence twice, which is the whole difficulty: nothing about
+        // the readings tells them apart, and they are still two meanings.
+        Assert.Equal(["print send «a» to «b»", "print send «a» to «b»"], finding.Readings);
+
+        // TWO different edits, and each produces a file that compiles.
+        var repaired = finding.Repairs.Select(repair => Applied(Source, repair)).ToArray();
+
+        Assert.Equal(2, repaired.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(repaired, edited => Assert.Empty(All(edited)));
+
+        Assert.Contains(repaired, edited => edited.Contains("print (send a to b)", StringComparison.Ordinal));
+        Assert.Contains(repaired, edited => edited.Contains("print (send a) to b", StringComparison.Ordinal));
+    }
+
+    [Fact(DisplayName = "and a reading no single bracket reaches is reported without a repair, not with an empty one")]
+    public void AndAReadingNoSingleBracketReachesIsReportedWithoutARepairNotWithAnEmptyOne()
+    {
+        // Found by audit, and half open. Each of these four readings chooses a
+        // meaning for the LEFT child and one for the RIGHT, so selecting one
+        // means disambiguating both — two bracket pairs, and the search looks
+        // for one. I claimed one always suffices, citing the repair-completeness
+        // property; that property generates flat word sequences and never
+        // composes ambiguous children through a group or an operator, so it
+        // never reaches this shape. A measured result quoted past its domain.
+        //
+        // What is fixed is the lying: an empty repair looks selectable in an
+        // editor and does nothing when selected, which is worse than an error
+        // offering none — the second says where you are and the first does not.
+        //
+        // So the readings are all reported and the repairs are absent, and this
+        // test is here to fail when the search learns to find them.
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(
+            All(Colliding + "var a => Number;\nvar b => Number;\n"
+              + "var result = (send a to b) + (send a to b);\n")));
+
+        Assert.Equal(4, finding.Readings.Count);
+        Assert.Empty(finding.Repairs);
+    }
+
+    /// <summary>The source with one repair's brackets typed into it.</summary>
+    private static string Applied(string source, Repair repair)
+    {
+        var edited = source;
+
+        foreach (var insertion in repair.Insertions.OrderByDescending(insertion => insertion.At))
+        {
+            edited = edited[..insertion.At] + insertion.Text + edited[insertion.At..];
+        }
+
+        return edited;
+    }
+
     [Fact(DisplayName = "and an unambiguous file says nothing")]
     public void AndAnUnambiguousFileSaysNothing()
         // The same statement with the colliding name gone. Without it there is
