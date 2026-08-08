@@ -8,7 +8,7 @@ Everything in `FIVE-RULINGS.md` that is not listed here is either buildable now
 
 ---
 
-## 1. What is `return` inside a `when` body? — blocks §1's follow-on only
+## 1. What is `return` inside a `when` body? — ANSWERED and BUILT
 
 `FIVE-RULINGS.md` §1 asks whether `Graph.Return` means the function's value or a
 graph node's. It is the second, and there is a sharper problem underneath.
@@ -42,9 +42,15 @@ with an optional argument. But that is a reading, not a ruling, and the case tha
 needs deciding is `return (_)` written *inside* a `when` body, where there is no
 function to answer for.
 
-This does not block §1. `return (_)` as a builtin pattern is well defined
-whatever the answer, and I am building it. It blocks knowing whether bare
-`return` should join it in the same commit.
+**Answered in `RETURN-AND-LITERALS.md` §1 and built.** Bare `return` is the
+runtime's operation; the two are one concept at two arities; `return (_)` in a
+`when` is refused with the message that document wrote, verbatim. A body has one
+exit flavour and mixing is refused — which is the legality half of the walk whose
+other half is the inference, and the collection is written once with its second
+reader named in the code.
+
+`done` is withdrawn per `MONOMORPH-AND-RETURN.md` §4; the valueless exit is bare
+`return`. See §6 for the one loose end that leaves.
 
 ## 2. How is an action distinguished from a function? — ANSWERED, recorded here for the trail
 
@@ -86,7 +92,7 @@ once `return (_)` exists, so the inference has a prerequisite and it is the
 slice I am building now. Recorded rather than deleted because that dependency is
 the sort of thing that gets rediscovered.
 
-## 3. Truth literals — not blocking, but needed sooner than §2a suggests
+## 3. Truth literals — RULED as `true` / `false`, and next on my list
 
 §2a sets the literals aside as "a separate small decision" that should not hold
 `truth` up. Agreed for the type. But the moment `truth` exists, the tagging
@@ -96,7 +102,83 @@ critical path for the type and are on it for the tests that prove the type did
 what it was for.
 
 Not a question, a scheduling note: they arrive together or the second half is
-untestable.
+untestable. `RETURN-AND-LITERALS.md` §3 ruled `true`/`false` on exactly that
+ground, so this is closed and is what I build next.
+
+## 4. Recursion — settled, and one word of mine was wrong
+
+`RECURSIVE-RETURN.md` and `MONOMORPH-AND-RETURN.md` both land, and the second
+supersedes the first's §4. Recording the corrected form here because the version
+in the first draft of this document is the one that loses information.
+
+**«check» was the wrong verb, and it was mine.** I wrote *infer from the returns
+that do not depend on the function, then CHECK the recursive ones against the
+result*. Measured, that publishes `list of ?` for any function beginning
+`return empty list`, because the base case is under-determined and the site that
+pins the element type is the recursive one. The recursive sites must
+**contribute** information, not be validated against what the base case already
+knew. An empty accumulator is how a large share of recursive functions start, so
+that is the common case rather than a corner.
+
+Stated correctly:
+
+> The answer type is what all the return sites agree on, found by solving the
+> base case first. Base-case-first is an ORDERING that makes the common case
+> terminate in one pass, not a different rule that looks at one site.
+
+Two more, both from `RECURSIVE-RETURN.md` and neither mine to have got right:
+the answer must be **ground** when solving finishes, or `function loop (x) {
+return loop (x) }` is accepted with the answer unbound; and it is the recursive
+**group** rather than the function, or mutual recursion is refused depending on
+which of two functions the compiler reaches first.
+
+**And the residue is empty.** `RECURSIVE-RETURN.md` §4 kept polymorphic
+recursion as the one case needing an annotation; `MONOMORPH-AND-RETURN.md` §2
+measures that away — finite polymorphic recursion instantiates in two steps and
+the monomorphiser does not notice, and the infinite case surfaces as *"this
+instantiates forever"* from the depth limit rather than as a type error. So
+`RETURN-AND-LITERALS.md` §4 is withdrawn and nothing replaces it.
+
+I will take the depth limit as a prerequisite of the first generic recursive
+function rather than a follow-up, per §3 of that document: without it the failure
+is a hang, and a compiler that hangs on a keystroke in an always-running editor
+is worse than one that reports something.
+
+## 5. `Scope.Invoke` is RUNTIME — the answer that did not reach you
+
+`MONOMORPH-AND-RETURN.md` closes with this still outstanding. It was answered in
+conversation and not written down, which is my mistake and exactly the drift this
+channel exists to stop.
+
+```csharp
+// Evaluator.cs — the only call site
+=> scope.Invoke(graph,
+                call.Pattern,
+                [.. call.Arguments.Select(argument => Argument(graph, argument, insideLet))],
+                insideLet);
+```
+
+A `Graph`, and arguments that have already been evaluated. So
+`«{pattern}» is ambiguous after type filtering` fires **when the call executes**,
+which is `OVERLOADS.md` §4a's fear exactly: a runtime failure on a program the
+editor called fine, with nowhere for a selectable repair to appear.
+
+Two things soften it. It cannot fire from real source today at all, because
+`Overloaded` refuses the declaration at compile time — the only way to reach it
+is a hand-built `Scope`, which is how it is covered. And it was written as an
+anticipation rather than as a mechanism, so nothing depends on it being there.
+
+What follows: the narrowing belongs in the compile-time filter, and this check
+then becomes either a belt-and-braces assertion or dead — and dead is deleted
+here rather than tested. Worth deciding deliberately when the filter lands,
+because deleting it removes the only place that currently names the condition.
+
+## 6. Where the `return` / `stop` sentences should live
+
+Taken, and I have nowhere to put them. `docs/guide` is a single `README.md` and
+`docs/spec` has no per-keyword reference, so the two entries that point at each
+other have no page to sit on. Tell me where they belong and I will write them; I
+would rather ask than invent a documentation structure.
 
 ---
 
