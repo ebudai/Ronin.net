@@ -102,8 +102,47 @@ public class Protocol
         var (_, said) = Serving("""{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}""");
 
         Assert.Contains("\"hoverProvider\":true", said, StringComparison.Ordinal);
+        Assert.Contains("\"codeActionProvider\":true", said, StringComparison.Ordinal);
         Assert.Contains("Content-Length:", said, StringComparison.Ordinal);
     }
+
+    [Fact(DisplayName = "a code action turns a repair into a workspace edit an editor can apply")]
+    public void ACodeActionTurnsARepairIntoAWorkspaceEditAnEditorCanApply()
+    {
+        // The whole promise made selectable at the wire: open an ambiguous file,
+        // ask for the actions over the ambiguous statement, and get bracketings
+        // as concrete edits. This is initialize's «codeActionProvider» made good.
+        const string Text = "function send (x => Number) { return x; }\n"
+                          + "function send (x => Number) to (y => Number) { return x; }\n"
+                          + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+                          + "var result = send a to b;\n";
+
+        var open = "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{"
+                 + "\"uri\":\"file:///p.ron\",\"text\":\"" + Text.Replace("\n", "\\n") + "\"}}}";
+
+        var (_, said) = Serving(open,
+                                """
+            {"jsonrpc":"2.0","id":4,"method":"textDocument/codeAction","params":{"textDocument":{
+            "uri":"file:///p.ron"},"range":{"start":{"line":5,"character":13},"end":{"line":5,"character":24}}}}
+            """.ReplaceLineEndings(string.Empty));
+
+        Assert.Contains("\"id\":4", said, StringComparison.Ordinal);
+        Assert.Contains("\"kind\":\"quickfix\"", said, StringComparison.Ordinal);
+        Assert.Contains("\"newText\":\"(\"", said, StringComparison.Ordinal);
+        Assert.Contains("workspaceEdit".Replace("workspaceEdit", "changes"), said, StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "and a code action for a document it has not opened is empty")]
+    public void AndACodeActionForADocumentItHasNotOpenedIsEmpty()
+        // Nothing open, nothing to recompute, no actions — «result»: an empty
+        // array, not an error, because asking about a file the server never saw
+        // is a race, not a fault.
+        => Assert.Contains("\"result\":[]",
+                           Serving("""
+            {"jsonrpc":"2.0","id":5,"method":"textDocument/codeAction","params":{"textDocument":{
+            "uri":"file:///gone.ron"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":1}}}}
+            """.ReplaceLineEndings(string.Empty)).Said,
+                           StringComparison.Ordinal);
 
     [Fact(DisplayName = "and an unknown request is answered rather than ignored")]
     public void AndAnUnknownRequestIsAnsweredRatherThanIgnored()

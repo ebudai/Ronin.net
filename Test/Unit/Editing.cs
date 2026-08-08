@@ -112,4 +112,72 @@ public class Editing
         // this whole direction removed. The diagnostic lists them, which is
         // where a set of readings belongs.
         => Assert.Null(Language.Hover(Source(Colliding + "var result = send a to b;\n"), new Place(5, 14)));
+
+    [Fact(DisplayName = "a code action offers each reading, and applying it selects that reading")]
+    public void ACodeActionOffersEachReadingAndApplyingItSelectsThatReading()
+    {
+        // Ambiguity is the error that offers the bracketings selectably, and this
+        // is where "selectably" becomes real: each reading is a fix an editor can
+        // apply, titled by the reading it selects, because a person choosing
+        // between two bracketings is choosing between two meanings.
+        const string Text = "function send (x => Number) { return x; }\n"
+                          + "function send (x => Number) to (y => Number) { return x; }\n"
+                          + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+                          + "var result = send a to b;\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(5, 13), new Place(5, 24)));
+
+        Assert.Equal(["Read it as send «a to b»", "Read it as send «a» to «b»"],
+                     actions.Select(action => action.Title));
+
+        // Applying each one leaves a file that compiles — the edits are real, not
+        // a description of where an edit would go.
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
+    [Fact(DisplayName = "and a range with no ambiguity in it offers nothing")]
+    public void AndARangeWithNoAmbiguityInItOffersNothing()
+    {
+        // Recomputed from the current text, so a range that is not ambiguous — a
+        // declaration, or a statement already bracketed — has no fixes. An action
+        // built from a stale diagnostic would insert brackets where the words no
+        // longer are.
+        var actions = Language.Actions(Source("var a => Number;\nvar b => Number;\n"),
+                                       new Extent(new Place(0, 0), new Place(0, 15)));
+
+        Assert.Empty(actions);
+    }
+
+    [Theory(DisplayName = "and the actions are the statement the cursor is in, not another")]
+    [InlineData(5, 5, 24, true)]    // on the ambiguous statement, line 6
+    [InlineData(2, 0, 20, false)]   // a declaration above it
+    [InlineData(7, 0, 5, false)]    // past the end
+    [InlineData(5, 20, 22, true)]   // a selection wholly inside the statement
+    public void AndTheActionsAreTheStatementTheCursorIsInNotAnother(int line, int from, int to, bool offered)
+    {
+        // A code-action request carries the range under the cursor, and the fixes
+        // are the ambiguity that range touches — an ambiguous statement three
+        // lines up is not the one a person is looking at. Any overlap counts, so
+        // a cursor anywhere in the statement offers its fixes and a cursor in
+        // another statement does not.
+        var actions = Language.Actions(Source(Colliding + "var result = send a to b;\n"),
+                                       new Extent(new Place(line, from), new Place(line, to)));
+
+        Assert.Equal(offered ? 2 : 0, actions.Count);
+    }
+
+    /// <summary>The text with a code action's edits applied.</summary>
+    private static string Applied(string text, Fix action)
+    {
+        var lines = text.Split('\n');
+
+        // Right to left, so an earlier edit's column is untouched by a later one.
+        foreach (var edit in action.Edits.OrderByDescending(edit => (edit.At.Line, edit.At.Character)))
+        {
+            var line = lines[edit.At.Line];
+            lines[edit.At.Line] = line[..edit.At.Character] + edit.Text + line[edit.At.Character..];
+        }
+
+        return string.Join('\n', lines);
+    }
 }

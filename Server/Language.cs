@@ -30,6 +30,20 @@ internal readonly record struct Extent(Place From, Place To);
 /// </param>
 internal sealed record Reported(Extent Extent, string Message, string Code);
 
+/// <summary>One edit an action applies: text to insert at a place.</summary>
+internal readonly record struct Edit(Place At, string Text);
+
+/// <summary>
+///     A fix an editor can apply, and the edits that apply it.
+/// </summary>
+///
+/// <param name="Title">
+///     What the editor shows in its menu. It names the reading the fix selects,
+///     because a person choosing between two bracketings is choosing between two
+///     meanings and the meaning is what they can judge.
+/// </param>
+internal sealed record Fix(string Title, IReadOnlyList<Edit> Edits);
+
 /// <summary>
 ///     What an editor asks of the compiler, in the shapes it asks for.
 /// </summary>
@@ -59,6 +73,59 @@ internal static class Language
                           .Select(finding => new Reported(Where(source, finding.Primary),
                                                           finding.Message,
                                                           finding.Kind.ToString()))];
+
+    /// <summary>
+    ///     The fixes for an ambiguity the editor is asking about, if any.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     RECOMPUTED from the text the editor holds, not looked up from the
+    ///     diagnostic it sends. A diagnostic is a snapshot; the document may have
+    ///     changed since it was published, and a fix built against a stale
+    ///     reading would insert brackets where the words no longer are. Resolving
+    ///     the current text answers for the current text, and a range that is no
+    ///     longer ambiguous simply has no actions.
+    ///     </para>
+    ///     <para>
+    ///     Every reading is a fix, because ambiguity is the error that offers the
+    ///     bracketings — the repair search already found which brackets select
+    ///     each, and this only turns those into edits an editor can apply. A
+    ///     reading whose brackets the search could not find within its budget has
+    ///     no action rather than an empty one, the same honesty the search keeps.
+    ///     </para>
+    /// </remarks>
+    public static IReadOnlyList<Fix> Actions(SourceText source, Extent range)
+    {
+        List<Fix> actions = [];
+
+        foreach (var finding in Compilation.Of(source).Findings.OfType<Ambiguous>())
+        {
+            if (Overlaps(Where(source, finding.Primary), range) is false) continue;
+
+            foreach (var repair in finding.Repairs)
+            {
+                actions.Add(new Fix($"Read it as {repair.Reading}",
+                                       [.. repair.Insertions.Select(insertion => new Edit(Place(source, insertion.At), insertion.Text))]));
+            }
+        }
+
+        return actions;
+    }
+
+    /// <summary>Whether an editor's requested range touches a finding's span.</summary>
+    ///
+    /// <remarks>
+    ///     A code-action request carries the range under the cursor or selection,
+    ///     which an editor sets to the diagnostic it is offering a fix for. Any
+    ///     overlap counts: a cursor sitting anywhere in an ambiguous statement
+    ///     should offer that statement's fixes.
+    /// </remarks>
+    private static bool Overlaps(Extent finding, Extent range)
+        => Before(finding.From, range.To) && Before(range.From, finding.To);
+
+    private static bool Before(Place a, Place b)
+        => a.Line < b.Line || (a.Line == b.Line && a.Character <= b.Character);
 
     /// <summary>
     ///     What the compiler read at a place, with the brackets it inferred.

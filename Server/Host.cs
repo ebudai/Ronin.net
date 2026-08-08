@@ -142,6 +142,7 @@ internal sealed class Host
                     {
                         ["textDocumentSync"] = 1,
                         ["hoverProvider"] = true,
+                        ["codeActionProvider"] = true,
                     },
                 });
                 break;
@@ -153,6 +154,10 @@ internal sealed class Host
 
             case "textDocument/hover":
                 Reply(output, id, Hovered(message));
+                break;
+
+            case "textDocument/codeAction":
+                Reply(output, id, Actioned(message));
                 break;
 
             case "shutdown":
@@ -213,6 +218,48 @@ internal sealed class Host
             ["contents"] = new JsonObject { ["kind"] = "plaintext", ["value"] = reading },
         };
     }
+
+    private JsonArray Actioned(JsonObject message)
+    {
+        var uri = message["params"]["textDocument"]["uri"].GetValue<string>();
+
+        if (open.TryGetValue(uri, out var text) is false) return [];
+
+        var range = message["params"]["range"];
+        Extent asked = new(Placed(range["start"]), Placed(range["end"]));
+
+        JsonArray actions = [];
+
+        foreach (var action in Language.Actions(new SourceText(text, uri), asked))
+        {
+            JsonArray edits = [];
+
+            foreach (var edit in action.Edits)
+            {
+                edits.Add(new JsonObject
+                {
+                    // an insertion is an empty range at one place, with text
+                    ["range"] = Ranged(new Extent(edit.At, edit.At)),
+                    ["newText"] = edit.Text,
+                });
+            }
+
+            actions.Add(new JsonObject
+            {
+                ["title"] = action.Title,
+                ["kind"] = "quickfix",
+                ["edit"] = new JsonObject
+                {
+                    ["changes"] = new JsonObject { [uri] = edits },
+                },
+            });
+        }
+
+        return actions;
+    }
+
+    private static Place Placed(JsonNode position)
+        => new(position["line"].GetValue<int>(), position["character"].GetValue<int>());
 
     private static JsonObject Ranged(Extent extent)
         => new()
