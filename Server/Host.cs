@@ -58,10 +58,8 @@ internal sealed class Host
     /// </remarks>
     public int Serve(Stream input, Stream output)
     {
-        while (Read(input) is JsonObject message)
+        while (exiting is false && Read(input) is JsonObject message)
         {
-            if (Method(message) is "exit") break;
-
             Handle(message, output);
         }
 
@@ -81,6 +79,16 @@ internal sealed class Host
     /// </remarks>
     private static string Method(JsonObject message)
         => message["method"] is JsonValue value && value.TryGetValue(out string method) ? method : null;
+
+    /// <summary>Whether an id, present, is a kind JSON-RPC allows for one.</summary>
+    ///
+    /// <remarks>
+    ///     A string, a number, or null — a Boolean or a structure is none of
+    ///     those. A message carrying one of those for its id is a request in shape
+    ///     the server cannot answer to, not a request it may serve.
+    /// </remarks>
+    private static bool Named(JsonNode id)
+        => id is null || id.GetValueKind() is JsonValueKind.String or JsonValueKind.Number;
 
     /// <summary>One message, framed by its length.</summary>
     private static JsonObject Read(Stream input)
@@ -181,51 +189,74 @@ internal sealed class Host
 
     private void Handle(JsonObject message, Stream output)
     {
-        var id = message["id"];
         var method = Method(message);
 
-        // A REQUEST carries an id and a client waiting on an answer; a
-        // NOTIFICATION carries neither and must never be answered — not even to
-        // refuse it, which was the crash: «Fail» cloned an id a notification does
-        // not have. So every reply below goes only where an id is there to carry
-        // it, and a request method arriving without one, or a notification method
-        // with one, is the malformed message it is: the request refused, the
-        // notification dropped.
+        // THE ENVELOPE, classified once, before any lifecycle or dispatch. A
+        // REQUEST carries an id member — a string, a number, or null — and a
+        // client waiting on an answer; a NOTIFICATION carries no id member and is
+        // never answered. Reading the id's VALUE for its presence made an explicit
+        // null look like an absent one, so a null-id request was dropped as a
+        // notification; and an id of any other kind, a Boolean say, was taken for a
+        // request and answered. Presence and kind are read apart now.
+        var present = message.ContainsKey("id");
+        var id = message["id"];
+        var request = present && Named(id);
 
         // The version is part of what makes it a message at all. «1.0» or none was
-        // processed as though it were «2.0», answering a client speaking a
-        // protocol this one does not.
+        // processed as though it were «2.0», answering a client speaking a protocol
+        // this one does not.
         if (Text(message, "jsonrpc") is not "2.0")
         {
-            if (id is not null) Fail(output, id, InvalidRequest, "not a JSON-RPC 2.0 message");
+            if (request) Fail(output, id, InvalidRequest, "not a JSON-RPC 2.0 message");
 
             return;
         }
 
-        // AFTER shutdown, only «exit» is allowed, and «exit» never reaches here —
-        // the loop takes it. A request in this state is refused; a notification is
-        // dropped. Processing either would act on a conversation the client has
-        // said is over.
+        // An id present but of no allowed kind is a request in shape the server
+        // cannot answer TO — the error carries a null id, because the one it was
+        // sent is not one a response may echo.
+        if (present && request is false)
+        {
+            Fail(output, null, InvalidRequest, "the id is not a string, a number, or null");
+
+            return;
+        }
+
+        // «exit» stops the server in any state, but only as the notification the
+        // specification says it is — checking the method text in the loop honoured
+        // a wrong-version or id-carrying «exit» and terminated on a message that
+        // was no valid exit at all. A request named «exit» is answered, not obeyed.
+        if (method is "exit")
+        {
+            if (request) Fail(output, id, MethodNotFound, "«exit» is a notification, not a request");
+            else exiting = true;
+
+            return;
+        }
+
+        // AFTER shutdown, only «exit» is allowed. A request in this state is
+        // refused; a notification is dropped. Processing either would act on a
+        // conversation the client has said is over.
         if (closing)
         {
-            if (id is not null) Fail(output, id, InvalidRequest, "the server is shutting down");
+            if (request) Fail(output, id, InvalidRequest, "the server is shutting down");
 
             return;
         }
 
-        // BEFORE initialize nothing else is meaningful, and «initialize» is the
-        // one method that passes here to be handled below — as a request, since a
+        // BEFORE initialize nothing else is meaningful, and «initialize» is the one
+        // method that passes here to be handled below — as a request, since a
         // notification cannot complete a handshake a client is waiting on.
         if (initialized is false && method is not "initialize")
         {
-            if (id is not null) Fail(output, id, InvalidRequest, "the server is not initialized");
+            if (request) Fail(output, id, InvalidRequest, "the server is not initialized");
 
             return;
         }
 
         switch (method)
         {
-            case "initialize" when id is not null:
+            case "initialize" when request:
                 // ONCE. A second initialize is a client that lost track of the
                 // handshake, and answering it as the first would let two of them
                 // disagree about what was negotiated.
@@ -235,41 +266,41 @@ internal sealed class Host
                 initialized = true;
                 break;
 
-            case "textDocument/didOpen" when id is null:
-            case "textDocument/didChange" when id is null:
+            case "textDocument/didOpen" when request is false:
+            case "textDocument/didChange" when request is false:
                 Publish(message, output);
                 break;
 
-            case "textDocument/didClose" when id is null:
+            case "textDocument/didClose" when request is false:
                 // The document is gone, so its text is not the server's to keep —
                 // and a hover or an action over it afterwards has nothing to
                 // recompute from, which is the point of removing it.
                 if (Uri(message) is string closed) open.Remove(closed);
                 break;
 
-            case "textDocument/hover" when id is not null:
+            case "textDocument/hover" when request:
                 if (Uri(message) is not string hovered || AsPlace(Param(message, "position")) is not Place at)
                     Fail(output, id, InvalidParams, "the hover request names no document or position");
                 else Reply(output, id, Hovered(hovered, at));
                 break;
 
-            case "textDocument/codeAction" when id is not null:
+            case "textDocument/codeAction" when request:
                 if (Uri(message) is not string acted || AsExtent(Param(message, "range")) is not Extent range)
                     Fail(output, id, InvalidParams, "the code-action request names no document or range");
                 else Reply(output, id, Actioned(acted, range));
                 break;
 
-            case "shutdown" when id is not null:
+            case "shutdown" when request:
                 closing = true;
                 Reply(output, id, null);
                 break;
 
             default:
-                // A request the server cannot route — no method at all, or a
-                // method that is not one of its requests — is refused with the
-                // code for why; a notification it cannot route is dropped, because
-                // nobody is waiting on it.
-                if (id is not null)
+                // A request the server cannot route — no method at all, or a method
+                // that is not one of its requests — is refused with the code for
+                // why; a notification it cannot route is dropped, because nobody is
+                // waiting on it.
+                if (request)
                     Fail(output, id,
                          method is null ? InvalidRequest : MethodNotFound,
                          method is null ? "the request names no method" : $"the method «{method}» is not supported");
@@ -428,26 +459,28 @@ internal sealed class Host
     /// <summary>Answers a request the server cannot serve, with the reason's code.</summary>
     ///
     /// <remarks>
-    ///     The client carries an id and is waiting on an answer; the error is the
-    ///     answer, and the code says why — the lifecycle did not permit the
-    ///     request, or it named no method, or a method the server does not have,
-    ///     or parameters it could not read.
+    ///     The client is waiting on an answer; the error is the answer, and the
+    ///     code says why — the lifecycle did not permit the request, or it named no
+    ///     method, or a method the server does not have, or parameters it could not
+    ///     read. The id is echoed, or null where the request carried an explicit
+    ///     null or an id no response may name.
     /// </remarks>
     private static void Fail(Stream output, JsonNode id, int code, string reason)
         => Send(output, new JsonObject
         {
             ["jsonrpc"] = "2.0",
-            ["id"] = id.DeepClone(),
+            ["id"] = id?.DeepClone(),
             ["error"] = new JsonObject { ["code"] = code, ["message"] = reason },
         });
 
     private static void Reply(Stream output, JsonNode id, JsonNode result)
         => Send(output, new JsonObject
         {
-            // A reply answers a request, which has an id; a notification, which
-            // has none, is never replied to, so the id is always there to clone.
+            // A reply answers a request, and echoes the id it carried — which the
+            // specification permits to be null, though a client is unwise to send
+            // one, so «null» rather than an assumption there is always a value.
             ["jsonrpc"] = "2.0",
-            ["id"] = id.DeepClone(),
+            ["id"] = id?.DeepClone(),
             ["result"] = result,
         });
 
@@ -476,6 +509,9 @@ internal sealed class Host
 
     /// <summary>Whether the client has said it is finished.</summary>
     private bool closing;
+
+    /// <summary>Whether the client has said to stop — «exit», which the loop obeys.</summary>
+    private bool exiting;
 }
 
 /// <summary>

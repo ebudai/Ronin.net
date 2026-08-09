@@ -112,6 +112,48 @@ public class Protocol
         // process nobody owns.
         => Assert.Equal(1, Serving().Status);
 
+    [Fact(DisplayName = "and exit is obeyed only as a valid notification, not on the method text")]
+    public void AndExitIsObeyedOnlyAsAValidNotificationNotOnTheMethodText()
+    {
+        // «exit» stops the server, but only as the notification the specification
+        // says it is. The loop broke on the method text alone, so a wrong-version
+        // or id-carrying «exit» terminated on a message that was no valid exit —
+        // and left a request after it unread and unanswered. Each is handled
+        // without stopping, and the shutdown after it is read and answered.
+        var (_, said) = Session(
+            """{"jsonrpc":"1.0","method":"exit"}""",             // wrong version — a dropped notification
+            """{"jsonrpc":"2.0","id":7,"method":"exit"}""",      // an id — a request, refused not obeyed
+            """{"jsonrpc":"2.0","id":8,"method":"shutdown"}""");
+
+        Assert.Contains("\"id\":7", said, StringComparison.Ordinal);
+        Assert.Contains("\"code\":-32601", said, StringComparison.Ordinal);
+        Assert.Contains("\"id\":8", said, StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "and an explicit null id is a request, while a Boolean id is not")]
+    public void AndAnExplicitNullIdIsARequestWhileABooleanIdIsNot()
+    {
+        // Presence, not value. An initialize with «\"id\":null» is a request — the
+        // id member is there and null is an id JSON-RPC allows — so it
+        // initializes, which the shutdown answered after it proves; reading the
+        // value for the presence dropped it as a notification and left the server
+        // uninitialized.
+        var (_, accepted) = Serving(
+            """{"jsonrpc":"2.0","id":null,"method":"initialize","params":{}}""",
+            """{"jsonrpc":"2.0","id":9,"method":"shutdown"}""");
+
+        Assert.Contains("hoverProvider", accepted, StringComparison.Ordinal);
+        Assert.Contains("\"id\":9", accepted, StringComparison.Ordinal);
+
+        // A Boolean is no id JSON-RPC allows, so the request is refused with a null
+        // id rather than answered with capabilities named «true».
+        var (_, refused) = Serving("""{"jsonrpc":"2.0","id":true,"method":"initialize","params":{}}""");
+
+        Assert.Contains("\"code\":-32600", refused, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"id\":true", refused, StringComparison.Ordinal);
+        Assert.DoesNotContain("hoverProvider", refused, StringComparison.Ordinal);
+    }
+
     [Fact(DisplayName = "a request before initialize is refused, a notification dropped")]
     public void ARequestBeforeInitializeIsRefusedANotificationDropped()
     {
