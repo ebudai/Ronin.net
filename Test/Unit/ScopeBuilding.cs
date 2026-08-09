@@ -128,6 +128,56 @@ public class ScopeBuilding
                         Assert.Single(Of("function area of (radius => Number) { return 1; }\n"
                                        + "function area of (r => Number) { return 1; }\n").Problems).Kind);
 
+    [Fact(DisplayName = "and the same types split into different blocks are an overload, not a duplicate")]
+    public void AndTheSameTypesSplitIntoDifferentBlocksAreAnOverloadNotADuplicate()
+    {
+        // «(a, b) with (c)» and «(a) with (b, c)» carry the same three types, but
+        // spread differently across the two holes — a caller brackets them
+        // differently and a type checker can tell them apart, so they are an
+        // overload waiting for one, not a duplicate. Concatenating the blocks
+        // flattened both to «Number Text Number» and refused them permanently.
+        var declared = Of("function arrange (a => Number, b => Text) with (c => Number) { return a; }\n"
+                        + "function arrange (a => Number) with (b => Text, c => Number) { return a; }\n");
+
+        Assert.Equal(FindingKind.Overloaded, Assert.Single(declared.Problems).Kind);
+    }
+
+    [Fact(DisplayName = "and a duplicate among overloads is reported apart from the overload it hides in")]
+    public void AndADuplicateAmongOverloadsIsReportedApartFromTheOverloadItHidesIn()
+    {
+        // «A, A, B»: the two A's are a duplicate nothing can ever choose between,
+        // and the A's against the B are an overload waiting for a type checker.
+        // One finding spanning the first declaration and the last stood for both
+        // — and the first and last are «A» and «B», which are not the colliding
+        // pair. Both findings are reported now, each against the declarations it
+        // is actually about.
+        const string Source = "function area of (a => Number) { return a; }\n"   // A
+                            + "function area of (b => Number) { return b; }\n"   // A again — the duplicate
+                            + "function area of (c => Text) { return c; }\n";    // B — a distinct overload
+
+        var problems = Of(Source).Problems;
+
+        Assert.Equal(2, problems.Count);
+
+        int Where(string mark) => Source.IndexOf(mark, StringComparison.Ordinal);
+
+        // the duplicate names the two «Number» declarations, which are what
+        // collide — not the first and the last
+        var duplicate = Assert.IsType<DuplicateSignature>(problems.Single(problem => problem.Kind is FindingKind.DuplicateSignature));
+
+        Assert.Equal(Where("area of (a"), duplicate.Primary.Offset);
+        Assert.Equal(Where("area of (b"), Assert.Single(duplicate.Related).Span.Offset);
+
+        // and the overload names the two distinct groups — the «Number» set and
+        // the «Text» one — because removing a duplicate does not make those
+        // choosable
+        var overloaded = Assert.IsType<Overloaded>(problems.Single(problem => problem.Kind is FindingKind.Overloaded));
+
+        Assert.Equal(2, overloaded.Count);
+        Assert.Equal(Where("area of (a"), overloaded.Primary.Offset);
+        Assert.Equal(Where("area of (c"), Assert.Single(overloaded.Related).Span.Offset);
+    }
+
     [Fact(DisplayName = "overloads are one shape, not one ambiguity")]
     public void OverloadsAreOneShapeNotOneAmbiguity()
     {

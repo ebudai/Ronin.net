@@ -126,22 +126,40 @@ internal sealed class Declarations
             // could ever tell them apart. Sharing a diagnostic meant landing the
             // type checker would have meant picking the two apart under time
             // pressure.
-            var signatures = declarations.Overloads[pattern];
-            var distinct = signatures.Select(Typed).Distinct(System.StringComparer.Ordinal).Count();
+            //
+            // GROUPED, not counted. A count told duplicate from overload for a
+            // pair and nothing more: three declarations «A, A, B» collapsed to
+            // one duplicate finding spanning the first and the last — which are
+            // not even the colliding pair — and the genuine overload between the
+            // A's and the B went unreported. Each group is one thing a caller
+            // could reach; a group of more than one is a duplicate reported
+            // against the very declarations that collide, and two or more groups
+            // remaining is an overload set reported on its own, because removing
+            // a duplicate does not make «A» and «B» choosable.
+            var groups = declarations.Overloads[pattern]
+                                     .Zip(spans, (signature, shape) => (Key: Typed(signature), shape.Span))
+                                     .GroupBy(entry => entry.Key, System.StringComparer.Ordinal)
+                                     .ToList();
 
-            if (distinct < signatures.Count)
+            foreach (var duplicate in groups.Where(group => group.Count() > 1))
             {
-                declarations.problems.Add(new DuplicateSignature(spans[0].Span, pattern.ToString())
-                    .Alongside(spans[^1].Span, "also declared here"));
+                var sites = duplicate.Select(entry => entry.Span).ToList();
+                var finding = new DuplicateSignature(sites[0], pattern.ToString());
 
-                continue;
+                foreach (var site in sites.Skip(1)) finding.Alongside(site, "also declared here");
+
+                declarations.problems.Add(finding);
             }
 
-            var finding = new Overloaded(spans[0].Span, pattern.ToString(), spans.Count);
+            if (groups.Count > 1)
+            {
+                var sites = groups.Select(group => group.First().Span).ToList();
+                var finding = new Overloaded(sites[0], pattern.ToString(), sites.Count);
 
-            foreach (var shaped in spans.Skip(1)) finding.Alongside(shaped.Span, "also declared here");
+                foreach (var site in sites.Skip(1)) finding.Alongside(site, "also declared here");
 
-            declarations.problems.Add(finding);
+                declarations.problems.Add(finding);
+            }
         }
 
         return declarations;
@@ -157,14 +175,20 @@ internal sealed class Declarations
     ///     cannot tell which of them they reached — what a parameter is called is
     ///     the callee's business.
     ///     <para>
-    ///     Length prefixed, so a block of «a b» and two blocks of «a» and «b» are
-    ///     not the same spelling. A separator would be a promise about what a
-    ///     type name may contain, and a type is a run of words.
+    ///     Length prefixed, so a separator is never a promise about what a type
+    ///     name may contain — a type is a run of words and may contain anything,
+    ///     and the length says how far to read regardless. Each block is prefixed
+    ///     by its arity for the same reason one level up: «(a, b) with (c)» and
+    ///     «(a) with (b, c)» distribute the same three types across the two holes
+    ///     differently, and a caller supplies a different bracketing for each, so
+    ///     they are overloads and not the same spelling. Concatenating the blocks
+    ///     without the arity flattened both to «Number Text Number» and called
+    ///     them duplicates.
     ///     </para>
     /// </remarks>
     private static string Typed(Signature signature)
         => string.Concat(signature.Types.Select(block =>
-               string.Concat(block.Select(type => $"{(type ?? string.Empty).Length}:{type}"))));
+               $"{block.Count}:{string.Concat(block.Select(type => $"{(type ?? string.Empty).Length}:{type}"))}"));
 
     /// <summary>Declares a loop's variable into the body it is bound in.</summary>
     ///
