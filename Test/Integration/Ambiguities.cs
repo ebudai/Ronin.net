@@ -493,6 +493,37 @@ public class Ambiguities
         Assert.All(finding.Repairs, repair => Assert.Empty(All(Applied(source, repair))));
     }
 
+    [Fact(DisplayName = "and a reading containing a list is repaired around the list, not inside it")]
+    public void AndAReadingContainingAListIsRepairedAroundTheListNotInsideIt()
+    {
+        // Found by audit. Bracketing every subtree put a group around the list's
+        // element «a» in «[a]» that «Same» — which treats a collection as opaque —
+        // then left in place, so the full candidate never matched the target and a
+        // reading containing a list got no repair at all. The walk obeys the same
+        // contract as the strip now: a collection is opaque, repaired around and
+        // never inside.
+        const string Source = "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "function print (x => Number) { return x; }\n"
+                            + "function print (x => Number) to (y => Number) { return x; }\n"
+                            + "var a => Number;\nvar b => Number;\nvar result = print send [a] to b;\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        Assert.Equal(2, finding.Total);
+        Assert.Equal(2, finding.Repairs.Count);
+
+        // two different edits, each to a file that compiles
+        var edited = finding.Repairs.Select(repair => Applied(Source, repair)).ToArray();
+
+        Assert.Equal(2, edited.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(edited, source => Assert.Empty(All(source)));
+
+        // around the list — the bracket never falls inside «[a]»
+        Assert.Contains(edited, source => source.Contains("print (send [a] to b)", StringComparison.Ordinal));
+        Assert.Contains(edited, source => source.Contains("print (send [a]) to b", StringComparison.Ordinal));
+    }
+
     /// <summary>The reading the repaired file resolves its result statement to.</summary>
     private static string Selected(string edited)
         => Compilation.Of(new SourceText(edited, "Player.ron"))

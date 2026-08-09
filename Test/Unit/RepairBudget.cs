@@ -78,14 +78,14 @@ public class RepairBudget
         Assert.Equal(2, Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 100).Count);
     }
 
-    [Fact(DisplayName = "and it stops the trim mid-reading, keeping a fuller repair")]
-    public void AndItStopsTheTrimMidReadingKeepingAFullerRepair()
+    [Fact(DisplayName = "and the budget in lexemes bounds the work, dropping the readings past it")]
+    public void AndTheBudgetInLexemesBoundsTheWorkDroppingTheReadingsPastIt()
     {
-        // The search verifies one full bracketing per reading and then trims it,
-        // so the budget can run out inside a reading's trim as well as cleanly
-        // between readings. The guard that stops it is per candidate: a reading
-        // whose trim is cut short keeps the extra brackets — a fuller repair,
-        // never a wrong one — and a reading it cannot even verify is dropped.
+        // The budget is lexemes resolved, so a longer statement spends it faster,
+        // and it can run out among the readings: the ones it reaches are
+        // repaired, the ones past it reported without a repair. Never a wrong one
+        // — a reading is offered a repair only once a bracketing that selects it
+        // has been verified, and a starved search verifies fewer, not looser.
         SymbolTable symbols = new();
         symbols.WithNames("a", "b", "a to b").WithPatterns("send _", "send _ to _");
 
@@ -94,9 +94,10 @@ public class RepairBudget
 
         Assert.Equal(4, ambiguity.Readings.Count);
 
-        // Enough to verify a reading or two but not to trim and reach them all —
-        // fewer repairs than the full search, and every one still applies.
-        var starved = Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 2);
+        // Enough lexemes for a reading or two but not all four — fewer repairs
+        // than the full search offers, because the ones past the budget are
+        // dropped rather than the search running on.
+        var starved = Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 80);
 
         Assert.InRange(starved.Count, 1, 3);
 

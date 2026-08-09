@@ -212,6 +212,26 @@ public class Editing
         Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
     }
 
+    [Fact(DisplayName = "and a reading containing a list is offered as an action")]
+    public void AndAReadingContainingAListIsOfferedAsAnAction()
+    {
+        // The collection case through the editor boundary: two readings, two
+        // actions with distinct edits, each applying to a clean file — where
+        // bracketing every subtree, and grouping a list's element the comparison
+        // then left bare, offered none.
+        const string Text = "function send (x => Number) { return x; }\n"
+                          + "function send (x => Number) to (y => Number) { return x; }\n"
+                          + "function print (x => Number) { return x; }\n"
+                          + "function print (x => Number) to (y => Number) { return x; }\n"
+                          + "var a => Number;\nvar b => Number;\nvar result = print send [a] to b;\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(6, 13), new Place(6, 30)));
+
+        Assert.Equal(2, actions.Count);
+        Assert.Equal(2, actions.Select(action => action.Title).Distinct().Count());
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
     /// <summary>The text with a code action's edits applied.</summary>
     private static string Applied(string text, Fix action)
     {
