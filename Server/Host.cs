@@ -71,15 +71,33 @@ internal sealed class Host
     /// <summary>One message, framed by its length.</summary>
     private static JsonObject Read(Stream input)
     {
-        var length = 0;
+        var length = -1;
 
         for (var header = Line(input); header?.Length is not 0; header = Line(input))
         {
             if (header is null) return null;
 
+            // TRY, not «Parse», because the number is the client's and a client
+            // may send anything. «Content-Length: nope» threw a FormatException
+            // and took the process out; «-1» and a value past «Int32» threw
+            // OverflowException. A framing the server cannot trust is a stream it
+            // cannot re-enter, so it ends the conversation — deliberately, with a
+            // status, rather than as an unhandled exception.
             if (header.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase))
-                length = int.Parse(header["Content-Length:".Length..].Trim(), CultureInfo.InvariantCulture);
+            {
+                if (int.TryParse(header["Content-Length:".Length..].Trim(),
+                                 NumberStyles.Integer,
+                                 CultureInfo.InvariantCulture,
+                                 out length) is false)
+                    return null;
+            }
         }
+
+        // A LENGTH the server will act on: present, not negative, and under a
+        // ceiling. A large in-range value would otherwise size a single
+        // allocation from the wire, and the language's own limit is on lexemes,
+        // which do not exist until after these bytes are read.
+        if (length < 0 || length > MaxFrame) return null;
 
         var body = new byte[length];
 
@@ -94,6 +112,16 @@ internal sealed class Host
 
         return Parsed(Encoding.UTF8.GetString(body));
     }
+
+    /// <summary>The largest message body the server will allocate for.</summary>
+    ///
+    /// <remarks>
+    ///     A megabyte is far past any real request and far short of a size a
+    ///     client could use to make the server allocate its way out of memory.
+    ///     The bound is on the frame because it is the first thing the wire
+    ///     controls, before there is JSON or source to bound instead.
+    /// </remarks>
+    private const int MaxFrame = 1 << 20;
 
     /// <summary>A body, or nothing when it is not JSON at all.</summary>
     ///
@@ -132,24 +160,53 @@ internal sealed class Host
     private void Handle(JsonObject message, Stream output)
     {
         var id = message["id"];
+        var method = message["method"]?.GetValue<string>();
 
-        switch (message["method"]?.GetValue<string>())
+        // AFTER shutdown, only «exit» is allowed, and «exit» never reaches here —
+        // the loop takes it. A request in this state is answered with the error
+        // the specification names; a notification is dropped. Processing them
+        // would be acting on a conversation the client has said is over.
+        if (closing)
         {
-            case "initialize":
-                Reply(output, id, new JsonObject
-                {
-                    ["capabilities"] = new JsonObject
-                    {
-                        ["textDocumentSync"] = 1,
-                        ["hoverProvider"] = true,
-                        ["codeActionProvider"] = true,
-                    },
-                });
-                break;
+            if (id is not null) Fail(output, id, "the server is shutting down");
 
+            return;
+        }
+
+        if (method is "initialize")
+        {
+            // ONCE. A second initialize is a client that lost track of the
+            // handshake, and answering it as though it were the first would let
+            // two of them disagree about what was negotiated.
+            if (initialized) Fail(output, id, "already initialized");
+            else Reply(output, id, Capabilities());
+
+            initialized = true;
+            return;
+        }
+
+        // BEFORE initialize, a request is answered with an error and a
+        // notification is dropped — nothing the client sends is meaningful until
+        // the handshake it is waiting on has happened.
+        if (initialized is false)
+        {
+            if (id is not null) Fail(output, id, "the server is not initialized");
+
+            return;
+        }
+
+        switch (method)
+        {
             case "textDocument/didOpen":
             case "textDocument/didChange":
                 Publish(message, output);
+                break;
+
+            case "textDocument/didClose":
+                // The document is gone, so its text is not the server's to keep —
+                // and a hover or an action over it afterwards has nothing to
+                // recompute from, which is the point of removing it.
+                open.Remove(message["params"]["textDocument"]["uri"].GetValue<string>());
                 break;
 
             case "textDocument/hover":
@@ -170,6 +227,17 @@ internal sealed class Host
                 break;
         }
     }
+
+    private static JsonObject Capabilities()
+        => new()
+        {
+            ["capabilities"] = new JsonObject
+            {
+                ["textDocumentSync"] = 2,
+                ["hoverProvider"] = true,
+                ["codeActionProvider"] = true,
+            },
+        };
 
     private void Publish(JsonObject message, Stream output)
     {
@@ -268,6 +336,22 @@ internal sealed class Host
             ["end"] = new JsonObject { ["line"] = extent.To.Line, ["character"] = extent.To.Character },
         };
 
+    /// <summary>Answers a request the server cannot serve in this state.</summary>
+    ///
+    /// <remarks>
+    ///     «InvalidRequest» is the code the specification names for a request that
+    ///     arrives when the lifecycle does not permit it — before initialize, or
+    ///     after shutdown. The client is waiting on an answer either way; the
+    ///     error is the answer, and it says which is not allowed.
+    /// </remarks>
+    private static void Fail(Stream output, JsonNode id, string reason)
+        => Send(output, new JsonObject
+        {
+            ["jsonrpc"] = "2.0",
+            ["id"] = id.DeepClone(),
+            ["error"] = new JsonObject { ["code"] = -32600, ["message"] = reason },
+        });
+
     private static void Reply(Stream output, JsonNode id, JsonNode result)
         => Send(output, new JsonObject
         {
@@ -295,6 +379,9 @@ internal sealed class Host
     ///     run answer for each other.
     /// </remarks>
     private readonly Dictionary<string, string> open = [];
+
+    /// <summary>Whether the client has completed the initialize handshake.</summary>
+    private bool initialized;
 
     /// <summary>Whether the client has said it is finished.</summary>
     private bool closing;
