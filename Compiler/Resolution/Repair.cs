@@ -282,23 +282,25 @@ internal static class Repairs
         ///
         /// <remarks>
         ///     <para>
-        ///     Down through calls of one pattern and operations of one symbol that
-        ///     agree, to the first that does not — the same subtrees «Stripped»
-        ///     keeps, so a collection or a lookup is opaque, bracketed around and
-        ///     never inside.
+        ///     The same subtrees «Stripped» keeps: a collection or a lookup is
+        ///     opaque, bracketed around and never inside. Where the target and the
+        ///     competitor are the same reading, there is nothing to bracket.
         ///     </para>
         ///     <para>
-        ///     At the disagreement — two calls of different patterns, or a leaf —
-        ///     the target's own words segment differently, so it is an ARGUMENT
-        ///     that is bracketed (bracketing the call itself would leave its words
-        ///     free to regroup), and one the competitor does NOT also have. Two
-        ///     overlapping patterns can share every early argument and part only at
-        ///     a later one — «f a with b end» is «a» then «b» before the fixed
-        ///     «end», or «a» then the name «b end» — and bracketing the shared «a»
-        ///     ruled no reading out. That surplus pair was enough, at the ceiling,
-        ///     to turn a valid answer into a too-long candidate and so into no
-        ///     repair; it is why there is no trim to lean on, only a bracket a
-        ///     reading disagrees on ever added.
+        ///     At a call, the target's arguments are matched to the competitor's by
+        ///     the WORDS THEY OCCUPY, not by position or value. An argument the
+        ///     competitor covers with one of its own is the same boundary, walked
+        ///     into for a disagreement deeper down; an argument whose words the
+        ///     competitor segments differently is the boundary the two disagree on,
+        ///     and bracketing it — the argument, not the call, whose own words would
+        ///     stay free to regroup — rules that reading out. Comparing by value
+        ///     instead made a repeated name look shared: «f a with a end» has «a»
+        ///     twice, and the second, whose words the competitor reads as «a end»,
+        ///     matched the competitor's first «a» and went unbracketed, so a valid
+        ///     repair was dropped. And matching a shared argument earlier by
+        ///     PATTERN missed the boundary «f a with b end» disagrees on, a surplus
+        ///     pair enough at the ceiling to turn a valid answer too long — which is
+        ///     why there is no trim: only a bracket a reading disagrees on is added.
         ///     </para>
         /// </remarks>
         private (int From, int To)? Divergence(Node target, Node competitor, IReadOnlyList<(int From, int To)> avoid)
@@ -306,39 +308,31 @@ internal static class Repairs
             var t = Bare(target);
             var c = Bare(competitor);
 
-            if (t is Node.Call call && c is Node.Call other
-                && call.Pattern.Equals(other.Pattern) && call.Arguments.Count == other.Arguments.Count)
-            {
-                for (var at = 0; at < call.Arguments.Count; ++at)
-                    if (Divergence(call.Arguments[at], other.Arguments[at], avoid) is (int From, int To) span) return span;
-
-                return null;
-            }
+            if (Node.Same.Equals(Stripped(t), Stripped(c))) return null;
 
             if (t is Node.Operation left && c is Node.Operation right && left.Symbol == right.Symbol)
                 return Divergence(left.Left, right.Left, avoid) ?? Divergence(left.Right, right.Right, avoid);
 
-            // Structures agree here, so there is nothing to bracket — the disagreement is deeper or elsewhere.
-            if (Node.Same.Equals(Stripped(t), Stripped(c))) return null;
-
-            // The target segments its words one way and the competitor another. A
-            // call's grouping is forced by bracketing an argument; anything else,
-            // by bracketing its own span — and never one the competitor shares,
-            // which would rule no reading out.
-            var shared = c is Node.Call held ? held.Arguments : [];
+            var others = c is Node.Call call ? call.Arguments : [];
 
             foreach (var argument in t is Node.Call diverging ? diverging.Arguments : [t])
             {
-                var span = Range(argument);
+                var span = Where(argument);
 
                 if (avoid.Contains(span) || span.To - span.From >= lexemes.Count) continue;
-                if (shared.Any(other => Node.Same.Equals(Stripped(argument), Stripped(other)))) continue;
 
-                return span;
+                // The competitor argument over the same words, if it has one.
+                if (others.FirstOrDefault(other => Where(other) == span) is not Node aligned) return span;
+
+                // Same boundary — a disagreement, if any, is deeper.
+                if (Divergence(argument, aligned, avoid) is (int From, int To) deeper) return deeper;
             }
 
             return null;
         }
+
+        /// <summary>A subtree's lexeme range, the brackets a repair added stripped off it.</summary>
+        private (int From, int To) Where(Node node) => Range(Bare(node));
 
         /// <summary>A node's lexeme range, found from its source extent.</summary>
         private (int From, int To) Range(Node node)

@@ -274,6 +274,24 @@ public class Editing
         Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
     }
 
+    [Fact(DisplayName = "and a repeated argument still gets both actions, one pair each")]
+    public void AndARepeatedArgumentStillGetsBothActionsOnePairEach()
+    {
+        // The repeated-name case through the editor boundary: «f a with a end»,
+        // where matching arguments by value made the second «a» look shared with
+        // the first and dropped an action. Two actions of one pair each now.
+        const string Text = "function f (x => Number) with (y => Number) end { return x; }\n"
+                          + "function f (x => Number) with (y => Number) { return x; }\n"
+                          + "var a => Number;\nvar a end => Number;\n"
+                          + "var result = f a with a end;\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(4, 13), new Place(4, 27)));
+
+        Assert.Equal(2, actions.Count);
+        Assert.All(actions, action => Assert.Single(action.Edits, edit => edit.Text == "("));
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
     /// <summary>The text with a code action's edits applied.</summary>
     private static string Applied(string text, Fix action)
     {

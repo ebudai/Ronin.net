@@ -606,6 +606,35 @@ public class Ambiguities
         Assert.Contains(edited, source => source.Contains("f a with (b end)", StringComparison.Ordinal));
     }
 
+    [Fact(DisplayName = "and a repeated argument is shared only where it occurs, not wherever its value appears")]
+    public void AndARepeatedArgumentIsSharedOnlyWhereItOccursNotWhereverItsValueAppears()
+    {
+        // Found by audit. «f a with a end» has «a» in both holes, and the readings
+        // part at the second — «a» before the fixed «end», or the name «a end». The
+        // second «a» is not the shared one, but comparing arguments by VALUE
+        // matched it to the competitor's first «a» and left it unbracketed,
+        // dropping the repair that selects «f a with (a) end». Arguments are
+        // matched by the words they occupy now, not by an equal value anywhere.
+        const string Source = "function f (x => Number) with (y => Number) end { return x; }\n"
+                            + "function f (x => Number) with (y => Number) { return x; }\n"
+                            + "var a => Number;\nvar a end => Number;\n"
+                            + "var result = f a with a end;\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        Assert.Equal(2, finding.Total);
+        Assert.Equal(2, finding.Repairs.Count);
+        Assert.All(finding.Repairs, repair => Assert.Equal(2, repair.Insertions.Count));
+
+        var edited = finding.Repairs.Select(repair => Applied(Source, repair)).ToArray();
+
+        Assert.Equal(2, edited.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(edited, source => Assert.Empty(All(source)));
+
+        Assert.Contains(edited, source => source.Contains("f a with (a) end", StringComparison.Ordinal));
+        Assert.Contains(edited, source => source.Contains("f a with (a end)", StringComparison.Ordinal));
+    }
+
     [Fact(DisplayName = "and a disagreement under a shared outer call is bracketed where it is")]
     public void AndADisagreementUnderASharedOuterCallIsBracketedWhereItIs()
     {
