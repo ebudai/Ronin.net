@@ -152,16 +152,91 @@ public class Protocol
         Assert.Contains("\"code\":-32600", said, StringComparison.Ordinal);
     }
 
-    [Fact(DisplayName = "and shutting down without an id is still answered")]
-    public void AndShuttingDownWithoutAnIdIsStillAnswered()
+    [Fact(DisplayName = "and shutting down without an id is dropped, not answered")]
+    public void AndShuttingDownWithoutAnIdIsDroppedNotAnswered()
     {
-        // «shutdown» is a request and carries one, but a client may send anything.
-        // The reply names a null id rather than skipping the write, and having
-        // shut down, the server ends cleanly when the input runs out.
+        // «shutdown» is a request; without an id it is a notification, and a
+        // notification is never answered — the server used to reply with a null
+        // id and, worse, transition to closing on it. Dropped, it does neither:
+        // no reply, and the server is still running when the input ends, so the
+        // end is the unshut failure it is.
         var (status, said) = Session("""{"jsonrpc":"2.0","method":"shutdown"}""");
 
-        Assert.Equal(0, status);
-        Assert.Contains("\"id\":null", said, StringComparison.Ordinal);
+        Assert.Equal(1, status);
+        Assert.DoesNotContain("\"id\":null", said, StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "and a request method sent as a notification is dropped, not crashed on")]
+    public void AndARequestMethodSentAsANotificationIsDroppedNotCrashedOn()
+    {
+        // «hover», «codeAction», and a second «initialize» without an id are
+        // notifications of request methods. Refusing them called «Fail», which
+        // cloned the id they do not have and threw a NullReferenceException out of
+        // the host. They are dropped now — no reply, no crash — and the request
+        // after them being answered is the proof the loop lived.
+        var (_, said) = Session(
+            """{"jsonrpc":"2.0","method":"textDocument/hover","params":{}}""",
+            """{"jsonrpc":"2.0","method":"textDocument/codeAction","params":{}}""",
+            """{"jsonrpc":"2.0","method":"initialize","params":{}}""",
+            """{"jsonrpc":"2.0","id":5,"method":"shutdown"}""");
+
+        Assert.Contains("\"id\":5", said, StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "and a valid notification of a request method is not answered")]
+    public void AndAValidNotificationOfARequestMethodIsNotAnswered()
+    {
+        // A well-formed «hover» without an id is still a notification, and a
+        // notification is never answered — not with a result, not with an error.
+        // The handshake is the only reply, so its is the only frame on the wire.
+        var (_, said) = Session(
+            """{"jsonrpc":"2.0","method":"textDocument/hover","params":{"textDocument":{"uri":"file:///p.ron"},"position":{"line":0,"character":1}}}""");
+
+        Assert.Equal(1, Occurrences(said, "Content-Length"));
+    }
+
+    /// <summary>How many times a marker appears in the traffic.</summary>
+    private static int Occurrences(string said, string marker)
+    {
+        var count = 0;
+
+        for (var at = said.IndexOf(marker, StringComparison.Ordinal); at >= 0;
+             at = said.IndexOf(marker, at + 1, StringComparison.Ordinal))
+            ++count;
+
+        return count;
+    }
+
+    [Fact(DisplayName = "and initialize without an id does not initialize the server")]
+    public void AndInitializeWithoutAnIdDoesNotInitializeTheServer()
+    {
+        // An initialize notification cannot complete a handshake a client is
+        // waiting on, so it is dropped and the server stays uninitialized — which
+        // the request after it, refused as not initialized, proves.
+        var (_, said) = Serving(
+            """{"jsonrpc":"2.0","method":"initialize","params":{}}""",
+            """{"jsonrpc":"2.0","id":6,"method":"textDocument/hover","params":{}}""");
+
+        Assert.Contains("\"id\":6", said, StringComparison.Ordinal);
+        Assert.Contains("\"code\":-32600", said, StringComparison.Ordinal);
+        Assert.DoesNotContain("hoverProvider", said, StringComparison.Ordinal);
+    }
+
+    [Theory(DisplayName = "and a message that is not JSON-RPC 2.0 is refused or dropped")]
+    [InlineData("""{"jsonrpc":"1.0","id":7,"method":"shutdown"}""")]     // wrong version, a request
+    [InlineData("""{"id":7,"method":"shutdown"}""")]                     // no version, a request
+    public void AndAMessageThatIsNotJsonRpcTwoIsRefusedOrDropped(string request)
+    {
+        // The version is part of what makes it a message the server speaks.
+        // Missing or wrong, it was processed as though it were «2.0»; now a
+        // request saying so is refused, and — the notification case — a version-
+        // less notification is dropped rather than acted on.
+        var (_, refused) = Session(request);
+
+        Assert.Contains("\"id\":7", refused, StringComparison.Ordinal);
+        Assert.Contains("\"code\":-32600", refused, StringComparison.Ordinal);
+
+        Assert.Empty(Serving("""{"jsonrpc":"1.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///p.ron","text":"var a => Number;\n"}}}""").Said);
     }
 
     // ---- framing -----------------------------------------------------------

@@ -184,10 +184,28 @@ internal sealed class Host
         var id = message["id"];
         var method = Method(message);
 
+        // A REQUEST carries an id and a client waiting on an answer; a
+        // NOTIFICATION carries neither and must never be answered — not even to
+        // refuse it, which was the crash: «Fail» cloned an id a notification does
+        // not have. So every reply below goes only where an id is there to carry
+        // it, and a request method arriving without one, or a notification method
+        // with one, is the malformed message it is: the request refused, the
+        // notification dropped.
+
+        // The version is part of what makes it a message at all. «1.0» or none was
+        // processed as though it were «2.0», answering a client speaking a
+        // protocol this one does not.
+        if (Text(message, "jsonrpc") is not "2.0")
+        {
+            if (id is not null) Fail(output, id, InvalidRequest, "not a JSON-RPC 2.0 message");
+
+            return;
+        }
+
         // AFTER shutdown, only «exit» is allowed, and «exit» never reaches here —
-        // the loop takes it. A request in this state is answered with the error
-        // the specification names; a notification is dropped. Processing them
-        // would be acting on a conversation the client has said is over.
+        // the loop takes it. A request in this state is refused; a notification is
+        // dropped. Processing either would act on a conversation the client has
+        // said is over.
         if (closing)
         {
             if (id is not null) Fail(output, id, InvalidRequest, "the server is shutting down");
@@ -195,73 +213,67 @@ internal sealed class Host
             return;
         }
 
-        if (method is "initialize")
-        {
-            // ONCE. A second initialize is a client that lost track of the
-            // handshake, and answering it as though it were the first would let
-            // two of them disagree about what was negotiated.
-            if (initialized) Fail(output, id, InvalidRequest, "already initialized");
-            else Reply(output, id, Capabilities());
-
-            initialized = true;
-            return;
-        }
-
-        // BEFORE initialize, a request is answered with an error and a
-        // notification is dropped — nothing the client sends is meaningful until
-        // the handshake it is waiting on has happened.
-        if (initialized is false)
+        // BEFORE initialize nothing else is meaningful, and «initialize» is the
+        // one method that passes here to be handled below — as a request, since a
+        // notification cannot complete a handshake a client is waiting on.
+        if (initialized is false && method is not "initialize")
         {
             if (id is not null) Fail(output, id, InvalidRequest, "the server is not initialized");
 
             return;
         }
 
-        // NO METHOD the server can route: absent, or not a string. With an id a
-        // client is waiting, and the invalid-request error is its answer; without
-        // one there is nobody to tell, so it is dropped.
-        if (method is null)
-        {
-            if (id is not null) Fail(output, id, InvalidRequest, "the request names no method");
-
-            return;
-        }
-
         switch (method)
         {
-            case "textDocument/didOpen":
-            case "textDocument/didChange":
+            case "initialize" when id is not null:
+                // ONCE. A second initialize is a client that lost track of the
+                // handshake, and answering it as the first would let two of them
+                // disagree about what was negotiated.
+                if (initialized) Fail(output, id, InvalidRequest, "already initialized");
+                else Reply(output, id, Capabilities());
+
+                initialized = true;
+                break;
+
+            case "textDocument/didOpen" when id is null:
+            case "textDocument/didChange" when id is null:
                 Publish(message, output);
                 break;
 
-            case "textDocument/didClose":
+            case "textDocument/didClose" when id is null:
                 // The document is gone, so its text is not the server's to keep —
                 // and a hover or an action over it afterwards has nothing to
                 // recompute from, which is the point of removing it.
                 if (Uri(message) is string closed) open.Remove(closed);
                 break;
 
-            case "textDocument/hover":
+            case "textDocument/hover" when id is not null:
                 if (Uri(message) is not string hovered || AsPlace(Param(message, "position")) is not Place at)
                     Fail(output, id, InvalidParams, "the hover request names no document or position");
                 else Reply(output, id, Hovered(hovered, at));
                 break;
 
-            case "textDocument/codeAction":
+            case "textDocument/codeAction" when id is not null:
                 if (Uri(message) is not string acted || AsExtent(Param(message, "range")) is not Extent range)
                     Fail(output, id, InvalidParams, "the code-action request names no document or range");
                 else Reply(output, id, Actioned(acted, range));
                 break;
 
-            case "shutdown":
+            case "shutdown" when id is not null:
                 closing = true;
                 Reply(output, id, null);
                 break;
 
             default:
-                // A method the server does not implement. A request is told so,
-                // because the client is waiting; a notification is dropped.
-                if (id is not null) Fail(output, id, MethodNotFound, $"the method «{method}» is not supported");
+                // A request the server cannot route — no method at all, or a
+                // method that is not one of its requests — is refused with the
+                // code for why; a notification it cannot route is dropped, because
+                // nobody is waiting on it.
+                if (id is not null)
+                    Fail(output, id,
+                         method is null ? InvalidRequest : MethodNotFound,
+                         method is null ? "the request names no method" : $"the method «{method}» is not supported");
+
                 break;
         }
     }
@@ -432,8 +444,10 @@ internal sealed class Host
     private static void Reply(Stream output, JsonNode id, JsonNode result)
         => Send(output, new JsonObject
         {
+            // A reply answers a request, which has an id; a notification, which
+            // has none, is never replied to, so the id is always there to clone.
             ["jsonrpc"] = "2.0",
-            ["id"] = id?.DeepClone(),
+            ["id"] = id.DeepClone(),
             ["result"] = result,
         });
 
