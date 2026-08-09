@@ -137,7 +137,7 @@ internal static class Repairs
                                               Resolution ambiguity,
                                               int budget)
     {
-        Search search = new(resolver, lexemes, ambiguity.Alternatives, budget);
+        Search search = new(resolver, lexemes, budget);
         List<Repair> found = [];
 
         foreach (var alternative in ambiguity.Alternatives)
@@ -158,10 +158,9 @@ internal static class Repairs
     }
 
     /// <summary>One statement's repair search, with its cache and budget.</summary>
-    private sealed class Search(Resolver resolver, IReadOnlyList<Lexeme> lexemes,
-                                IReadOnlyList<Node> alternatives, int budget)
+    private sealed class Search(Resolver resolver, IReadOnlyList<Lexeme> lexemes, int budget)
     {
-        private readonly Dictionary<string, Node> resolved = [];
+        private readonly Dictionary<string, Resolution> resolved = [];
         private int spent;
 
         /// <summary>
@@ -170,124 +169,153 @@ internal static class Repairs
         ///
         /// <remarks>
         ///     <para>
-        ///     DERIVED from the tree, not searched for among its spans. Its own
-        ///     subtrees are the brackets a repair may add — «Same» unwraps them
-        ///     when it checks — and bracketing every one of them pins the whole
-        ///     structure. So the brackets are grown until the reading is pinned,
-        ///     and then trimmed of any a wider one made redundant.
+        ///     GROWN from where the readings disagree, and re-resolved after each
+        ///     bracket. The bracketed statement is resolved; wherever the target
+        ///     and a surviving reading segment a subtree differently, a bracket is
+        ///     added around the target's, ruling that reading out; and it is
+        ///     resolved again. When only the target is left, the brackets are
+        ///     trimmed of any one a wider added later made redundant.
         ///     </para>
         ///     <para>
-        ///     DISTINGUISHING spans first, then narrowest. A reading's one useful
-        ///     bracket can be a WIDE call around a large unambiguous argument, and
-        ///     narrowest-first appended every name and operation node inside that
-        ///     argument before reaching it — a candidate that outgrew its own
-        ///     one-pair answer and, past the resolver's lexeme ceiling, could never
-        ///     select, so a two-reading statement got no repair. A span that some
-        ///     other reading lacks is a segmentation they disagree on; bracketing
-        ///     it rules that reading out. Tried before the spans every reading
-        ///     shares, the bracket that does the work is not deferred behind the
-        ///     idle ones, and the candidate stays near the answer.
+        ///     RE-RESOLVED, because the readings it must rule out are more than it
+        ///     can see. «Alternatives» is capped for display, and ordering a
+        ///     bracket by whether one of those few lacks it called a bracket every
+        ///     shown reading happens to share idle — even when a dearer reading the
+        ///     cap hid still needs ruling out. Growing through the unambiguous
+        ///     spans that share left a candidate past the resolver's ceiling, and
+        ///     no repair. Re-resolving brings the hidden reading into view: pinning
+        ///     the cheaper choices first makes the dearer one the surviving
+        ///     ambiguity, and the bracket that rules it out is found where it is.
         ///     </para>
         ///     <para>
-        ///     GROWN, not bracketed-then-trimmed. Bracketing the whole tree at once
-        ///     to verify it made a candidate much larger than the answer — past the
-        ///     resolver's ceiling — and resolved a long statement once per bracket
-        ///     besides. Enumerating subsets by increasing size, the version before
-        ///     that, reached a set pinning N children only past every smaller set
-        ///     that does not, which is «O(2ⁿ)»: an eight-child expression spent
-        ///     nine seconds and eleven gigabytes and found nothing.
+        ///     PROPORTIONAL to the answer. Only a subtree the readings disagree on
+        ///     is bracketed — the large unambiguous argument is never entered — so
+        ///     the candidate is the answer as it grows, a resolution per bracket
+        ///     and none wasted on a span that changes no reading.
         ///     </para>
         /// </remarks>
         public IReadOnlyList<Insertion> Selecting(Node target)
         {
-            // The subtrees a repair may bracket, never the whole statement —
-            // bracketing all of it disambiguates nothing — and never inside a
-            // collection or lookup, which «Same» treats as opaque, so a candidate
-            // that bracketed there would never compare equal to the target.
-            var candidates = Candidates(target)
-                              .Where(node => node.Length > 0)
-                              .Select(Range)
-                              .Where(range => range.To - range.From < lexemes.Count)
-                              .Distinct()
-                              .ToList();
-
-            // The spans of the OTHER readings, so a bracket that rules one of them
-            // out can be told from one that rules out nothing. A subtree the
-            // target has and a competitor does not is a segmentation the two
-            // disagree on; bracketing it eliminates that competitor. A subtree
-            // every competitor also has changes no reading at all.
-            var competitors = alternatives.Where(reading => reading != target)
-                                          .Select(reading => reading.Whole
-                                                                    .Where(node => node.Length > 0)
-                                                                    .Select(Range)
-                                                                    .ToHashSet())
-                                          .ToList();
-
-            // GROW the bracketing until it pins the reading, distinguishing spans
-            // first and then narrowest — rather than narrowest alone. A reading's
-            // one useful bracket can be a WIDE call around a large unambiguous
-            // argument, and narrowest-first appended every name and operation node
-            // inside that argument before reaching it — a candidate that outgrew
-            // its own answer and, at eighty-nine lexemes, crossed the resolver's
-            // ceiling before it could ever select, so a two-reading statement with
-            // a one-pair repair got none. A span some competitor lacks is tried
-            // before one they all share, so the bracket that does the work is not
-            // deferred behind every idle one, and the candidate stays near the
-            // answer.
-            var ordered = candidates.OrderBy(span => competitors.All(reading => reading.Contains(span)) ? 1 : 0)
-                                    .ThenBy(span => (span.To - span.From, span.From))
-                                    .ToList();
-
             List<(int From, int To)> spans = [];
 
-            foreach (var candidate in ordered)
+            while (true)
             {
-                if (Selects(target, spans)) break;
+                // Over budget: the reading is reported without a repair, honestly.
+                if (Resolve(spans) is not Resolution resolution) return null;
 
-                spans.Add(candidate);
+                // Only the target left — done growing.
+                if (resolution.TryTree(out var tree) && Same(tree, target)) break;
+
+                // A subtree the target and a surviving reading disagree on. None
+                // means the search cannot express this repair — it returns nothing
+                // rather than loop.
+                if (Diverging(target, resolution, spans) is not (int From, int To) span) return null;
+
+                spans.Add(span);
             }
 
-            // It should always pin the reading by the time every subtree is
-            // bracketed — but a budget of zero cannot afford even one resolution,
-            // and then the reading is reported without a repair, honestly.
-            if (Selects(target, spans) is false) return null;
-
-            // Take a bracket away wherever the reading survives without it, widest
-            // and rightmost first, so a wide group added before its narrower
-            // members turned out to be needed comes off — which settles on the
-            // same small, near-left bracketing the exhaustive search used to.
-            foreach (var span in spans.OrderByDescending(span => (span.To - span.From, span.From)).ToList())
-            {
-                if (Selects(target, spans.Where(kept => kept != span).ToList())) spans.Remove(span);
-            }
-
+            // No trim: only a subtree the readings disagree on is ever added, and
+            // the deepest such, so every bracket is one the answer needs — where
+            // bracketing every subtree and trimming, or growing by a width order,
+            // added idle ones a trim then had to take back.
             return Brackets(spans);
         }
 
-        /// <summary>Whether bracketing these spans resolves uniquely to the target.</summary>
-        private bool Selects(Node target, IReadOnlyList<(int From, int To)> spans)
+        /// <summary>The bracketed statement resolved, or nothing when it costs too much.</summary>
+        ///
+        /// <remarks>
+        ///     The NEXT charge is tested before it is made, by subtraction so a
+        ///     near-limit budget cannot overflow — so «at most budget lexemes»
+        ///     holds, where checking only what was already spent admitted one whole
+        ///     candidate past it. Charged the lexemes it resolves, not one flat
+        ///     count, because that is the work: a resolution's cost grows with the
+        ///     statement, and a budget counting resolutions let a long expression
+        ///     spend seconds inside a small number of them. A budget in lexemes is
+        ///     an editor's, on bounded work rather than a tally of calls whose size
+        ///     it does not see.
+        /// </remarks>
+        private Resolution? Resolve(IReadOnlyList<(int From, int To)> spans)
         {
             var bracketed = Bracketed(spans);
             var key = string.Concat(bracketed.Select(lexeme => lexeme.Text + " "));
 
-            if (resolved.TryGetValue(key, out var tree) is false)
+            if (resolved.TryGetValue(key, out var resolution) is false)
             {
-                // The NEXT charge tested before it is made, by subtraction so a
-                // near-limit budget cannot overflow — so «at most budget lexemes»
-                // holds, where checking only what was already spent admitted one
-                // whole candidate past it. Charged the lexemes it resolves, not
-                // one flat count, because that is the work: a resolution's cost
-                // grows with the statement, and a budget counting resolutions let
-                // a long expression spend seconds inside a small number of them. A
-                // budget in lexemes is an editor's, on bounded work rather than a
-                // tally of calls whose size it does not see.
-                if (bracketed.Count > budget - spent) return false;
+                if (bracketed.Count > budget - spent) return null;
 
                 spent += bracketed.Count;
-                resolved[key] = tree = resolver.Resolve(bracketed).TryTree(out var only) ? only : null;
+                resolved[key] = resolution = resolver.Resolve(bracketed);
             }
 
-            return tree is not null && Same(tree, target);
+            return resolution;
+        }
+
+        /// <summary>
+        ///     A target subtree to bracket that a surviving reading disagrees on.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     The competing readings the resolver kept for the current bracketing,
+        ///     walked against the target until their structures part. Bracketing
+        ///     the target's subtree there forces its grouping and rules that
+        ///     reading out. Not the spans already added, since bracketing one that
+        ///     is already bracketed would not move the search. The resolution is
+        ///     always the ambiguous one — bracketing only the target's own subtrees
+        ///     keeps the target a reading, so a unique resolution is always the
+        ///     target, and then the loop has already stopped.
+        /// </remarks>
+        private (int From, int To)? Diverging(Node target, Resolution resolution, IReadOnlyList<(int From, int To)> avoid)
+        {
+            foreach (var competitor in resolution.Alternatives)
+            {
+                if (Same(competitor, target)) continue;
+
+                if (Divergence(target, competitor, avoid) is (int From, int To) span) return span;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Where a target subtree and a competitor's segment it differently,
+        ///     as a target span to bracket.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     Down through calls and operations that agree, to the first that does
+        ///     not — the same subtrees «Stripped» keeps, so a collection or a
+        ///     lookup is opaque, bracketed around and never inside. At a call the
+        ///     two disagree on, the target's own words segment differently, so it
+        ///     is an ARGUMENT that is bracketed — bracketing the call itself would
+        ///     leave its words free to regroup — the first not already added.
+        /// </remarks>
+        private (int From, int To)? Divergence(Node target, Node competitor, IReadOnlyList<(int From, int To)> avoid)
+        {
+            var t = Bare(target);
+            var c = Bare(competitor);
+
+            if (t is Node.Call call && c is Node.Call other
+                && call.Pattern.Equals(other.Pattern) && call.Arguments.Count == other.Arguments.Count)
+            {
+                for (var at = 0; at < call.Arguments.Count; ++at)
+                    if (Divergence(call.Arguments[at], other.Arguments[at], avoid) is (int From, int To) span) return span;
+
+                return null;
+            }
+
+            if (t is Node.Operation left && c is Node.Operation right && left.Symbol == right.Symbol)
+                return Divergence(left.Left, right.Left, avoid) ?? Divergence(left.Right, right.Right, avoid);
+
+            // Structures agree here, so there is nothing to bracket — the disagreement is deeper or elsewhere.
+            if (Node.Same.Equals(Stripped(t), Stripped(c))) return null;
+
+            // The target segments its words one way and the competitor another. A
+            // call's grouping is forced by bracketing an argument; anything else,
+            // by bracketing its own span.
+            foreach (var span in (t is Node.Call diverging ? diverging.Arguments : [t]).Select(Range))
+                if (avoid.Contains(span) is false && span.To - span.From < lexemes.Count) return span;
+
+            return null;
         }
 
         /// <summary>A node's lexeme range, found from its source extent.</summary>
@@ -411,31 +439,4 @@ internal static class Repairs
     /// <summary>A tree with the outermost repair brackets removed.</summary>
     private static Node Bare(Node tree)
         => tree is Node.Group { Collection: false, Parts.Count: 1 } group ? Bare(group.Parts[0]) : tree;
-
-    /// <summary>
-    ///     The subtrees a repair may bracket, which are the ones <see cref="Stripped"/> unwraps.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     The walk and the strip are one contract, and were not. «Node.Whole»
-    ///     descends into everything — a collection's elements, a lookup's parts —
-    ///     while «Stripped» recurses only through calls and operations, the
-    ///     segmentation points a repair works on. So bracketing every span «Whole»
-    ///     gave put a group around a list's element that «Stripped» then left in
-    ///     place, and the full candidate no longer matched the target: a reading
-    ///     containing «[a]» got no repair at all. A collection, a lookup, a name
-    ///     is opaque here — each its own reference, reported and repaired on its
-    ///     own if it is the ambiguous one.
-    /// </remarks>
-    private static IEnumerable<Node> Candidates(Node tree)
-    {
-        var bare = Bare(tree);
-
-        yield return bare;
-
-        if (bare is Node.Call call)
-            foreach (var node in call.Arguments.SelectMany(Candidates)) yield return node;
-        else if (bare is Node.Operation operation)
-            foreach (var node in Candidates(operation.Left).Concat(Candidates(operation.Right))) yield return node;
-    }
 }

@@ -524,6 +524,48 @@ public class Ambiguities
         Assert.Contains(edited, source => source.Contains("print (send [a]) to b", StringComparison.Ordinal));
     }
 
+    /// <summary>
+    ///     Four independent ambiguous choices among sixteen readings, with a large
+    ///     unambiguous tail — the readings that need ruling out are more than the
+    ///     five kept for display.
+    /// </summary>
+    private static string Sixteen(int tail)
+        => "function send (n => Number) { return n; }\n"
+         + "function send (n => Number) to (m => Number) { return n; }\n"
+         + "function print (n => Number) { return n; }\n"
+         + "function print (n => Number) to (m => Number) { return n; }\n"
+         + "var a to b => Number;\nvar a => Number;\nvar b => Number;\nvar x => Number;\nvar y => Number;\n"
+         + "var result = (send a to b) + (print send x to y) + (print send x to y) + (print send x to y) + "
+         + string.Join(" + ", Enumerable.Repeat("a", tail)) + ";\n";
+
+    [Fact(DisplayName = "and a reading needing a span every displayed rival shares is still repaired")]
+    public void AndAReadingNeedingASpanEveryDisplayedRivalSharesIsStillRepaired()
+    {
+        // Found by audit. Four independent binary choices give sixteen readings,
+        // and the cheaper «send (a to b)» is in all five kept for display — so the
+        // «send (a) to b» reading that «a to b» must be bracketed to rule out is
+        // among the eleven the cap hid. Ordering a bracket by whether a DISPLAYED
+        // rival lacked it called «a to b» idle, and the search grew through the
+        // unambiguous tail's names instead, past the ceiling, to no repair.
+        // Re-resolving brings the hidden reading into view once the cheaper
+        // choices are pinned.
+        var source = Sixteen(tail: 20);
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(source)));
+
+        Assert.Equal(16, finding.Total);
+
+        // A repair for every displayed reading, each four pairs — one per choice,
+        // the tail adding none — and each a different edit that compiles.
+        Assert.Equal(Resolver.Kept, finding.Repairs.Count);
+        Assert.All(finding.Repairs, repair => Assert.Equal(8, repair.Insertions.Count));
+
+        var edited = finding.Repairs.Select(repair => Applied(source, repair)).ToArray();
+
+        Assert.Equal(Resolver.Kept, edited.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(edited, source => Assert.Empty(All(source)));
+    }
+
     [Fact(DisplayName = "and a reading's one wide bracket is not buried behind a large unambiguous argument")]
     public void AndAReadingsOneWideBracketIsNotBuriedBehindALargeUnambiguousArgument()
     {

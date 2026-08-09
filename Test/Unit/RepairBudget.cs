@@ -82,6 +82,34 @@ public class RepairBudget
                     $"a one-pair repair around a large argument allocated {megabytes:F0} MB, over the {Ceiling} MB ceiling");
     }
 
+    [Fact(DisplayName = "and repairing past the display cap, beside a large unambiguous sibling, stays cheap")]
+    public void AndRepairingPastTheDisplayCapBesideALargeUnambiguousSiblingStaysCheap()
+    {
+        // Found by audit. Four ambiguous choices, sixteen readings, five kept for
+        // display — and the «send (a) to b» reading that «a to b» rules out is
+        // among the eleven hidden. Ordering a bracket by whether a DISPLAYED rival
+        // lacked it grew through the unambiguous tail's names, spending gigabytes
+        // and crossing the ceiling. Re-resolving to find the hidden reading keeps
+        // it to a fraction of that.
+        SymbolTable symbols = new();
+        symbols.WithNames("a to b", "a", "b", "x", "y")
+               .WithPatterns("send _", "send _ to _", "print _", "print _ to _");
+
+        var lexemes = Lexemes.Lex("( send a to b ) + ( print send x to y ) + ( print send x to y ) + ( print send x to y ) + "
+                                + string.Join(" + ", Enumerable.Repeat("a", 20)));
+        var ambiguity = new Resolver(symbols).Resolve(lexemes);
+
+        // the first call JITs and warms; the measurement is of the second
+        Assert.Equal(Resolver.Kept, Repairs.For(new Resolver(symbols), lexemes, ambiguity).Count);
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        Repairs.For(new Resolver(symbols), lexemes, ambiguity);
+        var megabytes = (GC.GetAllocatedBytesForCurrentThread() - before) / 1024.0 / 1024.0;
+
+        Assert.True(megabytes < Ceiling,
+                    $"repairing past the display cap allocated {megabytes:F0} MB, over the {Ceiling} MB ceiling");
+    }
+
     [Fact(DisplayName = "past the budget, a reading is reported without a repair")]
     public void PastTheBudgetAReadingIsReportedWithoutARepair()
     {

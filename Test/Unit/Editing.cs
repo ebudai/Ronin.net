@@ -232,6 +232,29 @@ public class Editing
         Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
     }
 
+    [Fact(DisplayName = "and a reading needing a span every displayed rival shares is still offered")]
+    public void AndAReadingNeedingASpanEveryDisplayedRivalSharesIsStillOffered()
+    {
+        // The capped-alternative case through the editor boundary: sixteen
+        // readings, five shown all using the cheaper «send (a to b)», and five
+        // actions — each ruling out the «send (a) to b» reading the display cap
+        // hid. Comparing a bracket only against the displayed rivals offered four
+        // actions or, past the ceiling, none.
+        var Text = "function send (n => Number) { return n; }\n"
+                 + "function send (n => Number) to (m => Number) { return n; }\n"
+                 + "function print (n => Number) { return n; }\n"
+                 + "function print (n => Number) to (m => Number) { return n; }\n"
+                 + "var a to b => Number;\nvar a => Number;\nvar b => Number;\nvar x => Number;\nvar y => Number;\n"
+                 + "var result = (send a to b) + (print send x to y) + (print send x to y) + (print send x to y) + "
+                 + string.Join(" + ", Enumerable.Repeat("a", 12)) + ";\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(9, 13), new Place(9, 60)));
+
+        Assert.Equal(5, actions.Count);
+        Assert.Equal(5, actions.Select(action => Applied(Text, action)).Distinct().Count());
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
     /// <summary>The text with a code action's edits applied.</summary>
     private static string Applied(string text, Fix action)
     {
