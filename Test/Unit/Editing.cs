@@ -255,6 +255,25 @@ public class Editing
         Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
     }
 
+    [Fact(DisplayName = "and overlapping patterns are offered one-pair actions, not a surplus pair")]
+    public void AndOverlappingPatternsAreOfferedOnePairActionsNotASurplusPair()
+    {
+        // The overlapping-pattern case through the editor boundary: two readings
+        // of «f a with b end» that share «a» and part at the second argument, two
+        // actions of ONE pair each — where taking the shared argument first added
+        // a surplus pair that, at the ceiling, turned the answer into no action.
+        const string Text = "function f (x => Number) with (y => Number) end { return x; }\n"
+                          + "function f (x => Number) with (y => Number) { return x; }\n"
+                          + "var a => Number;\nvar b => Number;\nvar b end => Number;\n"
+                          + "var result = f a with b end;\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(5, 13), new Place(5, 27)));
+
+        Assert.Equal(2, actions.Count);
+        Assert.All(actions, action => Assert.Single(action.Edits, edit => edit.Text == "("));
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
     /// <summary>The text with a code action's edits applied.</summary>
     private static string Applied(string text, Fix action)
     {

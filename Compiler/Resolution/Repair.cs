@@ -75,31 +75,29 @@ internal sealed class Repair
 ///     A SET of any size, not a fixed number of pairs. Some readings choose a
 ///     meaning for several children at once — «(send a to b) + (send a to b) +
 ///     (send a to b)» has a reading for each way of reading each third — and no
-///     one bracket, nor any fixed number of them, selects it. So the search
-///     brackets every one of the reading's subtrees at once, which pins the whole
-///     structure, and then takes a bracket away wherever the reading survives
-///     without it. Searching one pair, then exactly two, published an empty
+///     one bracket, nor any fixed number of them, selects it. So the brackets are
+///     grown one at a time, from where the readings disagree, until only the
+///     target is left. Searching one pair, then exactly two, published an empty
 ///     repair for the first reading that needed three.
 ///     </para>
 ///     <para>
 ///     By RESOLVING each candidate rather than reasoning about the tree. The
 ///     claim a repair makes is "type this and the ambiguity is gone", so the
-///     honest way to produce one is to type it and look. Each distinct candidate
-///     is resolved once and cached, because two readings ask about the same
-///     brackets.
+///     honest way to produce one is to type it and look. The statement is
+///     re-resolved after each bracket, which is what finds the reading to rule
+///     out next — including one the display cap hid until the cheaper choices
+///     were pinned. Each distinct candidate is resolved once and cached.
 ///     </para>
 ///     <para>
-///     PROPORTIONAL to the reading. The bracketing is grown from the target's own
-///     subtrees until it pins the reading, distinguishing spans first — the ones
-///     some other reading lacks — so the wide bracket that does the work is not
-///     deferred behind every narrow idle one, which grew a candidate past the
-///     resolver's lexeme ceiling before it could select. Enumerating subsets of
-///     the spans by increasing size, before that, reached a set that pins N
-///     children only past every smaller set that does not — «O(2ⁿ)», so an
-///     eight-child expression of fifty-five lexemes spent nine seconds and eleven
-///     gigabytes and still found nothing. The budget is lexemes resolved, an
-///     editor's budget rather than a count blind to how long each resolution is;
-///     past it a reading is reported without a repair, honest where a hang is not.
+///     PROPORTIONAL to the answer. Only a subtree two readings disagree on is
+///     bracketed, and the deepest such, and never one they share — so the large
+///     unambiguous argument is never entered, every bracket is one the answer
+///     needs, and the candidate is the answer as it grows. Bracketing every
+///     subtree and trimming, before, made a candidate past the resolver's lexeme
+///     ceiling; and a width order deferred the one wide bracket that did the work
+///     behind every narrow idle one. The budget is lexemes resolved, an editor's
+///     budget rather than a count blind to how long each resolution is; past it a
+///     reading is reported without a repair, honest where a hang is not.
 ///     </para>
 /// </remarks>
 internal static class Repairs
@@ -173,8 +171,8 @@ internal static class Repairs
         ///     bracket. The bracketed statement is resolved; wherever the target
         ///     and a surviving reading segment a subtree differently, a bracket is
         ///     added around the target's, ruling that reading out; and it is
-        ///     resolved again. When only the target is left, the brackets are
-        ///     trimmed of any one a wider added later made redundant.
+        ///     resolved again. No trim after: every bracket added is one a reading
+        ///     disagreed on, so none is idle to take back.
         ///     </para>
         ///     <para>
         ///     RE-RESOLVED, because the readings it must rule out are more than it
@@ -189,9 +187,10 @@ internal static class Repairs
         ///     </para>
         ///     <para>
         ///     PROPORTIONAL to the answer. Only a subtree the readings disagree on
-        ///     is bracketed — the large unambiguous argument is never entered — so
-        ///     the candidate is the answer as it grows, a resolution per bracket
-        ///     and none wasted on a span that changes no reading.
+        ///     is bracketed — never the large unambiguous argument, nor an argument
+        ///     the competitor shares, which was a surplus pair enough to turn a
+        ///     valid answer too long at the ceiling — so the candidate is the
+        ///     answer as it grows, a resolution per bracket and none wasted.
         ///     </para>
         /// </remarks>
         public IReadOnlyList<Insertion> Selecting(Node target)
@@ -282,12 +281,25 @@ internal static class Repairs
         /// </summary>
         ///
         /// <remarks>
-        ///     Down through calls and operations that agree, to the first that does
-        ///     not — the same subtrees «Stripped» keeps, so a collection or a
-        ///     lookup is opaque, bracketed around and never inside. At a call the
-        ///     two disagree on, the target's own words segment differently, so it
-        ///     is an ARGUMENT that is bracketed — bracketing the call itself would
-        ///     leave its words free to regroup — the first not already added.
+        ///     <para>
+        ///     Down through calls of one pattern and operations of one symbol that
+        ///     agree, to the first that does not — the same subtrees «Stripped»
+        ///     keeps, so a collection or a lookup is opaque, bracketed around and
+        ///     never inside.
+        ///     </para>
+        ///     <para>
+        ///     At the disagreement — two calls of different patterns, or a leaf —
+        ///     the target's own words segment differently, so it is an ARGUMENT
+        ///     that is bracketed (bracketing the call itself would leave its words
+        ///     free to regroup), and one the competitor does NOT also have. Two
+        ///     overlapping patterns can share every early argument and part only at
+        ///     a later one — «f a with b end» is «a» then «b» before the fixed
+        ///     «end», or «a» then the name «b end» — and bracketing the shared «a»
+        ///     ruled no reading out. That surplus pair was enough, at the ceiling,
+        ///     to turn a valid answer into a too-long candidate and so into no
+        ///     repair; it is why there is no trim to lean on, only a bracket a
+        ///     reading disagrees on ever added.
+        ///     </para>
         /// </remarks>
         private (int From, int To)? Divergence(Node target, Node competitor, IReadOnlyList<(int From, int To)> avoid)
         {
@@ -311,9 +323,19 @@ internal static class Repairs
 
             // The target segments its words one way and the competitor another. A
             // call's grouping is forced by bracketing an argument; anything else,
-            // by bracketing its own span.
-            foreach (var span in (t is Node.Call diverging ? diverging.Arguments : [t]).Select(Range))
-                if (avoid.Contains(span) is false && span.To - span.From < lexemes.Count) return span;
+            // by bracketing its own span — and never one the competitor shares,
+            // which would rule no reading out.
+            var shared = c is Node.Call held ? held.Arguments : [];
+
+            foreach (var argument in t is Node.Call diverging ? diverging.Arguments : [t])
+            {
+                var span = Range(argument);
+
+                if (avoid.Contains(span) || span.To - span.From >= lexemes.Count) continue;
+                if (shared.Any(other => Node.Same.Equals(Stripped(argument), Stripped(other)))) continue;
+
+                return span;
+            }
 
             return null;
         }

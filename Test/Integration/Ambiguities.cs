@@ -566,6 +566,92 @@ public class Ambiguities
         Assert.All(edited, source => Assert.Empty(All(source)));
     }
 
+    /// <summary>
+    ///     Two overlapping patterns whose readings share the first argument and
+    ///     disagree only at the second — «f a with b end», either «b» before the
+    ///     fixed «end» or the name «b end».
+    /// </summary>
+    private static string Overlapping(string statement)
+        => "function f (x => Number) with (y => Number) end { return x; }\n"
+         + "function f (x => Number) with (y => Number) { return x; }\n"
+         + "var a => Number;\nvar b => Number;\nvar b end => Number;\n"
+         + "var result = " + statement + ";\n";
+
+    [Fact(DisplayName = "and a shared argument is not bracketed when only a later one disagrees")]
+    public void AndASharedArgumentIsNotBracketedWhenOnlyALaterOneDisagrees()
+    {
+        // Found by audit. The two readings of «f a with b end» share «a» and part
+        // only at the second argument. Because the two calls use different
+        // patterns, the search took the first argument it found — the shared «a» —
+        // and then the one that disagrees, a surplus pair that rules no reading
+        // out. Aligned arguments are walked even across patterns now, so only the
+        // one that disagrees is bracketed.
+        var source = Overlapping("f a with b end");
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(source)));
+
+        Assert.Equal(2, finding.Total);
+        Assert.Equal(2, finding.Repairs.Count);
+
+        // ONE pair each, not two.
+        Assert.All(finding.Repairs, repair => Assert.Equal(2, repair.Insertions.Count));
+
+        var edited = finding.Repairs.Select(repair => Applied(source, repair)).ToArray();
+
+        Assert.Equal(2, edited.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(edited, source => Assert.Empty(All(source)));
+
+        // the bracket is around the argument that disagrees, «a» left alone
+        Assert.Contains(edited, source => source.Contains("f a with (b) end", StringComparison.Ordinal));
+        Assert.Contains(edited, source => source.Contains("f a with (b end)", StringComparison.Ordinal));
+    }
+
+    [Fact(DisplayName = "and a disagreement under a shared outer call is bracketed where it is")]
+    public void AndADisagreementUnderASharedOuterCallIsBracketedWhereItIs()
+    {
+        // «f send a to b»: both readings apply «f» to «send a to b», agreeing on
+        // the outer call and disagreeing only inside it — «send (a to b)» or «send
+        // (a) to b». The outer calls share a pattern, so the walk goes INTO them,
+        // to the argument that disagrees; bracketing the outer «f»'s argument
+        // whole would group «send a to b» but leave its own reading free.
+        const string Source = "function f (x => Number) { return x; }\n"
+                            + "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+                            + "var result = f send a to b;\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        Assert.Equal(2, finding.Repairs.Count);
+        Assert.All(finding.Repairs, repair => Assert.Equal(2, repair.Insertions.Count));
+
+        var edited = finding.Repairs.Select(repair => Applied(Source, repair)).ToArray();
+
+        Assert.Equal(2, edited.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(edited, source => Assert.Empty(All(source)));
+
+        Assert.Contains(edited, source => source.Contains("f send (a to b)", StringComparison.Ordinal));
+        Assert.Contains(edited, source => source.Contains("f send (a) to b", StringComparison.Ordinal));
+    }
+
+    [Fact(DisplayName = "and a surplus pair does not turn a valid answer too long at the ceiling")]
+    public void AndASurplusPairDoesNotTurnAValidAnswerTooLongAtTheCeiling()
+    {
+        // Found by audit. A 253-lexeme statement whose answer is one pair — the
+        // shared «a», the long arithmetic sibling unambiguous. A surplus «(a)»
+        // pair made the candidate 257 lexemes, past the resolver's 256-lexeme
+        // ceiling, so it resolved as too-long, had no alternatives to walk, and
+        // published no repair at all. With no surplus, the answer is 255 lexemes
+        // and inside the ceiling.
+        var source = Overlapping("(f a with b end) + " + string.Join(" + ", Enumerable.Repeat("a", 123)));
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(source)));
+
+        Assert.Equal(2, finding.Total);
+        Assert.Equal(2, finding.Repairs.Count);
+        Assert.All(finding.Repairs, repair => Assert.Equal(2, repair.Insertions.Count));
+    }
+
     [Fact(DisplayName = "and a reading's one wide bracket is not buried behind a large unambiguous argument")]
     public void AndAReadingsOneWideBracketIsNotBuriedBehindALargeUnambiguousArgument()
     {
