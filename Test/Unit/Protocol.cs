@@ -62,6 +62,11 @@ public class Protocol
         => "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{"
          + $"\"uri\":\"{uri}\",\"text\":\"{text.Replace("\n", "\\n")}\"}}}}}}";
 
+    /// <summary>A full-document «didChange», as a full-sync client sends one.</summary>
+    private static string Changing(string uri, string text)
+        => "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\""
+         + uri + "\"},\"contentChanges\":[{\"text\":\"" + text.Replace("\n", "\\n") + "\"}]}}";
+
     private const string Colliding =
         "function send (x => Number) { return x; }\n"
       + "function send (x => Number) to (y => Number) { return x; }\n"
@@ -224,30 +229,96 @@ public class Protocol
         Assert.Contains("\"hoverProvider\":true", said, StringComparison.Ordinal);
         Assert.Contains("\"codeActionProvider\":true", said, StringComparison.Ordinal);
         Assert.Contains("Content-Length:", said, StringComparison.Ordinal);
+
+        // FULL, not incremental. «2» promised ranged fragments the server did not
+        // apply — it replaced the whole document with the first one — so a
+        // conforming client's first edit left every query reading a scrap. This
+        // server recompiles the whole file on every change, so full is what it
+        // does and «1» is what it may honestly advertise.
+        Assert.Contains("\"textDocumentSync\":1", said, StringComparison.Ordinal);
     }
 
-    [Fact(DisplayName = "and an unknown request is answered rather than ignored")]
-    public void AndAnUnknownRequestIsAnsweredRatherThanIgnored()
+    [Fact(DisplayName = "and an unknown method is a method-not-found error, or a dropped notification")]
+    public void AndAnUnknownMethodIsAMethodNotFoundErrorOrADroppedNotification()
     {
-        // A request has an id and a client waiting on it, so an unknown one is
-        // answered with a null result. A notification does not, and answering it
-        // would invent a message nobody expects.
-        Assert.Contains("\"id\":7", Session("""{"jsonrpc":"2.0","id":7,"method":"who/knows"}""").Said,
-                        StringComparison.Ordinal);
+        // A request names a method the server does not have. The client is
+        // waiting, so it is told, with the code the protocol names for exactly
+        // this — a successful null said "here is your result, and it is nothing",
+        // which is not true and not an answer to «who/knows».
+        var (_, answered) = Session("""{"jsonrpc":"2.0","id":7,"method":"who/knows"}""");
 
+        Assert.Contains("\"id\":7", answered, StringComparison.Ordinal);
+        Assert.Contains("\"code\":-32601", answered, StringComparison.Ordinal);
+
+        // A notification names one too, but nobody is waiting on it, so it is
+        // dropped rather than answered — inventing a reply nobody expects.
         Assert.DoesNotContain("\"id\":7", Session("""{"jsonrpc":"2.0","method":"who/knows"}""").Said,
                               StringComparison.Ordinal);
     }
 
-    [Fact(DisplayName = "and a message with no method at all is ignored, not crashed on")]
-    public void AndAMessageWithNoMethodAtAllIsIgnoredNotCrashedOn()
+    [Fact(DisplayName = "and a message that names no method is an invalid request, not a crash")]
+    public void AndAMessageThatNamesNoMethodIsAnInvalidRequestNotACrash()
     {
-        // Well framed, valid JSON, and not a request or a notification. Reaching
-        // into it for a method that is not there would end the session over a
-        // client's slip.
+        // Well framed and valid JSON, but not a request the server can route: it
+        // names no method. With an id a client is waiting, and the invalid-request
+        // error is its answer — reaching for a method that is not there ended the
+        // session over a client's slip.
         var (_, said) = Session("""{"jsonrpc":"2.0","id":9}""");
 
         Assert.Contains("\"id\":9", said, StringComparison.Ordinal);
+        Assert.Contains("\"code\":-32600", said, StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "and a method that is not a string does not escape the host")]
+    public void AndAMethodThatIsNotAStringDoesNotEscapeTheHost()
+    {
+        // «"method": 7» is valid JSON and well framed, so the framing guard never
+        // saw it — and reading it as a string threw an InvalidOperationException
+        // straight out of the loop. A method that is not a string is no method the
+        // server can route; with an id, the client is told so and the loop lives.
+        var (_, said) = Session("""{"jsonrpc":"2.0","id":1,"method":7}""",
+                                """{"jsonrpc":"2.0","id":2,"method":"shutdown"}""");
+
+        Assert.Contains("\"id\":1", said, StringComparison.Ordinal);
+        Assert.Contains("\"code\":-32600", said, StringComparison.Ordinal);
+
+        // the loop survived it — the shutdown after was still answered
+        Assert.Contains("\"id\":2", said, StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "and a notification missing its params is dropped, not crashed on")]
+    public void AndANotificationMissingItsParamsIsDroppedNotCrashedOn()
+    {
+        // «textDocument/didOpen» with no «params» reached into an absent object
+        // and threw a NullReferenceException out of the host — a well-framed body
+        // that parsed. A notification the server cannot read has nothing to
+        // publish and nobody waiting, so it is dropped, and the request after it
+        // being answered is the proof the conversation went on.
+        var (_, said) = Session("""{"jsonrpc":"2.0","method":"textDocument/didOpen"}""",
+                                """{"jsonrpc":"2.0","id":3,"method":"shutdown"}""");
+
+        Assert.Contains("\"id\":3", said, StringComparison.Ordinal);
+    }
+
+    [Theory(DisplayName = "and a request whose params cannot be read is an invalid-params error")]
+    // a hover missing its position, and one missing its document
+    [InlineData("""{"jsonrpc":"2.0","id":3,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///p.ron"}}}""")]
+    [InlineData("""{"jsonrpc":"2.0","id":3,"method":"textDocument/hover","params":{"position":{"line":0,"character":0}}}""")]
+    // a code action missing its range, missing the range's end, and missing its document
+    [InlineData("""{"jsonrpc":"2.0","id":3,"method":"textDocument/codeAction","params":{"textDocument":{"uri":"file:///p.ron"}}}""")]
+    [InlineData("""{"jsonrpc":"2.0","id":3,"method":"textDocument/codeAction","params":{"textDocument":{"uri":"file:///p.ron"},"range":{"start":{"line":0,"character":0}}}}""")]
+    [InlineData("""{"jsonrpc":"2.0","id":3,"method":"textDocument/codeAction","params":{"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":1}}}}""")]
+    public void AndARequestWhoseParamsCannotBeReadIsAnInvalidParamsError(string request)
+    {
+        // A hover or a code action whose target the server cannot read — no
+        // position, no range, half a range, or no document. The client is waiting
+        // either way, and reaching for the absent field threw; the invalid-params
+        // error is the answer. Every field is validated on the way in, so a
+        // request short one is refused rather than dereferenced.
+        var (_, said) = Session(Opening("file:///p.ron", "var a => Number;\n"), request);
+
+        Assert.Contains("\"id\":3", said, StringComparison.Ordinal);
+        Assert.Contains("\"code\":-32602", said, StringComparison.Ordinal);
     }
 
     [Fact(DisplayName = "opening a document publishes what is wrong with it")]
@@ -272,6 +343,29 @@ public class Protocol
             """.ReplaceLineEndings(string.Empty));
 
         Assert.EndsWith("\"diagnostics\":[]}}", said, StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "and after a change, a query reads the changed text, not the opened one")]
+    public void AndAfterAChangeAQueryReadsTheChangedTextNotTheOpenedOne()
+    {
+        // The point of synchronisation, and the one finding 2 broke: an edit lands
+        // and the next query reads the edited file. The server advertised
+        // incremental sync and then replaced the document with the first fragment,
+        // so a conforming client's first edit left hover reading a scrap. Full
+        // sync sends the whole document, and a hover after it must see it.
+        var (_, said) = Session(
+            Opening("file:///p.ron", "var a => Number;\n"),
+            Changing("file:///p.ron", "function send (x => Number) to (y => Number) { return x; }\n"
+                                    + "var a => Number;\nvar r = send a to a;\n"),
+            """
+            {"jsonrpc":"2.0","id":2,"method":"textDocument/hover","params":{"textDocument":{
+            "uri":"file:///p.ron"},"position":{"line":2,"character":9}}}
+            """.ReplaceLineEndings(string.Empty));
+
+        // the reading from the CHANGED document — a server still holding the
+        // opened one-line file would resolve nothing here. Escaped on the wire,
+        // the guillemets going out as ««» and «»».
+        Assert.Contains(@"send \u00ABa\u00BB to \u00ABa\u00BB", said, StringComparison.Ordinal);
     }
 
     [Fact(DisplayName = "and closing it forgets it, so a query afterwards has nothing to answer from")]

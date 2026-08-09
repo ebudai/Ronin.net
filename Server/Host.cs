@@ -60,13 +60,27 @@ internal sealed class Host
     {
         while (Read(input) is JsonObject message)
         {
-            if (message["method"]?.GetValue<string>() is "exit") break;
+            if (Method(message) is "exit") break;
 
             Handle(message, output);
         }
 
         return closing ? 0 : 1;
     }
+
+    /// <summary>
+    ///     A message's method, or nothing when it is absent or not a string.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Read once, safely. «GetValue&lt;string&gt;()» on «"method": 7» threw an
+    ///     «InvalidOperationException» straight out of the loop and took the
+    ///     process out — a well-framed body that parsed as JSON, so the framing
+    ///     guard never saw it. A method that is not a string is not a method the
+    ///     server can route, and a client may send anything.
+    /// </remarks>
+    private static string Method(JsonObject message)
+        => message["method"] is JsonValue value && value.TryGetValue(out string method) ? method : null;
 
     /// <summary>One message, framed by its length.</summary>
     private static JsonObject Read(Stream input)
@@ -157,10 +171,18 @@ internal sealed class Host
         return null;
     }
 
+    // The JSON-RPC error codes the server answers with. A request carries an id
+    // and a client waiting on it, so every one it cannot serve is answered with
+    // the code the protocol names for why — a null result said "here is your
+    // answer, and it is nothing", which is a different and false thing.
+    private const int InvalidRequest = -32600;
+    private const int MethodNotFound = -32601;
+    private const int InvalidParams = -32602;
+
     private void Handle(JsonObject message, Stream output)
     {
         var id = message["id"];
-        var method = message["method"]?.GetValue<string>();
+        var method = Method(message);
 
         // AFTER shutdown, only «exit» is allowed, and «exit» never reaches here —
         // the loop takes it. A request in this state is answered with the error
@@ -168,7 +190,7 @@ internal sealed class Host
         // would be acting on a conversation the client has said is over.
         if (closing)
         {
-            if (id is not null) Fail(output, id, "the server is shutting down");
+            if (id is not null) Fail(output, id, InvalidRequest, "the server is shutting down");
 
             return;
         }
@@ -178,7 +200,7 @@ internal sealed class Host
             // ONCE. A second initialize is a client that lost track of the
             // handshake, and answering it as though it were the first would let
             // two of them disagree about what was negotiated.
-            if (initialized) Fail(output, id, "already initialized");
+            if (initialized) Fail(output, id, InvalidRequest, "already initialized");
             else Reply(output, id, Capabilities());
 
             initialized = true;
@@ -190,7 +212,17 @@ internal sealed class Host
         // the handshake it is waiting on has happened.
         if (initialized is false)
         {
-            if (id is not null) Fail(output, id, "the server is not initialized");
+            if (id is not null) Fail(output, id, InvalidRequest, "the server is not initialized");
+
+            return;
+        }
+
+        // NO METHOD the server can route: absent, or not a string. With an id a
+        // client is waiting, and the invalid-request error is its answer; without
+        // one there is nobody to tell, so it is dropped.
+        if (method is null)
+        {
+            if (id is not null) Fail(output, id, InvalidRequest, "the request names no method");
 
             return;
         }
@@ -206,15 +238,19 @@ internal sealed class Host
                 // The document is gone, so its text is not the server's to keep —
                 // and a hover or an action over it afterwards has nothing to
                 // recompute from, which is the point of removing it.
-                open.Remove(message["params"]["textDocument"]["uri"].GetValue<string>());
+                if (Uri(message) is string closed) open.Remove(closed);
                 break;
 
             case "textDocument/hover":
-                Reply(output, id, Hovered(message));
+                if (Uri(message) is not string hovered || AsPlace(Param(message, "position")) is not Place at)
+                    Fail(output, id, InvalidParams, "the hover request names no document or position");
+                else Reply(output, id, Hovered(hovered, at));
                 break;
 
             case "textDocument/codeAction":
-                Reply(output, id, Actioned(message));
+                if (Uri(message) is not string acted || AsExtent(Param(message, "range")) is not Extent range)
+                    Fail(output, id, InvalidParams, "the code-action request names no document or range");
+                else Reply(output, id, Actioned(acted, range));
                 break;
 
             case "shutdown":
@@ -223,7 +259,9 @@ internal sealed class Host
                 break;
 
             default:
-                if (id is not null) Reply(output, id, null);
+                // A method the server does not implement. A request is told so,
+                // because the client is waiting; a notification is dropped.
+                if (id is not null) Fail(output, id, MethodNotFound, $"the method «{method}» is not supported");
                 break;
         }
     }
@@ -233,7 +271,14 @@ internal sealed class Host
         {
             ["capabilities"] = new JsonObject
             {
-                ["textDocumentSync"] = 2,
+                // FULL, not incremental. Advertising «2» promised that later edits
+                // arrive as ranged fragments, and the server replaced the whole
+                // document with the first fragment — so a conforming client's
+                // first edit left every hover, diagnostic, and action reading a
+                // one-character file. This server recompiles the whole text on
+                // every change regardless, so a delta would buy nothing and cost
+                // a synchronisation to keep; «1» is what it actually does.
+                ["textDocumentSync"] = 1,
                 ["hoverProvider"] = true,
                 ["codeActionProvider"] = true,
             },
@@ -241,12 +286,20 @@ internal sealed class Host
 
     private void Publish(JsonObject message, Stream output)
     {
-        var document = message["params"]["textDocument"];
-        var uri = document["uri"].GetValue<string>();
+        var uri = Uri(message);
 
-        open[uri] = message["params"]["contentChanges"] is JsonArray changes
-                  ? changes[0]["text"].GetValue<string>()
-                  : document["text"].GetValue<string>();
+        // «didOpen» carries the whole document under «textDocument.text»; a Full
+        // «didChange» carries it as its one content change. A notification with
+        // neither a uri to key by nor text to store has nothing to publish and
+        // nobody waiting on it — indexing an absent «params» threw a
+        // NullReferenceException out of the host, which a dropped notification
+        // does not.
+        var text = Text(First(Param(message, "contentChanges")), "text")
+                ?? Text(Param(message, "textDocument"), "text");
+
+        if (uri is null || text is null) return;
+
+        open[uri] = text;
 
         JsonArray reported = [];
 
@@ -270,14 +323,9 @@ internal sealed class Host
         });
     }
 
-    private JsonObject Hovered(JsonObject message)
+    private JsonObject Hovered(string uri, Place at)
     {
-        var uri = message["params"]["textDocument"]["uri"].GetValue<string>();
-
         if (open.TryGetValue(uri, out var text) is false) return null;
-
-        var position = message["params"]["position"];
-        var at = new Place(position["line"].GetValue<int>(), position["character"].GetValue<int>());
 
         if (Language.Hover(new SourceText(text, uri), at) is not string reading) return null;
 
@@ -287,18 +335,13 @@ internal sealed class Host
         };
     }
 
-    private JsonArray Actioned(JsonObject message)
+    private JsonArray Actioned(string uri, Extent range)
     {
-        var uri = message["params"]["textDocument"]["uri"].GetValue<string>();
-
         if (open.TryGetValue(uri, out var text) is false) return [];
-
-        var range = message["params"]["range"];
-        Extent asked = new(Placed(range["start"]), Placed(range["end"]));
 
         JsonArray actions = [];
 
-        foreach (var action in Language.Actions(new SourceText(text, uri), asked))
+        foreach (var action in Language.Actions(new SourceText(text, uri), range))
         {
             JsonArray edits = [];
 
@@ -326,9 +369,6 @@ internal sealed class Host
         return actions;
     }
 
-    private static Place Placed(JsonNode position)
-        => new(position["line"].GetValue<int>(), position["character"].GetValue<int>());
-
     private static JsonObject Ranged(Extent extent)
         => new()
         {
@@ -336,20 +376,57 @@ internal sealed class Host
             ["end"] = new JsonObject { ["line"] = extent.To.Line, ["character"] = extent.To.Character },
         };
 
-    /// <summary>Answers a request the server cannot serve in this state.</summary>
+    // ---- reading a client's message, which may be anything ----------------
+
+    /// <summary>A field of a node, or nothing when the node is not an object.</summary>
     ///
     /// <remarks>
-    ///     «InvalidRequest» is the code the specification names for a request that
-    ///     arrives when the lifecycle does not permit it — before initialize, or
-    ///     after shutdown. The client is waiting on an answer either way; the
-    ///     error is the answer, and it says which is not allowed.
+    ///     Every step into a client's message goes through here. «params»
+    ///     «["textDocument"]["uri"]» indexed straight into whatever the client
+    ///     sent, so a request missing «params» threw a NullReferenceException out
+    ///     of the host — a well-framed body that parsed, so the framing guard did
+    ///     not catch it. An absent field is nothing, not a fault to die of.
     /// </remarks>
-    private static void Fail(Stream output, JsonNode id, string reason)
+    private static JsonNode At(JsonNode node, string key) => (node as JsonObject)?[key];
+
+    /// <summary>The «params» member's field, since almost everything hangs off it.</summary>
+    private static JsonNode Param(JsonObject message, string key) => At(At(message, "params"), key);
+
+    private static string Text(JsonNode node, string key)
+        => At(node, key) is JsonValue value && value.TryGetValue(out string text) ? text : null;
+
+    private static int? Number(JsonNode node, string key)
+        => At(node, key) is JsonValue value && value.TryGetValue(out int number) ? number : null;
+
+    private static JsonNode First(JsonNode node) => node is JsonArray array && array.Count > 0 ? array[0] : null;
+
+    /// <summary>The document uri a request or notification names, if it names one.</summary>
+    private static string Uri(JsonObject message) => Text(Param(message, "textDocument"), "uri");
+
+    private static Place? AsPlace(JsonNode position)
+        => Number(position, "line") is int line && Number(position, "character") is int character
+           ? new Place(line, character)
+           : null;
+
+    private static Extent? AsExtent(JsonNode range)
+        => AsPlace(At(range, "start")) is Place start && AsPlace(At(range, "end")) is Place end
+           ? new Extent(start, end)
+           : null;
+
+    /// <summary>Answers a request the server cannot serve, with the reason's code.</summary>
+    ///
+    /// <remarks>
+    ///     The client carries an id and is waiting on an answer; the error is the
+    ///     answer, and the code says why — the lifecycle did not permit the
+    ///     request, or it named no method, or a method the server does not have,
+    ///     or parameters it could not read.
+    /// </remarks>
+    private static void Fail(Stream output, JsonNode id, int code, string reason)
         => Send(output, new JsonObject
         {
             ["jsonrpc"] = "2.0",
             ["id"] = id.DeepClone(),
-            ["error"] = new JsonObject { ["code"] = -32600, ["message"] = reason },
+            ["error"] = new JsonObject { ["code"] = code, ["message"] = reason },
         });
 
     private static void Reply(Stream output, JsonNode id, JsonNode result)
