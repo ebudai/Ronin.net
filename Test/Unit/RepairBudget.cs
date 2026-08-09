@@ -19,6 +19,43 @@ namespace Unit;
 [Trait(nameof(Repairs), null)]
 public class RepairBudget
 {
+    /// <summary>The repair search's allocation ceiling for the reproduction, in megabytes.</summary>
+    ///
+    /// <remarks>
+    ///     A regression tripwire, not a tight bound: it separates the O(nodes)
+    ///     shape the search has now from the O(2ⁿ) one it had, and sits far below
+    ///     the six gigabytes that one spent on this source and comfortably above
+    ///     the resolver's own per-candidate cost.
+    /// </remarks>
+    private const int Ceiling = 300;
+
+    [Fact(DisplayName = "repairing many ambiguous children costs a resolution per node, not per subset")]
+    public void RepairingManyAmbiguousChildrenCostsAResolutionPerNodeNotPerSubset()
+    {
+        // Found by audit. Six independently ambiguous children — sixty-four
+        // readings — each needing a bracket around every child. Enumerating the
+        // spans' subsets reached that six-bracket set only past every smaller set
+        // that fails first, which is O(2ⁿ): the audit measured over four seconds
+        // and six gigabytes on this very source, and it offered five repairs it
+        // was about to stop being able to. Bracketing the whole tree once and
+        // trimming is a resolution per node.
+        SymbolTable symbols = new();
+        symbols.WithNames("a", "b", "a to b").WithPatterns("send _", "send _ to _");
+
+        var lexemes = Lexemes.Lex(string.Join(" + ", Enumerable.Repeat("( send a to b )", 6)));
+        var ambiguity = new Resolver(symbols).Resolve(lexemes);
+
+        // the first call JITs and warms; the measurement is of the second
+        Assert.Equal(Resolver.Kept, Repairs.For(new Resolver(symbols), lexemes, ambiguity).Count);
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        Repairs.For(new Resolver(symbols), lexemes, ambiguity);
+        var megabytes = (GC.GetAllocatedBytesForCurrentThread() - before) / 1024.0 / 1024.0;
+
+        Assert.True(megabytes < Ceiling,
+                    $"repairing six ambiguous children allocated {megabytes:F0} MB, over the {Ceiling} MB ceiling");
+    }
+
     [Fact(DisplayName = "past the budget, a reading is reported without a repair")]
     public void PastTheBudgetAReadingIsReportedWithoutARepair()
     {
@@ -41,15 +78,14 @@ public class RepairBudget
         Assert.Equal(2, Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 100).Count);
     }
 
-    [Fact(DisplayName = "and it stops mid-search, not only between readings")]
-    public void AndItStopsMidSearchNotOnlyBetweenReadings()
+    [Fact(DisplayName = "and it stops the trim mid-reading, keeping a fuller repair")]
+    public void AndItStopsTheTrimMidReadingKeepingAFullerRepair()
     {
-        // A reading of two ambiguous children needs a bracket around each, so its
-        // search fails every single-span candidate before it reaches a pair. The
-        // budget can run out among those singles — inside one reading's search
-        // rather than cleanly between readings — and the guard that stops it is
-        // per candidate, not only per size, so a search already under way stops
-        // where it stands instead of finishing the size it was on.
+        // The search verifies one full bracketing per reading and then trims it,
+        // so the budget can run out inside a reading's trim as well as cleanly
+        // between readings. The guard that stops it is per candidate: a reading
+        // whose trim is cut short keeps the extra brackets — a fuller repair,
+        // never a wrong one — and a reading it cannot even verify is dropped.
         SymbolTable symbols = new();
         symbols.WithNames("a", "b", "a to b").WithPatterns("send _", "send _ to _");
 
@@ -58,15 +94,16 @@ public class RepairBudget
 
         Assert.Equal(4, ambiguity.Readings.Count);
 
-        // One resolution buys no repair: every reading needs a pair, and the one
-        // look is spent on a single that cannot select — but the search stops
-        // among the singles rather than running the size out.
-        Assert.Empty(Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 1));
+        // Enough to verify a reading or two but not to trim and reach them all —
+        // fewer repairs than the full search, and every one still applies.
+        var starved = Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 2);
 
-        // Given enough, each reading is repaired with its two pairs.
-        var repairs = Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 4000);
+        Assert.InRange(starved.Count, 1, 3);
 
-        Assert.Equal(4, repairs.Count);
-        Assert.All(repairs, repair => Assert.Equal(4, repair.Insertions.Count));
+        // Given enough, every reading is repaired, and trimmed to its two pairs.
+        var full = Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 4000);
+
+        Assert.Equal(4, full.Count);
+        Assert.All(full, repair => Assert.Equal(4, repair.Insertions.Count));
     }
 }

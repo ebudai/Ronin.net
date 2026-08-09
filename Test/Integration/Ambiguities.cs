@@ -471,6 +471,28 @@ public class Ambiguities
         }
     }
 
+    [Fact(DisplayName = "and eight ambiguous children are repaired without the exponential cost")]
+    public void AndEightAmbiguousChildrenAreRepairedWithoutTheExponentialCost()
+    {
+        // Found by audit. Eight independently ambiguous children — 256 readings,
+        // five shown — each needing a bracket around every child. Enumerating the
+        // spans' subsets reached that eight-bracket set only past every smaller
+        // set that fails first, which is O(2ⁿ): nine seconds, eleven gigabytes,
+        // and not one repair offered for any shown reading. Bracketing the whole
+        // tree and trimming is O(nodes), so the repairs are here.
+        var source = Colliding + "var a => Number;\nvar b => Number;\nvar result = "
+                   + string.Join(" + ", Enumerable.Repeat("(send a to b)", 8)) + ";\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(source)));
+
+        Assert.Equal(256, finding.Total);
+
+        // A repair for every shown reading, where the subset search offered none,
+        // and each one applies to a file that compiles.
+        Assert.Equal(Resolver.Kept, finding.Repairs.Count);
+        Assert.All(finding.Repairs, repair => Assert.Empty(All(Applied(source, repair))));
+    }
+
     /// <summary>The reading the repaired file resolves its result statement to.</summary>
     private static string Selected(string edited)
         => Compilation.Of(new SourceText(edited, "Player.ron"))

@@ -41,12 +41,19 @@ internal sealed class Repair
 
     public int Rank { get; }
 
-    /// <summary>The brackets to type, owned where the repair is made.</summary>
+    /// <summary>The brackets to type, in the order to apply them.</summary>
     ///
     /// <remarks>
-    ///     Positional would have made the caller's list a public promise of its
-    ///     own beside the owned one, which is the same value handed out twice
-    ///     with only one of them safe.
+    ///     Left to right by offset, and where two land at one offset — a call's
+    ///     bracket and its argument's closing together — the outer before the
+    ///     inner, so applying them in this order nests «(send (a to b))» rather
+    ///     than crossing it. An editor applies same-position edits in array order,
+    ///     which is this one.
+    ///     <para>
+    ///     Owned, because positional would have made the caller's list a public
+    ///     promise of its own beside the owned one — the same value handed out
+    ///     twice with only one of them safe.
+    ///     </para>
     /// </remarks>
     public IReadOnlyList<Insertion> Insertions { get; }
 }
@@ -68,11 +75,11 @@ internal sealed class Repair
 ///     A SET of any size, not a fixed number of pairs. Some readings choose a
 ///     meaning for several children at once — «(send a to b) + (send a to b) +
 ///     (send a to b)» has a reading for each way of reading each third — and no
-///     one bracket, nor any fixed number of them, selects it. Sets of the tree's
-///     spans are tried by increasing size, so a reading that pins N children is
-///     reached at size N. Searching one pair, then exactly two, published an
-///     empty repair for the first reading that needed three — a suggestion that
-///     looks selectable and does nothing.
+///     one bracket, nor any fixed number of them, selects it. So the search
+///     brackets every one of the reading's subtrees at once, which pins the whole
+///     structure, and then takes a bracket away wherever the reading survives
+///     without it. Searching one pair, then exactly two, published an empty
+///     repair for the first reading that needed three.
 ///     </para>
 ///     <para>
 ///     By RESOLVING each candidate rather than reasoning about the tree. The
@@ -82,13 +89,15 @@ internal sealed class Repair
 ///     brackets.
 ///     </para>
 ///     <para>
-///     BOUNDED. A set of size k costs «O(nᵏ)» candidates and each size is only
-///     reached when every smaller one failed to select the reading; past a
-///     budget of candidate resolutions the search stops and the reading is
-///     reported without a repair — which is honest, where a hang is not, and the
-///     readings are all there regardless. The budget ending the search is a
-///     different thing from the search having no way to express a repair, which
-///     is the state increasing the size removed.
+///     PROPORTIONAL to the reading. The full bracketing verifies once and each
+///     bracket is tried for removal once, which is «O(nodes)» resolutions.
+///     Enumerating subsets of the spans by increasing size instead reached a set
+///     that pins N children only past every smaller set that does not — «O(2ⁿ)»,
+///     so an eight-child expression of fifty-five lexemes spent nine seconds and
+///     eleven gigabytes and still found nothing, its answer's cardinality past
+///     where the budget gave out. Past that budget of resolutions the trim stops
+///     and the reading keeps a fuller repair, or an unverified reading is
+///     reported without one — honest, where a hang is not.
 ///     </para>
 /// </remarks>
 internal static class Repairs
@@ -143,92 +152,60 @@ internal static class Repairs
         private int spent;
 
         /// <summary>
-        ///     The narrowest set of brackets that leaves only this reading.
+        ///     A small set of brackets that leaves only this reading.
         /// </summary>
         ///
         /// <remarks>
-        ///     A reading is the whole statement's tree: selecting it means the
-        ///     bracketed statement resolves uniquely and reads that way, ignoring
-        ///     the brackets the repair itself added — «Same» unwraps those.
+        ///     <para>
+        ///     DERIVED from the tree, not searched for among its spans. Bracketing
+        ///     every one of the target's own subtrees pins the whole structure, so
+        ///     that one candidate selects the target by construction — and then a
+        ///     bracket comes off wherever the reading survives without it, until
+        ///     what is left is a set no member of which is redundant. A reading is
+        ///     the whole statement's tree, and «Same» unwraps the brackets the
+        ///     repair itself added when it checks.
+        ///     </para>
+        ///     <para>
+        ///     PROPORTIONAL to the reading. Resolving one candidate per subtree —
+        ///     the full set once, then one trial per bracket removed — is O(nodes)
+        ///     resolutions. Trying every subset of the spans by increasing size
+        ///     instead reached a set that pins N children only after resolving all
+        ///     the smaller sets that do not, which is «O(2ⁿ)»: an eight-child
+        ///     expression of fifty-five lexemes spent nine seconds and eleven
+        ///     gigabytes and still found nothing, because the answer's cardinality
+        ///     was past where the budget gave out.
+        ///     </para>
         /// </remarks>
         public IReadOnlyList<Insertion> Selecting(Node target)
         {
-            // The tree's own spans, narrowest first for minimality, and never the
-            // whole statement — bracketing all of it disambiguates nothing.
+            // The tree's own spans, never the whole statement — bracketing all of
+            // it disambiguates nothing.
             var spans = target.Whole
                               .Where(node => node.Length > 0)
-                              .Select(node => Range(node))
+                              .Select(Range)
                               .Where(range => range.To - range.From < lexemes.Count)
                               .Distinct()
-                              .OrderBy(range => range.To - range.From)
-                              .ToArray();
+                              .ToList();
 
-            // Non-overlapping sets of those spans, by increasing size and then by
-            // total width — the narrowest single first, then the cheapest pair,
-            // then triples and beyond. A reading of an expression with N
-            // independently ambiguous children fixes a meaning for all of them at
-            // once and needs a bracket around each, so stopping at one or two
-            // left every such reading with no selectable repair — a single pair
-            // and a fixed pair were the same fixed-arity assumption a step apart.
-            //
-            // Each further size multiplies the candidates, and the budget — shared
-            // across this statement's readings and counted in resolutions — is
-            // what ends the search: a reading whose brackets cost more than is
-            // left is reported without one, which is honest where a hang is not,
-            // and distinguishes "the budget ran out" from the old "the search had
-            // no way to express this".
-            for (var size = 1; size <= spans.Length && spent < budget; ++size)
+            // Bracket everything, and only go on if that pins the reading. It
+            // should always — every subtree made explicit leaves one structure —
+            // but a budget of zero cannot afford even this one resolution, and
+            // then the reading is reported without a repair, honestly.
+            if (Selects(target, spans) is false) return null;
+
+            // Take a bracket away wherever the reading survives without it, widest
+            // and rightmost first, so the wide outer groups go before the narrow
+            // inner ones they were making redundant — which settles on the same
+            // small, near-left bracketing the exhaustive search used to, without
+            // its cost. Budget running out mid-trim keeps the extra brackets: a
+            // fuller repair, never a wrong one.
+            foreach (var span in spans.OrderByDescending(span => (span.To - span.From, span.From)).ToList())
             {
-                foreach (var set in Disjoint(spans, size).OrderBy(Total))
-                {
-                    if (Selects(target, set)) return Brackets(set);
-                }
+                if (Selects(target, spans.Where(kept => kept != span).ToList())) spans.Remove(span);
             }
 
-            return null;
+            return Brackets(spans);
         }
-
-        /// <summary>The total width of a set of spans, its cost as a repair.</summary>
-        private static int Total((int From, int To)[] set) => set.Sum(span => span.To - span.From);
-
-        /// <summary>
-        ///     Every set of a given size of pairwise non-overlapping spans.
-        /// </summary>
-        ///
-        /// <remarks>
-        ///     Non-overlapping because <see cref="Bracketed"/> inserts a pair
-        ///     around each span independently, which two spans sharing a word
-        ///     would interleave into a mispairing. The tree's spans nest — a call
-        ///     contains its arguments — so overlapping combinations are the
-        ///     common case and pruned here rather than resolved and rejected.
-        /// </remarks>
-        private static IEnumerable<(int From, int To)[]> Disjoint((int From, int To)[] spans, int size)
-            => Extending(spans, size, 0, []);
-
-        private static IEnumerable<(int From, int To)[]> Extending((int From, int To)[] spans, int size,
-                                                                   int from, List<(int From, int To)> chosen)
-        {
-            if (chosen.Count == size)
-            {
-                yield return [.. chosen];
-                yield break;
-            }
-
-            for (var at = from; at < spans.Length; ++at)
-            {
-                if (chosen.Any(span => Overlaps(span, spans[at]))) continue;
-
-                chosen.Add(spans[at]);
-
-                foreach (var set in Extending(spans, size, at + 1, chosen)) yield return set;
-
-                chosen.RemoveAt(chosen.Count - 1);
-            }
-        }
-
-        /// <summary>Whether two spans share a lexeme.</summary>
-        private static bool Overlaps((int From, int To) a, (int From, int To) b)
-            => a.From < b.To && b.From < a.To;
 
         /// <summary>Whether bracketing these spans resolves uniquely to the target.</summary>
         private bool Selects(Node target, IReadOnlyList<(int From, int To)> spans)
@@ -260,29 +237,59 @@ internal static class Repairs
         }
 
         /// <summary>The lexemes with a bracket pair around each span.</summary>
+        ///
+        /// <remarks>
+        ///     Walked by boundary rather than inserted per span, because the spans
+        ///     NEST — a call's bracket contains its arguments' — and inserting each
+        ///     pair independently shifted the indices of the ones around it. At
+        ///     each gap the spans ending there close, innermost first, then the
+        ///     spans starting there open, outermost first, so «(send (a to b))»
+        ///     comes out nested rather than crossed.
+        /// </remarks>
         private List<Lexeme> Bracketed(IReadOnlyList<(int From, int To)> spans)
         {
-            List<Lexeme> bracketed = [.. lexemes];
+            List<Lexeme> bracketed = [];
 
-            // Right to left, so an earlier span's indices are untouched by a
-            // later one's brackets.
-            foreach (var span in spans.OrderByDescending(span => span.From))
+            for (var at = 0; at <= lexemes.Count; ++at)
             {
-                bracketed.Insert(span.To, new Lexeme(LexemeKind.Close, ")"));
-                bracketed.Insert(span.From, new Lexeme(LexemeKind.Open, "("));
+                foreach (var _ in spans.Where(span => span.To == at).OrderByDescending(span => span.From))
+                    bracketed.Add(new Lexeme(LexemeKind.Close, ")"));
+
+                foreach (var _ in spans.Where(span => span.From == at).OrderByDescending(span => span.To))
+                    bracketed.Add(new Lexeme(LexemeKind.Open, "("));
+
+                if (at < lexemes.Count) bracketed.Add(lexemes[at]);
             }
 
             return bracketed;
         }
 
-        /// <summary>The source edits that bracket each span.</summary>
+        /// <summary>The source edits that bracket each span, in the order to apply them.</summary>
+        ///
+        /// <remarks>
+        ///     Walked by boundary, like <see cref="Bracketed"/>, so the pairs come
+        ///     out ordered left to right and correctly nested — the spans nest, so
+        ///     two brackets can land at one offset, and the order they are applied
+        ///     in is then the difference between «(send (a to b))» and a crossed
+        ///     pair. Applied left to right at their offsets, in this order.
+        /// </remarks>
         private IReadOnlyList<Insertion> Brackets(IReadOnlyList<(int From, int To)> spans)
-            => Owned.Copy<Insertion>(
-               [.. spans.SelectMany(span => new[]
-               {
-                   new Insertion(lexemes[span.From].Offset, "("),
-                   new Insertion(lexemes[span.To - 1].Offset + lexemes[span.To - 1].Length, ")"),
-               })]);
+        {
+            List<Insertion> inserts = [];
+
+            for (var at = 0; at <= lexemes.Count; ++at)
+            {
+                if (at > 0)
+                    foreach (var _ in spans.Where(span => span.To == at).OrderByDescending(span => span.From))
+                        inserts.Add(new Insertion(lexemes[at - 1].Offset + lexemes[at - 1].Length, ")"));
+
+                if (at < lexemes.Count)
+                    foreach (var _ in spans.Where(span => span.From == at).OrderByDescending(span => span.To))
+                        inserts.Add(new Insertion(lexemes[at].Offset, "("));
+            }
+
+            return Owned.Copy<Insertion>([.. inserts]);
+        }
     }
 
     /// <summary>
