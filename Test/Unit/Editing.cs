@@ -118,8 +118,9 @@ public class Editing
     {
         // Ambiguity is the error that offers the bracketings selectably, and this
         // is where "selectably" becomes real: each reading is a fix an editor can
-        // apply, titled by the reading it selects, because a person choosing
-        // between two bracketings is choosing between two meanings.
+        // apply, titled by the statement with that fix's brackets typed in —
+        // because a person choosing between two bracketings is choosing between
+        // two meanings, and the bracketed source is the meaning made visible.
         const string Text = "function send (x => Number) { return x; }\n"
                           + "function send (x => Number) to (y => Number) { return x; }\n"
                           + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
@@ -127,12 +128,38 @@ public class Editing
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(5, 13), new Place(5, 24)));
 
-        Assert.Equal(["Read it as send «a to b»", "Read it as send «a» to «b»"],
+        Assert.Equal(["Read it as send (a to b)", "Read it as send (a) to b"],
                      actions.Select(action => action.Title));
 
         // Applying each one leaves a file that compiles — the edits are real, not
         // a description of where an edit would go.
         Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
+    [Fact(DisplayName = "and two readings that print alike still get titles a person can tell apart")]
+    public void AndTwoReadingsThatPrintAlikeStillGetTitlesAPersonCanTellApart()
+    {
+        // Found by audit. The reading was the title, and these two readings print
+        // the same words — «print send «a» to «b»» for both «print (send a to b)»
+        // and «print (send a) to b» — so a person saw two working fixes under one
+        // label with no way to tell which meaning either selected. The bracketed
+        // source is the title now, and a bracketing IS the reading it selects, so
+        // the two entries differ exactly where the meanings do.
+        const string Text = "function send (x => Number) { return x; }\n"
+                          + "function send (x => Number) to (y => Number) { return x; }\n"
+                          + "function print (x => Number) { return x; }\n"
+                          + "function print (x => Number) to (y => Number) { return x; }\n"
+                          + "var a => Number;\nvar b => Number;\nvar result = print send a to b;\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(6, 13), new Place(6, 30)));
+
+        // Two working fixes, and two titles that name the two meanings apart.
+        Assert.Equal(2, actions.Count);
+        Assert.Equal(2, actions.Select(action => action.Title).Distinct().Count());
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+
+        Assert.Contains(actions, action => action.Title == "Read it as print (send a to b)");
+        Assert.Contains(actions, action => action.Title == "Read it as print (send a) to b");
     }
 
     [Fact(DisplayName = "and a range with no ambiguity in it offers nothing")]

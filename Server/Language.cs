@@ -38,9 +38,11 @@ internal readonly record struct Edit(Place At, string Text);
 /// </summary>
 ///
 /// <param name="Title">
-///     What the editor shows in its menu. It names the reading the fix selects,
-///     because a person choosing between two bracketings is choosing between two
-///     meanings and the meaning is what they can judge.
+///     What the editor shows in its menu: the statement with this fix's brackets
+///     typed in. A person choosing between two bracketings is choosing between
+///     two meanings, and the bracketed source is the meaning made visible — where
+///     the reading it selects can print the same words as another's and leave the
+///     two entries indistinguishable.
 /// </param>
 internal sealed record Fix(string Title, IReadOnlyList<Edit> Edits);
 
@@ -105,12 +107,43 @@ internal static class Language
 
             foreach (var repair in finding.Repairs)
             {
-                actions.Add(new Fix($"Read it as {repair.Reading}",
+                actions.Add(new Fix($"Read it as {Previewed(source.Text, finding.Primary, repair.Insertions)}",
                                        [.. repair.Insertions.Select(insertion => new Edit(Place(source, insertion.At), insertion.Text))]));
             }
         }
 
         return actions;
+    }
+
+    /// <summary>
+    ///     The ambiguous statement's source with one repair's brackets typed in.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The title, and its whole job is to tell the menu's entries apart. The
+    ///     reading was the title once, and two readings that print alike — «print
+    ///     send «a» to «b»» for both «print (send a to b)» and «print (send a) to
+    ///     b» — gave two working fixes one label, so a person could not tell which
+    ///     meaning either selected. The rendering is a structural identity and was
+    ///     never meant to be injective; the brackets are, because a bracketing IS
+    ///     the reading it selects. Distinct readings have distinct selecting
+    ///     bracketings — a bracketing resolves to one reading or it would not have
+    ///     been offered — so the previews differ exactly where the meanings do.
+    /// </remarks>
+    private static string Previewed(string text, Span span, IReadOnlyList<Insertion> insertions)
+    {
+        var preview = text.Substring(span.Offset, span.Length);
+
+        // Right to left, so an earlier bracket's index is untouched by a later
+        // one's insertion.
+        foreach (var insertion in insertions.OrderByDescending(insertion => insertion.At))
+        {
+            var at = insertion.At - span.Offset;
+
+            preview = preview[..at] + insertion.Text + preview[at..];
+        }
+
+        return preview;
     }
 
     /// <summary>Whether an editor's requested range touches a finding's span.</summary>
