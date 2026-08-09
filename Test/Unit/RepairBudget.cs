@@ -56,6 +56,32 @@ public class RepairBudget
                     $"repairing six ambiguous children allocated {megabytes:F0} MB, over the {Ceiling} MB ceiling");
     }
 
+    [Fact(DisplayName = "and a one-pair repair around a large unambiguous argument stays cheap")]
+    public void AndAOnePairRepairAroundALargeUnambiguousArgumentStaysCheap()
+    {
+        // Found by audit. «print send (a + a + …) to b» has two readings and one
+        // wide bracket each. Growing narrowest first appended every name and
+        // operation node of the unambiguous sum before that bracket, spending
+        // three gigabytes to reach a two-lexeme answer — where it did not first
+        // cross the ceiling and give up. Trying a distinguishing span first keeps
+        // it to a fraction of that.
+        SymbolTable symbols = new();
+        symbols.WithNames("a", "b").WithPatterns("send _", "send _ to _", "print _", "print _ to _");
+
+        var lexemes = Lexemes.Lex($"print send ( {string.Join(" + ", Enumerable.Repeat("a", 42))} ) to b");
+        var ambiguity = new Resolver(symbols).Resolve(lexemes);
+
+        // the first call JITs and warms; the measurement is of the second
+        Assert.Equal(2, Repairs.For(new Resolver(symbols), lexemes, ambiguity).Count);
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        Repairs.For(new Resolver(symbols), lexemes, ambiguity);
+        var megabytes = (GC.GetAllocatedBytesForCurrentThread() - before) / 1024.0 / 1024.0;
+
+        Assert.True(megabytes < Ceiling,
+                    $"a one-pair repair around a large argument allocated {megabytes:F0} MB, over the {Ceiling} MB ceiling");
+    }
+
     [Fact(DisplayName = "past the budget, a reading is reported without a repair")]
     public void PastTheBudgetAReadingIsReportedWithoutARepair()
     {
@@ -72,6 +98,14 @@ public class RepairBudget
 
         Assert.Equal(2, ambiguity.Readings.Count);
         Assert.Empty(starved);
+
+        // The bound is on the lexemes about to be resolved, not on what is already
+        // spent, so a remainder short of a candidate no longer admits that whole
+        // candidate past the limit. A budget of six is spent to four on the
+        // unbracketed statement and then two short of the six-lexeme «send (a to
+        // b)», so neither reading's repair is bought — where the old check, seeing
+        // four still under six, resolved that whole candidate anyway.
+        Assert.Empty(Repairs.For(new Resolver(symbols), lexemes, ambiguity, budget: 6));
 
         // And with budget to spare, the same statement is fully repaired — so it
         // is the budget that stopped it, not the statement that had none.

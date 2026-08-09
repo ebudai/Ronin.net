@@ -524,6 +524,37 @@ public class Ambiguities
         Assert.Contains(edited, source => source.Contains("print (send [a]) to b", StringComparison.Ordinal));
     }
 
+    [Fact(DisplayName = "and a reading's one wide bracket is not buried behind a large unambiguous argument")]
+    public void AndAReadingsOneWideBracketIsNotBuriedBehindALargeUnambiguousArgument()
+    {
+        // Found by audit. «print send (a + a + … forty-two times) to b» has two
+        // readings, each fixed by one bracket around a WIDE call. Growing the
+        // bracketing narrowest first appended every name and operation node of the
+        // unambiguous sum before reaching that call — a candidate that outgrew its
+        // own one-pair answer and, at eighty-nine lexemes, crossed the resolver's
+        // ceiling before it could select, so the statement got no repair at all.
+        // A bracket a competitor lacks is tried before the idle ones now.
+        var sum = string.Join(" + ", Enumerable.Repeat("a", 42));
+        var source = "function send (x => Number) { return x; }\n"
+                   + "function send (x => Number) to (y => Number) { return x; }\n"
+                   + "function print (x => Number) { return x; }\n"
+                   + "function print (x => Number) to (y => Number) { return x; }\n"
+                   + "var a => Number;\nvar b => Number;\nvar result = print send (" + sum + ") to b;\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(source)));
+
+        Assert.Equal(2, finding.Total);
+        Assert.Equal(2, finding.Repairs.Count);
+
+        // one pair each, two different edits, and each to a file that compiles
+        Assert.All(finding.Repairs, repair => Assert.Equal(2, repair.Insertions.Count));
+
+        var edited = finding.Repairs.Select(repair => Applied(source, repair)).ToArray();
+
+        Assert.Equal(2, edited.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(edited, source => Assert.Empty(All(source)));
+    }
+
     /// <summary>The reading the repaired file resolves its result statement to.</summary>
     private static string Selected(string edited)
         => Compilation.Of(new SourceText(edited, "Player.ron"))

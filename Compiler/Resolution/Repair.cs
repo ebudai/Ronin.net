@@ -90,16 +90,16 @@ internal sealed class Repair
 ///     </para>
 ///     <para>
 ///     PROPORTIONAL to the reading. The bracketing is grown from the target's own
-///     subtrees until it pins the reading, so every candidate is no larger than
-///     the answer — for a long expression a fraction of the tree, and never past
-///     the resolver's lexeme ceiling the whole-tree candidate once overflowed.
-///     Enumerating subsets of the spans by increasing size, before that, reached
-///     a set that pins N children only past every smaller set that does not —
-///     «O(2ⁿ)», so an eight-child expression of fifty-five lexemes spent nine
-///     seconds and eleven gigabytes and still found nothing. The budget is
-///     lexemes resolved, an editor's budget rather than a count blind to how long
-///     each resolution is; past it a reading is reported without a repair, honest
-///     where a hang is not.
+///     subtrees until it pins the reading, distinguishing spans first — the ones
+///     some other reading lacks — so the wide bracket that does the work is not
+///     deferred behind every narrow idle one, which grew a candidate past the
+///     resolver's lexeme ceiling before it could select. Enumerating subsets of
+///     the spans by increasing size, before that, reached a set that pins N
+///     children only past every smaller set that does not — «O(2ⁿ)», so an
+///     eight-child expression of fifty-five lexemes spent nine seconds and eleven
+///     gigabytes and still found nothing. The budget is lexemes resolved, an
+///     editor's budget rather than a count blind to how long each resolution is;
+///     past it a reading is reported without a repair, honest where a hang is not.
 ///     </para>
 /// </remarks>
 internal static class Repairs
@@ -137,7 +137,7 @@ internal static class Repairs
                                               Resolution ambiguity,
                                               int budget)
     {
-        Search search = new(resolver, lexemes, budget);
+        Search search = new(resolver, lexemes, ambiguity.Alternatives, budget);
         List<Repair> found = [];
 
         foreach (var alternative in ambiguity.Alternatives)
@@ -158,7 +158,8 @@ internal static class Repairs
     }
 
     /// <summary>One statement's repair search, with its cache and budget.</summary>
-    private sealed class Search(Resolver resolver, IReadOnlyList<Lexeme> lexemes, int budget)
+    private sealed class Search(Resolver resolver, IReadOnlyList<Lexeme> lexemes,
+                                IReadOnlyList<Node> alternatives, int budget)
     {
         private readonly Dictionary<string, Node> resolved = [];
         private int spent;
@@ -172,22 +173,29 @@ internal static class Repairs
         ///     DERIVED from the tree, not searched for among its spans. Its own
         ///     subtrees are the brackets a repair may add — «Same» unwraps them
         ///     when it checks — and bracketing every one of them pins the whole
-        ///     structure. So the brackets are grown, narrowest first, until the
-        ///     reading is pinned, and then trimmed of any a wider one made
-        ///     redundant.
+        ///     structure. So the brackets are grown until the reading is pinned,
+        ///     and then trimmed of any a wider one made redundant.
+        ///     </para>
+        ///     <para>
+        ///     DISTINGUISHING spans first, then narrowest. A reading's one useful
+        ///     bracket can be a WIDE call around a large unambiguous argument, and
+        ///     narrowest-first appended every name and operation node inside that
+        ///     argument before reaching it — a candidate that outgrew its own
+        ///     one-pair answer and, past the resolver's lexeme ceiling, could never
+        ///     select, so a two-reading statement got no repair. A span that some
+        ///     other reading lacks is a segmentation they disagree on; bracketing
+        ///     it rules that reading out. Tried before the spans every reading
+        ///     shares, the bracket that does the work is not deferred behind the
+        ///     idle ones, and the candidate stays near the answer.
         ///     </para>
         ///     <para>
         ///     GROWN, not bracketed-then-trimmed. Bracketing the whole tree at once
-        ///     to verify it made a candidate much larger than the answer — for
-        ///     twenty children, larger than the resolver's own lexeme ceiling, so
-        ///     four of five readings could not be verified at all — and resolved a
-        ///     long statement once per bracket besides. Growing keeps every
-        ///     candidate no larger than the answer, a fraction of the tree, and so
-        ///     always inside the ceiling. Enumerating subsets by increasing size,
-        ///     the version before that, reached a set pinning N children only past
-        ///     every smaller set that does not, which is «O(2ⁿ)»: an eight-child
-        ///     expression spent nine seconds and eleven gigabytes and found
-        ///     nothing.
+        ///     to verify it made a candidate much larger than the answer — past the
+        ///     resolver's ceiling — and resolved a long statement once per bracket
+        ///     besides. Enumerating subsets by increasing size, the version before
+        ///     that, reached a set pinning N children only past every smaller set
+        ///     that does not, which is «O(2ⁿ)»: an eight-child expression spent
+        ///     nine seconds and eleven gigabytes and found nothing.
         ///     </para>
         /// </remarks>
         public IReadOnlyList<Insertion> Selecting(Node target)
@@ -201,21 +209,38 @@ internal static class Repairs
                               .Select(Range)
                               .Where(range => range.To - range.From < lexemes.Count)
                               .Distinct()
-                              .OrderBy(range => (range.To - range.From, range.From))
                               .ToList();
 
-            // GROW the bracketing, narrowest first, until it pins the reading —
-            // rather than bracket every subtree and take brackets away. Both are
-            // O(nodes) resolutions, but the trim resolved the whole tree bracketed
-            // each time, which for a long expression is expensive per resolution
-            // and, past twenty children, inflates its own candidate past the
-            // resolver's lexeme ceiling — so the reading could not be verified at
-            // all and was dropped. Growing keeps every candidate no larger than
-            // the answer, which is a fraction of the tree and always inside the
-            // ceiling.
+            // The spans of the OTHER readings, so a bracket that rules one of them
+            // out can be told from one that rules out nothing. A subtree the
+            // target has and a competitor does not is a segmentation the two
+            // disagree on; bracketing it eliminates that competitor. A subtree
+            // every competitor also has changes no reading at all.
+            var competitors = alternatives.Where(reading => reading != target)
+                                          .Select(reading => reading.Whole
+                                                                    .Where(node => node.Length > 0)
+                                                                    .Select(Range)
+                                                                    .ToHashSet())
+                                          .ToList();
+
+            // GROW the bracketing until it pins the reading, distinguishing spans
+            // first and then narrowest — rather than narrowest alone. A reading's
+            // one useful bracket can be a WIDE call around a large unambiguous
+            // argument, and narrowest-first appended every name and operation node
+            // inside that argument before reaching it — a candidate that outgrew
+            // its own answer and, at eighty-nine lexemes, crossed the resolver's
+            // ceiling before it could ever select, so a two-reading statement with
+            // a one-pair repair got none. A span some competitor lacks is tried
+            // before one they all share, so the bracket that does the work is not
+            // deferred behind every idle one, and the candidate stays near the
+            // answer.
+            var ordered = candidates.OrderBy(span => competitors.All(reading => reading.Contains(span)) ? 1 : 0)
+                                    .ThenBy(span => (span.To - span.From, span.From))
+                                    .ToList();
+
             List<(int From, int To)> spans = [];
 
-            foreach (var candidate in candidates)
+            foreach (var candidate in ordered)
             {
                 if (Selects(target, spans)) break;
 
@@ -247,14 +272,17 @@ internal static class Repairs
 
             if (resolved.TryGetValue(key, out var tree) is false)
             {
-                if (spent >= budget) return false;
+                // The NEXT charge tested before it is made, by subtraction so a
+                // near-limit budget cannot overflow — so «at most budget lexemes»
+                // holds, where checking only what was already spent admitted one
+                // whole candidate past it. Charged the lexemes it resolves, not
+                // one flat count, because that is the work: a resolution's cost
+                // grows with the statement, and a budget counting resolutions let
+                // a long expression spend seconds inside a small number of them. A
+                // budget in lexemes is an editor's, on bounded work rather than a
+                // tally of calls whose size it does not see.
+                if (bracketed.Count > budget - spent) return false;
 
-                // Charged the lexemes it resolves, not one flat count, because
-                // that is the work: a resolution's cost grows with the statement,
-                // and a budget counting resolutions let a long expression spend
-                // seconds inside a small number of them. A budget in lexemes is an
-                // editor's budget — bounded work, not a bounded tally of calls
-                // whose size it does not see.
                 spent += bracketed.Count;
                 resolved[key] = tree = resolver.Resolve(bracketed).TryTree(out var only) ? only : null;
             }
