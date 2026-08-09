@@ -292,6 +292,27 @@ public class Editing
         Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
     }
 
+    [Fact(DisplayName = "and a nested second pair is offered as an action, not dropped")]
+    public void AndANestedSecondPairIsOfferedAsAnActionNotDropped()
+    {
+        // The nested-repair case through the editor boundary: «wrap print send a to
+        // b to a», three readings, two of which need a pair inside a pair. Skipping
+        // an already-bracketed argument dropped those two actions.
+        const string Text = "function wrap (x => Number) { return x; }\n"
+                          + "function print (x => Number) { return x; }\n"
+                          + "function print (x => Number) to (y => Number) { return x; }\n"
+                          + "function send (x => Number) { return x; }\n"
+                          + "function send (x => Number) to (y => Number) { return x; }\n"
+                          + "var a => Number;\nvar b => Number;\nvar a to b => Number;\n"
+                          + "var result = wrap print send a to b to a;\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(8, 13), new Place(8, 38)));
+
+        Assert.Equal(3, actions.Count);
+        Assert.Equal([1, 2, 2], actions.Select(action => action.Edits.Count(edit => edit.Text == "(")).OrderBy(pairs => pairs));
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
     /// <summary>The text with a code action's edits applied.</summary>
     private static string Applied(string text, Fix action)
     {

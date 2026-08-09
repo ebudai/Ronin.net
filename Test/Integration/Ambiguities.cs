@@ -663,6 +663,39 @@ public class Ambiguities
         Assert.Contains(edited, source => source.Contains("f send (a) to b", StringComparison.Ordinal));
     }
 
+    [Fact(DisplayName = "and a second pair is found inside an argument the first pair already bracketed")]
+    public void AndASecondPairIsFoundInsideAnArgumentTheFirstPairAlreadyBracketed()
+    {
+        // Found by audit. «wrap print send a to b to a» has three readings. Two of
+        // them need a pair around «send a to b» to choose the «print to» boundary
+        // AND a pair inside it to choose the «send» reading. Skipping an argument
+        // whose range was already bracketed — «avoid» — stopped the walk going
+        // beneath the first pair, so the inner pair was never found and those two
+        // repairs were dropped. «avoid» stops the same pair being returned twice
+        // now, not the walk from descending through it.
+        const string Source = "function wrap (x => Number) { return x; }\n"
+                            + "function print (x => Number) { return x; }\n"
+                            + "function print (x => Number) to (y => Number) { return x; }\n"
+                            + "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "var a => Number;\nvar b => Number;\nvar a to b => Number;\n"
+                            + "var result = wrap print send a to b to a;\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        Assert.Equal(3, finding.Total);
+        Assert.Equal(3, finding.Repairs.Count);
+
+        // pair counts one, two, and two — a one-pair reading and two that need a
+        // pair nested inside another
+        Assert.Equal([1, 2, 2], finding.Repairs.Select(repair => repair.Insertions.Count / 2).OrderBy(pairs => pairs));
+
+        var edited = finding.Repairs.Select(repair => Applied(Source, repair)).ToArray();
+
+        Assert.Equal(3, edited.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(edited, source => Assert.Empty(All(source)));
+    }
+
     [Fact(DisplayName = "and a surplus pair does not turn a valid answer too long at the ceiling")]
     public void AndASurplusPairDoesNotTurnAValidAnswerTooLongAtTheCeiling()
     {

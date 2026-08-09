@@ -319,13 +319,22 @@ internal static class Repairs
             {
                 var span = Where(argument);
 
-                if (avoid.Contains(span) || span.To - span.From >= lexemes.Count) continue;
+                if (span.To - span.From >= lexemes.Count) continue;   // the whole statement disambiguates nothing
 
-                // The competitor argument over the same words, if it has one.
-                if (others.FirstOrDefault(other => Where(other) == span) is not Node aligned) return span;
-
-                // Same boundary — a disagreement, if any, is deeper.
-                if (Divergence(argument, aligned, avoid) is (int From, int To) deeper) return deeper;
+                if (others.FirstOrDefault(other => Where(other) == span) is Node aligned)
+                {
+                    // Same boundary — a disagreement, if any, is deeper, and must
+                    // be searched for even inside a pair already added: «avoid»
+                    // stops the same pair being returned twice, not the walk from
+                    // going beneath it.
+                    if (Divergence(argument, aligned, avoid) is (int From, int To) deeper) return deeper;
+                }
+                else if (avoid.Contains(span) is false)
+                {
+                    // The competitor segments these words differently — bracket
+                    // them, unless that pair is already there.
+                    return span;
+                }
             }
 
             return null;
