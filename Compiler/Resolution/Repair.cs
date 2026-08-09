@@ -65,12 +65,14 @@ internal sealed class Repair
 ///     reading are «O(n)», so this is «O(n)» candidates for a single bracket.
 ///     </para>
 ///     <para>
-///     A SET, not a single pair. Some readings choose a meaning for two children
-///     at once — «(send a to b) + (send a to b)» has a reading for each way of
-///     reading each half — and no one bracket selects it. Where a single fails,
-///     pairs of the tree's spans are tried, which the previous version could not
-///     express: it searched one pair and published an empty repair when none was
-///     found, a suggestion that looks selectable and does nothing.
+///     A SET of any size, not a fixed number of pairs. Some readings choose a
+///     meaning for several children at once — «(send a to b) + (send a to b) +
+///     (send a to b)» has a reading for each way of reading each third — and no
+///     one bracket, nor any fixed number of them, selects it. Sets of the tree's
+///     spans are tried by increasing size, so a reading that pins N children is
+///     reached at size N. Searching one pair, then exactly two, published an
+///     empty repair for the first reading that needed three — a suggestion that
+///     looks selectable and does nothing.
 ///     </para>
 ///     <para>
 ///     By RESOLVING each candidate rather than reasoning about the tree. The
@@ -80,10 +82,13 @@ internal sealed class Repair
 ///     brackets.
 ///     </para>
 ///     <para>
-///     BOUNDED. Singles are «O(n)», pairs «O(n²)» and only reached when a single
-///     fails; past a budget of candidate resolutions the search stops and the
-///     reading is reported without a repair — which is honest, where a hang is
-///     not, and the readings are all there regardless.
+///     BOUNDED. A set of size k costs «O(nᵏ)» candidates and each size is only
+///     reached when every smaller one failed to select the reading; past a
+///     budget of candidate resolutions the search stops and the reading is
+///     reported without a repair — which is honest, where a hang is not, and the
+///     readings are all there regardless. The budget ending the search is a
+///     different thing from the search having no way to express a repair, which
+///     is the state increasing the size removed.
 ///     </para>
 /// </remarks>
 internal static class Repairs
@@ -158,30 +163,72 @@ internal static class Repairs
                               .OrderBy(range => range.To - range.From)
                               .ToArray();
 
-            foreach (var span in spans)
+            // Non-overlapping sets of those spans, by increasing size and then by
+            // total width — the narrowest single first, then the cheapest pair,
+            // then triples and beyond. A reading of an expression with N
+            // independently ambiguous children fixes a meaning for all of them at
+            // once and needs a bracket around each, so stopping at one or two
+            // left every such reading with no selectable repair — a single pair
+            // and a fixed pair were the same fixed-arity assumption a step apart.
+            //
+            // Each further size multiplies the candidates, and the budget — shared
+            // across this statement's readings and counted in resolutions — is
+            // what ends the search: a reading whose brackets cost more than is
+            // left is reported without one, which is honest where a hang is not,
+            // and distinguishes "the budget ran out" from the old "the search had
+            // no way to express this".
+            for (var size = 1; size <= spans.Length && spent < budget; ++size)
             {
-                if (Selects(target, [span])) return Brackets([span]);
-            }
-
-            // A single did not select it, so it is a reading that fixes two
-            // children at once. Pairs of non-overlapping spans, fewest and
-            // narrowest first.
-            foreach (var pair in Pairs(spans))
-            {
-                if (Selects(target, pair)) return Brackets(pair);
+                foreach (var set in Disjoint(spans, size).OrderBy(Total))
+                {
+                    if (Selects(target, set)) return Brackets(set);
+                }
             }
 
             return null;
         }
 
-        /// <summary>Non-overlapping span pairs, by total width.</summary>
-        private static IEnumerable<(int From, int To)[]> Pairs((int From, int To)[] spans)
-            => from a in spans.Select((span, at) => (span, at))
-               from b in spans.Select((span, at) => (span, at))
-               where a.at < b.at
-               where a.span.To <= b.span.From || b.span.To <= a.span.From
-               orderby (a.span.To - a.span.From) + (b.span.To - b.span.From)
-               select new[] { a.span, b.span };
+        /// <summary>The total width of a set of spans, its cost as a repair.</summary>
+        private static int Total((int From, int To)[] set) => set.Sum(span => span.To - span.From);
+
+        /// <summary>
+        ///     Every set of a given size of pairwise non-overlapping spans.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     Non-overlapping because <see cref="Bracketed"/> inserts a pair
+        ///     around each span independently, which two spans sharing a word
+        ///     would interleave into a mispairing. The tree's spans nest — a call
+        ///     contains its arguments — so overlapping combinations are the
+        ///     common case and pruned here rather than resolved and rejected.
+        /// </remarks>
+        private static IEnumerable<(int From, int To)[]> Disjoint((int From, int To)[] spans, int size)
+            => Extending(spans, size, 0, []);
+
+        private static IEnumerable<(int From, int To)[]> Extending((int From, int To)[] spans, int size,
+                                                                   int from, List<(int From, int To)> chosen)
+        {
+            if (chosen.Count == size)
+            {
+                yield return [.. chosen];
+                yield break;
+            }
+
+            for (var at = from; at < spans.Length; ++at)
+            {
+                if (chosen.Any(span => Overlaps(span, spans[at]))) continue;
+
+                chosen.Add(spans[at]);
+
+                foreach (var set in Extending(spans, size, at + 1, chosen)) yield return set;
+
+                chosen.RemoveAt(chosen.Count - 1);
+            }
+        }
+
+        /// <summary>Whether two spans share a lexeme.</summary>
+        private static bool Overlaps((int From, int To) a, (int From, int To) b)
+            => a.From < b.To && b.From < a.To;
 
         /// <summary>Whether bracketing these spans resolves uniquely to the target.</summary>
         private bool Selects(Node target, IReadOnlyList<(int From, int To)> spans)

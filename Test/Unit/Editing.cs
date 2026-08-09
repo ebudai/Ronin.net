@@ -166,6 +166,25 @@ public class Editing
         Assert.Equal(offered ? 2 : 0, actions.Count);
     }
 
+    [Fact(DisplayName = "and a reading that needs three brackets is still offered as an action")]
+    public void AndAReadingThatNeedsThreeBracketsIsStillOfferedAsAnAction()
+    {
+        // The three-child ambiguity through the editor boundary: eight readings,
+        // five shown, and five actions — each a set of three bracket pairs. The
+        // two-level search offered nothing selectable for a reading that pins
+        // three children at once, so the whole promise still failed for a short
+        // statement a person could write.
+        const string Text = Colliding + "var result = (send a to b) + (send a to b) + (send a to b);\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(5, 13), new Place(5, 57)));
+
+        Assert.Equal(5, actions.Count);
+
+        // Five distinct edits, and applying any one leaves a file that compiles.
+        Assert.Equal(5, actions.Select(action => Applied(Text, action)).Distinct().Count());
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
     /// <summary>The text with a code action's edits applied.</summary>
     private static string Applied(string text, Fix action)
     {

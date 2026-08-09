@@ -428,6 +428,71 @@ public class Ambiguities
         });
     }
 
+    [Fact(DisplayName = "and a reading that needs three brackets gets three brackets")]
+    public void AndAReadingThatNeedsThreeBracketsGetsThreeBrackets()
+    {
+        // Found by audit. Three independently ambiguous children, so a complete
+        // reading fixes a meaning for all three at once and needs a bracket
+        // around each — three pairs. The search had generalised from one pair to
+        // exactly two, which is the same fixed-arity assumption moved up by one:
+        // every reading here was reported with no selectable repair, its own
+        // count-and-cap test never asking whether one existed. Sets of the tree's
+        // spans are tried by increasing size now, so a reading pinning three
+        // children is reached at size three.
+        const string Source = "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+                            + "var result = (send a to b) + (send a to b) + (send a to b);\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        // Eight readings, five shown, and a repair for every shown one — where
+        // the two-level search published none at all.
+        Assert.Equal(8, finding.Total);
+        Assert.Equal(Resolver.Kept, finding.Repairs.Count);
+
+        // Three pairs each, and five different edits: the search finds a distinct
+        // bracketing for each reading rather than the same one repeatedly.
+        Assert.All(finding.Repairs, repair => Assert.Equal(6, repair.Insertions.Count));
+        Assert.Equal(Resolver.Kept,
+                     finding.Repairs.Select(repair => Applied(Source, repair)).Distinct(StringComparer.Ordinal).Count());
+
+        // And applying each one leaves a file that compiles AND reads the way the
+        // repair named it — structurally, so that «send (a to b)» and «send (a)
+        // to b» are told apart. Stripping only the group marks keeps the name
+        // marks that distinguish the two, which a full strip would collapse; that
+        // collapse is the very non-injectivity the tree-based search removed.
+        foreach (var repair in finding.Repairs)
+        {
+            var edited = Applied(Source, repair);
+
+            Assert.Empty(All(edited));
+            Assert.Equal(Grouped(repair.Reading), Grouped(Selected(edited)));
+        }
+    }
+
+    /// <summary>The reading the repaired file resolves its result statement to.</summary>
+    private static string Selected(string edited)
+        => Compilation.Of(new SourceText(edited, "Player.ron"))
+                      .Readings
+                      .Where(reading => reading.Resolution.Kind is ResolutionKind.Resolved && reading.Span.Offset > 120)
+                      .OrderByDescending(reading => reading.Span.Length)
+                      .First()
+                      .Resolution.Reading;
+
+    /// <summary>A reading with the grouping marks removed but the name marks kept.</summary>
+    ///
+    /// <remarks>
+    ///     A repair adds brackets, so the file it produces reads with more groups
+    ///     than the bare tree the repair names — the group marks differ and the
+    ///     structure does not. The name marks stay, because they are what tells
+    ///     «send «a to b»» from «send «a» to «b»», and a check that dropped them
+    ///     would pass for a repair that selected the wrong one of the two.
+    /// </remarks>
+    private static string Grouped(string reading)
+        => reading.Replace("⟨", string.Empty, StringComparison.Ordinal)
+                  .Replace("⟩", string.Empty, StringComparison.Ordinal);
+
     /// <summary>The source with one repair's brackets typed into it.</summary>
     private static string Applied(string source, Repair repair)
     {
