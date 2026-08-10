@@ -358,12 +358,25 @@ internal static class Repairs
         /// <summary>The lexemes with a bracket pair around each span.</summary>
         ///
         /// <remarks>
+        ///     <para>
         ///     Walked by boundary rather than inserted per span, because the spans
         ///     NEST — a call's bracket contains its arguments' — and inserting each
         ///     pair independently shifted the indices of the ones around it. At
         ///     each gap the spans ending there close, innermost first, then the
         ///     spans starting there open, outermost first, so «(send (a to b))»
         ///     comes out nested rather than crossed.
+        ///     </para>
+        ///     <para>
+        ///     Each bracket carries the source position of the gap it sits in — a
+        ///     close at the end of the lexeme before it, an open at the start of
+        ///     the one after — rather than the default of zero. The resolver reads
+        ///     a node's extent off its first and last lexeme, so a call whose last
+        ///     lexeme is a synthetic close at position zero got a length reaching
+        ///     back to the start of the file, and «Where» then read that call's
+        ///     range as something no argument aligned with — a surplus bracket, and
+        ///     a repair one level deeper lost. A zero-WIDTH marker at the true
+        ///     boundary leaves every enclosing extent the source's.
+        ///     </para>
         /// </remarks>
         private List<Lexeme> Bracketed(IReadOnlyList<(int From, int To)> spans)
         {
@@ -372,10 +385,10 @@ internal static class Repairs
             for (var at = 0; at <= lexemes.Count; ++at)
             {
                 foreach (var _ in spans.Where(span => span.To == at).OrderByDescending(span => span.From))
-                    bracketed.Add(new Lexeme(LexemeKind.Close, ")"));
+                    bracketed.Add(new Lexeme(LexemeKind.Close, ")", Offset: lexemes[at - 1].Offset + lexemes[at - 1].Length));
 
                 foreach (var _ in spans.Where(span => span.From == at).OrderByDescending(span => span.To))
-                    bracketed.Add(new Lexeme(LexemeKind.Open, "("));
+                    bracketed.Add(new Lexeme(LexemeKind.Open, "(", Offset: lexemes[at].Offset));
 
                 if (at < lexemes.Count) bracketed.Add(lexemes[at]);
             }

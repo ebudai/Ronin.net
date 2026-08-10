@@ -696,6 +696,38 @@ public class Ambiguities
         Assert.All(edited, source => Assert.Empty(All(source)));
     }
 
+    [Fact(DisplayName = "and a repair three pairs deep survives the brackets its own search added")]
+    public void AndARepairThreePairsDeepSurvivesTheBracketsItsOwnSearchAdded()
+    {
+        // Found by audit. «wrap print wrap send send a to b to a» has nine readings,
+        // five shown, and one needs three nested pairs. The brackets the search
+        // adds are synthetic lexemes, and they carried no source position — so a
+        // call ending at one got an extent reaching back to the start of the file,
+        // and the walk could no longer align that call to keep descending, dropping
+        // the three-pair repair. The brackets carry the position of the gap they
+        // sit in now, so every enclosing extent stays the source's.
+        const string Source = "function wrap (x => Number) { return x; }\n"
+                            + "function print (x => Number) { return x; }\n"
+                            + "function print (x => Number) to (y => Number) { return x; }\n"
+                            + "function send (x => Number) { return x; }\n"
+                            + "function send (x => Number) to (y => Number) { return x; }\n"
+                            + "var a => Number;\nvar b => Number;\nvar a to b => Number;\nvar b to a => Number;\n"
+                            + "var result = wrap print wrap send send a to b to a;\n";
+
+        var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
+
+        Assert.Equal(9, finding.Total);
+        Assert.Equal(Resolver.Kept, finding.Repairs.Count);
+
+        // pair counts one, two, two, two, and three — one reaching three pairs deep
+        Assert.Equal([1, 2, 2, 2, 3], finding.Repairs.Select(repair => repair.Insertions.Count / 2).OrderBy(pairs => pairs));
+
+        var edited = finding.Repairs.Select(repair => Applied(Source, repair)).ToArray();
+
+        Assert.Equal(Resolver.Kept, edited.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(edited, source => Assert.Empty(All(source)));
+    }
+
     [Fact(DisplayName = "and a surplus pair does not turn a valid answer too long at the ceiling")]
     public void AndASurplusPairDoesNotTurnAValidAnswerTooLongAtTheCeiling()
     {

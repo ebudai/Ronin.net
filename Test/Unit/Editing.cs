@@ -313,6 +313,28 @@ public class Editing
         Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
     }
 
+    [Fact(DisplayName = "and a three-pair-deep repair is offered as an action")]
+    public void AndAThreePairDeepRepairIsOfferedAsAnAction()
+    {
+        // The three-level nested case through the editor boundary: «wrap print wrap
+        // send send a to b to a», five shown readings, one needing three nested
+        // pairs — dropped when a synthetic bracket's missing position corrupted an
+        // enclosing call's extent so the walk lost alignment.
+        const string Text = "function wrap (x => Number) { return x; }\n"
+                          + "function print (x => Number) { return x; }\n"
+                          + "function print (x => Number) to (y => Number) { return x; }\n"
+                          + "function send (x => Number) { return x; }\n"
+                          + "function send (x => Number) to (y => Number) { return x; }\n"
+                          + "var a => Number;\nvar b => Number;\nvar a to b => Number;\nvar b to a => Number;\n"
+                          + "var result = wrap print wrap send send a to b to a;\n";
+
+        var actions = Language.Actions(Source(Text), new Extent(new Place(9, 13), new Place(9, 50)));
+
+        Assert.Equal(5, actions.Count);
+        Assert.Equal([1, 2, 2, 2, 3], actions.Select(action => action.Edits.Count(edit => edit.Text == "(")).OrderBy(pairs => pairs));
+        Assert.All(actions, action => Assert.Empty(Language.Diagnostics(Source(Applied(Text, action)))));
+    }
+
     /// <summary>The text with a code action's edits applied.</summary>
     private static string Applied(string text, Fix action)
     {
