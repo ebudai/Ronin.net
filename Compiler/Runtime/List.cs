@@ -99,7 +99,7 @@ internal sealed class List : IReadOnlyList<object>
         // An admitted list is returned as it stands rather than measured,
         // because nothing admitted is deeper than the limit; the depth question
         // only arises where one is placed INSIDE something else.
-        if (value is not object[]) return value;
+        if (value is not (object[] or KeyValuePair<object, object>[])) return value;
 
         var normalised = Normalise(value, [], new Dictionary<object, object>(ReferenceEqualityComparer.Instance), 0);
 
@@ -147,6 +147,10 @@ internal sealed class List : IReadOnlyList<object>
     {
         if (value is List already) return Fits(already, depth);
 
+        if (value is Lookup keyed) return Fits(keyed, depth);
+
+        if (value is KeyValuePair<object, object>[] pairs) return Associated(pairs, inside, done, depth);
+
         if (value is not object[] array) return value;
 
         // A SECOND reference to one array is the same value, not another copy of
@@ -159,7 +163,7 @@ internal sealed class List : IReadOnlyList<object>
         // Reusing the completed child is invisible: a list is a value, identity
         // is not its equality, and it cannot be mutated to make the sharing
         // observable.
-        if (done.TryGetValue(array, out var admitted)) return Fits((List)admitted, depth);
+        if (done.TryGetValue(array, out var admitted)) return Fits(admitted, depth);
 
         // Before the empty case and not after it. «[]» took the early return
         // and skipped this, so a nest of exactly «Deep» wrappers around an empty
@@ -187,12 +191,68 @@ internal sealed class List : IReadOnlyList<object>
             // other and the list keeps it.
             if (copied[at] is Refusal) return copied[at];
 
-            if (copied[at] is List nested && nested.Depth > deepest) deepest = nested.Depth;
+            deepest = System.Math.Max(deepest, Nesting(copied[at]));
         }
 
         inside.Remove(array);
 
         return done[array] = new List(copied, deepest + 1);
+    }
+
+    /// <summary>
+    ///     A lookup in the form the runtime holds, admitted on the SAME traversal
+    ///     as a list — one <paramref name="inside"/> set, one <paramref name="done"/>
+    ///     map, one depth.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A key counts toward the depth exactly as an element does, because a
+    ///     value alternating list and lookup is twice as deep as either counter
+    ///     sees if each kind counts only its own — and the limit exists so the
+    ///     value can be compared, which does not care which kind each layer was.
+    /// </remarks>
+    private static object Associated(KeyValuePair<object, object>[] pairs, HashSet<object> inside,
+                                     Dictionary<object, object> done, int depth)
+    {
+        if (done.TryGetValue(pairs, out var admitted)) return Fits(admitted, depth);
+
+        if (depth >= Deep) return TooDeep();
+
+        if (pairs.Length is 0) return Lookup.Empty;
+
+        if (inside.Add(pairs) is false)
+            return new Refusal("a lookup cannot contain itself. Copy the part that repeats, or hold it by name.");
+
+        var entries = new KeyValuePair<object, object>[pairs.Length];
+        var deepest = 0;
+
+        for (var at = 0; at < pairs.Length; ++at)
+        {
+            var key = Normalise(pairs[at].Key, inside, done, depth + 1);
+
+            if (key is Refusal) return key;
+
+            var value = Normalise(pairs[at].Value, inside, done, depth + 1);
+
+            if (value is Refusal) return value;
+
+            // Canonicalised at construction: two keys equal by VALUE are one key
+            // whatever their spelling, and a lookup with two of them has two
+            // answers and no reason to prefer either. Refused here the way a cycle
+            // is, and by an exact comparison — a capped one would call two unequal
+            // keys the same, which is observable through cutoff and «old».
+            for (var prior = 0; prior < at; ++prior)
+                if (Builtin.Same(entries[prior].Key, key))
+                    return new Refusal("two entries of a lookup have the same key, so a lookup of it has two " +
+                                       "answers and no reason to prefer either. Remove one, or give them different keys.");
+
+            entries[at] = new KeyValuePair<object, object>(key, value);
+            deepest = System.Math.Max(deepest, System.Math.Max(Nesting(key), Nesting(value)));
+        }
+
+        inside.Remove(pairs);
+
+        return done[pairs] = Lookup.Of(entries, deepest + 1);
     }
 
     /// <summary>An already-admitted list, if it still fits where it is going.</summary>
@@ -202,10 +262,18 @@ internal sealed class List : IReadOnlyList<object>
     ///     a list admitted at the limit is fine on its own and too deep one
     ///     level down, and it arrives at both through this.
     /// </remarks>
-    private static object Fits(List value, int depth) => depth + value.Depth > Deep ? TooDeep() : value;
+    private static object Fits(object value, int depth) => depth + Nesting(value) > Deep ? TooDeep() : value;
+
+    /// <summary>How far an admitted value nests, one measure across both aggregate kinds.</summary>
+    private static int Nesting(object value) => value switch
+    {
+        List list => list.Depth,
+        Lookup lookup => lookup.Depth,
+        _ => 0,
+    };
 
     private static Refusal TooDeep()
-        => new($"a list may nest {Deep.ToString(System.Globalization.CultureInfo.InvariantCulture)} deep, and " +
+        => new($"a value may nest {Deep.ToString(System.Globalization.CultureInfo.InvariantCulture)} deep, and " +
                "this one is deeper. Nothing can compare it, so nothing can tell whether it changed.");
 
     public override string ToString() => $"[{string.Join(", ", values)}]";

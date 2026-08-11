@@ -303,11 +303,55 @@ internal static class Builtin
         // through cutoff, «changes» and «old». A list is refused at
         // construction if it nests past what this can follow, so everything
         // that reaches here is comparable.
-        if (left is not List first || right is not List second) return Equals(left, right);
+        if (left is List first && right is List second)
+        {
+            HashSet<(List Left, List Right)> proven = null;
 
-        HashSet<(List Left, List Right)> proven = null;
+            return Same(first, second, ref proven);
+        }
 
-        return Same(first, second, ref proven);
+        // A lookup is UNORDERED for equality: two are the same when they hold the
+        // same key-value pairs, however each was written. A list and a lookup are
+        // never the same, which the fall-through answers — «Equals» on either kind
+        // is reference equality — as does a lookup beside a scalar.
+        if (left is Lookup keyed && right is Lookup beside) return Same(keyed, beside);
+
+        return Equals(left, right);
+    }
+
+    /// <summary>
+    ///     Two lookups, compared as sets of key-value pairs rather than as
+    ///     sequences.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Keys are distinct within a lookup — canonicalised at admission — so a
+    ///     key on one side matches at most one on the other, and equal counts with
+    ///     every key matched is a bijection. Order plays no part, which is what
+    ///     lets two lookups be equal and iterate differently.
+    /// </remarks>
+    private static bool Same(Lookup first, Lookup second)
+    {
+        if (ReferenceEquals(first, second)) return true;
+        if (first.Count != second.Count) return false;
+
+        foreach (var (key, value) in first)
+        {
+            var matched = false;
+
+            foreach (var (candidate, against) in second)
+            {
+                if (Same(key, candidate) is false) continue;
+                if (Same(value, against) is false) return false;
+
+                matched = true;
+                break;
+            }
+
+            if (matched is false) return false;
+        }
+
+        return true;
     }
 
     /// <summary>
