@@ -259,12 +259,51 @@ internal abstract class Node
     internal readonly record struct Entry(Node Key, Node Value);
 
     /// <summary>
+    ///     A group's kind and its entries disagreeing, which is not a state a
+    ///     <see cref="Group"/> may be in.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A kind of three was taken over a boolean so that the key and what the
+    ///     span IS could not contradict each other — and a nullable key beside a
+    ///     kind is exactly that contradiction unless something refuses it. Left
+    ///     unchecked it is reachable: a list carrying keys compares the same as one
+    ///     without them, because identity consults a key only for a lookup, while
+    ///     the walk a repair brackets by exposes them — so two trees are one
+    ///     derivation and contain different nodes at the same time. A lookup
+    ///     missing one is worse, and dereferences nothing while taking its shape.
+    ///     <para>
+    ///     A THROW rather than a finding, because no source produces it: the
+    ///     resolver derives the kind from the same split that produces the keys.
+    ///     It is an assertion about this compiler, addressed to whoever changes it.
+    ///     </para>
+    /// </remarks>
+    internal sealed class Disagreeing(string message) : System.Exception(message);
+
+    /// <summary>
     ///     A bracketed substatement. One lookup however large it is, and one part
     ///     unless separators divided it — «(x, y)» is a group of two, which is how
     ///     a parameter block of two receives its arguments.
     /// </summary>
-    internal sealed class Group(IReadOnlyList<Entry> parts, Grouping kind = Grouping.Group) : Node
+    internal sealed class Group : Node
     {
+        /// <remarks>
+        ///     The one boundary where the kind and the keys are made to agree, so
+        ///     that everything below may read either and trust the other. See
+        ///     <see cref="Disagreeing"/> for why it is refused rather than tolerated.
+        /// </remarks>
+        public Group(IReadOnlyList<Entry> parts, Grouping kind = Grouping.Group)
+        {
+            Kind = kind;
+            Parts = [.. parts];
+
+            foreach (var part in Parts)
+            {
+                if (part.Key is null == (Kind is Grouping.Lookup))
+                    throw new Disagreeing($"a {Kind} entry {(Kind is Grouping.Lookup ? "must" : "cannot")} have a key");
+            }
+        }
+
         /// <summary>
         ///     Which of the three the brackets were.
         /// </summary>
@@ -276,14 +315,14 @@ internal abstract class Node
         ///     operand was not a list. A two-element list worked by accident,
         ///     because more than one part had nowhere to collapse to.
         /// </remarks>
-        public Grouping Kind { get; } = kind;
+        public Grouping Kind { get; }
 
         /// <remarks>
         ///     Copied: a node caches its rendering, so a caller still holding the
         ///     list it passed could change what the node contains without
         ///     changing what it says it contains.
         /// </remarks>
-        public IReadOnlyList<Entry> Parts { get; } = [.. parts];
+        public IReadOnlyList<Entry> Parts { get; }
 
         protected override string Render() => Kind switch
         {

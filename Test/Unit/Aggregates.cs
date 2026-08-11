@@ -87,6 +87,26 @@ public class Aggregates
     public void AnEntryTheResolverCannotReadAsOneAssociationIsNotADerivation(string source)
         => Assert.Equal(ResolutionKind.NoParse, Resolve(source, "a", "b").Kind);
 
+    [Fact(DisplayName = "a group's kind and its keys cannot disagree")]
+    public void AGroupsKindAndItsKeysCannotDisagree()
+    {
+        // The kind was taken over a boolean so the key and what the span IS could
+        // not contradict each other, and a nullable key beside a kind is exactly
+        // that contradiction unless something refuses it. Unchecked, a list
+        // carrying hidden keys compares the same as one without them — identity
+        // consults a key only for a lookup — while the walk a repair brackets by
+        // exposes them: one derivation, different nodes.
+        Assert.Contains("cannot have a key", Assert.Throws<Node.Disagreeing>(
+            () => new Node.Group([new Node.Entry(new Node.Name("k"), new Node.Name("v"))], Node.Grouping.List)).Message);
+
+        Assert.Contains("cannot have a key", Assert.Throws<Node.Disagreeing>(
+            () => new Node.Group([new Node.Entry(new Node.Name("k"), new Node.Name("v"))])).Message);
+
+        // And the mirror, which would dereference nothing while taking its shape.
+        Assert.Contains("must have a key", Assert.Throws<Node.Disagreeing>(
+            () => new Node.Group([new Node.Entry(null, new Node.Name("v"))], Node.Grouping.Lookup)).Message);
+    }
+
     [Fact(DisplayName = "a lookup evaluates to the runtime lookup value")]
     public void ALookupEvaluatesToTheRuntimeLookupValue()
     {
@@ -97,12 +117,14 @@ public class Aggregates
 
         var value = Assert.IsType<Lookup>(new Evaluator(new Ronin.Runtime.Scope()).Evaluate(graph, tree, insideLet: false));
 
-        // The keys arrive with the value, which is what they have never done.
+        // The keys arrive with the value, which is what they have never done —
+        // in the canonical order rather than as written, so «2» precedes the «7»
+        // that «a» evaluated to.
         Assert.Equal(2, value.Count);
-        Assert.Equal(7d, value[0].Key);
-        Assert.Equal(1d, value[0].Value);
-        Assert.Equal(2d, value[1].Key);
-        Assert.Equal(3d, value[1].Value);
+        Assert.Equal(2d, value[0].Key);
+        Assert.Equal(3d, value[0].Value);
+        Assert.Equal(7d, value[1].Key);
+        Assert.Equal(1d, value[1].Value);
 
         // And a list still evaluates to a list, at one element as at many.
         Assert.True(Resolve("[ 1, 2 ]").TryTree(out var listed));

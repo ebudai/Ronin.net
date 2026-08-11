@@ -6,9 +6,10 @@ using Ronin.Runtime;
 namespace Unit;
 
 /// <summary>
-///     The runtime lookup value: admitted on the same boundary as a list,
-///     insertion-ordered, unordered for equality, keys canonicalised at
-///     construction, one depth measure across both kinds.
+///     The runtime lookup value: admitted on the same boundary as a list, sorted
+///     into a canonical order so that equal lookups are indistinguishable
+///     downstream, keys canonicalised and errors refused at construction, and one
+///     depth measure across both kinds.
 /// </summary>
 [Trait(nameof(Lookup), null)]
 public class LookupValues
@@ -16,10 +17,13 @@ public class LookupValues
     private static KeyValuePair<object, object>[] Pairs(params (object Key, object Value)[] entries)
         => [.. entries.Select(entry => new KeyValuePair<object, object>(entry.Key, entry.Value))];
 
+    private static KeyValuePair<object, object>[] Pairs(IEnumerable<(object Key, object Value)> entries)
+        => [.. entries.Select(entry => new KeyValuePair<object, object>(entry.Key, entry.Value))];
+
     private static object Keyed(params (object Key, object Value)[] entries) => List.Admit(Pairs(entries));
 
-    [Fact(DisplayName = "a pair-carrier is admitted as a lookup, in insertion order")]
-    public void APairCarrierIsAdmittedAsALookupInInsertionOrder()
+    [Fact(DisplayName = "a pair-carrier is admitted as a lookup")]
+    public void APairCarrierIsAdmittedAsALookup()
     {
         var lookup = Assert.IsType<Lookup>(Keyed(("a", 1d), ("b", 2d)));
 
@@ -29,6 +33,165 @@ public class LookupValues
         Assert.Equal(2d, lookup[1].Value);
         Assert.Equal("[a = 1, b = 2]", lookup.ToString());
         Assert.Equal(["a", "b"], lookup.Select(entry => entry.Key));
+    }
+
+    [Fact(DisplayName = "equal lookups iterate identically, so cutoff cannot hide a change")]
+    public void EqualLookupsIterateIdenticallySoCutoffCannotHideAChange()
+    {
+        // The two written orders are one canonical sequence, so equality ignoring
+        // written order does not leave anything downstream able to tell them
+        // apart. Insertion order kept for iteration would make cutoff suppress an
+        // observable change — a wrong answer, not a missed optimisation.
+        var written = Assert.IsType<Lookup>(Keyed(("b", 2d), ("a", 1d)));
+        var reversed = Assert.IsType<Lookup>(Keyed(("a", 1d), ("b", 2d)));
+
+        Assert.True(Builtin.Same(written, reversed));
+        Assert.Equal(written.Select(entry => entry.Key), reversed.Select(entry => entry.Key));
+        Assert.Equal(["a", "b"], written.Select(entry => entry.Key));
+
+        // And the graph agrees: a «let» recomputed into the other order settles to
+        // the same value, so nothing downstream of it is stale.
+        Graph graph = new();
+
+        graph.Var("reverse", false);
+        graph.Let("table", scope => Equals(scope.Read("reverse"), true)
+                                  ? Pairs(("b", 2d), ("a", 1d))
+                                  : Pairs(("a", 1d), ("b", 2d)));
+        graph.Let("first key", scope => ((Lookup)scope.Read("table"))[0].Key);
+
+        graph.Write("reverse", true);
+        graph.Step();
+
+        Assert.Equal("a", ((Lookup)graph.Read("table"))[0].Key);
+        Assert.Equal("a", graph.Read("first key"));
+    }
+
+    [Fact(DisplayName = "a total order puts every kind of key somewhere")]
+    public void ATotalOrderPutsEveryKindOfKeySomewhere()
+    {
+        // Every kind against every other, so the order is total rather than
+        // defined only where two keys happen to share a type — one written «1»
+        // and another «"1"» are different keys and something has to separate them.
+        object[] keys =
+        [
+            Nothing.Instance, true, 1d, "1", new Instance("T", 1, 1), List.Admit(new object[] { 1d }), Keyed(("a", 1d)),
+        ];
+
+        var sorted = Assert.IsType<Lookup>(List.Admit(Pairs([.. keys.Reverse().Select(key => (key, (object)1d))])));
+
+        Assert.Equal(keys, sorted.Select(entry => entry.Key));
+
+        // Within a kind, by content: two lists order by length and then by parts.
+        Assert.True(Lookup.Compare(List.Admit(new object[] { 1d }), List.Admit(new object[] { 1d, 2d })) < 0);
+        Assert.True(Lookup.Compare(List.Admit(new object[] { 2d }), List.Admit(new object[] { 1d })) > 0);
+        Assert.Equal(0, Lookup.Compare(List.Admit(new object[] { 1d }), List.Admit(new object[] { 1d })));
+
+        // Two instances by type, then slot, then generation.
+        Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("B", 1, 1)) < 0);
+        Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("A", 2, 1)) < 0);
+        Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("A", 1, 2)) < 0);
+
+        // Two lookups by length, then entrywise.
+        Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("a", 1d), ("b", 2d))) < 0);
+        Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("b", 1d))) < 0);
+        Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("a", 2d))) < 0);
+        Assert.Equal(0, Lookup.Compare(Keyed(("a", 1d)), Keyed(("a", 1d))));
+
+        // Nothing is alone in its kind, and a host value the runtime has no order
+        // for is ordered by what it prints — deterministic, which is what a
+        // canonical form asks.
+        Assert.Equal(0, Lookup.Compare(Nothing.Instance, Nothing.Instance));
+        Assert.True(Lookup.Compare(System.DateTime.UnixEpoch, System.DateTime.UnixEpoch.AddDays(1)) < 0);
+        Assert.True(Lookup.Compare(false, true) < 0);
+        Assert.True(Lookup.Compare(new Error("a"), new Error("b")) < 0);
+
+        // A host may hand over a bare null, which is not the runtime's «nothing»
+        // and still has to sort somewhere rather than end the comparison.
+        Assert.Equal(0, Lookup.Compare(null, null));
+        Assert.True(Lookup.Compare(null, System.DateTime.UnixEpoch) < 0);
+        Assert.Single(Assert.IsType<Lookup>(Keyed((null, 1d))));
+    }
+
+    /// <summary>A leaf that counts how many times it is compared.</summary>
+    private sealed class Counted
+    {
+        public static int Comparisons;
+
+        public override bool Equals(object other) { ++Comparisons; return other is Counted; }
+
+        public override int GetHashCode() => 0;
+
+        public override string ToString() => "counted";
+    }
+
+    [Fact(DisplayName = "a shared subtree is compared once, not once per path that reaches it")]
+    public void ASharedSubtreeIsComparedOnceNotOncePerPathThatReachesIt()
+    {
+        // Admission keeps a repeated aggregate shared rather than expanding it,
+        // so a comparison with no memory of the pairs it has proved re-proves each
+        // shared child once per path that reaches it — 2^depth for a DAG whose
+        // every level mentions its child twice. The depth ceiling is 256, so
+        // construction does not bound that to anything usable.
+        static object Deep(int levels)
+        {
+            object built = new Counted();
+
+            for (var at = 0; at < levels; ++at) built = Pairs(("left", built), ("right", built));
+
+            return List.Admit(built);
+        }
+
+        // Two INDEPENDENTLY admitted DAGs, so the shared child is a different
+        // object on each side and reference equality cannot answer for it.
+        var left = Deep(20);
+        var right = Deep(20);
+
+        Counted.Comparisons = 0;
+
+        Assert.True(Builtin.Same(left, right));
+
+        // Linear in the DAG, not in the tree it would unfold into: 2^20 is a
+        // million, and the memo makes it one.
+        Assert.InRange(Counted.Comparisons, 1, 64);
+    }
+
+    [Fact(DisplayName = "an error cannot be a lookup key, and can be a lookup value")]
+    public void AnErrorCannotBeALookupKeyAndCanBeALookupValue()
+    {
+        // Two errors are equal when their reasons are, so admitting one as a key
+        // would let two unrelated failures that printed alike become one entry —
+        // a claim nobody would make on purpose.
+        Assert.Contains("key cannot be an error", Assert.IsType<Error>(Keyed((new Error("boom"), 1d))).Message);
+        Assert.Contains("boom", Assert.IsType<Error>(Keyed((new Error("boom"), 1d))).Message);
+
+        // A VALUE is a different question, and an error is as legal there as it is
+        // as a list element.
+        var lookup = Assert.IsType<Lookup>(Keyed(("k", new Error("gone wrong"))));
+
+        Assert.IsType<Error>(lookup[0].Value);
+        Assert.IsType<List>(List.Admit(new object[] { new Error("gone wrong"), 2d }));
+    }
+
+    [Fact(DisplayName = "@ finds the association whose key is the index")]
+    public void IndexingFindsTheAssociationWhoseKeyIsTheIndex()
+    {
+        var indexing = Builtin.Operators["@"];
+
+        Assert.Equal(1d, indexing.Apply(Keyed(("a", 1d), ("b", 2d)), "a"));
+        Assert.Equal(2d, indexing.Apply(Keyed(("a", 1d), ("b", 2d)), "b"));
+
+        // A STRUCTURAL key is found by the same «is» equality that admitted it,
+        // not by a host hash that would answer "not found" to a key that is one.
+        Assert.Equal("x", indexing.Apply(Keyed((new object[] { 1d, 2d }, "x")), List.Admit(new object[] { 1d, 2d })));
+        Assert.Equal("y", indexing.Apply(Keyed((Pairs(("a", 1d)), "y")), Keyed(("a", 1d))));
+
+        // A MISS is an error rather than nothing, or «lookup of K (optional V)»
+        // could not tell absent from present-and-nothing.
+        Assert.Contains("no key", Assert.IsType<Error>(indexing.Apply(Keyed(("a", 1d)), "c")).Message);
+
+        // And a list still indexes by position.
+        Assert.Equal(2d, indexing.Apply(List.Admit(new object[] { 1d, 2d }), 2d));
+        Assert.Contains("indexes a list or a lookup", Assert.IsType<Error>(indexing.Apply(1d, 1d)).Message);
     }
 
     [Fact(DisplayName = "a lookup is unordered for equality and its keys compare by value")]

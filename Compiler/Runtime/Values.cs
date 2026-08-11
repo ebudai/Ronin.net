@@ -254,8 +254,44 @@ internal static class Builtin
 
             (List, _) => new Error("«@» takes a number for a position"),
 
-            _ => new Error("«@» indexes a list"),
+            // ONE key relation, the same «is» that equality and the duplicate-key
+            // refusal use. A lookup accelerated by a host hash table would answer
+            // a structural key that IS a key in it with "not found", and the
+            // disagreement stays invisible until someone uses a compound key.
+            (Lookup lookup, _) => Found(lookup, right),
+
+            _ => new Error("«@» indexes a list or a lookup"),
         });
+
+    /// <summary>
+    ///     The value under a key, or the failure of there not being one.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     A MISS is an error rather than nothing, because «lookup of K (optional
+    ///     V)» could not otherwise tell ABSENT from present-and-nothing — and that
+    ///     type is what anyone gets the first time they store an optional. It is
+    ///     the same ruling that makes arithmetic on nothing an error rather than a
+    ///     quietly propagating nothing, and «otherwise» catches it either way.
+    ///     </para>
+    ///     <para>
+    ///     A walk rather than a search over the canonical order, because the order
+    ///     is total over kinds the runtime may not be able to tell apart by content
+    ///     — two host values that print alike sort together and are not the same
+    ///     key. The comparison that decides is «is», which is the one the
+    ///     duplicate-key refusal and equality also use.
+    ///     </para>
+    /// </remarks>
+    private static object Found(Lookup lookup, object key)
+    {
+        foreach (var (candidate, value) in lookup)
+        {
+            if (Same(candidate, key)) return value;
+        }
+
+        return new Error($"«@» has no key {key} in this lookup");
+    }
 
     private static Func<object, object, object> Arithmetic(string symbol, Func<double, double, double> operation)
         => Lift((left, right) => left is double first && right is double second
@@ -303,56 +339,58 @@ internal static class Builtin
         // through cutoff, «changes» and «old». A list is refused at
         // construction if it nests past what this can follow, so everything
         // that reaches here is comparable.
-        if (left is List first && right is List second)
-        {
-            HashSet<(List Left, List Right)> proven = null;
+        HashSet<(object Left, object Right)> proven = null;
 
-            return Same(first, second, ref proven);
-        }
+        return Same(left, right, ref proven);
+    }
 
-        // A lookup is UNORDERED for equality: two are the same when they hold the
-        // same key-value pairs, however each was written. A list and a lookup are
-        // never the same, which the fall-through answers — «Equals» on either kind
-        // is reference equality — as does a lookup beside a scalar.
-        if (left is Lookup keyed && right is Lookup beside) return Same(keyed, beside);
+    /// <summary>
+    ///     Two values, carrying the pairs already proved through every aggregate
+    ///     kind.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     ONE context across both kinds, because a shared subtree reached by two
+    ///     paths must be proved once however the kinds alternate on the way down.
+    ///     A memo per kind is no memo at all where a lookup's value is a list whose
+    ///     element is a lookup — which is exactly the shape admission preserves
+    ///     when it keeps a host DAG shared rather than expanding it.
+    /// </remarks>
+    private static bool Same(object left, object right, ref HashSet<(object Left, object Right)> proven)
+    {
+        if (left is List first && right is List second) return Same(first, second, ref proven);
+
+        // A lookup is compared as a SEQUENCE, because admission sorted it into a
+        // canonical order — so this is the list comparison over a canonical form
+        // rather than a second equality that could disagree with it. A list beside
+        // a lookup is never the same, which the fall-through answers.
+        if (left is Lookup keyed && right is Lookup beside) return Same(keyed, beside, ref proven);
 
         return Equals(left, right);
     }
 
-    /// <summary>
-    ///     Two lookups, compared as sets of key-value pairs rather than as
-    ///     sequences.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     Keys are distinct within a lookup — canonicalised at admission — so a
-    ///     key on one side matches at most one on the other, and equal counts with
-    ///     every key matched is a bijection. Order plays no part, which is what
-    ///     lets two lookups be equal and iterate differently.
-    /// </remarks>
-    private static bool Same(Lookup first, Lookup second)
+    private static bool Same(Lookup first, Lookup second, ref HashSet<(object Left, object Right)> proven)
     {
         if (ReferenceEquals(first, second)) return true;
         if (first.Count != second.Count) return false;
+        if (proven?.Add((first, second)) is false) return true;
 
-        foreach (var (key, value) in first)
+        for (var at = 0; at < first.Count; ++at)
         {
-            var matched = false;
+            var (key, value) = first[at];
+            var (candidate, against) = second[at];
 
-            foreach (var (candidate, against) in second)
-            {
-                if (Same(key, candidate) is false) continue;
-                if (Same(value, against) is false) return false;
+            if (Aggregate(key) || Aggregate(value)) proven ??= [(first, second)];
 
-                matched = true;
-                break;
-            }
-
-            if (matched is false) return false;
+            if (Same(key, candidate, ref proven) is false) return false;
+            if (Same(value, against, ref proven) is false) return false;
         }
 
         return true;
     }
+
+    /// <summary>Whether descending here could meet a pair worth remembering.</summary>
+    private static bool Aggregate(object value) => value is List or Lookup;
 
     /// <summary>
     ///     Two lists, comparing each shared pair once.
@@ -377,7 +415,7 @@ internal static class Builtin
     ///     on every settle — allocates nothing.
     ///     </para>
     /// </remarks>
-    private static bool Same(List first, List second, ref HashSet<(List Left, List Right)> proven)
+    private static bool Same(List first, List second, ref HashSet<(object Left, object Right)> proven)
     {
         if (ReferenceEquals(first, second)) return true;
         if (first.Count != second.Count) return false;
@@ -385,16 +423,9 @@ internal static class Builtin
 
         for (var at = 0; at < first.Count; ++at)
         {
-            if (first[at] is List nested && second[at] is List beside)
-            {
-                proven ??= [(first, second)];
+            if (Aggregate(first[at])) proven ??= [(first, second)];
 
-                if (Same(nested, beside, ref proven) is false) return false;
-
-                continue;
-            }
-
-            if (Same(first[at], second[at]) is false) return false;
+            if (Same(first[at], second[at], ref proven) is false) return false;
         }
 
         return true;

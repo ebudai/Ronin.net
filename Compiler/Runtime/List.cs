@@ -232,23 +232,37 @@ internal sealed class List : IReadOnlyList<object>
 
             if (key is Refusal) return key;
 
+            // A FAILURE is not a key. A key needs an equality that means
+            // something, and two errors are equal when their reasons are — so
+            // admitting one would let two unrelated failures that printed the same
+            // sentence become one entry, a claim nobody would make on purpose.
+            // Refused here, where the depth and the cycle are, and legal as a
+            // VALUE still, exactly as it is legal as a list element.
+            if (key is Error failed)
+                return new Refusal($"a lookup key cannot be an error, and this one is: {failed.Message}");
+
             var value = Normalise(pairs[at].Value, inside, done, depth + 1);
 
             if (value is Refusal) return value;
 
-            // Canonicalised at construction: two keys equal by VALUE are one key
-            // whatever their spelling, and a lookup with two of them has two
-            // answers and no reason to prefer either. Refused here the way a cycle
-            // is, and by an exact comparison — a capped one would call two unequal
-            // keys the same, which is observable through cutoff and «old».
-            for (var prior = 0; prior < at; ++prior)
-                if (Builtin.Same(entries[prior].Key, key))
-                    return new Refusal("two entries of a lookup have the same key, so a lookup of it has two " +
-                                       "answers and no reason to prefer either. Remove one, or give them different keys.");
-
             entries[at] = new KeyValuePair<object, object>(key, value);
             deepest = System.Math.Max(deepest, System.Math.Max(Nesting(key), Nesting(value)));
         }
+
+        // CANONICAL, so that two lookups written in different orders are the same
+        // sequence and not merely the same set — equality is then the list
+        // comparison over this form, and nothing downstream can tell two equal
+        // lookups apart by walking them.
+        System.Array.Sort(entries, (first, second) => Lookup.Compare(first.Key, second.Key));
+
+        // Two keys equal by VALUE are one key whatever their spelling, and a
+        // lookup with two of them has two answers and no reason to prefer either.
+        // Adjacent once sorted, and compared exactly — a capped comparison would
+        // call two unequal keys the same, which is observable through cutoff.
+        for (var at = 1; at < entries.Length; ++at)
+            if (Builtin.Same(entries[at - 1].Key, entries[at].Key))
+                return new Refusal("two entries of a lookup have the same key, so a lookup of it has two " +
+                                   "answers and no reason to prefer either. Remove one, or give them different keys.");
 
         inside.Remove(pairs);
 
