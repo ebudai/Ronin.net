@@ -145,6 +145,13 @@ internal static class Lexemes
         // a separator divides a group; it is never an operand or an operator
         Separator => LexemeKind.Separator,
 
+        // «=» inside brackets divides a key from a value; it is never an operand
+        // or an operator either. A kind rather than a text comparison, so the
+        // single-parse invariant — «=» is only ever an association separator — is
+        // enforced by the type: were «=» ever added to the operator table, the
+        // kind is what keeps the operator loop from reaching it.
+        Assign => LexemeKind.Associates,
+
         // Date and Text are free atoms for exactly the reason Numeric is: a literal
         // denotes itself, so it costs no symbol table lookup. LexemeKind.Number is
         // named for the only literal the standalone splitter can produce.

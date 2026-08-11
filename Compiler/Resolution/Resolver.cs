@@ -1010,7 +1010,7 @@ internal sealed class Resolver
 /// </remarks>
 internal readonly record struct Best(int Cost, Node Node);
 
-internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator }
+internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator, Associates }
 
 /// <param name="Announces">
 ///     Whether this word is a keyword that introduces a production, which is the
