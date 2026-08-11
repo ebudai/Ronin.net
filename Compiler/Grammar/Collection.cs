@@ -76,7 +76,9 @@ internal class Collection : Aggregate<Collection, Open.SquareBracket, Collection
 
         var associated = collection.Count(element => element.Origin is not null);
 
-        if (associated is not 0 && associated != collection.Count) return Mixed(collection, start.AdvanceTo(current));
+        // The same predicate the resolver splits on, so "part list and part
+        // lookup" is decided once rather than derived here and again there.
+        if (Associated.Mixed(associated, collection.Count)) return Mixed(collection, start.AdvanceTo(current));
 
         // A lookup, so its keys have to be distinct. Two entries under one key
         // are two answers with no basis to choose between them — the same

@@ -183,10 +183,12 @@ public class Resolutions
         // still holding the list could change what a node contains without
         // changing what it says it contains
         List<Node> parts = [new Node.Name("a")];
-        Node.Group group = new(parts);
+        List<Node.Entry> entries = [new(null, new Node.Name("a"))];
+        Node.Group group = new(entries);
         Node.Call call = new(pattern, parts);
 
         parts[0] = new Node.Name("b");
+        entries[0] = new(null, new Node.Name("b"));
 
         Assert.Equal("⟨«a»⟩", group.ToString());
         Assert.Equal("compute «a»", call.ToString());

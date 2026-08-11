@@ -37,6 +37,9 @@ public class Derivations
 
     private static Node Name(string words) => new Node.Name(words);
 
+    private static Node Grouped(Node part, Node.Grouping kind = Node.Grouping.Group)
+        => new Node.Group([new Node.Entry(null, part)], kind);
+
     private static Node Call(string pattern, params Node[] arguments)
         => new Node.Call(Pattern.Parse(pattern), arguments);
 
@@ -62,7 +65,7 @@ public class Derivations
         Assert.True(Alike(new Node.Literal("1"), new Node.Literal("1")));
         Assert.True(Alike(Name("a"), Name("a")));
         Assert.True(Alike(new Node.Binding("a"), new Node.Binding("a")));
-        Assert.True(Alike(new Node.Group([Name("a")]), new Node.Group([Name("a")])));
+        Assert.True(Alike(Grouped(Name("a")), Grouped(Name("a"))));
         Assert.True(Alike(new Node.Operation(Name("a"), "+", Plus, Name("b")),
                           new Node.Operation(Name("a"), "+", Plus, Name("b"))));
         Assert.True(Alike(new Node.Previous("x", Name("x")), new Node.Previous("x", Name("x"))));
@@ -79,13 +82,13 @@ public class Derivations
         Assert.False(Alike(new Node.Literal("1"), new Node.Literal("2")));
         Assert.False(Alike(Name("a"), Name("b")));
         Assert.False(Alike(new Node.Binding("a"), new Node.Binding("b")));
-        Assert.False(Alike(new Node.Group([Name("a")]), new Node.Group([Name("b")])));
+        Assert.False(Alike(Grouped(Name("a")), Grouped(Name("b"))));
         Assert.False(Alike(new Node.Previous("x", Name("x")), new Node.Previous("y", Name("y"))));
 
         // A COLLECTION and a grouping, which the resolver once could not tell
         // apart either: «(x)» is one value in brackets and «[x]» is a list of
         // one, and they differ in nothing else.
-        Assert.False(Alike(new Node.Group([Name("a")]), new Node.Group([Name("a")], collection: true)));
+        Assert.False(Alike(Grouped(Name("a")), Grouped(Name("a"), Node.Grouping.List)));
 
         Assert.False(Alike(new Node.Operation(Name("a"), "+", Plus, Name("b")),
                            new Node.Operation(Name("a"), "+", Plus, Name("c"))));
@@ -125,7 +128,7 @@ public class Derivations
             new Node.Literal("a"),
             Name("a"),
             new Node.Binding("a"),
-            new Node.Group([Name("a")]),
+            Grouped(Name("a")),
             new Node.Operation(Name("a"), "+", Plus, Name("a")),
             new Node.Previous("a", Name("a")),
             Call("send _", Name("a")),

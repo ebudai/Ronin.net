@@ -476,5 +476,5 @@ internal static class Repairs
 
     /// <summary>A tree with the outermost repair brackets removed.</summary>
     private static Node Bare(Node tree)
-        => tree is Node.Group { Collection: false, Parts.Count: 1 } group ? Bare(group.Parts[0]) : tree;
+        => tree is Node.Group { Kind: Node.Grouping.Group, Parts.Count: 1 } group ? Bare(group.Parts[0].Value) : tree;
 }

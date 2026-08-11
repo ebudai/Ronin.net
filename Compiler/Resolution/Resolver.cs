@@ -288,7 +288,7 @@ internal sealed class Resolver
         if (symbols.Names.Contains(name) is false || symbols.IsReactive(name) is false) return;
 
         Node argument = new Node.Name(name);
-        if (bracketed) argument = new Node.Group([argument]);
+        if (bracketed) argument = new Node.Group([new Node.Entry(null, argument)]);
 
         cell.Offer(bracketed ? 3 : 2, new Node.Previous(name, argument).At(Offset(lexemes, i), Length(lexemes, i, j)));
     }
@@ -313,7 +313,7 @@ internal sealed class Resolver
         // span has none.
         if (collection && from == to)
         {
-            cell.Offer(1, new Node.Group([], collection: true));
+            cell.Offer(1, new Node.Group([], Node.Grouping.List));
             return;
         }
 
@@ -331,7 +331,6 @@ internal sealed class Resolver
             }
         }
 
-        List<int> bounds = [];
         var start = from;
 
         // A TRAILING separator ends the last part rather than starting an empty
@@ -348,40 +347,125 @@ internal sealed class Resolver
             separators.RemoveAt(separators.Count - 1);
         }
 
-        List<Cell> divided = [];
+        List<(Cell Key, Cell Value)> divided = [];
+        var keyed = 0;
 
         foreach (var end in separators.Append(to))
         {
+            // A SECOND split, subordinate to the comma split: a collection's
+            // entry is a value, or a key and a value divided by the «=» at its
+            // own depth. One decision and no speculation, which is what keeps
+            // the parse single — a key that is itself a collection carries its
+            // own «=» below this depth, so "the one at depth zero" is exact
+            // rather than a guess, and it is exact because «=» inside brackets
+            // is only ever this.
+            var associates = collection ? Associating(lexemes, start, end) : [];
+
+            // TWO in one entry is not an alternative to choose between; it is a
+            // mistake, and the grammar has the message for it. Nothing here
+            // refuses it, because nothing has to: an entry is split at ONE «=»,
+            // so a second one is left inside a span asked to be an expression —
+            // and no expression consumes an «Associates», which is what making it
+            // a kind of its own guarantees. So the span has no derivation and the
+            // whole group is refused, without a rule here that could disagree
+            // with the one next door.
+            Cell key = null;
+
+            if (associates.Count is 1)
+            {
+                key = Expressions(start, associates[0], 0);
+
+                if (key.IsEmpty) return;
+
+                ++keyed;
+                start = associates[0] + 1;
+            }
+
             // an empty part — a leading or doubled separator — is not a
             // substatement at all
-            var part = Expressions(start, end, 0);
+            var value = Expressions(start, end, 0);
 
-            if (part.IsEmpty) return;
+            if (value.IsEmpty) return;
 
-            divided.Add(part);
-            bounds.Add(end);
+            divided.Add((key, value));
             start = end + 1;
         }
+
+        // Part value and part association is neither a list nor a lookup. The
+        // grammar says so with both positions named; here it is simply not a
+        // derivation, and the same predicate decides both.
+        if (Associated.Mixed(keyed, divided.Count)) return;
+
+        var kind = collection ? Associated.Kind(keyed) : Node.Grouping.Group;
 
         // EVERY part against every other, so a group carries the readings of
         // each of its parts rather than one tree and a count. A tie inside «(x,
         // y)» used to arrive at the group as "two derivations" with two
         // renderings of whichever part was ambiguous; it arrives as two
         // renderings of the GROUP now, which is what a person would bracket.
-        var readings = divided.Aggregate(1L, (product, part) => Cell.Saturating(product * part.Total));
-        var bounded = divided.Any(part => part.Bounded);
+        //
+        // A KEY is a cell like any other, so a lookup's readings are the product
+        // over its keys AND its values — the same walk, over up to twice as many
+        // cells.
+        List<Cell> cells = [];
+
+        foreach (var (key, value) in divided)
+        {
+            if (key is not null) cells.Add(key);
+
+            cells.Add(value);
+        }
+
+        var readings = cells.Aggregate(1L, (product, part) => Cell.Saturating(product * part.Total));
+        var bounded = cells.Any(part => part.Bounded);
         var built = 0;
 
-        foreach (var combination in Combinations([.. divided.Select(part => part.Alternatives)]))
+        foreach (var combination in Combinations([.. cells.Select(part => part.Alternatives)]))
         {
             ++built;
 
-            cell.Offer(1 + combination.Sum(part => part.Cost),
-                       new Node.Group([.. combination.Select(part => part.Node)], collection),
-                       bounded);
+            List<Node.Entry> parts = [];
+            var taken = 0;
+
+            foreach (var (key, _) in divided)
+            {
+                var chosen = key is null ? null : combination[taken++].Node;
+
+                parts.Add(new Node.Entry(chosen, combination[taken++].Node));
+            }
+
+            cell.Offer(1 + combination.Sum(part => part.Cost), new Node.Group(parts, kind), bounded);
         }
 
         cell.Beyond(readings - built, bounded || readings > built);
+    }
+
+    /// <summary>
+    ///     The association separators of one entry, at its own depth.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A KIND rather than the text, so this cannot be broken by anything that
+    ///     changes what «=» is elsewhere: it is <see cref="LexemeKind.Associates"/>
+    ///     or it is not one.
+    /// </remarks>
+    private static List<int> Associating(IReadOnlyList<Lexeme> lexemes, int from, int to)
+    {
+        List<int> associates = [];
+        var depth = 0;
+
+        for (var k = from; k < to; ++k)
+        {
+            switch (lexemes[k].Kind)
+            {
+                case LexemeKind.Open: ++depth; break;
+                case LexemeKind.Close: --depth; break;
+                case LexemeKind.Associates when depth is 0: associates.Add(k); break;
+                default: break;
+            }
+        }
+
+        return associates;
     }
 
     /// <summary>

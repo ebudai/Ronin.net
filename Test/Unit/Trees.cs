@@ -83,7 +83,7 @@ public class Trees
 
         Assert.True(resolver.Resolve("print (a)").TryTree(out var bracketed));
         var group = Assert.IsType<Node.Group>(Assert.Single(((Node.Call)bracketed).Arguments));
-        Assert.Equal("a", Assert.IsType<Node.Name>(Assert.Single(group.Parts)).Words);
+        Assert.Equal("a", Assert.IsType<Node.Name>(Assert.Single(group.Parts).Value).Words);
     }
 
     [Fact(DisplayName = "no tree without a single meaning")]

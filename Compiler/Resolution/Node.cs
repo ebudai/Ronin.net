@@ -8,6 +8,28 @@ using System.Text;
 namespace Ronin.Compiler;
 
 /// <summary>
+///     What a collection's entries make it, asked in the one place that decides.
+/// </summary>
+///
+/// <remarks>
+///     TWO CALLERS, one rule. The grammar refuses a part-list part-lookup
+///     collection with a message naming both positions, and the resolver has to
+///     make the same distinction to know whether to split an entry at its «=» —
+///     and two derivations of one rule is the failure this project keeps paying
+///     for. The resolver can be driven without the grammar, so it cannot assume
+///     the grammar got there first; it asks the same question instead. The message
+///     stays where it is, because only one of the two callers has one to give.
+/// </remarks>
+internal static class Associated
+{
+    /// <summary>Whether entries are part value and part association, which is neither kind.</summary>
+    public static bool Mixed(int keyed, int total) => keyed is not 0 && keyed != total;
+
+    /// <summary>Which kind a collection's entries make it, none of them keyed being a list.</summary>
+    public static Node.Grouping Kind(int keyed) => keyed is 0 ? Node.Grouping.List : Node.Grouping.Lookup;
+}
+
+/// <summary>
 ///     What a statement was resolved to mean. One node per decision the
 ///     <see cref="Resolver"/> committed to.
 /// </summary>
@@ -195,14 +217,56 @@ internal abstract class Node
     }
 
     /// <summary>
+    ///     Which of the three a bracketed span is.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A KIND rather than a boolean beside a nullable-key convention, because
+    ///     three states held in two independent fields is two fields that can
+    ///     disagree — a list carrying keys, a lookup without them. The parse
+    ///     already decides which of the three it is, and it decides from every
+    ///     entry, so one field records that decision and nothing has to keep two
+    ///     of them consistent.
+    /// </remarks>
+    internal enum Grouping
+    {
+        /// <summary>«(x)» — brackets round a substatement, which collapse.</summary>
+        Group,
+
+        /// <summary>«[x, y]» — a list, at one element as at many.</summary>
+        List,
+
+        /// <summary>«[k = v]» — a lookup, every entry keyed.</summary>
+        Lookup,
+    }
+
+    /// <summary>
+    ///     One part of a bracketed span: a value, and the key it answers to if it
+    ///     has one.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     ONE type carrying both, rather than a parallel array of keys beside the
+    ///     parts. A second array is a fact kept in a second place: <c>Alike</c> and
+    ///     <c>Hash</c> would each have to remember to reach it, and the one that
+    ///     forgot would make two lookups differing only in their keys compare the
+    ///     same — collapsing two meanings into one derivation, which is the defect
+    ///     this codebase keeps paying for. Held together, neither can be written
+    ///     without the key in hand.
+    /// </remarks>
+    ///
+    /// <param name="Key">Null where the span is a group or a list, which have none.</param>
+    internal readonly record struct Entry(Node Key, Node Value);
+
+    /// <summary>
     ///     A bracketed substatement. One lookup however large it is, and one part
     ///     unless separators divided it — «(x, y)» is a group of two, which is how
     ///     a parameter block of two receives its arguments.
     /// </summary>
-    internal sealed class Group(IReadOnlyList<Node> parts, bool collection = false) : Node
+    internal sealed class Group(IReadOnlyList<Entry> parts, Grouping kind = Grouping.Group) : Node
     {
         /// <summary>
-        ///     Whether the brackets were a COLLECTION rather than grouping.
+        ///     Which of the three the brackets were.
         /// </summary>
         ///
         /// <remarks>
@@ -212,25 +276,71 @@ internal abstract class Node
         ///     operand was not a list. A two-element list worked by accident,
         ///     because more than one part had nowhere to collapse to.
         /// </remarks>
-        public bool Collection { get; } = collection;
+        public Grouping Kind { get; } = kind;
 
         /// <remarks>
         ///     Copied: a node caches its rendering, so a caller still holding the
         ///     list it passed could change what the node contains without
         ///     changing what it says it contains.
         /// </remarks>
-        public IReadOnlyList<Node> Parts { get; } = [.. parts];
+        public IReadOnlyList<Entry> Parts { get; } = [.. parts];
 
-        protected override string Render()
-            => Collection ? $"[{string.Join(", ", Parts)}]" : $"⟨{string.Join(", ", Parts)}⟩";
+        protected override string Render() => Kind switch
+        {
+            Grouping.Lookup => $"[{string.Join(", ", Parts.Select(part => $"{part.Key} = {part.Value}"))}]",
+            Grouping.List => $"[{string.Join(", ", Parts.Select(part => part.Value))}]",
+            _ => $"⟨{string.Join(", ", Parts.Select(part => part.Value))}⟩",
+        };
 
+        /// <remarks>
+        ///     The key is compared where there is one, so two lookups agreeing on
+        ///     their values and differing on their keys are two derivations. The
+        ///     kind decides whether to ask, which is the whole reason it is a kind:
+        ///     a lookup has a key in every entry and the other two have none in
+        ///     any, so there is no per-entry state to disagree with.
+        /// </remarks>
         public override bool Alike(Node other)
-            => other is Group group && group.Collection == Collection && group.Parts.SequenceEqual(Parts, Same);
+        {
+            if (other is not Group group || group.Kind != Kind || group.Parts.Count != Parts.Count) return false;
 
-        protected override IReadOnlyList<Node> Within => Parts;
+            for (var at = 0; at < Parts.Count; ++at)
+            {
+                if (Kind is Grouping.Lookup && Same.Equals(Parts[at].Key, group.Parts[at].Key) is false) return false;
+                if (Same.Equals(Parts[at].Value, group.Parts[at].Value) is false) return false;
+            }
 
-        protected override int Hash() => Parts.Aggregate(HashCode.Combine('g', Collection),
-                                                         (hash, part) => HashCode.Combine(hash, part.Shape));
+            return true;
+        }
+
+        /// <remarks>
+        ///     Keys included, because a walk that asks about a whole tree is asking
+        ///     about the keys too — a repair brackets a subtree, and a key is one.
+        ///     Built on first ask and kept, like the rendering: the tables offer the
+        ///     same subtree many times and <c>Whole</c> reads this per node.
+        /// </remarks>
+        protected override IReadOnlyList<Node> Within => within ??= Flattened();
+
+        private IReadOnlyList<Node> Flattened()
+        {
+            List<Node> parts = [];
+
+            foreach (var part in Parts)
+            {
+                if (part.Key is not null) parts.Add(part.Key);
+
+                parts.Add(part.Value);
+            }
+
+            return parts;
+        }
+
+        private IReadOnlyList<Node> within;
+
+        protected override int Hash()
+            => Parts.Aggregate(HashCode.Combine('g', Kind),
+                               (hash, part) => Kind is Grouping.Lookup
+                                             ? HashCode.Combine(hash, part.Key.Shape, part.Value.Shape)
+                                             : HashCode.Combine(hash, part.Value.Shape));
     }
 
     /// <summary>An operator applied to two operands. Free: no table is consulted.</summary>

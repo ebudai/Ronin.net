@@ -172,7 +172,7 @@ public class RepairCoverage
     }
 
     private static Node Bare(Node tree)
-        => tree is Node.Group { Collection: false, Parts.Count: 1 } group ? Bare(group.Parts[0]) : tree;
+        => tree is Node.Group { Kind: Node.Grouping.Group, Parts.Count: 1 } group ? Bare(group.Parts[0].Value) : tree;
 
     /// <summary>The source with one repair's brackets typed in.</summary>
     private static string Applied(string source, Repair repair)

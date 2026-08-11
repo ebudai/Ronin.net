@@ -766,7 +766,7 @@ public class Admission
         ("Glue.Reserved", () => Glue.Reserved([Pattern.Parse("send _ to _")])),
         ("Glue.Shapes", () => Glue.Shapes),
         ("Graph.Dependencies", () => Reading.Dependencies("copy")),
-        ("Group.Parts", () => new Node.Group(new List<Node> { new Node.Name("x") }).Parts),
+        ("Group.Parts", () => new Node.Group(new List<Node.Entry> { new(null, new Node.Name("x")) }).Parts),
         ("Identifier.TryPattern", () => Blocks()),
         ("Initialisation.Cycles", () => Initialisation.Cycles(Reads)),
         ("Initialisation.TryOrder", () => Ordered()),

@@ -110,9 +110,22 @@ internal sealed class Evaluator(Scope scope)
     ///     operand was not a list — and an empty one had no list to be at all.
     /// </remarks>
     private object Grouped(Graph graph, Tree.Group group, bool insideLet)
-        => group.Collection || group.Parts.Count is not 1
-         ? List.Admit(group.Parts.Select(part => Evaluate(graph, part, insideLet)).ToArray())
-         : Evaluate(graph, group.Parts[0], insideLet);
+    {
+        // A LOOKUP carries its keys to the value, which is what the literal has
+        // had nowhere to arrive at until now. Admitted through the same boundary
+        // as a list, so its keys are canonicalised and its depth is measured on
+        // the one traversal.
+        if (group.Kind is Tree.Grouping.Lookup)
+            return List.Admit(group.Parts
+                                   .Select(part => new System.Collections.Generic.KeyValuePair<object, object>(
+                                       Evaluate(graph, part.Key, insideLet),
+                                       Evaluate(graph, part.Value, insideLet)))
+                                   .ToArray());
+
+        return group.Kind is Tree.Grouping.List || group.Parts.Count is not 1
+             ? List.Admit(group.Parts.Select(part => Evaluate(graph, part.Value, insideLet)).ToArray())
+             : Evaluate(graph, group.Parts[0].Value, insideLet);
+    }
 
     /// <remarks>
     ///     The operator comes off the node, which is the one the resolver chose.
