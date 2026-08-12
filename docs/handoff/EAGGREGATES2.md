@@ -291,6 +291,12 @@ mistake in a second place.
 
 ## 8. Indexing, and what a miss gives
 
+> **SUPERSEDED — see `REAUDIT47RULING.md` §5, which replaces this section in
+> full.** A lookup miss gives `nothing`, not an `Error`, and `m @ k` is typed
+> `optional V`. The argument below types `m @ k` as `V` and then reasons from
+> there that a miss must be an `Error`; both halves are withdrawn. A list index
+> out of range remains an `Error`. The rest of this document is unaffected.
+
 ```
   xs [ i ]     list of T,   i => number   -> T
   m  [ k ]     lookup of K V, k => K      -> V

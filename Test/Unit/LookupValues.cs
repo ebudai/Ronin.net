@@ -6,10 +6,10 @@ using Ronin.Runtime;
 namespace Unit;
 
 /// <summary>
-///     The runtime lookup value: admitted on the same boundary as a list, sorted
-///     into a canonical order so that equal lookups are indistinguishable
-///     downstream, keys canonicalised and errors refused at construction, and one
-///     depth measure across both kinds.
+///     The runtime lookup value: admitted on the same boundary as a list, held in
+///     the order it was written and compared as a map that ignores that order,
+///     with duplicate keys and kinds the runtime does not know refused at
+///     construction, and one depth measure across both kinds.
 /// </summary>
 [Trait(nameof(Lookup), null)]
 public class LookupValues
@@ -65,13 +65,22 @@ public class LookupValues
                                   : Pairs(("a", 1d), ("b", 2d)));
         graph.Let("first key", scope => ((Lookup)scope.Read("table"))[0].Key);
 
+        // READ FIRST, because a «let» is lazy: until one is read it has never run,
+        // has no dependency edge, and there is nothing cached for cutoff to keep.
+        // A test that writes before reading measures a first evaluation rather
+        // than a suppressed one, and would pass whatever cutoff did.
+        Assert.Equal("a", graph.Read("first key"));
+
         graph.Write("reverse", true);
         graph.Step();
 
-        // The table recomputed into the other order, and a reader of it sees that
-        // order — the two are one value to equality and two sequences to a walk.
+        // The table recomputed into the other order and a walk over it sees that
+        // order — while equality calls it the same value, so the change clock does
+        // not move and the dependent keeps what it cached. Two lookups equal and
+        // walked differently, which is the trade, showing here as a dependent that
+        // does not wake.
         Assert.Equal("b", ((Lookup)graph.Read("table"))[0].Key);
-        Assert.Equal("b", graph.Read("first key"));
+        Assert.Equal("a", graph.Read("first key"));
     }
 
     [Fact(DisplayName = "a shared subtree is compared once, not once per path that reaches it")]
@@ -162,6 +171,30 @@ public class LookupValues
         Assert.IsType<Fault>(List.Admit(new object[] { 1d, null }));
         Assert.IsType<Fault>(Keyed((null, 1d)));
         Assert.IsType<Fault>(Keyed(("k", null)));
+    }
+
+    [Fact(DisplayName = "a key candidate that failed leaves nothing behind to make a later one pass")]
+    public void AKeyCandidateThatFailedLeavesNothingBehindToMakeALaterOnePass()
+    {
+        // Unordered matching is the one place a comparison continues after a
+        // false, and the memo records a pair before proving it — so pairs explored
+        // down a candidate that then failed would stay behind, and the next key
+        // meeting one of them would be told it was already proved.
+        object first = new object[] { 1d, 2d };
+        object second = new object[] { 1d, 3d };
+
+        // The maps differ in exactly one association: one holds «first» as a key
+        // where the other holds «second». Every value is the same, so nothing but
+        // the keys can tell them apart.
+        var left = Keyed((new object[] { first, "x" }, 0d), (first, 0d), (new object[] { second, "x" }, 0d), ("filler", 0d));
+        var right = Keyed((new object[] { second, "x" }, 0d), (new object[] { first, "x" }, 0d), (second, 0d), ("filler", 0d));
+
+        Assert.False(Builtin.Same(left, right));
+        Assert.False(Builtin.Same(right, left));
+
+        // And being unequal, they are two keys of an outer lookup rather than one
+        // — the duplicate refusal asks this same equality.
+        Assert.IsType<Lookup>(Keyed((left, 1d), (right, 2d)));
     }
 
     [Fact(DisplayName = "an error cannot be a lookup key, and can be a lookup value")]

@@ -369,10 +369,9 @@ internal static class Builtin
     {
         if (left is List first && right is List second) return Same(first, second, ref proven);
 
-        // A lookup is compared as a SEQUENCE, because admission sorted it into a
-        // canonical order — so this is the list comparison over a canonical form
-        // rather than a second equality that could disagree with it. A list beside
-        // a lookup is never the same, which the fall-through answers.
+        // A lookup is compared as a MAP — the same keys with the same value at
+        // each — because the order it was written in is not part of the value. A
+        // list beside a lookup is never the same, which the fall-through answers.
         if (left is Lookup keyed && right is Lookup beside) return Same(keyed, beside, ref proven);
 
         return Equals(left, right);
@@ -403,7 +402,23 @@ internal static class Builtin
 
             foreach (var (candidate, against) in second)
             {
-                if (Same(key, candidate, ref proven) is false) continue;
+                // THE TRIAL IS ROLLED BACK when the candidate is not the one. This
+                // is the only place a comparison continues after a false, and the
+                // memo records a pair BEFORE proving it — so pairs explored down a
+                // candidate that then failed would stay behind as residue, and the
+                // next key meeting one of them would be told it was already proved.
+                // Two maps differing in exactly those keys compared equal, which
+                // cutoff, indexing and the duplicate refusal all then believed.
+                //
+                // Only around the KEY, and only when it is an aggregate: a scalar
+                // records nothing, and a value that disagrees ends the whole
+                // comparison rather than trying again, so nothing survives it.
+                var trial = Aggregate(key) ? [.. proven] : proven;
+
+                if (Same(key, candidate, ref trial) is false) continue;
+
+                proven = trial;
+
                 if (Same(value, against, ref proven) is false) return false;
 
                 matched = true;

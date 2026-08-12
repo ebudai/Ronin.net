@@ -5,10 +5,32 @@
 
 **Date:** 2026-08-11
 
+## Post-audit designer ruling — 2026-08-12
+
+**Finding 1 is reclassified as behaving as designed and must not be used to
+justify canonical sorting.** `REAUDIT47RULING.md` confirms that Section E §6 is
+the intended trade: lookup equality ignores written order, iteration preserves
+insertion order, and graph cutoff consequently treats a reorder-only recompute
+as unchanged. The stale `first key` probe below accurately demonstrates that
+trade; it does not demonstrate a language defect.
+
+This correction changes this audit's count to **two high and three medium
+findings**. Findings 2–6 are unaffected. In particular, lookup equality still
+needed its shared-DAG memo, lookup indexing was absent, the type layer was open,
+Error keys were admitted, and the group representation permitted contradictory
+states.
+
+The ruling also supersedes this audit's expectation about a lookup miss:
+`m @ k` has type `optional V` and a miss returns `nothing`. The prior
+absent-versus-present-and-nothing argument incorrectly assumed nested optionals
+collapse; they do not. `EAGGREGATES2.md` §8 is superseded by
+`REAUDIT47RULING.md` §5.
+
 ## Result
 
-**No sign-off. Three high-severity runtime findings and three medium findings
-(runtime semantics, completeness, and structural safeguarding) remain.**
+**Original result before the ruling:** no sign-off; three high-severity runtime
+findings and three medium findings were reported. The corrected disposition is
+two high and three medium findings, with finding 1 behaving as designed.
 
 The resolver half is substantially sound. `=` now has a structural lexeme kind,
 a lookup is carried as keyed entries through the resolution tree and evaluator,
@@ -21,12 +43,12 @@ measures one depth across both aggregate kinds.
 The runtime value is not complete, however. `@` has no lookup branch at all;
 aggregate typing and expected-type construction of an empty lookup do not exist;
 and an `Error` is admitted as a key despite the settled error-as-value decision.
-The implemented equality/iteration combination also follows the sentence that
-`LOOKUPEQUALITY.md` expressly revised: two lookups compare equal while exposing
-different orders. In the reactive graph, that makes cutoff suppress a real
-downstream change. Independently, lookup equality omits the shared-pair memo that
-list equality uses and takes exponential time on the DAGs admission deliberately
-preserves.
+The implemented equality/iteration combination preserves insertion order while
+ignoring it for equality. This audit originally treated the resulting cutoff as
+a defect by following `LOOKUPEQUALITY.md`; the designer has since confirmed that
+Section E §6 owns the opposite decision and the cutoff is intentional.
+Independently, lookup equality omits the shared-pair memo that list equality uses
+and takes exponential time on the DAGs admission deliberately preserves.
 
 All maintained gates pass: 1,215 tests in Debug and Release, the locked restore,
 the warning-as-error Release build, 100% line and branch coverage, and the direct
@@ -37,10 +59,12 @@ missing paths that the maintained examples do not ask about.
 
 ## Findings
 
-### 1. Equal lookups can expose different iteration orders, so graph cutoff leaves derived values stale
+### 1. RECLASSIFIED — equal lookups can expose different insertion orders
 
-**Severity: high — a write changes an observable lookup result, but a dependent
-`let` retains the result from before the write.**
+**Disposition: behaving as designed.** The observation is correct, but Section E
+§6 deliberately makes insertion order observable while lookup equality ignores
+it. Per `REAUDIT47RULING.md`, no canonical order is required and the remedy
+recommended below is withdrawn. Preserve insertion order and unordered equality.
 
 `Lookup` stores and enumerates associations in insertion order
 (`Compiler/Runtime/Lookup.cs:30-34, 63-72`), while `Builtin.Same` deliberately
@@ -64,16 +88,13 @@ After the step, directly reading `table[0].Key` gives `"b"`, proving the table
 was recomputed in the new order. `first key` remains `"a"`: equality called the
 new table unchanged and cutoff did not wake the dependent.
 
-This is the exact conflict documented in `LOOKUPEQUALITY.md:12-68`. That document
-explicitly says it revises the earlier insertion-order decision and requires a
-content-derived canonical order. The implementation instead repeats the
-superseded trade in its type comment.
+This is the conflict documented in `LOOKUPEQUALITY.md:12-68`. The post-audit
+designer ruling rejects that document's revision and restores Section E §6 as
+the owner: this observed behavior is the intended trade.
 
-**Recommendation:** canonicalise association order at admission using the
-defined total order over key kinds, then expose only that order. Equal lookups
-must enumerate identically. Add a graph-level regression like the probe above;
-a direct equality test plus a direct iteration test cannot establish the cutoff
-relationship.
+**Withdrawn recommendation:** do not canonicalise association order. Preserve
+insertion order, ignore it for equality, and retain the probe only if it asserts
+the ruled behavior rather than expecting the dependent to wake.
 
 ### 2. Lookup equality re-proves a shared DAG once per path and is exponential
 

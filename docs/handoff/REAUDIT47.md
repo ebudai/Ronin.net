@@ -5,6 +5,35 @@
 
 **Date:** 2026-08-11
 
+## Post-audit designer ruling — 2026-08-12
+
+`REAUDIT47RULING.md` accepts the reproductions but changes their root cause and
+the required remedy:
+
+- **FRESHAUDIT20 finding 1 is behaving as designed.** Section E §6 stands:
+  preserve insertion order and ignore it for equality. A reorder-only recompute
+  being cut off is the named trade, not a defect.
+- Findings 1 and 2 below are therefore defects in the decision to sort, not
+  requests for a stronger sorter. **Delete canonical ordering**, restore
+  insertion-order storage, compare lookups as unordered maps with the existing
+  shared-pair memo, and detect duplicate keys by equality against keys already
+  admitted. The comparer, its display fallback, and its exponential traversal
+  then disappear.
+- Unknown host values are refused by `Admit` in every position; CLR null is not
+  a value and becomes a `Fault`. This replaces the narrower recommendation to
+  refuse them only as keys.
+- Finding 3 stands: a `Fault` propagates unchanged through admission.
+- Finding 4 stands and gains an expiry-ledger entry for the temporary rule that
+  `[]` is always a list, naming expected-type selection as its successor.
+- Finding 5 is reversed: a lookup miss returns `nothing` and `m @ k` has type
+  `optional V`. Optionals nest, so absent and present-and-nothing remain distinct.
+  `EAGGREGATES2.md` §8 is superseded; the spec was correct.
+
+The two high-severity observations remain valid evidence against the **current
+sorted implementation** until sorting is removed. Their original recommendations
+to repair the total-order comparer are superseded. The corrected implementation
+target has no total-order obligation at all.
+
 ## Result
 
 **No sign-off. Two high-severity runtime findings and three medium findings
@@ -12,7 +41,8 @@ remain.**
 
 The incorporation closes the exact maintained cases for four findings. Lookups
 whose keys have a defined content order are canonicalised at admission, and the
-graph-level reversed-string-key reproduction no longer leaves a dependent stale.
+graph-level reversed-string-key reproduction no longer leaves a dependent stale
+— behavior now ruled to be a regression from Section E §6 rather than a fix.
 Equality carries one memo through lists and lookups, so two independently
 admitted lookup DAGs compare linearly. `@` now finds scalar and structural keys
 using `Builtin.Same`. An ordinary `Error` is refused as a key while remaining
@@ -31,9 +61,8 @@ construction.
 The ordinary-error refusal also catches `Fault` and converts it through the
 private refusal sentinel into an ordinary, catchable `Error`, hiding an
 interpreter defect. The type-layer portion of Section E remains explicitly
-unimplemented. Finally, lookup misses now return `Error`, coherently following
-EAGGREGATES2 §8, but the conflicting `docs/spec/NOTHINGANDINDEXING.md` statement
-was not reconciled and still says `nothing`.
+unimplemented. Finally, lookup misses return `Error`; the designer has ruled
+that the spec's `nothing` result is correct and superseded EAGGREGATES2 §8.
 
 All maintained gates pass: 1,221 tests in Debug and Release, locked restore,
 warning-as-error Release build, 100% line and branch coverage, and the direct
@@ -45,9 +74,9 @@ plus transitive vulnerability audit.
 
 | Prior finding | Re-evaluation |
 |---|---|
-| 1. Equal lookups expose different iteration orders | **Closed for keys whose comparer is a real total order; not closed for admitted host/compound keys.** The maintained graph reproduction passes, but two equal host-key maps written in reverse order canonicalise differently and compare unequal. Finding 1 below. |
+| 1. Equal lookups expose different iteration orders | **Reclassified: behaving as designed.** The incorporation should not have sorted to change this behavior. Its sorter creates the separate current findings 1 and 2 below. |
 | 2. Lookup equality is exponential on shared DAGs | **Equality is closed; canonical ordering reintroduces the same exponential during construction.** The new equality test is strong. `Lookup.Compare` has no corresponding memo. Finding 2 below. |
-| 3. Lookup indexing is absent | **Functional path closed.** Scalar and structural hits use `Builtin.Same`, misses return a value, and invalid operands remain errors. The miss result still has two contradictory design owners; see finding 5. |
+| 3. Lookup indexing is absent | **Hit path closed.** Scalar and structural hits use `Builtin.Same`, and invalid operands remain errors. The implemented miss result is contrary to the later ruling; see finding 5. |
 | 4. Typing and expected-type empty lookup are absent | **Open and explicitly outside the incorporating commit.** No type-layer code changed. Finding 4 below. |
 | 5. Errors are admitted as keys | **Ordinary Error closed; Fault mishandled.** A `Fault` key becomes a new ordinary `Error`, which `otherwise` catches. Finding 3 below. |
 | 6. Group kind and nullable keys can disagree | **Closed.** The constructor copies then validates every entry, and maintained tests cover keyed list/group entries and an unkeyed lookup entry. |
@@ -104,14 +133,11 @@ The maintained “total order” test uses one friendly value per kind and one
 it does not test the comparator/equality law on which canonicalisation and the
 duplicate scan depend.
 
-**Recommendation:** define and test a strict total order modulo `Builtin.Same`.
-For every admitted key pair, comparer zero must be exactly language equality.
-There is no generic way to derive that order for an arbitrary host object's
-custom `Equals` from its display text. Refuse unknown host values and CLR null as
-keys until the designer defines a key protocol or a canonical content identity.
-For known runtime types, include every equality component in ordering (including
-the exact Error kind when it occurs inside a compound value). Add algebraic
-tests plus the reversed-equal-map and separated-duplicate witnesses above.
+**Superseded recommendation:** do not repair or extend the comparer. Delete
+canonical sorting, restore insertion-order storage, and use language equality
+directly for unordered lookup equality and duplicate detection. Refuse unknown
+host values in every aggregate position, and treat CLR null as a `Fault`, as
+`REAUDIT47RULING.md` requires.
 
 ### 2. Canonical comparison unfolds a shared aggregate DAG exponentially
 
@@ -136,11 +162,10 @@ The maintained depth-20 DAG test calls only `Builtin.Same`, where the new memo i
 present, and therefore cannot detect that the sort immediately beside it repeats
 the old traversal.
 
-**Recommendation:** give canonical comparison its own context shared across list
-and lookup recursion. Cache the integer result for each aggregate pair, not only
-“already equal,” because an ordering comparison may prove a non-zero result that
-another path reaches again. Maintain an admission-level compound-key DAG probe;
-testing equality alone guards a different caller.
+**Superseded recommendation:** delete canonical comparison. The equality path
+already has the required cross-kind memo. With insertion-order storage and
+duplicate detection by equality against prior keys, there is no ordering walk to
+memoise and this exponential path disappears.
 
 ### 3. Refusing a Fault key launders the defect into a catchable Error
 
@@ -179,25 +204,26 @@ likewise absent.
 or implement the type layer and the source-level tests listed in FRESHAUDIT20.
 The runtime singleton remains useful groundwork, not expected-type behavior.
 
-### 5. The implemented miss result still contradicts the current spec document
+### 5. The implemented miss result contradicts the designer ruling
 
-**Severity: medium specification consistency — the code is coherent with
-EAGGREGATES2, but the language still has two authoritative answers.**
+**Severity: medium semantic correctness — the current code returns `Error`, but
+the ruled language result is `nothing`.**
 
 `Builtin.Found` returns an `Error` on a miss (`Compiler/Runtime/Values.cs:
 266-294`), and the maintained test pins that result. This follows
 `EAGGREGATES2.md:292-311`: returning `nothing` cannot distinguish absence from a
 present optional value that is itself `nothing`.
 
-`docs/spec/NOTHINGANDINDEXING.md:36-48` still says a lookup miss yields
-`nothing`. The programmer explicitly disclosed choosing the E result pending a
-designer ruling, so this is not an overlooked branch. It is also not reconciled:
-source, test, handoff, and spec do not yet state one language.
+`docs/spec/NOTHINGANDINDEXING.md:36-48` says a lookup miss yields `nothing`. The
+programmer explicitly disclosed choosing the E result pending a designer ruling,
+so this was not an overlooked branch. `REAUDIT47RULING.md` has now made the call:
+the spec stands, the code and maintained test move, and EAGGREGATES2 §8 is
+superseded.
 
-**Recommendation:** obtain the designer ruling and update the losing document
-and maintained test in the same change. On the current reasoning, `Error` is the
-only result preserving absent versus present-and-nothing, but the choice belongs
-to the language owner.
+**Designer ruling:** change the implementation and maintained test to `nothing`;
+the spec stands. `m @ k` has type `optional V`, and nested optionals do not
+collapse, so absence and present-and-nothing remain distinct. Record optionals'
+nesting in the reference entry and treat `EAGGREGATES2.md` §8 as superseded.
 
 ---
 

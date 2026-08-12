@@ -113,8 +113,9 @@ internal sealed class Evaluator(Scope scope)
     {
         // A LOOKUP carries its keys to the value, which is what the literal has
         // had nowhere to arrive at until now. Admitted through the same boundary
-        // as a list, so its keys are canonicalised and its depth is measured on
-        // the one traversal.
+        // as a list, so its keys are admitted too — checked for a kind the runtime
+        // knows and for a duplicate — and its depth is measured on the one
+        // traversal.
         if (group.Kind is Tree.Grouping.Lookup)
             return List.Admit(group.Parts
                                    .Select(part => new System.Collections.Generic.KeyValuePair<object, object>(
