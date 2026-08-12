@@ -232,6 +232,13 @@ internal sealed class List : IReadOnlyList<object>
 
             if (key is Refusal) return key;
 
+            // A FAULT is not refused, it is PROPAGATED. Every refusal here becomes
+            // an ordinary error at the boundary, and an ordinary error is caught by
+            // «otherwise» — so refusing a fault would launder an interpreter defect
+            // into a program value a program can swallow, which is the one thing
+            // the type exists to prevent. It leaves as itself, uncaught.
+            if (key is Fault) return key;
+
             // A FAILURE is not a key. A key needs an equality that means
             // something, and two errors are equal when their reasons are — so
             // admitting one would let two unrelated failures that printed the same
@@ -240,6 +247,15 @@ internal sealed class List : IReadOnlyList<object>
             // VALUE still, exactly as it is legal as a list element.
             if (key is Error failed)
                 return new Refusal($"a lookup key cannot be an error, and this one is: {failed.Message}");
+
+            // And a key must be one the canonical order can place, all the way
+            // down, or sorting does not produce one sequence per map and two equal
+            // keys do not end up next to each other for the refusal below to see.
+            // A host value the runtime has no content order for is refused rather
+            // than approximated by what it prints.
+            if (Lookup.Orderable(key) is false)
+                return new Refusal($"a lookup key must be something the runtime can order, and «{key}» is not. " +
+                                   "Use a number, a text, a truth, an instance, or a list or lookup of those.");
 
             var value = Normalise(pairs[at].Value, inside, done, depth + 1);
 

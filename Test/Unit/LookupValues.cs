@@ -66,50 +66,153 @@ public class LookupValues
         Assert.Equal("a", graph.Read("first key"));
     }
 
-    [Fact(DisplayName = "a total order puts every kind of key somewhere")]
-    public void ATotalOrderPutsEveryKindOfKeySomewhere()
+    [Fact(DisplayName = "the order is zero exactly where the values are the same")]
+    public void TheOrderIsZeroExactlyWhereTheValuesAreTheSame()
     {
-        // Every kind against every other, so the order is total rather than
-        // defined only where two keys happen to share a type — one written «1»
-        // and another «"1"» are different keys and something has to separate them.
+        // The law canonicalisation rests on. Sorting produces one sequence per map
+        // only if equal keys compare zero, and the duplicate refusal sees two equal
+        // keys only if nothing unequal can sort between them.
         object[] keys =
         [
-            Nothing.Instance, true, 1d, "1", new Instance("T", 1, 1), List.Admit(new object[] { 1d }), Keyed(("a", 1d)),
+            Nothing.Instance, false, true, 0d, 1d, double.NaN, "", "1", new Instance("A", 1, 1), new Instance("A", 1, 2),
+            new Error("same"), new Fault("same"), List.Admit(new object[] { 1d }), Keyed(("a", 1d)),
         ];
 
-        var sorted = Assert.IsType<Lookup>(List.Admit(Pairs([.. keys.Reverse().Select(key => (key, (object)1d))])));
+        foreach (var key in keys)
+        {
+            foreach (var other in keys)
+            {
+                var order = Lookup.Compare(key, other);
 
-        Assert.Equal(keys, sorted.Select(entry => entry.Key));
+                Assert.Equal(Builtin.Same(key, other), order is 0);
 
-        // Within a kind, by content: two lists order by length and then by parts.
-        Assert.True(Lookup.Compare(List.Admit(new object[] { 1d }), List.Admit(new object[] { 1d, 2d })) < 0);
-        Assert.True(Lookup.Compare(List.Admit(new object[] { 2d }), List.Admit(new object[] { 1d })) > 0);
-        Assert.Equal(0, Lookup.Compare(List.Admit(new object[] { 1d }), List.Admit(new object[] { 1d })));
+                // Antisymmetric, so the sort cannot depend on which side it asked.
+                Assert.Equal(order is 0 ? 0 : order < 0 ? -1 : 1, -System.Math.Sign(Lookup.Compare(other, key)));
+            }
+        }
 
-        // Two instances by type, then slot, then generation.
+        // An error and a fault reading alike are NOT one key — the kind is part of
+        // the equality, so it has to be part of the order. Reached through a
+        // compound key, since neither may be a key on its own.
+        Assert.NotEqual(0, Lookup.Compare(List.Admit(new object[] { new Error("same") }),
+                                          List.Admit(new object[] { new Fault("same") })));
+
+        // «-0» and «0» are one value, and the order agrees rather than seating them
+        // apart the way «CompareTo» alone would.
+        Assert.Equal(0, Lookup.Compare(-0d, 0d));
+
+        // Within a kind, by every part its equality has: an instance by type, then
+        // slot, then generation.
         Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("B", 1, 1)) < 0);
         Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("A", 2, 1)) < 0);
         Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("A", 1, 2)) < 0);
 
-        // Two lookups by length, then entrywise.
+        // An aggregate by length and then by parts.
+        Assert.True(Lookup.Compare(List.Admit(new object[] { 1d }), List.Admit(new object[] { 1d, 2d })) < 0);
+        Assert.True(Lookup.Compare(List.Admit(new object[] { 1d }), List.Admit(new object[] { 2d })) < 0);
         Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("a", 1d), ("b", 2d))) < 0);
         Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("b", 1d))) < 0);
         Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("a", 2d))) < 0);
-        Assert.Equal(0, Lookup.Compare(Keyed(("a", 1d)), Keyed(("a", 1d))));
 
-        // Nothing is alone in its kind, and a host value the runtime has no order
-        // for is ordered by what it prints — deterministic, which is what a
-        // canonical form asks.
-        Assert.Equal(0, Lookup.Compare(Nothing.Instance, Nothing.Instance));
-        Assert.True(Lookup.Compare(System.DateTime.UnixEpoch, System.DateTime.UnixEpoch.AddDays(1)) < 0);
-        Assert.True(Lookup.Compare(false, true) < 0);
-        Assert.True(Lookup.Compare(new Error("a"), new Error("b")) < 0);
+        // A pair of lists met twice down two paths is ordered once and remembered.
+        var twice = new object[] { 1d };
+        var beside = new object[] { 1d };
 
-        // A host may hand over a bare null, which is not the runtime's «nothing»
-        // and still has to sort somewhere rather than end the comparison.
-        Assert.Equal(0, Lookup.Compare(null, null));
-        Assert.True(Lookup.Compare(null, System.DateTime.UnixEpoch) < 0);
-        Assert.Single(Assert.IsType<Lookup>(Keyed((null, 1d))));
+        Assert.Equal(0, Lookup.Compare(List.Admit(new object[] { twice, twice }),
+                                       List.Admit(new object[] { beside, beside })));
+
+        // A shared child inside a key is checked for orderability once, not once
+        // per path that reaches it.
+        var shared = new object[] { 1d };
+        Assert.IsType<Lookup>(Keyed((new object[] { shared, shared }, 1d)));
+
+        var alike = Pairs(("a", 1d));
+        Assert.IsType<Lookup>(Keyed((Pairs(("l", alike), ("r", alike)), 1d)));
+    }
+
+    [Fact(DisplayName = "equal keys in either order canonicalise alike, and equal keys are refused however they print")]
+    public void EqualKeysInEitherOrderCanonicaliseAlikeAndEqualKeysAreRefusedHoweverTheyPrint()
+    {
+        // Compound keys whose renderings do not order them: ordering by text put
+        // two equal maps in opposite orders, so they compared unequal.
+        object first = List.Admit(new object[] { 1d, 2d });
+        object second = List.Admit(new object[] { 1d, 3d });
+
+        Assert.True(Builtin.Same(Keyed((first, "x"), (second, "y")), Keyed((second, "y"), (first, "x"))));
+
+        // And two keys that ARE the same land next to each other however they were
+        // written, so the adjacent scan sees them — the duplicate cannot hide
+        // behind an unequal key that happened to print between them.
+        Assert.Contains("same key", Assert.IsType<Error>(
+            Keyed((List.Admit(new object[] { 1d }), 1d),
+                  (List.Admit(new object[] { 2d }), 2d),
+                  (List.Admit(new object[] { 1d }), 3d))).Message);
+    }
+
+    [Fact(DisplayName = "a key the runtime cannot order is refused, and so is a bare null")]
+    public void AKeyTheRuntimeCannotOrderIsRefusedAndSoIsABareNull()
+    {
+        // There is no deriving a content order for a host object's own equality
+        // from its text, so it is refused rather than approximated — the
+        // approximation admitted a map with two equal keys and two answers.
+        Assert.Contains("can order", Assert.IsType<Error>(Keyed((System.DateTime.UnixEpoch, 1d))).Message);
+        Assert.Contains("can order", Assert.IsType<Error>(Keyed((null, 1d))).Message);
+
+        // Deep, because an aggregate is ordered by its parts.
+        Assert.Contains("can order",
+            Assert.IsType<Error>(Keyed((new object[] { 1d, System.DateTime.UnixEpoch }, 1d))).Message);
+        Assert.Contains("can order",
+            Assert.IsType<Error>(Keyed((Pairs(("k", System.DateTime.UnixEpoch)), 1d))).Message);
+
+        // A lookup nested in a key is refused at its own admission, so an
+        // unplaceable key never reaches the walk above.
+        Assert.Contains("can order",
+            Assert.IsType<Error>(Keyed((Pairs((System.DateTime.UnixEpoch, 1d)), 1d))).Message);
+
+        // A VALUE is unrestricted still: only a key has to be placeable.
+        Assert.IsType<Lookup>(Keyed(("k", System.DateTime.UnixEpoch)));
+
+        // And every kind that IS orderable is admitted as a key.
+        Assert.IsType<Lookup>(Keyed((Nothing.Instance, 1d), (true, 2d), (3d, 3d), ("s", 4d),
+                                    (new Instance("A", 1, 1), 5d), (new object[] { 1d }, 6d), (Pairs(("a", 1d)), 7d)));
+    }
+
+    [Fact(DisplayName = "a fault used as a key stays a fault, and stays uncatchable")]
+    public void AFaultUsedAsAKeyStaysAFaultAndStaysUncatchable()
+    {
+        // Refusing it would turn it into an ordinary error at the boundary, and an
+        // ordinary error is caught — so an interpreter defect would become a
+        // program value a program can swallow.
+        var admitted = Assert.IsType<Fault>(Keyed((new Fault("interpreter defect"), 1d)));
+
+        Assert.Equal("interpreter defect", admitted.Message);
+        Assert.Same(admitted, Builtin.Otherwise(admitted, 9d));
+    }
+
+    [Fact(DisplayName = "a shared aggregate key is ordered once, not once per path")]
+    public void ASharedAggregateKeyIsOrderedOnceNotOncePerPath()
+    {
+        // The sort runs BEFORE the duplicate check, so the exponential equality
+        // was given a memo to stop arrives here through a different caller — and
+        // testing equality alone cannot see it. Two independently admitted DAGs
+        // whose every level mentions its child twice: forty layers is a million
+        // million comparisons unfolded, and one per pair shared.
+        static object Deep(int levels)
+        {
+            object built = 1d;
+
+            for (var at = 0; at < levels; ++at) built = Pairs(("left", built), ("right", built));
+
+            return List.Admit(built);
+        }
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        // Equal, so admission has to order them to find out and then refuse them.
+        var refused = Assert.IsType<Error>(Keyed((Deep(40), "x"), (Deep(40), "y")));
+
+        Assert.Contains("same key", refused.Message);
+        Assert.True(stopwatch.Elapsed < System.TimeSpan.FromSeconds(10), $"took {stopwatch.Elapsed}");
     }
 
     /// <summary>A leaf that counts how many times it is compared.</summary>
