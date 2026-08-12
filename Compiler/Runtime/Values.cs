@@ -348,7 +348,7 @@ internal static class Builtin
         // through cutoff, «changes» and «old». A list is refused at
         // construction if it nests past what this can follow, so everything
         // that reaches here is comparable.
-        HashSet<(object Left, object Right)> proven = null;
+        Proofs proven = null;
 
         return Same(left, right, ref proven);
     }
@@ -365,7 +365,7 @@ internal static class Builtin
     ///     element is a lookup — which is exactly the shape admission preserves
     ///     when it keeps a host DAG shared rather than expanding it.
     /// </remarks>
-    private static bool Same(object left, object right, ref HashSet<(object Left, object Right)> proven)
+    private static bool Same(object left, object right, ref Proofs proven)
     {
         if (left is List first && right is List second) return Same(first, second, ref proven);
 
@@ -388,15 +388,15 @@ internal static class Builtin
     ///     side matches at most one on the other and equal counts with every key
     ///     matched is a bijection.
     /// </remarks>
-    private static bool Same(Lookup first, Lookup second, ref HashSet<(object Left, object Right)> proven)
+    private static bool Same(Lookup first, Lookup second, ref Proofs proven)
     {
         if (ReferenceEquals(first, second)) return true;
         if (first.Count != second.Count) return false;
-        if (proven?.Add((first, second)) is false) return true;
+        if (proven?.Repeat((first, second)) is true) return true;
 
         foreach (var (key, value) in first)
         {
-            if (Aggregate(key) || Aggregate(value)) proven ??= [(first, second)];
+            proven ??= Aggregate(key) || Aggregate(value) ? new Proofs((first, second)) : null;
 
             var matched = false;
 
@@ -410,14 +410,19 @@ internal static class Builtin
                 // Two maps differing in exactly those keys compared equal, which
                 // cutoff, indexing and the duplicate refusal all then believed.
                 //
-                // Only around the KEY, and only when it is an aggregate: a scalar
-                // records nothing, and a value that disagrees ends the whole
-                // comparison rather than trying again, so nothing survives it.
-                var trial = Aggregate(key) ? [.. proven] : proven;
+                // Only around the KEY: a value that disagrees ends the whole
+                // comparison rather than trying again, so nothing survives it. And
+                // by taking back what this candidate added rather than by keeping a
+                // copy of everything before it — the copy was correct and cubic,
+                // since a map written in reverse order tries quadratically many
+                // candidates and each copied every proof its predecessors made.
+                var mark = proven?.Mark ?? 0;
 
-                if (Same(key, candidate, ref trial) is false) continue;
-
-                proven = trial;
+                if (Same(key, candidate, ref proven) is false)
+                {
+                    proven?.Undo(mark);
+                    continue;
+                }
 
                 if (Same(value, against, ref proven) is false) return false;
 
@@ -433,6 +438,53 @@ internal static class Builtin
 
     /// <summary>Whether descending here could meet a pair worth remembering.</summary>
     private static bool Aggregate(object value) => value is List or Lookup;
+
+    /// <summary>
+    ///     The aggregate pairs proved on the way down, and how to take back the
+    ///     ones a candidate added before it turned out not to be the one.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     A JOURNAL rather than a copy. Isolating a candidate by cloning the whole
+    ///     set is correct and cubic: an equal map written in reverse order tries
+    ///     quadratically many candidates, and each one copies every pair the
+    ///     matches before it established — three hundred entries allocated some
+    ///     368 MB, which the graph pays on every settle that recomputes an
+    ///     unchanged map.
+    ///     </para>
+    ///     <para>
+    ///     Recording what was added instead makes taking it back cost what that
+    ///     candidate did rather than what everything before it did. Marks nest by
+    ///     construction, because a mark is a position in a list that only grows
+    ///     while a trial is open.
+    ///     </para>
+    /// </remarks>
+    private sealed class Proofs((object Left, object Right) pair)
+    {
+        /// <summary>Whether this pair is already proved, recording it if it is not.</summary>
+        public bool Repeat((object Left, object Right) pair)
+        {
+            if (proven.Add(pair) is false) return true;
+
+            added.Add(pair);
+
+            return false;
+        }
+
+        /// <summary>Where the log stands, to come back to if a candidate fails.</summary>
+        public int Mark => added.Count;
+
+        public void Undo(int mark)
+        {
+            for (var at = added.Count - 1; at >= mark; --at) proven.Remove(added[at]);
+
+            added.RemoveRange(mark, added.Count - mark);
+        }
+
+        private readonly HashSet<(object Left, object Right)> proven = [pair];
+        private readonly List<(object Left, object Right)> added = [pair];
+    }
 
     /// <summary>
     ///     Two lists, comparing each shared pair once.
@@ -457,15 +509,15 @@ internal static class Builtin
     ///     on every settle — allocates nothing.
     ///     </para>
     /// </remarks>
-    private static bool Same(List first, List second, ref HashSet<(object Left, object Right)> proven)
+    private static bool Same(List first, List second, ref Proofs proven)
     {
         if (ReferenceEquals(first, second)) return true;
         if (first.Count != second.Count) return false;
-        if (proven?.Add((first, second)) is false) return true;
+        if (proven?.Repeat((first, second)) is true) return true;
 
         for (var at = 0; at < first.Count; ++at)
         {
-            if (Aggregate(first[at])) proven ??= [(first, second)];
+            proven ??= Aggregate(first[at]) ? new Proofs((first, second)) : null;
 
             if (Same(first[at], second[at], ref proven) is false) return false;
         }

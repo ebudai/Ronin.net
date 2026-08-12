@@ -197,6 +197,48 @@ public class LookupValues
         Assert.IsType<Lookup>(Keyed((left, 1d), (right, 2d)));
     }
 
+    [Fact(DisplayName = "equal maps written in opposite orders cost what the match costs, not what came before it")]
+    public void EqualMapsWrittenInOppositeOrdersCostWhatTheMatchCostsNotWhatCameBeforeIt()
+    {
+        // A candidate is isolated by taking back what IT added, not by keeping a
+        // copy of every proof made before it. The copy was correct and cubic: two
+        // equal maps written in opposite orders try quadratically many candidates,
+        // and each one copied everything its predecessors had established — so a
+        // few hundred ordinary structural keys allocated hundreds of megabytes,
+        // and the graph pays this on every settle that recomputes an unchanged map.
+        static long Work(int entries)
+        {
+            // Structural keys, so the candidate search actually descends, and
+            // opposite orders, so it actually backtracks. Equal maps, because an
+            // unchanged recompute is the case cutoff must get through.
+            var ascending = List.Admit(Pairs([.. Enumerable.Range(0, entries)
+                                                           .Select(at => ((object)new object[] { (double)at }, (object)0d))]));
+
+            var descending = List.Admit(Pairs([.. Enumerable.Range(0, entries)
+                                                            .Reverse()
+                                                            .Select(at => ((object)new object[] { (double)at }, (object)0d))]));
+
+            System.GC.Collect();
+
+            var before = System.GC.GetAllocatedBytesForCurrentThread();
+
+            Assert.True(Builtin.Same(ascending, descending));
+
+            return System.GC.GetAllocatedBytesForCurrentThread() - before;
+        }
+
+        Work(20);
+
+        var fewer = Work(80);
+        var more = Work(160);
+
+        // A RATIO, so the machine's speed plays no part. Twice the entries is four
+        // times the candidates, so quadratic is the shape this search has and is
+        // allowed; cubic is eight times and is what the copy made it. Six sits
+        // between them and is clear of both.
+        Assert.True(more < fewer * 6, $"80 entries allocated {fewer} bytes and 160 allocated {more}");
+    }
+
     [Fact(DisplayName = "an error cannot be a lookup key, and can be a lookup value")]
     public void AnErrorCannotBeALookupKeyAndCanBeALookupValue()
     {
