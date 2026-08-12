@@ -78,6 +78,22 @@ namespace Test;
 ///             </description>
 ///         </item>
 ///         <item>
+///             <term>«[]» is always a list</term>
+///             <description>
+///                 approximates the expected-type rule — «[]» is the empty
+///                 lookup where a lookup is expected — which needs the type
+///                 layer to have an expected type to consult. The resolver
+///                 builds an empty square group as a LIST unconditionally, so
+///                 the empty lookup has no way to be written today and
+///                 «Lookup.Empty» is reachable only from a host caller. →
+///                 becomes «[]» taking its kind from the type it is being read
+///                 into, which is the same outward-in shape «return empty list»
+///                 needs. Named here because "you cannot write an empty lookup"
+///                 is exactly the gap someone builds a workaround for and then
+///                 keeps after the rule lands.
+///             </description>
+///         </item>
+///         <item>
 ///             <term>duplicate shapes with the SAME parameter types</term>
 ///             <description>
 ///                 approximates nothing and never expires — two identical

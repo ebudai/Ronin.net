@@ -35,22 +35,28 @@ public class LookupValues
         Assert.Equal(["a", "b"], lookup.Select(entry => entry.Key));
     }
 
-    [Fact(DisplayName = "equal lookups iterate identically, so cutoff cannot hide a change")]
-    public void EqualLookupsIterateIdenticallySoCutoffCannotHideAChange()
+    [Fact(DisplayName = "a lookup iterates as written and compares as a map, which is the named trade")]
+    public void ALookupIteratesAsWrittenAndComparesAsAMapWhichIsTheNamedTrade()
     {
-        // The two written orders are one canonical sequence, so equality ignoring
-        // written order does not leave anything downstream able to tell them
-        // apart. Insertion order kept for iteration would make cutoff suppress an
-        // observable change — a wrong answer, not a missed optimisation.
         var written = Assert.IsType<Lookup>(Keyed(("b", 2d), ("a", 1d)));
         var reversed = Assert.IsType<Lookup>(Keyed(("a", 1d), ("b", 2d)));
 
+        // Equal, because a lookup is a map: the same keys with the same value at
+        // each, and the order they were written in is not part of the value.
         Assert.True(Builtin.Same(written, reversed));
-        Assert.Equal(written.Select(entry => entry.Key), reversed.Select(entry => entry.Key));
-        Assert.Equal(["a", "b"], written.Select(entry => entry.Key));
 
-        // And the graph agrees: a «let» recomputed into the other order settles to
-        // the same value, so nothing downstream of it is stale.
+        // And iterated as written, because iteration wants determinism rather than
+        // an order, and insertion order is deterministic.
+        Assert.Equal(["b", "a"], written.Select(entry => entry.Key));
+        Assert.Equal(["a", "b"], reversed.Select(entry => entry.Key));
+
+        // THE TRADE, through the graph, written down because it is the surprising
+        // half: a «let» recomputed into the other order is the same VALUE, so the
+        // reorder is not a change and the clock does not move for it — while a
+        // walk over the result can still see the difference. That is the price of
+        // an equality that ignores something a program can look at, and it is
+        // accepted rather than overlooked. A canonical order was tried to remove
+        // it and cost more than it saved, since nothing needed a total order.
         Graph graph = new();
 
         graph.Var("reverse", false);
@@ -62,169 +68,10 @@ public class LookupValues
         graph.Write("reverse", true);
         graph.Step();
 
-        Assert.Equal("a", ((Lookup)graph.Read("table"))[0].Key);
-        Assert.Equal("a", graph.Read("first key"));
-    }
-
-    [Fact(DisplayName = "the order is zero exactly where the values are the same")]
-    public void TheOrderIsZeroExactlyWhereTheValuesAreTheSame()
-    {
-        // The law canonicalisation rests on. Sorting produces one sequence per map
-        // only if equal keys compare zero, and the duplicate refusal sees two equal
-        // keys only if nothing unequal can sort between them.
-        object[] keys =
-        [
-            Nothing.Instance, false, true, 0d, 1d, double.NaN, "", "1", new Instance("A", 1, 1), new Instance("A", 1, 2),
-            new Error("same"), new Fault("same"), List.Admit(new object[] { 1d }), Keyed(("a", 1d)),
-        ];
-
-        foreach (var key in keys)
-        {
-            foreach (var other in keys)
-            {
-                var order = Lookup.Compare(key, other);
-
-                Assert.Equal(Builtin.Same(key, other), order is 0);
-
-                // Antisymmetric, so the sort cannot depend on which side it asked.
-                Assert.Equal(order is 0 ? 0 : order < 0 ? -1 : 1, -System.Math.Sign(Lookup.Compare(other, key)));
-            }
-        }
-
-        // An error and a fault reading alike are NOT one key — the kind is part of
-        // the equality, so it has to be part of the order. Reached through a
-        // compound key, since neither may be a key on its own.
-        Assert.NotEqual(0, Lookup.Compare(List.Admit(new object[] { new Error("same") }),
-                                          List.Admit(new object[] { new Fault("same") })));
-
-        // «-0» and «0» are one value, and the order agrees rather than seating them
-        // apart the way «CompareTo» alone would.
-        Assert.Equal(0, Lookup.Compare(-0d, 0d));
-
-        // Within a kind, by every part its equality has: an instance by type, then
-        // slot, then generation.
-        Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("B", 1, 1)) < 0);
-        Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("A", 2, 1)) < 0);
-        Assert.True(Lookup.Compare(new Instance("A", 1, 1), new Instance("A", 1, 2)) < 0);
-
-        // An aggregate by length and then by parts.
-        Assert.True(Lookup.Compare(List.Admit(new object[] { 1d }), List.Admit(new object[] { 1d, 2d })) < 0);
-        Assert.True(Lookup.Compare(List.Admit(new object[] { 1d }), List.Admit(new object[] { 2d })) < 0);
-        Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("a", 1d), ("b", 2d))) < 0);
-        Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("b", 1d))) < 0);
-        Assert.True(Lookup.Compare(Keyed(("a", 1d)), Keyed(("a", 2d))) < 0);
-
-        // A pair of lists met twice down two paths is ordered once and remembered.
-        var twice = new object[] { 1d };
-        var beside = new object[] { 1d };
-
-        Assert.Equal(0, Lookup.Compare(List.Admit(new object[] { twice, twice }),
-                                       List.Admit(new object[] { beside, beside })));
-
-        // A shared child inside a key is checked for orderability once, not once
-        // per path that reaches it.
-        var shared = new object[] { 1d };
-        Assert.IsType<Lookup>(Keyed((new object[] { shared, shared }, 1d)));
-
-        var alike = Pairs(("a", 1d));
-        Assert.IsType<Lookup>(Keyed((Pairs(("l", alike), ("r", alike)), 1d)));
-    }
-
-    [Fact(DisplayName = "equal keys in either order canonicalise alike, and equal keys are refused however they print")]
-    public void EqualKeysInEitherOrderCanonicaliseAlikeAndEqualKeysAreRefusedHoweverTheyPrint()
-    {
-        // Compound keys whose renderings do not order them: ordering by text put
-        // two equal maps in opposite orders, so they compared unequal.
-        object first = List.Admit(new object[] { 1d, 2d });
-        object second = List.Admit(new object[] { 1d, 3d });
-
-        Assert.True(Builtin.Same(Keyed((first, "x"), (second, "y")), Keyed((second, "y"), (first, "x"))));
-
-        // And two keys that ARE the same land next to each other however they were
-        // written, so the adjacent scan sees them — the duplicate cannot hide
-        // behind an unequal key that happened to print between them.
-        Assert.Contains("same key", Assert.IsType<Error>(
-            Keyed((List.Admit(new object[] { 1d }), 1d),
-                  (List.Admit(new object[] { 2d }), 2d),
-                  (List.Admit(new object[] { 1d }), 3d))).Message);
-    }
-
-    [Fact(DisplayName = "a key the runtime cannot order is refused, and so is a bare null")]
-    public void AKeyTheRuntimeCannotOrderIsRefusedAndSoIsABareNull()
-    {
-        // There is no deriving a content order for a host object's own equality
-        // from its text, so it is refused rather than approximated — the
-        // approximation admitted a map with two equal keys and two answers.
-        Assert.Contains("can order", Assert.IsType<Error>(Keyed((System.DateTime.UnixEpoch, 1d))).Message);
-        Assert.Contains("can order", Assert.IsType<Error>(Keyed((null, 1d))).Message);
-
-        // Deep, because an aggregate is ordered by its parts.
-        Assert.Contains("can order",
-            Assert.IsType<Error>(Keyed((new object[] { 1d, System.DateTime.UnixEpoch }, 1d))).Message);
-        Assert.Contains("can order",
-            Assert.IsType<Error>(Keyed((Pairs(("k", System.DateTime.UnixEpoch)), 1d))).Message);
-
-        // A lookup nested in a key is refused at its own admission, so an
-        // unplaceable key never reaches the walk above.
-        Assert.Contains("can order",
-            Assert.IsType<Error>(Keyed((Pairs((System.DateTime.UnixEpoch, 1d)), 1d))).Message);
-
-        // A VALUE is unrestricted still: only a key has to be placeable.
-        Assert.IsType<Lookup>(Keyed(("k", System.DateTime.UnixEpoch)));
-
-        // And every kind that IS orderable is admitted as a key.
-        Assert.IsType<Lookup>(Keyed((Nothing.Instance, 1d), (true, 2d), (3d, 3d), ("s", 4d),
-                                    (new Instance("A", 1, 1), 5d), (new object[] { 1d }, 6d), (Pairs(("a", 1d)), 7d)));
-    }
-
-    [Fact(DisplayName = "a fault used as a key stays a fault, and stays uncatchable")]
-    public void AFaultUsedAsAKeyStaysAFaultAndStaysUncatchable()
-    {
-        // Refusing it would turn it into an ordinary error at the boundary, and an
-        // ordinary error is caught — so an interpreter defect would become a
-        // program value a program can swallow.
-        var admitted = Assert.IsType<Fault>(Keyed((new Fault("interpreter defect"), 1d)));
-
-        Assert.Equal("interpreter defect", admitted.Message);
-        Assert.Same(admitted, Builtin.Otherwise(admitted, 9d));
-    }
-
-    [Fact(DisplayName = "a shared aggregate key is ordered once, not once per path")]
-    public void ASharedAggregateKeyIsOrderedOnceNotOncePerPath()
-    {
-        // The sort runs BEFORE the duplicate check, so the exponential equality
-        // was given a memo to stop arrives here through a different caller — and
-        // testing equality alone cannot see it. Two independently admitted DAGs
-        // whose every level mentions its child twice: forty layers is a million
-        // million comparisons unfolded, and one per pair shared.
-        static object Deep(int levels)
-        {
-            object built = 1d;
-
-            for (var at = 0; at < levels; ++at) built = Pairs(("left", built), ("right", built));
-
-            return List.Admit(built);
-        }
-
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-        // Equal, so admission has to order them to find out and then refuse them.
-        var refused = Assert.IsType<Error>(Keyed((Deep(40), "x"), (Deep(40), "y")));
-
-        Assert.Contains("same key", refused.Message);
-        Assert.True(stopwatch.Elapsed < System.TimeSpan.FromSeconds(10), $"took {stopwatch.Elapsed}");
-    }
-
-    /// <summary>A leaf that counts how many times it is compared.</summary>
-    private sealed class Counted
-    {
-        public static int Comparisons;
-
-        public override bool Equals(object other) { ++Comparisons; return other is Counted; }
-
-        public override int GetHashCode() => 0;
-
-        public override string ToString() => "counted";
+        // The table recomputed into the other order, and a reader of it sees that
+        // order — the two are one value to equality and two sequences to a walk.
+        Assert.Equal("b", ((Lookup)graph.Read("table"))[0].Key);
+        Assert.Equal("b", graph.Read("first key"));
     }
 
     [Fact(DisplayName = "a shared subtree is compared once, not once per path that reaches it")]
@@ -237,7 +84,7 @@ public class LookupValues
         // construction does not bound that to anything usable.
         static object Deep(int levels)
         {
-            object built = new Counted();
+            object built = 1d;
 
             for (var at = 0; at < levels; ++at) built = Pairs(("left", built), ("right", built));
 
@@ -245,17 +92,76 @@ public class LookupValues
         }
 
         // Two INDEPENDENTLY admitted DAGs, so the shared child is a different
-        // object on each side and reference equality cannot answer for it.
+        // object on each side and reference equality cannot answer for it. Twenty
+        // layers unfold into a million comparisons without the memo and twenty
+        // with it, so the clock is the assertion that can tell them apart.
         var left = Deep(20);
         var right = Deep(20);
 
-        Counted.Comparisons = 0;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         Assert.True(Builtin.Same(left, right));
 
-        // Linear in the DAG, not in the tree it would unfold into: 2^20 is a
-        // million, and the memo makes it one.
-        Assert.InRange(Counted.Comparisons, 1, 64);
+        Assert.True(stopwatch.Elapsed < System.TimeSpan.FromSeconds(5), $"took {stopwatch.Elapsed}");
+
+        // The same pair of lookups reached down two different keys is proved once
+        // and remembered, which is what makes the walk above linear.
+        var child = Pairs(("a", 1d));
+
+        Assert.True(Builtin.Same(Keyed(("p", child), ("q", child)), Keyed(("p", child), ("q", child))));
+
+        // And the same for a pair of lists met twice, since the memo is one across
+        // both kinds rather than one per kind.
+        var element = new object[] { 1d };
+
+        Assert.True(Builtin.Same(List.Admit(new object[] { element, element }),
+                                 List.Admit(new object[] { element, element })));
+    }
+
+    [Fact(DisplayName = "a value of a kind the runtime does not know is refused, as a key and as a value")]
+    public void AValueOfAKindTheRuntimeDoesNotKnowIsRefusedAsAKeyAndAsAValue()
+    {
+        // At the BOUNDARY and in every position. Admission exists to make "a value
+        // the runtime accepts must be one it can compare honestly" true, and a
+        // host object carrying its own equality cannot be — so refusing it only in
+        // key position would leave it legal inside a list then used as one, which
+        // is the same hole one level out.
+        Assert.Contains("no value of this kind", Assert.IsType<Error>(List.Admit(System.DateTime.UnixEpoch)).Message);
+        Assert.Contains("no value of this kind", Assert.IsType<Error>(Keyed((System.DateTime.UnixEpoch, 1d))).Message);
+        Assert.Contains("no value of this kind", Assert.IsType<Error>(Keyed(("k", System.DateTime.UnixEpoch))).Message);
+        Assert.Contains("no value of this kind",
+            Assert.IsType<Error>(List.Admit(new object[] { 1d, System.DateTime.UnixEpoch })).Message);
+        Assert.Contains("no value of this kind",
+            Assert.IsType<Error>(Keyed((new object[] { System.DateTime.UnixEpoch }, 1d))).Message);
+
+        // A whole number written as one is a host integer and not the language's
+        // number, which is a double — and it would compare unequal to every number
+        // beside it, so it is refused rather than quietly stored.
+        Assert.Contains("no value of this kind", Assert.IsType<Error>(List.Admit(1)).Message);
+
+        // Every kind it DOES know passes, in either position.
+        Assert.IsType<Lookup>(Keyed((Nothing.Instance, 1d), (true, 2d), (3d, 3d), ("s", 4d),
+                                    (new Instance("A", 1, 1), 5d), (new object[] { 1d }, 6d), (Pairs(("a", 1d)), 7d)));
+
+        Assert.Equal(1d, List.Admit(1d));
+        Assert.IsType<List>(List.Admit(new object[] { new Error("kept"), Nothing.Instance, true, "s" }));
+    }
+
+    [Fact(DisplayName = "a bare null is a fault, because the language's no-value is nothing")]
+    public void ABareNullIsAFaultBecauseTheLanguagesNoValueIsNothing()
+    {
+        // Not an error and not an ordering question: a null arriving here is the
+        // interpreter having gone wrong above, so it must not be catchable.
+        var absent = Assert.IsType<Fault>(List.Admit(null));
+
+        Assert.Contains("may not be absent", absent.Message);
+        Assert.Same(absent, Builtin.Otherwise(absent, 9d));
+
+        // And it is not buried inside an aggregate either, because a fault is the
+        // one failure that is not a value.
+        Assert.IsType<Fault>(List.Admit(new object[] { 1d, null }));
+        Assert.IsType<Fault>(Keyed((null, 1d)));
+        Assert.IsType<Fault>(Keyed(("k", null)));
     }
 
     [Fact(DisplayName = "an error cannot be a lookup key, and can be a lookup value")]
@@ -288,9 +194,18 @@ public class LookupValues
         Assert.Equal("x", indexing.Apply(Keyed((new object[] { 1d, 2d }, "x")), List.Admit(new object[] { 1d, 2d })));
         Assert.Equal("y", indexing.Apply(Keyed((Pairs(("a", 1d)), "y")), Keyed(("a", 1d))));
 
-        // A MISS is an error rather than nothing, or «lookup of K (optional V)»
-        // could not tell absent from present-and-nothing.
-        Assert.Contains("no key", Assert.IsType<Error>(indexing.Apply(Keyed(("a", 1d)), "c")).Message);
+        // A MISS is NOTHING, which is what types «m @ k» as «optional V» — so a
+        // forgotten miss is a compile-time error rather than a runtime one, and a
+        // «match» stays exhaustive by ordinary typing. Optionals nest, so absent is
+        // still told from present-and-nothing: absent is nothing at the outer
+        // level.
+        Assert.Same(Nothing.Instance, indexing.Apply(Keyed(("a", 1d)), "c"));
+
+        // A LIST index out of range stays an error, and the difference is in kind:
+        // a missing key is data with an honest answer, an index past the end is a
+        // mistake, and typing every list index «optional» would put an «otherwise»
+        // on all of them to pay for a bug.
+        Assert.Contains("no position", Assert.IsType<Error>(indexing.Apply(List.Admit(new object[] { 1d }), 5d)).Message);
 
         // And a list still indexes by position.
         Assert.Equal(2d, indexing.Apply(List.Admit(new object[] { 1d, 2d }), 2d));

@@ -117,14 +117,13 @@ public class Aggregates
 
         var value = Assert.IsType<Lookup>(new Evaluator(new Ronin.Runtime.Scope()).Evaluate(graph, tree, insideLet: false));
 
-        // The keys arrive with the value, which is what they have never done —
-        // in the canonical order rather than as written, so «2» precedes the «7»
-        // that «a» evaluated to.
+        // The keys arrive with the value, which is what they have never done, in
+        // the order they were written.
         Assert.Equal(2, value.Count);
-        Assert.Equal(2d, value[0].Key);
-        Assert.Equal(3d, value[0].Value);
-        Assert.Equal(7d, value[1].Key);
-        Assert.Equal(1d, value[1].Value);
+        Assert.Equal(7d, value[0].Key);
+        Assert.Equal(1d, value[0].Value);
+        Assert.Equal(2d, value[1].Key);
+        Assert.Equal(3d, value[1].Value);
 
         // And a list still evaluates to a list, at one element as at many.
         Assert.True(Resolve("[ 1, 2 ]").TryTree(out var listed));

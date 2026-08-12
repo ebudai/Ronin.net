@@ -188,7 +188,7 @@ public class Indexing
 
         for (var tick = 1; tick <= 3; ++tick)
         {
-            graph.Write("tick", tick);
+            graph.Write("tick", (double)tick);
             graph.Step();
             Assert.Equal(1d, graph.Read("watching"));
         }

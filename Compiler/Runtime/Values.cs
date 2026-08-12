@@ -269,18 +269,27 @@ internal static class Builtin
     ///
     /// <remarks>
     ///     <para>
-    ///     A MISS is an error rather than nothing, because «lookup of K (optional
-    ///     V)» could not otherwise tell ABSENT from present-and-nothing — and that
-    ///     type is what anyone gets the first time they store an optional. It is
-    ///     the same ruling that makes arithmetic on nothing an error rather than a
-    ///     quietly propagating nothing, and «otherwise» catches it either way.
+    ///     A MISS is NOTHING, and «m @ k» is typed «optional V» — which is what
+    ///     makes a forgotten miss a compile-time error rather than a runtime one,
+    ///     because «optional V» is not «V» and «m @ k + 1» does not type-check. It
+    ///     also keeps a «match» exhaustive by ordinary typing: arms covering every
+    ///     case give «T» and arms missing one give «optional T», where an error
+    ///     is in no «T» at all. Optionals nest, so this still tells ABSENT from
+    ///     present-and-nothing: absent is nothing at the outer level.
     ///     </para>
     ///     <para>
-    ///     A walk rather than a search over the canonical order, because the order
-    ///     is total over kinds the runtime may not be able to tell apart by content
-    ///     — two host values that print alike sort together and are not the same
-    ///     key. The comparison that decides is «is», which is the one the
-    ///     duplicate-key refusal and equality also use.
+    ///     A list index out of range stays an ERROR, and the difference is in kind
+    ///     rather than in taste: a missing key is data, a question about a table
+    ///     with an honest answer, while an index past the end of a list is a
+    ///     mistake. Typing «xs @ i» as «optional T» would put an «otherwise» on
+    ///     every list index in the language to pay for a case that is a bug
+    ///     wherever it happens.
+    ///     </para>
+    ///     <para>
+    ///     A walk, and the comparison that decides is «is» — the one the
+    ///     duplicate-key refusal and equality also use, so a structural key that
+    ///     IS a key in the table is found rather than missed by a hash that
+    ///     disagrees with the language.
     ///     </para>
     /// </remarks>
     private static object Found(Lookup lookup, object key)
@@ -290,7 +299,7 @@ internal static class Builtin
             if (Same(candidate, key)) return value;
         }
 
-        return new Error($"«@» has no key {key} in this lookup");
+        return Nothing.Instance;
     }
 
     private static Func<object, object, object> Arithmetic(string symbol, Func<double, double, double> operation)
@@ -369,21 +378,39 @@ internal static class Builtin
         return Equals(left, right);
     }
 
+    /// <summary>
+    ///     Two lookups, compared as maps rather than as sequences.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     UNORDERED, because a lookup is a map: the same keys with the same value
+    ///     at each is the whole of it, and the order they were written in is not
+    ///     part of the value. Keys are distinct within a lookup, so a key on one
+    ///     side matches at most one on the other and equal counts with every key
+    ///     matched is a bijection.
+    /// </remarks>
     private static bool Same(Lookup first, Lookup second, ref HashSet<(object Left, object Right)> proven)
     {
         if (ReferenceEquals(first, second)) return true;
         if (first.Count != second.Count) return false;
         if (proven?.Add((first, second)) is false) return true;
 
-        for (var at = 0; at < first.Count; ++at)
+        foreach (var (key, value) in first)
         {
-            var (key, value) = first[at];
-            var (candidate, against) = second[at];
-
             if (Aggregate(key) || Aggregate(value)) proven ??= [(first, second)];
 
-            if (Same(key, candidate, ref proven) is false) return false;
-            if (Same(value, against, ref proven) is false) return false;
+            var matched = false;
+
+            foreach (var (candidate, against) in second)
+            {
+                if (Same(key, candidate, ref proven) is false) continue;
+                if (Same(value, against, ref proven) is false) return false;
+
+                matched = true;
+                break;
+            }
+
+            if (matched is false) return false;
         }
 
         return true;

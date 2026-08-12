@@ -99,12 +99,52 @@ internal sealed class List : IReadOnlyList<object>
         // An admitted list is returned as it stands rather than measured,
         // because nothing admitted is deeper than the limit; the depth question
         // only arises where one is placed INSIDE something else.
-        if (value is not (object[] or KeyValuePair<object, object>[])) return value;
+        if (value is not (object[] or KeyValuePair<object, object>[]))
+        {
+            var alone = Known(value);
+
+            return alone is Refusal unknown ? new Error(unknown.Reason) : alone;
+        }
 
         var normalised = Normalise(value, [], new Dictionary<object, object>(ReferenceEqualityComparer.Instance), 0);
 
+        // A FAULT is not converted. Every refusal becomes an ordinary error here,
+        // and an ordinary error is caught — so a boundary that turns a failure
+        // into a value must ask whether it is a fault first, or an interpreter
+        // defect becomes something a program can swallow. This is one such
+        // boundary; anything built with this shape later is another.
+        if (normalised is Fault) return normalised;
+
         return normalised is Refusal refused ? new Error(refused.Reason) : normalised;
     }
+
+    /// <summary>
+    ///     <paramref name="value"/> if the runtime knows what it is, and a failure
+    ///     if it does not.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     AT THE BOUNDARY and in every position, not only in a key. Admission
+    ///     exists to make "a value the runtime accepts must be one it can compare
+    ///     honestly" true, and a host object carrying its own «Equals» cannot be
+    ///     compared honestly anywhere — refusing it only as a key leaves it legal
+    ///     inside a list that is then used as one, which is the same hole one level
+    ///     out.
+    ///     </para>
+    ///     <para>
+    ///     A CLR null is not a value the language has. «nothing» is its no-value,
+    ///     so a null arriving here is the interpreter having already gone wrong
+    ///     somewhere above — which is a fault and not a program's error, and must
+    ///     not be catchable.
+    ///     </para>
+    /// </remarks>
+    private static object Known(object value) => value switch
+    {
+        null => new Fault("a value the runtime holds may not be absent; «nothing» is the language's no-value"),
+        Nothing or bool or double or string or Instance or Evaluator.Binding or Error or List or Lookup => value,
+        _ => new Refusal($"the runtime has no value of this kind: «{value}» is a {value.GetType().Name}"),
+    };
 
     /// <summary>How deep a value may nest, so that comparing one always ends.</summary>
     ///
@@ -151,7 +191,11 @@ internal sealed class List : IReadOnlyList<object>
 
         if (value is KeyValuePair<object, object>[] pairs) return Associated(pairs, inside, done, depth);
 
-        if (value is not object[] array) return value;
+        // A kind the runtime does not know refuses the whole value it is part of,
+        // the way a cycle does — it cannot be compared honestly, so nothing holding
+        // it can be either. An error is a value and passes; a fault leaves as
+        // itself.
+        if (value is not object[] array) return Known(value);
 
         // A SECOND reference to one array is the same value, not another copy of
         // it. Without this a host DAG — one array per level, mentioned twice —
@@ -187,9 +231,10 @@ internal sealed class List : IReadOnlyList<object>
         {
             copied[at] = Normalise(array[at], inside, done, depth + 1);
 
-            // A REFUSAL stops it. An ordinary error is an element like any
-            // other and the list keeps it.
-            if (copied[at] is Refusal) return copied[at];
+            // A REFUSAL stops it, and so does a FAULT: an ordinary error is an
+            // element like any other and the list keeps it, while a fault is the
+            // one failure that is not a value and must not be buried inside one.
+            if (copied[at] is Refusal or Fault) return copied[at];
 
             deepest = System.Math.Max(deepest, Nesting(copied[at]));
         }
@@ -248,37 +293,27 @@ internal sealed class List : IReadOnlyList<object>
             if (key is Error failed)
                 return new Refusal($"a lookup key cannot be an error, and this one is: {failed.Message}");
 
-            // And a key must be one the canonical order can place, all the way
-            // down, or sorting does not produce one sequence per map and two equal
-            // keys do not end up next to each other for the refusal below to see.
-            // A host value the runtime has no content order for is refused rather
-            // than approximated by what it prints.
-            if (Lookup.Orderable(key) is false)
-                return new Refusal($"a lookup key must be something the runtime can order, and «{key}» is not. " +
-                                   "Use a number, a text, a truth, an instance, or a list or lookup of those.");
-
             var value = Normalise(pairs[at].Value, inside, done, depth + 1);
 
-            if (value is Refusal) return value;
+            if (value is Refusal or Fault) return value;
+
+            // Two keys equal by VALUE are one key whatever their spelling, and a
+            // lookup with two of them has two answers and no reason to prefer
+            // either. Against the keys already taken rather than against a
+            // neighbour after a sort, because the entries stay in the order they
+            // were written — and by the language's own equality, exactly, since a
+            // capped comparison would call two unequal keys the same.
+            for (var prior = 0; prior < at; ++prior)
+            {
+                if (Builtin.Same(entries[prior].Key, key) is false) continue;
+
+                return new Refusal("two entries of a lookup have the same key, so a lookup of it has two " +
+                                   "answers and no reason to prefer either. Remove one, or give them different keys.");
+            }
 
             entries[at] = new KeyValuePair<object, object>(key, value);
             deepest = System.Math.Max(deepest, System.Math.Max(Nesting(key), Nesting(value)));
         }
-
-        // CANONICAL, so that two lookups written in different orders are the same
-        // sequence and not merely the same set — equality is then the list
-        // comparison over this form, and nothing downstream can tell two equal
-        // lookups apart by walking them.
-        System.Array.Sort(entries, (first, second) => Lookup.Compare(first.Key, second.Key));
-
-        // Two keys equal by VALUE are one key whatever their spelling, and a
-        // lookup with two of them has two answers and no reason to prefer either.
-        // Adjacent once sorted, and compared exactly — a capped comparison would
-        // call two unequal keys the same, which is observable through cutoff.
-        for (var at = 1; at < entries.Length; ++at)
-            if (Builtin.Same(entries[at - 1].Key, entries[at].Key))
-                return new Refusal("two entries of a lookup have the same key, so a lookup of it has two " +
-                                   "answers and no reason to prefer either. Remove one, or give them different keys.");
 
         inside.Remove(pairs);
 
