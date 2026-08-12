@@ -16,10 +16,11 @@ The parser uses the following order of syntax element types in its attempt to sa
 1. ***reference***
 1. ***inline value***
 1. ***delegate***
-1. ***lookup***
 1. ***inputs***
-1. ***list***
-1. ***indexer***
+1. ***collection***
+    - one production for a ***list*** and a ***lookup***, whose kind is decided
+      after every entry is parsed rather than by which alternative was tried
+      first
 1. ***datum declaration***
 1. ***anonymous scope***
 1. ***conditional scope***

@@ -75,10 +75,10 @@ A single non-alphabetic character, in addition to some specific character sequen
     - `,` separator    
     - `;` terminal
     - `"` text delimiter
-    - `[` start indexer
+    - `[` start collection
     - `{` start scope
     - `(` start values
-    - `]` end indexer
+    - `]` end collection
     - `}` end scope
     - `)` end values
 ## 2.5 Word

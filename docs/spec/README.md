@@ -9,30 +9,32 @@
   - [§2.3](lexical-structure.md#23-literal)  Literal
   - [§2.4](lexical-structure.md#24-symbol)  Symbol
   - [§2.5](lexical-structure.md#25-word)  Word
-- [§3](lexical-analysis.md#4-lexical-analysis) Lexical Analysis
+- [§3](lexical-analysis.md#3-lexical-analysis) Lexical Analysis
 - [§4](grammatical-structure.md#4-grammatical-structure) Grammatical Structure
   - [§4.1](grammatical-structure.md#41-mutability) Mutability
   - [§4.2](grammatical-structure.md#42-modifier) Modifier
   - [§4.3](grammatical-structure.md#43-name) Name
   - [§4.4](grammatical-structure.md#44-identifier) Identifier
-  - [§4.5](grammatical-structure.md#45-declarations) Declarations
+  - [§4.5](grammatical-structure.md#45-declaration) Declaration
     - [§4.5.1](grammatical-structure.md#451-datum) Datum
     - [§4.5.2](grammatical-structure.md#452-function) Function
     - [§4.5.3](grammatical-structure.md#453-datatype) Datatype
-  - [§4.6](grammatical-structure.md#45-scopes) Scopes
-    - [§4.6.5](grammatical-structure.md#461-anonymous) Anonymous
-    - [§4.6.6](grammatical-structure.md#462-conditional) Conditional
-    - [§4.6.7](grammatical-structure.md#463-repeating) Repeating
-    - [§4.6.8](grammatical-structure.md#464-iterating) Iterating
+  - [§4.6](grammatical-structure.md#46-scope) Scope
+    - [§4.6.1](grammatical-structure.md#461-anonymous) Anonymous
+    - [§4.6.2](grammatical-structure.md#462-conditional) Conditional
+    - [§4.6.3](grammatical-structure.md#463-repeating) Repeating
+    - [§4.6.4](grammatical-structure.md#464-iterating) Iterating
+    - [§4.6.5](grammatical-structure.md#465-reactive) Reactive
   - [§4.7](grammatical-structure.md#47-aggregates) Aggregates
     - [§4.7.1](grammatical-structure.md#471-definition) Definition
     - [§4.7.2](grammatical-structure.md#472-inputs) Inputs
     - [§4.7.3](grammatical-structure.md#473-list) List
     - [§4.7.4](grammatical-structure.md#474-lookup) Lookup
-    - [§4.7.5](grammatical-structure.md#475-indexer) Indexer
-    - [§4.7.6](grammatical-structure.md#475-parameters) Parameters
-  - [§4.8](grammatical-structure.md#48-reference) References
-  - [§4.9](grammatical-structure.md#49-anonymous-value) Anonymous values
+    - [§4.7.5](grammatical-structure.md#475-parameters) Parameters
+    - [§4.7.6](grammatical-structure.md#476-fallback) Fallback
+    - [§4.7.7](grammatical-structure.md#477-indexing) Indexing
+  - [§4.8](grammatical-structure.md#48-reference) Reference
+  - [§4.9](grammatical-structure.md#49-anonymous-value) Anonymous value
     - [§4.9.1](grammatical-structure.md#491-inline-value) Inline value
     - [§4.9.2](grammatical-structure.md#492-delegate) Delegate
   - [§4.10](grammatical-structure.md#410-statements) Statements
@@ -42,4 +44,4 @@
   - [§4.11](grammatical-structure.md#411-alias) Alias
   - [§4.12](grammatical-structure.md#412-trivium) Trivium
   - [§4.13](grammatical-structure.md#413-unknown) Unknown syntax
-- [§5](grammatical-analyss.md#5-grammatical-analysis) Grammatical Analysis
+- [§5](grammatical-analysis.md#5-grammatical-analysis) Grammatical Analysis

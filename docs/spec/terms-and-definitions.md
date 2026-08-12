@@ -1,7 +1,7 @@
 # 1 Terms and Definitions
 
 - **anonymous**
-  - one of ***literal***, ***delegate***, ***lookup***, ***input***s, ***list***, or ***ordinal***
+  - one of ***literal***, ***delegate***, ***lookup***, ***input***s, or ***list***
 - **association**
   - pair of ***value***s with one pointing to the other
 - **application**
@@ -26,6 +26,8 @@
   - ***datum*** of ***datatype*** ***function***
 - **function**
   - ***definition*** which can be resolved to an anonymous ***datum***   
+- **indexing**
+  - operator which answers with one ***value*** of a ***list*** or ***lookup***, given its position or its key
 - **initialization**
   - ***function*** which is executed whenever a ***datum*** conforming to a particular ***datatype*** is instantiated to set its initial values
 - **input**
@@ -44,8 +46,6 @@
   - root ***module*** which acts as the entry point for ***application*** execution
 - **module**
   - self-contained package in the form of a binary file included in an ***application***
-- **ordinal**
-  - aggregate of ***value*** used to extract a ***value*** from a ***list*** or ***lookup***
 - **statement**
   - ***instruction***, importing or joinging a ***module***, or an anonymous ***scope***
 - **token**

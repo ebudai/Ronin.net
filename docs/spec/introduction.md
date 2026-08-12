@@ -33,7 +33,7 @@ if banks is empty
 }
 else if banks is not empty 
 {
-     distressed banks[banks[1]] = starting balance; //1-based list indexing
+     distressed banks @ (banks @ 1) = starting balance; //1-based indexing, with «@»
 }
 
 function a bank with starting amount of cash => optional Bank

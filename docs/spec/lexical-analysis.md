@@ -36,11 +36,11 @@ The lexer uses the following order of token types in its attempt to satisfy one 
         1. *multiply assign*
         1. *or assign*
         1. *subtract assign*
-        1. *end indexer*
+        1. *end collection*
         1. *end scope*
         1. *end values*
         1. *separator*
-        1. *start indexer*
+        1. *start collection*
         1. *start scope*
         1. *start values*
         1. *terminal*
