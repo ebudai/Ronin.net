@@ -215,7 +215,7 @@ public class Shadows
     public void TheOldPatternReservesItsNamePrefix()
     {
         var finding = Assert.IsType<NameShadowsPattern>(Assert.Single(
-            Compilation.Of(new SourceText("let old smoothed => reactive Number;\n", "Player.ron")).Findings));
+            Compilation.Of(new SourceText("let old smoothed => reactive number;\n", "Player.ron")).Findings));
 
         Assert.True(finding.Builtin);
         Assert.Equal("old smoothed", finding.Name);

@@ -20,6 +20,20 @@ public class ScopeBuilding
         return Declarations.Of(parser.Parse().Scopes[0].Statements, text);
     }
 
+    [Fact(DisplayName = "declaring a supplied type name says the language supplies it, not that you declared it twice")]
+    public void DeclaringASuppliedTypeNameSaysTheLanguageSuppliesItNotThatYouDeclaredItTwice()
+    {
+        var refused = Assert.Single(Of("var number => number;\n").Problems);
+
+        // BOTH would be refusals and both would be correct; they are different
+        // findings because the remedies differ. «Shadowed» says you declared this
+        // name twice — rename either, both are yours. «Supplied» says the
+        // language owns the spelling, so only one of the two is the author's to
+        // move, and a message telling someone to rename one of two things when
+        // one of them is not theirs wastes a minute of reading.
+        Assert.IsType<Supplied>(refused);
+    }
+
     [Fact(DisplayName = "a supplied type name is not a truth literal")]
     public void ASuppliedTypeNameIsNotATruthLiteral()
     {
@@ -68,7 +82,7 @@ public class ScopeBuilding
         var declared = Of("""
             var base price => number;
             let tax => number;
-            var late bound => reactive Number;
+            var late bound => reactive number;
             function compute total for (order => number) { return order; }
             """);
 
@@ -283,7 +297,7 @@ public class ScopeBuilding
         // the point of the whole pass: a file's own declarations are what its
         // statements are read against
         var declared = Of("""
-            let base price => reactive Number;
+            let base price => reactive number;
             var tax => number;
             function compute total for (amount => number) { return amount; }
             """);
