@@ -395,7 +395,13 @@ internal sealed class Declarations
         }
         else
         {
-            Symbols.WithNames(name);
+            // A TYPE is a name like any other, in the same table, and the kind is
+            // what tells it from the rest — not a table of its own, which would
+            // need the position to choose between them and could not answer
+            // «type of x». A declaration is what puts it there; a definition is
+            // what gives it structure, and «type x;» with neither is a name you
+            // can use and cannot construct, which is what a library handle is.
+            Symbols.WithNames(member is Grammar.Type ? SymbolKind.Type : SymbolKind.Value, name);
             symbols.Add(new Declared(name, span) { Words = words });
         }
     }

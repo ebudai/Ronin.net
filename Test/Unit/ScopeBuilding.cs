@@ -20,6 +20,21 @@ public class ScopeBuilding
         return Declarations.Of(parser.Parse().Scopes[0].Statements, text);
     }
 
+    [Fact(DisplayName = "a type is a name in the same table, told apart by its kind")]
+    public void ATypeIsANameInTheSameTableToldApartByItsKind()
+    {
+        var declared = Of("type money;\nvar cash on hand => number;\n");
+
+        // ONE table. A second would need the position to choose between them, and
+        // «type of x» is the case that cannot answer — it puts a type exactly
+        // where a value goes. So both are here, and the kind is what tells them
+        // apart rather than where they live.
+        Assert.Equal(["cash on hand", "money"], declared.Symbols.Names.Keys.Order());
+
+        Assert.Equal(SymbolKind.Type, declared.Symbols.Names["money"]);
+        Assert.Equal(SymbolKind.Value, declared.Symbols.Names["cash on hand"]);
+    }
+
     [Fact(DisplayName = "a declaration is a name or a pattern, structurally")]
     public void ADeclarationIsANameOrAPatternStructurally()
     {
