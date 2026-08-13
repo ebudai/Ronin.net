@@ -68,9 +68,9 @@ public class Protocol
          + uri + "\"},\"contentChanges\":[{\"text\":\"" + text.Replace("\n", "\\n") + "\"}]}}";
 
     private const string Colliding =
-        "function send (x => Number) { return x; }\n"
-      + "function send (x => Number) to (y => Number) { return x; }\n"
-      + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+        "function send (x => number) { return x; }\n"
+      + "function send (x => number) to (y => number) { return x; }\n"
+      + "var a to b => number;\nvar a => number;\nvar b => number;\n"
       + "var result = send a to b;\n";
 
     // ---- lifecycle ---------------------------------------------------------
@@ -278,7 +278,7 @@ public class Protocol
         Assert.Contains("\"id\":7", refused, StringComparison.Ordinal);
         Assert.Contains("\"code\":-32600", refused, StringComparison.Ordinal);
 
-        Assert.Empty(Serving("""{"jsonrpc":"1.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///p.ron","text":"var a => Number;\n"}}}""").Said);
+        Assert.Empty(Serving("""{"jsonrpc":"1.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///p.ron","text":"var a => number;\n"}}}""").Said);
     }
 
     // ---- framing -----------------------------------------------------------
@@ -432,7 +432,7 @@ public class Protocol
         // either way, and reaching for the absent field threw; the invalid-params
         // error is the answer. Every field is validated on the way in, so a
         // request short one is refused rather than dereferenced.
-        var (_, said) = Session(Opening("file:///p.ron", "var a => Number;\n"), request);
+        var (_, said) = Session(Opening("file:///p.ron", "var a => number;\n"), request);
 
         Assert.Contains("\"id\":3", said, StringComparison.Ordinal);
         Assert.Contains("\"code\":-32602", said, StringComparison.Ordinal);
@@ -441,7 +441,7 @@ public class Protocol
     [Fact(DisplayName = "opening a document publishes what is wrong with it")]
     public void OpeningADocumentPublishesWhatIsWrongWithIt()
     {
-        var (_, said) = Session(Opening("file:///p.ron", "var true => Number;\n"));
+        var (_, said) = Session(Opening("file:///p.ron", "var true => number;\n"));
 
         Assert.Contains("publishDiagnostics", said, StringComparison.Ordinal);
         Assert.Contains("\"code\":\"Supplied\"", said, StringComparison.Ordinal);
@@ -453,10 +453,10 @@ public class Protocol
         // The second publish must have nothing in it. A server that answered from
         // the text it was opened with would look right until someone fixed
         // something.
-        var (_, said) = Session(Opening("file:///p.ron", "var true => Number;\n"),
+        var (_, said) = Session(Opening("file:///p.ron", "var true => number;\n"),
                                 """
             {"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{
-            "uri":"file:///p.ron"},"contentChanges":[{"text":"var truth be told => Number;\n"}]}}
+            "uri":"file:///p.ron"},"contentChanges":[{"text":"var truth be told => number;\n"}]}}
             """.ReplaceLineEndings(string.Empty));
 
         Assert.EndsWith("\"diagnostics\":[]}}", said, StringComparison.Ordinal);
@@ -471,9 +471,9 @@ public class Protocol
         // so a conforming client's first edit left hover reading a scrap. Full
         // sync sends the whole document, and a hover after it must see it.
         var (_, said) = Session(
-            Opening("file:///p.ron", "var a => Number;\n"),
-            Changing("file:///p.ron", "function send (x => Number) to (y => Number) { return x; }\n"
-                                    + "var a => Number;\nvar r = send a to a;\n"),
+            Opening("file:///p.ron", "var a => number;\n"),
+            Changing("file:///p.ron", "function send (x => number) to (y => number) { return x; }\n"
+                                    + "var a => number;\nvar r = send a to a;\n"),
             """
             {"jsonrpc":"2.0","id":2,"method":"textDocument/hover","params":{"textDocument":{
             "uri":"file:///p.ron"},"position":{"line":2,"character":9}}}
@@ -511,7 +511,7 @@ public class Protocol
 
         var (_, said) = Session(
             Opening("file:///p.ron",
-                    "function send (x => Number) to (y => Number) { return x; }\nvar a => Number;\nvar r = send a to a;\n"),
+                    "function send (x => number) to (y => number) { return x; }\nvar a => number;\nvar r = send a to a;\n"),
             Hover.ReplaceLineEndings(string.Empty));
 
         // ESCAPED on the wire: the guillemets that mark a name go out as «\u00AB»
@@ -532,7 +532,7 @@ public class Protocol
         // «var» is a declaration and has no expression to read. Null rather than
         // an empty box.
         => Assert.Contains("\"result\":null",
-                           Session(Opening("file:///p.ron", "var a => Number;\n"),
+                           Session(Opening("file:///p.ron", "var a => number;\n"),
                                    """
             {"jsonrpc":"2.0","id":3,"method":"textDocument/hover","params":{"textDocument":{
             "uri":"file:///p.ron"},"position":{"line":0,"character":1}}}

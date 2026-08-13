@@ -34,15 +34,15 @@ public class Ambiguities
     ///     lands here instead, where a bracket reaches it.
     /// </remarks>
     private const string Colliding =
-        "function send (x => Number) { return x; }\n" +
-        "function send (x => Number) to (y => Number) { return x; }\n" +
-        "var a to b => Number;\n";
+        "function send (x => number) { return x; }\n" +
+        "function send (x => number) to (y => number) { return x; }\n" +
+        "var a to b => number;\n";
 
     [Fact(DisplayName = "an ambiguous statement in real source is a finding")]
     public void AnAmbiguousStatementInRealSourceIsAFinding()
     {
         var finding = Assert.IsType<Ambiguous>(Assert.Single(
-            All(Colliding + "var a => Number;\nvar b => Number;\nvar result = send a to b;\n")));
+            All(Colliding + "var a => number;\nvar b => number;\nvar result = send a to b;\n")));
 
         Assert.Equal(["send «a to b»", "send «a» to «b»"], finding.Readings);
         Assert.Equal(2, finding.Total);
@@ -61,7 +61,7 @@ public class Ambiguities
         // scope's statements without stopping where a body begins would have read
         // this one against the module and found no parse at all.
         var finding = Assert.IsType<Ambiguous>(Assert.Single(
-            All(Colliding + "function go (a => Number) { var b => Number; var r = send a to b; }\n")));
+            All(Colliding + "function go (a => number) { var b => number; var r = send a to b; }\n")));
 
         Assert.Equal(["send «a to b»", "send «a» to «b»"], finding.Readings);
     }
@@ -73,7 +73,7 @@ public class Ambiguities
         // The message says to bracket, so bracketing has to work — a repair that
         // does not is worse than none, and this is the first place the claim is
         // made to real source rather than to a table built for it.
-        => Assert.Empty(All(Colliding + $"var a => Number;\nvar b => Number;\nvar result = {repaired};\n"));
+        => Assert.Empty(All(Colliding + $"var a => number;\nvar b => number;\nvar result = {repaired};\n"));
 
     [Fact(DisplayName = "and a statement with more readings than fit says how many")]
     public void AndAStatementWithMoreReadingsThanFitSaysHowMany()
@@ -83,7 +83,7 @@ public class Ambiguities
         // as "these are all of them", and a reader choosing among five would be
         // choosing from a set nobody told them was partial.
         var finding = Assert.IsType<Ambiguous>(Assert.Single(
-            All(Colliding + "var a => Number;\nvar b => Number;\n"
+            All(Colliding + "var a => number;\nvar b => number;\n"
               + "var result = (send a to b) + (send a to b) + (send a to b);\n")));
 
         Assert.True(finding.Bounded);
@@ -100,7 +100,7 @@ public class Ambiguities
         // spans. The whole expression's readings already contain every
         // combination of its parts', and they are the ones a reader brackets.
         var finding = Assert.IsType<Ambiguous>(Assert.Single(
-            All(Colliding + "var a => Number;\nvar b => Number;\n"
+            All(Colliding + "var a => number;\nvar b => number;\n"
               + "var result = (send a to b) + (send a to b);\n")));
 
         Assert.Equal(4, finding.Total);
@@ -108,7 +108,7 @@ public class Ambiguities
         // SEPARATE statements stay separate, which is the other half: each
         // element of a list is the outermost expression of its own subtree, so
         // three ambiguous elements are three mistakes with three repairs.
-        Assert.Equal(3, All(Colliding + "var a => Number;\nvar b => Number;\n"
+        Assert.Equal(3, All(Colliding + "var a => number;\nvar b => number;\n"
                           + "var result = (send a to b, send a to b, send a to b);\n").Count);
     }
 
@@ -126,7 +126,7 @@ public class Ambiguities
         // the body's to read, which is a statement about scope rather than about
         // how many messages come out. Worth saying rather than implying the
         // assertion is stronger than it is.
-        Assert.Single(All(Colliding + "var a => Number;\nvar b => Number;\n"
+        Assert.Single(All(Colliding + "var a => number;\nvar b => number;\n"
                         + "function go { var r = send a to b; }\n"));
     }
 
@@ -142,7 +142,7 @@ public class Ambiguities
         //
         // Types resolve against a table that does not exist yet, and reading
         // them against the wrong one is worse than not reading them at all.
-        Assert.Empty(All(Colliding + "var a => Number;\nvar b => Number;\nvar thing => send a to b;\n"));
+        Assert.Empty(All(Colliding + "var a => number;\nvar b => number;\nvar thing => send a to b;\n"));
     }
 
     [Fact(DisplayName = "«return» is a pattern, so a name may not capture it")]
@@ -153,7 +153,7 @@ public class Ambiguities
         // «return value» stays declarable — and then WINS, at one lookup against
         // the call's two, silently. As a pattern the rule that refuses every
         // other capture refuses it.
-        var finding = Assert.IsType<NameShadowsPattern>(Assert.Single(All("var return value => Number;\n")));
+        var finding = Assert.IsType<NameShadowsPattern>(Assert.Single(All("var return value => number;\n")));
 
         Assert.Equal("return (_)", finding.Pattern);
         Assert.True(finding.Builtin);
@@ -168,7 +168,7 @@ public class Ambiguities
         // scope reads two ways, and no bracket separates a name from a call over
         // one span. So the whole spelling is reserved, by the same door the two
         // truths use.
-        var whole = Assert.Single(All("var return => Number;\n"));
+        var whole = Assert.Single(All("var return => number;\n"));
 
         Assert.Equal(FindingKind.Supplied, whole.Kind);
         Assert.Contains("«return» is supplied by the language", whole.Message);
@@ -182,7 +182,7 @@ public class Ambiguities
         // function body's last statement was a run of words containing one
         // nothing could look up. The runtime has had a «Return» the whole time.
         var compilation = Compilation.Of(new SourceText(
-            "function twice (x => Number) { return x; }\nvar n => Number;\nvar r = twice n;\n", "Player.ron"));
+            "function twice (x => number) { return x; }\nvar n => number;\nvar r = twice n;\n", "Player.ron"));
 
         Assert.Empty(compilation.Findings);
 
@@ -198,20 +198,20 @@ public class Ambiguities
         // captured. It was also the last type constructor that was not a
         // pattern, every other one already being one, so leaving it a keyword
         // was the fork rather than the change.
-        var finding = Assert.IsType<NameShadowsPattern>(Assert.Single(All("var optional value => Number;\n")));
+        var finding = Assert.IsType<NameShadowsPattern>(Assert.Single(All("var optional value => number;\n")));
 
         Assert.Equal("optional (_)", finding.Pattern);
         Assert.True(finding.Builtin);
 
-        Assert.Empty(All("var optional => Number;\n"));
+        Assert.Empty(All("var optional => number;\n"));
     }
 
     [Theory(DisplayName = "a body leaves one way or the other, and a reaction never answers")]
-    [InlineData("function twice (x => Number) { return x; }", null)]
-    [InlineData("function shout (x => Number) { return; }", null)]
-    [InlineData("var ready => Number;\nwhen ready { return; }", null)]
-    [InlineData("var ready => Number;\nwhen ready { return 1; }", "AnsweringReaction")]
-    [InlineData("function odd (x => Number) { return; return x; }", "MixedExits")]
+    [InlineData("function twice (x => number) { return x; }", null)]
+    [InlineData("function shout (x => number) { return; }", null)]
+    [InlineData("var ready => number;\nwhen ready { return; }", null)]
+    [InlineData("var ready => number;\nwhen ready { return 1; }", "AnsweringReaction")]
+    [InlineData("function odd (x => number) { return; return x; }", "MixedExits")]
     [InlineData("let reading = 1;\nfunction smooth { return old reading; }", null)]
     public void ABodyLeavesOneWayOrTheOtherAndAReactionNeverAnswers(string source, string refused)
     {
@@ -248,7 +248,7 @@ public class Ambiguities
         // because every match reported the whole statement's span and two
         // findings sharing a kind, a span and a message are recorded once. Two
         // edits arriving as one message, and the assertion agreed with it.
-        var nested = All("var ready => Number;\nwhen ready { return (return 1); }\n");
+        var nested = All("var ready => number;\nwhen ready { return (return 1); }\n");
 
         Assert.Equal(2, nested.Count);
         Assert.All(nested, finding => Assert.Equal(FindingKind.AnsweringReaction, finding.Kind));
@@ -261,8 +261,8 @@ public class Ambiguities
         // neither contains the other, so nothing about the shape hides one — the
         // span did, because a resolved call knew what it meant and not where it
         // was.
-        var findings = All("function send (x => Number) to (y => Number) { return x; }\n"
-                         + "var ready => Number;\n"
+        var findings = All("function send (x => number) to (y => number) { return x; }\n"
+                         + "var ready => number;\n"
                          + "when ready { send (return 1) to (return 2); }\n");
 
         Assert.Equal(["Player.ron:3:20:", "Player.ron:3:34:"],
@@ -280,13 +280,13 @@ public class Ambiguities
         Assert.Empty(compilation.Findings);
         Assert.Equal(["«false»", "«true»"], compilation.Readings.Select(r => r.Resolution.Reading).Order());
 
-        Assert.Empty(Compilation.Of(new SourceText("var true positive => Number;\n", "Player.ron")).Findings);
+        Assert.Empty(Compilation.Of(new SourceText("var true positive => number;\n", "Player.ron")).Findings);
 
         // SUPPLIED rather than declared, so «already declared here, rename this
         // one» would point at a declaration that does not exist. The pattern
         // case has said this properly since «old (_)» arrived, and this is the
         // same sentence about the same thing.
-        var refused = Assert.Single(Compilation.Of(new SourceText("var true => Number;\n", "Player.ron")).Findings);
+        var refused = Assert.Single(Compilation.Of(new SourceText("var true => number;\n", "Player.ron")).Findings);
 
         Assert.Equal(FindingKind.Supplied, refused.Kind);
         Assert.Contains("«true» is supplied by the language", refused.Message);
@@ -298,9 +298,9 @@ public class Ambiguities
         // A message cannot be clicked. The bracketings are IN the error and are
         // edits with positions, because an editor applies those and can only
         // print a sentence describing where a bracket would go.
-        const string Source = "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+        const string Source = "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "var a to b => number;\nvar a => number;\nvar b => number;\n"
                             + "var result = send a to b;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
@@ -340,10 +340,10 @@ public class Ambiguities
     }
 
     [Theory(DisplayName = "«stop» is reserved everywhere and legal only in a «when»")]
-    [InlineData("var ready => Number;\nwhen ready { stop; }", null)]
+    [InlineData("var ready => number;\nwhen ready { stop; }", null)]
     [InlineData("function go { stop; }", "MisplacedStop")]
-    [InlineData("var stop => Number;", "Supplied")]
-    [InlineData("var stop word => Number;", null)]
+    [InlineData("var stop => number;", "Supplied")]
+    [InlineData("var stop word => number;", null)]
     public void StopIsReservedEverywhereAndLegalOnlyInAWhen(string source, string refused)
     {
         // RESERVED globally and LEGAL only in a «when», which are separate on
@@ -376,11 +376,11 @@ public class Ambiguities
         // that had been removed one level down. Both searches looked for the
         // same sentence, both found the same bracket, and one of the two
         // meanings could not be selected from the diagnostic at all.
-        const string Source = "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "function print (x => Number) { return x; }\n"
-                            + "function print (x => Number) to (y => Number) { return x; }\n"
-                            + "var a => Number;\nvar b => Number;\nvar result = print send a to b;\n";
+        const string Source = "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "function print (x => number) { return x; }\n"
+                            + "function print (x => number) to (y => number) { return x; }\n"
+                            + "var a => number;\nvar b => number;\nvar result = print send a to b;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
 
@@ -410,9 +410,9 @@ public class Ambiguities
         // property — which generates flat word sequences and never composes
         // ambiguous children, so it never reaches this shape. The search tries
         // the tree's own spans now and, where a single fails, pairs of them.
-        const string Source = "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+        const string Source = "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "var a to b => number;\nvar a => number;\nvar b => number;\n"
                             + "var result = (send a to b) + (send a to b);\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
@@ -439,9 +439,9 @@ public class Ambiguities
         // count-and-cap test never asking whether one existed. Sets of the tree's
         // spans are tried by increasing size now, so a reading pinning three
         // children is reached at size three.
-        const string Source = "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+        const string Source = "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "var a to b => number;\nvar a => number;\nvar b => number;\n"
                             + "var result = (send a to b) + (send a to b) + (send a to b);\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
@@ -480,7 +480,7 @@ public class Ambiguities
         // set that fails first, which is O(2ⁿ): nine seconds, eleven gigabytes,
         // and not one repair offered for any shown reading. Bracketing the whole
         // tree and trimming is O(nodes), so the repairs are here.
-        var source = Colliding + "var a => Number;\nvar b => Number;\nvar result = "
+        var source = Colliding + "var a => number;\nvar b => number;\nvar result = "
                    + string.Join(" + ", Enumerable.Repeat("(send a to b)", 8)) + ";\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(source)));
@@ -502,11 +502,11 @@ public class Ambiguities
         // reading containing a list got no repair at all. The walk obeys the same
         // contract as the strip now: a collection is opaque, repaired around and
         // never inside.
-        const string Source = "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "function print (x => Number) { return x; }\n"
-                            + "function print (x => Number) to (y => Number) { return x; }\n"
-                            + "var a => Number;\nvar b => Number;\nvar result = print send [a] to b;\n";
+        const string Source = "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "function print (x => number) { return x; }\n"
+                            + "function print (x => number) to (y => number) { return x; }\n"
+                            + "var a => number;\nvar b => number;\nvar result = print send [a] to b;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
 
@@ -530,11 +530,11 @@ public class Ambiguities
     ///     five kept for display.
     /// </summary>
     private static string Sixteen(int tail)
-        => "function send (n => Number) { return n; }\n"
-         + "function send (n => Number) to (m => Number) { return n; }\n"
-         + "function print (n => Number) { return n; }\n"
-         + "function print (n => Number) to (m => Number) { return n; }\n"
-         + "var a to b => Number;\nvar a => Number;\nvar b => Number;\nvar x => Number;\nvar y => Number;\n"
+        => "function send (n => number) { return n; }\n"
+         + "function send (n => number) to (m => number) { return n; }\n"
+         + "function print (n => number) { return n; }\n"
+         + "function print (n => number) to (m => number) { return n; }\n"
+         + "var a to b => number;\nvar a => number;\nvar b => number;\nvar x => number;\nvar y => number;\n"
          + "var result = (send a to b) + (print send x to y) + (print send x to y) + (print send x to y) + "
          + string.Join(" + ", Enumerable.Repeat("a", tail)) + ";\n";
 
@@ -572,9 +572,9 @@ public class Ambiguities
     ///     fixed «end» or the name «b end».
     /// </summary>
     private static string Overlapping(string statement)
-        => "function f (x => Number) with (y => Number) end { return x; }\n"
-         + "function f (x => Number) with (y => Number) { return x; }\n"
-         + "var a => Number;\nvar b => Number;\nvar b end => Number;\n"
+        => "function f (x => number) with (y => number) end { return x; }\n"
+         + "function f (x => number) with (y => number) { return x; }\n"
+         + "var a => number;\nvar b => number;\nvar b end => number;\n"
          + "var result = " + statement + ";\n";
 
     [Fact(DisplayName = "and a shared argument is not bracketed when only a later one disagrees")]
@@ -615,9 +615,9 @@ public class Ambiguities
         // matched it to the competitor's first «a» and left it unbracketed,
         // dropping the repair that selects «f a with (a) end». Arguments are
         // matched by the words they occupy now, not by an equal value anywhere.
-        const string Source = "function f (x => Number) with (y => Number) end { return x; }\n"
-                            + "function f (x => Number) with (y => Number) { return x; }\n"
-                            + "var a => Number;\nvar a end => Number;\n"
+        const string Source = "function f (x => number) with (y => number) end { return x; }\n"
+                            + "function f (x => number) with (y => number) { return x; }\n"
+                            + "var a => number;\nvar a end => number;\n"
                             + "var result = f a with a end;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
@@ -643,10 +643,10 @@ public class Ambiguities
         // (a) to b». The outer calls share a pattern, so the walk goes INTO them,
         // to the argument that disagrees; bracketing the outer «f»'s argument
         // whole would group «send a to b» but leave its own reading free.
-        const string Source = "function f (x => Number) { return x; }\n"
-                            + "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+        const string Source = "function f (x => number) { return x; }\n"
+                            + "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "var a to b => number;\nvar a => number;\nvar b => number;\n"
                             + "var result = f send a to b;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
@@ -673,12 +673,12 @@ public class Ambiguities
         // beneath the first pair, so the inner pair was never found and those two
         // repairs were dropped. «avoid» stops the same pair being returned twice
         // now, not the walk from descending through it.
-        const string Source = "function wrap (x => Number) { return x; }\n"
-                            + "function print (x => Number) { return x; }\n"
-                            + "function print (x => Number) to (y => Number) { return x; }\n"
-                            + "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "var a => Number;\nvar b => Number;\nvar a to b => Number;\n"
+        const string Source = "function wrap (x => number) { return x; }\n"
+                            + "function print (x => number) { return x; }\n"
+                            + "function print (x => number) to (y => number) { return x; }\n"
+                            + "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "var a => number;\nvar b => number;\nvar a to b => number;\n"
                             + "var result = wrap print send a to b to a;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
@@ -706,12 +706,12 @@ public class Ambiguities
         // and the walk could no longer align that call to keep descending, dropping
         // the three-pair repair. The brackets carry the position of the gap they
         // sit in now, so every enclosing extent stays the source's.
-        const string Source = "function wrap (x => Number) { return x; }\n"
-                            + "function print (x => Number) { return x; }\n"
-                            + "function print (x => Number) to (y => Number) { return x; }\n"
-                            + "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "var a => Number;\nvar b => Number;\nvar a to b => Number;\nvar b to a => Number;\n"
+        const string Source = "function wrap (x => number) { return x; }\n"
+                            + "function print (x => number) { return x; }\n"
+                            + "function print (x => number) to (y => number) { return x; }\n"
+                            + "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "var a => number;\nvar b => number;\nvar a to b => number;\nvar b to a => number;\n"
                             + "var result = wrap print wrap send send a to b to a;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
@@ -757,11 +757,11 @@ public class Ambiguities
         // ceiling before it could select, so the statement got no repair at all.
         // A bracket a competitor lacks is tried before the idle ones now.
         var sum = string.Join(" + ", Enumerable.Repeat("a", 42));
-        var source = "function send (x => Number) { return x; }\n"
-                   + "function send (x => Number) to (y => Number) { return x; }\n"
-                   + "function print (x => Number) { return x; }\n"
-                   + "function print (x => Number) to (y => Number) { return x; }\n"
-                   + "var a => Number;\nvar b => Number;\nvar result = print send (" + sum + ") to b;\n";
+        var source = "function send (x => number) { return x; }\n"
+                   + "function send (x => number) to (y => number) { return x; }\n"
+                   + "function print (x => number) { return x; }\n"
+                   + "function print (x => number) to (y => number) { return x; }\n"
+                   + "var a => number;\nvar b => number;\nvar result = print send (" + sum + ") to b;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(source)));
 
@@ -820,9 +820,9 @@ public class Ambiguities
         // bracket around «a to b», inside the list. This is the list standing in
         // for the ordinary case, to show the finding and its repairs arrive
         // through a collection as they do anywhere.
-        const string Source = "function send (x => Number) { return x; }\n"
-                            + "function send (x => Number) to (y => Number) { return x; }\n"
-                            + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+        const string Source = "function send (x => number) { return x; }\n"
+                            + "function send (x => number) to (y => number) { return x; }\n"
+                            + "var a to b => number;\nvar a => number;\nvar b => number;\n"
                             + "var result = [send a to b];\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));
@@ -836,7 +836,7 @@ public class Ambiguities
         // The same statement with the colliding name gone. Without it there is
         // one reading, and a rule that fired anyway would be refusing the
         // language rather than an ambiguity in it.
-        => Assert.Empty(All("function send (x => Number) { return x; }\n"
-                          + "function send (x => Number) to (y => Number) { return x; }\n"
-                          + "var a => Number;\nvar b => Number;\nvar result = send a to b;\n"));
+        => Assert.Empty(All("function send (x => number) { return x; }\n"
+                          + "function send (x => number) to (y => number) { return x; }\n"
+                          + "var a => number;\nvar b => number;\nvar result = send a to b;\n"));
 }

@@ -183,9 +183,9 @@ public class LoopSyntax
         // pinned hole makes the split structural, so there is no capture to
         // prevent and no legibility argument strong enough to charge every
         // program «in flight order», «logged in user» and «opt in list» for.
-        Assert.Empty(Of("var in => Number;\n"));
-        Assert.Empty(Of("var in flight order => Number;\n"));
-        Assert.Empty(Of("var logged in user => Number;\n"));
+        Assert.Empty(Of("var in => number;\n"));
+        Assert.Empty(Of("var in flight order => number;\n"));
+        Assert.Empty(Of("var logged in user => number;\n"));
 
         // and the registry says so
         Assert.Empty(Glue.Reserved(SymbolTable.Builtins));
@@ -221,7 +221,7 @@ public class LoopSyntax
         // the name rule that survived, because the readings it prevents are not
         // all reachable by bracketing.
         var findings = Of("""
-                          function send (x => Number) { return x; }
+                          function send (x => number) { return x; }
                           for each (send it) in orders { return it; }
 
                           """);
@@ -250,7 +250,7 @@ public class LoopSyntax
                         """));
 
         var shadowed = Assert.IsType<Shadowed>(Assert.Single(Of("""
-                                                                var bank => Number;
+                                                                var bank => number;
                                                                 for each bank in banks { return bank; }
 
                                                                 """)));
@@ -274,12 +274,12 @@ public class LoopSyntax
         // «... in ...», and GlueInName has already banned those — so the pair is
         // safe, and «for each» being one token means «for» is not an anchor
         // prefix of it under a model defined over lexer tokens.
-        Assert.Empty(Of("function for (x => Number) { return x; }\n"));
+        Assert.Empty(Of("function for (x => number) { return x; }\n"));
 
         // «for» is still an ordinary word, which is the point of spelling the
         // keyword «for each» — «compute total for (_)» is a pattern the language
         // wants and reserving «for» would have taken it away
-        Assert.Empty(Of("function compute total for (order => Number) { return order; }\n"));
+        Assert.Empty(Of("function compute total for (order => number) { return order; }\n"));
     }
 
     [Fact(DisplayName = "a loop still parses to a loop, from source")]

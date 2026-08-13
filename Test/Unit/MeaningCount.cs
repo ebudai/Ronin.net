@@ -39,12 +39,12 @@ namespace Unit;
 public class MeaningCount
 {
     private const string Declarations =
-        "function wrap (x => Number) { return x; }\n"
-      + "function print (x => Number) { return x; }\n"
-      + "function print (x => Number) to (y => Number) { return x; }\n"
-      + "function send (x => Number) { return x; }\n"
-      + "function send (x => Number) to (y => Number) { return x; }\n"
-      + "var a => Number;\nvar b => Number;\nvar a to b => Number;\nvar b to a => Number;\n";
+        "function wrap (x => number) { return x; }\n"
+      + "function print (x => number) { return x; }\n"
+      + "function print (x => number) to (y => number) { return x; }\n"
+      + "function send (x => number) { return x; }\n"
+      + "function send (x => number) to (y => number) { return x; }\n"
+      + "var a => number;\nvar b => number;\nvar a to b => number;\nvar b to a => number;\n";
 
     private const string Result = "var result = ";
 

@@ -91,7 +91,7 @@ public class Strictness
     public void TrailingInputIsReportedNotDiscarded()
     {
         // an unmatched delimiter meant everything after it silently did not exist
-        var module = Assert.IsType<Grammar.Module.UnexpectedInputError>(Parse("var x => Number; ) var y => Number;"));
+        var module = Assert.IsType<Grammar.Module.UnexpectedInputError>(Parse("var x => number; ) var y => number;"));
 
         Assert.Equal("unexpected input", module.Reason);
         Assert.NotEmpty(module.Tokens.ToArray());
@@ -103,7 +103,7 @@ public class Strictness
     [Fact(DisplayName = "a whole file consumes to the sentinel")]
     public void AWholeFileConsumesToTheSentinel()
     {
-        var module = Parse("var x => Number; var y => Number;");
+        var module = Parse("var x => number; var y => number;");
 
         Assert.IsNotType<Grammar.Module.UnexpectedInputError>(module);
         Assert.Equal(2, module.Scopes[0].Statements.Count);

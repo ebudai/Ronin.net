@@ -43,7 +43,7 @@ public sealed class Discovery : IDisposable
         => Directory.CreateDirectory(Path.Combine(root.FullName, relative));
 
     private void Source(string relative)
-        => File.WriteAllText(Path.Combine(root.FullName, relative), "var x => Number;\n");
+        => File.WriteAllText(Path.Combine(root.FullName, relative), "var x => number;\n");
 
     [Fact(DisplayName = "a link back up the tree is not followed")]
     public void ALinkBackUpTheTreeIsNotFollowed()

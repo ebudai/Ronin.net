@@ -261,7 +261,7 @@ public class Comparisons
     public void AndACounterNameTheOperatorOnlyReachesOnceBuiltIsRefusedToo()
     {
         var finding = Assert.IsType<InfixInName>(Assert.Single(
-            Compilation.Of(new SourceText("var banks => List of Number;\n"
+            Compilation.Of(new SourceText("var banks => list of number;\n"
                                         + "for each (is valid) in banks { return index of is valid; }\n",
                                           "Player.ron")).Findings));
 
@@ -278,7 +278,7 @@ public class Comparisons
         // valid» as a loop variable the body's «index of is valid» meant the
         // counter; renamed, it means the comparison its author wrote — and the
         // rule is what stands between those two readings.
-        var source = "var index of => Number;\nvar valid => Number;\nvar banks => Number;\n"
+        var source = "var index of => number;\nvar valid => number;\nvar banks => number;\n"
                    + "for each (valid check) in banks { return index of is valid; }\n";
 
         Assert.Empty(Compilation.Of(new SourceText(source, "Player.ron")).Findings);

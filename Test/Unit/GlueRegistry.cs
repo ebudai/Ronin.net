@@ -152,7 +152,7 @@ public class GlueRegistry
 
         // and the same shape from source is a finding rather than a throw
         var finding = Assert.Single(Compilation.Of(
-            new SourceText("function (x => Number) rounded { return x; }\n", "Player.ron")).Findings);
+            new SourceText("function (x => number) rounded { return x; }\n", "Player.ron")).Findings);
 
         Assert.Equal("(_) rounded", Assert.IsType<LeadingHole>(finding).Pattern);
     }

@@ -442,7 +442,7 @@ public class Admission
             var x = 1;
             var x = 2;
             let y = x + 1;
-            function add (left => Number) to (right => Number) { return left; }
+            function add (left => number) to (right => number) { return left; }
             when y { }
             """, "rich.ron"));
 
@@ -824,7 +824,7 @@ public class Admission
     /// </remarks>
     private static object Blocks()
     {
-        var module = Compilation.Of(new SourceText("function add (left => Number) to (right => Number) { return left; }\n", "add.ron")).Module;
+        var module = Compilation.Of(new SourceText("function add (left => number) to (right => number) { return left; }\n", "add.ron")).Module;
         var declaration = module.Scopes[0].Statements.OfType<Ronin.Grammar.Function>().Single();
 
         return declaration.Identifier.TryPattern(out _, out var blocks) ? blocks : null;

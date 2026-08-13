@@ -122,8 +122,8 @@ public class Instances
         // check. «name», «id» and «value» in unrelated types is not a corner
         // case.
         Assert.Empty(Compilation.Of(new SourceText("""
-            type Box    { var name => Number; }
-            type Person { var name => Number; }
+            type Box    { var name => number; }
+            type Person { var name => number; }
 
             """, "Player.ron")).Findings);
 

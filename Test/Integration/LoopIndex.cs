@@ -45,7 +45,7 @@ public class LoopIndex
         // and waits on the evaluator being joined.
         var inside = Names("""
                            for each bank in banks { return index of bank; }
-                           var elsewhere => Number;
+                           var elsewhere => number;
 
                            """);
 
@@ -77,7 +77,7 @@ public class LoopIndex
         // yourself is shadowing — and the message can point at the loop, which
         // is the thing to change.
         var finding = Assert.Single(Of("""
-                                       for each bank in banks { var index of bank => Number; }
+                                       for each bank in banks { var index of bank => number; }
 
                                        """).Findings);
 
@@ -101,7 +101,7 @@ public class LoopIndex
         // INSIDE the loop was refused correctly the whole time, which is why one
         // order passing proved nothing about the other.
         var shadowed = Assert.IsType<Shadowed>(Assert.Single(Of("""
-                                                                var index of bank => Number;
+                                                                var index of bank => number;
                                                                 for each bank in banks { return bank; }
 
                                                                 """).Findings));
@@ -138,7 +138,7 @@ public class LoopIndex
         // makes the count independent of how many loops the file has.
         foreach (var loops in (int[])[0, 1, 3])
         {
-            var source = "function item (which => Number) of (list => Number) { return which; }\n"
+            var source = "function item (which => number) of (list => number) { return which; }\n"
                        + string.Concat(Enumerable.Range(0, loops)
                                                  .Select(each => $"for each bank{each} in banks {{ return bank{each}; }}\n"));
 

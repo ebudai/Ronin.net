@@ -108,13 +108,13 @@ public class Boundaries
         // «in» is not among them any more: it is an ordinary word now, reserved
         // nowhere at all, so «type in;» is a type called «in» and no rule has an
         // opinion about it. The keyword boundary bug was never about «in» —
-        // «var if=>Number» is the same defect.
+        // «var if=>number» is the same defect.
         foreach (var source in (string[])
                  [
-                     "var if=>Number;\n",
+                     "var if=>number;\n",
                      "type if;\n",
-                     "function while(x=>Number) { return x; }\n",
-                     "constant when=>Number;\n",
+                     "function while(x=>number) { return x; }\n",
+                     "constant when=>number;\n",
                  ])
         {
             Assert.NotEmpty(Compilation.Of(new SourceText(source, "Player.ron")).Findings);
@@ -129,9 +129,9 @@ public class Boundaries
         // language, which was never part of the loop decision.
         foreach (var source in (string[])
                  [
-                     "var ready if needed => Number;\n",
-                     "var total function count => Number;\n",
-                     "function compute while ready (x => Number) { return x; }\n",
+                     "var ready if needed => number;\n",
+                     "var total function count => number;\n",
+                     "function compute while ready (x => number) { return x; }\n",
                  ])
         {
             Assert.Empty(Compilation.Of(new SourceText(source, "Player.ron")).Findings);
@@ -140,7 +140,7 @@ public class Boundaries
         // «in» included: it is an ordinary word in every position now, because
         // the loop's hole is pinned and the split needs no reservation to be
         // unambiguous. See LoopSyntax.
-        Assert.Empty(Compilation.Of(new SourceText("var ready in waiting => Number;\n", "Player.ron")).Findings);
+        Assert.Empty(Compilation.Of(new SourceText("var ready in waiting => number;\n", "Player.ron")).Findings);
     }
 
     private static Token First(string source)

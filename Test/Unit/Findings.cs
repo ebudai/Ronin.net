@@ -27,48 +27,48 @@ public class Findings
     {
         foreach (var source in new[]
                  {
-                     "var total => Number;\nvar total => Number;\n",
-                     "var old total => Number;\n",
+                     "var total => number;\nvar total => number;\n",
+                     "var old total => number;\n",
                      """
-                     function area of (radius => Number) { return radius; }
-                     function area of (shape => Text) { return shape; }
+                     function area of (radius => number) { return radius; }
+                     function area of (shape => text) { return shape; }
 
                      """,
                      """
-                     function width of (box => Number) { return box; }
-                     function width of (frame => Number) { return frame; }
+                     function width of (box => number) { return box; }
+                     function width of (frame => number) { return frame; }
 
                      """,
-                     "function old (value => Number) { return value; }\n",
+                     "function old (value => number) { return value; }\n",
                      """
-                     function b (x => Number) { return x; }
-                     function b b (y => Number) { return y; }
+                     function b (x => number) { return x; }
+                     function b b (y => number) { return y; }
 
                      """,
-                     "var total otherwise zero => Number;\n",
-                     "function x otherwise (value => Number) { return value; }\n",
+                     "var total otherwise zero => number;\n",
+                     "function x otherwise (value => number) { return value; }\n",
                      "var x => = 1;\n",
-                     "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => Number) {}\n",
-                     "function (x => Number) rounded { return x; }\n",
-                     "function compute part /* gap */ of (x => Number) { return x; }\n",
+                     "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => number) {}\n",
+                     "function (x => number) rounded { return x; }\n",
+                     "function compute part /* gap */ of (x => number) { return x; }\n",
                      "function ping () { return 1; }\n",
-                     "function outer (callback (x => Number) => Number) { return 1; }\n",
+                     "function outer (callback (x => number) => number) { return 1; }\n",
                      "function update path { when ready { return; } }\n",
                      "type Box { when ready { return; } }\n",
                      """
-                     function item (which => Number) of (list => Number) { return which; }
+                     function item (which => number) of (list => number) { return which; }
                      for each bank in banks { return bank; }
 
                      """,
-                     "var ready => Number;\nwhen ready { return 1; }\n",
-                     "function odd (x => Number) { return; return x; }\n",
+                     "var ready => number;\nwhen ready { return 1; }\n",
+                     "function odd (x => number) { return; return x; }\n",
                      "function go { stop; }\n",
                      """
-                     function send (x => Number) { return x; }
-                     function send (x => Number) to (y => Number) { return x; }
-                     var a => Number;
-                     var b => Number;
-                     var a to b => Number;
+                     function send (x => number) { return x; }
+                     function send (x => number) to (y => number) { return x; }
+                     var a => number;
+                     var b => number;
+                     var a to b => number;
                      var result = send a to b;
 
                      """,
@@ -328,7 +328,7 @@ public class Findings
     public void ADeclarationKnowsWhereItWasWritten()
     {
         // the whole path: source text, tokens carrying offsets, a span, a line
-        const string text = "var base price => Number;\nvar base price => Number;\n";
+        const string text = "var base price => number;\nvar base price => number;\n";
 
         SourceText source = new(text, "Player.ron");
         Lexer lexer = new(text);

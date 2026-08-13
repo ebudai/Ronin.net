@@ -77,7 +77,7 @@ public class IteratingScopes
         // «if ready => 1» stayed a conditional, because a number cannot be
         // mistaken for a type.
         Assert.IsType<Scope.Iterating>(Only("for each bank in banks { return bank; }\n"));
-        Assert.IsType<Function>(Only("function f => Number { return 1; }\n"));
+        Assert.IsType<Function>(Only("function f => number { return 1; }\n"));
         Assert.IsType<Scope.Conditional<If>>(Only("if ready => result;\n"));
         Assert.IsType<Scope.Conditional<While>>(Only("while ready => result;\n"));
         Assert.IsType<Scope.Conditional<When>>(Only("when ready => result;\n"));
@@ -93,7 +93,7 @@ public class IteratingScopes
         // The rule is about keywords that ANNOUNCE a production, and a modifier
         // in this position announces nothing — «var hidden cost» is a name the
         // language already accepts, so the fix must not take it away.
-        var datum = Assert.IsType<Datum>(Only("var hidden cost => Number;\n"));
+        var datum = Assert.IsType<Datum>(Only("var hidden cost => number;\n"));
 
         Assert.Equal("hidden cost", datum.Identifier.Words);
     }

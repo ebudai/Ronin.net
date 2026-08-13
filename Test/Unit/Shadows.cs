@@ -224,14 +224,14 @@ public class Shadows
 
         // Proper prefix only: the word itself cannot cover a call with an
         // argument, so there is no rival reading to refuse.
-        Assert.Empty(Compilation.Of(new SourceText("var old => Number;\n", "Player.ron")).Findings);
+        Assert.Empty(Compilation.Of(new SourceText("var old => number;\n", "Player.ron")).Findings);
     }
 
     [Fact(DisplayName = "and its exact shape cannot be redeclared")]
     public void AndItsExactShapeCannotBeRedeclared()
     {
         var finding = Assert.IsType<Supplied>(Assert.Single(
-            Compilation.Of(new SourceText("function old (value => Number) { return value; }\n",
+            Compilation.Of(new SourceText("function old (value => number) { return value; }\n",
                                           "Player.ron")).Findings));
 
         Assert.Equal("old (_)", finding.Pattern);
@@ -267,8 +267,8 @@ public class Shadows
 
     [Theory(DisplayName = "a pattern wrong in itself reserves nothing against anyone")]
     [InlineData("constant otherwise things = 1;\n"
-              + "function send (x => Number) to (y => Number) { return x; }\n"
-              + "function send (x => Number) to otherwise (y => Number) { return x; }\n",
+              + "function send (x => number) to (y => number) { return x; }\n"
+              + "function send (x => number) to otherwise (y => number) { return x; }\n",
                 nameof(InfixInPattern))]
     public void APatternWrongInItselfReservesNothingAgainstAnyone(string source, string only)
     {

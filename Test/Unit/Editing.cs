@@ -28,11 +28,11 @@ namespace Unit;
 public class Editing
 {
     private const string Colliding =
-        "function send (x => Number) { return x; }\n" +
-        "function send (x => Number) to (y => Number) { return x; }\n" +
-        "var a to b => Number;\n" +
-        "var a => Number;\n" +
-        "var b => Number;\n";
+        "function send (x => number) { return x; }\n" +
+        "function send (x => number) to (y => number) { return x; }\n" +
+        "var a to b => number;\n" +
+        "var a => number;\n" +
+        "var b => number;\n";
 
     private static SourceText Source(string source) => new(source, "Player.ron");
 
@@ -56,7 +56,7 @@ public class Editing
 
     [Fact(DisplayName = "and a clean file reports nothing")]
     public void AndACleanFileReportsNothing()
-        => Assert.Empty(Language.Diagnostics(Source("var a => Number;\nvar b => Number;\n")));
+        => Assert.Empty(Language.Diagnostics(Source("var a => number;\nvar b => number;\n")));
 
     [Fact(DisplayName = "hover shows the brackets the compiler inferred")]
     public void HoverShowsTheBracketsTheCompilerInferred()
@@ -64,9 +64,9 @@ public class Editing
         // The reading, which is the answer to «what did the compiler think I
         // wrote» — and the only way to see it, because the two readings of these
         // words differ nowhere in the text.
-        var source = Source("function send (x => Number) { return x; }\n"
-                          + "function send (x => Number) to (y => Number) { return x; }\n"
-                          + "var a => Number;\nvar b => Number;\n"
+        var source = Source("function send (x => number) { return x; }\n"
+                          + "function send (x => number) to (y => number) { return x; }\n"
+                          + "var a => number;\nvar b => number;\n"
                           + "var result = send a to b;\n");
 
         Assert.Equal("send «a» to «b»", Language.Hover(source, new Place(4, 14)));
@@ -83,15 +83,15 @@ public class Editing
         // Identical text, one extra declaration, and the statement means
         // something else. Nothing in the file shows that, which is why an editor
         // has to.
-        var source = Source("function send (x => Number) to (y => Number) { return x; }\n"
-                          + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+        var source = Source("function send (x => number) to (y => number) { return x; }\n"
+                          + "var a to b => number;\nvar a => number;\nvar b => number;\n"
                           + "var result = send a to b;\n");
 
         Assert.Equal("send «a» to «b»", Language.Hover(source, new Place(4, 14)));
 
         Assert.Equal("send «a to b»",
-                     Language.Hover(Source("function send (x => Number) { return x; }\n"
-                                         + "var a to b => Number;\n"
+                     Language.Hover(Source("function send (x => number) { return x; }\n"
+                                         + "var a to b => number;\n"
                                          + "var result = send a to b;\n"),
                                     new Place(2, 14)));
     }
@@ -121,9 +121,9 @@ public class Editing
         // apply, titled by the statement with that fix's brackets typed in —
         // because a person choosing between two bracketings is choosing between
         // two meanings, and the bracketed source is the meaning made visible.
-        const string Text = "function send (x => Number) { return x; }\n"
-                          + "function send (x => Number) to (y => Number) { return x; }\n"
-                          + "var a to b => Number;\nvar a => Number;\nvar b => Number;\n"
+        const string Text = "function send (x => number) { return x; }\n"
+                          + "function send (x => number) to (y => number) { return x; }\n"
+                          + "var a to b => number;\nvar a => number;\nvar b => number;\n"
                           + "var result = send a to b;\n";
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(5, 13), new Place(5, 24)));
@@ -145,11 +145,11 @@ public class Editing
         // label with no way to tell which meaning either selected. The bracketed
         // source is the title now, and a bracketing IS the reading it selects, so
         // the two entries differ exactly where the meanings do.
-        const string Text = "function send (x => Number) { return x; }\n"
-                          + "function send (x => Number) to (y => Number) { return x; }\n"
-                          + "function print (x => Number) { return x; }\n"
-                          + "function print (x => Number) to (y => Number) { return x; }\n"
-                          + "var a => Number;\nvar b => Number;\nvar result = print send a to b;\n";
+        const string Text = "function send (x => number) { return x; }\n"
+                          + "function send (x => number) to (y => number) { return x; }\n"
+                          + "function print (x => number) { return x; }\n"
+                          + "function print (x => number) to (y => number) { return x; }\n"
+                          + "var a => number;\nvar b => number;\nvar result = print send a to b;\n";
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(6, 13), new Place(6, 30)));
 
@@ -169,7 +169,7 @@ public class Editing
         // declaration, or a statement already bracketed — has no fixes. An action
         // built from a stale diagnostic would insert brackets where the words no
         // longer are.
-        var actions = Language.Actions(Source("var a => Number;\nvar b => Number;\n"),
+        var actions = Language.Actions(Source("var a => number;\nvar b => number;\n"),
                                        new Extent(new Place(0, 0), new Place(0, 15)));
 
         Assert.Empty(actions);
@@ -219,11 +219,11 @@ public class Editing
         // actions with distinct edits, each applying to a clean file — where
         // bracketing every subtree, and grouping a list's element the comparison
         // then left bare, offered none.
-        const string Text = "function send (x => Number) { return x; }\n"
-                          + "function send (x => Number) to (y => Number) { return x; }\n"
-                          + "function print (x => Number) { return x; }\n"
-                          + "function print (x => Number) to (y => Number) { return x; }\n"
-                          + "var a => Number;\nvar b => Number;\nvar result = print send [a] to b;\n";
+        const string Text = "function send (x => number) { return x; }\n"
+                          + "function send (x => number) to (y => number) { return x; }\n"
+                          + "function print (x => number) { return x; }\n"
+                          + "function print (x => number) to (y => number) { return x; }\n"
+                          + "var a => number;\nvar b => number;\nvar result = print send [a] to b;\n";
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(6, 13), new Place(6, 30)));
 
@@ -240,11 +240,11 @@ public class Editing
         // actions — each ruling out the «send (a) to b» reading the display cap
         // hid. Comparing a bracket only against the displayed rivals offered four
         // actions or, past the ceiling, none.
-        var Text = "function send (n => Number) { return n; }\n"
-                 + "function send (n => Number) to (m => Number) { return n; }\n"
-                 + "function print (n => Number) { return n; }\n"
-                 + "function print (n => Number) to (m => Number) { return n; }\n"
-                 + "var a to b => Number;\nvar a => Number;\nvar b => Number;\nvar x => Number;\nvar y => Number;\n"
+        var Text = "function send (n => number) { return n; }\n"
+                 + "function send (n => number) to (m => number) { return n; }\n"
+                 + "function print (n => number) { return n; }\n"
+                 + "function print (n => number) to (m => number) { return n; }\n"
+                 + "var a to b => number;\nvar a => number;\nvar b => number;\nvar x => number;\nvar y => number;\n"
                  + "var result = (send a to b) + (print send x to y) + (print send x to y) + (print send x to y) + "
                  + string.Join(" + ", Enumerable.Repeat("a", 12)) + ";\n";
 
@@ -262,9 +262,9 @@ public class Editing
         // of «f a with b end» that share «a» and part at the second argument, two
         // actions of ONE pair each — where taking the shared argument first added
         // a surplus pair that, at the ceiling, turned the answer into no action.
-        const string Text = "function f (x => Number) with (y => Number) end { return x; }\n"
-                          + "function f (x => Number) with (y => Number) { return x; }\n"
-                          + "var a => Number;\nvar b => Number;\nvar b end => Number;\n"
+        const string Text = "function f (x => number) with (y => number) end { return x; }\n"
+                          + "function f (x => number) with (y => number) { return x; }\n"
+                          + "var a => number;\nvar b => number;\nvar b end => number;\n"
                           + "var result = f a with b end;\n";
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(5, 13), new Place(5, 27)));
@@ -280,9 +280,9 @@ public class Editing
         // The repeated-name case through the editor boundary: «f a with a end»,
         // where matching arguments by value made the second «a» look shared with
         // the first and dropped an action. Two actions of one pair each now.
-        const string Text = "function f (x => Number) with (y => Number) end { return x; }\n"
-                          + "function f (x => Number) with (y => Number) { return x; }\n"
-                          + "var a => Number;\nvar a end => Number;\n"
+        const string Text = "function f (x => number) with (y => number) end { return x; }\n"
+                          + "function f (x => number) with (y => number) { return x; }\n"
+                          + "var a => number;\nvar a end => number;\n"
                           + "var result = f a with a end;\n";
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(4, 13), new Place(4, 27)));
@@ -298,12 +298,12 @@ public class Editing
         // The nested-repair case through the editor boundary: «wrap print send a to
         // b to a», three readings, two of which need a pair inside a pair. Skipping
         // an already-bracketed argument dropped those two actions.
-        const string Text = "function wrap (x => Number) { return x; }\n"
-                          + "function print (x => Number) { return x; }\n"
-                          + "function print (x => Number) to (y => Number) { return x; }\n"
-                          + "function send (x => Number) { return x; }\n"
-                          + "function send (x => Number) to (y => Number) { return x; }\n"
-                          + "var a => Number;\nvar b => Number;\nvar a to b => Number;\n"
+        const string Text = "function wrap (x => number) { return x; }\n"
+                          + "function print (x => number) { return x; }\n"
+                          + "function print (x => number) to (y => number) { return x; }\n"
+                          + "function send (x => number) { return x; }\n"
+                          + "function send (x => number) to (y => number) { return x; }\n"
+                          + "var a => number;\nvar b => number;\nvar a to b => number;\n"
                           + "var result = wrap print send a to b to a;\n";
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(8, 13), new Place(8, 38)));
@@ -320,12 +320,12 @@ public class Editing
         // send send a to b to a», five shown readings, one needing three nested
         // pairs — dropped when a synthetic bracket's missing position corrupted an
         // enclosing call's extent so the walk lost alignment.
-        const string Text = "function wrap (x => Number) { return x; }\n"
-                          + "function print (x => Number) { return x; }\n"
-                          + "function print (x => Number) to (y => Number) { return x; }\n"
-                          + "function send (x => Number) { return x; }\n"
-                          + "function send (x => Number) to (y => Number) { return x; }\n"
-                          + "var a => Number;\nvar b => Number;\nvar a to b => Number;\nvar b to a => Number;\n"
+        const string Text = "function wrap (x => number) { return x; }\n"
+                          + "function print (x => number) { return x; }\n"
+                          + "function print (x => number) to (y => number) { return x; }\n"
+                          + "function send (x => number) { return x; }\n"
+                          + "function send (x => number) to (y => number) { return x; }\n"
+                          + "var a => number;\nvar b => number;\nvar a to b => number;\nvar b to a => number;\n"
                           + "var result = wrap print wrap send send a to b to a;\n";
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(9, 13), new Place(9, 50)));

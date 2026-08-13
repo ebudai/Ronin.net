@@ -32,7 +32,7 @@ public class WhenPlacement
     [Theory(DisplayName = "a «when» at module scope is where it belongs")]
     [InlineData("when ready { return; }")]
     [InlineData("when changing ready { return; }")]
-    [InlineData("var ready => Number;\nwhen ready { return; }")]
+    [InlineData("var ready => number;\nwhen ready { return; }")]
     public void AWhenAtModuleScopeIsWhereItBelongs(string source) => Assert.Empty(Of(source + "\n"));
 
     [Theory(DisplayName = "and anywhere a scope closes around it, it is refused")]
@@ -58,7 +58,7 @@ public class WhenPlacement
     [Theory(DisplayName = "inside a type it is refused by name, not as a syntax error")]
     [InlineData("type Box { when ready { return; } }")]
     [InlineData("type Box { when changing ready { return; } }")]
-    [InlineData("type Box { var a => Number; when ready { return; } }")]
+    [InlineData("type Box { var a => number; when ready { return; } }")]
     public void InsideATypeItIsRefusedByNameNotAsASyntaxError(string source)
     {
         // A type «when» is designed — it lives as long as the instance — and the
@@ -97,7 +97,7 @@ public class WhenPlacement
         // body that holds no «when» is refused exactly as it was.
         Assert.Equal(FindingKind.Malformed, Assert.Single(Of("type Box { + }\n")).Kind);
 
-        Assert.Empty(Of("type Box { var a => Number; }\n"));
+        Assert.Empty(Of("type Box { var a => number; }\n"));
     }
 
     [Fact(DisplayName = "the caret is on the «when», not its body or its condition")]

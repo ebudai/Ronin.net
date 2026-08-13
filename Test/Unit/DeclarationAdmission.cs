@@ -43,10 +43,10 @@ namespace Unit;
 public class DeclarationAdmission
 {
     private const string Patterns =
-        "function send (x => Number) { return x; }\n"
-      + "function send (x => Number) to (y => Number) { return x; }\n";
+        "function send (x => number) { return x; }\n"
+      + "function send (x => number) to (y => number) { return x; }\n";
 
-    private const string Operands = "var a => Number;\nvar b => Number;\n";
+    private const string Operands = "var a => number;\nvar b => number;\n";
 
     /// <summary>Two operands, an anchor, an operator, and glue — enough to form calls and comparisons.</summary>
     private static readonly string[] words = ["a", "b", "send", "is", "to"];
@@ -88,7 +88,7 @@ public class DeclarationAdmission
     }
 
     private static bool Refused(string candidate)
-        => Compilation.Of(new SourceText(Patterns + Operands + $"var {candidate} => Number;\n", "gen.ron")).Findings.Count is not 0;
+        => Compilation.Of(new SourceText(Patterns + Operands + $"var {candidate} => number;\n", "gen.ron")).Findings.Count is not 0;
 
     [Fact(DisplayName = "a name is admitted only if its own span reads as itself")]
     public void ANameIsAdmittedOnlyIfItsOwnSpanReadsAsItself()

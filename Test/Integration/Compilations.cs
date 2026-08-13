@@ -43,8 +43,8 @@ public class Compilations
         // "1 statement, 1 name, 0 patterns" and exit zero.
         var finding = Assert.Single(Of("""
                                        type Box {
-                                           var x => Number;
-                                           var x => Number;
+                                           var x => number;
+                                           var x => number;
                                        }
 
                                        """));
@@ -62,8 +62,8 @@ public class Compilations
         // Inward yes: the inner «total» collides with the outer one, and the
         // message says which direction to look.
         var finding = Assert.Single(Of("""
-                                       var total => Number;
-                                       function recompute { var total => Number; }
+                                       var total => number;
+                                       function recompute { var total => number; }
 
                                        """));
 
@@ -79,8 +79,8 @@ public class Compilations
         // true if the walk merged bodies into their parent instead of nesting
         // them.
         Assert.Empty(Of("""
-                        function first { var count => Number; }
-                        function second { var count => Number; }
+                        function first { var count => number; }
+                        function second { var count => number; }
 
                         """));
     }
@@ -92,10 +92,10 @@ public class Compilations
         // declarations is found again inside every scope nested below them. It is
         // one mistake and gets one finding.
         var finding = Assert.Single(Of("""
-                                       var total => Number;
-                                       var total => Number;
-                                       function a { var x => Number; }
-                                       function b { var y => Number; }
+                                       var total => number;
+                                       var total => number;
+                                       function a { var x => number; }
+                                       function b { var y => number; }
 
                                        """));
 
@@ -106,8 +106,8 @@ public class Compilations
     public void ACleanFileHasNothingToSay()
     {
         var compilation = Compilation.Of(new SourceText("""
-                                                        var base price => Number;
-                                                        function compute total for (order => Number) { return order; }
+                                                        var base price => number;
+                                                        function compute total for (order => number) { return order; }
 
                                                         """, "Player.ron"));
 
@@ -130,9 +130,9 @@ public class Compilations
         // questions and have to be asked separately.
         foreach (var nested in (string[])
                  [
-                     "var total => Number;\n{ var total => Number; }\n",
-                     "var total => Number;\nif ready { var total => Number; }\n",
-                     "var total => Number;\nwhile ready { var total => Number; }\n",
+                     "var total => number;\n{ var total => number; }\n",
+                     "var total => number;\nif ready { var total => number; }\n",
+                     "var total => number;\nwhile ready { var total => number; }\n",
                  ])
         {
             var finding = Assert.Single(Of(nested));
@@ -159,7 +159,7 @@ public class Compilations
     // identifier — these two killed the process, because declaration building
     // dereferenced a parameter that had no identifier to give
     [InlineData("function f (var +) {}\n")]
-    [InlineData("var f (var +) => Number;\n")]
+    [InlineData("var f (var +) => number;\n")]
     // in a delegate's parameters
     [InlineData("var callback = (var +) => {};\n")]
     // in a lookup, and in an input block — an association whose value is missing
@@ -183,7 +183,7 @@ public class Compilations
         // enough to reach it terminated compilation instead of being rejected.
         // A bound that refuses hostile input by killing the compiler is not a
         // bound.
-        string wide(int words) => "function " + string.Concat(Enumerable.Repeat("word ", words)) + "(x => Number) {}\n";
+        string wide(int words) => "function " + string.Concat(Enumerable.Repeat("word ", words)) + "(x => number) {}\n";
 
         Assert.Empty(Of(wide(Ronin.Compiler.Pattern.MaxSegments - 1)));
 
@@ -203,12 +203,12 @@ public class Compilations
         // and quoting a limit on a matcher their declaration never enters.
         var name = string.Join(' ', Enumerable.Repeat("word", Ronin.Compiler.Pattern.MaxSegments + 1));
 
-        Assert.Empty(Of($"var {name} => Number;\n"));
+        Assert.Empty(Of($"var {name} => number;\n"));
 
         // while the same width WITH a hole in it is still refused
         var pattern = string.Concat(Enumerable.Repeat("word ", Ronin.Compiler.Pattern.MaxSegments));
 
-        Assert.IsType<PatternTooWide>(Assert.Single(Of($"function {pattern}(x => Number) {{}}\n")));
+        Assert.IsType<PatternTooWide>(Assert.Single(Of($"function {pattern}(x => number) {{}}\n")));
     }
 
     [Fact(DisplayName = "compiling two files at once does not corrupt the walk")]
@@ -220,8 +220,8 @@ public class Compilations
         // escapes it only by looping one file at a time, which is a property of
         // that loop and not of this type.
         var sources = Enumerable.Range(0, 64)
-                                .Select(each => $"var name{each} => Number;\n" +
-                                                $"function f{each} (x => Number) {{ return x; }}\n")
+                                .Select(each => $"var name{each} => number;\n" +
+                                                $"function f{each} (x => number) {{ return x; }}\n")
                                 .ToArray();
 
         System.Collections.Concurrent.ConcurrentBag<Exception> failures = [];
@@ -389,6 +389,6 @@ public class Compilations
     {
         // The one error that is not a statement and so is not reachable by any
         // walk over statements.
-        Assert.Equal(FindingKind.Malformed, Single("var total => Number;\n}\n"));
+        Assert.Equal(FindingKind.Malformed, Single("var total => number;\n}\n"));
     }
 }

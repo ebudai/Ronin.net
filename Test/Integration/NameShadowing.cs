@@ -46,8 +46,8 @@ public class NameShadowing
     // reading is eliminated in a value position and the name in a statement
     // one. Written as returning a Number it would have been the opposite case
     // while claiming to be this one.
-    private const string Pattern = "function print (x => Number) { }\n";
-    private const string Name = "var print job => Number;\n";
+    private const string Pattern = "function print (x => number) { }\n";
+    private const string Name = "var print job => number;\n";
 
     [Trait(Expiry.Shrink, Expiry.Expires)]
     [Theory(DisplayName = "whichever was written later is the one asked to give way")]
@@ -74,11 +74,11 @@ public class NameShadowing
     // criterion is the pattern's return type rather than action-versus-value.
     [Trait(Expiry.Shrink, Expiry.Expires)]
     [Theory(DisplayName = "and glued own-span calls are refused until types eliminate them")]
-    [InlineData("var send x to y => Number;\n"
-              + "function send (x => Number) to (y => Number) { }\n",
+    [InlineData("var send x to y => number;\n"
+              + "function send (x => number) to (y => number) { }\n",
                 "send x to y", "send (_) to (_)")]
-    [InlineData("var sort order => Text;\n"
-              + "function sort (items => List) => List { return items; }\n",
+    [InlineData("var sort order => text;\n"
+              + "function sort (items => list) => list { return items; }\n",
                 "sort order", "sort (_)")]
     public void AndGluedOwnSpanCallsAreRefusedUntilTypesEliminateThem(string source, string name, string pattern)
     {
@@ -93,8 +93,8 @@ public class NameShadowing
     public void AndASameTypeOwnSpanCallSurvivesTheShrink()
     {
         var finding = Assert.IsType<NameShadowsPattern>(Only(
-            "var sum of items => Number;\n"
-          + "function sum of (items => Number) => Number { return items; }\n"));
+            "var sum of items => number;\n"
+          + "function sum of (items => number) => number { return items; }\n"));
 
         Assert.Equal("sum of items", finding.Name);
         Assert.Equal("sum of (_)", finding.Pattern);
@@ -102,8 +102,8 @@ public class NameShadowing
 
     [Fact(DisplayName = "but glue inside a name is legal when its own span is not a call")]
     public void ButGlueInsideANameIsLegalWhenItsOwnSpanIsNotACall()
-        => Assert.Empty(All("var a to b => Number;\n"
-                          + "function send (x => Number) to (y => Number) { }\n"));
+        => Assert.Empty(All("var a to b => number;\n"
+                          + "function send (x => number) to (y => number) { }\n"));
 
     [Fact(DisplayName = "and pinned holes consume exactly one name word")]
     public void AndPinnedHolesConsumeExactlyOneNameWord()
@@ -141,7 +141,7 @@ public class NameShadowing
         // would then have to sit beside it as a second juxtaposed name and that
         // is not an expression. Refusing it would be refusing something that
         // cannot go wrong.
-        Assert.Empty(Compilation.Of(new SourceText("var print => Number;\n" + Pattern, "Player.ron")).Findings);
+        Assert.Empty(Compilation.Of(new SourceText("var print => number;\n" + Pattern, "Player.ron")).Findings);
     }
 
     [Fact(DisplayName = "and a pattern may not use an operator word either")]
@@ -155,7 +155,7 @@ public class NameShadowing
         // Refused at the declaration, because an ambiguity is reported at every
         // call site and none of them is where the mistake was made.
         var finding = Assert.IsType<InfixInPattern>(
-            Only("function x otherwise (value => Number) { return value; }\n"));
+            Only("function x otherwise (value => number) { return value; }\n"));
 
         Assert.Equal("x otherwise (_)", finding.Pattern);
         Assert.Equal("otherwise", finding.Word);
@@ -175,7 +175,7 @@ public class NameShadowing
         // the other failure — it costs exactly what the operation costs and ties
         // — and that is true wherever the word sits.
         => Assert.Equal(FindingKind.InfixInPattern,
-                        Only("function otherwise (value => Number) { return value; }\n").Kind);
+                        Only("function otherwise (value => number) { return value; }\n").Kind);
 
     [Fact(DisplayName = "and the tie it prevents is real at the call site")]
     public void AndTheTieItPreventsIsRealAtTheCallSite()
@@ -196,8 +196,8 @@ public class NameShadowing
         Assert.Equal("Ambiguous", new Resolver(with).Resolve(lexemes).Kind.ToString());
     }
 
-    private const string Counter = "function index of (x => Number) { return x; }\n";
-    private const string Reaching = "function index of bank (x => Number) { return x; }\n";
+    private const string Counter = "function index of (x => number) { return x; }\n";
+    private const string Reaching = "function index of bank (x => number) { return x; }\n";
 
     // SURVIVES: a loop counter is a number and «index of (_)» returns one, so
     // both readings are numbers in the same position and nothing eliminates
@@ -223,7 +223,7 @@ public class NameShadowing
         // nobody could have avoided it either, because the pattern's words end
         // inside the «index of» the compiler adds, so every loop in every
         // program collides.
-        const string Looping = "var banks => Number;\nfor each bank in banks { return index of bank; }\n";
+        const string Looping = "var banks => number;\nfor each bank in banks { return index of bank; }\n";
 
         var finding = Declared(Counter + Looping);
 
@@ -269,7 +269,7 @@ public class NameShadowing
         // rule that a finding is recorded once does the rest.
         var finding = Declared(
             Counter
-          + "var banks => Number;\nvar branches => Number;\n"
+          + "var banks => number;\nvar branches => number;\n"
           + "for each bank in banks { return index of bank; }\n"
           + "for each branch in branches { return index of branch; }\n");
 
@@ -292,9 +292,9 @@ public class NameShadowing
         var finding = Assert.IsType<NameShadowsPattern>(Only(
             patternFirst
           ? Reaching
-          + "var accounts => Number;\n"
+          + "var accounts => number;\n"
           + "for each (bank account) in accounts { return index of bank account; }\n"
-          : "var accounts => Number;\n"
+          : "var accounts => number;\n"
           + "for each (bank account) in accounts {\n"
           + "    " + Reaching
           + "    return index of bank account;\n}\n"));
@@ -324,8 +324,8 @@ public class NameShadowing
         // The message names two edits, so both have to work. Asserting the
         // wording alone would let it prescribe a rename that changes nothing —
         // which is the defect it was written to fix, one layer along.
-        => Assert.Empty(All($"function index of {reaches} (x => Number) {{ return x; }}\n"
-                          + "var accounts => Number;\n"
+        => Assert.Empty(All($"function index of {reaches} (x => number) {{ return x; }}\n"
+                          + "var accounts => number;\n"
                           + $"for each ({variable}) in accounts {{ return index of {variable}; }}\n"));
 
     [Trait(Expiry.Shrink, Expiry.Survives)]
@@ -338,8 +338,8 @@ public class NameShadowing
         // name somebody actually wrote.
         var finding = Assert.IsType<NameShadowsPattern>(Only(
             Pattern
-          + "function index of print (x => Number) { return x; }\n"
-          + "var banks => Number;\n"
+          + "function index of print (x => number) { return x; }\n"
+          + "var banks => number;\n"
           + "for each (print job) in banks { return print job; }\n"));
 
         Assert.Null(finding.InjectedBy);
@@ -356,7 +356,7 @@ public class NameShadowing
         // the author back to a second error they were never shown.
         //
         // Both findings, and they are two mistakes rather than one.
-        var source = "var p => Number;\nvar q => Number;\nvar banks => Number;\n"
+        var source = "var p => number;\nvar q => number;\nvar banks => number;\n"
                    + "for each (p is q) in banks { return index of p is q; }\n";
 
         // The third is the use site, which now reads two ways for the same
@@ -376,5 +376,5 @@ public class NameShadowing
         // The rule is about a collision, so with no «index of» pattern in scope
         // the counter is an ordinary generated name and says nothing.
         => Assert.Empty(Compilation.Of(new SourceText(
-            "var banks => Number;\nfor each bank in banks { return bank; }\n", "Player.ron")).Findings);
+            "var banks => number;\nfor each bank in banks { return bank; }\n", "Player.ron")).Findings);
 }

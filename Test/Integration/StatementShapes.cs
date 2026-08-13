@@ -102,7 +102,7 @@ public class StatementShapes
         // A braced value ends in «}» exactly as a braced statement does, which is
         // why the rule could not tell them apart by looking at the tokens. It has
         // to ask which aggregate it is.
-        var head = "function f (a => Number, b => Number) { return a; }\n";
+        var head = "function f (a => number, b => number) { return a; }\n";
 
         Assert.Equal(FindingKind.Malformed,
                      Assert.Single(Compilation.Of(new SourceText(head + missing, "P.ron")).Findings).Kind);
@@ -144,7 +144,7 @@ public class StatementShapes
             var spaced = keyword.Replace(" ", spacing);
 
             // one name, whatever the spacing, and the same one every time
-            var declared = Compilation.Of(new SourceText($"var ready {spaced} world => Number;\n", "P.ron"));
+            var declared = Compilation.Of(new SourceText($"var ready {spaced} world => number;\n", "P.ron"));
 
             Assert.Empty(declared.Findings);
             Assert.Contains($"ready {keyword} world", declared.Declarations.Symbols.Names);
@@ -153,7 +153,7 @@ public class StatementShapes
             // which is what «Split(' ')» could not do: it made four segments
             // where a call lexes to three, so the pattern was declared, printed
             // correctly, and could never match anything
-            var pattern = Compilation.Of(new SourceText($"function compute {spaced} (x => Number) {{ return x; }}\n", "P.ron"));
+            var pattern = Compilation.Of(new SourceText($"function compute {spaced} (x => number) {{ return x; }}\n", "P.ron"));
 
             Assert.Empty(pattern.Findings);
             Assert.Equal($"compute {keyword} (_)", Assert.Single(pattern.Declarations.Symbols.Patterns).ToString());
@@ -173,13 +173,13 @@ public class StatementShapes
         // unequal and hashed apart — an identity that disagreed with every other
         // layer's.
         var names = new[] { " ", "  ", "\t", "\n" }
-                    .Select(spacing => Named($"var ready {keyword.Replace(" ", spacing)} world => Number;\n"))
+                    .Select(spacing => Named($"var ready {keyword.Replace(" ", spacing)} world => number;\n"))
                     .ToArray();
 
         Assert.All(names, name => Assert.Equal(names[0], name));
         Assert.All(names, name => Assert.Equal(names[0].GetHashCode(), name.GetHashCode()));
 
-        Assert.NotEqual(names[0], Named($"var ready {keyword} planet => Number;\n"));
+        Assert.NotEqual(names[0], Named($"var ready {keyword} planet => number;\n"));
     }
 
     private static Ronin.Grammar.Name Named(string source)
@@ -200,10 +200,10 @@ public class StatementShapes
         // spelling back to the single-space form, so the odd one out was a
         // declaration no program could ever reach.
         var compilation = Compilation.Of(new SourceText("""
-                                                        var ready part of world => Number;
-                                                        var ready part  of world => Number;
-                                                        var ready for each value => Number;
-                                                        var ready for	each value => Number;
+                                                        var ready part of world => number;
+                                                        var ready part  of world => number;
+                                                        var ready for each value => number;
+                                                        var ready for	each value => number;
 
                                                         """, "P.ron"));
 
@@ -223,25 +223,25 @@ public class StatementShapes
     public void AKeywordMayNotLeadADeclarationAndMayDoAnythingElse(string keyword)
     {
         // The rule is about the FIRST word of an identifier — that is where a
-        // production can steal a declaration, and «function f => Number { … }»
+        // production can steal a declaration, and «function f => number { … }»
         // becoming a datum named «function f» is what it was written for. It was
         // being applied to every name component instead, so a keyword in GLUE
         // position stopped the identifier dead and the whole declaration came
         // back Malformed.
-        Assert.Empty(Compilation.Of(new SourceText($"function send (x => Number) {keyword} (y => Number) {{ return x; }}\n",
+        Assert.Empty(Compilation.Of(new SourceText($"function send (x => number) {keyword} (y => number) {{ return x; }}\n",
                                                    "P.ron")).Findings);
 
         // and mid-name, which was always allowed and is the same position
-        Assert.Empty(Compilation.Of(new SourceText($"var ready {keyword} needed => Number;\n", "P.ron")).Findings);
+        Assert.Empty(Compilation.Of(new SourceText($"var ready {keyword} needed => number;\n", "P.ron")).Findings);
 
         // the control: leading, where it still steals
-        Assert.NotEmpty(Compilation.Of(new SourceText($"function {keyword} send (x => Number) {{ return x; }}\n",
+        Assert.NotEmpty(Compilation.Of(new SourceText($"function {keyword} send (x => number) {{ return x; }}\n",
                                                       "P.ron")).Findings);
     }
 
     [Theory(DisplayName = "words that cannot be written down are refused, whatever declares them")]
-    [InlineData("var ready part /* gap */ of world => Number;")]
-    [InlineData("constant ready part /* gap */ of world => Number;")]
+    [InlineData("var ready part /* gap */ of world => number;")]
+    [InlineData("constant ready part /* gap */ of world => number;")]
     [InlineData("type ready part /* gap */ of world;")]
     [InlineData("function ready part /* gap */ of world { return 1; }")]
     [InlineData("for each (ready part /* gap */ of world) in banks { return 1; }")]
@@ -295,7 +295,7 @@ public class StatementShapes
         var words = string.Concat(Enumerable.Range(0, filler).Select(each => $"word{each} "));
         var interrupted = string.Concat(Enumerable.Repeat("part /* gap */ of ", gaps));
 
-        var source = $"function compute {interrupted}{words}(x => Number) {{ return x; }}\n";
+        var source = $"function compute {interrupted}{words}(x => number) {{ return x; }}\n";
 
         var findings = Compilation.Of(new SourceText(source, "P.ron")).Findings;
 
@@ -318,7 +318,7 @@ public class StatementShapes
         // and «of» are two segments here, and written down they are one. The
         // compiler built one pattern and its own rendering denoted another.
         var finding = Assert.Single(Compilation.Of(new SourceText("""
-                                                                  function compute part /* gap */ of (x => Number) { return x; }
+                                                                  function compute part /* gap */ of (x => number) { return x; }
 
                                                                   """, "P.ron")).Findings);
 
@@ -328,12 +328,12 @@ public class StatementShapes
         Assert.Equal("«compute» «part of» «(_)»", unwritable.Reads);
 
         // and with the gap closed it is an ordinary declaration
-        Assert.Empty(Compilation.Of(new SourceText("function compute part of (x => Number) { return x; }\n",
+        Assert.Empty(Compilation.Of(new SourceText("function compute part of (x => number) { return x; }\n",
                                                    "P.ron")).Findings);
     }
 
     [Theory(DisplayName = "a parameter is a declaration, and is checked like one")]
-    [InlineData("function compute (ready part /* gap */ of world => Number) { return 1; }")]
+    [InlineData("function compute (ready part /* gap */ of world => number) { return 1; }")]
     [InlineData("var callback = (ready part /* gap */ of world) => { return 1; };")]
     public void AParameterIsADeclarationAndIsCheckedLikeOne(string source)
     {
@@ -356,22 +356,22 @@ public class StatementShapes
         // them into a dictionary, and the body received one entry with the first
         // argument silently replaced by the second.
         Assert.NotEmpty(Compilation.Of(new SourceText("""
-                                                      function compare (ready part /* gap */ of world => Number,
-                                                                        ready part of world => Number) { return 1; }
+                                                      function compare (ready part /* gap */ of world => number,
+                                                                        ready part of world => number) { return 1; }
 
                                                       """, "P.ron")).Findings);
 
         // and the plain duplicate, which was equally unreported
         var shadowed = Assert.IsType<Shadowed>(
-            Assert.Single(Compilation.Of(new SourceText("function compare (a => Number, a => Number) { return 1; }\n",
+            Assert.Single(Compilation.Of(new SourceText("function compare (a => number, a => number) { return 1; }\n",
                                                         "P.ron")).Findings));
 
         Assert.Equal("a", shadowed.Name);
     }
 
     [Theory(DisplayName = "a delegate's parameter is declared into its body, typed or not")]
-    [InlineData("var callback = (name) => { var name => Number; return 1; };")]
-    [InlineData("var callback = (name => Number) => { var name => Number; return 1; };")]
+    [InlineData("var callback = (name) => { var name => number; return 1; };")]
+    [InlineData("var callback = (name => number) => { var name => number; return 1; };")]
     public void ADelegatesParameterIsDeclaredIntoItsBodyTypedOrNot(string source)
     {
         // Both spellings declare «name». A delegate's parameter is a bare name
@@ -392,8 +392,8 @@ public class StatementShapes
         // would have quietly read the member instead of the argument.
         var shadowed = Assert.IsType<Shadowed>(Assert.Single(Compilation.Of(new SourceText("""
                                                                                           type Box {
-                                                                                              var name => Number;
-                                                                                              function read (name => Number) { return name; }
+                                                                                              var name => number;
+                                                                                              function read (name => number) { return name; }
                                                                                           }
 
                                                                                           """, "P.ron")).Findings));
@@ -403,11 +403,11 @@ public class StatementShapes
     }
 
     [Theory(DisplayName = "a delegate body is a scope like any other")]
-    [InlineData("var callback = (x) => { var d => Number; var d => Number; };")]
-    [InlineData("var handlers = [ (x) => { var d => Number; var d => Number; }, 2 ];")]
-    [InlineData("var outer = (x) => { var inner = (y) => { var d => Number; var d => Number; }; };")]
-    [InlineData("function run (callback = (x) => { var d => Number; var d => Number; }) { return 1; }")]
-    [InlineData("var callback = (x => Number) => { var d => Number; var d => Number; };")]
+    [InlineData("var callback = (x) => { var d => number; var d => number; };")]
+    [InlineData("var handlers = [ (x) => { var d => number; var d => number; }, 2 ];")]
+    [InlineData("var outer = (x) => { var inner = (y) => { var d => number; var d => number; }; };")]
+    [InlineData("function run (callback = (x) => { var d => number; var d => number; }) { return 1; }")]
+    [InlineData("var callback = (x => number) => { var d => number; var d => number; };")]
     public void ADelegateBodyIsAScopeLikeAnyOther(string source)
     {
         // A delegate is a VALUE, so its body could sit in an initialiser, a
@@ -422,7 +422,7 @@ public class StatementShapes
 
     [Theory(DisplayName = "an empty bracket is a hole with no name")]
     [InlineData("function ping () { return 1; }", "ping ()")]
-    [InlineData("function send () to (recipient => Number) { return recipient; }", "send () to (_)")]
+    [InlineData("function send () to (recipient => number) { return recipient; }", "send () to (_)")]
     [InlineData("type Box { function ping () { return 1; } }", "ping ()")]
     public void AnEmptyBracketIsAHoleWithNoName(string source, string shape)
     {
@@ -441,12 +441,12 @@ public class StatementShapes
     }
 
     [Theory(DisplayName = "a parameter's own brackets are checked, not flattened away")]
-    [InlineData("function outer (callback () => Number) { return 1; }", FindingKind.EmptyHole)]
-    [InlineData("function outer (() => Number) { return 1; }", FindingKind.EmptyHole)]
-    [InlineData("var handler = (a () => Number) => { return 1; };", FindingKind.EmptyHole)]
-    [InlineData("function outer (callback (x => Number) => Number) { return 1; }", FindingKind.HoleInName)]
-    [InlineData("function outer ((x => Number) rounded => Number) { return 1; }", FindingKind.HoleInName)]
-    [InlineData("var handler = (a (x => Number) => Number) => { return 1; };", FindingKind.HoleInName)]
+    [InlineData("function outer (callback () => number) { return 1; }", FindingKind.EmptyHole)]
+    [InlineData("function outer (() => number) { return 1; }", FindingKind.EmptyHole)]
+    [InlineData("var handler = (a () => number) => { return 1; };", FindingKind.EmptyHole)]
+    [InlineData("function outer (callback (x => number) => number) { return 1; }", FindingKind.HoleInName)]
+    [InlineData("function outer ((x => number) rounded => number) { return 1; }", FindingKind.HoleInName)]
+    [InlineData("var handler = (a (x => number) => number) => { return 1; };", FindingKind.HoleInName)]
     internal void AParametersOwnBracketsAreCheckedNotFlattenedAway(string source, FindingKind expected)
     {
         // A parameter's identifier is parsed by the general identifier parser,
@@ -485,7 +485,7 @@ public class StatementShapes
     public void ABareDelegateDeclaresItsParameterIntoItsBody()
     {
         var shadowed = Assert.IsType<Shadowed>(
-            Assert.Single(Compilation.Of(new SourceText("var callback = name => { var name => Number; return 1; };\n",
+            Assert.Single(Compilation.Of(new SourceText("var callback = name => { var name => number; return 1; };\n",
                                                         "P.ron")).Findings));
 
         Assert.Equal("name", shadowed.Name);
@@ -742,11 +742,11 @@ public class StatementShapes
     [Theory(DisplayName = "a delegate is a name or a bracketed signature, and owns the arrow")]
     [InlineData("var c = x => { return x; };", true)]
     [InlineData("var c = (x) => { return x; };", true)]
-    [InlineData("var c = (x => Number) => { return x; };", true)]
+    [InlineData("var c = (x => number) => { return x; };", true)]
     [InlineData("var c = (x, y) => { return x; };", true)]
-    [InlineData("var c = (a => Number, b) => { return a; };", true)]
+    [InlineData("var c = (a => number, b) => { return a; };", true)]
     [InlineData("var c = () => { return 1; };", true)]
-    [InlineData("var c = x => Number => { return x; };", false)]   // a bare typed declaration is not one
+    [InlineData("var c = x => number => { return x; };", false)]   // a bare typed declaration is not one
     public void ADelegateIsANameOrABracketedSignatureAndOwnsTheArrow(string source, bool legal)
     {
         // §4.9.2 as written, because it was written as «datum declaration |

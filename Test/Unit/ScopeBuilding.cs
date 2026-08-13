@@ -24,10 +24,10 @@ public class ScopeBuilding
     public void ADeclarationIsANameOrAPatternStructurally()
     {
         var declared = Of("""
-            var base price => Number;
-            let tax => Number;
+            var base price => number;
+            let tax => number;
             var late bound => reactive Number;
-            function compute total for (order => Number) { return order; }
+            function compute total for (order => number) { return order; }
             """);
 
         Assert.Empty(declared.Problems);
@@ -61,9 +61,9 @@ public class ScopeBuilding
         // a slot with no producer is the sort of thing this suite deletes rather
         // than tests. It can arrive with the pass that needs it.
         var declared = Of("""
-            var wheel => Number;
-            function area of (radius => Number) { return radius; }
-            function area of (shape => Text) { return shape; }
+            var wheel => number;
+            function area of (radius => number) { return radius; }
+            function area of (shape => text) { return shape; }
             """);
 
         Assert.True(new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).TryTree(out var tree));
@@ -71,7 +71,7 @@ public class ScopeBuilding
         var call = Assert.IsType<Node.Call>(tree);
 
         // Both, and told apart by the thing that will decide between them.
-        Assert.Equal([["Number"], ["Text"]],
+        Assert.Equal([["number"], ["text"]],
                      declared.Overloads[call.Pattern].Select(signature => Assert.Single(signature.Types)));
     }
 
@@ -82,8 +82,8 @@ public class ScopeBuilding
         // special case: narrowing a singleton is the identity, so a type filter
         // written against the set above does nothing here and costs nothing.
         var declared = Of("""
-            var wheel => Number;
-            function area of (radius => Number) { return radius; }
+            var wheel => number;
+            function area of (radius => number) { return radius; }
             """);
 
         Assert.True(new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).TryTree(out var tree));
@@ -91,13 +91,13 @@ public class ScopeBuilding
         var only = Assert.Single(declared.Overloads[Assert.IsType<Node.Call>(tree).Pattern]);
 
         Assert.Equal([["radius"]], only.Names);
-        Assert.Equal([["Number"]], only.Types);
+        Assert.Equal([["number"]], only.Types);
     }
 
     [Theory(DisplayName = "a shape declared twice is two different mistakes")]
-    [InlineData("(radius => Number)", "(shape => Text)", "Overloaded")]
-    [InlineData("(box => Number)", "(frame => Number)", "DuplicateSignature")]
-    [InlineData("(box => Number)", "(frame)", "Overloaded")]
+    [InlineData("(radius => number)", "(shape => text)", "Overloaded")]
+    [InlineData("(box => number)", "(frame => number)", "DuplicateSignature")]
+    [InlineData("(box => number)", "(frame)", "Overloaded")]
     public void AShapeDeclaredTwiceIsTwoDifferentMistakes(string one, string other, string refused)
     {
         // TWO RULES wearing one name, and only one of them expires. Declarations
@@ -121,12 +121,12 @@ public class ScopeBuilding
 
     [Fact(DisplayName = "and what a parameter is called is not part of the difference")]
     public void AndWhatAParameterIsCalledIsNotPartOfTheDifference()
-        // «area of (radius => Number)» and «area of (r => Number)» are the same
+        // «area of (radius => number)» and «area of (r => number)» are the same
         // declaration written twice, and a caller cannot tell which of them they
         // reached. What a parameter is called is the callee's business.
         => Assert.Equal(FindingKind.DuplicateSignature,
-                        Assert.Single(Of("function area of (radius => Number) { return 1; }\n"
-                                       + "function area of (r => Number) { return 1; }\n").Problems).Kind);
+                        Assert.Single(Of("function area of (radius => number) { return 1; }\n"
+                                       + "function area of (r => number) { return 1; }\n").Problems).Kind);
 
     [Fact(DisplayName = "and the same types split into different blocks are an overload, not a duplicate")]
     public void AndTheSameTypesSplitIntoDifferentBlocksAreAnOverloadNotADuplicate()
@@ -136,8 +136,8 @@ public class ScopeBuilding
         // differently and a type checker can tell them apart, so they are an
         // overload waiting for one, not a duplicate. Concatenating the blocks
         // flattened both to «Number Text Number» and refused them permanently.
-        var declared = Of("function arrange (a => Number, b => Text) with (c => Number) { return a; }\n"
-                        + "function arrange (a => Number) with (b => Text, c => Number) { return a; }\n");
+        var declared = Of("function arrange (a => number, b => text) with (c => number) { return a; }\n"
+                        + "function arrange (a => number) with (b => text, c => number) { return a; }\n");
 
         Assert.Equal(FindingKind.Overloaded, Assert.Single(declared.Problems).Kind);
     }
@@ -151,9 +151,9 @@ public class ScopeBuilding
         // — and the first and last are «A» and «B», which are not the colliding
         // pair. Both findings are reported now, each against the declarations it
         // is actually about.
-        const string Source = "function area of (a => Number) { return a; }\n"   // A
-                            + "function area of (b => Number) { return b; }\n"   // A again — the duplicate
-                            + "function area of (c => Text) { return c; }\n";    // B — a distinct overload
+        const string Source = "function area of (a => number) { return a; }\n"   // A
+                            + "function area of (b => number) { return b; }\n"   // A again — the duplicate
+                            + "function area of (c => text) { return c; }\n";    // B — a distinct overload
 
         var problems = Of(Source).Problems;
 
@@ -186,9 +186,9 @@ public class ScopeBuilding
         // shape come back ambiguous, which is R3 answering a question nobody
         // asked it.
         var declared = Of("""
-            var wheel => Number;
-            function area of (radius => Number) { return radius; }
-            function area of (shape => Text) { return shape; }
+            var wheel => number;
+            function area of (radius => number) { return radius; }
+            function area of (shape => text) { return shape; }
             """);
 
         var pattern = Assert.Single(declared.Symbols.Patterns);
@@ -199,17 +199,17 @@ public class ScopeBuilding
         // overload were indistinguishable, so the rule refusing both could not
         // name which it was refusing, and a narrowing pass would have had
         // nothing to narrow on.
-        Assert.Equal([["Number"], ["Text"]],
+        Assert.Equal([["number"], ["text"]],
                      declared.Overloads[pattern].Select(signature => Assert.Single(signature.Types)));
 
         // And an OMITTED type is null rather than blank, because omission is a
         // type and not a gap: «print (x)» is the generic declaration and «print
-        // (x => Number)» is a different one, so a record that flattened the two
+        // (x => number)» is a different one, so a record that flattened the two
         // would make the generic look like a duplicate of whichever concrete
         // declaration was written beside it.
-        var mixed = Of("function volume of (shape => Text) and (n) { return shape; }");
+        var mixed = Of("function volume of (shape => text) and (n) { return shape; }");
 
-        Assert.Equal([["Text"], [null]],
+        Assert.Equal([["text"], [null]],
                      Assert.Single(mixed.Overloads[Assert.Single(mixed.Symbols.Patterns)]).Types);
 
         Assert.Equal("area of «wheel»",
@@ -228,7 +228,7 @@ public class ScopeBuilding
     [Fact(DisplayName = "a constant and an imperative variable are not reactive")]
     public void AConstantAndAnImperativeVariableAreNotReactive()
     {
-        var declared = Of("constant pi => Number; var radius => Number;");
+        var declared = Of("constant pi => number; var radius => number;");
 
         Assert.Equal(["pi", "radius"], declared.Symbols.Names.Order());
         Assert.Contains("is a constant", declared.Symbols.Explain("old pi"));
@@ -242,8 +242,8 @@ public class ScopeBuilding
         // statements are read against
         var declared = Of("""
             let base price => reactive Number;
-            var tax => Number;
-            function compute total for (amount => Number) { return amount; }
+            var tax => number;
+            function compute total for (amount => number) { return amount; }
             """);
 
         Resolver resolver = new(declared.Symbols);
@@ -260,7 +260,7 @@ public class ScopeBuilding
     [Fact(DisplayName = "several holes become several blocks, in order")]
     public void SeveralHolesBecomeSeveralBlocksInOrder()
     {
-        var declared = Of("function draw (shape => Text) at (x => Number, y => Number) { return shape; }");
+        var declared = Of("function draw (shape => text) at (x => number, y => number) { return shape; }");
 
         var pattern = Assert.Single(declared.Symbols.Patterns);
         Assert.Equal("draw (_) at (_)", pattern.ToString());
@@ -301,7 +301,7 @@ public class ScopeBuilding
     {
         // Inward yes: a lookup is one probe against a merged table rather than a
         // walk up the chain, which is what banning shadowing buys.
-        var declared = Nested("var base price => Number;", "var discount => Number;");
+        var declared = Nested("var base price => number;", "var discount => number;");
 
         Assert.Empty(declared.Problems);
         Assert.Equal(["base price", "discount"], declared.Symbols.Names.Order());
@@ -317,10 +317,10 @@ public class ScopeBuilding
         // scope can call the outer function and read the outer constant, and the
         // constant is still known to be one
         var declared = Nested("""
-            constant pi => Number;
-            function area of (radius => Number) { return radius; }
+            constant pi => number;
+            function area of (radius => number) { return radius; }
             """,
-            "var wheel => Number;");
+            "var wheel => number;");
 
         Assert.Empty(declared.Problems);
 
@@ -329,12 +329,12 @@ public class ScopeBuilding
 
         // And an OMITTED type is null rather than blank, because omission is a
         // type and not a gap: «print (x)» is the generic declaration and «print
-        // (x => Number)» is a different one, so a record that flattened the two
+        // (x => number)» is a different one, so a record that flattened the two
         // would make the generic look like a duplicate of whichever concrete
         // declaration was written beside it.
-        var mixed = Of("function volume of (shape => Text) and (n) { return shape; }");
+        var mixed = Of("function volume of (shape => text) and (n) { return shape; }");
 
-        Assert.Equal([["Text"], [null]],
+        Assert.Equal([["text"], [null]],
                      Assert.Single(mixed.Overloads[Assert.Single(mixed.Symbols.Patterns)]).Types);
 
         Assert.Equal("area of «wheel»",
@@ -349,8 +349,8 @@ public class ScopeBuilding
     {
         // outward no, because a pattern declaration is a grammar production and
         // an escaping one would change the grammar of its siblings' bodies
-        var enclosing = Of("var outer thing => Number;");
-        Nested("var outer thing => Number;", "var inner thing => Number;");
+        var enclosing = Of("var outer thing => number;");
+        Nested("var outer thing => number;", "var inner thing => number;");
 
         Assert.DoesNotContain("inner thing", enclosing.Symbols.Names);
     }
@@ -358,7 +358,7 @@ public class ScopeBuilding
     [Fact(DisplayName = "shadowing an enclosing name is rejected where it is written")]
     public void ShadowingAnEnclosingNameIsRejectedWhereItIsWritten()
     {
-        var declared = Nested("var total => Number;", "var total => Number;");
+        var declared = Nested("var total => number;", "var total => number;");
 
         var problem = Assert.Single(declared.Problems);
 
@@ -367,14 +367,14 @@ public class ScopeBuilding
         Assert.Equal("in an enclosing scope", Assert.IsType<Shadowed>(problem).Where);
 
         // and a repeat within one scope says so differently
-        var twice = Assert.Single(Of("var total => Number; var total => Number;").Problems);
+        var twice = Assert.Single(Of("var total => number; var total => number;").Problems);
         Assert.Equal("in this scope", Assert.IsType<Shadowed>(twice).Where);
     }
 
     [Fact(DisplayName = "a name may not cover the built-in old pattern")]
     public void ANameMayNotCoverTheBuiltinOldPattern()
     {
-        var declared = Of("var old total => Number;");
+        var declared = Of("var old total => number;");
 
         var problem = Assert.Single(declared.Problems);
 
@@ -399,7 +399,7 @@ public class ScopeBuilding
     {
         // an expression mentions names, an assignment writes one, and neither
         // introduces one
-        var declared = Of("var x => Number; x + x; x = 3;");
+        var declared = Of("var x => number; x + x; x = 3;");
 
         Assert.Equal(["x"], declared.Symbols.Names.Order());
         Assert.Empty(declared.Symbols.Patterns);

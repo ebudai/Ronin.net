@@ -40,12 +40,12 @@ public class ScopeHeadings
     }
 
     [Theory(DisplayName = "a declaration's heading ends there too")]
-    [InlineData("function f => Number { 1 }\n")]
-    [InlineData("function f => Number {}\n")]
-    [InlineData("function f => Number { 1; }\n")]
-    [InlineData("function f => Number { return 1; }\n")]
+    [InlineData("function f => number { 1 }\n")]
+    [InlineData("function f => number {}\n")]
+    [InlineData("function f => number { 1; }\n")]
+    [InlineData("function f => number { return 1; }\n")]
     [InlineData("type T = Base {}\n")]
-    [InlineData("type T = Base { var a => Number; }\n")]
+    [InlineData("type T = Base { var a => number; }\n")]
     public void ADeclarationsHeadingEndsThereToo(string source)
     {
         // Found by audit, and the finding is really about the LIST: the rule was

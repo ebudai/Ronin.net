@@ -830,8 +830,8 @@ public class Resolutions
         // comparison never runs. The explicit rule makes that unreachable rather
         // than merely unwitnessed, which is the point of having it.
         var findings = Compilation.Of(new SourceText("""
-                                                     function (x => Number) rounded { return x; }
-                                                     function (y => Number) squared { return y; }
+                                                     function (x => number) rounded { return x; }
+                                                     function (y => number) squared { return y; }
 
                                                      """, "Player.ron")).Findings;
 
