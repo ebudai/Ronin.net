@@ -588,7 +588,7 @@ public class Resolutions
         var parsed = Pattern.Parse(pattern);
 
         Assert.NotNull(parsed);
-        Assert.Empty(parsed.Glue.Where(word => word.Any(letter => char.IsLetter(letter) is false)));
+        Assert.DoesNotContain(parsed.Glue, word => word.Any(letter => char.IsLetter(letter) is false));
     }
 
     [Theory(DisplayName = "a segment the lexer cannot make is refused, not stored")]
@@ -882,7 +882,7 @@ public class Resolutions
         SymbolTable symbols = new();
         symbols.WithNames("a", "b", "c");
         symbols.Operators["^"] = new Operator(25, Ronin.Runtime.Builtin.Lift(
-            (left, right) => System.Math.Pow((double)left, (double)right)), isLeftAssociative: false);
+            (left, right) => System.Math.Pow((double)left, (double)right)), associativity: Associativity.Right);
 
         Resolver resolver = new(symbols);
 

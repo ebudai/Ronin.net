@@ -234,6 +234,17 @@ public class ResolverCost
         Assert.Equal(Resolver.MaxBindingPower, new Operator(Resolver.MaxBindingPower, apply).BindingPower);
     }
 
+    [Fact(DisplayName = "a resolution-only operator has a meaning that refuses to be one")]
+    public void AResolutionOnlyOperatorHasAMeaningThatRefusesToBeOne()
+    {
+        // The type arrow resolves but never evaluates — a type is not a value, so
+        // no tree it sits in reaches the evaluator. «Apply» is required anyway, so
+        // it carries «Unevaluated», which reaching means a type tree escaped into
+        // evaluation. It is a defect and throws rather than returning a wrong value
+        // quietly, and this is the one place that reach is exercised.
+        Assert.Throws<InvalidOperationException>(() => Operator.Unevaluated("text", "number"));
+    }
+
     [Fact(DisplayName = "only the binding powers something asks for get a slot")]
     public void OnlyTheBindingPowersSomethingAsksForGetASlot()
     {
@@ -254,7 +265,7 @@ public class ResolverCost
         // table rather than a constant — so this asserts the derivation, not the
         // number.
         symbols.Operators["^"] = new Operator(25, Ronin.Runtime.Builtin.Lift(
-            (left, right) => System.Math.Pow((double)left, (double)right)), isLeftAssociative: false);
+            (left, right) => System.Math.Pow((double)left, (double)right)), associativity: Associativity.Right);
         symbols.WithNames("a", "b", "c");
 
         Resolver added = new(symbols);

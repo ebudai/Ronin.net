@@ -777,6 +777,8 @@ public class Admission
         ("Rules.Infix", () => Rules.Infix),
         ("Rules.Injected", () => Rules.Injected),
         ("SymbolTable.Builtins", () => SymbolTable.Builtins),
+        ("SymbolTable.SuppliedTypes", () => SymbolTable.SuppliedTypes),
+        ("SymbolTable.SuppliedTypePatterns", () => SymbolTable.SuppliedTypePatterns),
         ("Triggers.Distinct", () => Triggers.Distinct(["a", "a"])),
     ];
 

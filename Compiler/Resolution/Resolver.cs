@@ -61,14 +61,23 @@ internal sealed class Resolver
     /// </summary>
     public const int MaxLexemes = 256;
 
-    public Resolver(SymbolTable symbols, int patternBindingPower = 7)
+    public Resolver(SymbolTable symbols, int patternBindingPower = 7, SymbolKind kind = SymbolKind.Value)
     {
         ArgumentNullException.ThrowIfNull(symbols);
         if (patternBindingPower < 0 || patternBindingPower > MaxBindingPower)
             throw new ArgumentOutOfRangeException(nameof(patternBindingPower));
 
         this.symbols = symbols;
+        this.kind = kind;
         PatternBindingPower = patternBindingPower;
+
+        // The operators this resolve admits. In value position, every operator
+        // the language has; in type position, the type-mode table — the
+        // function-type arrow today, «and»/«or» once algebra bases resolve. A
+        // value cannot be added to a type and a type cannot be summed, so none of
+        // the VALUE operators crosses over — the kinds are what keep «number +
+        // text» from resolving to anything.
+        operators = kind is SymbolKind.Value ? symbols.Operators : TypeOperators(PatternBindingPower);
 
         // The minimum binding powers the recurrences can ever ASK for, which is
         // a handful and not a range. A table indexed 0..31 spent five sixths of
@@ -80,7 +89,7 @@ internal sealed class Resolver
         // and the statements using it would silently fail to resolve.
         SortedSet<int> reachable = [0, PatternBindingPower];
 
-        foreach (var op in symbols.Operators.Values)
+        foreach (var op in operators.Values)
         {
             // the side that may repeat the operator takes its own power, the
             // side that may not takes one more
@@ -119,7 +128,7 @@ internal sealed class Resolver
         // Patterns by their first word, rebuilt per call because a scope may have
         // gained one since the last.
         anchored = [];
-        foreach (var pattern in symbols.Callable)
+        foreach (var pattern in symbols.Applicable(kind))
         {
             // The same shape may be present when a caller folds every built-in
             // into a table. Its hole is not an ordinary expression hole and is
@@ -208,20 +217,32 @@ internal sealed class Resolver
     {
         var cell = closed[Span(i, j)];
 
-        if (j - i is 1 && lexemes[i].Kind is LexemeKind.Number)
+        // A literal denotes a VALUE, so it is admitted where a value is wanted
+        // and nowhere else: «var x => 3» is already refused at the parser as a
+        // lone anonymous value, but «list of 3» reaches here, and offering the
+        // literal would make it a type nothing checks. The kind is what says so.
+        if (kind is SymbolKind.Value && j - i is 1 && lexemes[i].Kind is LexemeKind.Number)
             cell.Offer(0, new Node.Literal(lexemes[i].Text).At(Offset(lexemes, i), Length(lexemes, i, j)));
 
         if (CanName(lexemes, i, j))
         {
             var name = string.Join(' ', Enumerable.Range(i, j - i).Select(k => lexemes[k].Text));
-            if (symbols.Known.Contains(name)) cell.Offer(1, new Node.Name(name).At(Offset(lexemes, i), Length(lexemes, i, j)));
+            if (symbols.Mentionable(kind).Contains(name)) cell.Offer(1, new Node.Name(name).At(Offset(lexemes, i), Length(lexemes, i, j)));
         }
 
         // a bracketed substatement is one lookup however large it is, and it is
         // CLOSED, which is what lets «(compute total for a) + b» resolve
         if (j - i >= 2 && lexemes[i].Kind is LexemeKind.Open && lexemes[j - 1].Kind is LexemeKind.Close)
         {
-            Group(lexemes, cell, i + 1, j - 1, collection: lexemes[i].Text is "[");
+            // A «[…]» is a list VALUE, inadmissible where a type is wanted, so it
+            // is offered only in value position; a «(…)» is grouping, which a
+            // bracketed type hole — «list of (number)» — needs in either kind.
+            // Whether a «(…)» of several parts is a type is a question about the
+            // constructor it fills, which is the type checker's and not the
+            // resolver's — grouping is admitted, arity is deferred.
+            var collection = lexemes[i].Text is "[";
+            if (collection is false || kind is SymbolKind.Value)
+                Group(lexemes, cell, i + 1, j - 1, collection);
         }
 
         // A language pattern with a stricter hole than an ordinary expression.
@@ -230,7 +251,12 @@ internal sealed class Resolver
         // Treating it as an ordinary open-ended pattern would either swallow
         // «x + 1» (which is not a reference) or make «old x» unavailable as
         // the left operand at arithmetic binding power.
-        Previous(lexemes, cell, i, j);
+        //
+        // Value only: «old (_)» is a reactive name's previous value, which is a
+        // value and not a type. The reactive set it reads lives in the one table
+        // this resolve shares, so the kind is what keeps «old count» out of a
+        // type annotation rather than the table being a different one.
+        if (kind is SymbolKind.Value) Previous(lexemes, cell, i, j);
 
         // Only the patterns whose first word is the one actually sitting at «i».
         // Every pattern begins with a word — a leading hole is refused at
@@ -306,14 +332,18 @@ internal sealed class Resolver
     /// </remarks>
     private void Group(IReadOnlyList<Lexeme> lexemes, Cell cell, int from, int to, bool collection)
     {
-        // An empty COLLECTION is a value — the list with nothing in it — where an
-        // empty grouping is not: «()» is brackets round no expression and there
-        // is nothing for it to mean. The loop below cannot say that, because it
-        // asks for an expression between each pair of separators and an empty
-        // span has none.
-        if (collection && from == to)
+        // An empty COLLECTION is a value — the list with nothing in it. An empty
+        // GROUP is brackets round no expression, which means nothing in a value
+        // and IS something in a type: the nullary parameter list of a function
+        // type, «() => number» from DELEGATES §1. So it is offered where a type is
+        // wanted and refused where a value is, the same split «[…]» and «(…)»
+        // already draw. The loop below reaches neither — it asks for an expression
+        // between each pair of separators and an empty span has none.
+        if (from == to)
         {
-            cell.Offer(1, new Node.Group([], Node.Grouping.List));
+            if (collection) cell.Offer(1, new Node.Group([], Node.Grouping.List));
+            else if (this.kind is SymbolKind.Type) cell.Offer(1, new Node.Group([], Node.Grouping.Group));
+
             return;
         }
 
@@ -841,7 +871,7 @@ internal sealed class Resolver
                 default: continue;
             }
 
-            if (symbols.Operators.TryGetValue(lexemes[k].Text, out var op) is false) continue;
+            if (operators.TryGetValue(lexemes[k].Text, out var op) is false) continue;
             if (op.BindingPower < minimum) continue;
 
             // An operator is admitted where its binding power is at least the
@@ -851,10 +881,16 @@ internal sealed class Resolver
             // associative mirrors it. Handing both sides the higher minimum
             // forbids the operator on either, and a chain of one precedence
             // stops parsing altogether.
+            //
+            // NON-ASSOCIATIVE hands both sides the operator's OWN power, so each
+            // grouping of «a op b op c» is admitted and the chain reads more than
+            // one way — an ambiguity rather than a silent pick. That is the type
+            // arrow: «a => b => c» has no natural grouping in an uncurried
+            // language, so it is bracketed or it is a finding.
             var repeats = op.BindingPower;
             var excludes = op.BindingPower + 1;
-            var leftminimum = op.IsLeftAssociative ? repeats : excludes;
-            var rightminimum = op.IsLeftAssociative ? excludes : repeats;
+            var leftminimum = op.Associativity is Associativity.Right ? excludes : repeats;
+            var rightminimum = op.Associativity is Associativity.Left ? excludes : repeats;
 
             var before = Expressions(i, k, leftminimum);
             var after = Expressions(k + 1, j, rightminimum);
@@ -904,6 +940,33 @@ internal sealed class Resolver
     private readonly int[] minima;
     private readonly int[] slots;
     private readonly SymbolTable symbols;
+
+    /// <summary>Whether this resolve reads a value expression or a type annotation.</summary>
+    private readonly SymbolKind kind;
+
+    /// <summary>The operators this resolve admits, chosen by <see cref="kind"/>.</summary>
+    private readonly IReadOnlyDictionary<string, Operator> operators;
+
+    /// <summary>
+    ///     The operators a type annotation admits.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The function-type arrow today, and «and»/«or» once algebra bases
+    ///     resolve. NON-ASSOCIATIVE, which is what makes «a => b => c» an ambiguity
+    ///     rather than a silent grouping — an uncurried language has no reading to
+    ///     prefer, so it is bracketed or it is a finding. Bound at
+    ///     <see cref="PatternBindingPower"/>, the level a pattern's trailing
+    ///     argument parses at, so a lookup type — itself a pattern call — may sit on
+    ///     either side of an arrow; that is what gives «lookup text => number =>
+    ///     truth» all three of its bracketings rather than two.
+    /// </remarks>
+    private static IReadOnlyDictionary<string, Operator> TypeOperators(int patternBindingPower)
+        => new Dictionary<string, Operator>
+        {
+            [Lexicon.Arrow.symbol] = new Operator(patternBindingPower, Operator.Unevaluated, Associativity.None),
+        };
+
     private int[] rows;
     private Cell[] closed;
     private Cell[] open;
@@ -1465,6 +1528,19 @@ internal sealed class Pattern : IEquatable<Pattern>
 }
 
 /// <summary>
+///     Which way a chain of one operator groups.
+/// </summary>
+///
+/// <remarks>
+///     <see cref="None"/> is not a fourth thing bolted on: an operator groups
+///     left, groups right, or does not group, and the third is what makes a chain
+///     of it an ambiguity the reader must bracket. The type arrow is the first to
+///     want it — «a =&gt; b =&gt; c» has no grouping to prefer where nothing is
+///     curried, so preferring one would be the silent pick this language refuses.
+/// </remarks>
+internal enum Associativity { Left, Right, None }
+
+/// <summary>
 ///     One operator: where it binds, which way it groups, and what it does.
 /// </summary>
 ///
@@ -1512,7 +1588,8 @@ internal sealed class Operator
     /// </remarks>
     public Func<object, bool> Catches { get; init; }
 
-    public Operator(int bindingPower, Func<object, object, object> apply, bool isLeftAssociative = true)
+    public Operator(int bindingPower, Func<object, object, object> apply,
+                    Associativity associativity = Associativity.Left)
     {
         // Checked here rather than assumed. The table is mutable so that a scope
         // can add an operator, and every one of these failed far from the
@@ -1529,7 +1606,7 @@ internal sealed class Operator
 
         BindingPower = bindingPower;
         Apply = apply;
-        IsLeftAssociative = isLeftAssociative;
+        Associativity = associativity;
     }
 
     public int BindingPower { get; }
@@ -1537,7 +1614,27 @@ internal sealed class Operator
     /// <summary>What the operator does. Required, so resolution and evaluation cannot disagree about whether it has a meaning.</summary>
     public Func<object, object, object> Apply { get; }
 
-    public bool IsLeftAssociative { get; }
+    /// <summary>
+    ///     Which way a chain of this operator groups, or that it does not group at
+    ///     all — in which case a chain of it is an ambiguity rather than a pick.
+    /// </summary>
+    public Associativity Associativity { get; }
+
+    /// <summary>
+    ///     The meaning of an operator that resolves but is never evaluated.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The type arrow is the first: it groups the key and value of a function
+    ///     type, and a type is not a value, so no tree it sits in is ever handed to
+    ///     the evaluator. <see cref="Apply"/> is required all the same — an operator
+    ///     without a meaning is the bug the constructor guards — so this is the
+    ///     meaning a resolution-only operator carries: reaching it means a type
+    ///     tree escaped into evaluation, which is a defect and says so rather than
+    ///     returning a wrong value quietly.
+    /// </remarks>
+    public static object Unevaluated(object left, object right)
+        => throw new System.InvalidOperationException("a type does not evaluate to a value");
 }
 
 /// <summary>
@@ -1605,6 +1702,59 @@ internal sealed class SymbolTable
     /// </remarks>
     public IEnumerable<string> Known
         => Names.Where(entry => entry.Value is SymbolKind.Value).Select(entry => entry.Key).Concat(Truths);
+
+    /// <summary>
+    ///     Every type a reference in an annotation may resolve to.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <see cref="Known"/> read the other way — the same table, the type kind
+    ///     rather than the value kind, and the type spellings the language
+    ///     supplies in place of the truths. A type name IS a name; the kind is what
+    ///     tells «number» the type from a variable someone called it, and this is
+    ///     one table filtered rather than a second one.
+    /// </remarks>
+    public IEnumerable<string> TypeNames
+        => Names.Where(entry => entry.Value is SymbolKind.Type).Select(entry => entry.Key).Concat(SuppliedTypes);
+
+    /// <summary>
+    ///     Every type pattern a reference in an annotation may resolve against —
+    ///     the type constructors the language supplies.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <see cref="Callable"/> read the other way, less the declared half —
+    ///     because there is no declared half yet. A pattern declaration records
+    ///     the VALUE kind whatever keyword introduces it, so <see cref="Patterns"/>
+    ///     holds nothing of the type kind to select, and filtering it would be
+    ///     testing a branch nothing can reach. The declared half joins here when a
+    ///     parameterised type can be written — exactly as <see cref="TypeNames"/>
+    ///     already carries a «type X;» — and FIVE-RULINGS §4 is why it will be one
+    ///     registry then rather than two: a type constructor and a value pattern of
+    ///     one shape are two candidates told apart by what they return.
+    /// </remarks>
+    public IEnumerable<Pattern> TypePatterns => SuppliedTypePatterns;
+
+    /// <summary>
+    ///     The names a reference of the given kind may mention — <see cref="Known"/>
+    ///     for a value, <see cref="TypeNames"/> for a type.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     One filter read according to position. A value position admits the value
+    ///     kind and a type annotation admits the type kind, and the resolver asks
+    ///     for whichever the reference it is reading wants — the kind is a predicate
+    ///     over the one table, not a choice between two of them.
+    /// </remarks>
+    public IEnumerable<string> Mentionable(SymbolKind kind)
+        => kind is SymbolKind.Value ? Known : TypeNames;
+
+    /// <summary>
+    ///     The patterns a reference of the given kind may call — <see cref="Callable"/>
+    ///     for a value, <see cref="TypePatterns"/> for a type.
+    /// </summary>
+    public IEnumerable<Pattern> Applicable(SymbolKind kind)
+        => kind is SymbolKind.Value ? Callable : TypePatterns;
 
     /// <summary>
     ///     Patterns the grammar provides, in every scope, always.
@@ -1856,9 +2006,41 @@ internal sealed class SymbolTable
                       .Select(supplied => supplied.Name)
                       .Order(System.StringComparer.Ordinal)];
 
+    /// <summary>
+    ///     The type spellings the language supplies whole, which every scope names
+    ///     without declaring — «number», «text», «truth», «error».
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The type-kind counterpart of <see cref="Truths"/>, from the same list by
+    ///     the same shape: a supplied entry with no pattern and the type kind.
+    ///     «truth» is here as the type; its literals «true» and «false» are in
+    ///     <see cref="Truths"/> as values — one word, two kinds, told apart by the
+    ///     field the whole design turns on.
+    /// </remarks>
+    public static IReadOnlyList<string> SuppliedTypes { get; }
+        = [.. Supplies.Where(supplied => supplied.Shape is null && supplied.Kind is SymbolKind.Type)
+                      .Select(supplied => supplied.Name)
+                      .Order(System.StringComparer.Ordinal)];
+
     /// <summary>The supplied patterns, for the rules that ask what words are taken.</summary>
     public static IReadOnlyList<Pattern> Builtins { get; }
         = [.. Supplies.Where(supplied => supplied.Shape is not null).Select(supplied => supplied.Shape)];
+
+    /// <summary>
+    ///     The type constructors the language supplies — «list of (_)»,
+    ///     «optional (_)», «lookup (_) => (_)».
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A subset of <see cref="Builtins"/>: the supplied patterns of the type
+    ///     kind. <see cref="Builtins"/> is every supplied shape, for the rules that
+    ///     ask what words are taken; this is the ones a type annotation may call,
+    ///     which is <see cref="Callable"/>'s question read of the type kind.
+    /// </remarks>
+    public static IReadOnlyList<Pattern> SuppliedTypePatterns { get; }
+        = [.. Supplies.Where(supplied => supplied.Shape is not null && supplied.Kind is SymbolKind.Type)
+                      .Select(supplied => supplied.Shape)];
 
 
     /// <summary>
