@@ -230,7 +230,11 @@ internal class Reference : IEnumerable<Reference.Component>
 
             Parser ahead = current;
 
-            if (Name.Parse(ref ahead) is Name leading && ahead.Token is not Arrow)
+            // A name followed by an arrow gives way to a delegate — «x => { … }» —
+            // in a VALUE, where the name is the delegate's parameter. In a TYPE
+            // there are no delegates, so «text» in «text => number» is an ordinary
+            // component and the arrow stands on its own beside it.
+            if (Name.Parse(ref ahead) is Name leading && (current.Typing || ahead.Token is not Arrow))
             {
                 current = ahead;
                 return leading;

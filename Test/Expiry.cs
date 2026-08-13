@@ -44,11 +44,13 @@ namespace Test;
 ///     which of them was about this.
 ///     </para>
 ///     <para>
-///     AND WHAT EACH BECOMES, which is the half a bare expiry leaves out. Every
-///     approximation here is a NARROWING and not one of them disappears, so a
-///     ledger that records only "expires" schedules a surprise: the group is
+///     AND WHAT EACH BECOMES, which is the half a bare expiry leaves out. Almost
+///     every approximation here is a NARROWING and not one of them disappears, so
+///     a ledger that records only "expires" schedules a surprise: the group is
 ///     found, deleted, and the successor rule is written under time pressure by
-///     whoever found it.
+///     whoever found it. The one row that WIDENS rather than narrows — the type
+///     walk's unresolved base — is here for the same reason from the other side:
+///     a silent accept schedules a deletion as much as a silent refusal does.
 ///     </para>
 ///     <list type="table">
 ///         <listheader>
@@ -101,6 +103,21 @@ namespace Test;
 ///                 It has its own diagnostic now; it shared one with the row
 ///                 above, and being named here before they were told apart is
 ///                 what a successor column is for.
+///             </description>
+///         </item>
+///         <item>
+///             <term>a type definition's base is not resolved by the annotation walk</term>
+///             <description>
+///                 approximates full type-reference resolution — the walk reads
+///                 the <c>Type.Unresolved</c> annotations and stops, so «type Car
+///                 = Vehicle and { … }» reads «Vehicle» nowhere and an undeclared
+///                 base is SILENT where an undeclared annotation is a finding. →
+///                 becomes the same walk admitting one more node,
+///                 <c>Algebra.Unresolved</c> beside <c>Type.Unresolved</c>, with
+///                 no other machinery. The one row here whose approximation is too
+///                 LENIENT rather than too strict, and named for exactly that: a
+///                 silent accept is the failure the annotation walk exists to
+///                 prevent, one category over.
 ///             </description>
 ///         </item>
 ///     </list>

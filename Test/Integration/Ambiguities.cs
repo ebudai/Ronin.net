@@ -130,19 +130,24 @@ public class Ambiguities
                         + "function go { var r = send a to b; }\n"));
     }
 
-    [Fact(DisplayName = "and a type annotation is not read as a value")]
-    public void AndATypeAnnotationIsNotReadAsAValue()
+    [Fact(DisplayName = "a type annotation is read as a type, not as a value")]
+    public void ATypeAnnotationIsReadAsATypeNotAsAValue()
     {
-        // A type is a reference too — «=> list of number» is a run of words
-        // awaiting a meaning, exactly as a statement is — so the walk read every
-        // annotation in the file against the VALUE table, where they mean
-        // nothing. Mostly that produced a no-reading nobody reports. Here it
-        // reported an ambiguity about a TYPE, quoting two readings that were
-        // never in question, at a position where neither could be written.
+        // A type is a reference too — «=> send a to b» is a run of words awaiting
+        // a meaning, exactly as a statement is. Read against the VALUE table it
+        // was a two-way AMBIGUITY, quoting readings that were never in question at
+        // a position where neither could be written; the table it needed did not
+        // exist yet, so it was not read at all.
         //
-        // Types resolve against a table that does not exist yet, and reading
-        // them against the wrong one is worse than not reading them at all.
-        Assert.Empty(All(Colliding + "var a => number;\nvar b => number;\nvar thing => send a to b;\n"));
+        // It is read against the TYPE table now. «send a to b» is no type — its
+        // words and its pattern are all of the value kind — so the finding is that
+        // it names no type, which is the one true thing, and not an ambiguity
+        // between value readings that type position never admits.
+        var finding = Assert.Single(
+            All(Colliding + "var a => number;\nvar b => number;\nvar thing => send a to b;\n"));
+
+        Assert.Equal(FindingKind.UnknownType, finding.Kind);
+        Assert.Equal("send a to b", Assert.IsType<UnknownType>(finding).Name);
     }
 
     [Fact(DisplayName = "«return» is a pattern, so a name may not capture it")]

@@ -33,7 +33,16 @@ internal class Symbolic : Compiler.IParsable<Symbolic>
 
     public static Symbolic Parse(ref Parser current)
     {
-        if (current.Token is not (Symbol and not Punctuation)) return null;
+        // Punctuation is excluded — brackets and «;» are the statement and scope
+        // boundaries a reference may not run past. The arrow is the one exception,
+        // and only in a TYPE: it punctuates a lookup or a function type there
+        // rather than bounding anything, and a name cannot swallow it any more than
+        // any other symbol, so it costs nothing. In a value it stays excluded, so
+        // «x => { … }» is still a delegate and not a reference with an arrow in it.
+        var admissible = current.Token is (Symbol and not Punctuation)
+                      || (current.Typing && current.Token is Arrow);
+
+        if (admissible is false) return null;
 
         var token = current.Token;
         current.Advance();

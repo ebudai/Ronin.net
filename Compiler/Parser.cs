@@ -56,6 +56,36 @@ internal struct Parser
     /// </remarks>
     public bool Heading;
 
+    /// <summary>
+    ///     Whether a reference is being read as a TYPE annotation rather than a
+    ///     value expression.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     A field of the parser and not a widening of the reference grammar, for
+    ///     the reason the last ruling asked to check: a type annotation's span is
+    ///     already delimited by the «;» or the initialiser «=», so admitting the
+    ///     arrow INSIDE it does not admit one inside a value expression. The lexer
+    ///     is unchanged — it produces <c>Arrow</c> everywhere — and only the span
+    ///     capture reads this, which is context the parser already keeps.
+    ///     </para>
+    ///     <para>
+    ///     Two things turn on it, both local to a type. The arrow «=&gt;» becomes an
+    ///     ordinary reference symbol, so «lookup text =&gt; number» and the function
+    ///     type «text =&gt; number» are one span rather than stopping at the arrow.
+    ///     And a name followed by an arrow is NOT a delegate's parameter — there are
+    ///     no delegates in a type — so it is taken as an ordinary component and the
+    ///     arrow left to stand on its own.
+    ///     </para>
+    ///     <para>
+    ///     Set the same way <see cref="Heading"/> is, and copied with the struct,
+    ///     so it reaches the component that honours it and unwinds with a
+    ///     speculative parse that failed.
+    ///     </para>
+    /// </remarks>
+    public bool Typing;
+
     public readonly bool IsNotFinished => Token is not Sentinel;
 
     /// <summary>

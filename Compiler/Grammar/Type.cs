@@ -137,7 +137,24 @@ internal class Type : Member
     {
         public Reference Reference { get; init; }
 
-        public static new Type Parse(ref Parser current) => Reference.Parse(ref current) is Reference reference ? new Unresolved { Reference = reference } : null;
+        /// <remarks>
+        ///     Read in TYPE mode, so the arrow «=&gt;» is an ordinary reference
+        ///     symbol here and «lookup text =&gt; number» is one span. The flag is
+        ///     restored rather than cleared — a type annotation can be nested (a
+        ///     parameter's type inside a signature), and the enclosing context
+        ///     decides whether we are still typing when this returns.
+        /// </remarks>
+        public static new Type Parse(ref Parser current)
+        {
+            var typing = current.Typing;
+            current.Typing = true;
+
+            var reference = Reference.Parse(ref current);
+
+            current.Typing = typing;
+
+            return reference is Reference resolved ? new Unresolved { Reference = resolved } : null;
+        }
     }
 }
 

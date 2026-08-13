@@ -1,0 +1,143 @@
+// Copyright © 2026 Eric Budai
+
+using Ronin.Compiler;
+
+namespace Integration;
+
+/// <summary>
+///     Type annotations resolved through the compiler, by the path a build takes:
+///     source in, findings out.
+/// </summary>
+///
+/// <remarks>
+///     The join <see cref="Compilation"/> deferred with a comment — «types resolve
+///     against a table that does not exist yet» — now made. An annotation is a
+///     reference read against the type kind, and a run of words that names no type
+///     is a finding at the annotation rather than a no-reading nobody sees.
+/// </remarks>
+[Trait(nameof(Compilation), null)]
+public class TypeAnnotations
+{
+    private static IReadOnlyList<Finding> Of(string source)
+        => Compilation.Of(new SourceText(source, "Player.ron")).Findings;
+
+    [Fact(DisplayName = "the supplied types annotate cleanly")]
+    public void TheSuppliedTypesAnnotateCleanly()
+    {
+        Assert.Empty(Of("""
+                        var a => number;
+                        var b => text;
+                        var c => truth;
+                        var d => error;
+                        var e => list of number;
+                        var f => optional text;
+                        var g => optional list of number;
+                        var h => lookup text => number;
+                        var i => text => number;
+                        var j => lookup text => list of number;
+                        var k => (text, number) => truth;
+                        var l => () => number;
+
+                        """));
+    }
+
+    [Fact(DisplayName = "an unknown type name is a finding at the annotation")]
+    public void AnUnknownTypeNameIsAFindingAtTheAnnotation()
+    {
+        var finding = Assert.IsType<UnknownType>(Assert.Single(Of("var cash on hand => money;\n")));
+
+        Assert.Equal("money", finding.Name);
+
+        // At the annotation — «money» at column 21 — and not at the declaration.
+        Assert.StartsWith("Player.ron:1:21:", Diagnostics.Report(finding));
+    }
+
+    [Fact(DisplayName = "a bare type constructor is not a type")]
+    public void ABareTypeConstructorIsNotAType()
+    {
+        // The type is «list of (_)»; «list» alone names none. This is the fixture
+        // shape the sweep turns into «list of number».
+        Assert.Equal("list", Assert.IsType<UnknownType>(Assert.Single(Of("var items => list;\n"))).Name);
+    }
+
+    [Fact(DisplayName = "a parameter and a return type are annotations too")]
+    public void AParameterAndAReturnTypeAreAnnotationsToo()
+    {
+        // Both positions are walked, so both are reported — two sites, two edits.
+        var findings = Of("function convert (amount => money) => moolah { return amount; }\n");
+
+        Assert.Equal(["money", "moolah"],
+                     findings.OfType<UnknownType>().Select(finding => finding.Name).Order());
+        Assert.Equal(2, findings.Count);
+    }
+
+    [Fact(DisplayName = "one bad type in two declarations is two findings, one per site")]
+    public void OneBadTypeInTwoDeclarationsIsTwoFindingsOnePerSite()
+    {
+        // Each written annotation is a site of its own — the mistake is reported
+        // where it is written, and two declarations are two places to fix.
+        var findings = Of("var a => money;\nvar b => money;\n");
+
+        Assert.Equal(2, findings.Count);
+        Assert.All(findings, finding => Assert.Equal("money", Assert.IsType<UnknownType>(finding).Name));
+    }
+
+    [Fact(DisplayName = "a declared type is usable with no definition")]
+    public void ADeclaredTypeIsUsableWithNoDefinition()
+    {
+        // «type money;» names it; that is enough to annotate with. A definition
+        // would give it structure, and an opaque handle you can name and pass but
+        // not construct is a real thing rather than an error waiting to happen.
+        Assert.Empty(Of("type money;\nvar cash on hand => money;\n"));
+    }
+
+    [Fact(DisplayName = "an annotation resolves in its own scope, seeing the types enclosing it")]
+    public void AnAnnotationResolvesInItsOwnScopeSeeingTheTypesEnclosingIt()
+    {
+        // A type declared at module scope is visible in a body nested below it,
+        // because the body's table folds the enclosing one in.
+        Assert.Empty(Of("type colour;\nfunction paint (with => colour) { return with; }\n"));
+
+        // And a type declared INSIDE a body is not visible to a sibling or the
+        // module: the walk resolves each annotation in the scope that owns it, so
+        // «shade» is unknown at module scope though a body declares one.
+        var finding = Assert.IsType<UnknownType>(Assert.Single(Of("""
+                                                                  function mix { type shade; }
+                                                                  var background => shade;
+
+                                                                  """)));
+        Assert.Equal("shade", finding.Name);
+    }
+
+    [Fact(DisplayName = "a chain of arrows is an ambiguity at the annotation, with brackets to repair it")]
+    public void AChainOfArrowsIsAnAmbiguityAtTheAnnotationWithBracketsToRepairIt()
+    {
+        // The arrow does not associate, so a bare chain is a tie the reader
+        // brackets — reported with the same finding and repairs a value ambiguity
+        // gets, at the annotation rather than at every use.
+        var chain = Assert.IsType<Ambiguous>(Assert.Single(Of("var handler => text => number => truth;\n")));
+        Assert.Equal(2, chain.Total);
+        Assert.NotEmpty(chain.Repairs);
+
+        // LOOKUP-ARROW §2: the lookup's arrow and the function arrow compete for
+        // the second «=>», so there are three bracketings and the finding offers
+        // all three.
+        var lookup = Assert.IsType<Ambiguous>(Assert.Single(Of("var table => lookup text => number => truth;\n")));
+        Assert.Equal(3, lookup.Total);
+    }
+
+    [Fact(DisplayName = "a type member's annotation is read once, in the type's body")]
+    public void ATypeMembersAnnotationIsReadOnceInTheTypesBody()
+    {
+        // The walk stops at a type's «Definition», so a member's annotation is
+        // reached by the recursion into the type body and not again at the scope
+        // that holds the type. One unknown member type is one finding, not two.
+        var finding = Assert.IsType<UnknownType>(Assert.Single(Of("type wallet { var balance => money; }\n")));
+
+        Assert.Equal("money", finding.Name);
+
+        // And a member typed by a name the type itself supplies resolves — the
+        // body sees the module scope that declares it.
+        Assert.Empty(Of("type currency;\ntype wallet { var held => currency; }\n"));
+    }
+}

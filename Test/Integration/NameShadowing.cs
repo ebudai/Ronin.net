@@ -78,7 +78,7 @@ public class NameShadowing
               + "function send (x => number) to (y => number) { }\n",
                 "send x to y", "send (_) to (_)")]
     [InlineData("var sort order => text;\n"
-              + "function sort (items => list) => list { return items; }\n",
+              + "function sort (items => list of number) => list of number { return items; }\n",
                 "sort order", "sort (_)")]
     public void AndGluedOwnSpanCallsAreRefusedUntilTypesEliminateThem(string source, string name, string pattern)
     {

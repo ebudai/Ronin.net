@@ -48,6 +48,7 @@ public class Findings
                      "var total otherwise zero => number;\n",
                      "function x otherwise (value => number) { return value; }\n",
                      "var x => = 1;\n",
+                     "var cash on hand => money;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => number) {}\n",
                      "function (x => number) rounded { return x; }\n",
                      "function compute part /* gap */ of (x => number) { return x; }\n",
@@ -219,6 +220,8 @@ public class Findings
             Player.ron:1:10: «x otherwise (_)» uses «otherwise», which the language reads as an operator between two values. A call to it covers the same span as the operation, so every «… otherwise …» in scope would have both readings and no bracketing would tell them apart. Respell it.
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
+
+            Player.ron:1:21: «money» is not a type. Nothing declares it and the language supplies no such type. Declare it with «type money;», or name a type that exists.
 
             Player.ron:1:10: «word word word word wor ... ord word word word word» has 129 words and holes, and a pattern may have at most 128. Matching one walks a frame per segment, so the limit is what keeps a declaration from being a way to exhaust the stack. Split it into smaller patterns.
 

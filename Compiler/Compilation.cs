@@ -130,6 +130,8 @@ internal sealed class Compilation
             }
         }
 
+        foreach (var finding in Annotations(statements, declared)) Add(finding);
+
         foreach (var finding in Exits(reacting)) Add(finding);
 
         foreach (var body in statements.SelectMany(Bodies))
@@ -211,6 +213,70 @@ internal sealed class Compilation
                                          resolution.Kind is ResolutionKind.Ambiguous
                                        ? Repairs.For(resolver, lexemes, resolution)
                                        : []);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     What each type annotation in this scope resolves to, and where it does
+    ///     not.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     <para>
+    ///     The other half of <see cref="Read"/>, and the comment it closes. A type
+    ///     annotation is a reference too — «=> list of number» is a run of words
+    ///     awaiting a meaning exactly as a statement is — and until now it was read
+    ///     against the VALUE table, where it means nothing, or not read at all. It
+    ///     resolves against the same table now, filtered to the type kind: the
+    ///     value side is <c>Known</c>/<c>Callable</c>, this is that filter read the
+    ///     other way, in one pass rather than a second table.
+    ///     </para>
+    ///     <para>
+    ///     THIS scope's table and no further, for the reason <see cref="Read"/>
+    ///     stops where it does: the walk halts at a nested body — a <c>Scope</c> or
+    ///     a type's <c>Definition</c> — because a parameter's or a return's type
+    ///     belongs to the signature written here, while a member's belongs to the
+    ///     body and the recursion reaches it with the body's own symbols. It
+    ///     descends INTO a <c>Type.Unresolved</c>, which the value walk skips,
+    ///     because that is the annotation it is here to read.
+    ///     </para>
+    ///     <para>
+    ///     BOTH halves are reported, where the value side reports only ambiguity.
+    ///     A no-reading has one cause here — the words are not a type, because the
+    ///     table is complete at the annotation — so <see cref="UnknownType"/> says
+    ///     the one true thing rather than guessing among several. And a type with
+    ///     more than one reading is an ambiguity like any other: the function-type
+    ///     arrow does not associate, so «text => number => truth» and a two-arrow
+    ///     lookup are ties the reader brackets, with the same finding and the same
+    ///     repairs the value side already produces.
+    ///     </para>
+    /// </remarks>
+    private IEnumerable<Finding> Annotations(IReadOnlyList<Statement> statements, Declarations declared)
+    {
+        Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
+
+        foreach (var statement in statements)
+        {
+            foreach (var annotation in Walk<Grammar.Type.Unresolved>(statement,
+                         into: node => node is not Grammar.Scope && node is not Grammar.Type.Definition))
+            {
+                var lexemes = annotation.Reference.ToLexemes();
+                var resolution = resolver.Resolve(lexemes);
+                var where = annotation.Reference.Where(Source);
+
+                if (resolution.Kind is ResolutionKind.Ambiguous)
+                {
+                    yield return new Ambiguous(where,
+                                               [.. resolution.Readings],
+                                               Repairs.For(resolver, lexemes, resolution),
+                                               resolution.Total,
+                                               resolution.Bounded);
+                }
+                else if (resolution.Kind is ResolutionKind.NoParse)
+                {
+                    yield return new UnknownType(where, lexemes.Render());
+                }
             }
         }
     }

@@ -90,6 +90,9 @@ internal enum FindingKind
     /// <summary>«stop» where there is no «when» to remove.</summary>
     MisplacedStop,
 
+    /// <summary>A type annotation whose words name no type.</summary>
+    UnknownType,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -786,6 +789,42 @@ internal sealed class Malformed(Span primary, string reason, string text)
     public override string Message
         => $"{Reason}. «{Text}» could not be read, and the rest of the statement was skipped so " +
            "that one mistake is reported once.";
+}
+
+/// <summary>A type annotation whose words name no type.</summary>
+///
+/// <remarks>
+///     <para>
+///     The type half of a no-reading, and unlike the value half it is not
+///     deferred. A value span that will not resolve may be an undeclared name, a
+///     call that does not fit, or a phase this compiler has not built — and
+///     reporting them as one would say the wrong one most of the time. A type
+///     annotation has a single cause, because the table is complete at the
+///     annotation: the words are not a type. So it is said where it is written,
+///     once, however many uses share the mistake.
+///     </para>
+///     <para>
+///     NO REPAIR, which is the rule rather than an omission. A repair is offered
+///     when the program TEXT can select a reading, and here it cannot — no
+///     bracketing turns a missing name into a present one. The remedies are a
+///     declaration or a different word, and both are the author's.
+///     </para>
+///     <para>
+///     "Nothing declares it" is the fact this states, and not "not in scope",
+///     deliberately: once modules are scoped a second case appears — a type
+///     declared in a module this one has not imported — whose remedy is the
+///     import rather than a declaration. That arrives as its own finding, so this
+///     sentence is not one anybody has to relearn.
+///     </para>
+/// </remarks>
+internal sealed class UnknownType(Span primary, string name)
+    : Finding(FindingKind.UnknownType, primary)
+{
+    public string Name { get; } = name;
+
+    public override string Message
+        => $"«{Name}» is not a type. Nothing declares it and the language supplies no such type. " +
+           $"Declare it with «type {Name};», or name a type that exists.";
 }
 
 /// <summary>
