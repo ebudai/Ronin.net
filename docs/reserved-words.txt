@@ -22,17 +22,19 @@
     is           reads as an operator between two values, and no bracket tells the two apart
     otherwise    reads as an operator between two values, and no bracket tells the two apart
 
-## COSTS NOTHING (6) — every hole before a word is determinate
+## COSTS NOTHING (7) — every hole before a word is determinate
 
     for each «one word, or a bracketed name» in (_)
+    list of (_)
     old (_)
     optional (_)
     return
     return (_)
     stop
 
-## NO NAME MAY BEGIN WITH (3) — a rule, not advice
+## NO NAME MAY BEGIN WITH (4) — a rule, not advice
 
+    list of      from list of (_)
     old          from old (_)
     optional     from optional (_)
     return       from return (_)

@@ -1655,6 +1655,9 @@ internal sealed class SymbolTable
     /// </remarks>
     internal static Pattern Optional { get; } = new(["optional", null]);
 
+    /// <summary>«list of (_)», whose «of» reads correctly for one parameter.</summary>
+    internal static Pattern Listing { get; } = new(["list", "of", null]);
+
     /// <summary>
     ///     «return» with nothing after it — leaving a body that has no answer.
     /// </summary>
@@ -1746,10 +1749,20 @@ internal sealed class SymbolTable
             },
 
         Descriptor.Shaped("A type whose value may be absent.", Optional)
-            with { Forms = ["optional (a type)"] },
+            with { Forms = ["optional (a type)"], Kind = SymbolKind.Type },
+
+        Descriptor.Shaped("A type whose values are lists of one element type.", Listing)
+            with { Forms = ["list of (a type)"], Kind = SymbolKind.Type },
 
         Descriptor.Spelled("Truth.", "true") with { SeeAlso = ["false"] },
         Descriptor.Spelled("Untruth.", "false") with { SeeAlso = ["true"] },
+
+        Descriptor.Spelled("The type of numbers.", "number") with { Kind = SymbolKind.Type },
+        Descriptor.Spelled("The type of text.", "text") with { Kind = SymbolKind.Type },
+        Descriptor.Spelled("The type of «true» and «false».", "truth")
+            with { Kind = SymbolKind.Type, SeeAlso = ["true", "false"] },
+        Descriptor.Spelled("The type of a failure, which every type admits and which admits nothing.", "error")
+            with { Kind = SymbolKind.Type },
     ];
 
     /// <summary>
@@ -1794,7 +1807,9 @@ internal sealed class SymbolTable
     ///     </para>
     /// </remarks>
     public static IReadOnlyList<string> Truths { get; }
-        = [.. Supplies.Where(supplied => supplied.Shape is null).Select(supplied => supplied.Name).Order(System.StringComparer.Ordinal)];
+        = [.. Supplies.Where(supplied => supplied.Shape is null && supplied.Kind is SymbolKind.Value)
+                      .Select(supplied => supplied.Name)
+                      .Order(System.StringComparer.Ordinal)];
 
     /// <summary>The supplied patterns, for the rules that ask what words are taken.</summary>
     public static IReadOnlyList<Pattern> Builtins { get; }

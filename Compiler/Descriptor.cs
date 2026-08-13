@@ -65,6 +65,19 @@ internal sealed record Descriptor
     /// <summary>The pattern, where it is one. Null for a name.</summary>
     public Pattern Shape { get; }
 
+    /// <summary>
+    ///     Whether this supplies a value or a type.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     ONE LIST for both, because the table they seed is one table — a type
+    ///     name is a name, told apart by its kind rather than by living somewhere
+    ///     else. What the kind is for here is the derivations: every one of them
+    ///     asks this list a question, and «what are the truth literals» wants a
+    ///     different answer from «what spellings does the language supply».
+    /// </remarks>
+    public SymbolKind Kind { get; init; } = SymbolKind.Value;
+
     /// <summary>The spellings, one per arity, where more than one reads differently.</summary>
     ///
     /// <remarks>

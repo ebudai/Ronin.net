@@ -7,6 +7,10 @@ writes it again. Change the summary where the entry is declared.
 The guide is the hand-written half, and answers «how do I do X». This answers
 «what exactly is Y».
 
+## error
+
+The type of a failure, which every type admits and which admits nothing.
+
 ## false
 
 Untruth.
@@ -18,6 +22,16 @@ See also: «true».
 Runs its body once for each element, binding the element to a name.
 
     for each «one name» in (the list)
+
+## list of (_)
+
+A type whose values are lists of one element type.
+
+    list of (a type)
+
+## number
+
+The type of numbers.
 
 ## old (_)
 
@@ -63,8 +77,18 @@ Only inside a «when» body. To end the current firing and leave the «when» in
 
 See also: «return».
 
+## text
+
+The type of text.
+
 ## true
 
 Truth.
 
 See also: «false».
+
+## truth
+
+The type of «true» and «false».
+
+See also: «true», «false».

@@ -20,6 +20,25 @@ public class ScopeBuilding
         return Declarations.Of(parser.Parse().Scopes[0].Statements, text);
     }
 
+    [Fact(DisplayName = "a supplied type name is not a truth literal")]
+    public void ASuppliedTypeNameIsNotATruthLiteral()
+    {
+        // «Truths» takes every NULLARY supply, so the four supplied type names
+        // would have become truth literals the moment they were added — an
+        // expression could mention «number» and get a value. That is the kind
+        // filter's absence showing up as a wrong answer rather than a missing
+        // one, which is the shape of the annotation-prune bug, so it is named.
+        Assert.Equal(["false", "true"], SymbolTable.Truths.Order());
+
+        // They ARE supplied, so nobody may declare them — the language owns the
+        // spelling and only one of the two names would be the author's to move.
+        Assert.Contains("number", SymbolTable.Whole);
+        Assert.Contains("error", SymbolTable.Whole);
+
+        // And no expression may mention one.
+        Assert.Equal(ResolutionKind.NoParse, new Resolver(new SymbolTable()).Resolve(Lexemes.Lex("number")).Kind);
+    }
+
     [Fact(DisplayName = "a type is a name in the same table, told apart by its kind")]
     public void ATypeIsANameInTheSameTableToldApartByItsKind()
     {
