@@ -1558,7 +1558,9 @@ internal sealed class SymbolTable
     ///     </para>
     /// </remarks>
     public IEnumerable<Pattern> Callable
-        => Patterns.Select(entry => entry.Pattern).Append(Answer).Append(Exit).Append(Halt);
+        => Patterns.Where(entry => entry.Kind is SymbolKind.Value)
+                   .Select(entry => entry.Pattern)
+                   .Append(Answer).Append(Exit).Append(Halt);
 
 
     /// <summary>
@@ -1571,7 +1573,8 @@ internal sealed class SymbolTable
     ///     question several things ask, and a word nobody wrote is not an answer
     ///     to it.
     /// </remarks>
-    public IEnumerable<string> Known => Names.Keys.Concat(Truths);
+    public IEnumerable<string> Known
+        => Names.Where(entry => entry.Value is SymbolKind.Value).Select(entry => entry.Key).Concat(Truths);
 
     /// <summary>
     ///     Patterns the grammar provides, in every scope, always.

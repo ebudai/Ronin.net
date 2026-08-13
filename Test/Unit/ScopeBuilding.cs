@@ -33,6 +33,14 @@ public class ScopeBuilding
 
         Assert.Equal(SymbolKind.Type, declared.Symbols.Names["money"]);
         Assert.Equal(SymbolKind.Value, declared.Symbols.Names["cash on hand"]);
+
+        // And the kind NARROWS the candidates rather than merely labelling them:
+        // an expression may mention the value and not the type, which is one pass
+        // with two predicates rather than two tables with one each.
+        var resolver = new Resolver(declared.Symbols);
+
+        Assert.Equal(ResolutionKind.Resolved, resolver.Resolve(Lexemes.Lex("cash on hand")).Kind);
+        Assert.Equal(ResolutionKind.NoParse, resolver.Resolve(Lexemes.Lex("money")).Kind);
     }
 
     [Fact(DisplayName = "a declaration is a name or a pattern, structurally")]
