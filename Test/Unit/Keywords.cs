@@ -12,6 +12,7 @@ public class Keywords
     private const string constant = Constant.keyword;
     private const string reactive = Reactive.keyword;
     private const string compiled = Compiled.keyword;
+    private const string fast = Fast.keyword;
     private const string shared = Global.keyword;
     private const string partof = PartOf.keyword;
     private const string import = Import.keyword;
@@ -88,6 +89,17 @@ public class Keywords
         var keyword = Keyword.Lex(ref lexer) as Compiled;
 
         Assert.Equal(compiled, keyword?.Memory.ToString());
+    }
+
+    [Fact(DisplayName = fast)]
+    public void FastKeyword()
+    {
+        const string sourcecode = $"{fast} number";
+
+        Lexer lexer = new(sourcecode);
+        var keyword = Keyword.Lex(ref lexer) as Fast;
+
+        Assert.Equal(fast, keyword?.Memory.ToString());
     }
 
     [Fact(DisplayName = shared)]

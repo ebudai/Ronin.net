@@ -41,6 +41,23 @@ public class TypeAnnotations
                         """));
     }
 
+    [Fact(DisplayName = "«fast number» is a modifier on the one number type, not a type of its own")]
+    public void FastNumberIsAModifierOnTheOneNumberTypeNotATypeOfItsOwn()
+    {
+        // TYPEHALFRULINGS §1: «fast» is a modifier, so «fast number» is «number»
+        // with a representation hint and the checker never sees two number types.
+        // The annotation resolves to «number» with nothing to report.
+        Assert.Empty(Of("var pace => fast number;\n"));
+
+        // and the modifier rides with the datum rather than the type — it is
+        // stripped before the reference the annotation walk reads.
+        var datum = Assert.IsType<Ronin.Grammar.Datum>(
+            Compilation.Of(new SourceText("var pace => fast number;\n", "Player.ron"))
+                       .Module.Scopes[0].Statements[0]);
+
+        Assert.True(datum.Modifiers.Is<Ronin.Lexicon.Fast>());
+    }
+
     [Fact(DisplayName = "an unknown type name is a finding at the annotation")]
     public void AnUnknownTypeNameIsAFindingAtTheAnnotation()
     {
