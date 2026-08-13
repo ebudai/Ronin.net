@@ -572,14 +572,30 @@ public class Resolutions
         Assert.Equal([SymbolTable.Builtins[0]], refused);
     }
 
+    [Theory(DisplayName = "a symbol the lexer makes is a segment, and reserves nothing")]
+    [InlineData("lookup (_) => (_)")]  // the lookup type, whose arrow reads correctly for a mapping
+    [InlineData("take +")]             // a user pattern may claim a symbol too
+    [InlineData("take <_>")]           // symbols either side of a hole
+    [InlineData("take a-b")]           // a word, a symbol and a word, which is three segments
+    public void ASymbolTheLexerMakesIsASegmentAndReservesNothing(string pattern)
+    {
+        // A second grammar for the lookup type would be a second ambiguity
+        // policy, so the arrow is an ordinary segment and this is the ordinary
+        // matcher. What a symbol segment does NOT do is reserve: glue exists
+        // because a name can swallow a word sitting between two holes, and a
+        // name cannot swallow a symbol — the lexer stops a word at one. So the
+        // name rules are about words and a symbol segment is invisible to them.
+        var parsed = Pattern.Parse(pattern);
+
+        Assert.NotNull(parsed);
+        Assert.Empty(parsed.Glue.Where(word => word.Any(letter => char.IsLetter(letter) is false)));
+    }
+
     [Theory(DisplayName = "a segment the lexer cannot make is refused, not stored")]
-    [InlineData("take <_>")]           // the reference probe's notation, which is three symbols here
     [InlineData("take 1")]             // Number
-    [InlineData("take +")]             // Symbol
     [InlineData("take (")]             // Open, and an unmatched one at that
     [InlineData("take )")]             // Close
     [InlineData("take ,")]             // Separator
-    [InlineData("take a-b")]           // a word, a symbol and a word
     [InlineData("take , x y")]         // not a bracket, and not at the end either
     [InlineData("take (+)")]           // bracketed, but not around a hole
     [InlineData("take (a)")]           // bracketed around a word, which is not how a segment is written
@@ -696,9 +712,7 @@ public class Resolutions
     }
 
     [Theory(DisplayName = "a segment no source can produce is refused by the constructor")]
-    [InlineData("<_>")]
     [InlineData("1")]
-    [InlineData("+")]
     [InlineData("for  each")]
     [InlineData("part of alice")]
     public void ASegmentNoSourceCanProduceIsRefusedByTheConstructor(string segment)

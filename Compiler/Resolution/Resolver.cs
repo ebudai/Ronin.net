@@ -725,7 +725,16 @@ internal sealed class Resolver
 
         if (word is not null)
         {
-            if (position < end && lexemes[position].Kind is LexemeKind.Word && lexemes[position].Text == word)
+            // A WORD or a SYMBOL, because a segment may be either: «lookup (_)
+            // => (_)» joins its key to its value with an arrow, and resolving it
+            // through anything but this matcher would be a second grammar with a
+            // second ambiguity policy. Admitting the symbol here is what keeps
+            // one resolver — and it is what makes «m => lookup text => number»
+            // resolve uniquely, since the arrow takes part in ordinary resolution
+            // under the kind filter.
+            if (position < end
+                && lexemes[position].Kind is LexemeKind.Word or LexemeKind.Symbol
+                && lexemes[position].Text == word)
                 return Match(pattern, segment + 1, lexemes, position + 1, end);
 
             return Fillings.None;
@@ -1307,6 +1316,19 @@ internal sealed class Pattern : IEquatable<Pattern>
                 continue;
             }
 
+            // A SYMBOL may be a segment, which is what lets «lookup (_) => (_)»
+            // be an ordinary pattern rather than a second grammar. It reserves
+            // NOTHING: glue exists because a name can swallow a word between two
+            // holes, and a name cannot swallow a symbol — the lexer stops a word
+            // at one — so R5′, R6b and R7b are about words and a symbol segment
+            // is invisible to them.
+            //
+            // The restriction that it be a symbol the lexer already produces
+            // needs no code: this reads back what the lexer made, so punctuation
+            // a pattern author assembled — «~>» where the lexer yields «~» then
+            // «>» — arrives as two segments and fails to read back as itself.
+            if (lexemes[at].Kind is LexemeKind.Symbol) { segments.Add(lexemes[at].Text); continue; }
+
             return null;
         }
 
@@ -1389,6 +1411,14 @@ internal sealed class Pattern : IEquatable<Pattern>
                 // because a pattern must begin with a word — so there is always
                 // a previous segment to look at.
                 if (Segments[segment - 1] is null && Pinned.Contains(segment - 1)) continue;
+
+                // A SYMBOL segment reserves nothing, so it is not glue. Glue
+                // exists because a name can swallow a word that sits between two
+                // holes; a name cannot swallow a symbol, because the lexer stops
+                // a word at one. So «lookup (_) => (_)» takes no word out of
+                // anybody's vocabulary, and the name rules — which are about
+                // words — never see it.
+                if (Segments[segment].Any(letter => char.IsLetter(letter) is false)) continue;
 
                 yield return Segments[segment];
             }
@@ -1659,6 +1689,12 @@ internal sealed class SymbolTable
     internal static Pattern Listing { get; } = new(["list", "of", null]);
 
     /// <summary>
+    ///     «lookup (_) => (_)», whose arrow reads correctly for a mapping where
+    ///     «of» reads correctly for one parameter.
+    /// </summary>
+    internal static Pattern Lookups { get; } = new(["lookup", null, Lexicon.Arrow.symbol, null]);
+
+    /// <summary>
     ///     «return» with nothing after it — leaving a body that has no answer.
     /// </summary>
     ///
@@ -1753,6 +1789,15 @@ internal sealed class SymbolTable
 
         Descriptor.Shaped("A type whose values are lists of one element type.", Listing)
             with { Forms = ["list of (a type)"], Kind = SymbolKind.Type },
+
+        Descriptor.Shaped("A type whose values map keys of one type to values of another.", Lookups)
+            with
+            {
+                Forms = ["lookup (a key type) => (a value type)"],
+                Kind = SymbolKind.Type,
+                Legal = "The arrow reads correctly for a mapping where «of» reads correctly for one "
+                      + "parameter, which is why this and «list of (_)» are spelled differently.",
+            },
 
         Descriptor.Spelled("Truth.", "true") with { SeeAlso = ["false"] },
         Descriptor.Spelled("Untruth.", "false") with { SeeAlso = ["true"] },

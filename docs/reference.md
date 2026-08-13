@@ -29,6 +29,14 @@ A type whose values are lists of one element type.
 
     list of (a type)
 
+## lookup (_) => (_)
+
+A type whose values map keys of one type to values of another.
+
+    lookup (a key type) => (a value type)
+
+The arrow reads correctly for a mapping where «of» reads correctly for one parameter, which is why this and «list of (_)» are spelled differently.
+
 ## number
 
 The type of numbers.

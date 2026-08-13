@@ -22,10 +22,11 @@
     is           reads as an operator between two values, and no bracket tells the two apart
     otherwise    reads as an operator between two values, and no bracket tells the two apart
 
-## COSTS NOTHING (7) — every hole before a word is determinate
+## COSTS NOTHING (8) — every hole before a word is determinate
 
     for each «one word, or a bracketed name» in (_)
     list of (_)
+    lookup (_) => (_)
     old (_)
     optional (_)
     return
@@ -39,9 +40,10 @@
     optional     from optional (_)
     return       from return (_)
 
-## NO COMPLETE NAME MAY HAVE THE SHAPE (1) — a rule, not advice
+## NO COMPLETE NAME MAY HAVE THE SHAPE (2) — a rule, not advice
 
     for each «one word, or a bracketed name» in (_)
+    lookup (_) => (_)
 
 ## PROTECTED (2) — no pattern may use these as glue
 
