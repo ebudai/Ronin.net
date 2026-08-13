@@ -14,7 +14,7 @@ public class Symbols
         Lexer lexer = new(literal);
         var lexed = Symbol.Lex(ref lexer);
 
-        Assert.IsNotType<Returns>(lexed);
+        Assert.IsNotType<Arrow>(lexed);
     }
 
     [Fact(DisplayName = "empty")]

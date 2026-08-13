@@ -86,12 +86,12 @@ public class Identifiers : ParsingTests
         {
             Keyword.Variable(),
             Word(things),
-            Returns(),
+            Arrow(),
             Word(number),
             Terminal(),
             Keyword.Variable(),
             Word(things),
-            Returns(),
+            Arrow(),
             Word(money),
             Terminal()
         };

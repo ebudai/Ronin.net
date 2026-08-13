@@ -65,7 +65,7 @@ internal class Datum : Member
 
         Modifiers modifiers = null;
         Type type = null;
-        if (parser.TryAdvance<Returns>())
+        if (parser.TryAdvance<Arrow>())
         {
             modifiers = Modifiers.Parse(ref parser);
             type = Type.Unresolved.Parse(ref parser);
@@ -126,7 +126,7 @@ internal class Datum : Member
 
     public class ExpectedTypeError : Datum, IError
     {
-        public string Reason { get; } = $"expected a type after '{Returns.symbol}'";
+        public string Reason { get; } = $"expected a type after '{Arrow.symbol}'";
         public ReadOnlyMemory<Token> Tokens { get; init; }
     }
 

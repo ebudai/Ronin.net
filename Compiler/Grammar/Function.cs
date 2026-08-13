@@ -33,7 +33,7 @@ internal class Function : Member
 
         Modifiers modifiers = null;
         Type returns = null;
-        if (parser.TryAdvance<Returns>())
+        if (parser.TryAdvance<Arrow>())
         {
             modifiers = Modifiers.Parse(ref parser);
 
@@ -79,7 +79,7 @@ internal class Function : Member
 
     public class ExpectedTypeError : Function, IError
     {
-        public string Reason { get; } = $"expected a type after '{Lexicon.Returns.symbol}'";
+        public string Reason { get; } = $"expected a type after '{Lexicon.Arrow.symbol}'";
         public System.ReadOnlyMemory<Token> Tokens { get; init; }
     }
 }

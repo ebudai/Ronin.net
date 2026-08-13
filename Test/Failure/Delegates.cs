@@ -10,7 +10,7 @@ namespace Failure;
 public class Delegates : ParsingTests
 {
     [Fact(DisplayName = "missing returns symbol")]
-    public void MissingReturns()
+    public void MissingArrow()
     {
         // (things, stuff, others) { return 3; }
 
@@ -44,7 +44,7 @@ public class Delegates : ParsingTests
         List<Token> tokens = new()
         {
             Word("billy"),
-            Returns(),
+            Arrow(),
             Terminal(),
         };
 

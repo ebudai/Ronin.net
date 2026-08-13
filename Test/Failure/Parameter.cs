@@ -46,7 +46,7 @@ public class Parameter : ParsingTests
         {
             StartValues(),
             Word("test"),
-            Returns(),
+            Arrow(),
             Word("money"),
             Separator(),
             StartBracket(),
@@ -72,7 +72,7 @@ public class Parameter : ParsingTests
         List<Token> tokens = new()
         {
             Word("test"),
-            Returns(),
+            Arrow(),
             Word("text"),
             Terminal(),
             EndValues(),

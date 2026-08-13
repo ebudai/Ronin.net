@@ -16,7 +16,7 @@ public class Modifier : ParsingTests
         List<Token> tokens = new()
         {
             Word("thingy"),
-            Returns(),
+            Arrow(),
             Number(44.3),
             Terminal(),
         };

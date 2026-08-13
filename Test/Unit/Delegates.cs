@@ -19,7 +19,7 @@ public class Delegates : ParsingTests
         List<Token> tokens = new()
         {
             Word("dave"),
-            Returns(),
+            Arrow(),
             StartScope(),
             Word("return"),
             Number(3),
@@ -59,10 +59,10 @@ public class Delegates : ParsingTests
         {
             StartValues(),
             Word("dave"),
-            Returns(),
+            Arrow(),
             Word("money"),
             EndValues(),
-            Returns(),
+            Arrow(),
             StartScope(),
             Word("return"),
             Number(3),
@@ -107,7 +107,7 @@ public class Delegates : ParsingTests
             Separator(),
             Word("wanda"),
             EndValues(),
-            Returns(),
+            Arrow(),
             StartScope(),
             Word("return"),
             Number(3),
@@ -152,7 +152,7 @@ public class Delegates : ParsingTests
         {
             StartValues(),
             EndValues(),
-            Returns(),
+            Arrow(),
             StartScope(),
             Word("return"),
             Number(3),
@@ -193,7 +193,7 @@ public class Delegates : ParsingTests
             Assign(),
             StartValues(),
             EndValues(),
-            Returns(),
+            Arrow(),
             StartScope(),
             Word("return"),
             Number(3),

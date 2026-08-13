@@ -18,7 +18,7 @@ public class ReactiveScopes : ParsingTests
             Keyword.When(),
             Keyword.Changing(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Word("y"),
             Assign(),
             Word("x"),

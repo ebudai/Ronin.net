@@ -17,7 +17,7 @@ public class Modifiers : ParsingTests
         {
             Keyword.Variable(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Keyword.Compiled(),
             Word("money"),
             Terminal(),
@@ -40,7 +40,7 @@ public class Modifiers : ParsingTests
         {
             Keyword.Variable(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Keyword.Shared(),
             Word("money"),
             Terminal(),

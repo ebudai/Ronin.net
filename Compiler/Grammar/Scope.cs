@@ -253,7 +253,7 @@ internal class Scope : Statement
             Parser parser = current;
             Statement definition = null;
 
-            if (parser.TryAdvance<Returns>())
+            if (parser.TryAdvance<Arrow>())
             {
                 // A consumed «=>» commits to a value. Falling through to the
                 // block form when none followed made «function f => {}» a
@@ -282,7 +282,7 @@ internal class Scope : Statement
 
         public class ExpectedValueError : Statement, IError
         {
-            public string Reason { get; } = $"expected a value after '{Returns.symbol}'";
+            public string Reason { get; } = $"expected a value after '{Arrow.symbol}'";
             public ReadOnlyMemory<Token> Tokens { get; init; }
         }
     }

@@ -5,7 +5,7 @@ namespace Ronin.Lexicon;
 internal class Punctuation : Symbol
 {
     public new static Punctuation Lex(ref Lexer lexer)
-        => Returns.Lex(ref lexer)
+        => Arrow.Lex(ref lexer)
         ?? Assignment.Lex(ref lexer)
         ?? Bracket.Lex(ref lexer)
         ?? Separator.Lex(ref lexer)
@@ -26,11 +26,22 @@ internal class Punctuation : Symbol
     }
 }
 
-internal class Returns : Punctuation
+/// <summary>
+///     «=&gt;», which does three jobs and is named for none of them.
+/// </summary>
+///
+/// <remarks>
+///     Called «Returns» once, after one of the three: it ascribes a type in
+///     «var n =&gt; number», separates a delegate's parameters from its body, and
+///     joins a lookup type's key to its value in «lookup text =&gt; number». A
+///     token named for one of its uses is the same trap as a symbol kind being
+///     asked to carry «=», and the name stops lying before a fourth job arrives.
+/// </remarks>
+internal class Arrow : Punctuation
 {
     internal const string symbol = "=>";
 
-    public new static Returns Lex(ref Lexer lexer) => Lex<Returns>(ref lexer, symbol);
+    public new static Arrow Lex(ref Lexer lexer) => Lex<Arrow>(ref lexer, symbol);
 }
 
 /// <summary>

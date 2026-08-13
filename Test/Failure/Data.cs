@@ -16,7 +16,7 @@ public class Data : ParsingTests
         List<Token> tokens = new()
         {
             Keyword.Reactive(),
-            Returns(),
+            Arrow(),
             Number(44.3),
             Terminal(),
         };

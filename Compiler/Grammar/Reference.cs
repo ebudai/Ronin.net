@@ -230,7 +230,7 @@ internal class Reference : IEnumerable<Reference.Component>
 
             Parser ahead = current;
 
-            if (Name.Parse(ref ahead) is Name leading && ahead.Token is not Returns)
+            if (Name.Parse(ref ahead) is Name leading && ahead.Token is not Arrow)
             {
                 current = ahead;
                 return leading;

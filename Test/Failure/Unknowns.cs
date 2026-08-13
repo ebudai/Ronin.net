@@ -17,7 +17,7 @@ public class Unknowns : ParsingTests
 
         List<Token> tokens = new()
         {
-            Returns(),
+            Arrow(),
             Terminal(),
             new Sentinel()
         };

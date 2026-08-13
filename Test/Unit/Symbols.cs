@@ -58,7 +58,7 @@ public class Symbols
     }
 
     [Fact(DisplayName = "returns")]
-    public void LexReturns() => LexSymbol(Returns.symbol);
+    public void LexArrow() => LexSymbol(Arrow.symbol);
 
     [Fact(DisplayName = "assign")]
     public void LexAssign() => LexSymbol(Assign.symbol);

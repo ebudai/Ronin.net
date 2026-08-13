@@ -19,7 +19,7 @@ public class Data : ParsingTests
             Keyword.Variable(),
             Word("my"),
             Word("variable"),
-            Returns(),
+            Arrow(),
             Word("number"),
             Terminal(),
             new Sentinel()
@@ -49,7 +49,7 @@ public class Data : ParsingTests
         {
             Keyword.Let(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Keyword.Reactive(),
             Word("text"),
             Terminal(),
@@ -83,7 +83,7 @@ public class Data : ParsingTests
         {
             Keyword.Variable(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Keyword.Compiled(),
             Word("text"),
             Terminal(),
@@ -117,7 +117,7 @@ public class Data : ParsingTests
         {
             Keyword.Variable(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Keyword.Shared(),
             Word("text"),
             Terminal(),
@@ -155,7 +155,7 @@ public class Data : ParsingTests
         {
             Keyword.Let(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Word("optional"),
             Word("text"),
             Terminal()
@@ -215,7 +215,7 @@ public class Data : ParsingTests
         {
             Keyword.Variable(),
             Word("thing"),
-            Returns(),
+            Arrow(),
             Word("number"),
             Assign(),
             Number(2),

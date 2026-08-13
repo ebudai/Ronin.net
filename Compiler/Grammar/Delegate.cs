@@ -35,7 +35,7 @@ internal class Delegate : Temporary
             parameters = [name];
         }
 
-        if (parser.TryAdvance<Returns>() is false) return null;
+        if (parser.TryAdvance<Arrow>() is false) return null;
         if (Scope.Definition.Parse(ref parser) is not Scope definition) return null;
 
         current = parser;

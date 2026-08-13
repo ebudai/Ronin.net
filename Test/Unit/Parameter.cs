@@ -19,7 +19,7 @@ public class Parameter : ParsingTests
             StartValues(),
             Keyword.Variable(),
             Word("test"),
-            Returns(),
+            Arrow(),
             Word("money"),
             EndValues(),
             new Sentinel()
@@ -54,13 +54,13 @@ public class Parameter : ParsingTests
         {
             StartValues(),
             Word("test"),
-            Returns(),
+            Arrow(),
             Word("number"),
             Separator(),
             Word("stuff"),
             Word("in"),
             Word("things"),
-            Returns(),
+            Arrow(),
             Word("text"),
             EndValues(),
             new Sentinel()

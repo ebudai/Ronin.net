@@ -214,10 +214,10 @@ public class ParsingTests
         return range;
     }
 
-    internal static Returns Returns()
+    internal static Arrow Arrow()
     {
-        Returns returns = new();
-        returns.SetMemory(Ronin.Lexicon.Returns.symbol);
+        Arrow returns = new();
+        returns.SetMemory(Ronin.Lexicon.Arrow.symbol);
         return returns;
     }
 

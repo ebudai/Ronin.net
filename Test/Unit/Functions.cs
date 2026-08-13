@@ -24,7 +24,7 @@ public class Functions : ParsingTests
             Word("test"),
             StartValues(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Word("number"),
             EndValues(),
             StartScope(),
@@ -73,10 +73,10 @@ public class Functions : ParsingTests
             Word("test"),
             StartValues(),
             Word("x"),
-            Returns(),
+            Arrow(),
             Word("text"),
             EndValues(),
-            Returns(),
+            Arrow(),
             Word("number"),
             StartScope(),
             Word("return"),
@@ -133,7 +133,7 @@ public class Functions : ParsingTests
             Assign(),
             Text("3"),
             EndValues(),
-            Returns(),
+            Arrow(),
             Word("number"),
             StartScope(),
             Word("return"),
@@ -185,9 +185,9 @@ public class Functions : ParsingTests
                                         Datatype = Reference(money),
                                         Mutability = new Constant(),
                                         Identifier = Words(cash),
-                                        Source = new Token[] { Word(cash), Returns(), Word(money) }
+                                        Source = new Token[] { Word(cash), Arrow(), Word(money) }
                                     },
-                                    //Source = new Token[] { StartValues(), Word(cash), Returns(), Word(money), EndValues() }
+                                    //Source = new Token[] { StartValues(), Word(cash), Arrow(), Word(money), EndValues() }
                                 }
                             }
                         },

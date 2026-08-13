@@ -20,7 +20,7 @@ public class ConditionalReactiveScopes : ParsingTests
             Word("x"),
             Symbol("<"),
             Number(2),
-            Returns(),
+            Arrow(),
             Word("y"),
             Assign(),
             Word("x"),
