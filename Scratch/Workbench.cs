@@ -153,7 +153,7 @@ internal sealed class Workbench : Window
            });
 
     private IReadOnlyCollection<Shape> Shapes(SymbolTable symbols)
-        => [.. symbols.Patterns.Select(pattern => new Shape(pattern, blank.Span(0, 0)))];
+        => [.. symbols.Patterns.Select(entry => new Shape(entry.Pattern, blank.Span(0, 0)))];
 
     private readonly SourceText blank = new(string.Empty);
 
@@ -164,7 +164,7 @@ internal sealed class Workbench : Window
 
         foreach (var pattern in Lines(patterns))
         {
-            symbols.Patterns.Add(Pattern.Parse(pattern));
+            symbols.Patterns.Add((Pattern.Parse(pattern), SymbolKind.Value));
         }
 
         return symbols;

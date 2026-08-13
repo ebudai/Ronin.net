@@ -104,7 +104,7 @@ public class Evaluations
         SymbolTable symbols = new();
         symbols.WithNames("banks");
 
-        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add(builtin);
+        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add((builtin, SymbolKind.Value));
 
         Graph graph = new();
         graph.Var("banks", 3d);
@@ -137,7 +137,7 @@ public class Evaluations
         SymbolTable symbols = new();
         symbols.WithNames("banks");
 
-        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add(builtin);
+        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add((builtin, SymbolKind.Value));
 
         Graph graph = new();
         graph.Var("banks", 3d);

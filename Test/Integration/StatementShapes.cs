@@ -147,7 +147,7 @@ public class StatementShapes
             var declared = Compilation.Of(new SourceText($"var ready {spaced} world => number;\n", "P.ron"));
 
             Assert.Empty(declared.Findings);
-            Assert.Contains($"ready {keyword} world", declared.Declarations.Symbols.Names);
+            Assert.Contains($"ready {keyword} world", declared.Declarations.Symbols.Names.Keys);
 
             // and a pattern anchored on it matches what the lexer produces,
             // which is what «Split(' ')» could not do: it made four segments
@@ -156,7 +156,7 @@ public class StatementShapes
             var pattern = Compilation.Of(new SourceText($"function compute {spaced} (x => number) {{ return x; }}\n", "P.ron"));
 
             Assert.Empty(pattern.Findings);
-            Assert.Equal($"compute {keyword} (_)", Assert.Single(pattern.Declarations.Symbols.Patterns).ToString());
+            Assert.Equal($"compute {keyword} (_)", Assert.Single(pattern.Declarations.Symbols.Patterns).Pattern.ToString());
 
             Assert.Equal("Resolved",
                          new Resolver(pattern.Declarations.Symbols).Resolve($"compute {spaced} 1").Kind.ToString());

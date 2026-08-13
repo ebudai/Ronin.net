@@ -446,7 +446,7 @@ public class Resolutions
         SymbolTable symbols = new();
         symbols.WithNames("banks", "bank");
 
-        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add(builtin);
+        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add((builtin, SymbolKind.Value));
 
         var resolution = new Resolver(symbols).Resolve(source);
 
@@ -628,7 +628,7 @@ public class Resolutions
         SymbolTable symbols = new();
         symbols.WithNames("banks");
 
-        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add(builtin);
+        foreach (var builtin in SymbolTable.Builtins) symbols.Patterns.Add((builtin, SymbolKind.Value));
 
         Assert.True(new Resolver(symbols).Resolve("for each bank in banks").TryTree(out var tree));
 

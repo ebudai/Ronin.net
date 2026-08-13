@@ -85,7 +85,7 @@ internal sealed class Declarations
         if (enclosing is not null)
         {
             declarations.Symbols.Merging(enclosing.Symbols);
-            declarations.inherited.UnionWith(enclosing.Symbols.Names);
+            declarations.inherited.UnionWith(enclosing.Symbols.Names.Keys);
 
             foreach (var (pattern, declared) in enclosing.Overloads) declarations.Overloads[pattern] = [.. declared];
             foreach (var (name, span) in enclosing.written) declarations.written[name] = span;
@@ -291,7 +291,7 @@ internal sealed class Declarations
             return true;
         }
 
-        if (Symbols.Names.Contains(name) is false) return false;
+        if (Symbols.Names.ContainsKey(name) is false) return false;
 
         var shadowed = new Shadowed(span, name, Where(name));
 
@@ -347,7 +347,8 @@ internal sealed class Declarations
         // things a call could mean, not two ways to read it — inserting both made
         // R3's tie machinery answer a question it was never asked, so every call
         // to an overloaded shape came back ambiguous.
-        if (Symbols.Patterns.Contains(pattern) is false) Symbols.Patterns.Add(pattern);
+        if (Symbols.Patterns.Any(entry => entry.Pattern.Equals(pattern)) is false)
+            Symbols.Patterns.Add((pattern, SymbolKind.Value));
 
         if (Overloads.TryGetValue(pattern, out var declared) is false) Overloads[pattern] = declared = [];
 

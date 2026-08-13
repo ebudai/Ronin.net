@@ -285,7 +285,7 @@ internal sealed class Resolver
         if (from == to || CanName(lexemes, from, to) is false) return;
 
         var name = string.Join(' ', lexemes.Skip(from).Take(to - from).Select(lexeme => lexeme.Text));
-        if (symbols.Names.Contains(name) is false || symbols.IsReactive(name) is false) return;
+        if (symbols.Names.ContainsKey(name) is false || symbols.IsReactive(name) is false) return;
 
         Node argument = new Node.Name(name);
         if (bracketed) argument = new Node.Group([new Node.Entry(null, argument)]);
@@ -1510,12 +1510,34 @@ internal sealed class Operator
     public bool IsLeftAssociative { get; }
 }
 
+/// <summary>
+///     What an entry in the symbol table names.
+/// </summary>
+///
+/// <remarks>
+///     ONE TABLE, entries carrying a kind, rather than a table per kind. A second
+///     table depends on the position selecting it, and «type of x» is the case
+///     that cannot answer: it puts a type where a value goes. Separated, every
+///     name rule — R5′, R6b, R7b, self-ambiguity — would run twice and have to be
+///     kept in step, and the failure when it is not is silent, which is the most
+///     expensive kind this project has had. The same move as carrying a
+///     distinction as a field rather than forking the derivations that encode it.
+/// </remarks>
+internal enum SymbolKind
+{
+    /// <summary>What a reference in an expression may resolve to.</summary>
+    Value,
+
+    /// <summary>What a reference in an annotation may resolve to.</summary>
+    Type,
+}
+
 /// <summary>Names and patterns in scope, plus the fixed operator table.</summary>
 internal sealed class SymbolTable
 {
-    public HashSet<string> Names { get; } = [];
+    public Dictionary<string, SymbolKind> Names { get; } = [];
 
-    public List<Pattern> Patterns { get; } = [];
+    public List<(Pattern Pattern, SymbolKind Kind)> Patterns { get; } = [];
 
     /// <summary>
     ///     Every pattern a call in this scope may resolve against.
@@ -1535,7 +1557,8 @@ internal sealed class SymbolTable
     ///     generated name showing up among written ones.
     ///     </para>
     /// </remarks>
-    public IEnumerable<Pattern> Callable => Patterns.Append(Answer).Append(Exit).Append(Halt);
+    public IEnumerable<Pattern> Callable
+        => Patterns.Select(entry => entry.Pattern).Append(Answer).Append(Exit).Append(Halt);
 
 
     /// <summary>
@@ -1548,7 +1571,7 @@ internal sealed class SymbolTable
     ///     question several things ask, and a word nobody wrote is not an answer
     ///     to it.
     /// </remarks>
-    public IEnumerable<string> Known => Names.Concat(Truths);
+    public IEnumerable<string> Known => Names.Keys.Concat(Truths);
 
     /// <summary>
     ///     Patterns the grammar provides, in every scope, always.
@@ -1812,7 +1835,7 @@ internal sealed class SymbolTable
     /// </remarks>
     public SymbolTable Merging(SymbolTable enclosing)
     {
-        foreach (var name in enclosing.Names) Names.Add(name);
+        foreach (var (name, kind) in enclosing.Names) Names[name] = kind;
         foreach (var name in enclosing.constants) constants.Add(name);
         foreach (var name in enclosing.reactives) reactives.Add(name);
 
@@ -1822,9 +1845,12 @@ internal sealed class SymbolTable
     }
 
     /// <summary>The scope as it is, without the injection a declaration performs.</summary>
-    public SymbolTable WithNames(params string[] names)
+    public SymbolTable WithNames(params string[] names) => WithNames(SymbolKind.Value, names);
+
+    /// <summary>The same, for names of a kind other than the ordinary one.</summary>
+    public SymbolTable WithNames(SymbolKind kind, params string[] names)
     {
-        foreach (var name in names) Names.Add(name);
+        foreach (var name in names) Names[name] = kind;
         return this;
     }
 
@@ -1836,7 +1862,7 @@ internal sealed class SymbolTable
     {
         foreach (var name in names)
         {
-            Names.Add(name);
+            Names[name] = SymbolKind.Value;
             reactives.Add(name);
         }
 
@@ -1857,7 +1883,7 @@ internal sealed class SymbolTable
     {
         foreach (var name in names)
         {
-            Names.Add(name);
+            Names[name] = SymbolKind.Value;
             constants.Add(name);
         }
 
@@ -1877,7 +1903,7 @@ internal sealed class SymbolTable
             return $"no reading «{name}». «{cell}» is a constant, so it has no previous " +
                    $"value — use «{cell}».";
 
-        if (Names.Contains(cell) && reactives.Contains(cell) is false)
+        if (Names.ContainsKey(cell) && reactives.Contains(cell) is false)
             return $"no reading «{name}». «old (_)» takes a reactive name, and «{cell}» is not reactive.";
 
         return null;
@@ -1905,7 +1931,7 @@ internal sealed class SymbolTable
 
     public SymbolTable WithPatterns(params string[] patterns)
     {
-        foreach (var pattern in patterns) Patterns.Add(Pattern.Parse(pattern));
+        foreach (var pattern in patterns) Patterns.Add((Pattern.Parse(pattern), SymbolKind.Value));
         return this;
     }
 

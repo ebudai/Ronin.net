@@ -41,7 +41,7 @@ public class LoopSyntax
         SymbolTable symbols = new();
         symbols.WithNames(names);
 
-        foreach (var pattern in SymbolTable.Builtins) symbols.Patterns.Add(pattern);
+        foreach (var pattern in SymbolTable.Builtins) symbols.Patterns.Add((pattern, SymbolKind.Value));
 
         symbols.WithPatterns("count of _");
 
@@ -155,7 +155,7 @@ public class LoopSyntax
     {
         SymbolTable symbols = new();
         symbols.WithNames(names).WithPatterns("count of _");
-        symbols.Patterns.Add(loop);
+        symbols.Patterns.Add((loop, SymbolKind.Value));
 
         return new Resolver(symbols).Resolve(source);
     }

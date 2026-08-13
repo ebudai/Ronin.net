@@ -34,13 +34,13 @@ public class ScopeBuilding
 
         // All declarations are names; the let and explicitly reactive var are
         // marked reactive for «old (_)». No shadow name is injected.
-        Assert.Equal(["base price", "late bound", "tax"], declared.Symbols.Names.Order());
+        Assert.Equal(["base price", "late bound", "tax"], declared.Symbols.Names.Keys.Order());
         Assert.Equal("NoParse", new Resolver(declared.Symbols).Resolve("old base price").Kind.ToString());
         Assert.Equal("Resolved", new Resolver(declared.Symbols).Resolve("old tax").Kind.ToString());
         Assert.Equal("Resolved", new Resolver(declared.Symbols).Resolve("old late bound").Kind.ToString());
 
         // and the function, whose parameter block became the hole
-        var pattern = Assert.Single(declared.Symbols.Patterns);
+        var pattern = Assert.Single(declared.Symbols.Patterns).Pattern;
         Assert.Equal("compute total for (_)", pattern.ToString());
         Assert.Equal([["order"]], Assert.Single(declared.Overloads[pattern]).Names);
     }
@@ -191,7 +191,7 @@ public class ScopeBuilding
             function area of (shape => text) { return shape; }
             """);
 
-        var pattern = Assert.Single(declared.Symbols.Patterns);
+        var pattern = Assert.Single(declared.Symbols.Patterns).Pattern;
         Assert.Equal(2, declared.Overloads[pattern].Count);
 
         // WHAT THEY DIFFER IN, which the record could not say. Two declarations
@@ -210,7 +210,7 @@ public class ScopeBuilding
         var mixed = Of("function volume of (shape => text) and (n) { return shape; }");
 
         Assert.Equal([["text"], [null]],
-                     Assert.Single(mixed.Overloads[Assert.Single(mixed.Symbols.Patterns)]).Types);
+                     Assert.Single(mixed.Overloads[Assert.Single(mixed.Symbols.Patterns).Pattern]).Types);
 
         Assert.Equal("area of «wheel»",
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);
@@ -230,7 +230,7 @@ public class ScopeBuilding
     {
         var declared = Of("constant pi => number; var radius => number;");
 
-        Assert.Equal(["pi", "radius"], declared.Symbols.Names.Order());
+        Assert.Equal(["pi", "radius"], declared.Symbols.Names.Keys.Order());
         Assert.Contains("is a constant", declared.Symbols.Explain("old pi"));
         Assert.Contains("not reactive", declared.Symbols.Explain("old radius"));
     }
@@ -262,7 +262,7 @@ public class ScopeBuilding
     {
         var declared = Of("function draw (shape => text) at (x => number, y => number) { return shape; }");
 
-        var pattern = Assert.Single(declared.Symbols.Patterns);
+        var pattern = Assert.Single(declared.Symbols.Patterns).Pattern;
         Assert.Equal("draw (_) at (_)", pattern.ToString());
         Assert.Equal([["shape"], ["x", "y"]], Assert.Single(declared.Overloads[pattern]).Names);
     }
@@ -276,13 +276,13 @@ public class ScopeBuilding
         var defaulted = Of("function compute total for (order = 3) { return order; }");
 
         Assert.Empty(defaulted.Problems);
-        Assert.Equal([["order"]], Assert.Single(defaulted.Overloads[Assert.Single(defaulted.Symbols.Patterns)]).Names);
+        Assert.Equal([["order"]], Assert.Single(defaulted.Overloads[Assert.Single(defaulted.Symbols.Patterns).Pattern]).Names);
 
         // «function fetch (the ball)» is the guide's own example
         var bare = Of("function fetch (the ball) { return the ball; }");
 
         Assert.Empty(bare.Problems);
-        Assert.Equal([["the ball"]], Assert.Single(bare.Overloads[Assert.Single(bare.Symbols.Patterns)]).Names);
+        Assert.Equal([["the ball"]], Assert.Single(bare.Overloads[Assert.Single(bare.Symbols.Patterns).Pattern]).Names);
     }
 
     private static Declarations Nested(string outer, string inner)
@@ -304,7 +304,7 @@ public class ScopeBuilding
         var declared = Nested("var base price => number;", "var discount => number;");
 
         Assert.Empty(declared.Problems);
-        Assert.Equal(["base price", "discount"], declared.Symbols.Names.Order());
+        Assert.Equal(["base price", "discount"], declared.Symbols.Names.Keys.Order());
 
         Assert.Equal("(«base price» - «discount»)",
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("base price - discount")).Reading);
@@ -324,7 +324,7 @@ public class ScopeBuilding
 
         Assert.Empty(declared.Problems);
 
-        var pattern = Assert.Single(declared.Symbols.Patterns);
+        var pattern = Assert.Single(declared.Symbols.Patterns).Pattern;
         Assert.Equal([["radius"]], Assert.Single(declared.Overloads[pattern]).Names);
 
         // And an OMITTED type is null rather than blank, because omission is a
@@ -335,7 +335,7 @@ public class ScopeBuilding
         var mixed = Of("function volume of (shape => text) and (n) { return shape; }");
 
         Assert.Equal([["text"], [null]],
-                     Assert.Single(mixed.Overloads[Assert.Single(mixed.Symbols.Patterns)]).Types);
+                     Assert.Single(mixed.Overloads[Assert.Single(mixed.Symbols.Patterns).Pattern]).Types);
 
         Assert.Equal("area of «wheel»",
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);
@@ -391,7 +391,7 @@ public class ScopeBuilding
         // for «old (_)».
         var declared = Of("type Dog { } var pet => Dog;");
 
-        Assert.Equal(["Dog", "pet"], declared.Symbols.Names.Order());
+        Assert.Equal(["Dog", "pet"], declared.Symbols.Names.Keys.Order());
     }
 
     [Fact(DisplayName = "statements that declare nothing declare nothing")]
@@ -401,7 +401,7 @@ public class ScopeBuilding
         // introduces one
         var declared = Of("var x => number; x + x; x = 3;");
 
-        Assert.Equal(["x"], declared.Symbols.Names.Order());
+        Assert.Equal(["x"], declared.Symbols.Names.Keys.Order());
         Assert.Empty(declared.Symbols.Patterns);
     }
 }

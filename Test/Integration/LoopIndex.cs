@@ -34,7 +34,7 @@ public class LoopIndex
 
         Assert.Empty(compilation.Findings);
 
-        return compilation.Declarations.Symbols.Names;
+        return new HashSet<string>(compilation.Declarations.Symbols.Names.Keys);
     }
 
     [Fact(DisplayName = "the counter is in scope inside the loop")]
@@ -161,6 +161,6 @@ public class LoopIndex
 
         return Ronin.Grammar.Declarations
                     .Of(loop.Statements, compilation.Source, compilation.Declarations, loop.Current)
-                    .Symbols.Names;
+                    .Symbols.Names.Keys;
     }
 }

@@ -54,7 +54,7 @@ internal sealed class Completion
         var declared = new (string Name, string[] Words)[symbols.Names.Count];
 
         var at = 0;
-        foreach (var name in symbols.Names) declared[at++] = (name, Lexemes.Words(name));
+        foreach (var name in symbols.Names.Keys) declared[at++] = (name, Lexemes.Words(name));
 
         List<Candidate> candidates = [];
         HashSet<(CandidateKind, string, string)> seen = [];
@@ -70,7 +70,7 @@ internal sealed class Completion
                     candidates.Add(new Candidate(CandidateKind.Name, word, name, partial.Length, words.Length));
             }
 
-            foreach (var pattern in symbols.Patterns)
+            foreach (var (pattern, _) in symbols.Patterns)
             {
                 if (Continues(pattern.Anchor, partial) is not string word) continue;
 

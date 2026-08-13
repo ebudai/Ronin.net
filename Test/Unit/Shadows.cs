@@ -20,7 +20,7 @@ public class Shadows
         SymbolTable symbols = new();
         symbols.WithReactives("smoothed", "reading");
 
-        Assert.Equal(["reading", "smoothed"], symbols.Names.Order());
+        Assert.Equal(["reading", "smoothed"], symbols.Names.Keys.Order());
 
         // The constrained reference fixes the pattern's extent, so arithmetic
         // cannot be swallowed into the hole: this is (old smoothed) * ..., not

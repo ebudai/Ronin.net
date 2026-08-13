@@ -89,7 +89,7 @@ public class Constants
         SymbolTable symbols = new();
         symbols.Constants("pi").WithReactives("reading");
 
-        Assert.Equal(["pi", "reading"], symbols.Names.Order());
+        Assert.Equal(["pi", "reading"], symbols.Names.Keys.Order());
 
         Assert.Equal(
             "no reading «old pi». «pi» is a constant, so it has no previous value — use «pi».",
