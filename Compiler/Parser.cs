@@ -267,7 +267,7 @@ internal struct Parser
         while (TryAdvance<T>()) advanced = true;
         return advanced;
     }
-    
+
     /// <remarks>
     ///     Sized by what is collected rather than by the running index, which
     ///     counts trivia that <see cref="Advance"/> then skips — so a name built

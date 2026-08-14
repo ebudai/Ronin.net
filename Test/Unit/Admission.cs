@@ -398,10 +398,10 @@ public class Admission
         var writable =
             from type in returned.SelectMany(door => Ours(door.Method.ReturnType)).Distinct()
             from member in type.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            // «init» is not a setter for this purpose: it runs during
-            // construction and in a «with», and cannot reach a value somebody
-            // already holds. «Instance» is a readonly record struct and would
-            // otherwise be reported for saying what it is made of.
+                // «init» is not a setter for this purpose: it runs during
+                // construction and in a «with», and cannot reach a value somebody
+                // already holds. «Instance» is a readonly record struct and would
+                // otherwise be reported for saying what it is made of.
             let settable = member is PropertyInfo property && property.CanWrite && Constructing(property) is false
             let assignable = member is FieldInfo field && field.IsInitOnly is false
             let holds = member is PropertyInfo held && Mutable(held.PropertyType)
@@ -578,9 +578,9 @@ public class Admission
                                           | BindingFlags.Static | BindingFlags.DeclaredOnly)
             where member.Name is not "Deconstruct"
 
-               // «out» too. «TryOrder» promises a read-only order through one
-               // and returns a bool, so nothing that looked at return types
-               // ever saw it.
+            // «out» too. «TryOrder» promises a read-only order through one
+            // and returns a bool, so nothing that looked at return types
+            // ever saw it.
             where Promises(member.ReturnType)
                || member.GetParameters()
                         .Any(parameter => parameter.ParameterType.HasElementType

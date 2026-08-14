@@ -18,9 +18,9 @@ namespace Ronin.Grammar;
 
 internal class Type : Member
 {
-    public Algebra Algebra { get; set; }    
+    public Algebra Algebra { get; set; }
     public Definition Members { get; init; }
-    
+
     public static new Type Parse(ref Parser current)
     {
         Parser parser = current;
