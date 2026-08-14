@@ -104,6 +104,24 @@ internal class Reference : IEnumerable<Reference.Component>
 
         if (components.Count is 1 && first.AsTemporary is Temporary only)
         {
+            // A lone anonymous value is a VALUE and not a reference to one — the
+            // caller wants it as a value, so it is handed back through «alone». A
+            // lone round GROUP in a type is the exception: «(number)», «(text =>
+            // number)» is a grouped type the resolver reads as an ordinary
+            // bracketed type, so it becomes a reference here rather than escaping
+            // through a channel type capture does not consume.
+            //
+            // Only a round group, and only in a type. A «[…]» list or a bare
+            // literal is a value wherever it sits — «reactive => 44.3» is a
+            // production declining, not a type «44.3» — so those stay anonymous and
+            // let the datum decline as it must.
+            if (current.Typing && current.Token is Open.Parenthesis)
+            {
+                Reference grouped = new() { Components = components, Start = current.Token, End = parser.Token };
+                current = parser;
+                return grouped;
+            }
+
             alone = only;
             current = parser;
             return null;

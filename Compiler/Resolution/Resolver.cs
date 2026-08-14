@@ -389,7 +389,16 @@ internal sealed class Resolver
             // own «=» below this depth, so "the one at depth zero" is exact
             // rather than a guess, and it is exact because «=» inside brackets
             // is only ever this.
-            var associates = collection ? Associating(lexemes, start, end) : [];
+            //
+            // A TYPE round group splits the same way: «optional (a = b)» is a
+            // keyed group that grouping admits and multiplicity refuses later, per
+            // TYPEHALFDECISIONS §3 — so the «=» is kept as a key rather than left
+            // inside a span no expression consumes, which is a no-reading that
+            // reads to a caller as "«optional (a = b)» is not a type". A round
+            // group is never a lookup value, so the kind below stays «Group».
+            var associates = collection || this.kind is SymbolKind.Type
+                           ? Associating(lexemes, start, end)
+                           : [];
 
             // TWO in one entry is not an alternative to choose between; it is a
             // mistake, and the grammar has the message for it. Nothing here
@@ -426,7 +435,15 @@ internal sealed class Resolver
         // derivation, and the same predicate decides both.
         if (Associated.Mixed(keyed, divided.Count)) return;
 
-        var kind = collection ? Associated.Kind(keyed) : Node.Grouping.Group;
+        // A round group is a group, unless a TYPE keyed it — «optional (a = b)» —
+        // where the key must survive to the checker that will refuse it by
+        // multiplicity. The node model carries a key only on a lookup, and in type
+        // position that costs nothing: the tree is never evaluated, so it is never
+        // a runtime lookup value, and «[…]» collections are suppressed in a type,
+        // so nothing else here is a lookup to confuse it with.
+        var kind = collection ? Associated.Kind(keyed)
+                 : this.kind is SymbolKind.Type && keyed is not 0 ? Node.Grouping.Lookup
+                 : Node.Grouping.Group;
 
         // EVERY part against every other, so a group carries the readings of
         // each of its parts rather than one tree and a count. A tie inside «(x,

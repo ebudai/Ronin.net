@@ -126,6 +126,25 @@ public class TypeAnnotations
         Assert.Equal("shade", finding.Name);
     }
 
+    [Fact(DisplayName = "a whole annotation may be a group, and a keyed group is carried to the checker")]
+    public void AWholeAnnotationMayBeAGroupAndAKeyedGroupIsCarriedToTheChecker()
+    {
+        // A lone round group is a grouped TYPE — «(number)», a grouped function
+        // type, or one in a parameter — so type capture reads it as a reference
+        // rather than handing it back as the anonymous value a value expression
+        // would be. Grouping is load-bearing in type position, so it must reach
+        // the resolver from source and not only from a direct resolve.
+        Assert.Empty(Of("var x => (number);\n"));
+        Assert.Empty(Of("var callback => (text => number);\n"));
+        Assert.Empty(Of("function use (callback => (text => number)) { return; }\n"));
+
+        // A keyed round group is admitted and carried, not diagnosed as an unknown
+        // type: «optional (a = b)» is grouping the checker will refuse by
+        // multiplicity once it exists, per TYPEHALFDECISIONS §3. Clean now; a
+        // multiplicity finding when the checker lands.
+        Assert.Empty(Of("type a;\ntype b;\nvar x => optional (a = b);\n"));
+    }
+
     [Fact(DisplayName = "a chain of arrows is an ambiguity at the annotation, with brackets to repair it")]
     public void AChainOfArrowsIsAnAmbiguityAtTheAnnotationWithBracketsToRepairIt()
     {

@@ -75,6 +75,24 @@ public class TypeResolution
         Assert.Equal(ResolutionKind.Resolved, AsType(symbols, "lookup (text) => (number)"));
     }
 
+    [Fact(DisplayName = "a keyed round group is admitted, for the checker to refuse by multiplicity")]
+    public void AKeyedRoundGroupIsAdmittedForTheCheckerToRefuseByMultiplicity()
+    {
+        // «optional (a = b)» — a round group with a key — is grouping, which type
+        // position admits and the checker refuses later by multiplicity, per
+        // TYPEHALFDECISIONS §3. The «=» is kept as a key rather than left inside a
+        // span no expression consumes, which was a no-reading that read as
+        // «optional (a = b) is not a type». A round group is never evaluated in a
+        // type, so carrying the key as a lookup-shaped node costs nothing.
+        var symbols = new SymbolTable().WithNames(SymbolKind.Type, "a", "b");
+
+        Assert.Equal(ResolutionKind.Resolved, AsType(symbols, "optional (a = b)"));
+
+        // and a value round group keyed the same way is still refused, because a
+        // value «=» in round brackets means nothing — a lookup is «[a = b]».
+        Assert.Equal(ResolutionKind.NoParse, AsValue(new SymbolTable().WithNames("a", "b"), "(a = b)"));
+    }
+
     [Fact(DisplayName = "a declared type is mentionable as a type and not as a value; a value is the reverse")]
     public void ADeclaredTypeIsMentionableAsATypeAndNotAsAValueAValueIsTheReverse()
     {
