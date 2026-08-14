@@ -48,9 +48,10 @@ namespace Test;
 ///     every approximation here is a NARROWING and not one of them disappears, so
 ///     a ledger that records only "expires" schedules a surprise: the group is
 ///     found, deleted, and the successor rule is written under time pressure by
-///     whoever found it. The one row that WIDENS rather than narrows — the type
-///     walk's unresolved base — is here for the same reason from the other side:
-///     a silent accept schedules a deletion as much as a silent refusal does.
+///     whoever found it. The rows that WIDEN rather than narrow — the type walk's
+///     unresolved base, and an unvalidated «fast» — are here for the same reason
+///     from the other side: a silent accept schedules a deletion as much as a
+///     silent refusal does.
 ///     </para>
 ///     <list type="table">
 ///         <listheader>
@@ -114,10 +115,24 @@ namespace Test;
 ///                 base is SILENT where an undeclared annotation is a finding. →
 ///                 becomes the same walk admitting one more node,
 ///                 <c>Algebra.Unresolved</c> beside <c>Type.Unresolved</c>, with
-///                 no other machinery. The one row here whose approximation is too
-///                 LENIENT rather than too strict, and named for exactly that: a
-///                 silent accept is the failure the annotation walk exists to
-///                 prevent, one category over.
+///                 no other machinery. One of the two rows here whose approximation
+///                 is too LENIENT rather than too strict, and named for exactly
+///                 that: a silent accept is the failure the annotation walk exists
+///                 to prevent, one category over.
+///             </description>
+///         </item>
+///         <item>
+///             <term>«fast» on a non-number, and a duplicated «fast», compile cleanly</term>
+///             <description>
+///                 approximates no check at all — the annotation walk strips the
+///                 modifier before resolving, so «fast truth» and «fast fast
+///                 number» resolve to «truth» and «number» with nothing to say,
+///                 because «fast» qualifies a NUMBER occurrence and knowing the
+///                 occurrence resolved to «truth» is the resolved semantic type
+///                 that does not exist yet. → becomes a target and duplicate check
+///                 at the typed occurrence, in finding 1's checker. The second
+///                 lenient row, and deferred for the same reason as the base: the
+///                 check needs a type to check against.
 ///             </description>
 ///         </item>
 ///     </list>
