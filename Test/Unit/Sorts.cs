@@ -173,4 +173,46 @@ public class Sorts
         Assert.Equal(2, named.Length);
         Assert.NotEqual<Sort>(named[0], named[1]);
     }
+
+    [Fact(DisplayName = "a type declared in a block belongs to its container, nameable and identified there")]
+    public void ATypeDeclaredInABlockBelongsToItsContainer()
+    {
+        // SCOPE-IDENTITY-RULING H, wide: «type X;» has no runtime lifetime, so it is
+        // not block-scoped — it belongs to the nearest named container, nameable
+        // throughout it and identified by it. Here two types are declared two blocks
+        // deep and used in the function body outside both, which resolves, and their
+        // sort is the container's, not the block's.
+        var compilation = Compilation.Of(new SourceText(
+            "function f { { { type token; type other; } } var x => token; var y => other; }\n", "s.ron"));
+
+        Assert.Empty(compilation.Findings);
+
+        var named = compilation.Types.Select(annotation => annotation.Type).OfType<Sort.Named>().ToArray();
+
+        Assert.Equal(["token", "other"], named.Select(sort => sort.Name));
+        Assert.All(named, sort => Assert.Equal("/f", sort.Container));
+    }
+
+    [Fact(DisplayName = "two same-named types in one function are a duplicate, wherever in it they sit")]
+    public void TwoSameNamedTypesInOneFunctionAreADuplicate()
+    {
+        // The other half of the same ruling: a type name is unique within its named
+        // container, across its transparent sub-scopes. Two «token»s in two blocks of
+        // one function name one type twice — no cue tells them apart — so the second
+        // is «Shadowed», where block scoping made them two distinct types.
+        var compilation = Compilation.Of(new SourceText(
+            "function f { { type token; } { type token; } }\n", "s.ron"));
+
+        Assert.Equal(FindingKind.Shadowed, Assert.Single(compilation.Findings).Kind);
+    }
+
+    [Fact(DisplayName = "gathering a container's block-level types stops at a named scope nested in a block")]
+    public void GatheringStopsAtANamedScopeNestedInABlock()
+    {
+        // A function nested in a block is a named container of its own; the gather
+        // that lifts a container's block-level types to it does not reach into the
+        // nested one — its types are its own, so «g»'s (there are none) do not become
+        // «f»'s, and this compiles clean.
+        Assert.Empty(Compilation.Of(new SourceText("function f { { function g { } } }\n", "s.ron")).Findings);
+    }
 }

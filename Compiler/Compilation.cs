@@ -99,9 +99,19 @@ internal sealed class Compilation
     /// </summary>
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
                                Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
-                               string inside = null, bool reacting = false, string container = "")
+                               string inside = null, bool reacting = false, string container = "", bool named = true)
     {
-        var declared = Declarations.Of(statements, Source, enclosing, variable, parameters, container);
+        // A type declaration belongs to its nearest named container, not the block
+        // it sits in (SCOPE-IDENTITY-RULING, H). So a named container also declares
+        // the types written in its transparent sub-scopes — where they are nameable
+        // and where a second of one name is «Shadowed» — and a transparent scope
+        // declares none of its own, seeing the container's merged in. Only the
+        // declaration set moves; every other phase reads the statements as written.
+        IEnumerable<Statement> declaring = named
+            ? statements.Concat(statements.SelectMany(Hoisted))
+            : statements.Where(statement => statement is not Grammar.Type);
+
+        var declared = Declarations.Of(declaring, Source, enclosing, variable, parameters, container);
 
         foreach (var problem in declared.Problems) Add(problem);
 
@@ -142,7 +152,8 @@ internal sealed class Compilation
             // it (SCOPE-IDENTITY-RULING, H).
             var nested = body.Container is null ? container : $"{container}/{body.Container}";
 
-            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested);
+            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
+                  named: body.Container is not null);
         }
 
         return declared;
@@ -524,6 +535,27 @@ internal sealed class Compilation
 
             foreach (var child in Children(node)) pending.Push(child);
         }
+    }
+
+    /// <summary>
+    ///     The type declarations in a statement's transparent sub-scopes — a block,
+    ///     a loop, a delegate, a «when» — which belong to the nearest named
+    ///     container above them (SCOPE-IDENTITY-RULING, H). A nested named container
+    ///     is not descended: its own types are its own, and its name is collected as
+    ///     a type of the scope that holds it, not walked into for more.
+    /// </summary>
+    private static IReadOnlyList<Statement> Hoisted(Statement statement)
+    {
+        List<Statement> types = [];
+
+        foreach (var body in Bodies(statement).Where(body => body.Container is null))
+        {
+            types.AddRange(body.Statements.OfType<Grammar.Type>());
+
+            foreach (var inner in body.Statements) types.AddRange(Hoisted(inner));
+        }
+
+        return types;
     }
 
     /// <summary>The identifiers a parameter block declares, in order.</summary>
