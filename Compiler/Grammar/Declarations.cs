@@ -112,6 +112,15 @@ internal sealed class Declarations
 
         foreach (var statement in statements) declarations.Declare(statement);
 
+        // Once the whole table stands, resolve each signature's parameter and return
+        // spellings to their SORTS and store them beside the words — a signature the
+        // checker can unify without resolving again (REAUDIT55 finding 3). Done for
+        // every shape, not only the overloaded ones the classifier below revisits,
+        // because the store is for the checker and not for the classifier.
+        foreach (var pattern in declarations.Overloads.Keys.ToList())
+            declarations.Overloads[pattern] =
+                [.. declarations.Overloads[pattern].Select(signature => declarations.Resolved(signature))];
+
         // After every statement, because a shape is over-declared by its set and
         // not by any one member of it — and the last declaration is as much a
         // participant as the first.
@@ -137,7 +146,7 @@ internal sealed class Declarations
             // remaining is an overload set reported on its own, because removing
             // a duplicate does not make «A» and «B» choosable.
             var groups = declarations.Overloads[pattern]
-                                     .Zip(spans, (signature, shape) => (Key: declarations.Sorted(signature), shape.Span))
+                                     .Zip(spans, (signature, shape) => (Key: Sorted(signature), shape.Span))
                                      .GroupBy(entry => entry.Key, Keying.Comparer)
                                      .ToList();
 
@@ -186,27 +195,47 @@ internal sealed class Declarations
     ///     words are not a type, falls back to its spelling — the classifier has
     ///     nothing better to say, and an unknown type is a finding of its own.
     ///     </para>
+    ///     <para>
+    ///     Reads the sorts already resolved onto the signature (<see cref="Resolved"/>)
+    ///     rather than resolving again — the store beside the spelling is what a later
+    ///     checker reads too (REAUDIT55 finding 3).
+    ///     </para>
     /// </remarks>
-    private IReadOnlyList<object> Sorted(Signature signature)
+    private static IReadOnlyList<object> Sorted(Signature signature)
     {
-        Resolver resolver = new(Symbols, kind: SymbolKind.Type);
         List<object> key = [];
 
-        foreach (var block in signature.Types)
+        for (var block = 0; block < signature.Types.Count; block++)
         {
-            key.Add(block.Count);
+            key.Add(signature.Types[block].Count);
 
-            foreach (var type in block)
-            {
-                key.Add(type is not null && resolver.Resolve(type).TryTree(out var tree)
-                            && Sort.Of(tree, ContainerOf) is Sort sort
-                        ? sort
-                        : type);
-            }
+            for (var slot = 0; slot < signature.Types[block].Count; slot++)
+                key.Add(signature.ParameterSorts[block][slot] ?? (object)signature.Types[block][slot]);
         }
 
         return key;
     }
+
+    /// <summary>The same signature with the sort each of its spellings resolves to filled in.</summary>
+    private Signature Resolved(Signature signature)
+    {
+        Resolver resolver = new(Symbols, kind: SymbolKind.Type);
+
+        IReadOnlyList<IReadOnlyList<Sort>> parameters =
+            [.. signature.Types.Select(block => (IReadOnlyList<Sort>)[.. block.Select(type => SortOf(type, resolver))])];
+
+        return signature with { ParameterSorts = parameters, ReturnSort = SortOf(signature.Return, resolver) };
+    }
+
+    /// <summary>The sort a type spelling resolves to here, or null where the words are no one type.</summary>
+    private Sort SortOf(string spelling, Resolver resolver)
+        => spelling is not null && resolver.Resolve(spelling).TryTree(out var tree) ? Sort.Of(tree, ContainerOf) : null;
+
+    /// <summary>A function's return spelling, or null where it declares no return type.</summary>
+    private static string Returned(Member member)
+        => ((Function)member).Returns is Type.Unresolved { Reference: { } reference }
+         ? string.Join(' ', reference.ToLexemes().Select(lexeme => lexeme.Text))
+         : null;
 
     /// <summary>Two parameter-sort keys equal element by element — arities, sorts, and spellings alike.</summary>
     private sealed class Keying : IEqualityComparer<IReadOnlyList<object>>
@@ -387,7 +416,7 @@ internal sealed class Declarations
 
         if (Overloads.TryGetValue(pattern, out var declared) is false) Overloads[pattern] = declared = [];
 
-        declared.Add(new Signature(blocks, member.Identifier.Annotations));
+        declared.Add(new Signature(blocks, member.Identifier.Annotations, Returned(member)));
 
         if (shapes.TryGetValue(pattern, out var spans) is false) shapes[pattern] = spans = [];
 
@@ -537,13 +566,27 @@ internal sealed class Declarations
     /// </remarks>
     public Dictionary<Compiler.Pattern, List<Signature>> Overloads { get; } = [];
 
-    /// <summary>One declaration of a shape: its parameters' names, and their declared types.</summary>
+    /// <summary>
+    ///     One declaration of a shape: its parameters' names and their declared
+    ///     types, each type's spelling BESIDE the sort it resolves to, and the return
+    ///     likewise — what the checker unifies without resolving the words again
+    ///     (REAUDIT55 finding 3).
+    /// </summary>
     ///
     /// <param name="Types">
     ///     One per parameter, positionally matching <paramref name="Names"/>, and
     ///     null where the parameter was written without one.
     /// </param>
-    public readonly record struct Signature(Blocks Names, Blocks Types);
+    /// <param name="Return">The return type's spelling, null where none was written.</param>
+    /// <param name="ParameterSorts">
+    ///     The sort each spelling in <paramref name="Types"/> resolves to, in the same
+    ///     shape, null per slot where the words are no one type. Filled once the whole
+    ///     table stands, so null until then.
+    /// </param>
+    /// <param name="ReturnSort">The sort <paramref name="Return"/> resolves to, filled alongside.</param>
+    public readonly record struct Signature(
+        Blocks Names, Blocks Types, string Return = null,
+        IReadOnlyList<IReadOnlyList<Sort>> ParameterSorts = null, Sort ReturnSort = null);
 
     private readonly List<Finding> problems = [];
     private readonly Dictionary<string, Span> written = [];

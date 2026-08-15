@@ -252,6 +252,29 @@ public class Sorts
         }
     }
 
+    [Fact(DisplayName = "a signature carries the sort each of its spellings resolves to, parameters and return")]
+    public void ASignatureCarriesTheSortEachOfItsSpellingsResolvesTo()
+    {
+        // REAUDIT55 finding 3: the signature stores the resolved parameter and return
+        // SORTS beside their spellings, so a later checker unifies them without
+        // resolving the words a second time.
+        var declarations = Compilation.Of(new SourceText(
+            "function area of (r => number) => text { return r; }\n", "s.ron")).Declarations;
+
+        var signature = declarations.Overloads.Values.Single().Single();
+
+        Assert.Equal([[new Sort.Scalar("number")]], signature.ParameterSorts);
+        Assert.Equal(new Sort.Scalar("text"), signature.ReturnSort);
+
+        // A parameter or return the words are no one type keeps a null sort in its
+        // slot — the spelling stays, and the classifier falls back to it.
+        var untyped = Compilation.Of(new SourceText("function ping (x) { }\n", "s.ron")).Declarations;
+        var pinged = untyped.Overloads.Values.Single().Single();
+
+        Assert.Null(Assert.Single(Assert.Single(pinged.ParameterSorts)));
+        Assert.Null(pinged.ReturnSort);
+    }
+
     [Fact(DisplayName = "an inference variable owns a requirement slot the constraint pass will fill")]
     public void AnInferenceVariableOwnsARequirementSlot()
     {
