@@ -605,7 +605,7 @@ public class Admission
         // escape is the code that would misuse them. «Fillings.Tuples» IS reached
         // — an empty one is left in the memo — so it is opened, not excluded.
         Assert.Equal(discovered.Distinct().Order(),
-                     opened.Concat(["Body.Parameters", "Body.Statements", "Filling.Arguments",
+                     opened.Concat(["Body.Ancillary", "Body.Parameters", "Body.Statements", "Filling.Arguments",
                                     "Search.Selecting"]).Order());
     }
 

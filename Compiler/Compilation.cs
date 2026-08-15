@@ -100,7 +100,7 @@ internal sealed class Compilation
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
                                Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
                                string inside = null, bool reacting = false, IReadOnlyList<string> container = null,
-                               bool named = true)
+                               bool named = true, IReadOnlyList<Body> ancillary = null)
     {
         // The container of a type is a STRUCTURE — the module it is in, then a
         // segment per enclosing named scope — compared as one rather than a joined
@@ -116,8 +116,17 @@ internal sealed class Compilation
         // and where a second of one name is «Shadowed» — and a transparent scope
         // declares none of its own, seeing the container's merged in. Only the
         // declaration set moves; every other phase reads the statements as written.
+        //
+        // A container's ancillary scopes — a function's parameter-default delegates —
+        // are transparent too, so their types belong to it as much as its body's do
+        // (REAUDIT55 finding 2), gathered in before the walk stops at the container.
+        List<Grammar.Type> lifted = [];
+
+        if (ancillary is not null)
+            foreach (var scope in ancillary) lifted.AddRange(TypesOf(scope));
+
         IEnumerable<Statement> declaring = named
-            ? statements.Concat(statements.SelectMany(Hoisted))
+            ? statements.Concat(statements.SelectMany(Hoisted)).Concat(lifted)
                         .OrderBy(statement => statement is Grammar.Member { Identifier: { } identifier }
                                      ? identifier.Span(Source).Offset
                                      : int.MaxValue)
@@ -170,7 +179,7 @@ internal sealed class Compilation
             var nested = body.Container is null ? container : [.. container, body.Container];
 
             Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
-                  named: body.Container is not null);
+                  named: body.Container is not null, ancillary: body.Ancillary);
 
             if (body.Container is null) continue;
 
@@ -204,6 +213,15 @@ internal sealed class Compilation
                 }
             }
         }
+
+        // The ancillary scopes are transparent and belong to THIS container: recursed
+        // with its declarations enclosing them and its container as their own, their
+        // types already lifted into it, so a delegate in a parameter default sees the
+        // container's types and a use of its name outside the container does not.
+        if (ancillary is not null)
+            foreach (var scope in ancillary)
+                Scope(scope.Statements, declared, scope.Variable, scope.Parameters, scope.Inside, scope.Reacts,
+                      container, named: false);
 
         return declared;
     }
@@ -530,12 +548,12 @@ internal sealed class Compilation
     ///     function's parameter defaults can hold delegates of their own.
     ///     </para>
     /// </remarks>
-    private static IEnumerable<Body> Bodies(Statement statement)
+    private static IEnumerable<Body> Bodies(object root)
     {
         HashSet<object> seen = new(ReferenceEqualityComparer.Instance);
         Stack<object> pending = new();
 
-        pending.Push(statement);
+        pending.Push(root);
 
         while (pending.Count is not 0)
         {
@@ -555,8 +573,9 @@ internal sealed class Compilation
                 case Grammar.Function { Definition: { } definition } function:
                     seen.Add(definition);
                     yield return new Body(definition.Statements, null, Bound(function.Identifier),
-                                          Named(function.Identifier), Container: function.Identifier.Words);
-                    break;
+                                          Named(function.Identifier), Container: function.Identifier.Words,
+                                          Ancillary: Signature(function, definition));
+                    continue;
 
                 case Grammar.Delegate { Definition: { } body } lambda:
                     seen.Add(body);
@@ -584,6 +603,26 @@ internal sealed class Compilation
 
             foreach (var child in Children(node)) pending.Push(child);
         }
+    }
+
+    /// <summary>
+    ///     A function's ancillary transparent scopes — the delegates its parameter
+    ///     defaults hold — each belonging to the function, not the scope that holds it
+    ///     (SCOPE-IDENTITY-RULING, H). Everything BESIDE the body is walked; the body
+    ///     is the function's own scope and is recursed on its own.
+    /// </summary>
+    private static IReadOnlyList<Body> Signature(Grammar.Function function, object definition)
+    {
+        List<Body> scopes = [];
+
+        foreach (var child in Children(function))
+        {
+            if (ReferenceEquals(child, definition)) continue;
+
+            scopes.AddRange(Bodies(child));
+        }
+
+        return scopes;
     }
 
     /// <summary>
@@ -656,9 +695,17 @@ internal sealed class Compilation
     ///     What a reader would call this scope, or null where it is one a «when»
     ///     may be declared in. Only the module and a type's members are null.
     /// </param>
+    /// <param name="Ancillary">
+    ///     The transparent scopes in a named container's ANCILLARY syntax — a
+    ///     function's parameter-default delegates — which belong to it, not to the
+    ///     scope that holds it (SCOPE-IDENTITY-RULING, H). They ride with the body so
+    ///     the container declares their types and encloses them, rather than the walk
+    ///     yielding them flat to the container above.
+    /// </param>
     private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable,
                                         IReadOnlyList<Identifier> Parameters, string Inside,
-                                        bool Reacts = false, string Container = null);
+                                        bool Reacts = false, string Container = null,
+                                        IReadOnlyList<Body> Ancillary = null);
 
     /// <summary>A declaration as a message would quote it.</summary>
     private static string Named(Identifier identifier) => $"«{identifier.Words}»";

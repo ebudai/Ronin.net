@@ -308,6 +308,29 @@ public class Sorts
             finding => finding.Kind is FindingKind.Shadowed);
     }
 
+    [Fact(DisplayName = "a type in a parameter-default delegate belongs to the enclosing function, not the module")]
+    public void ATypeInAParameterDefaultDelegateBelongsToTheEnclosingFunction()
+    {
+        // REAUDIT55 finding 2: a parameter-default delegate is transparent, so a type
+        // it declares belongs to the enclosing function (H) — the stop at the named
+        // construct is the whole of it, signature included. The function's body and
+        // the delegate may both name «token»; the module outside the function may not.
+        var compilation = Compilation.Of(new SourceText(
+            "function run (callback = (x) => { type token; var local => token; return x; }) " +
+            "{ var inside => token; return 1; }\n" +
+            "var outside => token;\n", "m.ron"));
+
+        // Only «outside» is unknown; «inside» (the body) and «local» (the delegate) resolve.
+        var unknown = Assert.Single(compilation.Findings);
+
+        Assert.Equal(FindingKind.UnknownType, unknown.Kind);
+        Assert.EndsWith("2:16", unknown.Primary.ToString());
+
+        // Both resolved «token»s carry the function's container, not the module's.
+        Assert.All(compilation.Types.Where(annotation => annotation.Type is Sort.Named),
+                   annotation => Assert.Equal(["m.ron", "run"], ((Sort.Named)annotation.Type).Container));
+    }
+
     [Fact(DisplayName = "an inference variable owns a requirement slot the constraint pass will fill")]
     public void AnInferenceVariableOwnsARequirementSlot()
     {
