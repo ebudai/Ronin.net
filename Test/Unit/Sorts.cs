@@ -275,6 +275,39 @@ public class Sorts
         Assert.Null(pinged.ReturnSort);
     }
 
+    [Fact(DisplayName = "a type declared in two bodies of one overloaded shape is shadowed")]
+    public void ATypeDeclaredInTwoBodiesOfOneOverloadedShapeIsShadowed()
+    {
+        // CONTAINER-IDENTITY-RULING §2 (B): the bodies of one overloaded shape are
+        // one container, so «token» declared in both is «Shadowed» — H's uniqueness
+        // across the bodies that share a name, not only within one. The later is
+        // blamed, and a block-nested type counts as its shape's, not the block's.
+        var shadowed = Assert.Single(Compilation.Of(new SourceText(
+            "function use (x => number) { type token; return x; }\n" +
+            "function use (x => text) { type token; return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.Shadowed);
+
+        Assert.Contains("in another body of this shape", shadowed.Message);
+        Assert.True(shadowed.Primary.Offset > Assert.Single(shadowed.Related).Span.Offset);
+
+        Assert.Contains(Compilation.Of(new SourceText(
+            "function use (x => number) { { type token; } return x; }\n" +
+            "function use (x => text) { type token; return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.Shadowed);
+
+        // Different type names across the bodies collide over nothing — and one body
+        // declaring no type at all is no collision either.
+        Assert.DoesNotContain(Compilation.Of(new SourceText(
+            "function use (x => number) { type box; return x; }\n" +
+            "function use (x => text) { type crate; return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.Shadowed);
+
+        Assert.DoesNotContain(Compilation.Of(new SourceText(
+            "function use (x => number) { type box; return x; }\n" +
+            "function use (x => text) { return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.Shadowed);
+    }
+
     [Fact(DisplayName = "an inference variable owns a requirement slot the constraint pass will fill")]
     public void AnInferenceVariableOwnsARequirementSlot()
     {

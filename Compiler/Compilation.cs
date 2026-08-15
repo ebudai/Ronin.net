@@ -156,6 +156,11 @@ internal sealed class Compilation
 
         foreach (var finding in Exits(reacting)) Add(finding);
 
+        // The bodies of one overloaded shape are ONE container (CONTAINER-IDENTITY-
+        // RULING §2, B). Gathered by their shared segment as we recurse, so the
+        // uniqueness across them is checked once below.
+        Dictionary<string, List<Body>> shapes = [];
+
         foreach (var body in statements.SelectMany(Bodies))
         {
             // A named container — a function or a type — extends the path a type it
@@ -166,6 +171,38 @@ internal sealed class Compilation
 
             Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
                   named: body.Container is not null);
+
+            if (body.Container is null) continue;
+
+            if (shapes.TryGetValue(body.Container, out var siblings) is false) shapes[body.Container] = siblings = [];
+
+            siblings.Add(body);
+        }
+
+        // A type name declared in two bodies of one shape is «Shadowed» — H's
+        // within-a-container uniqueness reaching across the bodies that share a name,
+        // not only within one body. Each body has already caught its own repeats;
+        // this catches the ones that straddle two, blaming the later as everywhere.
+        foreach (var siblings in shapes.Values)
+        {
+            if (siblings.Count < 2) continue;
+
+            Dictionary<string, Span> seen = [];
+
+            foreach (var body in siblings)
+            {
+                Dictionary<string, Span> here = [];
+
+                foreach (var type in TypesOf(body)) here[type.Identifier.Words] = type.Identifier.Span(Source);
+
+                foreach (var (name, span) in here)
+                {
+                    if (seen.TryGetValue(name, out var first))
+                        Add(new Shadowed(span, name, "in another body of this shape").Alongside(first, "first declared here"));
+                    else
+                        seen[name] = span;
+                }
+            }
         }
 
         return declared;
@@ -556,9 +593,9 @@ internal sealed class Compilation
     ///     is not descended: its own types are its own, and its name is collected as
     ///     a type of the scope that holds it, not walked into for more.
     /// </summary>
-    private static IReadOnlyList<Statement> Hoisted(Statement statement)
+    private static IReadOnlyList<Grammar.Type> Hoisted(Statement statement)
     {
-        List<Statement> types = [];
+        List<Grammar.Type> types = [];
 
         foreach (var body in Bodies(statement).Where(body => body.Container is null))
         {
@@ -566,6 +603,19 @@ internal sealed class Compilation
 
             foreach (var inner in body.Statements) types.AddRange(Hoisted(inner));
         }
+
+        return types;
+    }
+
+    /// <summary>
+    ///     The type declarations a body holds — its own, and those hoisted from its
+    ///     transparent sub-scopes — all belonging to it (SCOPE-IDENTITY-RULING, H).
+    /// </summary>
+    private static List<Grammar.Type> TypesOf(Body body)
+    {
+        List<Grammar.Type> types = [.. body.Statements.OfType<Grammar.Type>()];
+
+        foreach (var statement in body.Statements) types.AddRange(Hoisted(statement));
 
         return types;
     }
