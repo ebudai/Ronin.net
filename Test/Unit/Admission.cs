@@ -443,6 +443,7 @@ public class Admission
             var x = 2;
             let y = x + 1;
             function add (left => number) to (right => number) { return left; }
+            var handler => text => number;
             when y { }
             """, "rich.ron"));
 

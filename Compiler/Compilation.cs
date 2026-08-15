@@ -277,6 +277,15 @@ internal sealed class Compilation
                 {
                     yield return new UnknownType(where, lexemes.Render());
                 }
+                else if (resolution.TryTree(out var tree))
+                {
+                    // Resolved to one tree: the semantic type the annotation names,
+                    // returned and kept for the checks that will read it against a
+                    // value's own. «Sort.Of» is null where the tree resolves but is
+                    // an arity-wrong group a later pass refuses — kept as null rather
+                    // than dropped, so the span is still recorded.
+                    types.Add(new Annotation(where, Sort.Of(tree)));
+                }
             }
         }
     }
@@ -405,6 +414,18 @@ internal sealed class Compilation
     public IReadOnlyList<Reading> Readings => new ReadOnlyCollection<Reading>(readings);
 
     private readonly List<Reading> readings = [];
+
+    /// <summary>
+    ///     One resolved type annotation: where it sits, and the sort it names — null
+    ///     where the words resolve but are a type-position group whose arity a later
+    ///     pass refuses.
+    /// </summary>
+    internal readonly record struct Annotation(Span Span, Sort Type);
+
+    /// <summary>Every resolved type annotation's sort, in the scope that owns it.</summary>
+    internal IReadOnlyList<Annotation> Types => new ReadOnlyCollection<Annotation>(types);
+
+    private readonly List<Annotation> types = [];
 
     /// <summary>The span of one token, for a finding that points at a keyword.</summary>
     private Span Where(Token token) => Source.Span(token.Offset, token.Memory.Length);
