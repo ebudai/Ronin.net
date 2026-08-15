@@ -548,7 +548,7 @@ public class Admission
         // exists to keep.
         Assert.Empty(failed);
 
-        foreach (var (member, probe) in Probes)
+        foreach (var (member, probe) in probes)
         {
             // Called DIRECTLY, so a probe that throws fails the test — and its
             // result is asserted before anything else looks at it, because null
@@ -730,30 +730,30 @@ public class Admission
     ///     cannot quietly fall behind the code the way a list of names did.
     /// </remarks>
     /// <summary>A table with a tie in it, for the repair search to have something to search.</summary>
-    private static readonly SymbolTable Ambiguity =
+    private static readonly SymbolTable ambiguity =
         new SymbolTable().WithNames("a", "b", "a to b").WithPatterns("send _", "send _ to _");
 
     /// <summary>One ambiguity, for the three promises it hands out.</summary>
-    private static readonly Ambiguous Tie =
+    private static readonly Ambiguous tie =
         new(default,
             new List<string> { "one" },
             new List<Repair> { new("one", 0, new List<Insertion> { new(0, "(") }) },
             2,
             false);
 
-    private static readonly (string Member, Func<object> Open)[] Probes =
+    private static readonly (string Member, Func<object> Open)[] probes =
     [
-        ("Ambiguous.Readings", () => Tie.Readings),
-        ("Ambiguous.Repairs", () => Tie.Repairs),
-        ("Repair.Insertions", () => Tie.Repairs[0].Insertions),
-        ("Repairs.For", () => Repairs.For(new Resolver(Ambiguity), Lexemes.Lex("send a to b"),
-                                          new Resolver(Ambiguity).Resolve("send a to b"))),
+        ("Ambiguous.Readings", () => tie.Readings),
+        ("Ambiguous.Repairs", () => tie.Repairs),
+        ("Repair.Insertions", () => tie.Repairs[0].Insertions),
+        ("Repairs.For", () => Repairs.For(new Resolver(ambiguity), Lexemes.Lex("send a to b"),
+                                          new Resolver(ambiguity).Resolve("send a to b"))),
         ("Builtin.Operators", () => Builtin.Operators),
         ("Descriptor.Forms", () => SymbolTable.Supplies[0].Forms),
         ("Descriptor.SeeAlso", () => SymbolTable.Supplies.First(s => s.SeeAlso.Count is not 0).SeeAlso),
         ("SymbolTable.Supplies", () => SymbolTable.Supplies),
         ("SymbolTable.Truths", () => SymbolTable.Truths),
-        ("Resolution.Alternatives", () => new Resolver(Ambiguity).Resolve("send a to b").Alternatives),
+        ("Resolution.Alternatives", () => new Resolver(ambiguity).Resolve("send a to b").Alternatives),
         ("SymbolTable.Whole", () => SymbolTable.Whole),
         ("Call.Arguments", () => new Node.Call(Pattern.Parse("print _"), new List<Node> { new Node.Name("x") }).Arguments),
         ("Cascades.Cycles", () => Cascades.Cycles(Ringed)),
