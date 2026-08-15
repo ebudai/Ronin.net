@@ -137,8 +137,8 @@ internal sealed class Declarations
             // remaining is an overload set reported on its own, because removing
             // a duplicate does not make «A» and «B» choosable.
             var groups = declarations.Overloads[pattern]
-                                     .Zip(spans, (signature, shape) => (Key: Typed(signature), shape.Span))
-                                     .GroupBy(entry => entry.Key, System.StringComparer.Ordinal)
+                                     .Zip(spans, (signature, shape) => (Key: declarations.Sorted(signature), shape.Span))
+                                     .GroupBy(entry => entry.Key, Keying.Comparer)
                                      .ToList();
 
             foreach (var duplicate in groups.Where(group => group.Count() > 1))
@@ -166,29 +166,64 @@ internal sealed class Declarations
     }
 
     /// <summary>
-    ///     A declaration's parameter types, as one comparable spelling.
+    ///     A declaration's parameter types as a key over their SORTS, not their
+    ///     spellings.
     /// </summary>
     ///
     /// <remarks>
-    ///     NAMES are absent on purpose. «area of (radius => Number)» and «area of
-    ///     (r => Number)» are the same declaration written twice, and a caller
-    ///     cannot tell which of them they reached — what a parameter is called is
-    ///     the callee's business.
+    ///     By sort so that two spellings of one type are one signature: «number»
+    ///     and «(number)» resolve to the same sort, and under equality unification
+    ///     they are the same declaration written twice — a duplicate that must
+    ///     survive, not an overload waiting to expire into type-directed selection
+    ///     (REAUDIT54 finding 3). Keying by spelling filed such a pair as an overload,
+    ///     so the ledgered expiry would one day make a genuine duplicate legal.
     ///     <para>
-    ///     Length prefixed, so a separator is never a promise about what a type
-    ///     name may contain — a type is a run of words and may contain anything,
-    ///     and the length says how far to read regardless. Each block is prefixed
-    ///     by its arity for the same reason one level up: «(a, b) with (c)» and
-    ///     «(a) with (b, c)» distribute the same three types across the two holes
-    ///     differently, and a caller supplies a different bracketing for each, so
-    ///     they are overloads and not the same spelling. Concatenating the blocks
-    ///     without the arity flattened both to «Number Text Number» and called
-    ///     them duplicates.
+    ///     NAMES are absent on purpose — «area of (radius => number)» and «area of
+    ///     (r => number)» are one declaration, and what a parameter is called is the
+    ///     callee's business. Each block keeps its arity, because «(a, b) with (c)»
+    ///     and «(a) with (b, c)» distribute their sorts differently and a caller
+    ///     brackets each its own way. A parameter with no annotation, or one whose
+    ///     words are not a type, falls back to its spelling — the classifier has
+    ///     nothing better to say, and an unknown type is a finding of its own.
     ///     </para>
     /// </remarks>
-    private static string Typed(Signature signature)
-        => string.Concat(signature.Types.Select(block =>
-               $"{block.Count}:{string.Concat(block.Select(type => $"{(type ?? string.Empty).Length}:{type}"))}"));
+    private IReadOnlyList<object> Sorted(Signature signature)
+    {
+        Resolver resolver = new(Symbols, kind: SymbolKind.Type);
+        List<object> key = [];
+
+        foreach (var block in signature.Types)
+        {
+            key.Add(block.Count);
+
+            foreach (var type in block)
+            {
+                key.Add(type is not null && resolver.Resolve(type).TryTree(out var tree)
+                            && Sort.Of(tree, ContainerOf) is Sort sort
+                        ? sort
+                        : type);
+            }
+        }
+
+        return key;
+    }
+
+    /// <summary>Two parameter-sort keys equal element by element — arities, sorts, and spellings alike.</summary>
+    private sealed class Keying : IEqualityComparer<IReadOnlyList<object>>
+    {
+        public static Keying Comparer { get; } = new();
+
+        public bool Equals(IReadOnlyList<object> left, IReadOnlyList<object> right) => left.SequenceEqual(right);
+
+        public int GetHashCode(IReadOnlyList<object> key)
+        {
+            System.HashCode hash = new();
+
+            foreach (var part in key) hash.Add(part);
+
+            return hash.ToHashCode();
+        }
+    }
 
     /// <summary>Declares a loop's variable into the body it is bound in.</summary>
     ///

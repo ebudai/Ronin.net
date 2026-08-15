@@ -184,6 +184,17 @@ public class ScopeBuilding
                         Assert.Single(Of("function area of (radius => number) { return 1; }\n"
                                        + "function area of (r => number) { return 1; }\n").Problems).Kind);
 
+    [Fact(DisplayName = "and two spellings of one type are a duplicate, not an overload")]
+    public void AndTwoSpellingsOfOneTypeAreADuplicateNotAnOverload()
+        // REAUDIT54 finding 3: «number» and «(number)» resolve to the same sort, so
+        // «use (x => number)» and «use (x => (number))» are one signature written
+        // twice — a duplicate that must survive, not an overload waiting to expire
+        // into a use-site selection. Keying the classifier by spelling filed them
+        // apart, so the expiry would one day have made a genuine duplicate legal.
+        => Assert.Equal(FindingKind.DuplicateSignature,
+                        Assert.Single(Of("function use (x => number) { return x; }\n"
+                                       + "function use (x => (number)) { return x; }\n").Problems).Kind);
+
     [Fact(DisplayName = "and the same types split into different blocks are an overload, not a duplicate")]
     public void AndTheSameTypesSplitIntoDifferentBlocksAreAnOverloadNotADuplicate()
     {
