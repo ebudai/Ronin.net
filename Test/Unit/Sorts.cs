@@ -84,6 +84,14 @@ public class Sorts
         Assert.Equal<Sort>(new Sort.Named("a"), new Sort.Named("a"));
         Assert.NotEqual<Sort>(new Sort.Named("a"), new Sort.Named("b"));
 
+        // The two no annotation spells: the action type is one of its kind, an
+        // inference variable is one by identity.
+        Assert.Equal<Sort>(new Sort.Action(), new Sort.Action());
+        Assert.NotEqual<Sort>(new Sort.Action(), new Sort.Error());
+        Assert.Equal<Sort>(new Sort.Variable(1), new Sort.Variable(1));
+        Assert.NotEqual<Sort>(new Sort.Variable(1), new Sort.Variable(2));
+        Assert.NotEqual<Sort>(new Sort.Variable(1), number);
+
         // Cross-kind and non-sort are never equal — a name shared across kinds too.
         Assert.NotEqual<Sort>(new Sort.Scalar("number"), new Sort.Named("number"));
         Assert.False(number.Equals("number"));
@@ -120,6 +128,8 @@ public class Sorts
         Assert.Equal(new Sort.Optional(number).GetHashCode(), new Sort.Optional(number).GetHashCode());
         Assert.Equal(new Sort.Lookup(text, number).GetHashCode(), new Sort.Lookup(text, number).GetHashCode());
         Assert.Equal(new Sort.Function([text], number).GetHashCode(), new Sort.Function([text], number).GetHashCode());
+        Assert.Equal(new Sort.Action().GetHashCode(), new Sort.Action().GetHashCode());
+        Assert.Equal(new Sort.Variable(1).GetHashCode(), new Sort.Variable(1).GetHashCode());
     }
 
     [Fact(DisplayName = "the compilation keeps each resolved annotation's sort, and no arity-wrong one")]
@@ -137,10 +147,13 @@ public class Sorts
         Assert.Empty(arity.Findings);
         Assert.Null(Assert.Single(arity.Types).Type);
 
-        // A too-long annotation resolves to no tree, so it is kept as no sort at all.
+        // A too-long annotation resolves to no tree: reported, and no sort fabricated,
+        // rather than silently vanishing where a later pass could not tell it from one
+        // that was never written.
         var chain = string.Concat(Enumerable.Repeat("optional ", Resolver.MaxLexemes + 1));
         var huge = Compilation.Of(new SourceText($"var z => {chain}number;\n", "s.ron"));
 
         Assert.Empty(huge.Types);
+        Assert.IsType<OversizeType>(Assert.Single(huge.Findings));
     }
 }

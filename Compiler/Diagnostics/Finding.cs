@@ -93,6 +93,9 @@ internal enum FindingKind
     /// <summary>A type annotation whose words name no type.</summary>
     UnknownType,
 
+    /// <summary>A type annotation with more words and symbols than are read at once.</summary>
+    OversizeType,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -825,6 +828,26 @@ internal sealed class UnknownType(Span primary, string name)
     public override string Message
         => $"«{Name}» is not a type. Nothing declares it and the language supplies no such type. " +
            $"Declare it with «type {Name};», or name a type that exists.";
+}
+
+/// <summary>
+///     A type annotation past the resolver's ceiling — more words and symbols than
+///     are read in one statement.
+/// </summary>
+///
+/// <remarks>
+///     The resolver refuses more than <see cref="Resolver.MaxLexemes"/> lexemes
+///     rather than spend unbounded time on one statement, and a type annotation is
+///     resolved the same way. Reported at the annotation because the alternative is
+///     silence: the words resolve to no tree, so with no finding here an over-limit
+///     annotation looks to a later pass exactly like an omitted one.
+/// </remarks>
+internal sealed class OversizeType(Span primary)
+    : Finding(FindingKind.OversizeType, primary)
+{
+    public override string Message
+        => $"This type annotation is more than {Resolver.MaxLexemes} words and symbols, which is past " +
+           "what is read at once. No type is written this large; name one that exists.";
 }
 
 /// <summary>

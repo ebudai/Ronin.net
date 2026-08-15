@@ -26,12 +26,13 @@ namespace Ronin.Compiler;
 ///     generated members are unreachable code under the coverage gate.
 ///     </para>
 ///     <para>
-///     The seven shapes an annotation can name, and no more yet. The term grows: the
-///     action type an inferred no-return body yields, and the inference variable a
-///     return or an aggregate leaves open, arrive with the pass that first
-///     CONSTRUCTS them — an unbuilt case is one the 100% gate calls dead. «fast»
-///     never enters here: it qualifies a NUMBER occurrence and is an attribute
-///     stored beside the type, so this term holds exactly one number
+///     Nine cases. Seven an annotation can name; the ACTION type an inferred
+///     no-return body yields and the inference VARIABLE a return or an aggregate
+///     leaves under-determined are the other two. No annotation spells either, so
+///     <see cref="Of"/> never produces them — but they are shaped here now (Q1),
+///     not deferred, so the pass that constructs them adds no case and rewrites no
+///     site. «fast» never enters: it qualifies a NUMBER occurrence and is an
+///     attribute stored beside the type, so this term holds exactly one number
 ///     (CHECKER-SCOPING-RULINGS Q1).
 ///     </para>
 /// </remarks>
@@ -194,5 +195,42 @@ internal abstract class Sort
         protected override bool Same(Sort other) => ((Named)other).Name == Name;
 
         public override int GetHashCode() => HashCode.Combine('n', Name);
+    }
+
+    /// <summary>
+    ///     The action type an inferred no-return body yields, inadmissible in a value
+    ///     position (FIVE-RULINGS §2b). No spelling, so no annotation names it — a case
+    ///     rather than a null return, so «the action type differs from every value
+    ///     type» stays a comparison and not a null-check at every site that asks.
+    /// </summary>
+    internal sealed class Action : Sort
+    {
+        protected override bool Same(Sort other) => true;
+
+        public override int GetHashCode() => 'a';
+    }
+
+    /// <summary>
+    ///     An inference variable a return or an aggregate leaves under-determined —
+    ///     «nothing» is «Optional(Variable(fresh))» and «[]» is «List(Variable(fresh))»,
+    ///     each pinned later by unification.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Two are the same variable by IDENTITY, and identity is the whole of its
+    ///     equality. The inferred requirement set — the operations a body applies to
+    ///     the parameter, GENERICS-II §5, the interface checked at the call boundary —
+    ///     is ACCOMMODATED through that identity: the constraint pass keys it by the
+    ///     variable rather than storing it on the type, so the set's representation is
+    ///     settled with that pass and no construction site here is rewritten when it
+    ///     lands. Shaped now (CHECKER-SCOPING-RULINGS Q1), as a case and not a null.
+    /// </remarks>
+    internal sealed class Variable(int identity) : Sort
+    {
+        public int Identity { get; } = identity;
+
+        protected override bool Same(Sort other) => ((Variable)other).Identity == Identity;
+
+        public override int GetHashCode() => HashCode.Combine('v', Identity);
     }
 }

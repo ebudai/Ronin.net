@@ -286,6 +286,13 @@ internal sealed class Compilation
                     // than dropped, so the span is still recorded.
                     types.Add(new Annotation(where, Sort.Of(tree)));
                 }
+                else
+                {
+                    // Past the resolver's ceiling, so no tree and no sort. Reported
+                    // rather than dropped: silence here reads to a later pass as an
+                    // omitted annotation, not an over-limit one.
+                    yield return new OversizeType(where);
+                }
             }
         }
     }

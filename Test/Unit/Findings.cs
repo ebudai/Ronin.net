@@ -49,6 +49,7 @@ public class Findings
                      "function x otherwise (value => number) { return value; }\n",
                      "var x => = 1;\n",
                      "var cash on hand => money;\n",
+                     "var z => " + string.Concat(Enumerable.Repeat("optional ", Resolver.MaxLexemes + 1)) + "number;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => number) {}\n",
                      "function (x => number) rounded { return x; }\n",
                      "function compute part /* gap */ of (x => number) { return x; }\n",
@@ -222,6 +223,8 @@ public class Findings
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
 
             Player.ron:1:21: «money» is not a type. Nothing declares it and the language supplies no such type. Declare it with «type money;», or name a type that exists.
+
+            Player.ron:1:10: This type annotation is more than 256 words and symbols, which is past what is read at once. No type is written this large; name one that exists.
 
             Player.ron:1:10: «word word word word wor ... ord word word word word» has 129 words and holes, and a pattern may have at most 128. Matching one walks a frame per segment, so the limit is what keeps a declaration from being a way to exhaust the stack. Split it into smaller patterns.
 
