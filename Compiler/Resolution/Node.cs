@@ -217,16 +217,17 @@ internal abstract class Node
     }
 
     /// <summary>
-    ///     Which of the three a bracketed span is.
+    ///     Which of the four a bracketed span is.
     /// </summary>
     ///
     /// <remarks>
     ///     A KIND rather than a boolean beside a nullable-key convention, because
-    ///     three states held in two independent fields is two fields that can
-    ///     disagree — a list carrying keys, a lookup without them. The parse
-    ///     already decides which of the three it is, and it decides from every
-    ///     entry, so one field records that decision and nothing has to keep two
-    ///     of them consistent.
+    ///     four states held in two independent fields is two fields that can
+    ///     disagree — a list carrying keys, a lookup without them. Two of the four,
+    ///     <see cref="Lookup"/> and <see cref="Keyed"/>, key every entry, and the
+    ///     other two key none; the parse already decides which it is, and from every
+    ///     entry, so one field records that decision and nothing has to keep two of
+    ///     them consistent.
     /// </remarks>
     internal enum Grouping
     {
@@ -270,7 +271,11 @@ internal abstract class Node
     ///     without the key in hand.
     /// </remarks>
     ///
-    /// <param name="Key">Null where the span is a group or a list, which have none.</param>
+    /// <param name="Key">
+    ///     Null for a <see cref="Grouping.Group"/> or a <see cref="Grouping.List"/>,
+    ///     which key no entry; present for a <see cref="Grouping.Lookup"/> or a
+    ///     keyed round <see cref="Grouping.Keyed"/> group, which key every one.
+    /// </param>
     internal readonly record struct Entry(Node Key, Node Value);
 
     /// <summary>
@@ -279,14 +284,15 @@ internal abstract class Node
     /// </summary>
     ///
     /// <remarks>
-    ///     A kind of three was taken over a boolean so that the key and what the
+    ///     A kind of four was taken over a boolean so that the key and what the
     ///     span IS could not contradict each other — and a nullable key beside a
     ///     kind is exactly that contradiction unless something refuses it. Left
     ///     unchecked it is reachable: a list carrying keys compares the same as one
-    ///     without them, because identity consults a key only for a lookup, while
-    ///     the walk a repair brackets by exposes them — so two trees are one
-    ///     derivation and contain different nodes at the same time. A lookup
-    ///     missing one is worse, and dereferences nothing while taking its shape.
+    ///     without them, because identity consults a key only for a keyed kind — a
+    ///     lookup or a keyed round group — while the walk a repair brackets by
+    ///     exposes them, so two trees are one derivation and contain different nodes
+    ///     at the same time. A lookup or keyed group missing one is worse, and
+    ///     dereferences nothing while taking its shape.
     ///     <para>
     ///     A THROW rather than a finding, because no source produces it: the
     ///     resolver derives the kind from the same split that produces the keys.
@@ -322,7 +328,7 @@ internal abstract class Node
         }
 
         /// <summary>
-        ///     Which of the three the brackets were.
+        ///     Which of the four the brackets were.
         /// </summary>
         ///
         /// <remarks>
@@ -353,8 +359,9 @@ internal abstract class Node
         ///     The key is compared where there is one, so two lookups agreeing on
         ///     their values and differing on their keys are two derivations. The
         ///     kind decides whether to ask, which is the whole reason it is a kind:
-        ///     a lookup has a key in every entry and the other two have none in
-        ///     any, so there is no per-entry state to disagree with.
+        ///     a keyed kind — a lookup or a keyed round group — has a key in every
+        ///     entry and the other two have none in any, so there is no per-entry
+        ///     state to disagree with.
         /// </remarks>
         public override bool Alike(Node other)
         {
