@@ -19,7 +19,7 @@ public class Sorts
     {
         new Resolver(symbols, kind: SymbolKind.Type).Resolve(annotation).TryTree(out var tree);
 
-        return Sort.Of(tree, _ => string.Empty);
+        return Sort.Of(tree, _ => []);
     }
 
     [Fact(DisplayName = "each well-formed annotation reads as its sort")]
@@ -29,7 +29,7 @@ public class Sorts
         Assert.Equal(new Sort.Scalar("text"), Of("text"));
         Assert.Equal(new Sort.Scalar("truth"), Of("truth"));
         Assert.Equal(new Sort.Error(), Of("error"));
-        Assert.Equal(new Sort.Named("", "Car"), Of("Car"));
+        Assert.Equal(new Sort.Named([], "Car"), Of("Car"));
 
         Assert.Equal(new Sort.List(new Sort.Scalar("number")), Of("list of number"));
         Assert.Equal(new Sort.Optional(new Sort.Scalar("text")), Of("optional text"));
@@ -81,8 +81,8 @@ public class Sorts
         Assert.Equal(number, new Sort.Scalar("number"));
         Assert.NotEqual(number, text);
         Assert.Equal<Sort>(new Sort.Error(), new Sort.Error());
-        Assert.Equal<Sort>(new Sort.Named("", "a"), new Sort.Named("", "a"));
-        Assert.NotEqual<Sort>(new Sort.Named("", "a"), new Sort.Named("", "b"));
+        Assert.Equal<Sort>(new Sort.Named([], "a"), new Sort.Named([], "a"));
+        Assert.NotEqual<Sort>(new Sort.Named([], "a"), new Sort.Named([], "b"));
 
         // The two no annotation spells: the action type is one of its kind, an
         // inference variable is one by identity.
@@ -93,7 +93,7 @@ public class Sorts
         Assert.NotEqual<Sort>(new Sort.Variable(1), number);
 
         // Cross-kind and non-sort are never equal — a name shared across kinds too.
-        Assert.NotEqual<Sort>(new Sort.Scalar("number"), new Sort.Named("", "number"));
+        Assert.NotEqual<Sort>(new Sort.Scalar("number"), new Sort.Named([], "number"));
         Assert.False(number.Equals("number"));
         Assert.False(number.Equals(null));
 
@@ -123,7 +123,7 @@ public class Sorts
 
         Assert.Equal(new Sort.Scalar("number").GetHashCode(), number.GetHashCode());
         Assert.Equal(new Sort.Error().GetHashCode(), new Sort.Error().GetHashCode());
-        Assert.Equal(new Sort.Named("", "a").GetHashCode(), new Sort.Named("", "a").GetHashCode());
+        Assert.Equal(new Sort.Named(["m"], "a").GetHashCode(), new Sort.Named(["m"], "a").GetHashCode());
         Assert.Equal(new Sort.List(number).GetHashCode(), new Sort.List(number).GetHashCode());
         Assert.Equal(new Sort.Optional(number).GetHashCode(), new Sort.Optional(number).GetHashCode());
         Assert.Equal(new Sort.Lookup(text, number).GetHashCode(), new Sort.Lookup(text, number).GetHashCode());
@@ -138,7 +138,7 @@ public class Sorts
         var kept = Compilation.Of(new SourceText("type Car;\nvar x => list of number;\nvar y => Car;\n", "s.ron"));
 
         Assert.Empty(kept.Findings);
-        Assert.Equal(new Sort[] { new Sort.List(new Sort.Scalar("number")), new Sort.Named("", "Car") },
+        Assert.Equal(new Sort[] { new Sort.List(new Sort.Scalar("number")), new Sort.Named(["s.ron"], "Car") },
                      kept.Types.Select(annotation => annotation.Type));
 
         // An arity-wrong annotation is kept with a null sort, its span still recorded.
@@ -174,6 +174,22 @@ public class Sorts
         Assert.NotEqual<Sort>(named[0], named[1]);
     }
 
+    [Fact(DisplayName = "two same-named types in two modules are two distinct sorts")]
+    public void TwoSameNamedTypesInTwoModulesAreTwoDistinctSorts()
+    {
+        // CONTAINER-IDENTITY-RULING §1 / NAMEDIDENTITY Q1b: the module is the root of
+        // the container, so «token» in two files is two types even at module level —
+        // the case a debug-is-development session hits comparing a file's types
+        // before an edit to the same file's after, which is a comparison across
+        // compilations.
+        Sort left = Assert.Single(Compilation.Of(
+            new SourceText("type token; var x => token;\n", "left.ron")).Types).Type;
+        Sort right = Assert.Single(Compilation.Of(
+            new SourceText("type token; var x => token;\n", "right.ron")).Types).Type;
+
+        Assert.NotEqual(left, right);
+    }
+
     [Fact(DisplayName = "a type declared in a block belongs to its container, nameable and identified there")]
     public void ATypeDeclaredInABlockBelongsToItsContainer()
     {
@@ -190,7 +206,7 @@ public class Sorts
         var named = compilation.Types.Select(annotation => annotation.Type).OfType<Sort.Named>().ToArray();
 
         Assert.Equal(["token", "other"], named.Select(sort => sort.Name));
-        Assert.All(named, sort => Assert.Equal("/f", sort.Container));
+        Assert.All(named, sort => Assert.Equal(["s.ron", "f"], sort.Container));
     }
 
     [Fact(DisplayName = "two same-named types in one function are a duplicate, wherever in it they sit")]

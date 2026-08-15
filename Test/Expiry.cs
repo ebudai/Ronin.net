@@ -151,6 +151,20 @@ namespace Test;
 ///                 check needs a type to check against.
 ///             </description>
 ///         </item>
+///         <item>
+///             <term>a named type's container is rooted at the module's source PATH</term>
+///             <description>
+///                 approximates the module's identity with its LOCATION — a path is
+///                 stable only while the file does not move, which is the same shape
+///                 as the span defect «(scope, name)» replaced, one level up: files
+///                 move rarely where lines move constantly, so it is a difference of
+///                 degree (CONTAINER-IDENTITY-RULING §1). → becomes the module's
+///                 DECLARED NAME, if modules acquire one, and then the path is
+///                 incidental and a file may move freely. If modules already declare
+///                 a name, this uses it and the row is unnecessary. Named here so the
+///                 next reader does not rederive that a path is a location.
+///             </description>
+///         </item>
 ///     </list>
 ///     <para>
 ///     AND ONE THAT IS NOT A REFUSAL, recorded here because this is the ledger the

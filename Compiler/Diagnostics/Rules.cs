@@ -24,7 +24,7 @@ namespace Ronin.Compiler;
 ///     within one scope, where they were written does.
 /// </param>
 internal readonly record struct Declared(string Name, Span Span, string InjectedBy = null, bool Inherited = false,
-                                         string Container = null)
+                                         IReadOnlyList<string> Container = null)
 {
     /// <summary>
     ///     The name as the lexer counts its words, which is the sequence every

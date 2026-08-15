@@ -78,9 +78,9 @@ internal sealed class Declarations
     /// </param>
     public static Declarations Of(IEnumerable<Statement> statements, SourceText source,
                                   Declarations enclosing = null, Identifier variable = null,
-                                  IReadOnlyList<Identifier> parameters = null, string container = "")
+                                  IReadOnlyList<Identifier> parameters = null, IReadOnlyList<string> container = null)
     {
-        Declarations declarations = new() { source = source, container = container };
+        Declarations declarations = new() { source = source, container = container ?? [] };
 
         if (enclosing is not null)
         {
@@ -551,7 +551,7 @@ internal sealed class Declarations
     private IReadOnlyList<Finding> found;
     private readonly List<Declared> symbols = [];
     private SourceText source;
-    private string container = "";
+    private IReadOnlyList<string> container = [];
     private readonly HashSet<string> inherited = [];
 
     /// <summary>
@@ -561,6 +561,6 @@ internal sealed class Declarations
     ///     type declared in the module. The path is stable because the containers are
     ///     named; a merged declaration keeps the container it was declared in.
     /// </summary>
-    public string ContainerOf(string name)
+    internal IReadOnlyList<string> ContainerOf(string name)
         => symbols.First(declared => declared.Name == name).Container;
 }

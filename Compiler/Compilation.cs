@@ -99,8 +99,17 @@ internal sealed class Compilation
     /// </summary>
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
                                Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
-                               string inside = null, bool reacting = false, string container = "", bool named = true)
+                               string inside = null, bool reacting = false, IReadOnlyList<string> container = null,
+                               bool named = true)
     {
+        // The container of a type is a STRUCTURE — the module it is in, then a
+        // segment per enclosing named scope — compared as one rather than a joined
+        // string a module path or a segment could collide on (CONTAINER-IDENTITY-
+        // RULING §3). The root is the module, whose identity is the source path —
+        // ledgered, because a path is a location the way a span was
+        // (CONTAINER-IDENTITY-RULING §1).
+        container ??= [Source.Path];
+
         // A type declaration belongs to its nearest named container, not the block
         // it sits in (SCOPE-IDENTITY-RULING, H). So a named container also declares
         // the types written in its transparent sub-scopes — where they are nameable
@@ -150,7 +159,7 @@ internal sealed class Compilation
             // holds is identified by; a block, loop, delegate, or «when» is
             // transparent, so a type declared in one belongs to the container above
             // it (SCOPE-IDENTITY-RULING, H).
-            var nested = body.Container is null ? container : $"{container}/{body.Container}";
+            var nested = body.Container is null ? container : [.. container, body.Container];
 
             Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
                   named: body.Container is not null);

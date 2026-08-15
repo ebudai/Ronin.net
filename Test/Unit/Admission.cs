@@ -444,6 +444,8 @@ public class Admission
             let y = x + 1;
             function add (left => number) to (right => number) { return left; }
             var handler => text => number;
+            type token;
+            var named => token;
             when y { }
             """, "rich.ron"));
 

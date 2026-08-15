@@ -63,7 +63,7 @@ internal abstract class Sort
     ///     «(T)» is T; a group of any other arity falls through to null, which is the
     ///     multiplicity case one pass early.
     /// </remarks>
-    public static Sort Of(Node node, Func<string, string> container) => node switch
+    public static Sort Of(Node node, Func<string, IReadOnlyList<string>> container) => node switch
     {
         Node.Name { Words: "error" } => new Error(),
         Node.Name name when scalars.Contains(name.Words) => new Scalar(name.Words),
@@ -86,7 +86,7 @@ internal abstract class Sort
     };
 
     /// <summary>A function type, or null when a parameter or the result is not one sort.</summary>
-    private static Sort Signature(Node.Operation arrow, Func<string, string> container)
+    private static Sort Signature(Node.Operation arrow, Func<string, IReadOnlyList<string>> container)
     {
         IEnumerable<Sort> operands = arrow.Left is Node.Group { Kind: Node.Grouping.Group } list
             ? list.Parts.Select(part => Of(part.Value, container))
@@ -194,22 +194,36 @@ internal abstract class Sort
     /// <remarks>
     ///     Identified by its declaring container AND its name, not the name alone
     ///     (SCOPE-IDENTITY-RULING, H): two «token»s in two functions are two types,
-    ///     and the container — the path of named scopes it belongs to — is what tells
-    ///     them apart. The name alone made them one, which was REAUDIT54 finding 1.
+    ///     and the container — the module it is in and the path of named scopes it
+    ///     belongs to — is what tells them apart. The name alone made them one, which
+    ///     was REAUDIT54 finding 1. The container is a STRUCTURE — the module
+    ///     identity followed by a segment per named scope — compared as one, never a
+    ///     joined string that a module or a segment holding the separator could
+    ///     collide on (CONTAINER-IDENTITY-RULING §3). Its first segment is the
+    ///     module, so two same-named types in two modules are two types.
     /// </remarks>
-    internal sealed class Named(string container, string name) : Sort
+    internal sealed class Named(IReadOnlyList<string> container, string name) : Sort
     {
-        public string Container { get; } = container;
+        public IReadOnlyList<string> Container { get; } = [.. container];
         public string Name { get; } = name;
 
         protected override bool Same(Sort other)
         {
             var named = (Named)other;
 
-            return named.Container == Container && named.Name == Name;
+            return named.Name == Name && named.Container.SequenceEqual(Container);
         }
 
-        public override int GetHashCode() => HashCode.Combine('n', Container, Name);
+        public override int GetHashCode()
+        {
+            HashCode hash = new();
+
+            hash.Add('n');
+            hash.Add(Name);
+            foreach (var segment in Container) hash.Add(segment);
+
+            return hash.ToHashCode();
+        }
     }
 
     /// <summary>
