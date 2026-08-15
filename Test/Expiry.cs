@@ -76,8 +76,10 @@ namespace Test;
 ///                 needs a repair vocabulary that does not exist: brackets group
 ///                 rather than classify, so nothing selects between two
 ///                 declarations of one shape, and an expression-level type
-///                 ascription is the prerequisite. Refusing at the declaration is
-///                 what keeps that error out of the language meanwhile.
+///                 ascription — ruled IN by «FIVE-RULINGS» §3 as «(x => text)» and
+///                 confirmed by «CHECKER-SCOPING-RULINGS» Q7, but not yet built — is
+///                 the prerequisite. Refusing at the declaration is what keeps that
+///                 error out of the language meanwhile.
 ///             </description>
 ///         </item>
 ///         <item>
@@ -136,6 +138,19 @@ namespace Test;
 ///             </description>
 ///         </item>
 ///     </list>
+///     <para>
+///     AND ONE THAT IS NOT A REFUSAL, recorded here because this is the ledger the
+///     checker work reads. Monomorphisation is forced — «GENERICS» §2, an array needs
+///     a concrete element type — so a call at a NEW argument type instantiates the
+///     callee, and in an always-running environment that instantiation happens
+///     MID-SESSION, during a run, not only at a build boundary. No document designs
+///     it, and it interacts with the «(function, instantiation)» cache the
+///     return/recursion inference is about to build («MONOMORPH-AND-RETURN» §3). It
+///     is the next design item after this pass, to write before that cache hardens
+///     rather than after — «CHECKER-SCOPING-RULINGS» §9. Named here for the same
+///     reason as the widening rows above: a gap with no consumer cannot be kept in
+///     view, and this is the one place a successor building the cache will look.
+///     </para>
 /// </remarks>
 internal static class Expiry
 {
