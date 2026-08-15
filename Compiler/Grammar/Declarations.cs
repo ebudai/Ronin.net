@@ -78,9 +78,9 @@ internal sealed class Declarations
     /// </param>
     public static Declarations Of(IEnumerable<Statement> statements, SourceText source,
                                   Declarations enclosing = null, Identifier variable = null,
-                                  IReadOnlyList<Identifier> parameters = null)
+                                  IReadOnlyList<Identifier> parameters = null, string container = "")
     {
-        Declarations declarations = new() { source = source };
+        Declarations declarations = new() { source = source, container = container };
 
         if (enclosing is not null)
         {
@@ -402,7 +402,7 @@ internal sealed class Declarations
             // what gives it structure, and «type x;» with neither is a name you
             // can use and cannot construct, which is what a library handle is.
             Symbols.WithNames(member is Grammar.Type ? SymbolKind.Type : SymbolKind.Value, name);
-            symbols.Add(new Declared(name, span) { Words = words });
+            symbols.Add(new Declared(name, span, Container: container) { Words = words });
         }
     }
 
@@ -516,5 +516,16 @@ internal sealed class Declarations
     private IReadOnlyList<Finding> found;
     private readonly List<Declared> symbols = [];
     private SourceText source;
+    private string container = "";
     private readonly HashSet<string> inherited = [];
+
+    /// <summary>
+    ///     The nearest named container a type «name» belongs to — its identity under
+    ///     SCOPE-IDENTITY-RULING's H, where a type declaration belongs to the module,
+    ///     type, or function that contains it, not the block it sits in. Empty for a
+    ///     type declared in the module. The path is stable because the containers are
+    ///     named; a merged declaration keeps the container it was declared in.
+    /// </summary>
+    public string ContainerOf(string name)
+        => symbols.First(declared => declared.Name == name).Container;
 }

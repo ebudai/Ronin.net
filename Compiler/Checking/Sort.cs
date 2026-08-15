@@ -63,32 +63,34 @@ internal abstract class Sort
     ///     «(T)» is T; a group of any other arity falls through to null, which is the
     ///     multiplicity case one pass early.
     /// </remarks>
-    public static Sort Of(Node node) => node switch
+    public static Sort Of(Node node, Func<string, string> container) => node switch
     {
         Node.Name { Words: "error" } => new Error(),
         Node.Name name when scalars.Contains(name.Words) => new Scalar(name.Words),
-        Node.Name name => new Named(name.Words),
+        Node.Name name => new Named(container(name.Words), name.Words),
 
         Node.Call call when call.Pattern.Equals(SymbolTable.Listing)
-            => Of(call.Arguments[0]) is Sort element ? new List(element) : null,
+            => Of(call.Arguments[0], container) is Sort element ? new List(element) : null,
         Node.Call call when call.Pattern.Equals(SymbolTable.Optional)
-            => Of(call.Arguments[0]) is Sort inner ? new Optional(inner) : null,
+            => Of(call.Arguments[0], container) is Sort inner ? new Optional(inner) : null,
         Node.Call call when call.Pattern.Equals(SymbolTable.Lookups)
-            => Of(call.Arguments[0]) is Sort key && Of(call.Arguments[1]) is Sort value ? new Lookup(key, value) : null,
+            => Of(call.Arguments[0], container) is Sort key && Of(call.Arguments[1], container) is Sort value
+                ? new Lookup(key, value)
+                : null,
 
-        Node.Operation arrow => Signature(arrow),
+        Node.Operation arrow => Signature(arrow, container),
 
-        Node.Group { Kind: Node.Grouping.Group, Parts: [{ Key: null } hole] } => Of(hole.Value),
+        Node.Group { Kind: Node.Grouping.Group, Parts: [{ Key: null } hole] } => Of(hole.Value, container),
 
         _ => null,
     };
 
     /// <summary>A function type, or null when a parameter or the result is not one sort.</summary>
-    private static Sort Signature(Node.Operation arrow)
+    private static Sort Signature(Node.Operation arrow, Func<string, string> container)
     {
         IEnumerable<Sort> operands = arrow.Left is Node.Group { Kind: Node.Grouping.Group } list
-            ? list.Parts.Select(part => Of(part.Value))
-            : [Of(arrow.Left)];
+            ? list.Parts.Select(part => Of(part.Value, container))
+            : [Of(arrow.Left, container)];
 
         List<Sort> parameters = [];
 
@@ -99,7 +101,7 @@ internal abstract class Sort
             parameters.Add(operand);
         }
 
-        return Of(arrow.Right) is Sort result ? new Function(parameters, result) : null;
+        return Of(arrow.Right, container) is Sort result ? new Function(parameters, result) : null;
     }
 
     /// <summary>A ground scalar — «number», «text», or «truth». One number, always.</summary>
@@ -188,13 +190,26 @@ internal abstract class Sort
     ///     representation, different type, no conversion either way
     ///     (CHECKER-SCOPING-RULINGS Q3).
     /// </summary>
-    internal sealed class Named(string name) : Sort
+    ///
+    /// <remarks>
+    ///     Identified by its declaring container AND its name, not the name alone
+    ///     (SCOPE-IDENTITY-RULING, H): two «token»s in two functions are two types,
+    ///     and the container — the path of named scopes it belongs to — is what tells
+    ///     them apart. The name alone made them one, which was REAUDIT54 finding 1.
+    /// </remarks>
+    internal sealed class Named(string container, string name) : Sort
     {
+        public string Container { get; } = container;
         public string Name { get; } = name;
 
-        protected override bool Same(Sort other) => ((Named)other).Name == Name;
+        protected override bool Same(Sort other)
+        {
+            var named = (Named)other;
 
-        public override int GetHashCode() => HashCode.Combine('n', Name);
+            return named.Container == Container && named.Name == Name;
+        }
+
+        public override int GetHashCode() => HashCode.Combine('n', Container, Name);
     }
 
     /// <summary>

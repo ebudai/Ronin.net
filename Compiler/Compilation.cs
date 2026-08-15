@@ -99,9 +99,9 @@ internal sealed class Compilation
     /// </summary>
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
                                Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
-                               string inside = null, bool reacting = false)
+                               string inside = null, bool reacting = false, string container = "")
     {
-        var declared = Declarations.Of(statements, Source, enclosing, variable, parameters);
+        var declared = Declarations.Of(statements, Source, enclosing, variable, parameters, container);
 
         foreach (var problem in declared.Problems) Add(problem);
 
@@ -136,7 +136,13 @@ internal sealed class Compilation
 
         foreach (var body in statements.SelectMany(Bodies))
         {
-            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts);
+            // A named container — a function or a type — extends the path a type it
+            // holds is identified by; a block, loop, delegate, or «when» is
+            // transparent, so a type declared in one belongs to the container above
+            // it (SCOPE-IDENTITY-RULING, H).
+            var nested = body.Container is null ? container : $"{container}/{body.Container}";
+
+            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested);
         }
 
         return declared;
@@ -284,7 +290,7 @@ internal sealed class Compilation
                     // value's own. «Sort.Of» is null where the tree resolves but is
                     // an arity-wrong group a later pass refuses — kept as null rather
                     // than dropped, so the span is still recorded.
-                    types.Add(new Annotation(where, Sort.Of(tree)));
+                    types.Add(new Annotation(where, Sort.Of(tree, declared.ContainerOf)));
                 }
                 else
                 {
@@ -489,7 +495,7 @@ internal sealed class Compilation
                 case Grammar.Function { Definition: { } definition } function:
                     seen.Add(definition);
                     yield return new Body(definition.Statements, null, Bound(function.Identifier),
-                                          Named(function.Identifier));
+                                          Named(function.Identifier), Container: function.Identifier.Words);
                     break;
 
                 case Grammar.Delegate { Definition: { } body } lambda:
@@ -499,8 +505,8 @@ internal sealed class Compilation
 
                 // A type's members are where a «when» belongs, along with the
                 // module: it lives as long as the instance does.
-                case Grammar.Type { Members: { } members }:
-                    yield return new Body([.. members], null, [], null);
+                case Grammar.Type { Members: { } members } type:
+                    yield return new Body([.. members], null, [], null, Container: type.Identifier.Words);
                     continue;
 
                 // a loop binds its variable in its body and nowhere else
@@ -558,7 +564,7 @@ internal sealed class Compilation
     /// </param>
     private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable,
                                         IReadOnlyList<Identifier> Parameters, string Inside,
-                                        bool Reacts = false);
+                                        bool Reacts = false, string Container = null);
 
     /// <summary>A declaration as a message would quote it.</summary>
     private static string Named(Identifier identifier) => $"«{identifier.Words}»";
