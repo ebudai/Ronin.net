@@ -118,6 +118,9 @@ internal sealed class Compilation
         // declaration set moves; every other phase reads the statements as written.
         IEnumerable<Statement> declaring = named
             ? statements.Concat(statements.SelectMany(Hoisted))
+                        .OrderBy(statement => statement is Grammar.Member { Identifier: { } identifier }
+                                     ? identifier.Span(Source).Offset
+                                     : int.MaxValue)
             : statements.Where(statement => statement is not Grammar.Type);
 
         var declared = Declarations.Of(declaring, Source, enclosing, variable, parameters, container);

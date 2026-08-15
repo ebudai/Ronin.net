@@ -232,6 +232,26 @@ public class Sorts
         Assert.Empty(Compilation.Of(new SourceText("function f { { function g { } } }\n", "s.ron")).Findings);
     }
 
+    [Fact(DisplayName = "a container-level type collision blames the later declaration, in either order")]
+    public void AContainerLevelTypeCollisionBlamesTheLaterDeclaration()
+    {
+        // REAUDIT55 finding 5: gathering a container's block-level types must not
+        // reorder them. A collision blames the LATER declaration — the one a reader
+        // changes — and names the earlier as first, whichever way the block and the
+        // direct declaration are written.
+        foreach (var source in new[]
+                 {
+                     "function f { { type token; } type token; }\n",
+                     "function f { type token; { type token; } }\n",
+                 })
+        {
+            var finding = Assert.Single(Compilation.Of(new SourceText(source, "p.ron")).Findings);
+
+            Assert.Equal(FindingKind.Shadowed, finding.Kind);
+            Assert.True(finding.Primary.Offset > Assert.Single(finding.Related).Span.Offset);
+        }
+    }
+
     [Fact(DisplayName = "an inference variable owns a requirement slot the constraint pass will fill")]
     public void AnInferenceVariableOwnsARequirementSlot()
     {
