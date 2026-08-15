@@ -75,18 +75,33 @@ public class TypeResolution
         Assert.Equal(ResolutionKind.Resolved, AsType(symbols, "lookup (text) => (number)"));
     }
 
-    [Fact(DisplayName = "a keyed round group is admitted, for the checker to refuse by multiplicity")]
-    public void AKeyedRoundGroupIsAdmittedForTheCheckerToRefuseByMultiplicity()
+    [Fact(DisplayName = "a keyed round group is a round keyed node, not a square lookup")]
+    public void AKeyedRoundGroupIsARoundKeyedNodeNotASquareLookup()
     {
         // «optional (a = b)» — a round group with a key — is grouping, which type
         // position admits and the checker refuses later by multiplicity, per
-        // TYPEHALFDECISIONS §3. The «=» is kept as a key rather than left inside a
-        // span no expression consumes, which was a no-reading that read as
-        // «optional (a = b) is not a type». A round group is never evaluated in a
-        // type, so carrying the key as a lookup-shaped node costs nothing.
+        // TYPEHALFDECISIONS §3. It is a KEYED group and not a lookup: it keeps its
+        // round delimiters and carries the key, where a lookup «[a = b]» is a value
+        // shape a checker would read as something else entirely.
         var symbols = new SymbolTable().WithNames(SymbolKind.Type, "a", "b");
+        var resolution = Types(symbols).Resolve("optional (a = b)");
 
-        Assert.Equal(ResolutionKind.Resolved, AsType(symbols, "optional (a = b)"));
+        Assert.Equal(ResolutionKind.Resolved, resolution.Kind);
+        Assert.Equal("optional ⟨«a» = «b»⟩", resolution.Reading);
+        Assert.True(resolution.TryTree(out var tree));
+
+        var group = tree.Whole.OfType<Node.Group>().Single();
+
+        Assert.Equal(Node.Grouping.Keyed, group.Kind);
+
+        var entry = group.Parts.Single();
+        Assert.Equal("«a»", entry.Key.ToString());
+        Assert.Equal("«b»", entry.Value.ToString());
+
+        // A real, source-contained extent — its absence is what crashed repair
+        // generation on an ambiguous keyed group, because a zero-length node sent
+        // the lexeme walk off the end of a statement it did not begin.
+        Assert.True(group.Length > 0);
 
         // and a value round group keyed the same way is still refused, because a
         // value «=» in round brackets means nothing — a lookup is «[a = b]».

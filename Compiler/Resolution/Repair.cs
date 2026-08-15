@@ -313,6 +313,21 @@ internal static class Repairs
             if (t is Node.Operation left && c is Node.Operation right && left.Symbol == right.Symbol)
                 return Divergence(left.Left, right.Left, avoid) ?? Divergence(left.Right, right.Right, avoid);
 
+            // A KEYED group — «optional (a = b)» in a type — is walked into by key
+            // and value, where a list or a lookup is opaque: its parts are type
+            // subtrees a bracketing can select a reading of, and the disagreement of
+            // an ambiguous key or value is deeper in, not the group's own span. The
+            // first part that segments differently is the divergence, exactly as the
+            // two operands of an operator are above.
+            if (t is Node.Group { Kind: Node.Grouping.Keyed } keyed && c is Node.Group other
+                && keyed.Parts.Count == other.Parts.Count)
+            {
+                return keyed.Parts
+                            .Zip(other.Parts, (mine, its) => Divergence(mine.Key, its.Key, avoid)
+                                                          ?? Divergence(mine.Value, its.Value, avoid))
+                            .FirstOrDefault(divergence => divergence is not null);
+            }
+
             var others = c is Node.Call call ? call.Arguments : [];
 
             foreach (var argument in t is Node.Call diverging ? diverging.Arguments : [t])
@@ -470,6 +485,14 @@ internal static class Repairs
 
         if (bare is Node.Operation operation)
             return new Node.Operation(Stripped(operation.Left), operation.Symbol, operation.Operator, Stripped(operation.Right));
+
+        // A keyed group's key and value are subtrees a repair brackets, so the
+        // brackets are stripped from them the way a call's arguments are — else two
+        // readings differing only by a bracket inside the value compare unequal and
+        // the repair that selects one is never recognised as reaching it.
+        if (bare is Node.Group { Kind: Node.Grouping.Keyed } keyed)
+            return new Node.Group([.. keyed.Parts.Select(part => new Node.Entry(Stripped(part.Key), Stripped(part.Value)))],
+                                  Node.Grouping.Keyed);
 
         return bare;
     }

@@ -238,6 +238,21 @@ internal abstract class Node
 
         /// <summary>«[k = v]» — a lookup, every entry keyed.</summary>
         Lookup,
+
+        /// <summary>
+        ///     «(k = v)» — a round group with keys, which a lookup is not.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///     A TYPE has no runtime lookup, so «optional (a = b)» is neither the
+        ///     value «[a = b]» nor a group without keys — it is a keyed grouping the
+        ///     checker refuses by multiplicity, and it keeps the delimiters it was
+        ///     written with rather than borrowing a lookup's. Round like <see
+        ///     cref="Group"/>, keyed like <see cref="Lookup"/>, and — unlike a
+        ///     lookup — walked into by a repair, because its key and value are type
+        ///     subtrees a bracketing can select a reading of.
+        /// </remarks>
+        Keyed,
     }
 
     /// <summary>
@@ -297,10 +312,12 @@ internal abstract class Node
             Kind = kind;
             Parts = [.. parts];
 
+            var keyed = Kind is Grouping.Lookup or Grouping.Keyed;
+
             foreach (var part in Parts)
             {
-                if (part.Key is null == (Kind is Grouping.Lookup))
-                    throw new Disagreeing($"a {Kind} entry {(Kind is Grouping.Lookup ? "must" : "cannot")} have a key");
+                if (part.Key is null == keyed)
+                    throw new Disagreeing($"a {Kind} entry {(keyed ? "must" : "cannot")} have a key");
             }
         }
 
@@ -327,6 +344,7 @@ internal abstract class Node
         protected override string Render() => Kind switch
         {
             Grouping.Lookup => $"[{string.Join(", ", Parts.Select(part => $"{part.Key} = {part.Value}"))}]",
+            Grouping.Keyed => $"⟨{string.Join(", ", Parts.Select(part => $"{part.Key} = {part.Value}"))}⟩",
             Grouping.List => $"[{string.Join(", ", Parts.Select(part => part.Value))}]",
             _ => $"⟨{string.Join(", ", Parts.Select(part => part.Value))}⟩",
         };
@@ -344,7 +362,8 @@ internal abstract class Node
 
             for (var at = 0; at < Parts.Count; ++at)
             {
-                if (Kind is Grouping.Lookup && Same.Equals(Parts[at].Key, group.Parts[at].Key) is false) return false;
+                if (Kind is Grouping.Lookup or Grouping.Keyed
+                    && Same.Equals(Parts[at].Key, group.Parts[at].Key) is false) return false;
                 if (Same.Equals(Parts[at].Value, group.Parts[at].Value) is false) return false;
             }
 
@@ -377,7 +396,7 @@ internal abstract class Node
 
         protected override int Hash()
             => Parts.Aggregate(HashCode.Combine('g', Kind),
-                               (hash, part) => Kind is Grouping.Lookup
+                               (hash, part) => Kind is Grouping.Lookup or Grouping.Keyed
                                              ? HashCode.Combine(hash, part.Key.Shape, part.Value.Shape)
                                              : HashCode.Combine(hash, part.Value.Shape));
     }

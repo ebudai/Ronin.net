@@ -332,6 +332,15 @@ internal sealed class Resolver
     /// </remarks>
     private void Group(IReadOnlyList<Lexeme> lexemes, Cell cell, int from, int to, bool collection)
     {
+        // The span the brackets cover, «from» and «to» being the contents between
+        // them. Set on every group offered below, because a group with no extent
+        // has offset zero, and a repair looking for the lexeme at that offset walks
+        // off the end of a statement that does not begin there — a crash on source
+        // a nested ambiguity inside a group reaches. Captured before «to» moves for
+        // a trailing separator, so it is the written extent and not the trimmed one.
+        var offset = Offset(lexemes, from - 1);
+        var length = Length(lexemes, from - 1, to + 1);
+
         // An empty COLLECTION is a value — the list with nothing in it. An empty
         // GROUP is brackets round no expression, which means nothing in a value
         // and IS something in a type: the nullary parameter list of a function
@@ -341,8 +350,8 @@ internal sealed class Resolver
         // between each pair of separators and an empty span has none.
         if (from == to)
         {
-            if (collection) cell.Offer(1, new Node.Group([], Node.Grouping.List));
-            else if (this.kind is SymbolKind.Type) cell.Offer(1, new Node.Group([], Node.Grouping.Group));
+            if (collection) cell.Offer(1, new Node.Group([], Node.Grouping.List).At(offset, length));
+            else if (this.kind is SymbolKind.Type) cell.Offer(1, new Node.Group([], Node.Grouping.Group).At(offset, length));
 
             return;
         }
@@ -437,12 +446,11 @@ internal sealed class Resolver
 
         // A round group is a group, unless a TYPE keyed it — «optional (a = b)» —
         // where the key must survive to the checker that will refuse it by
-        // multiplicity. The node model carries a key only on a lookup, and in type
-        // position that costs nothing: the tree is never evaluated, so it is never
-        // a runtime lookup value, and «[…]» collections are suppressed in a type,
-        // so nothing else here is a lookup to confuse it with.
+        // multiplicity. That is a KEYED round group and not a lookup: it keeps the
+        // brackets it was written with, is walked into by a repair, and is never a
+        // runtime value, where a lookup is «[…]» and none of that.
         var kind = collection ? Associated.Kind(keyed)
-                 : this.kind is SymbolKind.Type && keyed is not 0 ? Node.Grouping.Lookup
+                 : this.kind is SymbolKind.Type && keyed is not 0 ? Node.Grouping.Keyed
                  : Node.Grouping.Group;
 
         // EVERY part against every other, so a group carries the readings of
@@ -481,7 +489,7 @@ internal sealed class Resolver
                 parts.Add(new Node.Entry(chosen, combination[taken++].Node));
             }
 
-            cell.Offer(1 + combination.Sum(part => part.Cost), new Node.Group(parts, kind), bounded);
+            cell.Offer(1 + combination.Sum(part => part.Cost), new Node.Group(parts, kind).At(offset, length), bounded);
         }
 
         cell.Beyond(readings - built, bounded || readings > built);

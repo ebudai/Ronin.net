@@ -145,6 +145,29 @@ public class TypeAnnotations
         Assert.Empty(Of("type a;\ntype b;\nvar x => optional (a = b);\n"));
     }
 
+    [Fact(DisplayName = "an ambiguity inside a keyed group repairs, and does not crash")]
+    public void AnAmbiguityInsideAKeyedGroupRepairsAndDoesNotCrash()
+    {
+        // A keyed group carries a real extent and is walked into by a repair, so an
+        // ambiguous arrow in its VALUE or its KEY is a repairable ambiguity at the
+        // annotation — not a compiler-terminating source path, which a zero-length
+        // node was before the extent was set.
+        foreach (var source in (string[])
+                 [
+                     "type a; type b; type c; type d;\nvar x => optional (a = b => c => d);\n",   // value
+                     "var x => optional (text => number => truth = number);\n",                  // key
+                     // an unambiguous entry before the ambiguous one — the repair
+                     // walk skips the first and finds the divergence in the second
+                     "var x => optional (number = text, truth = number => text => truth);\n",
+                 ])
+        {
+            var finding = Assert.IsType<Ambiguous>(Assert.Single(Of(source)));
+
+            Assert.Equal(2, finding.Total);
+            Assert.Equal(2, finding.Repairs.Count);
+        }
+    }
+
     [Fact(DisplayName = "a chain of arrows is an ambiguity at the annotation, with brackets to repair it")]
     public void AChainOfArrowsIsAnAmbiguityAtTheAnnotationWithBracketsToRepairIt()
     {
