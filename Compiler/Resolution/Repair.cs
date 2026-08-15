@@ -310,7 +310,17 @@ internal static class Repairs
 
             if (Node.Same.Equals(Stripped(t), Stripped(c))) return null;
 
-            if (t is Node.Operation left && c is Node.Operation right && left.Symbol == right.Symbol)
+            // Two operations of the same symbol descend operand by operand ONLY
+            // when they cover the same words — then their operands align and any
+            // disagreement is deeper in one of the pair. When one spans fewer words
+            // than the other — a right-nested «b => (c => d)» against a competitor's
+            // bare «c => d» — they do not align, and bracketing the target's whole
+            // operation is the repair, the way a call brackets an argument rather
+            // than itself. Without the guard the misaligned descent compares «b» to
+            // «c», finds only leaf spans already bracketed, and returns nothing: the
+            // fully-right arrow comb, shown as a reading and left unrepairable.
+            if (t is Node.Operation left && c is Node.Operation right && left.Symbol == right.Symbol
+                && Where(left) == Where(right))
                 return Divergence(left.Left, right.Left, avoid) ?? Divergence(left.Right, right.Right, avoid);
 
             // A KEYED group — «optional (a = b)» in a type — is walked into by key
@@ -328,9 +338,29 @@ internal static class Repairs
                             .FirstOrDefault(divergence => divergence is not null);
             }
 
+            // The competitor is aligned against by its call arguments only. Its
+            // operation operands are NOT candidates: a target leaf «b» would align
+            // with the «b» nested inside a competitor's «b => c» and report no
+            // divergence, dropping the repair that brackets around it.
             var others = c is Node.Call call ? call.Arguments : [];
 
-            foreach (var argument in t is Node.Call diverging ? diverging.Arguments : [t])
+            // A call is distinguished by bracketing an ARGUMENT and an operation by
+            // bracketing ITSELF — «(number => truth)» selects the reading where the
+            // arrow groups right. Except when the operation covers the SAME span as
+            // the competitor — the function type «(lookup text => number) => truth»
+            // against the lookup call over the same words — where bracketing the
+            // whole span distinguishes nothing and an operand is the repair. There
+            // the operands stand in for the operation, «(lookup text => number)»
+            // being the one the competing lookup does not group the same way.
+            var subtrees = t switch
+            {
+                Node.Call diverging => diverging.Arguments,
+                Node.Operation whole when Where(whole) == Where(c)
+                    => (IReadOnlyList<Node>)[whole.Left, whole.Right],
+                _ => [t],
+            };
+
+            foreach (var argument in subtrees)
             {
                 var span = Where(argument);
 

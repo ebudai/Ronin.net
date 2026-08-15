@@ -174,15 +174,41 @@ public class TypeAnnotations
         // The arrow does not associate, so a bare chain is a tie the reader
         // brackets — reported with the same finding and repairs a value ambiguity
         // gets, at the annotation rather than at every use.
-        var chain = Assert.IsType<Ambiguous>(Assert.Single(Of("var handler => text => number => truth;\n")));
+        const string chained = "var handler => text => number => truth;\n";
+        var chain = Assert.IsType<Ambiguous>(Assert.Single(Of(chained)));
         Assert.Equal(2, chain.Total);
-        Assert.NotEmpty(chain.Repairs);
+        Assert.Equal(2, chain.Repairs.Count);
+        foreach (var repair in chain.Repairs) Assert.Empty(Of(Applied(chained, repair)));
 
         // LOOKUP-ARROW §2: the lookup's arrow and the function arrow compete for
-        // the second «=>», so there are three bracketings and the finding offers
-        // all three.
-        var lookup = Assert.IsType<Ambiguous>(Assert.Single(Of("var table => lookup text => number => truth;\n")));
+        // the second «=>», so there are THREE bracketings and the finding offers
+        // all three — each applying to a clean, uniquely-resolved annotation, and
+        // the three distinct. The third, «(lookup text => number) => truth», is the
+        // function taking a lookup: an operation whose left is a lookup call, the
+        // reading the repair search dropped until it descended a call-shaped
+        // competitor's operation.
+        const string source = "var table => lookup text => number => truth;\n";
+        var lookup = Assert.IsType<Ambiguous>(Assert.Single(Of(source)));
+
         Assert.Equal(3, lookup.Total);
+        Assert.Equal(3, lookup.Repairs.Count);
+
+        var applied = lookup.Repairs.Select(repair => Applied(source, repair)).ToList();
+
+        foreach (var repaired in applied) Assert.Empty(Of(repaired));
+        Assert.Equal(3, applied.Distinct().Count());
+        Assert.Contains("var table => (lookup text => number) => truth;\n", applied);
+    }
+
+    /// <summary>The source with one repair's brackets typed in, right to left.</summary>
+    private static string Applied(string source, Repair repair)
+    {
+        foreach (var insertion in repair.Insertions.OrderByDescending(insertion => insertion.At))
+        {
+            source = source[..insertion.At] + insertion.Text + source[insertion.At..];
+        }
+
+        return source;
     }
 
     [Fact(DisplayName = "a type member's annotation is read once, in the type's body")]
