@@ -115,12 +115,26 @@ namespace Test;
 ///                 the <c>Type.Unresolved</c> annotations and stops, so «type Car
 ///                 = Vehicle and { … }» reads «Vehicle» nowhere and an undeclared
 ///                 base is SILENT where an undeclared annotation is a finding. →
-///                 becomes the same walk admitting one more node,
-///                 <c>Algebra.Unresolved</c> beside <c>Type.Unresolved</c>, with
-///                 no other machinery. One of the two rows here whose approximation
-///                 is too LENIENT rather than too strict, and named for exactly
-///                 that: a silent accept is the failure the annotation walk exists
-///                 to prevent, one category over.
+///                 becomes base resolution falling out of the algebra slice, in
+///                 order, because the first gates the second: the parser stops
+///                 dangling the operator — today the record is peeled off as the
+///                 <c>Definition</c> and the reference is left «Vehicle and», a
+///                 trailing operator with no right operand no table can resolve;
+///                 then «and»/«or» enter the type-mode operator table with ladder
+///                 rungs, the TYPE-HALF-RULINGS §3 follow-up as designed operators
+///                 rather than a bespoke split; then <c>Bases</c>/<c>Unions</c>
+///                 populate from the resolved tree and the findings fall out of it.
+///                 One of the two rows here whose approximation is too LENIENT
+///                 rather than too strict — and the cost is bounded: an undeclared
+///                 base is a missing diagnostic and not a wrong answer ONLY because
+///                 nothing reads <c>Bases</c> yet. The moment anything does, this
+///                 stops being deferrable. PROVENANCE — the earlier «one more node,
+///                 no other machinery» was a size claim asserted from a design
+///                 document, not the tree; probing the parse at «57f36e3» found the
+///                 operators inside the reference and <c>Bases</c>/<c>Unions</c>
+///                 empty. A row asserting an implementation size carries who
+///                 established it and how, so the next reader probes before
+///                 trusting it. Ruled C — defer — in BASE-RESOLUTION-RULING.
 ///             </description>
 ///         </item>
 ///         <item>
