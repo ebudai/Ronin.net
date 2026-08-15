@@ -1,5 +1,10 @@
 # Generics, second pass — the cheap route works, and one addition makes it safe
 
+> **Ledger** — `[R]` recommendation. §8a ("separate the type and value tables")
+> withdrawn by `FIVERULINGS` §4 and confirmed by `CHECKERSCOPINGRULINGS` Q4 — struck
+> below. Monomorphisation is `[forced]`, not a recommendation. Supersedes
+> `GENERICS.md` §3 on deferred generic declarations.
+
 Taking the three proposals in turn: no erasure, type parameters always
 compile-time, and *omit the type and it is generic*. I agree with all three.
 The third has one defect, it is the same defect that ruled out Hindley-Milner,
@@ -192,18 +197,17 @@ later costs programs.
 
 ## 8. Two decisions this forces that are not yet made
 
-**a. Are types and values one symbol table or two?**
+**a. ~~Are types and values one symbol table or two?~~ SUPERSEDED — one table.**
+This recommendation ("I would separate them") was withdrawn in `FIVERULINGS` §4 for
+three reasons — `type of x` puts a type in a value position, every name rule would
+otherwise run twice and fail silently, and the prize was measured at 0.0072%. The
+decisive evidence arrived after, in built work: `LOOKUPARROWRULED` §1 — with two
+tables, `m => lookup text => number`, the commonest annotation shape, would not
+resolve, because the single kind filter is what makes that reading unique.
+`CHECKERSCOPINGRULINGS` Q4 confirms. The withdrawn reasoning is struck:
 
-They must be decided together with R5/R6b, because those rules are properties
-of a table. If shared, a stdlib function pattern `count of (_)` collides with a
-type constructor `count of (_)`, and every type name competes with every value
-name for the same prefix space. If separate, the rules run twice over smaller
-tables and **glue words are spent per namespace** — which roughly halves the
-registry pressure we have been fighting.
-
-I would separate them. The syntactic positions are already distinct (a type
-follows `=>`), the resolver is unchanged — same machinery, different table
-selected by position — and "one resolver, two languages" survives intact.
+> ~~They must be decided together with R5/R6b … "one resolver, two languages"
+> survives intact.~~
 
 **b. R6b applies to type constructors too.**
 
@@ -221,7 +225,7 @@ namespace or the check silently does not run there.
 | generic declarations deferred | **withdrawn** — your route removes the problem I could not solve. There is no type-variable spelling to invent because there are no type variables |
 | constraints deferred | **partly withdrawn** — *declared* constraints stay deferred; *inferred* ones should be built with the monomorphiser, because retrofitting them means changing what a module exports |
 | no `any` | new — say it out loud, and point at sum types |
-| type/value namespaces | new — decide before R5/R6b are extended to types |
+| type/value namespaces | **resolved — one table** (`FIVERULINGS` §4, `CHECKERSCOPINGRULINGS` Q4). §8a struck |
 
 ## 10. What I would send the programmer
 

@@ -1,5 +1,9 @@
 # Overloads: alternatives, not a second pass — and mostly not needed for the library
 
+> **Ledger** — `[R]` recommendation. §4's open question ("is there an expression-level
+> type ascription?") is answered by `FIVERULINGS` §3 — see the note in §4. The
+> declaration-site refusal and its use-site successor live in `Test/Expiry.cs`.
+
 Three answers, in order of how much they change what you do next.
 
 1. **Overloads are resolver alternatives**, and the type filter is one pass. But
@@ -120,6 +124,13 @@ So the real prerequisite for overloading is not the type checker. It is:
 > **Does Ronin have an expression-level type ascription?** If not, same-shape
 > overloading admits unrepairable errors and should not land — the same test that
 > killed the injected `old X` and the juxtaposed scope.
+
+> **Answered — yes, it is ruled in.** `FIVERULINGS` §3 rules `(x => text)` an
+> expression-level ascription: a check and never a coercion, binding loosest, costing
+> no reserved word because `=>` is a symbol and symbols cannot be captured by names.
+> It is the repair that makes same-shape overloading admissible. What remains is not
+> the design question but *building* it, deferred together with the overload expiry —
+> `CHECKERSCOPINGRULINGS` Q7, and the ledger row in `Test/Expiry.cs`.
 
 That is a designer question and I would rather raise it now than have it found
 during the type work. It is also cheap to answer, and it is the kind of answer

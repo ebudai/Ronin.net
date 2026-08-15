@@ -1,5 +1,10 @@
 # E — square aggregates: resolution, evaluation, and runtime values
 
+> **Ledger** — `[R]` recommendation on lists and lookups. §8 (the miss) superseded
+> by `REAUDIT47RULING` §5; §10 (the `Error`/`optional` fork) closed and struck below,
+> per `REAUDIT47RULING` §5, `ERRORASVALUE`, and `CHECKERSCOPINGRULINGS` Q2. §1's
+> "a lookup does not resolve at all" is stale — the three-kind node has since landed.
+
 **Revised.** The first version of §0 stated a premise that is not what the code
 does, the programmer verified it rather than building on it, and §1 is rewritten
 around what he found. The correction is in §0 and the reasoning error is named
@@ -338,11 +343,14 @@ user-extensible, which is precisely when the door opens.
 `match` is a lookup literal whose keys are patterns. Worth noting the shape here
 and designing it separately — the pattern-as-key question is its own document.
 
-**Still forked:** `Error` and `optional`, which I raised before starting. It does
-not block §§1–9 — every decision above holds either way, which is a sign they are
-the right ones — but it decides whether `lookup of K V` indexing can be given a
-total type, and it decides the checker's whole shape. That is the one thing I
-still want from Budai before the type checker.
+**~~Still forked:~~ SUPERSEDED — the fork is closed.** The miss is ruled in
+`REAUDIT47RULING` §5 (`nothing`, `m @ k : optional V`, optionals nest, list index
+out of range stays `Error`), and the fork behind it in `ERRORASVALUE` (a named,
+one-directional bottom; no union). `CHECKERSCOPINGRULINGS` Q2 confirms both: the
+checker is equality-unification with an `Error` bottom and `optional` nesting, and
+nothing here remains open. The struck sentence — *"the one thing I still want from
+Budai before the type checker"* — asked for a decision already made, and cost a
+reader the half hour that motivated this note.
 
 ## 11. Summary
 

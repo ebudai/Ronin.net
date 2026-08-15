@@ -1,5 +1,10 @@
 # `nothing` — what is already true, and seven things to settle
 
+> **Ledger** — `[R]` analysis, and predates several rulings it raises. §D
+> (`optional` as a modifier) is stale — struck below, verified in the tree per
+> `FIVERULINGS` §5 and `CHECKERSCOPINGRULINGS` Q6. §C's "there is no `is`" is closed
+> by `ISANDEQUALITY` and `ERRORASVALUE` §2.
+
 Analysis of `docs/spec/NOTHINGANDINDEXING.md` §1. Everything below is measured
 against the compiler unless marked otherwise. Nothing implemented.
 
@@ -121,14 +126,19 @@ matters more than it looks: `otherwise` deliberately erases the distinction
 between a missing value and a failed one, and the only way back is the thing
 that does not exist.
 
-## D. `optional` is a modifier, not a type constructor
+## D. ~~`optional` is a modifier, not a type constructor~~ — SUPERSEDED, stale
 
-The spec lists it beside `compiled`, `shared`, `persistent`, `export`,
-`extends` (§4.2), and it is parsed and stored as one. §1.1 treats `optional T`
-as a type. Those are different things, and a type checker would read them
-differently — a modifier annotates a declaration, a constructor makes a new type
-from an old one. Worth stating which, because §1.2's exhaustiveness argument
-needs the second.
+`FIVERULINGS` §5 ruled `optional (_)` a **type constructor**, and it is built:
+`Resolver.Optional = new(["optional", null])` (`Resolver.cs:1861`), with the modifier
+keyword, its lexer class, and its token factory gone (`Resolver.cs:1841`). Verified
+in the tree at `57f36e3` — the modifiers are `Fast`, `Compiled`, `Global`, `Hidden`,
+`Reactive`, and no `Optional` among them. The checker reads `optional` as a
+constructor and nothing else (`CHECKERSCOPINGRULINGS` Q6). The original text, which
+predates the ruling, is struck:
+
+> ~~The spec lists it beside `compiled`, `shared`, `persistent`, `export`, `extends`
+> (§4.2), and it is parsed and stored as one … §1.2's exhaustiveness argument needs
+> the second.~~
 
 ## E. The rule is broader than §1.1 states — say so
 
