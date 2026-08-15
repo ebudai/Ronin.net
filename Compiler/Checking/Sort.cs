@@ -233,16 +233,22 @@ internal abstract class Sort
     ///
     /// <remarks>
     ///     Two are the same variable by IDENTITY, and identity is the whole of its
-    ///     equality. The inferred requirement set — the operations a body applies to
-    ///     the parameter, GENERICS-II §5, the interface checked at the call boundary —
-    ///     is ACCOMMODATED through that identity: the constraint pass keys it by the
-    ///     variable rather than storing it on the type, so the set's representation is
-    ///     settled with that pass and no construction site here is rewritten when it
-    ///     lands. Shaped now (CHECKER-SCOPING-RULINGS Q1), as a case and not a null.
+    ///     equality — the requirements below are the solver's working state, not part
+    ///     of what makes two variables one. <see cref="Requirements"/> is the slot
+    ///     the inferred requirement set fills: the operations a body applies to the
+    ///     parameter (GENERICS-II §5), the interface checked at the call boundary.
+    ///     Owned and empty until the constraint pass records into it — a slot on the
+    ///     variable, not an external map keyed by it (CHECKER-SCOPING-RULINGS Q1,
+    ///     REAUDIT55 finding 4), so that pass fills it without a new construction
+    ///     site. The element type «Pattern» is the reading of "what the body
+    ///     requires" and stands to be confirmed with the constraint pass; the
+    ///     machinery it will drive is deferred, and this is the room for it.
     /// </remarks>
     internal sealed class Variable(int identity) : Sort
     {
         public int Identity { get; } = identity;
+
+        public ISet<Pattern> Requirements { get; } = new HashSet<Pattern>();
 
         protected override bool Same(Sort other) => ((Variable)other).Identity == Identity;
 

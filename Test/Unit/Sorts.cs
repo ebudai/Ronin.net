@@ -215,4 +215,21 @@ public class Sorts
         // «f»'s, and this compiles clean.
         Assert.Empty(Compilation.Of(new SourceText("function f { { function g { } } }\n", "s.ron")).Findings);
     }
+
+    [Fact(DisplayName = "an inference variable owns a requirement slot the constraint pass will fill")]
+    public void AnInferenceVariableOwnsARequirementSlot()
+    {
+        // Q1 / REAUDIT55 finding 4: «Variable» has a place for the inferred
+        // requirement set now — owned on the variable, empty until the constraint
+        // pass records into it. Filling it does not change which variable it is,
+        // because identity, not the requirements, is the whole of equality.
+        var variable = new Sort.Variable(1);
+
+        Assert.Empty(variable.Requirements);
+
+        variable.Requirements.Add(Pattern.Parse("print _"));
+
+        Assert.Single(variable.Requirements);
+        Assert.Equal<Sort>(new Sort.Variable(1), variable);
+    }
 }

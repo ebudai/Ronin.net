@@ -80,6 +80,13 @@ something the enclosing scope already has.
 - identifier is a ***name***
 - algebra is a ***reference***
 - body is a ***definition***
+
+A datatype **belongs to its nearest named container** — a module, a datatype body,
+or a function — and not to any anonymous ***scope*** it is written inside, because a
+datatype has no runtime lifetime for a scope to bound.  Its name is therefore usable
+throughout that container, and is **unique within it, across the container's
+anonymous sub-scopes**: two of one name anywhere in one function are one datatype
+declared twice, which is shadowing (§ 4.3).
 ## 4.6 Scope
 Scopes may not be preceeded by an ***assignment***.  All scopes may be preceeded by `compiled`.
 ### 4.6.1 Anonymous
