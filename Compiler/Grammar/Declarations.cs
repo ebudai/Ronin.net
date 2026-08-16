@@ -232,8 +232,8 @@ internal sealed class Declarations
         => spelling is not null && resolver.Resolve(spelling).TryTree(out var tree) ? Sort.Of(tree, ContainerOf) : null;
 
     /// <summary>A function's return spelling, or null where it declares no return type.</summary>
-    private static string Returned(Member member)
-        => ((Function)member).Returns is Type.Unresolved { Reference: { } reference }
+    private static string Returned(Function function)
+        => function.Returns is Type.Unresolved { Reference: { } reference }
          ? string.Join(' ', reference.ToLexemes().Select(lexeme => lexeme.Text))
          : null;
 
@@ -401,6 +401,17 @@ internal sealed class Declarations
             return;
         }
 
+        // Only a function may be a pattern. A datum or a datatype named with a
+        // parameter list — «var provide (x)» — is a name given a callable shape it
+        // cannot have (docs/spec §4.5.1), and installing it as a pattern would file a
+        // value or a type where a call is looked up; casting it to the function it is
+        // not terminated the compiler outright (REAUDIT56 finding 1).
+        if (member is not Grammar.Function function)
+        {
+            problems.Add(new Parameterized(member.Identifier.Span(source), member.Identifier.Shape));
+            return;
+        }
+
         if (SymbolTable.Builtins.Contains(pattern))
         {
             problems.Add(new Supplied(member.Identifier.Span(source), pattern.ToString()));
@@ -416,7 +427,7 @@ internal sealed class Declarations
 
         if (Overloads.TryGetValue(pattern, out var declared) is false) Overloads[pattern] = declared = [];
 
-        declared.Add(new Signature(blocks, member.Identifier.Annotations, Returned(member)));
+        declared.Add(new Signature(blocks, member.Identifier.Annotations, Returned(function)));
 
         if (shapes.TryGetValue(pattern, out var spans) is false) shapes[pattern] = spans = [];
 

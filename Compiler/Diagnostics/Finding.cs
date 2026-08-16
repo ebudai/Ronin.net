@@ -96,6 +96,9 @@ internal enum FindingKind
     /// <summary>A type annotation with more words and symbols than are read at once.</summary>
     OversizeType,
 
+    /// <summary>A datum or datatype named by a pattern, which only a function may be.</summary>
+    Parameterized,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -848,6 +851,27 @@ internal sealed class OversizeType(Span primary)
     public override string Message
         => $"This type annotation is more than {Resolver.MaxLexemes} words and symbols, which is past " +
            "what is read at once. No type is written this large; name one that exists.";
+}
+
+/// <summary>
+///     A datum or datatype whose name is a pattern — «var provide (x)» — which only
+///     a function may be.
+/// </summary>
+///
+/// <remarks>
+///     A parameter list makes a declaration a pattern, and a pattern is a callable
+///     shape. A «var», «let», or «type» names a value or a type, not a call, so a
+///     bracket in its name has nothing to bind and, cast to a function it is not,
+///     would terminate the compiler rather than become a finding.
+/// </remarks>
+internal sealed class Parameterized(Span primary, string shape)
+    : Finding(FindingKind.Parameterized, primary)
+{
+    public string Shape { get; } = shape;
+
+    public override string Message
+        => $"«{Shape}» has a parameter list, and only a function may take one. A «var», «let», or «type» is " +
+           "named by words alone — name it without the bracket, or declare it as a function.";
 }
 
 /// <summary>

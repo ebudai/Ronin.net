@@ -264,6 +264,24 @@ public class StatementShapes
         Assert.Empty(Compilation.Of(new SourceText(source.Replace(" /* gap */ ", " ") + "\n", "P.ron")).Findings);
     }
 
+    [Theory(DisplayName = "only a function may be a pattern; a patterned datum or datatype is refused, never fatal")]
+    [InlineData("var provide (x => number) => number;")]
+    [InlineData("constant provide (x => number) => number;")]
+    [InlineData("type provide (x => number);")]
+    public void OnlyAFunctionMayBeAPatternADatumOrDatatypeIsRefused(string source)
+    {
+        // REAUDIT56 finding 1: a datum or datatype named with a parameter list reaches
+        // the pattern path but is no function, and casting it to one terminated the
+        // compiler from ordinary source. It becomes a finding instead.
+        var finding = Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+
+        Assert.Equal(FindingKind.Parameterized, finding.Kind);
+
+        // A function of the same shape is ordinary — patterns are its alone.
+        Assert.Empty(Compilation.Of(new SourceText(
+            "function provide (x => number) => number { return x; }\n", "P.ron")).Findings);
+    }
+
     [Theory(DisplayName = "a declaration at the width bound is refused, never fatal")]
     [InlineData(128, 0, null)]                            // the legal maximum, exactly
     [InlineData(128, 1, FindingKind.UnwritableName)]      // at the maximum, and unreadable

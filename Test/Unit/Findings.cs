@@ -48,6 +48,7 @@ public class Findings
                      "var total otherwise zero => number;\n",
                      "function x otherwise (value => number) { return value; }\n",
                      "var x => = 1;\n",
+                     "var provide (x => number) => number;\n",
                      "var cash on hand => money;\n",
                      "var z => " + string.Concat(Enumerable.Repeat("optional ", Resolver.MaxLexemes + 1)) + "number;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => number) {}\n",
@@ -221,6 +222,8 @@ public class Findings
             Player.ron:1:10: «x otherwise (_)» uses «otherwise», which the language reads as an operator between two values. A call to it covers the same span as the operation, so every «… otherwise …» in scope would have both readings and no bracketing would tell them apart. Respell it.
 
             Player.ron:1:1: expected a type after '=>'. «var x => = 1» could not be read, and the rest of the statement was skipped so that one mistake is reported once.
+
+            Player.ron:1:5: «provide (_)» has a parameter list, and only a function may take one. A «var», «let», or «type» is named by words alone — name it without the bracket, or declare it as a function.
 
             Player.ron:1:21: «money» is not a type. Nothing declares it and the language supplies no such type. Declare it with «type money;», or name a type that exists.
 
