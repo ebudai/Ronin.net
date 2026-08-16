@@ -78,9 +78,13 @@ internal sealed class Declarations
     /// </param>
     public static Declarations Of(IEnumerable<Statement> statements, SourceText source,
                                   Declarations enclosing = null, Identifier variable = null,
-                                  IReadOnlyList<Identifier> parameters = null, IReadOnlyList<string> container = null)
+                                  IReadOnlyList<Identifier> parameters = null, Container container = null)
     {
-        Declarations declarations = new() { source = source, container = container ?? [] };
+        Declarations declarations = new()
+        {
+            source = source,
+            container = container ?? new Container(new ModuleIdentity.Path(string.Empty), []),
+        };
 
         if (enclosing is not null)
         {
@@ -611,16 +615,17 @@ internal sealed class Declarations
     private IReadOnlyList<Finding> found;
     private readonly List<Declared> symbols = [];
     private SourceText source;
-    private IReadOnlyList<string> container = [];
+    private Container container;
     private readonly HashSet<string> inherited = [];
 
     /// <summary>
     ///     The nearest named container a type «name» belongs to — its identity under
     ///     SCOPE-IDENTITY-RULING's H, where a type declaration belongs to the module,
-    ///     type, or function that contains it, not the block it sits in. Empty for a
-    ///     type declared in the module. The path is stable because the containers are
-    ///     named; a merged declaration keeps the container it was declared in.
+    ///     type, or function that contains it, not the block it sits in. Rooted in the
+    ///     module, with no segments for a type declared at the module. The path is
+    ///     stable because the containers are named; a merged declaration keeps the
+    ///     container it was declared in.
     /// </summary>
-    internal IReadOnlyList<string> ContainerOf(string name)
+    internal Container ContainerOf(string name)
         => symbols.First(declared => declared.Name == name).Container;
 }

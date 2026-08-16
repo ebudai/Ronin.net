@@ -40,6 +40,13 @@ internal sealed class Compilation
 {
     private Compilation() => Findings = new ReadOnlyCollection<Finding>(findings);
 
+    // The document token an unsaved source is rooted at when it has no path. One per
+    // compilation, which for the current single-shot compiler IS the document; a
+    // language server re-compiling a buffer across edits must supply a token stable
+    // across them, or every type in the buffer changes identity per keystroke — the
+    // span defect once more, ledgered with that successor (VARIABLE-AND-MODULE Q5).
+    private readonly object buffer = new();
+
     public static Compilation Of(SourceText source)
     {
         Lexer lexer = new(source.Text);
@@ -99,17 +106,19 @@ internal sealed class Compilation
     /// </summary>
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
                                Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
-                               string inside = null, bool reacting = false, IReadOnlyList<string> container = null,
+                               string inside = null, bool reacting = false, Container container = null,
                                bool named = true, IReadOnlyList<Body> ancillary = null,
                                Grammar.Function function = null)
     {
-        // The container of a type is a STRUCTURE — the module it is in, then a
-        // segment per enclosing named scope — compared as one rather than a joined
-        // string a module path or a segment could collide on (CONTAINER-IDENTITY-
-        // RULING §3). The root is the module, whose identity is the source path —
-        // ledgered, because a path is a location the way a span was
-        // (CONTAINER-IDENTITY-RULING §1).
-        container ??= [Source.Path];
+        // The container of a type is a STRUCTURE — the module it is in, then a segment
+        // per enclosing named scope — compared as one rather than a joined string a
+        // module or a segment could collide on (CONTAINER-IDENTITY-RULING §3). Its
+        // root is the module's IDENTITY, a type and not a string: a saved file is its
+        // path — a location, ledgered the way a span was; an unsaved buffer is a token
+        // belonging to its document, so two unsaved buffers are two modules
+        // (VARIABLE-AND-MODULE Q5).
+        container ??= new Container(Source.Path is { } path ? new ModuleIdentity.Path(path)
+                                                            : new ModuleIdentity.Buffer(buffer), []);
 
         // A type declaration belongs to its nearest named container, not the block
         // it sits in (SCOPE-IDENTITY-RULING, H). So a named container also declares
@@ -195,7 +204,7 @@ internal sealed class Compilation
             // holds is identified by; a block, loop, delegate, or «when» is
             // transparent, so a type declared in one belongs to the container above
             // it (SCOPE-IDENTITY-RULING, H).
-            var nested = body.Container is null ? container : [.. container, body.Container];
+            var nested = body.Container is null ? container : container.Within(body.Container);
 
             Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
                   named: body.Container is not null, ancillary: body.Ancillary, function: body.Function);

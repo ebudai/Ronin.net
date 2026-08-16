@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Ronin.Compiler;
 
@@ -63,7 +64,7 @@ internal abstract class Sort
     ///     «(T)» is T; a group of any other arity falls through to null, which is the
     ///     multiplicity case one pass early.
     /// </remarks>
-    public static Sort Of(Node node, Func<string, IReadOnlyList<string>> container) => node switch
+    public static Sort Of(Node node, Func<string, Container> container) => node switch
     {
         Node.Name { Words: "error" } => new Error(),
         Node.Name name when scalars.Contains(name.Words) => new Scalar(name.Words),
@@ -86,7 +87,7 @@ internal abstract class Sort
     };
 
     /// <summary>A function type, or null when a parameter or the result is not one sort.</summary>
-    private static Sort Signature(Node.Operation arrow, Func<string, IReadOnlyList<string>> container)
+    private static Sort Signature(Node.Operation arrow, Func<string, Container> container)
     {
         IEnumerable<Sort> operands = arrow.Left is Node.Group { Kind: Node.Grouping.Group } list
             ? list.Parts.Select(part => Of(part.Value, container))
@@ -192,38 +193,27 @@ internal abstract class Sort
     /// </summary>
     ///
     /// <remarks>
-    ///     Identified by its declaring container AND its name, not the name alone
-    ///     (SCOPE-IDENTITY-RULING, H): two «token»s in two functions are two types,
-    ///     and the container — the module it is in and the path of named scopes it
+    ///     Identified by its declaring <see cref="Container"/> AND its name, not the
+    ///     name alone (SCOPE-IDENTITY-RULING, H): two «token»s in two functions are two
+    ///     types, and the container — the module it is in and the named scopes it
     ///     belongs to — is what tells them apart. The name alone made them one, which
-    ///     was REAUDIT54 finding 1. The container is a STRUCTURE — the module
-    ///     identity followed by a segment per named scope — compared as one, never a
-    ///     joined string that a module or a segment holding the separator could
-    ///     collide on (CONTAINER-IDENTITY-RULING §3). Its first segment is the
-    ///     module, so two same-named types in two modules are two types.
+    ///     was REAUDIT54 finding 1. The container is rooted in a <see cref="ModuleIdentity"/>,
+    ///     a type and not a string, so two same-named types in two modules are two
+    ///     types and two unsaved buffers are two modules.
     /// </remarks>
-    internal sealed class Named(IReadOnlyList<string> container, string name) : Sort
+    internal sealed class Named(Container container, string name) : Sort
     {
-        public IReadOnlyList<string> Container { get; } = [.. container];
+        public Container Container { get; } = container;
         public string Name { get; } = name;
 
         protected override bool Same(Sort other)
         {
             var named = (Named)other;
 
-            return named.Name == Name && named.Container.SequenceEqual(Container);
+            return named.Name == Name && named.Container.Equals(Container);
         }
 
-        public override int GetHashCode()
-        {
-            HashCode hash = new();
-
-            hash.Add('n');
-            hash.Add(Name);
-            foreach (var segment in Container) hash.Add(segment);
-
-            return hash.ToHashCode();
-        }
+        public override int GetHashCode() => HashCode.Combine('n', Name, Container);
     }
 
     /// <summary>
@@ -299,3 +289,74 @@ internal abstract class Sort
 ///     the constraint pass fills, not the machinery (REAUDIT56 finding 4, GENERICS-II §5).
 /// </remarks>
 internal readonly record struct Requirement(Pattern Pattern, IReadOnlyList<Sort> Operands, Span Provenance);
+
+/// <summary>
+///     What a named type belongs to: the module it is in, then a segment per
+///     enclosing named scope. Compared as a STRUCTURE — never a joined string a
+///     module or a segment holding the separator could collide on (CONTAINER-
+///     IDENTITY-RULING §3).
+/// </summary>
+internal sealed class Container(ModuleIdentity module, IReadOnlyList<string> segments)
+{
+    public ModuleIdentity Module { get; } = module;
+    public IReadOnlyList<string> Segments { get; } = [.. segments];
+
+    /// <summary>The same container one named scope deeper.</summary>
+    public Container Within(string segment) => new(Module, [.. Segments, segment]);
+
+    public override bool Equals(object other)
+        => other is Container container && container.Module.Equals(Module) && container.Segments.SequenceEqual(Segments);
+
+    public override int GetHashCode()
+    {
+        HashCode hash = new();
+
+        hash.Add(Module);
+        foreach (var segment in Segments) hash.Add(segment);
+
+        return hash.ToHashCode();
+    }
+}
+
+/// <summary>
+///     The identity of the module a type is rooted in — a TYPE, not a string, so that
+///     nothing can parse one form back as another and the "never parse a rendered
+///     identity back" rule holds by construction (CONTAINER-IDENTITY-RULING §3,
+///     VARIABLE-AND-MODULE Q5).
+/// </summary>
+///
+/// <remarks>
+///     A saved file is its <see cref="Path"/> — a location. An unsaved editor buffer
+///     is a <see cref="Buffer"/> — a stable token belonging to the editor's document,
+///     so an unsaved file's types have an identity of their own and two unsaved
+///     buffers are two modules (VARIABLE-AND-MODULE Q5a). The ledger's successor, a
+///     declared module name, is the third case this type has room for.
+/// </remarks>
+internal abstract class ModuleIdentity
+{
+    public override bool Equals(object other) => other is ModuleIdentity module && module.GetType() == GetType() && Same(module);
+
+    protected abstract bool Same(ModuleIdentity other);
+
+    public abstract override int GetHashCode();
+
+    /// <summary>A saved file, by its path — a location, stable only while the file does not move.</summary>
+    internal sealed class Path(string location) : ModuleIdentity
+    {
+        public string Location { get; } = location;
+
+        protected override bool Same(ModuleIdentity other) => ((Path)other).Location == Location;
+
+        public override int GetHashCode() => HashCode.Combine('p', Location);
+    }
+
+    /// <summary>An unsaved buffer, by a token that belongs to its document rather than any one snapshot.</summary>
+    internal sealed class Buffer(object token) : ModuleIdentity
+    {
+        public object Token { get; } = token;
+
+        protected override bool Same(ModuleIdentity other) => ReferenceEquals(((Buffer)other).Token, Token);
+
+        public override int GetHashCode() => HashCode.Combine('b', RuntimeHelpers.GetHashCode(Token));
+    }
+}
