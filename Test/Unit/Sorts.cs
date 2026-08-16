@@ -548,6 +548,39 @@ public class Sorts
         Assert.Equal(2, duplicate.Related.Count);
     }
 
+    [Fact(DisplayName = "distinct conflicts in sibling scopes over one inherited declaration are two findings")]
+    public void DistinctConflictsInSiblingScopesAreTwoFindings()
+    {
+        // REAUDIT62 finding 1: two invalid visible sets in SIBLING scopes that share one
+        // inherited primary but name DIFFERENT local declarations are two distinct
+        // conflicts — each an error if the other is deleted — not one collapsed because
+        // kind, primary, and message coincide.
+        var overloaded = Compilation.Of(new SourceText(
+            "function use (x => number) { return x; }\n" +
+            "function left { function use (y => text) { return y; } }\n" +
+            "function right { function use (z => truth) { return z; } }\n", "p.ron")).Findings
+            .Where(finding => finding.Kind is FindingKind.Overloaded).ToList();
+
+        Assert.Equal(2, overloaded.Count);
+
+        // Each names its own local declaration as the related site, so the two differ.
+        Assert.Equal(2, overloaded.Select(finding => Assert.Single(finding.Related).Span.Offset).ToHashSet().Count);
+
+        // The same for permanent duplicates: each sibling's pair with the inherited one.
+        Assert.Equal(2, Compilation.Of(new SourceText(
+            "function use (x => number) { return x; }\n" +
+            "function left { function use (y => number) { return y; } }\n" +
+            "function right { function use (z => number) { return z; } }\n", "p.ron")).Findings
+            .Count(finding => finding.Kind is FindingKind.DuplicateSignature));
+
+        // But two overload sets of different SHAPES are already distinct by message, and
+        // both survive — the collapse this guards is only for identical presentation.
+        Assert.Equal(2, Compilation.Of(new SourceText(
+            "function use (x => number) { return x; }\nfunction use (x => text) { return x; }\n" +
+            "function add (x => number) { return x; }\nfunction add (x => text) { return x; }\n", "p.ron")).Findings
+            .Count(finding => finding.Kind is FindingKind.Overloaded));
+    }
+
     [Fact(DisplayName = "a type in a parameter-default delegate counts toward overload-wide uniqueness")]
     public void ATypeInAParameterDefaultDelegateCountsTowardOverloadWideUniqueness()
     {

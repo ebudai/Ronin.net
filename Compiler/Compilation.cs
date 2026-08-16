@@ -1147,30 +1147,30 @@ internal sealed class Compilation
     ///
     /// <remarks>
     ///     The scope rules run over the MERGED table, which is what lets an inner
-    ///     declaration invalidate an outer name — and means a conflict between two
-    ///     OUTER declarations is found again in every scope nested inside them. It
-    ///     is the same finding each time, so saying so is enough: a finding
-    ///     involving anything the inner scope added differs in its symbols or its
-    ///     span and survives.
+    ///     declaration invalidate an outer name — and means a conflict between two OUTER
+    ///     declarations is found again in every scope nested inside them. A finding is
+    ///     dropped when one already recorded is the SAME conflict over the SAME
+    ///     participants or a wider set of them: a nested scope re-finding an outer
+    ///     conflict it adds nothing to, or a narrower slice of one already reported
+    ///     whole (the deepest, widest classification is recorded first, so the module-
+    ///     level slice of it is the one dropped). But a finding that names a declaration
+    ///     none of the recorded ones do is a DISTINCT conflict and kept: two overloads
+    ///     in sibling scopes share one inherited primary but each names its own local
+    ///     declaration, and both are real (REAUDIT62 finding 1).
     /// </remarks>
     private void Add(Finding finding)
     {
-        if (seen.Add(Identify(finding))) findings.Add(finding);
+        if (findings.Any(kept => kept.Kind == finding.Kind && kept.Message == finding.Message
+                              && Participants(finding).IsSubsetOf(Participants(kept))))
+            return;
+
+        findings.Add(finding);
     }
 
-    /// <summary>
-    ///     What makes two findings the same finding.
-    /// </summary>
-    ///
-    /// <remarks>
-    ///     The message, because it already contains every role the finding
-    ///     carries and is the thing a reader would see twice. This used to join
-    ///     the roles out of a string dictionary with a literal NUL byte — which
-    ///     compiled, and made the central file of the new pipeline binary to git,
-    ///     to grep and to every reviewer.
-    /// </remarks>
-    private static (FindingKind Kind, int Offset, int Length, string Message) Identify(Finding finding)
-        => (finding.Kind, finding.Primary.Offset, finding.Primary.Length, finding.Message);
+    /// <summary>The source spans a finding is about: the one it points at, and every site alongside it.</summary>
+    private static HashSet<(int Offset, int Length)> Participants(Finding finding)
+        => [.. finding.Related.Select(related => (related.Span.Offset, related.Span.Length))
+                              .Prepend((finding.Primary.Offset, finding.Primary.Length))];
 
     /// <summary>The offending source, canonically rendered.</summary>
     ///
@@ -1198,5 +1198,4 @@ internal sealed class Compilation
     }
 
     private readonly List<Finding> findings = [];
-    private readonly HashSet<(FindingKind Kind, int Offset, int Length, string Message)> seen = [];
 }
