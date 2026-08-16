@@ -246,41 +246,49 @@ internal sealed class Compilation
         {
             var nested = container.Within(bodies[0].Container);
 
-            // One declaration is its container's whole type table already. Several of
-            // one registered shape are ONE container (CONTAINER-IDENTITY-RULING, B): a
-            // type in any is visible across all, so the set is classified and its
-            // signatures resolved against one SHARED table, not each body's own where
-            // the others' types are invisible (REAUDIT57 finding 1).
+            // One local declaration is its container's whole type table already.
+            // Several of one registered shape are ONE container (CONTAINER-IDENTITY-
+            // RULING, B): a type in any is visible across all, so they share one type
+            // table, and each body resolves its own signature against it (REAUDIT57
+            // finding 1). Either way the bodies leave their resolved signatures on the
+            // container's declarations, for the classifier below.
             if (bodies.Count is 1)
             {
                 var body = bodies[0];
 
                 Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
                       named: true, ancillary: body.Ancillary, function: body.Function);
+            }
+            else
+            {
+                // Every body's and ancillary's types, declared once, in source order: a
+                // repeat across two is «Shadowed» here — H's uniqueness across the
+                // container, reported once. The bodies resolve their signatures against
+                // this shared table, which is then stored back on the declarations.
+                List<Grammar.Type> types = [];
 
-                continue;
+                foreach (var body in bodies) types.AddRange(TypesOf(body));
+
+                var shared = Declarations.Of(types.OrderBy(type => type.Identifier.Span(Source).Offset), Source,
+                                             declared, container: nested);
+
+                foreach (var problem in shared.Problems) Add(problem);
+
+                foreach (var body in bodies)
+                    Scope(body.Statements, shared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
+                          named: false, ancillary: body.Ancillary, function: body.Function);
+
+                declared.Overloads[pattern] = [.. shared.Overloads[pattern]];
             }
 
-            // Every body's and ancillary's types, declared once, in source order: a
-            // repeat across two is «Shadowed» here — H's uniqueness across the
-            // container, reported once — and a signature resolves against the whole.
-            // Classified once, and the signatures it resolved stored where the checker
-            // reads them.
-            List<Grammar.Type> types = [];
-
-            foreach (var body in bodies) types.AddRange(TypesOf(body));
-
-            var shared = Declarations.Of(types.OrderBy(type => type.Identifier.Span(Source).Offset), Source, declared,
-                                         container: nested);
-
-            foreach (var problem in shared.Problems) Add(problem);
-            foreach (var finding in shared.Classify(pattern)) Add(finding);
-
-            declared.Overloads[pattern] = [.. shared.Overloads[pattern]];
-
-            foreach (var body in bodies)
-                Scope(body.Statements, shared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
-                      named: false, ancillary: body.Ancillary, function: body.Function);
+            // Classify the VISIBLE candidate set — this scope's registered declarations
+            // of the pattern plus the ones merged in from enclosing scopes — because a
+            // LOCAL declaration is the trigger and the visible count is the set, not the
+            // number of bodies in this statement list (REAUDIT59 finding 1). Each
+            // candidate carries the sorts resolved at its OWN owner, which «Classify»
+            // compares rather than resolving the words again here (finding 2).
+            if (declared.Overloads[pattern].Count > 1)
+                foreach (var finding in declared.Classify(pattern)) Add(finding);
         }
 
         // The ancillary scopes are transparent and belong to THIS container: recursed

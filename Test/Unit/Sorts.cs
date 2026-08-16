@@ -425,6 +425,57 @@ public class Sorts
         Assert.Null(Assert.Single(Assert.Single(signature.ParameterSorts)));
     }
 
+    [Fact(DisplayName = "an inherited overload set is classified by its visible count, not the local body count")]
+    public void AnInheritedOverloadSetIsClassifiedByItsVisibleCount()
+    {
+        // REAUDIT59 finding 1: a shape declared at an enclosing scope is visible inward,
+        // so ONE local declaration of it makes two visible candidates. Classification is
+        // triggered by the local declaration and sized by the visible count — not by the
+        // number of bodies in this one statement list.
+
+        // Same parameter sort as the inherited one: the permanent duplicate.
+        Assert.Equal(FindingKind.DuplicateSignature, Assert.Single(Compilation.Of(new SourceText(
+            "function use (x => number) { return x; }\n" +
+            "function outer { function use (y => number) { return y; } }\n", "p.ron")).Findings).Kind);
+
+        // A distinct sort: the temporary overload, awaiting type-directed selection.
+        Assert.Equal(2, Assert.IsType<Overloaded>(Assert.Single(Compilation.Of(new SourceText(
+            "function use (x => number) { return x; }\n" +
+            "function outer { function use (y => text) { return y; } }\n", "p.ron")).Findings)).Count);
+    }
+
+    [Fact(DisplayName = "an inherited signature keeps the sort resolved at its own owner, not the entered scope's")]
+    public void AnInheritedSignatureKeepsTheSortResolvedAtItsOwnOwner()
+    {
+        // REAUDIT59 finding 2: «token» declared in the module's «use» is a different sort
+        // from «token» declared in «outer»'s «use» (SCOPE-IDENTITY-RULING), so an
+        // inherited signature naming the first must not be re-read against the inner
+        // container and collapsed into the second. With «number» a third sort, the
+        // visible set is three distinct groups — one overload of count three, no
+        // duplicate.
+        var three = Compilation.Of(new SourceText(
+            "function use (x => token) { type token; return x; }\n" +
+            "function outer {\n" +
+            "    function use (x => token) { type token; return x; }\n" +
+            "    function use (x => number) { return x; }\n" +
+            "}\n", "p.ron")).Findings;
+
+        Assert.Equal(3, Assert.IsType<Overloaded>(Assert.Single(three, finding => finding.Kind is FindingKind.Overloaded)).Count);
+        Assert.DoesNotContain(three, finding => finding.Kind is FindingKind.DuplicateSignature);
+
+        // The control the other way: the two inner «token»s are one duplicate, and their
+        // group against the distinct inherited outer type is an overload of count two.
+        var control = Compilation.Of(new SourceText(
+            "function use (x => token) { type token; return x; }\n" +
+            "function outer {\n" +
+            "    function use (x => token) { type token; return x; }\n" +
+            "    function use (x => (token)) { type token; return x; }\n" +
+            "}\n", "p.ron")).Findings;
+
+        Assert.Contains(control, finding => finding.Kind is FindingKind.DuplicateSignature);
+        Assert.Equal(2, Assert.IsType<Overloaded>(Assert.Single(control, finding => finding.Kind is FindingKind.Overloaded)).Count);
+    }
+
     [Fact(DisplayName = "a type in a parameter-default delegate counts toward overload-wide uniqueness")]
     public void ATypeInAParameterDefaultDelegateCountsTowardOverloadWideUniqueness()
     {

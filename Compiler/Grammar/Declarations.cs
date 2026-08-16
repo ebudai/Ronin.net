@@ -116,14 +116,18 @@ internal sealed class Declarations
 
         foreach (var statement in statements) declarations.Declare(statement);
 
-        // Once the whole table stands, resolve each signature's parameter and return
-        // spellings to their SORTS and store them beside the words — a signature the
-        // checker can unify without resolving again (REAUDIT55 finding 3). Done for
-        // every shape, not only the overloaded ones the classifier below revisits,
-        // because the store is for the checker and not for the classifier.
+        // Once the whole table stands, resolve each LOCALLY DECLARED signature's
+        // parameter and return spellings to their SORTS and store them beside the words
+        // — a signature the checker can unify without resolving again (REAUDIT55
+        // finding 3). Only the local ones, still unresolved from «Declare»: a signature
+        // MERGED in from an enclosing scope already carries the sorts resolved at its
+        // own owner, and re-reading its spellings here — in a container it was not
+        // written in — would rebind its types to this one and collapse two distinct
+        // named types into a false duplicate (REAUDIT59 finding 2).
         foreach (var pattern in declarations.Overloads.Keys.ToList())
             declarations.Overloads[pattern] =
-                [.. declarations.Overloads[pattern].Select(signature => declarations.Resolved(signature))];
+                [.. declarations.Overloads[pattern].Select(signature =>
+                    signature.ParameterSorts is null ? declarations.Resolved(signature) : signature)];
 
         // The overload set is NOT classified here. A shape's declarations share one
         // container (CONTAINER-IDENTITY-RULING, B), so their types are visible across
