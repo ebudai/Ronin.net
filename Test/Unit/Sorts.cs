@@ -374,6 +374,13 @@ public class Sorts
         Assert.All(direct.Types.Where(annotation => annotation.Type is Sort.Named),
                    annotation => Assert.Equal(["m.ron", "run"], ((Sort.Named)annotation.Type).Container));
 
+        // And the sorts stored on the signature itself resolve there too, no longer
+        // null — the parameter and the return each the function-local «token».
+        var signature = direct.Declarations.Overloads.Values.Single().Single();
+
+        Assert.Equal([[new Sort.Named(["m.ron", "run"], "token")]], signature.ParameterSorts);
+        Assert.Equal(new Sort.Named(["m.ron", "run"], "token"), signature.ReturnSort);
+
         // The same when the type is declared in a parameter-default delegate and named
         // by a sibling parameter and the return.
         var ancillary = Compilation.Of(new SourceText(

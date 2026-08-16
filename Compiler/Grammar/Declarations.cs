@@ -216,8 +216,8 @@ internal sealed class Declarations
         return key;
     }
 
-    /// <summary>The same signature with the sort each of its spellings resolves to filled in.</summary>
-    private Signature Resolved(Signature signature)
+    /// <summary>The same signature with the sort each of its spellings resolves to, against THIS table.</summary>
+    internal Signature Resolved(Signature signature)
     {
         Resolver resolver = new(Symbols, kind: SymbolKind.Type);
 
@@ -427,7 +427,8 @@ internal sealed class Declarations
 
         if (Overloads.TryGetValue(pattern, out var declared) is false) Overloads[pattern] = declared = [];
 
-        declared.Add(new Signature(blocks, member.Identifier.Annotations, Returned(function)));
+        declared.Add(new Signature(blocks, member.Identifier.Annotations, Returned(function),
+                                   Span: member.Identifier.Span(source)));
 
         if (shapes.TryGetValue(pattern, out var spans) is false) shapes[pattern] = spans = [];
 
@@ -595,9 +596,14 @@ internal sealed class Declarations
     ///     table stands, so null until then.
     /// </param>
     /// <param name="ReturnSort">The sort <paramref name="Return"/> resolves to, filled alongside.</param>
+    /// <param name="Span">
+    ///     The declaration's span, which locates it in the enclosing table where it is
+    ///     registered so its owning function can find it and resolve its sorts against
+    ///     its own table (REAUDIT56 finding 2).
+    /// </param>
     public readonly record struct Signature(
         Blocks Names, Blocks Types, string Return = null,
-        IReadOnlyList<IReadOnlyList<Sort>> ParameterSorts = null, Sort ReturnSort = null);
+        IReadOnlyList<IReadOnlyList<Sort>> ParameterSorts = null, Sort ReturnSort = null, Span Span = default);
 
     private readonly List<Finding> problems = [];
     private readonly Dictionary<string, Span> written = [];

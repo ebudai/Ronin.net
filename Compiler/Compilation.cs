@@ -164,6 +164,24 @@ internal sealed class Compilation
 
         foreach (var finding in Annotations(statements, declared, function)) Add(finding);
 
+        // The signature's SORTS resolved against this function's own table as well,
+        // and stored back on its declaration — which lives in the enclosing table,
+        // registered there before this table existed — so the checker reads a sort
+        // that sees the whole container, not the null a body-local type left
+        // (REAUDIT56 finding 2). Found by the span it was registered under, not by
+        // its pattern: reading the pattern back constructs, which a width-bound
+        // identifier refuses by throwing, and a function whose pattern was refused is
+        // registered nowhere, so the search over what IS registered simply misses it.
+        if (function is not null)
+        {
+            var where = function.Identifier.Span(Source);
+
+            foreach (var registered in enclosing.Overloads.Values)
+                for (var index = 0; index < registered.Count; index++)
+                    if (registered[index].Span == where)
+                        registered[index] = declared.Resolved(registered[index]);
+        }
+
         foreach (var finding in Exits(reacting)) Add(finding);
 
         // The bodies of one overloaded shape are ONE container (CONTAINER-IDENTITY-
