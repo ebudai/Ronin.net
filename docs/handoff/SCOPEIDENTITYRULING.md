@@ -1,11 +1,13 @@
 # Scope identity — **H**, and it is not a compromise
 
-> **Ledger** — `[V]` verdict. Answers `SCOPEIDENTITY.md`: **H, wide reading**. A type
+> **Ledger** — `[V]` Answers `SCOPEIDENTITY.md`: **H, wide reading**. A type
 > declaration belongs to its nearest **named** container (module, type body,
 > function); identity is «(container path, name)»; a type name is unique within that
 > container across its anonymous sub-scopes, so sibling-block same-name becomes
 > «Shadowed». A `type X;` has no runtime lifetime, so block scoping was a lifetime
 > notion misapplied. C stays rejected; finding 3 proceeds in parallel.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **Ruling: H**, in the wider of its two readings (§2). Build finding 3 in parallel
 as you propose.

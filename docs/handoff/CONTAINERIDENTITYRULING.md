@@ -1,10 +1,12 @@
 # Container identity — **B**, and the module path with a named successor
 
-> **Ledger** — `[V]` verdict. Answers `CONTAINERIDENTITY.md`: **B**, the overload set
-> is one container (A ties identity to resolved parameter sorts — unstable under a
-> signature edit, possibly circular). §1 module = source path, **ledgered** (a path
-> is a location; successor = a declared module name). §3 structural identity, the
-> string render-only and never parsed. Finding 2 lands with the refactor.
+> **Ledger** — `[V]` Answers `CONTAINERIDENTITY.md`: **B**, the overload set is one
+> container (A ties identity to resolved parameter sorts — unstable under a signature
+> edit, possibly circular). §1 module = source path, **ledgered** (a path is a
+> location; successor = a declared module name). §3 structural identity, the string
+> render-only and never parsed. Finding 2 lands with the refactor.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **§2: B — the overload set is one container.** **§1: confirmed, with a caveat and
 a ledger row.** **§3: confirmed.** Landing finding 2 with the refactor is right.

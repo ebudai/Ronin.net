@@ -1,8 +1,11 @@
 # Overloads: alternatives, not a second pass — and mostly not needed for the library
 
-> **Ledger** — `[R]` recommendation. §4's open question ("is there an expression-level
-> type ascription?") is answered by `FIVERULINGS` §3 — see the note in §4. The
-> declaration-site refusal and its use-site successor live in `Test/Expiry.cs`.
+> **Ledger** — `[R]` Overloads are alternatives, not a second pass, and mostly not
+> needed for the library. §4's open question ("is there an expression-level type
+> ascription?") is answered by `FIVERULINGS` §3. The declaration-site refusal and its
+> use-site successor live in `Test/Expiry.cs`.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 Three answers, in order of how much they change what you do next.
 

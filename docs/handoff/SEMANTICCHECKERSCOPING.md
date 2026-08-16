@@ -1,10 +1,13 @@
 # Scoping the semantic type checker — what is already ruled, and the handful that is not
 
-> **Ledger** — Successor memo, questions Q1–Q7. **Answered by `CHECKERSCOPINGRULINGS`**
-> — build to that. Q1 confirmed with three refinements (`nothing : Optional(Variable)`,
-> `Variable` carries a requirement set, `fast` never enters `Type`); Q2 closed; Q3
-> confirmed (a strong alias *is* opaque `Named`); Q4–Q7 were already ruled and are
-> pointed to there.
+> **Ledger** — `[R]` Reconstructs the already-ruled checker scope and asks Q1–Q7;
+> **answered by `CHECKERSCOPINGRULINGS`** — build to that. Q1 confirmed with three
+> refinements (`nothing : Optional(Variable)`, `Variable` carries a requirement set,
+> `fast` never enters `Type`); Q2 closed; Q3 confirmed (a strong alias *is* opaque
+> `Named`); Q4–Q7 were already ruled and are pointed to there. §2 carries inline
+> `[V]`/`[R]` marks because its claims differ in status.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **From:** the successor, at `57f36e3` (type half signed off, `REAUDIT53`).
 **Asks:** confirm the semantic type term and the unification model I have assembled

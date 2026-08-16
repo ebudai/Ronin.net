@@ -1,9 +1,10 @@
 # E — square aggregates: resolution, evaluation, and runtime values
 
-> **Ledger** — `[R]` recommendation on lists and lookups. §8 (the miss) superseded
-> by `REAUDIT47RULING` §5; §10 (the `Error`/`optional` fork) closed and struck below,
-> per `REAUDIT47RULING` §5, `ERRORASVALUE`, and `CHECKERSCOPINGRULINGS` Q2. §1's
-> "a lookup does not resolve at all" is stale — the three-kind node has since landed.
+> **Ledger** — `[R]` On lists and lookups: resolution, evaluation, runtime values.
+> §1's "a lookup does not resolve at all" is stale — the three-kind node has since
+> landed.
+> supersedes: not yet checked
+> superseded by: REAUDIT47RULING §5 (§8, §10), CHECKERSCOPINGRULINGS Q2 (§10)
 
 **Revised.** The first version of §0 stated a premise that is not what the code
 does, the programmer verified it rather than building on it, and §1 is rewritten

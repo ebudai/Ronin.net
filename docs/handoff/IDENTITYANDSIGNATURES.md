@@ -1,9 +1,11 @@
 # Named-type identity, and where signature sorts bind — two rulings before I build
 
-> **Ledger** — `[R]` successor memo, two questions. Actions the two architectural
-> findings of `REAUDIT54` (no sign-off). Findings 2 and 4 are already fixed
-> (`53a3825`); these two touch declaration identity and the overload ledger, so I
-> want the design settled before the plumbing.
+> **Ledger** — `[R]` Actions the two architectural findings of `REAUDIT54` (no
+> sign-off). Findings 2 and 4 are already fixed (`53a3825`); these two touch
+> declaration identity and the overload ledger, so I want the design settled before
+> the plumbing.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **From:** the successor, at `53a3825`.
 

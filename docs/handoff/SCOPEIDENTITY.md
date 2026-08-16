@@ -1,9 +1,11 @@
 # Scope identity for a named type — the anonymous-scope case, to pin or overrule
 
-> **Ledger** — `[R]` advisory, one decision. Implementing `NAMEDIDENTITY`'s
-> «(declaring scope, name)». One thing that ruling did not pin turns on a
-> type-scoping semantics I should not decide alone: what identifies an ANONYMOUS
-> scope as a stable value. My default is A below; you may prefer to overrule.
+> **Ledger** — `[R]` Implementing `NAMEDIDENTITY`'s «(declaring scope, name)». One
+> thing that ruling did not pin turns on a type-scoping semantics I should not decide
+> alone: what identifies an ANONYMOUS scope as a stable value. My default is A below;
+> you may prefer to overrule.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **From:** the successor, at `1ae081e`.
 

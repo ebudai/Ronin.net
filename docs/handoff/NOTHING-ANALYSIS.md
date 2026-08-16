@@ -1,9 +1,9 @@
 # `nothing` — what is already true, and seven things to settle
 
-> **Ledger** — `[R]` analysis, and predates several rulings it raises. §D
-> (`optional` as a modifier) is stale — struck below, verified in the tree per
-> `FIVERULINGS` §5 and `CHECKERSCOPINGRULINGS` Q6. §C's "there is no `is`" is closed
-> by `ISANDEQUALITY` and `ERRORASVALUE` §2.
+> **Ledger** — `[R]` An analysis of `nothing` that predates several rulings it
+> raises; the stale sections (§C, §D) are struck below.
+> supersedes: not yet checked
+> superseded by: FIVERULINGS §5 (§D), CHECKERSCOPINGRULINGS Q6 (§D), ISANDEQUALITY (§C), ERRORASVALUE §2 (§C)
 
 Analysis of `docs/spec/NOTHINGANDINDEXING.md` §1. Everything below is measured
 against the compiler unless marked otherwise. Nothing implemented.

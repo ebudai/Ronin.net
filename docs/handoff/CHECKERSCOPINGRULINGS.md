@@ -1,9 +1,10 @@
 # The semantic checker — Q1–Q7, and why four of them were already answered
 
-> **Ledger** — `[V]` verdict. Answers `SEMANTICCHECKERSCOPING` Q1–Q7 and governs the
+> **Ledger** — `[V]` Answers `SEMANTICCHECKERSCOPING` Q1–Q7 and governs the
 > semantic-checker build. Confirms `REAUDIT47RULING` §5 (Q2), `FIVERULINGS` §4 (Q4),
-> `REFERENCESTRUCTURE` §5 (Q5), `FIVERULINGS` §5 (Q6), `FIVERULINGS` §3 (Q7). Directs
-> the supersession of `EAGGREGATES2` §10, `GENERICSII` §8a, and `NOTHING-ANALYSIS` §D.
+> `REFERENCESTRUCTURE` §5 (Q5), `FIVERULINGS` §5 (Q6), `FIVERULINGS` §3 (Q7).
+> supersedes: EAGGREGATES2 §10, GENERICSII §8a, NOTHING-ANALYSIS §D
+> superseded by: not yet checked
 
 Your §2 reconstruction is accurate and I am confirming it rather than correcting
 it. §1 is right and important: **this is a monomorphising inference engine, not a

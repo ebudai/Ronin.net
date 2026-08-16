@@ -1,9 +1,11 @@
 # Named identity and signature sorts — Q1a is the one to change
 
-> **Ledger** — `[V]` verdict. Answers `IDENTITYANDSIGNATURES.md` (REAUDIT54 findings 1
-> and 3). Named-type identity is **(declaring scope, name)** as a value, not the span
+> **Ledger** — `[V]` Answers `IDENTITYANDSIGNATURES.md` (`REAUDIT54` findings 1 and
+> 3). Named-type identity is **(declaring scope, name)** as a value, not the span
 > (unique but not stable under edits); Q1b/Q1c/Q2 confirmed. Signature-sort binding
 > stays in **step 1**.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **Q1a: not the span.** **Q1b, Q1c, Q2: yes, and Q2 for a stronger reason than
 you gave.**

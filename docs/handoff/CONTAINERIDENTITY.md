@@ -1,10 +1,12 @@
 # Container identity — the module, and what a "function" is when it is overloaded
 
-> **Ledger** — `[R]` successor memo, one ruling. REAUDIT55 finding 1 (high). The
-> container path that gives a named type its identity collapses across two
-> boundaries the ruling names: it omits the module, and it cannot tell one overload
-> body from another. The module I can fix; the overload half is a semantics question
-> that shapes the whole representation, so it is yours.
+> **Ledger** — `[R]` `REAUDIT55` finding 1 (high). The container path that gives a
+> named type its identity collapses across two boundaries the ruling names: it omits
+> the module, and it cannot tell one overload body from another. The module I can
+> fix; the overload half is a semantics question that shapes the whole
+> representation, so it is yours.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **From:** the successor, at `3849c5d`.
 

@@ -1,9 +1,10 @@
 # Generics, second pass — the cheap route works, and one addition makes it safe
 
-> **Ledger** — `[R]` recommendation. §8a ("separate the type and value tables")
-> withdrawn by `FIVERULINGS` §4 and confirmed by `CHECKERSCOPINGRULINGS` Q4 — struck
-> below. Monomorphisation is `[forced]`, not a recommendation. Supersedes
-> `GENERICS.md` §3 on deferred generic declarations.
+> **Ledger** — `[R]` The cheap generics route works; one addition makes it safe.
+> Monomorphisation is `[forced]`, not a recommendation. §8a ("separate the type and
+> value tables") is struck below.
+> supersedes: GENERICS §3
+> superseded by: FIVERULINGS §4 (§8a), CHECKERSCOPINGRULINGS Q4 (§8a)
 
 Taking the three proposals in turn: no erasure, type parameters always
 compile-time, and *omit the type and it is generic*. I agree with all three.

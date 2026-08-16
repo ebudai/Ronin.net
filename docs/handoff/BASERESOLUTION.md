@@ -1,7 +1,9 @@
 # The base-resolution item is not "no machinery" — how much algebra for this pass?
 
-> **Ledger** — `[R]` successor memo, one question. Probes a premise in `Test/Expiry.cs`
-> and `CHECKERSCOPINGRULINGS` §6 step 1 that the tree contradicts.
+> **Ledger** — `[R]` Probes a premise in `Test/Expiry.cs` and `CHECKERSCOPINGRULINGS`
+> §6 step 1 that the tree contradicts: how much algebra the base-resolution pass needs.
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **From:** the successor, at `57f36e3`, starting step 1.
 
