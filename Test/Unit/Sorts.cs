@@ -308,6 +308,34 @@ public class Sorts
             finding => finding.Kind is FindingKind.Shadowed);
     }
 
+    [Fact(DisplayName = "a type in a parameter-default delegate counts toward overload-wide uniqueness")]
+    public void ATypeInAParameterDefaultDelegateCountsTowardOverloadWideUniqueness()
+    {
+        // REAUDIT56 finding 3: the cross-body check must count a shape's COMPLETE
+        // declaration set — body, transparent body scopes, and ancillary parameter-
+        // default delegates — since all belong to the one container under B.
+        // ancillary/ancillary: «token» in each overload's callback delegate, later blamed.
+        var collision = Assert.Single(Compilation.Of(new SourceText(
+            "function use (x => number) with (callback = (y) => { type token; return y; }) { return x; }\n" +
+            "function use (x => text) with (callback = (y) => { type token; return y; }) { return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.Shadowed);
+
+        Assert.True(collision.Primary.Offset > Assert.Single(collision.Related).Span.Offset);
+
+        // body/ancillary, and a block-nested type within a delegate: «token» direct in
+        // one body collides with one block-nested in the other's delegate.
+        Assert.Contains(Compilation.Of(new SourceText(
+            "function use (x => number) with (callback = (y) => { return y; }) { type token; return x; }\n" +
+            "function use (x => text) with (callback = (y) => { { type token; } return y; }) { return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.Shadowed);
+
+        // A different name across the delegates collides over nothing.
+        Assert.DoesNotContain(Compilation.Of(new SourceText(
+            "function use (x => number) with (callback = (y) => { type box; return y; }) { return x; }\n" +
+            "function use (x => text) with (callback = (y) => { type crate; return y; }) { return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.Shadowed);
+    }
+
     [Fact(DisplayName = "a type in a parameter-default delegate belongs to the enclosing function, not the module")]
     public void ATypeInAParameterDefaultDelegateBelongsToTheEnclosingFunction()
     {

@@ -647,14 +647,20 @@ internal sealed class Compilation
     }
 
     /// <summary>
-    ///     The type declarations a body holds — its own, and those hoisted from its
-    ///     transparent sub-scopes — all belonging to it (SCOPE-IDENTITY-RULING, H).
+    ///     The complete set of type declarations a body's container holds — its own,
+    ///     those hoisted from its transparent sub-scopes, and those its ancillary
+    ///     scopes (a function's parameter-default delegates) hold — all belonging to
+    ///     it (SCOPE-IDENTITY-RULING, H). The same set the container is built from, so
+    ///     the cross-body uniqueness check counts what the container declares
+    ///     (REAUDIT56 finding 3).
     /// </summary>
     private static List<Grammar.Type> TypesOf(Body body)
     {
         List<Grammar.Type> types = [.. body.Statements.OfType<Grammar.Type>()];
 
         foreach (var statement in body.Statements) types.AddRange(Hoisted(statement));
+
+        foreach (var scope in body.Ancillary ?? []) types.AddRange(TypesOf(scope));
 
         return types;
     }
