@@ -200,12 +200,16 @@ internal sealed class Compilation
 
         foreach (var finding in Exits(reacting)) Add(finding);
 
-        // Bodies grouped by their container segment. A block, loop, delegate, or «when»
-        // is transparent (Container null): it belongs to THIS container and is recursed
-        // on its own, this scope enclosing it. A named body extends the path a type it
-        // holds is identified by, and joins the others of its segment (SCOPE-IDENTITY-
-        // RULING, H).
-        Dictionary<string, List<Body>> shapes = [];
+        // Bodies grouped by the REGISTERED overload they own, not by their rendered
+        // segment. The B ruling joins the bodies of one overload SET — established by
+        // the pattern the declaration pass recorded, matched here by the span it left
+        // — not every body whose identifier renders the same words, least of all one
+        // that pass refused to register at all (REAUDIT58 finding 1). A block, loop,
+        // delegate, or «when» is transparent (Container null) and recursed on its own;
+        // a type body, or a function refused registration, owns no such pattern and is
+        // recursed on its own too, so its diagnostics remain while it joins no set.
+        Dictionary<Pattern, List<Body>> sets = [];
+        List<Body> independent = [];
 
         foreach (var body in statements.SelectMany(Bodies))
         {
@@ -217,18 +221,34 @@ internal sealed class Compilation
                 continue;
             }
 
-            if (shapes.TryGetValue(body.Container, out var siblings) is false) shapes[body.Container] = siblings = [];
+            var pattern = body.Function is { } owner
+                ? declared.Overloads.FirstOrDefault(entry =>
+                      entry.Value.Any(signature => signature.Span == owner.Identifier.Span(Source))).Key
+                : null;
+
+            if (pattern is null)
+            {
+                independent.Add(body);
+
+                continue;
+            }
+
+            if (sets.TryGetValue(pattern, out var siblings) is false) sets[pattern] = siblings = [];
 
             siblings.Add(body);
         }
 
-        foreach (var (segment, bodies) in shapes)
-        {
-            var nested = container.Within(segment);
+        foreach (var body in independent)
+            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts,
+                  container.Within(body.Container), named: true, ancillary: body.Ancillary, function: body.Function);
 
-            // One body is its container's whole type table already. Several bodies of
-            // an overloaded shape are ONE container (CONTAINER-IDENTITY-RULING, B), so a
-            // type in any of them is visible across all: the set is classified and its
+        foreach (var (pattern, bodies) in sets)
+        {
+            var nested = container.Within(bodies[0].Container);
+
+            // One declaration is its container's whole type table already. Several of
+            // one registered shape are ONE container (CONTAINER-IDENTITY-RULING, B): a
+            // type in any is visible across all, so the set is classified and its
             // signatures resolved against one SHARED table, not each body's own where
             // the others' types are invisible (REAUDIT57 finding 1).
             if (bodies.Count is 1)
@@ -242,8 +262,10 @@ internal sealed class Compilation
             }
 
             // Every body's and ancillary's types, declared once, in source order: a
-            // repeat across two bodies is «Shadowed» here — H's uniqueness across the
+            // repeat across two is «Shadowed» here — H's uniqueness across the
             // container, reported once — and a signature resolves against the whole.
+            // Classified once, and the signatures it resolved stored where the checker
+            // reads them.
             List<Grammar.Type> types = [];
 
             foreach (var body in bodies) types.AddRange(TypesOf(body));
@@ -252,21 +274,9 @@ internal sealed class Compilation
                                          container: nested);
 
             foreach (var problem in shared.Problems) Add(problem);
+            foreach (var finding in shared.Classify(pattern)) Add(finding);
 
-            // Classify the set once, against the shared table where the container's
-            // types are visible — so equivalent spellings of a body-local type read as
-            // the duplicate they are, not an overload — and store the signatures it
-            // resolved back where the checker reads them.
-            var pattern = declared.Overloads.FirstOrDefault(entry => bodies.Any(body =>
-                              body.Function is { } owner
-                           && entry.Value.Any(signature => signature.Span == owner.Identifier.Span(Source)))).Key;
-
-            if (pattern is not null)
-            {
-                foreach (var finding in shared.Classify(pattern)) Add(finding);
-
-                declared.Overloads[pattern] = [.. shared.Overloads[pattern]];
-            }
+            declared.Overloads[pattern] = [.. shared.Overloads[pattern]];
 
             foreach (var body in bodies)
                 Scope(body.Statements, shared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,

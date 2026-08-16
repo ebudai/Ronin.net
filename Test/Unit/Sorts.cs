@@ -396,14 +396,33 @@ public class Sorts
 
         Assert.Equal(FindingKind.DuplicateSignature, Assert.Single(equivalent).Kind);
 
-        // A repeated named container that is a TYPE, not a function, has no pattern to
-        // classify — its collision is caught at declaration; the shared table still
-        // builds and the bodies still resolve. The «f» alongside it means the search
-        // for a pattern has a table to look through when it finds none of these.
+        // A repeated named container that is a TYPE, not a function, owns no registered
+        // pattern: it is recursed on its own and its collision is caught at
+        // declaration, the overload machinery never touching it.
         Assert.Contains(Compilation.Of(new SourceText(
-            "function f (x => number) { return x; }\n" +
             "type Box { var a => number; }\ntype Box { var b => number; }\n", "p.ron")).Findings,
             finding => finding.Kind is FindingKind.Shadowed);
+    }
+
+    [Fact(DisplayName = "a refused same-word function does not donate its types to a registered overload")]
+    public void ARefusedSameWordFunctionDoesNotDonateItsTypesToARegisteredOverload()
+    {
+        // REAUDIT58 finding 1: bodies join a shared container by their REGISTERED
+        // pattern, not their rendered words. A function the declaration pass refused
+        // owns no registered pattern — «use ()» is «EmptyHole» and registered nowhere
+        // — so its body-local «token» stays its own: the valid same-word overload
+        // still cannot see it, and its stored parameter sort is null, not a «Named»
+        // for a type that is not in its container.
+        var compilation = Compilation.Of(new SourceText(
+            "function use () { type token; }\n" +
+            "function use (x => token) { return x; }\n", "p.ron"));
+
+        Assert.Contains(compilation.Findings, finding => finding.Kind is FindingKind.EmptyHole);
+        Assert.Contains(compilation.Findings, finding => finding.Kind is FindingKind.UnknownType);
+
+        var signature = Assert.Single(compilation.Declarations.Overloads.Values.Single());
+
+        Assert.Null(Assert.Single(Assert.Single(signature.ParameterSorts)));
     }
 
     [Fact(DisplayName = "a type in a parameter-default delegate counts toward overload-wide uniqueness")]
