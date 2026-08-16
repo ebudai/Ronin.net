@@ -281,14 +281,38 @@ internal abstract class Sort
 /// </summary>
 ///
 /// <remarks>
-///     A WHOLE record, deduped whole — two requirements sharing a pattern over
-///     different operands, or induced at different sites, are two requirements and
-///     not one, which a set of bare patterns could not tell apart. The operands are
-///     the tuple the pattern resolves for; the provenance is the site the call-
+///     Deduped WHOLE and by STRUCTURE — two requirements sharing a pattern over
+///     different operands, or induced at different sites, are two, while two built
+///     apart from the same pattern, operand sorts, and site are one, which neither a
+///     set of bare patterns nor a tuple compared by list reference could tell apart.
+///     The operands are the tuple the pattern resolves for, OWNED here so an operand
+///     stored in a set cannot change under it; the provenance is the site the call-
 ///     boundary diagnostic names. Three fields and no solver behind them: the shape
 ///     the constraint pass fills, not the machinery (REAUDIT56 finding 4, GENERICS-II §5).
 /// </remarks>
-internal readonly record struct Requirement(Pattern Pattern, IReadOnlyList<Sort> Operands, Span Provenance);
+internal sealed class Requirement(Pattern pattern, IReadOnlyList<Sort> operands, Span provenance)
+{
+    public Pattern Pattern { get; } = pattern;
+    public IReadOnlyList<Sort> Operands { get; } = [.. operands];
+    public Span Provenance { get; } = provenance;
+
+    public override bool Equals(object other)
+        => other is Requirement requirement
+        && requirement.Pattern.Equals(Pattern)
+        && requirement.Provenance.Equals(Provenance)
+        && requirement.Operands.SequenceEqual(Operands);
+
+    public override int GetHashCode()
+    {
+        HashCode hash = new();
+
+        hash.Add(Pattern);
+        hash.Add(Provenance);
+        foreach (var operand in Operands) hash.Add(operand);
+
+        return hash.ToHashCode();
+    }
+}
 
 /// <summary>
 ///     What a named type belongs to: the module it is in, then a segment per

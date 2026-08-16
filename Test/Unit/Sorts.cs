@@ -450,7 +450,8 @@ public class Sorts
         Assert.Empty(variable.Requirements);
 
         var site = new SourceText("print x", "p.ron").Span(0, 5);
-        var print = new Requirement(Pattern.Parse("print _"), [new Sort.Scalar("number")], site);
+        var operands = new Sort[] { new Sort.Scalar("number") };
+        var print = new Requirement(Pattern.Parse("print _"), operands, site);
 
         // The record carries the whole shape the constraint pass reads: the pattern,
         // the tuple of type terms it resolves for, and the site that induced it.
@@ -458,15 +459,27 @@ public class Sorts
         Assert.Equal([new Sort.Scalar("number")], print.Operands);
         Assert.Equal(site, print.Provenance);
 
+        // The operand tuple is OWNED: mutating the caller's array leaves it unchanged.
+        operands[0] = new Sort.Scalar("text");
+        Assert.Equal(new Sort.Scalar("number"), Assert.Single(print.Operands));
+
+        // Deduped by STRUCTURE, not by list reference: a requirement built INDEPENDENTLY
+        // from the same pattern, operand sorts, and site is the same requirement.
         variable.Requirements.Add(print);
-        variable.Requirements.Add(print);   // the same record, deduped whole
+        variable.Requirements.Add(new Requirement(Pattern.Parse("print _"), [new Sort.Scalar("number")], site));
 
         Assert.Equal(print, Assert.Single(variable.Requirements));
+        Assert.Equal(print.GetHashCode(),
+                     new Requirement(Pattern.Parse("print _"), [new Sort.Scalar("number")], site).GetHashCode());
 
-        // Two requirements sharing a pattern over different operands are two, not one.
+        // Two sharing a pattern over different operands, or a different site, are two.
         variable.Requirements.Add(new Requirement(Pattern.Parse("print _"), [new Sort.Scalar("text")], site));
 
         Assert.Equal(2, variable.Requirements.Count);
+
+        // Equal only to a requirement — never to another value, and never to nothing.
+        Assert.False(print.Equals(site));
+        Assert.False(print.Equals(null));
 
         // Filling it does not change which variable it is.
         Assert.Equal<Sort>(variable, variable);
