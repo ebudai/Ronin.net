@@ -513,6 +513,41 @@ public class Sorts
         Assert.Equal(2, duplicate.Related.Count);
     }
 
+    [Fact(DisplayName = "one B container's signatures are all published before any body recurses, so body order is immaterial")]
+    public void OneBContainersSignaturesArePublishedBeforeAnyBodyRecurses()
+    {
+        // REAUDIT61 finding 1: the bodies of one B overload container resolve ALL their
+        // signatures against the shared type table before any of them recurses, so a
+        // nested declaration in an earlier body sees a later sibling's owning sort, not
+        // its pre-body null slot. Moving the nested declaration between bodies of the
+        // one container cannot change the classification.
+        foreach (var source in new[]
+                 {
+                     // the nested declaration in the first body, «token» declared in the second
+                     "function use (x => number) { function use (z => token) { return z; } return x; }\n" +
+                     "function use (y => token) { type token; return y; }\n",
+
+                     // «token» in the first body, the nested declaration in the second
+                     "function use (x => number) { type token; return x; }\n" +
+                     "function use (y => token) { function use (z => token) { return z; } return y; }\n",
+                 })
+        {
+            var findings = Compilation.Of(new SourceText(source, "p.ron")).Findings;
+
+            Assert.Contains(findings, finding => finding.Kind is FindingKind.DuplicateSignature);
+            Assert.Equal(2, Assert.IsType<Overloaded>(
+                Assert.Single(findings, finding => finding.Kind is FindingKind.Overloaded)).Count);
+        }
+
+        // Three declarations of the one sort across the shared bodies are ONE three-site
+        // duplicate, no overload.
+        var duplicate = Assert.IsType<DuplicateSignature>(Assert.Single(Compilation.Of(new SourceText(
+            "function use (x => token) { type token; function use (z => token) { return z; } return x; }\n" +
+            "function use (y => (token)) { return y; }\n", "p.ron")).Findings));
+
+        Assert.Equal(2, duplicate.Related.Count);
+    }
+
     [Fact(DisplayName = "a type in a parameter-default delegate counts toward overload-wide uniqueness")]
     public void ATypeInAParameterDefaultDelegateCountsTowardOverloadWideUniqueness()
     {

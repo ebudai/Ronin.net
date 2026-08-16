@@ -266,8 +266,7 @@ internal sealed class Compilation
             {
                 // Every body's and ancillary's types, declared once, in source order: a
                 // repeat across two is «Shadowed» here — H's uniqueness across the
-                // container, reported once. The bodies resolve their signatures against
-                // this shared table, which is then stored back on the declarations.
+                // container, reported once.
                 List<Grammar.Type> types = [];
 
                 foreach (var body in bodies) types.AddRange(TypesOf(body));
@@ -277,11 +276,27 @@ internal sealed class Compilation
 
                 foreach (var problem in shared.Problems) Add(problem);
 
+                // Resolve EVERY owner's signature against the complete shared table and
+                // publish it to both the shared and the declaring table BEFORE any body
+                // recurses — so a nested declaration in an earlier body sees a later
+                // sibling's OWNING sort, not its pre-body null slot (REAUDIT61 finding
+                // 1). Each body's own resolution below re-does its signature the same
+                // way, idempotently; what matters is that no sibling is still stale when
+                // a deeper scope reads the set.
+                foreach (var body in bodies)
+                {
+                    var where = body.Function.Identifier.Span(Source);
+
+                    foreach (var overloads in new[] { shared.Overloads, declared.Overloads })
+                        foreach (var registered in overloads.Values)
+                            for (var index = 0; index < registered.Count; index++)
+                                if (registered[index].Span == where)
+                                    registered[index] = shared.Resolved(registered[index]);
+                }
+
                 foreach (var body in bodies)
                     Scope(body.Statements, shared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
                           named: false, ancillary: body.Ancillary, function: body.Function);
-
-                declared.Overloads[pattern] = [.. shared.Overloads[pattern]];
             }
 
             // Classify the VISIBLE candidate set — this scope's registered declarations
