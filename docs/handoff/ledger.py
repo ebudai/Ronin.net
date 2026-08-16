@@ -3,20 +3,21 @@
 ledger.py -- the live-verdict index, generated rather than remembered.
 
 Every design memo and ruling in this folder opens with a ledger header
-(see LEDGERSCHEMA.md): a marker `[V]`/`[R]`, a one-line summary, and the two
-supersession fields. This walks those headers and emits the one page a successor
-actually wants -- what currently binds -- and reports any design document whose
-header is missing or malformed, so a broken header is a visible defect in a
-generated artefact rather than an invisible one in a file nobody opened
-(LEDGERRULING §7).
+(see LEDGERSCHEMA.md): a marker `[V]`/`[R]`, a one-line summary, an optional
+answer edge, and the two supersession fields. This walks those headers and emits
+the one page a successor actually wants -- what currently binds -- and reports any
+design document whose header is missing, malformed, or holds a dangling edge, so a
+broken header is a visible defect in a generated artefact rather than an invisible
+one in a file nobody opened (LEDGERRULING §7, ANSWEREDEDGE §3).
 
     python3 ledger.py             emit the index
     python3 ledger.py --check F   compare against a checked-in index; nonzero on drift
 
-Audit reports (REAUDIT*, AUDIT*, FRESHAUDIT*, CODEREVIEW) keep their native
-format and carry disposition, not supersession, so they are not expected to have
-a header (LEDGERRULING §4). Scripts are skipped by the .md glob. Everything else
-is a design document and must have one.
+The generator's first job is edge reciprocity: every `answered by: X` must be
+matched by an `answers:` on X, and the reverse. Audit reports (REAUDIT*, AUDIT*,
+FRESHAUDIT*, CODEREVIEW) keep their native format and carry disposition, not
+supersession, so they are not expected to have a header (LEDGERRULING §4). Scripts
+are skipped by the .md glob. Everything else is a design document and must have one.
 """
 
 import re
@@ -29,8 +30,12 @@ GENERATED = "LEDGER.md"                       # this script's own output; never 
 AUDIT = re.compile(r"^((RE)?AUDIT|FRESHAUDIT|CODEREVIEW)")
 LEDGER_LINE = re.compile(r"^> \*\*Ledger\*\* — ")
 MARKER = re.compile(r"`\[(V|R)\]`")
-SUPERSEDES = re.compile(r"^> supersedes: (.+?)\s*$")
-SUPERSEDED_BY = re.compile(r"^> superseded by: (.+?)\s*$")
+FIELDS = {
+    "answers": re.compile(r"^> answers: (.+?)\s*$"),
+    "answered by": re.compile(r"^> answered by: (.+?)\s*$"),
+    "supersedes": re.compile(r"^> supersedes: (.+?)\s*$"),
+    "superseded by": re.compile(r"^> superseded by: (.+?)\s*$"),
+}
 UNWALKED = "not yet checked"
 LEGAL_ABSENT = {"none", UNWALKED}
 
@@ -38,19 +43,22 @@ LEGAL_ABSENT = {"none", UNWALKED}
 class Doc:
     def __init__(self, name):
         self.name = name
-        self.marker = None            # 'V' | 'R' | None
+        self.marker = None                    # 'V' | 'R' | None
         self.summary = ""
-        self.supersedes = None        # field value or None if the line is absent
-        self.superseded_by = None
-        self.defects = []             # list of strings
+        self.fields = {}                      # field name -> value string, when the line is present
+        self.defects = []
 
     @property
     def is_audit(self):
         return bool(AUDIT.match(self.name))
 
     @property
+    def superseded_by(self):
+        return self.fields.get("superseded by")
+
+    @property
     def unwalked(self):
-        return self.supersedes == UNWALKED or self.superseded_by == UNWALKED
+        return self.fields.get("supersedes") == UNWALKED or self.superseded_by == UNWALKED
 
 
 def header_block(lines):
@@ -79,22 +87,21 @@ def parse(path):
     if doc.marker is None:
         doc.defects.append("header has no `[V]`/`[R]` marker")
 
-    summary = []
-    for ln in block:
-        if SUPERSEDES.match(ln) or SUPERSEDED_BY.match(ln):
-            continue
-        summary.append(ln.lstrip("> ").rstrip())
-    doc.summary = MARKER.sub("", " ".join(summary), count=1).replace("**Ledger** — ", "").strip()
+    summary_lines, field_lines = [], set()
+    for i, ln in enumerate(block):
+        matched = False
+        for name, pattern in FIELDS.items():
+            m = pattern.match(ln)
+            if m:
+                doc.fields[name] = m.group(1)
+                field_lines.add(i)
+                matched = True
+        if not matched:
+            summary_lines.append(ln.lstrip("> ").rstrip())
+    doc.summary = MARKER.sub("", " ".join(summary_lines), count=1).replace("**Ledger** — ", "").strip()
 
-    for ln in block:
-        m = SUPERSEDES.match(ln)
-        if m:
-            doc.supersedes = m.group(1)
-        m = SUPERSEDED_BY.match(ln)
-        if m:
-            doc.superseded_by = m.group(1)
-
-    for field, value in (("supersedes", doc.supersedes), ("superseded by", doc.superseded_by)):
+    for field in ("supersedes", "superseded by"):
+        value = doc.fields.get(field)
         if value is None:
             doc.defects.append(f"missing `{field}` field")
         elif not value or value == "nothing":
@@ -103,26 +110,49 @@ def parse(path):
 
 
 def collect():
-    docs = []
-    for path in sorted(HERE.glob("*.md")):
-        if path.name == GENERATED:
-            continue
-        docs.append(parse(path))
-    return docs
+    return [parse(p) for p in sorted(HERE.glob("*.md")) if p.name != GENERATED]
+
+
+def refs(value, stems):
+    """Document names cited in a field value, matched whole against known stems."""
+    if not value:
+        return []
+    return [s for s in stems if re.search(r"(?<![\w-])" + re.escape(s) + r"(?![\w-])", value)]
+
+
+def check_reciprocity(docs):
+    """Every `answered by: X` must be matched by an `answers:` on X, and the reverse."""
+    stems = {d.name for d in docs}
+    by_name = {d.name: d for d in docs}
+    for d in docs:
+        for near, far in (("answered by", "answers"), ("answers", "answered by")):
+            for target in refs(d.fields.get(near), stems):
+                other = by_name[target]
+                if d.name not in refs(other.fields.get(far), stems):
+                    d.defects.append(f"`{near}: {target}` is one-sided — {target} has no matching `{far}`")
+
+
+def superseded_fully(value):
+    return value not in LEGAL_ABSENT and "(§" not in (value or "")
 
 
 def bullet(doc, tail=""):
     summary = (doc.summary[:96] + "…") if len(doc.summary) > 97 else doc.summary
-    return f"- **{doc.name}** — {summary}{tail}"
+    edge = ""
+    if doc.fields.get("answered by"):
+        edge = f"  _(answered by {doc.fields['answered by']})_"
+    elif doc.fields.get("answers"):
+        edge = f"  _(answers {doc.fields['answers']})_"
+    return f"- **{doc.name}** — {summary}{edge}{tail}"
 
 
 def render(docs):
     design = [d for d in docs if not d.is_audit]
     clean = [d for d in design if not d.defects]
 
-    verdicts_live = [d for d in clean if d.marker == "V" and d.superseded_by == "none"]
+    verdicts_gone = [d for d in clean if d.marker == "V" and superseded_fully(d.superseded_by)]
     verdicts_open = [d for d in clean if d.marker == "V" and d.superseded_by == UNWALKED]
-    verdicts_gone = [d for d in clean if d.marker == "V" and d.superseded_by not in LEGAL_ABSENT]
+    verdicts_live = [d for d in clean if d.marker == "V" and d not in verdicts_gone and d not in verdicts_open]
     recommendations = [d for d in clean if d.marker == "R"]
     worklist2 = [d for d in clean if d.unwalked]
     worklist1 = [d for d in design if "no ledger header" in d.defects]
@@ -184,6 +214,7 @@ def render(docs):
 
 def main(argv):
     docs = collect()
+    check_reciprocity(docs)
     index = render(docs)
 
     if len(argv) >= 2 and argv[0] == "--check":

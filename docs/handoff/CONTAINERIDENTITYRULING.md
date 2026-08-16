@@ -5,6 +5,7 @@
 > edit, possibly circular). §1 module = source path, **ledgered** (a path is a
 > location; successor = a declared module name). §3 structural identity, the string
 > render-only and never parsed. Finding 2 lands with the refactor.
+> answers: CONTAINERIDENTITY
 > supersedes: not yet checked
 > superseded by: not yet checked
 

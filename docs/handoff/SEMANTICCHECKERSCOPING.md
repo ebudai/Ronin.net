@@ -6,6 +6,7 @@
 > `fast` never enters `Type`); Q2 closed; Q3 confirmed (a strong alias *is* opaque
 > `Named`); Q4–Q7 were already ruled and are pointed to there. §2 carries inline
 > `[V]`/`[R]` marks because its claims differ in status.
+> answered by: CHECKERSCOPINGRULINGS
 > supersedes: not yet checked
 > superseded by: not yet checked
 

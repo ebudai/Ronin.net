@@ -2,8 +2,9 @@
 
 > **Ledger** — `[R]` Fixes the field names and legal values `LEDGERRULING` §7 requires
 > before Pass 1, and the parse contract the generator reads. `LEDGERRULING` §6 made
-> supersession a field; §1/§2/§3 gave the marker rules. P1–P3 below are the
-> successor's resolution of three gaps the ruling left, open to the designer.
+> supersession a field; §1/§2/§3 gave the marker rules; `ANSWEREDEDGE` added the
+> paired answer edge. P1–P3 below are the successor's resolution of three gaps the
+> ruling left, open to the designer.
 > supersedes: none
 > superseded by: not yet checked
 
@@ -14,13 +15,15 @@ before the first prose paragraph, of exactly this shape.
 
 ```
 > **Ledger** — `[V]` <one line: what this decides, or what it asks>
+> answers: <memo(s)>          ┐ the answer edge — at most one side, present only
+> answered by: <ruling>       ┘ when the document is in an answer relation
 > supersedes: <docs/sections | none | not yet checked>
 > superseded by: <docs | none | not yet checked>
 ```
 
-Two lines carrying three facts — the marker plus its one-liner, what this document
-overrides, and what overrides it — all scannable without judgment, which is the
-whole requirement `CHECKERSCOPINGRULINGS` §8 stated.
+The two supersession lines are always present; the answer line appears only when
+the document asks or answers. Every fact is scannable without judgment — the whole
+requirement `CHECKERSCOPINGRULINGS` §8 stated.
 
 ## The marker
 
@@ -41,6 +44,29 @@ Exactly two tokens, backtick-wrapped:
   proposal pass safe in one direction: the designer only ever promotes `[R]→[V]`,
   never has to catch a wrong `[V]`, because a wrong `[V]` cannot be written without a
   citation that does not exist.
+
+## The answer edge
+
+A memo asks; a ruling answers. That relation is **paired and distinct from
+supersession** (`ANSWEREDEDGE`), because the two tell a reader to do opposite
+things:
+
+| edge | what the reader does |
+|---|---|
+| `superseded by X` | read **X instead** — this is struck |
+| `answered by X` | read **X as well** — X governs, and X is where the verdict is |
+
+`answered by X` means **X governs** — uniformly whether the ruling confirmed,
+modified, or rejected the memo. A reader who follows the edge gets the truth in
+every case, so "answered and rejected" needs no fourth state; shades stay in the
+one-liner. A memo or consultation package carries **`answered by: <ruling>`**; the
+ruling carries **`answers: <memo(s)>`**; a document in no answer relation carries
+neither.
+
+The edge is **filled in Pass 1, not Pass 2** — the pairs are the relay record, not
+archaeology, so a known pair is a stated fact and never a `not yet checked`. Moving
+them into Pass 1 takes ~20 documents off Pass 2's worklist; Pass 2 keeps only the
+genuine archaeology of which claim struck which.
 
 ## The supersession fields
 
@@ -84,14 +110,19 @@ A ledger header is the leading blockquote whose first line matches
 line. Within it:
 
 - the **marker** is the first `` `[V]` `` / `` `[R]` `` token on the opening line;
-- the **Ledger line** is everything from `— ` up to the first `^> supersedes:` line
-  (it may soft-wrap over `>` continuations);
+- the **Ledger line** is everything from `— ` up to the first field line (it may
+  soft-wrap over `>` continuations);
+- **answers** / **answered by** are the values after `^> answers: ` / `^> answered by: `;
 - **supersedes** is the value after `^> supersedes: `;
 - **superseded by** is the value after `^> superseded by: `.
 
-A design document (not an audit report or script) that has no ledger header, or one
-whose fields are missing or hold an illegal value, is a **defect the generator
-reports** — the header's fact has a consumer, which is what keeps it true (§7).
+The generator's **first job is edge reciprocity** (`ANSWEREDEDGE` §3): every
+`answered by: X` naming a document must be matched by an `answers:` on X naming it
+back, and vice versa. A dangling or one-sided answer edge is a **defect**, as is a
+design document (not an audit report or script) with no header, or one whose fields
+are missing or hold an illegal value — the header's fact has a consumer, which is
+what keeps it true (§7). Supersession reciprocity waits until Pass 2 fills those
+fields.
 
 ## P1–P3 — three gaps the ruling left, resolved here
 

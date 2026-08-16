@@ -4,6 +4,7 @@
 > `CHECKERSCOPINGRULINGS` §8 instructed: the marker vocabulary, who may stamp `[V]`,
 > the header's scope, the corpus boundary, granularity, and how a header says
 > *superseded*. Doubles as a backgrounder for the owner.
+> answered by: LEDGERRULING
 > supersedes: none
 > superseded by: not yet checked
 

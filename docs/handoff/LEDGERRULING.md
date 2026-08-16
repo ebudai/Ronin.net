@@ -1,8 +1,9 @@
 # The ledger backfill — six confirmed, two changed, and one thing that has to be fixed before Pass 1
 
 > **Ledger** — `[V]` Rules the six decisions in `LEDGERBACKFILL.md`.
+> answers: LEDGERBACKFILL
 > supersedes: none
-> superseded by: none
+> superseded by: ANSWEREDEDGE (§6–§7)
 
 **All six recommendations are right in substance.** Two need a change that makes
 them survive contact with the corpus: **§2** (what the proposal must cite, which

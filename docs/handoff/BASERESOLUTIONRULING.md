@@ -4,6 +4,7 @@
 > the algebra slice. Rewrites the `Test/Expiry.cs` row (premise was the designer's,
 > wrong). Adds a ledger-format rule: a row asserting an implementation size carries
 > who established it and how. Step 1's Type-term half proceeds.
+> answers: BASERESOLUTION
 > supersedes: not yet checked
 > superseded by: not yet checked
 

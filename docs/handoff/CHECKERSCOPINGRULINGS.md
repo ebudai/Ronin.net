@@ -3,6 +3,7 @@
 > **Ledger** — `[V]` Answers `SEMANTICCHECKERSCOPING` Q1–Q7 and governs the
 > semantic-checker build. Confirms `REAUDIT47RULING` §5 (Q2), `FIVERULINGS` §4 (Q4),
 > `REFERENCESTRUCTURE` §5 (Q5), `FIVERULINGS` §5 (Q6), `FIVERULINGS` §3 (Q7).
+> answers: SEMANTICCHECKERSCOPING
 > supersedes: EAGGREGATES2 §10, GENERICSII §8a, NOTHING-ANALYSIS §D
 > superseded by: not yet checked
 

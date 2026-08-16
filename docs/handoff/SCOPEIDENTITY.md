@@ -4,6 +4,7 @@
 > thing that ruling did not pin turns on a type-scoping semantics I should not decide
 > alone: what identifies an ANONYMOUS scope as a stable value. My default is A below;
 > you may prefer to overrule.
+> answered by: SCOPEIDENTITYRULING
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -4,6 +4,7 @@
 > 3). Named-type identity is **(declaring scope, name)** as a value, not the span
 > (unique but not stable under edits); Q1b/Q1c/Q2 confirmed. Signature-sort binding
 > stays in **step 1**.
+> answers: IDENTITYANDSIGNATURES
 > supersedes: not yet checked
 > superseded by: not yet checked
 
