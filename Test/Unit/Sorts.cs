@@ -359,6 +359,36 @@ public class Sorts
                    annotation => Assert.Equal(["m.ron", "run"], ((Sort.Named)annotation.Type).Container));
     }
 
+    [Fact(DisplayName = "a function's own signature sees the types its container declares")]
+    public void AFunctionsOwnSignatureSeesTheTypesItsContainerDeclares()
+    {
+        // REAUDIT56 finding 2: a datatype is usable THROUGHOUT its container, the
+        // signature included, so a parameter or return annotation naming a body-local
+        // type resolves against the function's own table — not the scope that declares
+        // it, where the type is invisible. Both «token»s carry the function container.
+        var direct = Compilation.Of(new SourceText(
+            "function run (value => token) => token { type token; return value; }\n", "m.ron"));
+
+        Assert.DoesNotContain(direct.Findings, finding => finding.Kind is FindingKind.UnknownType);
+        Assert.Equal(2, direct.Types.Count(annotation => annotation.Type is Sort.Named));
+        Assert.All(direct.Types.Where(annotation => annotation.Type is Sort.Named),
+                   annotation => Assert.Equal(["m.ron", "run"], ((Sort.Named)annotation.Type).Container));
+
+        // The same when the type is declared in a parameter-default delegate and named
+        // by a sibling parameter and the return.
+        var ancillary = Compilation.Of(new SourceText(
+            "function run (callback = (x) => { type token; return x; }) with (value => token) => token " +
+            "{ return value; }\n", "m.ron"));
+
+        Assert.DoesNotContain(ancillary.Findings, finding => finding.Kind is FindingKind.UnknownType);
+
+        // A signature type that truly is nowhere is still «UnknownType», parameter and return.
+        var undeclared = Compilation.Of(new SourceText(
+            "function run (value => nope) => nope { return value; }\n", "m.ron"));
+
+        Assert.Equal(2, undeclared.Findings.Count(finding => finding.Kind is FindingKind.UnknownType));
+    }
+
     [Fact(DisplayName = "an inference variable owns a requirement slot the constraint pass will fill")]
     public void AnInferenceVariableOwnsARequirementSlot()
     {

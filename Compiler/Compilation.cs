@@ -100,7 +100,8 @@ internal sealed class Compilation
     private Declarations Scope(IReadOnlyList<Statement> statements, Declarations enclosing,
                                Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
                                string inside = null, bool reacting = false, IReadOnlyList<string> container = null,
-                               bool named = true, IReadOnlyList<Body> ancillary = null)
+                               bool named = true, IReadOnlyList<Body> ancillary = null,
+                               Grammar.Function function = null)
     {
         // The container of a type is a STRUCTURE — the module it is in, then a
         // segment per enclosing named scope — compared as one rather than a joined
@@ -161,7 +162,7 @@ internal sealed class Compilation
             }
         }
 
-        foreach (var finding in Annotations(statements, declared)) Add(finding);
+        foreach (var finding in Annotations(statements, declared, function)) Add(finding);
 
         foreach (var finding in Exits(reacting)) Add(finding);
 
@@ -179,7 +180,7 @@ internal sealed class Compilation
             var nested = body.Container is null ? container : [.. container, body.Container];
 
             Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
-                  named: body.Container is not null, ancillary: body.Ancillary);
+                  named: body.Container is not null, ancillary: body.Ancillary, function: body.Function);
 
             if (body.Container is null) continue;
 
@@ -336,14 +337,29 @@ internal sealed class Compilation
     ///     repairs the value side already produces.
     ///     </para>
     /// </remarks>
-    private IEnumerable<Finding> Annotations(IReadOnlyList<Statement> statements, Declarations declared)
+    private IEnumerable<Finding> Annotations(IReadOnlyList<Statement> statements, Declarations declared,
+                                             Grammar.Function signature)
     {
         Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
 
-        foreach (var statement in statements)
+        // A function's parameter and return annotations belong to its OWN container
+        // and are resolved here, against its table — which holds the types its body
+        // and ancillary scopes declare — not against the scope that declares it
+        // (SCOPE-IDENTITY-RULING; REAUDIT56 finding 2). The enclosing walk stops at a
+        // function; this scope walks that function's signature, everything but its
+        // body, which is already this scope's own statements.
+        List<object> roots = [.. statements];
+
+        if (signature is not null)
+            foreach (var child in Children(signature))
+                if (ReferenceEquals(child, signature.Definition) is false)
+                    roots.Add(child);
+
+        foreach (var root in roots)
         {
-            foreach (var annotation in Walk<Grammar.Type.Unresolved>(statement,
-                         into: node => node is not Grammar.Scope && node is not Grammar.Type.Definition))
+            foreach (var annotation in Walk<Grammar.Type.Unresolved>(root,
+                         into: node => node is not Grammar.Scope && node is not Grammar.Type.Definition
+                                    && node is not Grammar.Function))
             {
                 var lexemes = annotation.Reference.ToLexemes();
                 var resolution = resolver.Resolve(lexemes);
@@ -574,7 +590,7 @@ internal sealed class Compilation
                     seen.Add(definition);
                     yield return new Body(definition.Statements, null, Bound(function.Identifier),
                                           Named(function.Identifier), Container: function.Identifier.Words,
-                                          Ancillary: Signature(function, definition));
+                                          Ancillary: Signature(function, definition), Function: function);
                     continue;
 
                 case Grammar.Delegate { Definition: { } body } lambda:
@@ -708,10 +724,16 @@ internal sealed class Compilation
     ///     the container declares their types and encloses them, rather than the walk
     ///     yielding them flat to the container above.
     /// </param>
+    /// <param name="Function">
+    ///     The function this is the body of, where it is one — the source of the
+    ///     parameter and return annotations, which belong to this container and are
+    ///     resolved against its own table, not the scope that declares it
+    ///     (SCOPE-IDENTITY-RULING; REAUDIT56 finding 2). Null for every other scope.
+    /// </param>
     private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable,
                                         IReadOnlyList<Identifier> Parameters, string Inside,
                                         bool Reacts = false, string Container = null,
-                                        IReadOnlyList<Body> Ancillary = null);
+                                        IReadOnlyList<Body> Ancillary = null, Grammar.Function Function = null);
 
     /// <summary>A declaration as a message would quote it.</summary>
     private static string Named(Identifier identifier) => $"«{identifier.Words}»";
