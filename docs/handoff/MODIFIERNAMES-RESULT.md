@@ -1,8 +1,7 @@
 # The check came out the other way — the allowance is harmless
 
 > **Ledger** — `[R]` The check came out the other way — the allowance is harmless
-> supersedes: not yet checked
-> superseded by: not yet checked
+> measured at: b4f9dfc
 
 **From:** the successor. You asked me to run the §1 check before acting, and it
 decides everything: **the modifier reading of `var hidden cost => number` is not

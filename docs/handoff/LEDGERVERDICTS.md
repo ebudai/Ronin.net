@@ -17,9 +17,10 @@ quote. Per `LEDGERRULING` §2 the split is **one-directional**: you only ever pr
 **Ratify by the group** — strike any row that should stay `[R]`, and I promote the
 rest.
 
-Five are already `[V]` and not relisted: `BASERESOLUTIONRULING`,
+Eight are already `[V]` and not relisted: the five rulings `BASERESOLUTIONRULING`,
 `CHECKERSCOPINGRULINGS`, `CONTAINERIDENTITYRULING`, `NAMEDIDENTITY`,
-`SCOPEIDENTITYRULING`.
+`SCOPEIDENTITYRULING`, and the three designer-authored ledger rulings
+`LEDGERRULING`, `ANSWEREDEDGE`, `STANDINGAUTHORITY`.
 
 **⚠ Look here first.** `SEMANTICCHECKERSCOPING` §2 — your own confirmed
 classification of the type-checker source documents — marks several of the docs
@@ -124,13 +125,10 @@ unless you say otherwise.** Those rows are flagged ⚠§2[R].
 
 ---
 
-## Two probable pairs the sweep left unlinked (not answer-edged yet)
+## Two probable pairs — resolved (`STANDINGAUTHORITY` §3.2)
 
-These read as a memo→ruling pair but carry **no** explicit "answers/answered by"
-statement, so I did not wire the edge. Confirm and I will:
-
-- **TYPEHALFDECISIONS** (memo, "four things to rule") ↔ **TYPEHALFRULINGS** (ruling, "four rulings") — TYPEHALFRULINGS opens "the memo is the right shape" but never names it.
-- **MODIFIERNAMES** (memo) ↔ **MODIFIERNAMES-RESULT** — the result says "You asked me to run the §1 check" but names no doc.
+- **TYPEHALFDECISIONS** ↔ **TYPEHALFRULINGS** — ruled a pair; **wired** (reciprocal answer edge).
+- **MODIFIERNAMES** ↔ **MODIFIERNAMES-RESULT** — `MODIFIERNAMES-RESULT` is a measurement (`measured at`), not a ruling, so there is no answer edge to wire.
 
 ## Not proposed for `[V]` (stay `[R]`)
 

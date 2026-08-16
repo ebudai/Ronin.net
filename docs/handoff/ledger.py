@@ -35,6 +35,7 @@ FIELDS = {
     "answered by": re.compile(r"^> answered by: (.+?)\s*$"),
     "supersedes": re.compile(r"^> supersedes: (.+?)\s*$"),
     "superseded by": re.compile(r"^> superseded by: (.+?)\s*$"),
+    "measured at": re.compile(r"^> measured at: (.+?)\s*$"),
 }
 UNWALKED = "not yet checked"
 LEGAL_ABSENT = {"none", UNWALKED}
@@ -51,6 +52,12 @@ class Doc:
     @property
     def is_audit(self):
         return bool(AUDIT.match(self.name))
+
+    @property
+    def is_measurement(self):
+        # a measurement is a claim about the tree at a commit, not a design position;
+        # it goes stale when the code moves, not when a document overturns it
+        return "measured at" in self.fields
 
     @property
     def superseded_by(self):
@@ -100,12 +107,17 @@ def parse(path):
             summary_lines.append(ln.lstrip("> ").rstrip())
     doc.summary = MARKER.sub("", " ".join(summary_lines), count=1).replace("**Ledger** — ", "").strip()
 
-    for field in ("supersedes", "superseded by"):
-        value = doc.fields.get(field)
-        if value is None:
-            doc.defects.append(f"missing `{field}` field")
-        elif not value or value == "nothing":
-            doc.defects.append(f"`{field}` has an illegal value ({value!r}; use `none` or `not yet checked`)")
+    if doc.is_measurement:
+        for field in ("supersedes", "superseded by", "answers", "answered by"):
+            if field in doc.fields:
+                doc.defects.append(f"measurement carries `{field}`; a measurement takes `measured at` and nothing else")
+    else:
+        for field in ("supersedes", "superseded by"):
+            value = doc.fields.get(field)
+            if value is None:
+                doc.defects.append(f"missing `{field}` field")
+            elif not value or value == "nothing":
+                doc.defects.append(f"`{field}` has an illegal value ({value!r}; use `none` or `not yet checked`)")
     return doc
 
 
@@ -148,7 +160,10 @@ def bullet(doc, tail=""):
 
 def render(docs):
     design = [d for d in docs if not d.is_audit]
-    clean = [d for d in design if not d.defects]
+    measurements = [d for d in design if d.is_measurement]
+    ruled = [d for d in design if not d.is_measurement]
+    clean = [d for d in ruled if not d.defects]
+    headered = [d for d in design if "no ledger header" not in d.defects]
 
     verdicts_gone = [d for d in clean if d.marker == "V" and superseded_fully(d.superseded_by)]
     verdicts_open = [d for d in clean if d.marker == "V" and d.superseded_by == UNWALKED]
@@ -165,8 +180,8 @@ def render(docs):
     out.append("hand — run `python3 ledger.py` to regenerate.")
     out.append("")
     out.append(
-        f"{len(design)} design documents · {len(clean)} with a ledger header · "
-        f"{len(worklist1)} awaiting one · {len([d for d in docs if d.is_audit])} audit reports (excluded)."
+        f"{len(design)} design documents · {len(headered)} headed · {len(measurements)} measurements · "
+        f"{len(worklist1)} awaiting a header · {len([d for d in docs if d.is_audit])} audit reports (excluded)."
     )
 
     out.append("")
@@ -190,6 +205,11 @@ def render(docs):
     out.append("## Recommendations")
     out.append("")
     out += [bullet(d) for d in recommendations] or ["_none_"]
+
+    out.append("")
+    out.append(f"## Measurements — staleness-gated, not superseded ({len(measurements)})")
+    out.append("")
+    out += [f"- **{d.name}** — measured at `{d.fields['measured at']}`" for d in measurements] or ["_none_"]
 
     out.append("")
     out.append(f"## Pass 2 worklist — supersession not yet checked ({len(worklist2)})")

@@ -89,6 +89,27 @@ A section qualifier marks a **partial** edge: `superseded by: REAUDIT47RULING §
 (§8, §10)` means those sections are superseded and the document otherwise stands, so
 it still binds. A bare `DOC` with no qualifier is a whole-document supersession.
 
+## Measurements — a genre with a commit, not a supersession
+
+A measurement (the `-RESULT` documents, and anything that reports a figure about the
+tree) is a claim **at a commit**, exactly like an audit finding: it goes stale when
+the code moves, not when a later document overturns it (`STANDINGAUTHORITY` §3). Its
+lifecycle axis is a commit, not supersession, so it takes one field **instead of**
+the supersession pair:
+
+```
+> **Ledger** — `[R]` <one line: what was measured, and what it showed>
+> measured at: <commit>
+```
+
+`measured at` replaces `supersedes`/`superseded by` for this genre — a measurement
+carries it *and nothing else*. **No answer edge ever points at a measurement**:
+`answered by X` means *X governs*, and a measurement is the evidence a ruling stood
+on, not a ruling — sending a reader after a verdict to a table of numbers is the
+category error the answer edge exists to prevent. The generator enforces both: a
+measurement bearing a supersession or answer field is a defect, and an answer edge
+naming a measurement fails reciprocity (a measurement has no `answers` to match).
+
 ## What does *not* get a header
 
 - **Audit reports** (`REAUDIT*`, `AUDIT*`, `FRESHAUDIT*`, `CODEREVIEW`) keep their
@@ -114,7 +135,9 @@ line. Within it:
   soft-wrap over `>` continuations);
 - **answers** / **answered by** are the values after `^> answers: ` / `^> answered by: `;
 - **supersedes** is the value after `^> supersedes: `;
-- **superseded by** is the value after `^> superseded by: `.
+- **superseded by** is the value after `^> superseded by: `;
+- **measured at** is the value after `^> measured at: ` — its presence marks the
+  measurement genre, which carries no supersession or answer field.
 
 The generator's **first job is edge reciprocity** (`ANSWEREDEDGE` §3): every
 `answered by: X` naming a document must be matched by an `answers:` on X naming it

@@ -1,9 +1,8 @@
 # Postfix word patterns — admit them. This reverses `WHYNOPOSTFIX.md`
 
 > **Ledger** — `[R]` Postfix word patterns — admit them. This reverses `WHYNOPOSTFIX.md`
-> answered by: POSTFIXPATTERNS-RESULT
-> supersedes: none
-> superseded by: none
+> supersedes: not yet checked
+> superseded by: not yet checked
 
 **Supersedes `WHYNOPOSTFIX.md` entirely.** That document concluded postfix was
 banned and gave a measurement to support it. The measurement was right and the

@@ -1,8 +1,9 @@
 # The type half — four things to rule before it lands
 
 > **Ledger** — `[R]` The type half — four things to rule before it lands
-> supersedes: not yet checked
-> superseded by: not yet checked
+> answered by: TYPEHALFRULINGS
+> supersedes: none
+> superseded by: none
 
 **From:** the successor, mid-step-4.
 **State:** branch `resolver-and-symbol-separation` at `a41bde4`, working tree clean,

@@ -1,9 +1,7 @@
 # Named lookups — §2 is the reason; §1's measurement says the opposite of §1
 
 > **Ledger** — `[R]` Named lookups — §2 is the reason; §1's measurement says the opposite of §1
-> answers: MATCHNAMED
-> supersedes: not yet checked
-> superseded by: not yet checked
+> measured at: e70c067
 
 Answering `MATCHNAMED.md`. The decision is not in question here: §2 stands on
 its own and is the strongest argument in either match document. §1 is the
