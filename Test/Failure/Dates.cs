@@ -128,6 +128,44 @@ public class Dates
         Assert.IsNotType<Literal>(lexed);
     }
 
+    [Fact(DisplayName = "one-digit year")]
+    public void OneDigitYear()
+    {
+        // «5-01-01» looks like a date but the year is the only self-labelling
+        // field: below four digits it is arithmetic, not «the first of January».
+        const string literal = "5-01-01";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(ref lexer);
+
+        Assert.IsNotType<Literal>(lexed);
+    }
+
+    [Fact(DisplayName = "three-digit year")]
+    public void ThreeDigitYear()
+    {
+        // year 999 is written «0999-01-01»; three digits is still short.
+        const string literal = "999-01-01";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(ref lexer);
+
+        Assert.IsNotType<Literal>(lexed);
+    }
+
+    [Fact(DisplayName = "grouped year")]
+    public void GroupedYear()
+    {
+        // the year is spelled in digits, not as a number, so a digit-group comma
+        // does not belong to it: «1,234-01-01» is not a date.
+        const string literal = "1,234-01-01";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(ref lexer);
+
+        Assert.IsNotType<Literal>(lexed);
+    }
+
     [Fact(DisplayName = "no data")]
     public void NoData()
     {

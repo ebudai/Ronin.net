@@ -17,6 +17,44 @@ public class Literals
         Assert.Equal(literal, lexed?.Memory.ToString());
     }
 
+    [Fact(DisplayName = "a five-digit year")]
+    public void WideYear()
+    {
+        const string literal = "12345-06-07";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(ref lexer) as Date;
+
+        // the year is the longest digit run, so this is year 12345 and not a
+        // four-digit match that falls back to «12345 - 06 - 07»
+        Assert.Equal(literal, lexed?.Memory.ToString());
+    }
+
+    [Fact(DisplayName = "a year far past four digits")]
+    public void VeryWideYear()
+    {
+        const string literal = "123456-01-01";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(ref lexer) as Date;
+
+        // the type admits years to 2^57, so almost every legal year is wider than four
+        Assert.Equal(literal, lexed?.Memory.ToString());
+    }
+
+    [Fact(DisplayName = "an out-of-range date still lexes")]
+    public void OutOfRangeStillLexes()
+    {
+        const string literal = "2026-13-01";
+
+        Lexer lexer = new(literal);
+        var lexed = Literal.Lex(ref lexer) as Date;
+
+        // shape decides the token; range is a later finding. «2026-13-01» is a date
+        // literal, never a subtraction — a literal must not change kind by its value
+        Assert.Equal(literal, lexed?.Memory.ToString());
+    }
+
     [Fact(DisplayName = "basic text")]
     public void Text()
     {

@@ -12,28 +12,54 @@ internal class Literal : Token
         ?? Text.Lex(ref lexer) as Literal;
 }
 
+/// <summary>
+///     A calendar date, «year-month-day». The year is four or more digits; month
+///     and day are two digits each.
+/// </summary>
+///
+/// <remarks>
+///     <para>
+///     The year field is four wide at minimum because it is the only field a
+///     reader can identify by looking at it — month and day are always two. So
+///     «2026-08-16» reads as a date and «01-02-03» is not one: a one-digit year
+///     would give «01-02-03» three readings across the world with no cue, which is
+///     the hazard the language refuses everywhere else. Year 5 is «0005-01-01», the
+///     ISO spelling, so the minimum costs no expressiveness. There is no maximum
+///     but the type's own «0 .. 2^57», so the year is the <em>longest</em> run of
+///     digits: «12345-01-01» is year 12345, not a four-digit match that falls back
+///     to «12345 - 01 - 01».
+///     </para>
+///     <para>
+///     The year is spelled in digits, not as a <see cref="Numeric"/>: no digit
+///     grouping, so «1,234-01-01» is not a date, and no sign, so a «-» directly
+///     before a date is always the operator. Shape alone decides the token — an
+///     out-of-range field like «2026-13-01» still lexes as a date and is left for a
+///     later range check to find, because a literal must not change kind by its own
+///     value.
+///     </para>
+/// </remarks>
 internal class Date : Literal
 {
     public static new Date Lex(ref Lexer lexer)
     {
-        if (lexer.Length is < Length) return null;
+        var year = 0;
+        while (year < lexer.Length && char.IsDigit(lexer[year])) ++year;
 
-        //TODO allow year to be one or more digits
-        if (char.IsDigit(lexer[0]) is not true) return null;
-        if (char.IsDigit(lexer[1]) is not true) return null;
-        if (char.IsDigit(lexer[2]) is not true) return null;
-        if (char.IsDigit(lexer[3]) is not true) return null;
-        if (lexer[4] is not '-') return null;
-        if (char.IsDigit(lexer[5]) is not true) return null;
-        if (char.IsDigit(lexer[6]) is not true) return null;
-        if (lexer[7] is not '-') return null;
-        if (char.IsDigit(lexer[8]) is not true) return null;
-        if (char.IsDigit(lexer[9]) is not true) return null;
+        if (year < Minimum) return null;
+        if (year + Tail > lexer.Length) return null;
 
-        return new Date { Memory = lexer.AdvanceBy(Length) };
+        if (lexer[year + 0] is not '-') return null;
+        if (char.IsDigit(lexer[year + 1]) is not true) return null;
+        if (char.IsDigit(lexer[year + 2]) is not true) return null;
+        if (lexer[year + 3] is not '-') return null;
+        if (char.IsDigit(lexer[year + 4]) is not true) return null;
+        if (char.IsDigit(lexer[year + 5]) is not true) return null;
+
+        return new Date { Memory = lexer.AdvanceBy(year + Tail) };
     }
 
-    private const int Length = 10;
+    private const int Minimum = 4; // digits — the year is four wide or more, so it labels itself
+    private const int Tail = 6;    // «-dd-dd» — month and day, each exactly two digits
 }
 
 /// <summary>
