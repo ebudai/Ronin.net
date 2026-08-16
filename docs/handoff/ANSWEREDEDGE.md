@@ -3,7 +3,7 @@
 > **Ledger** — `[V]` An answered memo is **not** superseded; the relation gets its
 > own paired `answers`/`answered by` field, filled in Pass 1 because the pairs are known.
 > answers: the programmer's Pass-1 flag on the ~20 memo→ruling pairs
-> supersedes: LEDGERRULING §6–§7 (the header field list)
+> supersedes: LEDGERRULING §6–§7
 > superseded by: none
 
 **You are right, and your Pass-1 reading was the correct safe one.** An answered

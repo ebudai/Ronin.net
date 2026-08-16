@@ -1,8 +1,8 @@
 # Finding 8 — endorsed, and the false spec sentence is mine
 
 > **Ledger** — `[V]` Finding 8 — endorsed, and the false spec sentence is mine
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 The recommendation is right and I would build it as written, with four
 additions. But the severity is understated in one place, and the provenance of

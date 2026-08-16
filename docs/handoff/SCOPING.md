@@ -1,8 +1,8 @@
 # Scoping, and two smaller items
 
 > **Ledger** — `[V]` Scoping, and two smaller items
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: SCOPING_updated
 
 ## The decision: what an inner scope sees
 

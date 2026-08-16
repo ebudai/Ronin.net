@@ -1,8 +1,8 @@
 # E — square aggregates: resolution, evaluation, and runtime values
 
 > **Ledger** — `[V]` The Document E design — resolution before aggregation, one depth measure, canonical keys, `[]` the empty list, insertion order, a miss gives `nothing`. Relayed and built from. §10 is struck and §0's premise was corrected.
-> supersedes: not yet checked
-> superseded by: REAUDIT47RULING §5 (§8, §10), CHECKERSCOPINGRULINGS Q2 (§10)
+> supersedes: EAGGREGATESv1SUPERSEDED, EAGGREGATES
+> superseded by: REAUDIT47RULING §5 (§10, §8), CHECKERSCOPINGRULINGS Q2 (§10)
 
 **Revised.** The first version of §0 stated a premise that is not what the code
 does, the programmer verified it rather than building on it, and §1 is rewritten

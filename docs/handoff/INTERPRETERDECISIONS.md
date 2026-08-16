@@ -1,8 +1,8 @@
 # Interpreter decisions
 
 > **Ledger** — `[V]` Interpreter decisions
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Answers to the three blockers. `reactive_core.py` is the executable version and
 `reactive_scenarios.py` is the test list — 26 scenarios, all passing. Port the

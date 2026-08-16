@@ -1,8 +1,8 @@
 # Ronin — where it stands, and what's in the box
 
 > **Ledger** — `[R]` Ronin — where it stands, and what's in the box
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 ## Where the project actually is
 

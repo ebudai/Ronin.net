@@ -5,8 +5,8 @@
 > wrong). Adds a ledger-format rule: a row asserting an implementation size carries
 > who established it and how. Step 1's Type-term half proceeds.
 > answers: BASERESOLUTION
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **Ruling: C.** Defer the whole item to the algebra slice, rewrite the row to say
 what your probe found, and proceed with the Type-term half of step 1, which is

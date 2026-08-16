@@ -1,8 +1,8 @@
 # `fast`, and a modifier that may begin a name by design — findings 2 and 3
 
 > **Ledger** — `[R]` `fast`, and a modifier that may begin a name by design — findings 2 and 3
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **From:** the successor, actioning FRESHAUDIT21. **State:** findings 4, 5, 6 and
 the 2c census are fixed and pushed (`c797b5f..a1edd99`). Findings 2 and 3 are

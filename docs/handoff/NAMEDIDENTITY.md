@@ -5,8 +5,8 @@
 > (unique but not stable under edits); Q1b/Q1c/Q2 confirmed. Signature-sort binding
 > stays in **step 1**.
 > answers: IDENTITYANDSIGNATURES
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **Q1a: not the span.** **Q1b, Q1c, Q2: yes, and Q2 for a stronger reason than
 you gave.**

@@ -1,8 +1,8 @@
 # What this folder is — and what to read instead
 
 > **Ledger** — `[R]` What this folder is — and what to read instead
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **This is correspondence, not specification.**
 

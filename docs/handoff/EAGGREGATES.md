@@ -1,8 +1,8 @@
 # E — square aggregates: resolution, evaluation, and runtime values
 
 > **Ledger** — `[R]` E — square aggregates: resolution, evaluation, and runtime values
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: EAGGREGATES2
 
 Written against `1b1f788` rather than against a description, which changes one
 thing materially: **a lookup literal already parses, gets its duplicate-key

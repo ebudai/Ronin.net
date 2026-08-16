@@ -1,8 +1,8 @@
 # Four answers
 
 > **Ledger** — `[V]` Four answers
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 ## 1. Multiple `when` bodies writing one cell
 

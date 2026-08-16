@@ -1,8 +1,8 @@
 # "Don't do that" — where it holds, and how much of the last rule it takes back
 
 > **Ledger** — `[V]` "Don't do that" — where it holds, and how much of the last rule it takes back
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 You are right, and it is worth saying how consistently. On this one axis my
 prior has been miscalibrated in the same direction every time:

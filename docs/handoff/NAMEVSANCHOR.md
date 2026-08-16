@@ -1,8 +1,8 @@
 # The withdrawal is right, the narrowing is right, and it is not the whole law
 
 > **Ledger** — `[V]` The withdrawal is right, the narrowing is right, and it is not the whole law
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Three parts. The retraction stands and the test behind it is the correct one.
 The narrowed rule — *a declared name that spans an operator takes that

@@ -1,8 +1,8 @@
 # The probe extension, run — and the two questions answered
 
 > **Ledger** — `[R]` The probe extension, run — and the two questions answered
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 The programmer is right that steps 2 and 3 were my side. Done. Files:
 `bracket_probe.py`, `fuzz_brackets.py`, `fuzz_pairs.py`.

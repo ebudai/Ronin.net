@@ -1,8 +1,8 @@
 # Where the reference sentences go — and the `Scope.Invoke` check
 
 > **Ledger** — `[V]` Where the reference sentences go — and the `Scope.Invoke` check
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Two things to answer. §6 is the real one, and "tell me where they belong and I
 will write them; I would rather ask than invent a documentation structure" is

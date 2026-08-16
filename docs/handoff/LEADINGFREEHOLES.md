@@ -1,8 +1,8 @@
 # Leading free holes — the clause is deletable, and what replaces it already exists
 
 > **Ledger** — `[V]` Leading free holes — the clause is deletable, and what replaces it already exists
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 `truth`, `true`/`false` confirmed and nothing to add — that is the recommendation
 taken verbatim, so it is settled.

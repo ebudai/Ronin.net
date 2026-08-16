@@ -1,8 +1,8 @@
 # Three corrections accepted, one answer, and four dependencies the table is missing
 
 > **Ledger** — `[V]` Three corrections accepted, one answer, and four dependencies the table is missing
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 The table read fine.
 

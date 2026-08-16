@@ -1,8 +1,8 @@
 # Generics — the "if" is already answered, and the shape is unusually constrained
 
 > **Ledger** — `[R]` Generics — the "if" is already answered, and the shape is unusually constrained
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: GENERICSII (§3)
 
 Ronin has generics whether or not anyone designs them: `optional` is in the spec
 as a keyword, and lists, lookups, intervals and delegates are all parameterised.

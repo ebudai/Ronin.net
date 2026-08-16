@@ -1,8 +1,8 @@
 # Yes — and it simplifies more than you are asking about
 
 > **Ledger** — `[V]` Yes — and it simplifies more than you are asking about
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Two answers to "are you agreeing": **yes on the algorithm**, with one
 disagreement retained about the tie-breaker. And a correction to something I told

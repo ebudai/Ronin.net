@@ -1,8 +1,8 @@
 # Q2 — both. And my objection was wrong, not merely outweighed
 
 > **Ledger** — `[V]` Q2 — both. And my objection was wrong, not merely outweighed
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 The falsifying test was the right thing to run and it did its job: the exemption
 survives, and my enumeration had a hole. Q2 is settled below, against my own

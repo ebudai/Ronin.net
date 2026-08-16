@@ -1,8 +1,8 @@
 # Yes it can be conditional — and a correction that changes what the rule is *about*
 
 > **Ledger** — `[V]` Yes it can be conditional — and a correction that changes what the rule is *about*
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Answering the narrowing question, but the correction has to come first because
 it changes the subject: **my "edge glue never captures" result leaked**, and the

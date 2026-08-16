@@ -1,8 +1,8 @@
 # `when` — placement, lifetime, `stop`, and `wait until`
 
 > **Ledger** — `[V]` `when` — placement, lifetime, `stop`, and `wait until`
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: WHENTYPESCOPE §1 (§1), WHENTYPESCOPE §3 (§4), DIRECTIONPACKET §2 (§4), CHAINACTIVATIONS §3 (§5.3)
 
 Handoff for the programmer. Design decisions, agreed. Written against the
 runtime as of `7cebf9a` on `resolver-and-symbol-separation`, where `Graph` holds

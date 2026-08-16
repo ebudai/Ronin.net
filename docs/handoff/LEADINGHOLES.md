@@ -1,8 +1,8 @@
 # Leading holes — settled, and the rule wants narrowing in exactly one place
 
 > **Ledger** — `[V]` Leading holes — settled, and the rule wants narrowing in exactly one place
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Answering the open question from `4829af8`. `fuzz_leading.py`; run it, since the
 missing dependency is now shipped.

@@ -2,7 +2,7 @@
 
 > **Ledger** — `[R]` An analysis of `nothing` that predates several rulings it
 > raises; the stale sections (§C, §D) are struck below.
-> supersedes: not yet checked
+> supersedes: none
 > superseded by: FIVERULINGS §5 (§D), CHECKERSCOPINGRULINGS Q6 (§D), ISANDEQUALITY (§C), ERRORASVALUE §2 (§C)
 
 Analysis of `docs/spec/NOTHINGANDINDEXING.md` §1. Everything below is measured

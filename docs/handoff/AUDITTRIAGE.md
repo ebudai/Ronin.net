@@ -1,8 +1,8 @@
 # Audit triage
 
 > **Ledger** — `[R]` Audit triage
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Sorted into: **wrong** (the audit is mistaken), **ours** (needs a design
 decision), and **theirs** (a code defect, no design input needed). Only the

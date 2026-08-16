@@ -1,8 +1,8 @@
 # `wait until` when the condition is already true — decided: proceed
 
 > **Ledger** — `[V]` `wait until` when the condition is already true — decided: proceed
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 And on the injected names: the spellings are the smaller half of that question.
 There is a prerequisite underneath them.

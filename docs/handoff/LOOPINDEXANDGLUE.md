@@ -1,8 +1,8 @@
 # The two open items — decided, with a tool for the second
 
 > **Ledger** — `[V]` The two open items — decided, with a tool for the second
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: ZEROGLUE (§B)
 
 Both closed below. The second one produced a finding that changes the first,
 which is the argument for building it now rather than later.

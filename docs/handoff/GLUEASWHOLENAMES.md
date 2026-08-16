@@ -1,8 +1,8 @@
 # The `GlueInInjectedName` removal — accept, with one rule added
 
 > **Ledger** — `[V]` The `GlueInInjectedName` removal — accept, with one rule added
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Answering the item flagged in `f97a653`. Short version: **the removal is right,
 your reasoning has one hole, and the hole is worse than the diagnostic you

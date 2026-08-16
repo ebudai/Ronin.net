@@ -1,8 +1,8 @@
 # Q4 and Q5 — enforced uniqueness, shape the value, distinguish, and a typed root
 
 > **Ledger** — `[V]` Q4 and Q5 — enforced uniqueness, shape the value, distinguish, and a typed root
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **Q4a: enforced object uniqueness. Q4b: shape the value now — my wording was
 ambiguous and the audit is right. Q5a: distinguish. Q5b: the module-identity

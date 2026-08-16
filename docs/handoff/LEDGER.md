@@ -7,17 +7,9 @@ hand — run `python3 ledger.py` to regenerate.
 
 ## Verdicts in force
 
-- **ANSWEREDEDGE** — An answered memo is **not** superseded; the relation gets its own paired `answers`/`answered by`…  _(answers the programmer's Pass-1 flag on the ~20 memo→ruling pairs)_
-- **EAGGREGATES2** — The Document E design — resolution before aggregation, one depth measure, canonical keys, `[]` t…
-- **GENERICSII** — The cheap generics route works, one addition makes it safe; monomorphisation is `[forced]`. The …
-- **LEDGERRATIFICATION** — Ratifies the Pass 1 `[V]` proposal — all 75 promote, three more join, the `STANDINGAUTHORITY` §2…  _(answers LEDGERVERDICTS)_
-- **LEDGERRULING** — Rules the six decisions in `LEDGERBACKFILL.md`.  _(answers LEDGERBACKFILL)_
-- **STANDINGAUTHORITY** — Answers the three open items from Pass 1, strikes the `-RESULT` answer edges in favour of a comm…  _(answers the Pass 1 completion report)_
-
-## Verdicts — supersession not yet checked
-
 - **AGGREGATEPARSE** — Finding 8 — endorsed, and the false spec sentence is mine
 - **AMBIGUITYASERROR** — Ambiguity as an error — direction, with a per-rule ledger
+- **ANSWEREDEDGE** — An answered memo is **not** superseded; the relation gets its own paired `answers`/`answered by`…  _(answers the programmer's Pass-1 flag on the ~20 memo→ruling pairs)_
 - **ARROWASSOCIATIVITY** — The arrow — non-associative, and check whether §1 is really a value-grammar change
 - **ARROWSEGMENT** — The arrow in a pattern — take option (a), and §6 is not at risk
 - **ARTICLECONDITIONAL** — Yes it can be conditional — and a correction that changes what the rule is *about*
@@ -31,11 +23,13 @@ hand — run `python3 ledger.py` to regenerate.
 - **DESCRIPTORSLICE** — The descriptor slice — three answers, and one of them corrects the ruling
 - **DIRECTIONPACKET** — Direction packet — writers, and the counterexample hunt I asked for
 - **DONTDOTHAT** — "Don't do that" — where it holds, and how much of the last rule it takes back
+- **EAGGREGATES2** — The Document E design — resolution before aggregation, one depth measure, canonical keys, `[]` t…
 - **EMPTYBRACKETS** — `function ping ()` — reject it, and the reason gives you `(_)` for free
 - **ERRORASVALUE** — Error is a value the type ignores — ruled. The checker rule it implies (`Error` assignable to ev…
 - **FINDINGSANDSPANS** — Findings and spans
 - **FIVERULINGS** — Five rulings — and the one law that decides three of them
 - **FOURANSWERS** — Four answers
+- **GENERICSII** — The cheap generics route works, one addition makes it safe; monomorphisation is `[forced]`. The …
 - **GLUEASWHOLENAMES** — The `GlueInInjectedName` removal — accept, with one rule added
 - **GLUERULESPLIT** — Shape 1 — but for a different reason, and R5′ has a clause missing
 - **IFASEXPRESSION** — `if` as an expression — yes, and it is cheaper than what it replaces
@@ -46,6 +40,8 @@ hand — run `python3 ledger.py` to regenerate.
 - **LADDERRETRACTION** — §2 retracted — and the thing worth keeping from it is not the finding
 - **LEADINGFREEHOLES** — Leading free holes — the clause is deletable, and what replaces it already exists
 - **LEADINGHOLES** — Leading holes — settled, and the rule wants narrowing in exactly one place
+- **LEDGERRATIFICATION** — Ratifies the Pass 1 `[V]` proposal — all 75 promote, three more join, the `STANDINGAUTHORITY` §2…  _(answers LEDGERVERDICTS)_
+- **LEDGERRULING** — Rules the six decisions in `LEDGERBACKFILL.md`.  _(answers LEDGERBACKFILL)_
 - **LEFTASSOCIATIVEWORDS** — Left-to-right works — and `WHYSYMBOLINFIX.md` was running on a bug of mine
 - **LISTREPRESENTATION** — Finding 3 — the invariant is mine, and the `ImmutableArray` question is a language question
 - **LOOKUPARROWRULED** — `lookup text => number` — taken, and four things it needs
@@ -77,12 +73,11 @@ hand — run `python3 ledger.py` to regenerate.
 - **RETURNANDLITERALS** — `return`, the empty slot, and the literals — ruled. The inference rules it implies for the check…
 - **ROUNDLIMIT** — The round limit is a non-termination detector, and draining terminates
 - **SCOPEIDENTITYRULING** — Answers `SCOPEIDENTITY.md`: **H, wide reading**. A type declaration belongs to its nearest **nam…  _(answers SCOPEIDENTITY)_
-- **SCOPING** — Scoping, and two smaller items
 - **SCOPING_updated** — Scoping, and two smaller items
 - **SHRINKTAGGING** — Answers to the three, plus a correction to one of your reads and one of mine
 - **SIMPLERRULES** — Yes — and it simplifies more than you are asking about
 - **SLICINGRESPONSE** — Three corrections accepted, one answer, and four dependencies the table is missing
-- **STOPALL** — `stop` / `stop all` — good idea, and it catches a bug I was about to ship
+- **STANDINGAUTHORITY** — Answers the three open items from Pass 1, strikes the `-RESULT` answer edges in favour of a comm…  _(answers the Pass 1 completion report)_
 - **STOPANDLADDER** — `stop`, and the ladder — plus a prior question the megabytes were hiding
 - **SWEEPITEMS** — The two sweep items — one is my fault, one is a bug the reference settles
 - **TAILSUGAR** — No action marker, and `{ x }` is `{ return x; }` — ruled (the `[V/R]` resolves to `[V]`). The ch…
@@ -97,6 +92,11 @@ hand — run `python3 ledger.py` to regenerate.
 - **WHENTYPESCOPE** — Type-scope `when` — he is right, §1 is wrong, and §4 is wrong too
 - **ZEROGLUE** — Zero glue words is achievable — your instinct was right
 - **constants** — Constants and static-init order — order constants together with the var initialisers they read; …
+
+## Superseded verdicts
+
+- **SCOPING** — Scoping, and two smaller items  (superseded by: SCOPING_updated)
+- **STOPALL** — `stop` / `stop all` — good idea, and it catches a bug I was about to ship  (superseded by: DIRECTIONPACKET §2)
 
 ## Recommendations
 
@@ -150,119 +150,9 @@ hand — run `python3 ledger.py` to regenerate.
 - **POSTFIXPATTERNS-RESULT** — measured at `6111c17`
 - **R6ANDINFIX** — measured at `4829af8`
 
-## Pass 2 worklist — supersession not yet checked (111)
+## Pass 2 worklist — supersession not yet checked (0)
 
-- **ACCUMULATIONBOUND**
-- **AGGREGATEPARSE**
-- **AMBIGUITYASERROR**
-- **ARROWASSOCIATIVITY**
-- **ARROWSEGMENT**
-- **ARTICLECONDITIONAL**
-- **AUDITTRIAGE**
-- **BASERESOLUTIONRULING**
-- **BRACEDECISION**
-- **BRACENEST-MEASURED**
-- **BUILTANDFOUND**
-- **CHAINACTIVATIONS**
-- **CHECKERSCOPINGRULINGS**
-- **CONTAINERIDENTITYRULING**
-- **DATELITERALS**
-- **DEFERRALCREDIT-UNOBSERVABLE**
-- **DEFERRALCREDIT**
-- **DELEGATES**
-- **DELTA**
-- **DESCRIPTORSLICE**
-- **DIRECTIONPACKET**
-- **DONTDOTHAT**
-- **EAGGREGATES**
-- **EAGGREGATES2**
-- **EAGGREGATESv1SUPERSEDED**
-- **EMPTYBRACKETS**
-- **ERRORASVALUE**
-- **FAILUREMODES**
-- **FASTRESERVATION**
-- **FINDINGSANDSPANS**
-- **FIVERULINGS**
-- **FOURANSWERS**
-- **FUZZBRACKETS(1)**
-- **FUZZBRACKETS_new**
-- **FUZZBRACKETS_old**
-- **GENERICS**
-- **GLUEASWHOLENAMES**
-- **GLUERULESPLIT**
-- **HANDOFF**
-- **IFASEXPRESSION**
-- **INJECTEDDEDUP**
-- **INSTANCEBINDING**
-- **INSTANCESDIRECTION**
-- **INTERPRETERDECISIONS**
-- **ISANDEQUALITY**
-- **LADDERRETRACTION**
-- **LEADINGFREEHOLES**
-- **LEADINGHOLES**
-- **LEDGERSCHEMA**
-- **LEFTASSOCIATIVEWORDS**
-- **LISTEQUALITY**
-- **LISTREPRESENTATION**
-- **LOOKUPARROWRULED**
-- **LOOKUPEQUALITY**
-- **LOOPINDEXANDGLUE**
-- **LOOPSYNTAX**
-- **MATCH**
-- **MATCHNAMED**
-- **MODIFIERNAMES**
-- **MODULEMERGE**
-- **MONOMORPHANDRETURN**
-- **NAMEDIDENTITY**
-- **NAMEVSANCHOR**
-- **NEEDFROMDESIGN**
-- **NOTHING-ANALYSIS**
-- **NUMERICANDWRITERS**
-- **OLDASWHAT**
-- **ONELAW**
-- **OPENDECISIONS**
-- **OPERATORNOTPATTERN**
-- **OVERLOADS**
-- **POSTFIXDIAGNOSIS**
-- **POSTFIXPATTERNS**
-- **Q2SETTLED**
-- **QUEUEDEPTH**
-- **R7BCONDITION**
-- **R7BTRIM**
-- **REACTIVEPERFORMANCE**
-- **README**
-- **REAUDIT47RULING**
-- **REAUDIT4RESPONSE**
-- **REAUDIT56RELAY**
-- **RECURSIVERETURN**
-- **REFERENCESTRUCTURE**
-- **REMOVALADJUDICATION**
-- **RETURNANDLITERALS**
-- **ROUNDLIMIT**
-- **SCOPEIDENTITYRULING**
-- **SCOPING**
-- **SCOPING_updated**
-- **SHRINKTAGGING**
-- **SIMPLERRULES**
-- **SLICINGRESPONSE**
-- **STOPALL**
-- **STOPANDLADDER**
-- **SWEEPITEMS**
-- **TAILSUGAR**
-- **TIMETOLIVE**
-- **TYPECHECKERHANDOFF**
-- **TYPEHALFARROW**
-- **TYPEHALFRULINGS**
-- **TYPEVOCABULARY**
-- **UNDERSCORE**
-- **VARIABLEANDMODULE**
-- **WAITACTIVATIONS**
-- **WAITSEMANTICS**
-- **WASITTOOSIMPLE**
-- **WHENANDWAIT**
-- **WHENTYPESCOPE**
-- **ZEROGLUE**
-- **constants**
+_none_
 
 ## Pass 1 worklist — design documents with no ledger header (0)
 

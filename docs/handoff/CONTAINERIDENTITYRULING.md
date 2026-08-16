@@ -6,8 +6,8 @@
 > location; successor = a declared module name). §3 structural identity, the string
 > render-only and never parsed. Finding 2 lands with the refactor.
 > answers: CONTAINERIDENTITY
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **§2: B — the overload set is one container.** **§1: confirmed, with a caveat and
 a ledger row.** **§3: confirmed.** Landing finding 2 with the refactor is right.

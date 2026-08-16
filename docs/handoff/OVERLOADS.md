@@ -1,8 +1,8 @@
 # Overloads: alternatives, not a second pass — and mostly not needed for the library
 
 > **Ledger** — `[V]` Overloads are resolver alternatives, not a second pass, one type-filter pass — ruled. The checker rule it implies is a recommendation. §4's question is answered by `FIVERULINGS` §3.
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Three answers, in order of how much they change what you do next.
 

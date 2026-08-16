@@ -1,8 +1,8 @@
 # REAUDIT4 — designer decisions
 
 > **Ledger** — `[V]` REAUDIT4 — designer decisions
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Three items need me. Two are yes, one is a reversal of my own advice, and the
 reversal is the reason the other two got hard.

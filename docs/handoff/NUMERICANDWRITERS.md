@@ -1,8 +1,8 @@
 # Two answers: write sets, and the numeric tower
 
 > **Ledger** — `[V]` Two answers: write sets, and the numeric tower
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 ---
 

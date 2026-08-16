@@ -1,8 +1,8 @@
 # Zero glue words is achievable — your instinct was right
 
 > **Ledger** — `[V]` Zero glue words is achievable — your instinct was right
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: LOOPINDEXANDGLUE §B
+> superseded by: none
 
 Supersedes the framing in `LOOP-INDEX-AND-GLUE.md` §B, which treated glue as a
 tax to be minimised. It can be driven to zero. `zero_glue.py`, 3/3.

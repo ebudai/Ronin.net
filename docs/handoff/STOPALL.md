@@ -1,8 +1,8 @@
 # `stop` / `stop all` — good idea, and it catches a bug I was about to ship
 
 > **Ledger** — `[V]` `stop` / `stop all` — good idea, and it catches a bug I was about to ship
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: DIRECTIONPACKET §2
 
 Not a bad idea. Better than what I wrote, and for a reason that only became
 clear once I tried to write down why it was redundant.

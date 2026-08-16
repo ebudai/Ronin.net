@@ -1,8 +1,8 @@
 # It was not too simple — and the reason it works is a property nobody has written down
 
 > **Ledger** — `[V]` The algorithm is affordable — endorsed, and that binds. Two real criticisms survive, in prose, not overturning the endorsement.
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 You guessed I would come up with an easy counterexample. I went looking for one
 and **failed**, twice, in opposite directions. The measurement says your original

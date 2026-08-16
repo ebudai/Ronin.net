@@ -1,8 +1,8 @@
 # Monomorphisation closes the residue — and one correction that is live right now
 
 > **Ledger** — `[V]` Monomorphisation closes the recursion residue — ruled. The checker rule it implies is a recommendation.
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: RETURNANDLITERALS §4, RECURSIVERETURN §4
+> superseded by: none
 
 He is right, and the residue is even smaller than he says. But the first section
 is time-sensitive: **one sentence in his own restatement is the version that

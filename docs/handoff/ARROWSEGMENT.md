@@ -1,8 +1,8 @@
 # The arrow in a pattern — take option (a), and §6 is not at risk
 
 > **Ledger** — `[V]` The arrow in a pattern — take option (a), and §6 is not at risk
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Good catch, and the right one to raise rather than route around. Two answers, and
 the first begins with a correction to your concern rather than to the finding —

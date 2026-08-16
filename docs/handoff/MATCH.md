@@ -1,8 +1,8 @@
 # `match` as a prefixed lookup — the reuse is the good part, and one gap
 
 > **Ledger** — `[R]` `match` as a prefixed lookup — the reuse is the good part, and one gap
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: MATCHNAMED (§5)
 
 Your sketch:
 

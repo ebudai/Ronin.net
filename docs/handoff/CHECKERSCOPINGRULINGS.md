@@ -5,7 +5,7 @@
 > `REFERENCESTRUCTURE` §5 (Q5), `FIVERULINGS` §5 (Q6), `FIVERULINGS` §3 (Q7).
 > answers: SEMANTICCHECKERSCOPING
 > supersedes: EAGGREGATES2 §10, GENERICSII §8a, NOTHING-ANALYSIS §D
-> superseded by: not yet checked
+> superseded by: none
 
 Your §2 reconstruction is accurate and I am confirming it rather than correcting
 it. §1 is right and important: **this is a monomorphising inference engine, not a

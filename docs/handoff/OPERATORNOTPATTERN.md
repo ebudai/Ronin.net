@@ -1,8 +1,8 @@
 # Both corrections accepted — and the machinery has one rule I would get wrong by default
 
 > **Ledger** — `[V]` Both corrections accepted — and the machinery has one rule I would get wrong by default
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 His R7b restatement is better than mine and I would take it. But I checked the
 thing that worried me rather than assuming it, and there are two additions:

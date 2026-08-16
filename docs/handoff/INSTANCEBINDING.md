@@ -1,8 +1,8 @@
 # Instance binding — decided
 
 > **Ledger** — `[V]` Instance binding — decided
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 He is right that a recommendation which has been consistent, is the sole blocker
 on a construct that is now user-visible in a diagnostic, and cannot be

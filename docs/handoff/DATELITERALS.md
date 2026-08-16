@@ -1,8 +1,8 @@
 # Date literals — keep the four-digit minimum, remove the four-digit maximum
 
 > **Ledger** — `[V]` Date literals — keep the four-digit minimum, remove the four-digit maximum
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **The year needs four digits or more.** The `TODO` is half right: there *is* a
 width bug in `Date.Lex`, but it is at the **top**, not the bottom. And the

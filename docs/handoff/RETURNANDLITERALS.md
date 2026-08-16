@@ -1,8 +1,8 @@
 # `return`, the empty slot, and the literals — three answers and two notes back
 
 > **Ledger** — `[V]` `return`, the empty slot, and the literals — ruled. The inference rules it implies for the checker are recommendations.
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: MONOMORPHANDRETURN (§4)
 
 Your reading in §1 is right, your §2 is right and I want to restate *why* so the
 asymmetry stops being something we keep re-worrying, and §3's scheduling note is

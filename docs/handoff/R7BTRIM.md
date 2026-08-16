@@ -1,8 +1,8 @@
 # The trim is right about coverage and wrong about reason — keep `not` in the generated set
 
 > **Ledger** — `[V]` The trim is right about coverage and wrong about reason — keep `not` in the generated set
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Measured both ways. His hypothesis holds for the outcome and fails for the
 mechanism, and the difference is the shape this audit round has already turned

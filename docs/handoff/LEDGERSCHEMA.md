@@ -6,7 +6,7 @@
 > paired answer edge. P1–P3 below are the successor's resolution of three gaps the
 > ruling left, open to the designer.
 > supersedes: none
-> superseded by: not yet checked
+> superseded by: none
 
 ## The schema
 
@@ -144,8 +144,10 @@ The generator's **first job is edge reciprocity** (`ANSWEREDEDGE` §3): every
 back, and vice versa. A dangling or one-sided answer edge is a **defect**, as is a
 design document (not an audit report or script) with no header, or one whose fields
 are missing or hold an illegal value — the header's fact has a consumer, which is
-what keeps it true (§7). Supersession reciprocity waits until Pass 2 fills those
-fields.
+what keeps it true (§7). Supersession reciprocates the same way now that Pass 2 has
+filled the fields — a `supersedes`/`superseded by` naming a document in the corpus
+must be matched from the other side; a target naming a deleted file is skipped, not
+dangling.
 
 ## P1–P3 — three gaps the ruling left, resolved here
 

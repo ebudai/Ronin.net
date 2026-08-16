@@ -134,12 +134,17 @@ def refs(value, stems):
     return [s for s in stems if re.search(r"(?<![\w-])" + re.escape(s) + r"(?![\w-])", value)]
 
 
+PAIRED = (("answered by", "answers"), ("answers", "answered by"),
+          ("supersedes", "superseded by"), ("superseded by", "supersedes"))
+
+
 def check_reciprocity(docs):
-    """Every `answered by: X` must be matched by an `answers:` on X, and the reverse."""
+    """Both paired edges reciprocate: answered by/answers, and (Pass 2) supersedes/superseded by.
+    Targets naming a document not in the corpus (a deleted file) are skipped, not dangling."""
     stems = {d.name for d in docs}
     by_name = {d.name: d for d in docs}
     for d in docs:
-        for near, far in (("answered by", "answers"), ("answers", "answered by")):
+        for near, far in PAIRED:
             for target in refs(d.fields.get(near), stems):
                 other = by_name[target]
                 if d.name not in refs(other.fields.get(far), stems):

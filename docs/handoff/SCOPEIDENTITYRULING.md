@@ -7,8 +7,8 @@
 > «Shadowed». A `type X;` has no runtime lifetime, so block scoping was a lifetime
 > notion misapplied. C stays rejected; finding 3 proceeds in parallel.
 > answers: SCOPEIDENTITY
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **Ruling: H**, in the wider of its two readings (§2). Build finding 3 in parallel
 as you propose.

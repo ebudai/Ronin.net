@@ -2,8 +2,8 @@
 
 > **Ledger** — `[V]` The missing derivation — located, and a narrower rule that solves §3(d) and §8(a)
 > answers: POSTFIXPATTERNS-RESULT
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: POSTFIXPATTERNS §8(c)
+> superseded by: none
 
 Answering `POSTFIXPATTERNSRESULT.md`. Three things: where the second reading
 lives in the reference, a narrowing that makes the index problem and the R6

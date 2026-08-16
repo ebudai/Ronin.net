@@ -1,8 +1,8 @@
 # Corrected: the displacement cap IS observable
 
 > **Ledger** — `[V]` Corrected: the displacement cap IS observable
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: DEFERRALCREDIT (the offer)
+> superseded by: none
 
 **This document originally claimed the opposite.** It said the displacement
 counter was stricter than anything a program could detect, listed three shapes

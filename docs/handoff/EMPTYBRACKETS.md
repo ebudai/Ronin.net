@@ -1,8 +1,8 @@
 # `function ping ()` — reject it, and the reason gives you `(_)` for free
 
 > **Ledger** — `[V]` `function ping ()` — reject it, and the reason gives you `(_)` for free
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: UNDERSCORE (§2)
 
 REAUDIT9 finding 3. Budai's read is that it is either ill-formed or already
 defined. **Ill-formed** — and working out why produces a small piece of syntax

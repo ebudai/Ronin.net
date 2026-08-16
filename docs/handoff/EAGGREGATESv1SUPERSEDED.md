@@ -1,7 +1,7 @@
 # SUPERSEDED — see `EAGGREGATES2.md`
 
 > **Ledger** — `[R]` The first square-aggregates memo, wholly superseded by the second.
-> supersedes: not yet checked
+> supersedes: none
 > superseded by: EAGGREGATES2
 
 This document's §0 stated a premise that is **not what the code does**, and its

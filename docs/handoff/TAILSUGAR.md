@@ -1,8 +1,8 @@
 # No action marker, and `{ x }` is `{ return x; }`
 
 > **Ledger** — `[V]` No action marker, and `{ x }` is `{ return x; }` — ruled (the `[V/R]` resolves to `[V]`). The checker rule it implies is a recommendation.
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Both taken. And the sugar has a better justification than the one you gave for
 it — it is a **correction**, not an addition.

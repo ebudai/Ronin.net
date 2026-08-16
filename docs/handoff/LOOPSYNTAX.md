@@ -1,8 +1,8 @@
 # Loop syntax — resolved
 
 > **Ledger** — `[V]` Loop syntax — resolved
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **Decision: `for each bank in banks`.** The documented spelling wins. Ship it.
 

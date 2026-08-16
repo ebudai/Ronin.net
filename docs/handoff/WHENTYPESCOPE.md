@@ -1,8 +1,8 @@
 # Type-scope `when` — he is right, §1 is wrong, and §4 is wrong too
 
 > **Ledger** — `[V]` Type-scope `when` — he is right, §1 is wrong, and §4 is wrong too
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: WHENANDWAIT §1, §4
+> superseded by: none
 
 Correcting `WHEN-AND-WAIT.md`. Read at `c8975eb`; `stop` is not implemented
 yet, which matters for §3 below.

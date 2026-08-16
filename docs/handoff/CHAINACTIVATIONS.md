@@ -1,8 +1,8 @@
 # Chains have duration. `when`s don't. That's the whole confusion.
 
 > **Ledger** — `[V]` Chains have duration. `when`s don't. That's the whole confusion.
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: WHENANDWAIT §5.3
+> superseded by: DIRECTIONPACKET §2 (§3)
 
 Budai's instinct is right — the trouble is the one-activation rule — and his §5
 is the right question. This is the explanation first, because it took me a

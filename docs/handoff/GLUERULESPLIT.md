@@ -1,8 +1,8 @@
 # Shape 1 — but for a different reason, and R5′ has a clause missing
 
 > **Ledger** — `[V]` Shape 1 — but for a different reason, and R5′ has a clause missing
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **Yes, R5′ narrows the pattern-glue rule too.** `IS-AND-EQUALITY.md` §4's own
 example is pattern glue and I should have said so rather than using the name he

@@ -1,8 +1,8 @@
 # `lookup text => number` — taken, and four things it needs
 
 > **Ledger** — `[V]` `lookup text => number` — taken, and four things it needs
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Ruled. Zero reserved words, prose-shaped, brackets only where a reader would
 want them anyway.

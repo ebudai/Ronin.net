@@ -1,8 +1,8 @@
 # Instances — direction, and a correction to something I nearly shipped
 
 > **Ledger** — `[V]` Instances — direction, and a correction to something I nearly shipped
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: DOTNETSCHEDULER §2–§3
+> superseded by: none
 
 Two parts. The correction first, because it changes an instruction in a document
 that has not gone out yet.

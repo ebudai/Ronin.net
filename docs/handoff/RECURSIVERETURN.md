@@ -1,8 +1,8 @@
 # Recursive return types — you were right, and three amendments that keep it working
 
 > **Ledger** — `[V]` Recursive return types infer from the base case — ruled. The checker rule it implies is a recommendation.
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: MONOMORPHANDRETURN §2 (§4)
 
 **Right call.** "Recursion needs a written return type" was over-refusing in the
 same direction as the previous five, and I should have measured before I wrote

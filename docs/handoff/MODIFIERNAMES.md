@@ -1,8 +1,8 @@
 # `fast`, and the thing underneath finding 2
 
 > **Ledger** — `[V]` Refuse a modifier at a name head, for every modifier — the earlier allowance is retired.
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **A and D are the same question**, and answering it answers B as a side effect.
 C is yes.

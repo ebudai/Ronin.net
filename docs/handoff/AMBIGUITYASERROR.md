@@ -1,8 +1,8 @@
 # Ambiguity as an error — direction, with a per-rule ledger
 
 > **Ledger** — `[V]` Ambiguity as an error — direction, with a per-rule ledger
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: INJECTEDDEDUP
+> superseded by: none
 
 **Supersedes the version sent earlier today.** That one had a terse verdict
 table and no reasoning per rule, which is what Budai asked about — and writing

@@ -1,8 +1,8 @@
 # Delta against `reactive_events.py` as shipped
 
 > **Ledger** — `[R]` Delta against `reactive_events.py` as shipped
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 Nothing already implemented is wrong. This is one gap, one addition, and one
 observation. `old_and_cycles.py` carries the code and the reasoning; this is

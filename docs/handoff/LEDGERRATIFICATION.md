@@ -2,7 +2,7 @@
 
 > **Ledger** — `[V]` Ratifies the Pass 1 `[V]` proposal — all 75 promote, three more join, the `STANDINGAUTHORITY` §2 conflict retracted, the `-RESULT` answer-edge rule narrowed to the target, and eleven supersession edges handed to Pass 2.
 > answers: LEDGERVERDICTS
-> supersedes: STANDINGAUTHORITY §3.1, §3.3 (part)
+> supersedes: STANDINGAUTHORITY §3.1, §3.3 part
 > superseded by: none
 
 **Nothing in the 75 is struck.** That is the headline and it is a fact about the
