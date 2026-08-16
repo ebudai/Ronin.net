@@ -1,8 +1,6 @@
 # E — square aggregates: resolution, evaluation, and runtime values
 
-> **Ledger** — `[R]` On lists and lookups: resolution, evaluation, runtime values.
-> §1's "a lookup does not resolve at all" is stale — the three-kind node has since
-> landed.
+> **Ledger** — `[V]` The Document E design — resolution before aggregation, one depth measure, canonical keys, `[]` the empty list, insertion order, a miss gives `nothing`. Relayed and built from. §10 is struck and §0's premise was corrected.
 > supersedes: not yet checked
 > superseded by: REAUDIT47RULING §5 (§8, §10), CHECKERSCOPINGRULINGS Q2 (§10)
 

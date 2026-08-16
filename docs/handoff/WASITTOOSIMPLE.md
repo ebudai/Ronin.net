@@ -1,6 +1,6 @@
 # It was not too simple — and the reason it works is a property nobody has written down
 
-> **Ledger** — `[R]` It was not too simple — and the reason it works is a property nobody has written down
+> **Ledger** — `[V]` The algorithm is affordable — endorsed, and that binds. Two real criticisms survive, in prose, not overturning the endorsement.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -1,6 +1,6 @@
 # Date literals — keep the four-digit minimum, remove the four-digit maximum
 
-> **Ledger** — `[R]` Date literals — keep the four-digit minimum, remove the four-digit maximum
+> **Ledger** — `[V]` Date literals — keep the four-digit minimum, remove the four-digit maximum
 > supersedes: not yet checked
 > superseded by: not yet checked
 

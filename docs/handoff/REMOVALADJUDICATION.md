@@ -1,6 +1,6 @@
 # Finding 3 — upheld, with the recommendation amended and a second bug attached
 
-> **Ledger** — `[R]` Finding 3 — upheld, with the recommendation amended and a second bug attached
+> **Ledger** — `[V]` Finding 3 — upheld, with the recommendation amended and a second bug attached
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -1,6 +1,6 @@
 # The `GlueInInjectedName` removal — accept, with one rule added
 
-> **Ledger** — `[R]` The `GlueInInjectedName` removal — accept, with one rule added
+> **Ledger** — `[V]` The `GlueInInjectedName` removal — accept, with one rule added
 > supersedes: not yet checked
 > superseded by: not yet checked
 

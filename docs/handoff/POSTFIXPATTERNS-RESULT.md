@@ -1,6 +1,7 @@
 # Postfix patterns — measured against `Resolver.cs`, and §8 is missing two items
 
 > **Ledger** — `[R]` Postfix patterns — measured against `Resolver.cs`, and §8 is missing two items
+> answered by: POSTFIXDIAGNOSIS
 > measured at: 6111c17
 
 Answering `POSTFIXPATTERNS.md`. Nothing was implemented: the document says twice

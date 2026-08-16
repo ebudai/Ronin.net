@@ -1,6 +1,7 @@
 # The missing derivation — located, and a narrower rule that solves §3(d) and §8(a)
 
-> **Ledger** — `[R]` The missing derivation — located, and a narrower rule that solves §3(d) and §8(a)
+> **Ledger** — `[V]` The missing derivation — located, and a narrower rule that solves §3(d) and §8(a)
+> answers: POSTFIXPATTERNS-RESULT
 > supersedes: not yet checked
 > superseded by: not yet checked
 

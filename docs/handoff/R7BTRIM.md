@@ -1,6 +1,6 @@
 # The trim is right about coverage and wrong about reason — keep `not` in the generated set
 
-> **Ledger** — `[R]` The trim is right about coverage and wrong about reason — keep `not` in the generated set
+> **Ledger** — `[V]` The trim is right about coverage and wrong about reason — keep `not` in the generated set
 > supersedes: not yet checked
 > superseded by: not yet checked
 

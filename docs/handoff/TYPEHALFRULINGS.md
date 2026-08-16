@@ -1,6 +1,6 @@
 # The type half — four rulings, and they are not independent
 
-> **Ledger** — `[R]` The type half — four rulings, and they are not independent
+> **Ledger** — `[V]` The type half — four rulings, and they are not independent
 > answers: TYPEHALFDECISIONS
 > supersedes: not yet checked
 > superseded by: not yet checked

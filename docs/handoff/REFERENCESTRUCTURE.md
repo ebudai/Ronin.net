@@ -1,6 +1,6 @@
 # Where the reference sentences go — and the `Scope.Invoke` check
 
-> **Ledger** — `[R]` Where the reference sentences go — and the `Scope.Invoke` check
+> **Ledger** — `[V]` Where the reference sentences go — and the `Scope.Invoke` check
 > supersedes: not yet checked
 > superseded by: not yet checked
 

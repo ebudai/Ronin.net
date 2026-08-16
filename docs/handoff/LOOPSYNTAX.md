@@ -1,6 +1,6 @@
 # Loop syntax — resolved
 
-> **Ledger** — `[R]` Loop syntax — resolved
+> **Ledger** — `[V]` Loop syntax — resolved
 > supersedes: not yet checked
 > superseded by: not yet checked
 

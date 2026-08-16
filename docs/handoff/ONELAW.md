@@ -1,6 +1,6 @@
 # One law, and the `otherwise` bill is measured at essentially zero
 
-> **Ledger** — `[R]` One law, and the `otherwise` bill is measured at essentially zero
+> **Ledger** — `[V]` One law, and the `otherwise` bill is measured at essentially zero
 > supersedes: not yet checked
 > superseded by: not yet checked
 

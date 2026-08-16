@@ -108,9 +108,11 @@ def parse(path):
     doc.summary = MARKER.sub("", " ".join(summary_lines), count=1).replace("**Ledger** — ", "").strip()
 
     if doc.is_measurement:
-        for field in ("supersedes", "superseded by", "answers", "answered by"):
+        # a measurement may be the SOURCE of an answer edge (answered by a ruling), never
+        # the target, and it is never superseded — it goes stale, gauged by its commit
+        for field in ("supersedes", "superseded by", "answers"):
             if field in doc.fields:
-                doc.defects.append(f"measurement carries `{field}`; a measurement takes `measured at` and nothing else")
+                doc.defects.append(f"measurement carries `{field}`; a measurement takes `measured at` (and may be `answered by` a ruling), nothing else")
     else:
         for field in ("supersedes", "superseded by"):
             value = doc.fields.get(field)

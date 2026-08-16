@@ -1,6 +1,6 @@
 # `lookup text => number` — taken, and four things it needs
 
-> **Ledger** — `[R]` `lookup text => number` — taken, and four things it needs
+> **Ledger** — `[V]` `lookup text => number` — taken, and four things it needs
 > supersedes: not yet checked
 > superseded by: not yet checked
 

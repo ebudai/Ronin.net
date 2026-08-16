@@ -1,6 +1,6 @@
 # The two sweep items — one is my fault, one is a bug the reference settles
 
-> **Ledger** — `[R]` The two sweep items — one is my fault, one is a bug the reference settles
+> **Ledger** — `[V]` The two sweep items — one is my fault, one is a bug the reference settles
 > supersedes: not yet checked
 > superseded by: not yet checked
 

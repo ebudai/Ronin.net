@@ -5,8 +5,9 @@
 > designer ratifies — `LEDGERRULING` §2, one-directional. Grouped by area (a proxy
 > for the relay events), evidence per row, conflicts with `SEMANTICCHECKERSCOPING`
 > §2 flagged ⚠.
+> answered by: LEDGERRATIFICATION
 > supersedes: none
-> superseded by: not yet checked
+> superseded by: none
 
 ## How to read this
 

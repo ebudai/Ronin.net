@@ -1,6 +1,6 @@
 # Direction packet — writers, and the counterexample hunt I asked for
 
-> **Ledger** — `[R]` Direction packet — writers, and the counterexample hunt I asked for
+> **Ledger** — `[V]` Direction packet — writers, and the counterexample hunt I asked for
 > supersedes: not yet checked
 > superseded by: not yet checked
 

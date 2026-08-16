@@ -1,8 +1,7 @@
 # `otherwise` needs no special case — and R6 has a hole
 
-> **Ledger** — `[R]` `otherwise` needs no special case — and R6 has a hole
-> supersedes: not yet checked
-> superseded by: not yet checked
+> **Ledger** — `[R]` `otherwise` needs no special case, and R6 has a hole — a fuzz-verified finding, checked against `fuzz_verify.py`.
+> measured at: 4829af8
 
 Addendum to `REAUDIT4-RESPONSE.md`. Checked against `fuzz_verify.py`, not
 reasoned from memory.

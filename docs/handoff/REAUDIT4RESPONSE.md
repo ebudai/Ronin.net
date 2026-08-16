@@ -1,6 +1,6 @@
 # REAUDIT4 — designer decisions
 
-> **Ledger** — `[R]` REAUDIT4 — designer decisions
+> **Ledger** — `[V]` REAUDIT4 — designer decisions
 > supersedes: not yet checked
 > superseded by: not yet checked
 

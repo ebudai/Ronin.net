@@ -1,6 +1,6 @@
 # The descriptor slice — three answers, and one of them corrects the ruling
 
-> **Ledger** — `[R]` The descriptor slice — three answers, and one of them corrects the ruling
+> **Ledger** — `[V]` The descriptor slice — three answers, and one of them corrects the ruling
 > supersedes: not yet checked
 > superseded by: not yet checked
 

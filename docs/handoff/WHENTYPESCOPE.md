@@ -1,6 +1,6 @@
 # Type-scope `when` — he is right, §1 is wrong, and §4 is wrong too
 
-> **Ledger** — `[R]` Type-scope `when` — he is right, §1 is wrong, and §4 is wrong too
+> **Ledger** — `[V]` Type-scope `when` — he is right, §1 is wrong, and §4 is wrong too
 > supersedes: not yet checked
 > superseded by: not yet checked
 

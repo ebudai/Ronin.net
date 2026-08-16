@@ -1,6 +1,6 @@
 # Interpreter decisions
 
-> **Ledger** — `[R]` Interpreter decisions
+> **Ledger** — `[V]` Interpreter decisions
 > supersedes: not yet checked
 > superseded by: not yet checked
 

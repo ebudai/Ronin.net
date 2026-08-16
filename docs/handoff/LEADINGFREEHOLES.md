@@ -1,6 +1,6 @@
 # Leading free holes — the clause is deletable, and what replaces it already exists
 
-> **Ledger** — `[R]` Leading free holes — the clause is deletable, and what replaces it already exists
+> **Ledger** — `[V]` Leading free holes — the clause is deletable, and what replaces it already exists
 > supersedes: not yet checked
 > superseded by: not yet checked
 

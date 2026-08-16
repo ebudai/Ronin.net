@@ -1,6 +1,6 @@
 # §1 — the hole is real, the fix is right, and the confinement claim is not
 
-> **Ledger** — `[R]` §1 — the hole is real, the fix is right, and the confinement claim is not
+> **Ledger** — `[V]` §1 — the hole is real, the fix is right, and the confinement claim is not
 > supersedes: not yet checked
 > superseded by: not yet checked
 

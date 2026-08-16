@@ -1,6 +1,6 @@
 # Chains have duration. `when`s don't. That's the whole confusion.
 
-> **Ledger** — `[R]` Chains have duration. `when`s don't. That's the whole confusion.
+> **Ledger** — `[V]` Chains have duration. `when`s don't. That's the whole confusion.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

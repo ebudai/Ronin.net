@@ -1,6 +1,6 @@
 # `stop`, and the ladder — plus a prior question the megabytes were hiding
 
-> **Ledger** — `[R]` `stop`, and the ladder — plus a prior question the megabytes were hiding
+> **Ledger** — `[V]` `stop`, and the ladder — plus a prior question the megabytes were hiding
 > supersedes: not yet checked
 > superseded by: not yet checked
 

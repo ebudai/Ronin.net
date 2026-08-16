@@ -1,6 +1,6 @@
 # Monomorphisation closes the residue — and one correction that is live right now
 
-> **Ledger** — `[R]` Monomorphisation closes the residue — and one correction that is live right now
+> **Ledger** — `[V]` Monomorphisation closes the recursion residue — ruled. The checker rule it implies is a recommendation.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

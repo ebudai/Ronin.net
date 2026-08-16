@@ -1,6 +1,6 @@
 # Zero glue words is achievable — your instinct was right
 
-> **Ledger** — `[R]` Zero glue words is achievable — your instinct was right
+> **Ledger** — `[V]` Zero glue words is achievable — your instinct was right
 > supersedes: not yet checked
 > superseded by: not yet checked
 

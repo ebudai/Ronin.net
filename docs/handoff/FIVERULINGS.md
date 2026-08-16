@@ -1,6 +1,6 @@
 # Five rulings — and the one law that decides three of them
 
-> **Ledger** — `[R]` Five rulings — and the one law that decides three of them
+> **Ledger** — `[V]` Five rulings — and the one law that decides three of them
 > supersedes: not yet checked
 > superseded by: not yet checked
 

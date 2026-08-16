@@ -1,6 +1,6 @@
 # The arrow in a pattern — take option (a), and §6 is not at risk
 
-> **Ledger** — `[R]` The arrow in a pattern — take option (a), and §6 is not at risk
+> **Ledger** — `[V]` The arrow in a pattern — take option (a), and §6 is not at risk
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -1,6 +1,6 @@
 # `stop` / `stop all` — good idea, and it catches a bug I was about to ship
 
-> **Ledger** — `[R]` `stop` / `stop all` — good idea, and it catches a bug I was about to ship
+> **Ledger** — `[V]` `stop` / `stop all` — good idea, and it catches a bug I was about to ship
 > supersedes: not yet checked
 > superseded by: not yet checked
 

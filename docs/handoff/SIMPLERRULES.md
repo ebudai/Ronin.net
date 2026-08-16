@@ -1,6 +1,6 @@
 # Yes — and it simplifies more than you are asking about
 
-> **Ledger** — `[R]` Yes — and it simplifies more than you are asking about
+> **Ledger** — `[V]` Yes — and it simplifies more than you are asking about
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -1,6 +1,6 @@
 # §2 retracted — and the thing worth keeping from it is not the finding
 
-> **Ledger** — `[R]` §2 retracted — and the thing worth keeping from it is not the finding
+> **Ledger** — `[V]` §2 retracted — and the thing worth keeping from it is not the finding
 > supersedes: not yet checked
 > superseded by: not yet checked
 

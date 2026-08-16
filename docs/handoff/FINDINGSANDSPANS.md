@@ -1,6 +1,6 @@
 # Findings and spans
 
-> **Ledger** — `[R]` Findings and spans
+> **Ledger** — `[V]` Findings and spans
 > supersedes: not yet checked
 > superseded by: not yet checked
 

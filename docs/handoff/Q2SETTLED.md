@@ -1,6 +1,6 @@
 # Q2 — both. And my objection was wrong, not merely outweighed
 
-> **Ledger** — `[R]` Q2 — both. And my objection was wrong, not merely outweighed
+> **Ledger** — `[V]` Q2 — both. And my objection was wrong, not merely outweighed
 > supersedes: not yet checked
 > superseded by: not yet checked
 

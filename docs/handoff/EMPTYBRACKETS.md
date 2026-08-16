@@ -1,6 +1,6 @@
 # `function ping ()` — reject it, and the reason gives you `(_)` for free
 
-> **Ledger** — `[R]` `function ping ()` — reject it, and the reason gives you `(_)` for free
+> **Ledger** — `[V]` `function ping ()` — reject it, and the reason gives you `(_)` for free
 > supersedes: not yet checked
 > superseded by: not yet checked
 

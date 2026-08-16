@@ -1,6 +1,6 @@
 # Ambiguity as an error — direction, with a per-rule ledger
 
-> **Ledger** — `[R]` Ambiguity as an error — direction, with a per-rule ledger
+> **Ledger** — `[V]` Ambiguity as an error — direction, with a per-rule ledger
 > supersedes: not yet checked
 > superseded by: not yet checked
 

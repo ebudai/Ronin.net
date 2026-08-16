@@ -1,6 +1,6 @@
 # Corrected: the displacement cap IS observable
 
-> **Ledger** — `[R]` Corrected: the displacement cap IS observable
+> **Ledger** — `[V]` Corrected: the displacement cap IS observable
 > supersedes: not yet checked
 > superseded by: not yet checked
 

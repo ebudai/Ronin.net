@@ -1,6 +1,6 @@
 # `wait until` when the condition is already true — decided: proceed
 
-> **Ledger** — `[R]` `wait until` when the condition is already true — decided: proceed
+> **Ledger** — `[V]` `wait until` when the condition is already true — decided: proceed
 > supersedes: not yet checked
 > superseded by: not yet checked
 

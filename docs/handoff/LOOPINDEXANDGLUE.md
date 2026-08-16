@@ -1,6 +1,6 @@
 # The two open items — decided, with a tool for the second
 
-> **Ledger** — `[R]` The two open items — decided, with a tool for the second
+> **Ledger** — `[V]` The two open items — decided, with a tool for the second
 > supersedes: not yet checked
 > superseded by: not yet checked
 

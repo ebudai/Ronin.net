@@ -1,6 +1,6 @@
 # Finding 3 — the invariant is mine, and the `ImmutableArray` question is a language question
 
-> **Ledger** — `[R]` Finding 3 — the invariant is mine, and the `ImmutableArray` question is a language question
+> **Ledger** — `[V]` Finding 3 — the invariant is mine, and the `ImmutableArray` question is a language question
 > supersedes: not yet checked
 > superseded by: not yet checked
 

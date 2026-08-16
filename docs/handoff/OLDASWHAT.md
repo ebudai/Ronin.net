@@ -1,6 +1,6 @@
 # `old x` — your instinct is right, the scope does not do it, and here is why
 
-> **Ledger** — `[R]` `old x` — your instinct is right, the scope does not do it, and here is why
+> **Ledger** — `[V]` `old x` — your instinct is right, the scope does not do it, and here is why
 > supersedes: not yet checked
 > superseded by: not yet checked
 

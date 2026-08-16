@@ -1,6 +1,6 @@
 # The arrow — non-associative, and check whether §1 is really a value-grammar change
 
-> **Ledger** — `[R]` The arrow — non-associative, and check whether §1 is really a value-grammar change
+> **Ledger** — `[V]` The arrow — non-associative, and check whether §1 is really a value-grammar change
 > supersedes: not yet checked
 > superseded by: not yet checked
 

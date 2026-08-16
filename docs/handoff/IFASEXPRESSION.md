@@ -1,6 +1,6 @@
 # `if` as an expression — yes, and it is cheaper than what it replaces
 
-> **Ledger** — `[R]` `if` as an expression — yes, and it is cheaper than what it replaces
+> **Ledger** — `[V]` `if` as an expression — yes, and it is cheaper than what it replaces
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -1,6 +1,6 @@
 # The round limit is a non-termination detector, and draining terminates
 
-> **Ledger** — `[R]` The round limit is a non-termination detector, and draining terminates
+> **Ledger** — `[V]` The round limit is a non-termination detector, and draining terminates
 > supersedes: not yet checked
 > superseded by: not yet checked
 

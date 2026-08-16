@@ -1,6 +1,6 @@
 # Recursive return types — you were right, and three amendments that keep it working
 
-> **Ledger** — `[R]` Recursive return types — you were right, and three amendments that keep it working
+> **Ledger** — `[V]` Recursive return types infer from the base case — ruled. The checker rule it implies is a recommendation.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

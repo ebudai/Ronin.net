@@ -1,6 +1,6 @@
 # `is` for equality — the reference-equality worry dissolves, the bill does not
 
-> **Ledger** — `[R]` `is` for equality — the reference-equality worry dissolves, the bill does not
+> **Ledger** — `[V]` `is` is value equality, `is a` is a type test — ruled. The checker rule it implies is a recommendation.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

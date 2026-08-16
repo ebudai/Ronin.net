@@ -1,6 +1,6 @@
 # `() => …` — the narrowing is right, and it opens the question underneath
 
-> **Ledger** — `[R]` `() => …` — the narrowing is right, and it opens the question underneath
+> **Ledger** — `[V]` `() => …` — the narrowing is right, and it opens the question underneath
 > supersedes: not yet checked
 > superseded by: not yet checked
 

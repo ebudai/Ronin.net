@@ -1,6 +1,6 @@
 # Left-to-right works — and `WHYSYMBOLINFIX.md` was running on a bug of mine
 
-> **Ledger** — `[R]` Left-to-right works — and `WHYSYMBOLINFIX.md` was running on a bug of mine
+> **Ledger** — `[V]` Left-to-right works — and `WHYSYMBOLINFIX.md` was running on a bug of mine
 > supersedes: not yet checked
 > superseded by: not yet checked
 

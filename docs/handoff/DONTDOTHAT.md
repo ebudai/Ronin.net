@@ -1,6 +1,6 @@
 # "Don't do that" — where it holds, and how much of the last rule it takes back
 
-> **Ledger** — `[R]` "Don't do that" — where it holds, and how much of the last rule it takes back
+> **Ledger** — `[V]` "Don't do that" — where it holds, and how much of the last rule it takes back
 > supersedes: not yet checked
 > superseded by: not yet checked
 

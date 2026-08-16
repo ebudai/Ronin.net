@@ -1,6 +1,6 @@
 # `when` — placement, lifetime, `stop`, and `wait until`
 
-> **Ledger** — `[R]` `when` — placement, lifetime, `stop`, and `wait until`
+> **Ledger** — `[V]` `when` — placement, lifetime, `stop`, and `wait until`
 > supersedes: not yet checked
 > superseded by: not yet checked
 

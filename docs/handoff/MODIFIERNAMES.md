@@ -1,6 +1,6 @@
 # `fast`, and the thing underneath finding 2
 
-> **Ledger** — `[R]` `fast`, and the thing underneath finding 2
+> **Ledger** — `[V]` Refuse a modifier at a name head, for every modifier — the earlier allowance is retired.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

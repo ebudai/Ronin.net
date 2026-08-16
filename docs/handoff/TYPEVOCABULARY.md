@@ -1,6 +1,6 @@
 # The type vocabulary — four answers, and one correction before you build
 
-> **Ledger** — `[R]` The type vocabulary — four answers, and one correction before you build
+> **Ledger** — `[V]` The type vocabulary — four answers, and one correction before you build
 > supersedes: not yet checked
 > superseded by: not yet checked
 

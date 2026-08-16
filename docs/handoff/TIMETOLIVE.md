@@ -1,6 +1,6 @@
 # `time to live` — yes, it can be legal, and I have been over-weighting one word
 
-> **Ledger** — `[R]` `time to live` — yes, it can be legal, and I have been over-weighting one word
+> **Ledger** — `[V]` `time to live` — yes, it can be legal, and I have been over-weighting one word
 > supersedes: not yet checked
 > superseded by: not yet checked
 

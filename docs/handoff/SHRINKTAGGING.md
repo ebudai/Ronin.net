@@ -1,6 +1,6 @@
 # Answers to the three, plus a correction to one of your reads and one of mine
 
-> **Ledger** — `[R]` Answers to the three, plus a correction to one of your reads and one of mine
+> **Ledger** — `[V]` Answers to the three, plus a correction to one of your reads and one of mine
 > supersedes: not yet checked
 > superseded by: not yet checked
 

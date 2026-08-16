@@ -1,6 +1,6 @@
 # Instance binding — decided
 
-> **Ledger** — `[R]` Instance binding — decided
+> **Ledger** — `[V]` Instance binding — decided
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -1,6 +1,6 @@
 # Named lookups — decided: `match` is for inline arms, `@` for named tables
 
-> **Ledger** — `[R]` Named lookups — decided: `match` is for inline arms, `@` for named tables
+> **Ledger** — `[V]` Named lookups — decided: `match` is for inline arms, `@` for named tables
 > supersedes: not yet checked
 > superseded by: not yet checked
 

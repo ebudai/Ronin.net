@@ -1,6 +1,6 @@
 # Instances — direction, and a correction to something I nearly shipped
 
-> **Ledger** — `[R]` Instances — direction, and a correction to something I nearly shipped
+> **Ledger** — `[V]` Instances — direction, and a correction to something I nearly shipped
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -1,4 +1,4 @@
-> **Ledger** — `[R]` Constants and static-init order — order constants together with the var initialisers they read; cycles banned.
+> **Ledger** — `[V]` Constants and static-init order — order constants together with the var initialisers they read; cycles banned.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

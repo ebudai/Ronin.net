@@ -1,6 +1,6 @@
 # `return`, the empty slot, and the literals — three answers and two notes back
 
-> **Ledger** — `[R]` `return`, the empty slot, and the literals — three answers and two notes back
+> **Ledger** — `[V]` `return`, the empty slot, and the literals — ruled. The inference rules it implies for the checker are recommendations.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

@@ -1,6 +1,6 @@
 # `_` — yes, a stand-in, and that changes the answer
 
-> **Ledger** — `[R]` `_` — yes, a stand-in, and that changes the answer
+> **Ledger** — `[V]` `_` — yes, a stand-in, and that changes the answer
 > supersedes: not yet checked
 > superseded by: not yet checked
 

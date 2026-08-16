@@ -1,6 +1,6 @@
 # Both corrections accepted — and the machinery has one rule I would get wrong by default
 
-> **Ledger** — `[R]` Both corrections accepted — and the machinery has one rule I would get wrong by default
+> **Ledger** — `[V]` Both corrections accepted — and the machinery has one rule I would get wrong by default
 > supersedes: not yet checked
 > superseded by: not yet checked
 

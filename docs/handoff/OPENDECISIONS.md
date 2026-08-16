@@ -1,6 +1,6 @@
 # Four answers, one correction to how I pictured R7b, and a name for what Budai spotted
 
-> **Ledger** — `[R]` Four answers, one correction to how I pictured R7b, and a name for what Budai spotted
+> **Ledger** — `[V]` Four answers, one correction to how I pictured R7b, and a name for what Budai spotted
 > supersedes: not yet checked
 > superseded by: not yet checked
 

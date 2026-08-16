@@ -1,6 +1,6 @@
 # REAUDIT47 — findings 1 and 2 have one cause, and it is a decision I made that the code did not take
 
-> **Ledger** — `[R]` REAUDIT47 — findings 1 and 2 have one cause, and it is a decision I made that the code did not take
+> **Ledger** — `[V]` REAUDIT47 — findings 1 and 2 have one cause, and it is a decision I made that the code did not take
 > supersedes: not yet checked
 > superseded by: not yet checked
 

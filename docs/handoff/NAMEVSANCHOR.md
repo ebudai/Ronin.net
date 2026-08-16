@@ -1,6 +1,6 @@
 # The withdrawal is right, the narrowing is right, and it is not the whole law
 
-> **Ledger** — `[R]` The withdrawal is right, the narrowing is right, and it is not the whole law
+> **Ledger** — `[V]` The withdrawal is right, the narrowing is right, and it is not the whole law
 > supersedes: not yet checked
 > superseded by: not yet checked
 

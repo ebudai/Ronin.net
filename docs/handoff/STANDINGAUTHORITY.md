@@ -5,7 +5,7 @@
 > a ruling and what does not.
 > answers: the Pass 1 completion report
 > supersedes: none
-> superseded by: none
+> superseded by: LEDGERRATIFICATION (§3.1, §3.3 part)
 
 **Pass 1 is better than what I asked for.** Five calls in it were yours and all
 five were right — worth naming individually, because "be more confident" is

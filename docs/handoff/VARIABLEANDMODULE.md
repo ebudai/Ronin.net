@@ -1,6 +1,6 @@
 # Q4 and Q5 — enforced uniqueness, shape the value, distinguish, and a typed root
 
-> **Ledger** — `[R]` Q4 and Q5 — enforced uniqueness, shape the value, distinguish, and a typed root
+> **Ledger** — `[V]` Q4 and Q5 — enforced uniqueness, shape the value, distinguish, and a typed root
 > supersedes: not yet checked
 > superseded by: not yet checked
 

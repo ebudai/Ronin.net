@@ -1,6 +1,6 @@
 # Error as a value the type ignores — you are right, and the reason is stronger than "no case comes to mind"
 
-> **Ledger** — `[R]` Error as a value the type ignores — you are right, and the reason is stronger than "no case comes to mind"
+> **Ledger** — `[V]` Error is a value the type ignores — ruled. The checker rule it implies (`Error` assignable to every type, one-directional) is a recommendation.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

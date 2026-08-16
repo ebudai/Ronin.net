@@ -1,6 +1,6 @@
 # Postfix word patterns — admit them. This reverses `WHYNOPOSTFIX.md`
 
-> **Ledger** — `[R]` Postfix word patterns — admit them. This reverses `WHYNOPOSTFIX.md`
+> **Ledger** — `[V]` Postfix word patterns — admit them. This reverses `WHYNOPOSTFIX.md`
 > supersedes: not yet checked
 > superseded by: not yet checked
 

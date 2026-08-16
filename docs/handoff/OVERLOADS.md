@@ -1,9 +1,6 @@
 # Overloads: alternatives, not a second pass — and mostly not needed for the library
 
-> **Ledger** — `[R]` Overloads are alternatives, not a second pass, and mostly not
-> needed for the library. §4's open question ("is there an expression-level type
-> ascription?") is answered by `FIVERULINGS` §3. The declaration-site refusal and its
-> use-site successor live in `Test/Expiry.cs`.
+> **Ledger** — `[V]` Overloads are resolver alternatives, not a second pass, one type-filter pass — ruled. The checker rule it implies is a recommendation. §4's question is answered by `FIVERULINGS` §3.
 > supersedes: not yet checked
 > superseded by: not yet checked
 

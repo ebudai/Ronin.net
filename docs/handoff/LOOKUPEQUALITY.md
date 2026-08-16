@@ -1,6 +1,6 @@
 # Lookup equality — no, I raised it and did not specify it. Here it is
 
-> **Ledger** — `[R]` Lookup equality — no, I raised it and did not specify it. Here it is
+> **Ledger** — `[V]` Lookup equality — no, I raised it and did not specify it. Here it is
 > supersedes: not yet checked
 > superseded by: not yet checked
 

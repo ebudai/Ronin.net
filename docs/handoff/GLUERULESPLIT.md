@@ -1,6 +1,6 @@
 # Shape 1 — but for a different reason, and R5′ has a clause missing
 
-> **Ledger** — `[R]` Shape 1 — but for a different reason, and R5′ has a clause missing
+> **Ledger** — `[V]` Shape 1 — but for a different reason, and R5′ has a clause missing
 > supersedes: not yet checked
 > superseded by: not yet checked
 

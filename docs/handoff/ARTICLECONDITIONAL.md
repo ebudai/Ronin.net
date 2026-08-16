@@ -1,6 +1,6 @@
 # Yes it can be conditional — and a correction that changes what the rule is *about*
 
-> **Ledger** — `[R]` Yes it can be conditional — and a correction that changes what the rule is *about*
+> **Ledger** — `[V]` Yes it can be conditional — and a correction that changes what the rule is *about*
 > supersedes: not yet checked
 > superseded by: not yet checked
 

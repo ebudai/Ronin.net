@@ -1,6 +1,6 @@
 # Finding 8 — endorsed, and the false spec sentence is mine
 
-> **Ledger** — `[R]` Finding 8 — endorsed, and the false spec sentence is mine
+> **Ledger** — `[V]` Finding 8 — endorsed, and the false spec sentence is mine
 > supersedes: not yet checked
 > superseded by: not yet checked
 

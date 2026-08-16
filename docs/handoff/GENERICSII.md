@@ -1,8 +1,6 @@
 # Generics, second pass — the cheap route works, and one addition makes it safe
 
-> **Ledger** — `[R]` The cheap generics route works; one addition makes it safe.
-> Monomorphisation is `[forced]`, not a recommendation. §8a ("separate the type and
-> value tables") is struck below.
+> **Ledger** — `[V]` The cheap generics route works, one addition makes it safe; monomorphisation is `[forced]`. The rest of the checker rule it implies is a recommendation. §8a struck below.
 > supersedes: GENERICS §3
 > superseded by: FIVERULINGS §4 (§8a), CHECKERSCOPINGRULINGS Q4 (§8a)
 

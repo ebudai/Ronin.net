@@ -1,6 +1,6 @@
 # Scoping, and two smaller items
 
-> **Ledger** — `[R]` Scoping, and two smaller items
+> **Ledger** — `[V]` Scoping, and two smaller items
 > supersedes: not yet checked
 > superseded by: not yet checked
 
