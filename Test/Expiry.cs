@@ -165,22 +165,6 @@ namespace Test;
 ///                 next reader does not rederive that a path is a location.
 ///             </description>
 ///         </item>
-///         <item>
-///             <term>a pathless source's module is a token minted PER COMPILATION</term>
-///             <description>
-///                 approximates an unsaved buffer's document identity with the
-///                 compilation's, which for the single-shot compiler IS the document —
-///                 each pathless compilation is a distinct buffer. But a language
-///                 server re-compiling a buffer across edits makes a new compilation
-///                 per keystroke, so under it the token would change per snapshot and
-///                 every type in the buffer would change identity — the span defect a
-///                 third time (VARIABLE-AND-MODULE Q5b). → becomes a STABLE DOCUMENT
-///                 HANDLE the server supplies, belonging to the open buffer and
-///                 surviving every edit until it is saved and acquires a path; the
-///                 handle is the thing to add when the server does, not a field on the
-///                 snapshot. Named here so that reader does not root it in the snapshot.
-///             </description>
-///         </item>
 ///     </list>
 ///     <para>
 ///     AND ONE THAT IS NOT A REFUSAL, recorded here because this is the ledger the

@@ -227,6 +227,28 @@ public class Sorts
         Assert.Equal(within[0].GetHashCode(), within[1].GetHashCode());
     }
 
+    [Fact(DisplayName = "a supplied document handle roots a source's types, stable across recompilations")]
+    public void ASuppliedDocumentHandleRootsASourcesTypesStablyAcrossRecompilations()
+    {
+        // REAUDIT57 finding 3 / VARIABLE-AND-MODULE Q5: the owner of an unsaved document
+        // supplies its identity, so recompiling the same buffer — even a new snapshot —
+        // keeps its types' identity the document's, not the compilation's. A different
+        // document is a different module, and a supplied path stands for one too.
+        var source = new SourceText("type token; var x => token;\n");
+        var document = new ModuleIdentity.Buffer(new object());
+
+        Sort first = Assert.Single(Compilation.Of(source, document).Types).Type;
+        Sort again = Assert.Single(Compilation.Of(source, document).Types).Type;
+
+        Assert.Equal(first, again);
+        Assert.NotEqual(first,
+            Assert.Single(Compilation.Of(source, new ModuleIdentity.Buffer(new object())).Types).Type);
+
+        Sort given = Assert.Single(Compilation.Of(source, new ModuleIdentity.Path("given.ron")).Types).Type;
+
+        Assert.Equal(new ModuleIdentity.Path("given.ron"), ((Sort.Named)given).Container.Module);
+    }
+
     [Fact(DisplayName = "a type declared in a block belongs to its container, nameable and identified there")]
     public void ATypeDeclaredInABlockBelongsToItsContainer()
     {

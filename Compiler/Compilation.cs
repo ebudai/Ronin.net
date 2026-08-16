@@ -40,19 +40,26 @@ internal sealed class Compilation
 {
     private Compilation() => Findings = new ReadOnlyCollection<Finding>(findings);
 
-    // The document token an unsaved source is rooted at when it has no path. One per
-    // compilation, which for the current single-shot compiler IS the document; a
-    // language server re-compiling a buffer across edits must supply a token stable
-    // across them, or every type in the buffer changes identity per keystroke — the
-    // span defect once more, ledgered with that successor (VARIABLE-AND-MODULE Q5).
-    private readonly object buffer = new();
-
-    public static Compilation Of(SourceText source)
+    /// <param name="module">
+    ///     The identity the source's types are rooted in, supplied by whoever owns the
+    ///     document (VARIABLE-AND-MODULE Q5). A saved file's owner may leave it unset
+    ///     and let the path stand for it; an editor must pass a token that belongs to
+    ///     the open BUFFER and survives every edit, or a type's identity would change
+    ///     on each keystroke. The one-shot compiler, having no document across
+    ///     snapshots, mints a fresh buffer identity for a pathless source with none.
+    /// </param>
+    public static Compilation Of(SourceText source, ModuleIdentity module = null)
     {
         Lexer lexer = new(source.Text);
         Parser parser = new(lexer.Lex());
 
-        Compilation compilation = new() { Source = source, Module = parser.Parse() };
+        Compilation compilation = new()
+        {
+            Source = source,
+            Module = parser.Parse(),
+            Identity = module ?? (source.Path is { } path ? new ModuleIdentity.Path(path)
+                                                          : new ModuleIdentity.Buffer(new object())),
+        };
 
         compilation.Declare();
 
@@ -62,6 +69,9 @@ internal sealed class Compilation
     public SourceText Source { get; private init; }
 
     public Module Module { get; private init; }
+
+    /// <summary>The identity this source's types are rooted in — its path, its buffer, or one supplied.</summary>
+    private ModuleIdentity Identity { get; init; }
 
     /// <summary>The outermost scope's declarations, with the nested ones folded in.</summary>
     public Declarations Declarations { get; private set; }
@@ -113,12 +123,9 @@ internal sealed class Compilation
         // The container of a type is a STRUCTURE — the module it is in, then a segment
         // per enclosing named scope — compared as one rather than a joined string a
         // module or a segment could collide on (CONTAINER-IDENTITY-RULING §3). Its
-        // root is the module's IDENTITY, a type and not a string: a saved file is its
-        // path — a location, ledgered the way a span was; an unsaved buffer is a token
-        // belonging to its document, so two unsaved buffers are two modules
-        // (VARIABLE-AND-MODULE Q5).
-        container ??= new Container(Source.Path is { } path ? new ModuleIdentity.Path(path)
-                                                            : new ModuleIdentity.Buffer(buffer), []);
+        // root is the module's IDENTITY, a type and not a string, settled at the entry
+        // point from the owner's handle or the source's path (VARIABLE-AND-MODULE Q5).
+        container ??= new Container(Identity, []);
 
         // A type declaration belongs to its nearest named container, not the block
         // it sits in (SCOPE-IDENTITY-RULING, H). So a named container also declares
