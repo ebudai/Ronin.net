@@ -200,53 +200,77 @@ internal sealed class Compilation
 
         foreach (var finding in Exits(reacting)) Add(finding);
 
-        // The bodies of one overloaded shape are ONE container (CONTAINER-IDENTITY-
-        // RULING §2, B). Gathered by their shared segment as we recurse, so the
-        // uniqueness across them is checked once below.
+        // Bodies grouped by their container segment. A block, loop, delegate, or «when»
+        // is transparent (Container null): it belongs to THIS container and is recursed
+        // on its own, this scope enclosing it. A named body extends the path a type it
+        // holds is identified by, and joins the others of its segment (SCOPE-IDENTITY-
+        // RULING, H).
         Dictionary<string, List<Body>> shapes = [];
 
         foreach (var body in statements.SelectMany(Bodies))
         {
-            // A named container — a function or a type — extends the path a type it
-            // holds is identified by; a block, loop, delegate, or «when» is
-            // transparent, so a type declared in one belongs to the container above
-            // it (SCOPE-IDENTITY-RULING, H).
-            var nested = body.Container is null ? container : container.Within(body.Container);
+            if (body.Container is null)
+            {
+                Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts,
+                      container, named: false, ancillary: body.Ancillary, function: body.Function);
 
-            Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
-                  named: body.Container is not null, ancillary: body.Ancillary, function: body.Function);
-
-            if (body.Container is null) continue;
+                continue;
+            }
 
             if (shapes.TryGetValue(body.Container, out var siblings) is false) shapes[body.Container] = siblings = [];
 
             siblings.Add(body);
         }
 
-        // A type name declared in two bodies of one shape is «Shadowed» — H's
-        // within-a-container uniqueness reaching across the bodies that share a name,
-        // not only within one body. Each body has already caught its own repeats;
-        // this catches the ones that straddle two, blaming the later as everywhere.
-        foreach (var siblings in shapes.Values)
+        foreach (var (segment, bodies) in shapes)
         {
-            if (siblings.Count < 2) continue;
+            var nested = container.Within(segment);
 
-            Dictionary<string, Span> seen = [];
-
-            foreach (var body in siblings)
+            // One body is its container's whole type table already. Several bodies of
+            // an overloaded shape are ONE container (CONTAINER-IDENTITY-RULING, B), so a
+            // type in any of them is visible across all: the set is classified and its
+            // signatures resolved against one SHARED table, not each body's own where
+            // the others' types are invisible (REAUDIT57 finding 1).
+            if (bodies.Count is 1)
             {
-                Dictionary<string, Span> here = [];
+                var body = bodies[0];
 
-                foreach (var type in TypesOf(body)) here[type.Identifier.Words] = type.Identifier.Span(Source);
+                Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
+                      named: true, ancillary: body.Ancillary, function: body.Function);
 
-                foreach (var (name, span) in here)
-                {
-                    if (seen.TryGetValue(name, out var first))
-                        Add(new Shadowed(span, name, "in another body of this shape").Alongside(first, "first declared here"));
-                    else
-                        seen[name] = span;
-                }
+                continue;
             }
+
+            // Every body's and ancillary's types, declared once, in source order: a
+            // repeat across two bodies is «Shadowed» here — H's uniqueness across the
+            // container, reported once — and a signature resolves against the whole.
+            List<Grammar.Type> types = [];
+
+            foreach (var body in bodies) types.AddRange(TypesOf(body));
+
+            var shared = Declarations.Of(types.OrderBy(type => type.Identifier.Span(Source).Offset), Source, declared,
+                                         container: nested);
+
+            foreach (var problem in shared.Problems) Add(problem);
+
+            // Classify the set once, against the shared table where the container's
+            // types are visible — so equivalent spellings of a body-local type read as
+            // the duplicate they are, not an overload — and store the signatures it
+            // resolved back where the checker reads them.
+            var pattern = declared.Overloads.FirstOrDefault(entry => bodies.Any(body =>
+                              body.Function is { } owner
+                           && entry.Value.Any(signature => signature.Span == owner.Identifier.Span(Source)))).Key;
+
+            if (pattern is not null)
+            {
+                foreach (var finding in shared.Classify(pattern)) Add(finding);
+
+                declared.Overloads[pattern] = [.. shared.Overloads[pattern]];
+            }
+
+            foreach (var body in bodies)
+                Scope(body.Statements, shared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
+                      named: false, ancillary: body.Ancillary, function: body.Function);
         }
 
         // The ancillary scopes are transparent and belong to THIS container: recursed

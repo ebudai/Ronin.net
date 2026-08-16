@@ -125,57 +125,68 @@ internal sealed class Declarations
             declarations.Overloads[pattern] =
                 [.. declarations.Overloads[pattern].Select(signature => declarations.Resolved(signature))];
 
-        // After every statement, because a shape is over-declared by its set and
-        // not by any one member of it — and the last declaration is as much a
-        // participant as the first.
-        foreach (var (pattern, spans) in declarations.shapes)
+        // The overload set is NOT classified here. A shape's declarations share one
+        // container (CONTAINER-IDENTITY-RULING, B), so their types are visible across
+        // it and a signature naming one resolves only against the WHOLE container's
+        // type table — which this single body's table is not (REAUDIT57 finding 1).
+        // «Compilation.Scope» builds that shared table from every body of the shape
+        // and classifies the set once against it, through «Classify».
+        return declarations;
+    }
+
+    /// <summary>
+    ///     The over-declaration findings for one shape, classified against THIS table
+    ///     — its parameter sorts read where the whole overload container is visible.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     TWO RULES wearing one name until the type checker lands, and only one ever
+    ///     expires. Declarations of a shape whose parameter types DIFFER wait for
+    ///     type-directed selection; declarations whose types are the SAME wait for
+    ///     nothing, because no type information could ever tell them apart.
+    ///     <para>
+    ///     GROUPED, not counted. A count told duplicate from overload for a pair and
+    ///     nothing more: three declarations «A, A, B» collapsed to one duplicate
+    ///     spanning the first and the last — not even the colliding pair — and the
+    ///     overload between the A's and the B went unreported. A group of more than one
+    ///     is a duplicate reported against the declarations that collide; two or more
+    ///     groups remaining is an overload set, because removing a duplicate does not
+    ///     make «A» and «B» choosable.
+    ///     </para>
+    /// </remarks>
+    internal IReadOnlyList<Finding> Classify(Compiler.Pattern pattern)
+    {
+        List<Finding> found = [];
+
+        // A pattern in the table is in «shapes» too — they are filled together. A
+        // single declaration falls through to no finding on its own: one group of one
+        // is neither a duplicate nor a choice.
+        var groups = Overloads[pattern]
+                     .Zip(shapes[pattern], (signature, shape) => (Key: Sorted(signature), shape.Span))
+                     .GroupBy(entry => entry.Key, Keying.Comparer)
+                     .ToList();
+
+        foreach (var duplicate in groups.Where(group => group.Count() > 1))
         {
-            if (spans.Count < 2) continue;
+            var sites = duplicate.Select(entry => entry.Span).ToList();
+            var finding = new DuplicateSignature(sites[0], pattern.ToString());
 
-            // TWO RULES wearing one name until now, and only one of them ever
-            // expires. Declarations of a shape whose parameter types DIFFER are
-            // waiting for type-directed selection; declarations whose types are
-            // the SAME are waiting for nothing, because no type information
-            // could ever tell them apart. Sharing a diagnostic meant landing the
-            // type checker would have meant picking the two apart under time
-            // pressure.
-            //
-            // GROUPED, not counted. A count told duplicate from overload for a
-            // pair and nothing more: three declarations «A, A, B» collapsed to
-            // one duplicate finding spanning the first and the last — which are
-            // not even the colliding pair — and the genuine overload between the
-            // A's and the B went unreported. Each group is one thing a caller
-            // could reach; a group of more than one is a duplicate reported
-            // against the very declarations that collide, and two or more groups
-            // remaining is an overload set reported on its own, because removing
-            // a duplicate does not make «A» and «B» choosable.
-            var groups = declarations.Overloads[pattern]
-                                     .Zip(spans, (signature, shape) => (Key: Sorted(signature), shape.Span))
-                                     .GroupBy(entry => entry.Key, Keying.Comparer)
-                                     .ToList();
+            foreach (var site in sites.Skip(1)) finding.Alongside(site, "also declared here");
 
-            foreach (var duplicate in groups.Where(group => group.Count() > 1))
-            {
-                var sites = duplicate.Select(entry => entry.Span).ToList();
-                var finding = new DuplicateSignature(sites[0], pattern.ToString());
-
-                foreach (var site in sites.Skip(1)) finding.Alongside(site, "also declared here");
-
-                declarations.problems.Add(finding);
-            }
-
-            if (groups.Count > 1)
-            {
-                var sites = groups.Select(group => group.First().Span).ToList();
-                var finding = new Overloaded(sites[0], pattern.ToString(), sites.Count);
-
-                foreach (var site in sites.Skip(1)) finding.Alongside(site, "also declared here");
-
-                declarations.problems.Add(finding);
-            }
+            found.Add(finding);
         }
 
-        return declarations;
+        if (groups.Count > 1)
+        {
+            var sites = groups.Select(group => group.First().Span).ToList();
+            var finding = new Overloaded(sites[0], pattern.ToString(), sites.Count);
+
+            foreach (var site in sites.Skip(1)) finding.Alongside(site, "also declared here");
+
+            found.Add(finding);
+        }
+
+        return found;
     }
 
     /// <summary>

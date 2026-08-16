@@ -337,16 +337,17 @@ public class Sorts
     [Fact(DisplayName = "a type declared in two bodies of one overloaded shape is shadowed")]
     public void ATypeDeclaredInTwoBodiesOfOneOverloadedShapeIsShadowed()
     {
-        // CONTAINER-IDENTITY-RULING §2 (B): the bodies of one overloaded shape are
-        // one container, so «token» declared in both is «Shadowed» — H's uniqueness
-        // across the bodies that share a name, not only within one. The later is
-        // blamed, and a block-nested type counts as its shape's, not the block's.
+        // CONTAINER-IDENTITY-RULING §2 (B) / REAUDIT57 finding 1: the bodies of one
+        // overloaded shape are one container, declared into ONE shared table, so
+        // «token» declared in both is «Shadowed» there — H's uniqueness across the
+        // bodies that share a name, not only within one. The later is blamed, and a
+        // block-nested type counts as its shape's, not the block's.
         var shadowed = Assert.Single(Compilation.Of(new SourceText(
             "function use (x => number) { type token; return x; }\n" +
             "function use (x => text) { type token; return x; }\n", "p.ron")).Findings,
             finding => finding.Kind is FindingKind.Shadowed);
 
-        Assert.Contains("in another body of this shape", shadowed.Message);
+        Assert.Contains("«token» is already declared", shadowed.Message);
         Assert.True(shadowed.Primary.Offset > Assert.Single(shadowed.Related).Span.Offset);
 
         Assert.Contains(Compilation.Of(new SourceText(
@@ -364,6 +365,44 @@ public class Sorts
         Assert.DoesNotContain(Compilation.Of(new SourceText(
             "function use (x => number) { type box; return x; }\n" +
             "function use (x => text) { return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.Shadowed);
+    }
+
+    [Fact(DisplayName = "an overloaded shape's bodies share one type table, visible across all of them")]
+    public void AnOverloadedShapesBodiesShareOneTypeTable()
+    {
+        // REAUDIT57 finding 1: the bodies of one overloaded shape are one container
+        // (CONTAINER-IDENTITY-RULING B), so a type in any of them is visible THROUGHOUT
+        // — in another body, and in a signature — resolved and classified against one
+        // shared table, not each body's own where the others' types are invisible.
+
+        // body/body: «token» declared in the first body, named in the second.
+        Assert.DoesNotContain(Compilation.Of(new SourceText(
+            "function use (x => number) { type token; return x; }\n" +
+            "function use (x => text) { var local => token; return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.UnknownType);
+
+        // body/signature: the second overload's signature names the first's «token».
+        Assert.DoesNotContain(Compilation.Of(new SourceText(
+            "function use (x => number) { type token; return x; }\n" +
+            "function use (x => token) { return x; }\n", "p.ron")).Findings,
+            finding => finding.Kind is FindingKind.UnknownType);
+
+        // Classified once, against that table: equivalent spellings of a body-local
+        // type read as the DUPLICATE they are — never an overload, never unknown.
+        var equivalent = Compilation.Of(new SourceText(
+            "function use (x => token)   { type token; return x; }\n" +
+            "function use (x => (token)) { return x; }\n", "p.ron")).Findings;
+
+        Assert.Equal(FindingKind.DuplicateSignature, Assert.Single(equivalent).Kind);
+
+        // A repeated named container that is a TYPE, not a function, has no pattern to
+        // classify — its collision is caught at declaration; the shared table still
+        // builds and the bodies still resolve. The «f» alongside it means the search
+        // for a pattern has a table to look through when it finds none of these.
+        Assert.Contains(Compilation.Of(new SourceText(
+            "function f (x => number) { return x; }\n" +
+            "type Box { var a => number; }\ntype Box { var b => number; }\n", "p.ron")).Findings,
             finding => finding.Kind is FindingKind.Shadowed);
     }
 

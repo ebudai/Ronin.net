@@ -20,6 +20,23 @@ public class ScopeBuilding
         return Declarations.Of(parser.Parse().Scopes[0].Statements, text);
     }
 
+    /// <summary>
+    ///     The over-declaration findings a scope's shapes classify to. «Compilation»
+    ///     classifies against a shape's whole container, folding several bodies into
+    ///     one table; here each shape's types are all in this one table, so the two
+    ///     agree, and the classifier's own rules are what these exercise.
+    /// </summary>
+    private static System.Collections.Generic.IReadOnlyList<Finding> Classified(string source)
+    {
+        var declared = Of(source);
+
+        System.Collections.Generic.List<Finding> found = [];
+
+        foreach (var pattern in declared.Overloads.Keys) found.AddRange(declared.Classify(pattern));
+
+        return found;
+    }
+
     [Fact(DisplayName = "declaring a supplied type name says the language supplies it, not that you declared it twice")]
     public void DeclaringASuppliedTypeNameSaysTheLanguageSuppliesItNotThatYouDeclaredItTwice()
     {
@@ -169,10 +186,8 @@ public class ScopeBuilding
         // The third row is the one that makes «same types» mean something: an
         // OMITTED type is generic, so it differs from a written one rather than
         // matching everything.
-        var declared = Of($"function area of {one} {{ return 1; }}\n"
-                        + $"function area of {other} {{ return 1; }}\n");
-
-        Assert.Equal(refused, Assert.Single(declared.Problems).Kind.ToString());
+        Assert.Equal(refused, Assert.Single(Classified($"function area of {one} {{ return 1; }}\n"
+                                                     + $"function area of {other} {{ return 1; }}\n")).Kind.ToString());
     }
 
     [Fact(DisplayName = "and what a parameter is called is not part of the difference")]
@@ -181,8 +196,8 @@ public class ScopeBuilding
         // declaration written twice, and a caller cannot tell which of them they
         // reached. What a parameter is called is the callee's business.
         => Assert.Equal(FindingKind.DuplicateSignature,
-                        Assert.Single(Of("function area of (radius => number) { return 1; }\n"
-                                       + "function area of (r => number) { return 1; }\n").Problems).Kind);
+                        Assert.Single(Classified("function area of (radius => number) { return 1; }\n"
+                                               + "function area of (r => number) { return 1; }\n")).Kind);
 
     [Fact(DisplayName = "and two spellings of one type are a duplicate, not an overload")]
     public void AndTwoSpellingsOfOneTypeAreADuplicateNotAnOverload()
@@ -192,8 +207,8 @@ public class ScopeBuilding
         // into a use-site selection. Keying the classifier by spelling filed them
         // apart, so the expiry would one day have made a genuine duplicate legal.
         => Assert.Equal(FindingKind.DuplicateSignature,
-                        Assert.Single(Of("function use (x => number) { return x; }\n"
-                                       + "function use (x => (number)) { return x; }\n").Problems).Kind);
+                        Assert.Single(Classified("function use (x => number) { return x; }\n"
+                                               + "function use (x => (number)) { return x; }\n")).Kind);
 
     [Fact(DisplayName = "and the same types split into different blocks are an overload, not a duplicate")]
     public void AndTheSameTypesSplitIntoDifferentBlocksAreAnOverloadNotADuplicate()
@@ -203,10 +218,9 @@ public class ScopeBuilding
         // differently and a type checker can tell them apart, so they are an
         // overload waiting for one, not a duplicate. Concatenating the blocks
         // flattened both to «Number Text Number» and refused them permanently.
-        var declared = Of("function arrange (a => number, b => text) with (c => number) { return a; }\n"
-                        + "function arrange (a => number) with (b => text, c => number) { return a; }\n");
-
-        Assert.Equal(FindingKind.Overloaded, Assert.Single(declared.Problems).Kind);
+        Assert.Equal(FindingKind.Overloaded,
+                     Assert.Single(Classified("function arrange (a => number, b => text) with (c => number) { return a; }\n"
+                                            + "function arrange (a => number) with (b => text, c => number) { return a; }\n")).Kind);
     }
 
     [Fact(DisplayName = "and a duplicate among overloads is reported apart from the overload it hides in")]
@@ -222,7 +236,7 @@ public class ScopeBuilding
                             + "function area of (b => number) { return b; }\n"   // A again — the duplicate
                             + "function area of (c => text) { return c; }\n";    // B — a distinct overload
 
-        var problems = Of(Source).Problems;
+        var problems = Classified(Source);
 
         Assert.Equal(2, problems.Count);
 
@@ -252,11 +266,13 @@ public class ScopeBuilding
         // two ways to read it. Inserting both made every call to an overloaded
         // shape come back ambiguous, which is R3 answering a question nobody
         // asked it.
-        var declared = Of("""
+        var source = """
             var wheel => number;
             function area of (radius => number) { return radius; }
             function area of (shape => text) { return shape; }
-            """);
+            """;
+
+        var declared = Of(source);
 
         var pattern = Assert.Single(declared.Symbols.Patterns).Pattern;
         Assert.Equal(2, declared.Overloads[pattern].Count);
@@ -283,7 +299,7 @@ public class ScopeBuilding
                      new Resolver(declared.Symbols).Resolve(Lexemes.Lex("area of wheel")).Reading);
 
         // and the thing that is actually missing says so
-        var problem = Assert.Single(declared.Problems);
+        var problem = Assert.Single(Classified(source));
 
         Assert.Equal(FindingKind.Overloaded, problem.Kind);
         var overloaded = Assert.IsType<Overloaded>(problem);
