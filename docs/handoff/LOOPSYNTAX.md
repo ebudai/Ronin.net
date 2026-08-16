@@ -1,5 +1,9 @@
 # Loop syntax — resolved
 
+> **Ledger** — `[R]` Loop syntax — resolved
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **Decision: `for each bank in banks`.** The documented spelling wins. Ship it.
 
 Your instinct that it "should only resolve to one thing" is correct, and it is

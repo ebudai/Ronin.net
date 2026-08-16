@@ -1,5 +1,9 @@
 # Anchor capture — verified on the compiler, and it is one law in two costumes
 
+> **Ledger** — `[R]` Anchor capture — verified on the compiler, and it is one law in two costumes
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Answering `NAMEVSANCHOR.md`. §2's finding reproduces exactly on `Resolver.cs`,
 and R6b closes half of it. The other half is a question already open.
 

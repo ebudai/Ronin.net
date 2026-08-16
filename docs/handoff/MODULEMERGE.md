@@ -1,5 +1,9 @@
 # §1 — the hole is real, the fix is right, and the confinement claim is not
 
+> **Ledger** — `[R]` §1 — the hole is real, the fix is right, and the confinement claim is not
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Three parts. The compiled-scope decision is correct and I would take it now, for
 a reason he does not give that makes it more urgent than he says. The claim that
 it confines the conflict to *the importer's new statements* is **false** —

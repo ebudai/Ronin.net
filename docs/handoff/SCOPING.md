@@ -1,5 +1,9 @@
 # Scoping, and two smaller items
 
+> **Ledger** — `[R]` Scoping, and two smaller items
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 ## The decision: what an inner scope sees
 
 **Inward yes, outward no, and no shadowing.**

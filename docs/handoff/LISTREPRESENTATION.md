@@ -1,5 +1,9 @@
 # Finding 3 — the invariant is mine, and the `ImmutableArray` question is a language question
 
+> **Ledger** — `[R]` Finding 3 — the invariant is mine, and the `ImmutableArray` question is a language question
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Confirming the design edge the programmer asked about, with one answer that
 changes the framing: **this is not a runtime-representation choice.** List and
 lookup have to be distinguishable types with *different* equalities, so the

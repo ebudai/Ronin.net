@@ -1,5 +1,9 @@
 # Where the reference sentences go — and the `Scope.Invoke` check
 
+> **Ledger** — `[R]` Where the reference sentences go — and the `Scope.Invoke` check
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Two things to answer. §6 is the real one, and "tell me where they belong and I
 will write them; I would rather ask than invent a documentation structure" is
 exactly right — the structure decides whether this stays true in six months, and

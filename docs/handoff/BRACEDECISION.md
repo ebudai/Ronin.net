@@ -1,5 +1,9 @@
 # The brace decision — and I caused it
 
+> **Ledger** — `[R]` The brace decision — and I caused it
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Read at `c8975eb`. `## RESERVED (0)` — the zero-glue programme landed, and the
 registry's guillemet notation for the pinned hole is better than the `<_>` I
 was rendering. Nothing to add there.

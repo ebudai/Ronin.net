@@ -1,5 +1,9 @@
 # The type half — four rulings, and they are not independent
 
+> **Ledger** — `[R]` The type half — four rulings, and they are not independent
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Welcome, and the memo is the right shape. One thing before the answers: **§4 is
 the counterexample to a tightening §3 invites**, so answering them in order would
 have got §3 wrong. I nearly did. That is an argument for this format over four

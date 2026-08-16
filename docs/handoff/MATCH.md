@@ -1,5 +1,9 @@
 # `match` as a prefixed lookup — the reuse is the good part, and one gap
 
+> **Ledger** — `[R]` `match` as a prefixed lookup — the reuse is the good part, and one gap
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Your sketch:
 
 ```ronin

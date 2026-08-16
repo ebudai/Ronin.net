@@ -1,5 +1,9 @@
 # `is` for equality — the reference-equality worry dissolves, the bill does not
 
+> **Ledger** — `[R]` `is` for equality — the reference-equality worry dissolves, the bill does not
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Short version: **adopt it**, your reference-equality concern turns out not to be
 a concern at all, and the real obstacle is somewhere you did not look — `is` is
 the **6th commonest word** in identifiers, so under R5 as written it is the

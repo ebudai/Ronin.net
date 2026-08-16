@@ -1,5 +1,9 @@
 # Finding 6 — raise it. The missing function is not a cutoff, it is `is`
 
+> **Ledger** — `[R]` Finding 6 — raise it. The missing function is not a cutoff, it is `is`
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 The finding is correct and the probe is the right one. But **"low / pessimization
 rather than a wrong value" is wrong as of this week**, and that changes which of
 the three recommended routes are available.

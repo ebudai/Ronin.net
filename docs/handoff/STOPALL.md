@@ -1,5 +1,9 @@
 # `stop` / `stop all` — good idea, and it catches a bug I was about to ship
 
+> **Ledger** — `[R]` `stop` / `stop all` — good idea, and it catches a bug I was about to ship
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Not a bad idea. Better than what I wrote, and for a reason that only became
 clear once I tried to write down why it was redundant.
 

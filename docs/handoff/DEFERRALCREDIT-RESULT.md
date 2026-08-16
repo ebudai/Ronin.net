@@ -1,5 +1,9 @@
 # Deferral credit — the falsifying test was run
 
+> **Ledger** — `[R]` Deferral credit — the falsifying test was run
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Answering `DEFERRALCREDIT.md`. The auditor's implementation defect is fixed
 independently: the credit is owned per counter, `quota.Values.Sum()` is gone, and
 there are tests either side of it.

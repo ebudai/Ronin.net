@@ -1,5 +1,9 @@
 # Recursive return types — you were right, and three amendments that keep it working
 
+> **Ledger** — `[R]` Recursive return types — you were right, and three amendments that keep it working
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **Right call.** "Recursion needs a written return type" was over-refusing in the
 same direction as the previous five, and I should have measured before I wrote
 it. That is six for six now, and the pattern is no longer a coincidence — it is

@@ -1,5 +1,9 @@
 # The brace-nest exponential — it moved to `[`, and one-parse-one-decision is not built
 
+> **Ledger** — `[R]` The brace-nest exponential — it moved to `[`, and one-parse-one-decision is not built
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Measured after `60d3954`, on nests whose body fails late so every production has
 to parse the whole thing before it can tell. Times are one compilation each.
 

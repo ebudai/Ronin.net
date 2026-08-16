@@ -1,5 +1,9 @@
 # R7b's condition — check one thing first, then one correction and one rule
 
+> **Ledger** — `[R]` R7b's condition — check one thing first, then one correction and one rule
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Three answers, in the order that unblocks him fastest.
 
 ---

@@ -27,7 +27,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 GENERATED = "LEDGER.md"                       # this script's own output; never a source
 
-AUDIT = re.compile(r"^((RE)?AUDIT|FRESHAUDIT|CODEREVIEW)")
+AUDIT = re.compile(r"^((RE)?AUDIT|FRESHAUDIT|CODEREVIEW)\d*$")
 LEDGER_LINE = re.compile(r"^> \*\*Ledger\*\* — ")
 MARKER = re.compile(r"`\[(V|R)\]`")
 FIELDS = {

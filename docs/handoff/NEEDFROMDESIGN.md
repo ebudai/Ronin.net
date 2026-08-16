@@ -1,5 +1,9 @@
 # What I need to build the next slices
 
+> **Ledger** — `[R]` What I need to build the next slices
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Three questions and one note, each with what the code actually says rather than
 what I remember it saying. Ordered by what they block.
 

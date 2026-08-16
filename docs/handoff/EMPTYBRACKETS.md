@@ -1,5 +1,9 @@
 # `function ping ()` — reject it, and the reason gives you `(_)` for free
 
+> **Ledger** — `[R]` `function ping ()` — reject it, and the reason gives you `(_)` for free
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 REAUDIT9 finding 3. Budai's read is that it is either ill-formed or already
 defined. **Ill-formed** — and working out why produces a small piece of syntax
 that fixes half of the `Pattern.Parse` round-trip problem at the same time.

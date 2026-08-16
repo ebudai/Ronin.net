@@ -1,5 +1,9 @@
 # Instances — direction, and a correction to something I nearly shipped
 
+> **Ledger** — `[R]` Instances — direction, and a correction to something I nearly shipped
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Two parts. The correction first, because it changes an instruction in a document
 that has not gone out yet.
 

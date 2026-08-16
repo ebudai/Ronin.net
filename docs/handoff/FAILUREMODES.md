@@ -1,5 +1,9 @@
 # Failure modes from the literature, mapped onto Ronin
 
+> **Ledger** — `[R]` Failure modes from the literature, mapped onto Ronin
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Seven. Two are holes we have not predicted and one of those is structural.
 Three are predicted but under-mitigated. Two we are immune to, and knowing
 *why* matters because the immunity is a constraint we must not casually drop.

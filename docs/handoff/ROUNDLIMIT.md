@@ -1,5 +1,9 @@
 # The round limit is a non-termination detector, and draining terminates
 
+> **Ledger** — `[R]` The round limit is a non-termination detector, and draining terminates
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 He is right on all of it. `ACCUMULATION-BOUND.md` §1 asserted that a 10,000-deep
 queue "is a Tuesday" — it is not, it throws at 64. The argument in that section
 survives, but for a much narrower reason than I gave: depth cannot separate a

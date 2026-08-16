@@ -1,5 +1,9 @@
 # Error as a value the type ignores — you are right, and the reason is stronger than "no case comes to mind"
 
+> **Ledger** — `[R]` Error as a value the type ignores — you are right, and the reason is stronger than "no case comes to mind"
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Take the easy way. But it is not free, and the price is not where either of us
 was looking: it is not a missing diagnostic, it is **four value-semantics
 questions that stop being the type system's problem and become yours to answer

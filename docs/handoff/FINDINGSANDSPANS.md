@@ -1,5 +1,9 @@
 # Findings and spans
 
+> **Ledger** — `[R]` Findings and spans
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Read at `442268f` first. Both answers are yes-to-what-you-proposed, with three
 things worth pinning before the rewrite.
 

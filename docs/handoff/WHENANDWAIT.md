@@ -1,5 +1,9 @@
 # `when` — placement, lifetime, `stop`, and `wait until`
 
+> **Ledger** — `[R]` `when` — placement, lifetime, `stop`, and `wait until`
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Handoff for the programmer. Design decisions, agreed. Written against the
 runtime as of `7cebf9a` on `resolver-and-symbol-separation`, where `Graph` holds
 `nodes`, `whens`, `constants`, `shadows` as flat `Dictionary<string, …>` and

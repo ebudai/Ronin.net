@@ -1,5 +1,9 @@
 # The bound — and my §4 was the same mistake I wrote the note about
 
+> **Ledger** — `[R]` The bound — and my §4 was the same mistake I wrote the note about
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 500 pulses, 500 pending, no runaway, no diagnostic. That refutes
 `DIRECTION-PACKET.md` §4, and it does so by running the thing rather than
 reasoning about it.

@@ -1,5 +1,9 @@
 # One activation per chain — is the rule buying enough?
 
+> **Ledger** — `[R]` One activation per chain — is the rule buying enough?
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Written at `1d98d86`, where `stop` and the `wait until` chain are built and the
 naming scheme from `WAITSEMANTICS.md` §2 is in. Budai's observation, worked
 through with the parts I could check by running.

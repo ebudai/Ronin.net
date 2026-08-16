@@ -1,5 +1,9 @@
 # Lookup equality — no, I raised it and did not specify it. Here it is
 
+> **Ledger** — `[R]` Lookup equality — no, I raised it and did not specify it. Here it is
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Straight answer to the question: **`LIST-EQUALITY.md` §3 flagged that lookup
 equality is a different function and said "settle it in the same change". That
 raised it and left it open.** He is right to push.

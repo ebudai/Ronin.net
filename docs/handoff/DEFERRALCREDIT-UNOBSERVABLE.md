@@ -1,5 +1,9 @@
 # Corrected: the displacement cap IS observable
 
+> **Ledger** — `[R]` Corrected: the displacement cap IS observable
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **This document originally claimed the opposite.** It said the displacement
 counter was stricter than anything a program could detect, listed three shapes
 that failed to observe it, and offered to remove the counter and its clamp. The

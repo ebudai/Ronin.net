@@ -1,5 +1,9 @@
 # `time to live` — yes, it can be legal, and I have been over-weighting one word
 
+> **Ledger** — `[R]` `time to live` — yes, it can be legal, and I have been over-weighting one word
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Measured it rather than defending the rule, and two things I have been assuming
 are false. The short version: **interior glue is not dangerous on its own**, and
 the residual hazard is not the reading but the **edit** — which has an

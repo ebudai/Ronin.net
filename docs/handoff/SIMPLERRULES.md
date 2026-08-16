@@ -1,5 +1,9 @@
 # Yes — and it simplifies more than you are asking about
 
+> **Ledger** — `[R]` Yes — and it simplifies more than you are asking about
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Two answers to "are you agreeing": **yes on the algorithm**, with one
 disagreement retained about the tie-breaker. And a correction to something I told
 you yesterday, which was wrong for the reason you just gave.

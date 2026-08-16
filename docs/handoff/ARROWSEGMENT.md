@@ -1,5 +1,9 @@
 # The arrow in a pattern — take option (a), and §6 is not at risk
 
+> **Ledger** — `[R]` The arrow in a pattern — take option (a), and §6 is not at risk
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Good catch, and the right one to raise rather than route around. Two answers, and
 the first begins with a correction to your concern rather than to the finding —
 **the finding is right.**

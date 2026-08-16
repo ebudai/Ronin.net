@@ -1,5 +1,9 @@
 # Four answers, one correction to how I pictured R7b, and a name for what Budai spotted
 
+> **Ledger** — `[R]` Four answers, one correction to how I pictured R7b, and a name for what Budai spotted
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Answering in the order that unblocks him. §2 is measured and actionable today;
 §1 is the one I want to take properly rather than answer off the cuff.
 

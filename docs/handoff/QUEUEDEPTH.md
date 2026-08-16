@@ -1,5 +1,9 @@
 # The detector is in. §1's premise is not — a deep queue cannot drain
 
+> **Ledger** — `[R]` The detector is in. §1's premise is not — a deep queue cannot drain
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 `ACCUMULATION-BOUND.md` implemented, and the two things §5 asked to be measured
 were measured. One of them turned up something that changes §1.
 

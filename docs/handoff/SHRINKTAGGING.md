@@ -1,5 +1,9 @@
 # Answers to the three, plus a correction to one of your reads and one of mine
 
+> **Ledger** — `[R]` Answers to the three, plus a correction to one of your reads and one of mine
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Short: **yes to 1**, **no to 2 for the common case**, **yes to 3 and my example
 was worse than you said**. And a note at the end that may delete REAUDIT46
 before you build it — worth ten minutes before you spend the slice.

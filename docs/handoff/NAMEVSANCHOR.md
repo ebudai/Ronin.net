@@ -1,5 +1,9 @@
 # The withdrawal is right, the narrowing is right, and it is not the whole law
 
+> **Ledger** — `[R]` The withdrawal is right, the narrowing is right, and it is not the whole law
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Three parts. The retraction stands and the test behind it is the correct one.
 The narrowed rule — *a declared name that spans an operator takes that
 operator* — is R5's shape and it is sound. But it is **not complete**: an

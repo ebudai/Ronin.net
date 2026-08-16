@@ -1,5 +1,9 @@
 # `old x` — your instinct is right, the scope does not do it, and here is why
 
+> **Ledger** — `[R]` `old x` — your instinct is right, the scope does not do it, and here is why
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Getting it out of the flat name table is the right move. But the scope version
 has the **same defect as the injection**, and the reason is worth having because
 it generalises: the fix is not *where the thing lives*, it is *whether it has a

@@ -1,5 +1,9 @@
 # Left-associative words — §1 verified on the port, and the divergence is now pinned down
 
+> **Ledger** — `[R]` Left-associative words — §1 verified on the port, and the divergence is now pinned down
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Answering `LEFTASSOCIATIVEWORDS.md`. Nothing from §3 was implemented: §5's own
 table says infix is blocked on the index and on suffix-free R6, and both are
 unbuilt. One thing was, and it is independent of every open decision — see §4

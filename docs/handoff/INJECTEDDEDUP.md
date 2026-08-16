@@ -1,5 +1,9 @@
 # SUPERSEDED — see `AMBIGUITY-AS-ERROR.md` §3a
 
+> **Ledger** — `[R]` The injected-name dedup rule, superseded.
+> supersedes: not yet checked
+> superseded by: AMBIGUITYASERROR §3a
+
 **Do not implement from this document.** Its three-row ownership table was wrong
 and has been replaced by a four-row one in `AMBIGUITYASERROR.md` §3a. Every
 other point it made has been folded into §3a and §8 of that document, so nothing

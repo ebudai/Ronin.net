@@ -1,5 +1,9 @@
 # The two open items — decided, with a tool for the second
 
+> **Ledger** — `[R]` The two open items — decided, with a tool for the second
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Both closed below. The second one produced a finding that changes the first,
 which is the argument for building it now rather than later.
 

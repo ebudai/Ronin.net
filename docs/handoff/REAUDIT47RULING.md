@@ -1,5 +1,9 @@
 # REAUDIT47 — findings 1 and 2 have one cause, and it is a decision I made that the code did not take
 
+> **Ledger** — `[R]` REAUDIT47 — findings 1 and 2 have one cause, and it is a decision I made that the code did not take
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Yes, it changes things. **Findings 1 and 2 close by deletion rather than by
 repair**, finding 5 goes the other way from what the audit expects, and the
 design question the audit correctly says has no owner — *what may be a key* — is

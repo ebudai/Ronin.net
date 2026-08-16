@@ -1,5 +1,9 @@
 # `_` — yes, a stand-in, and that changes the answer
 
+> **Ledger** — `[R]` `_` — yes, a stand-in, and that changes the answer
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Budai: *"is that just a stand-in for any name?"* Yes — and asking it is what
 makes the previous note wrong. Correcting before anyone implements from it.
 

@@ -1,5 +1,9 @@
 # The brace decision — the exponential is real, and `if` did not cause it
 
+> **Ledger** — `[R]` The brace decision — the exponential is real, and `if` did not cause it
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Answering `BRACEDECISION.md`. §4 says the implementation's brace handling is
 mine to describe, so this is that, measured.
 

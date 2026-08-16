@@ -1,5 +1,9 @@
 # The arrow — non-associative, and check whether §1 is really a value-grammar change
 
+> **Ledger** — `[R]` The arrow — non-associative, and check whether §1 is really a value-grammar change
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Two answers. **§2 does not need an associativity chosen — it needs one refused**,
 which makes your knife-edge stop being load-bearing. And **§1 may be smaller than
 you have priced it**, but that is a question rather than a ruling, because I

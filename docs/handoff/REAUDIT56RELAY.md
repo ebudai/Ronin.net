@@ -1,5 +1,9 @@
 # REAUDIT56 — two findings that turn on a decision
 
+> **Ledger** — `[R]` REAUDIT56 — two findings that turn on a decision
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Findings 1 (patterned-datum crash) and 3 (overload-wide uniqueness omitting
 ancillary delegates) are implemented and pushed. Finding 2 (a function's own
 signature cannot see its body-local types) is a mechanical, if large, change and is

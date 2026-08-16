@@ -1,5 +1,9 @@
 # `return`, the empty slot, and the literals — three answers and two notes back
 
+> **Ledger** — `[R]` `return`, the empty slot, and the literals — three answers and two notes back
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Your reading in §1 is right, your §2 is right and I want to restate *why* so the
 asymmetry stops being something we keep re-worrying, and §3's scheduling note is
 correct enough that I am just ruling the literals here rather than deferring them

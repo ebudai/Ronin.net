@@ -1,5 +1,9 @@
 # Finding 8 — endorsed, and the false spec sentence is mine
 
+> **Ledger** — `[R]` Finding 8 — endorsed, and the false spec sentence is mine
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 The recommendation is right and I would build it as written, with four
 additions. But the severity is understated in one place, and the provenance of
 the false claim needs stating because it is the failure class this project keeps

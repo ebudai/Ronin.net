@@ -1,5 +1,9 @@
 # `fast`, and the thing underneath finding 2
 
+> **Ledger** — `[R]` `fast`, and the thing underneath finding 2
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **A and D are the same question**, and answering it answers B as a side effect.
 C is yes.
 

@@ -1,5 +1,9 @@
 # No action marker, and `{ x }` is `{ return x; }`
 
+> **Ledger** — `[R]` No action marker, and `{ x }` is `{ return x; }`
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Both taken. And the sugar has a better justification than the one you gave for
 it — it is a **correction**, not an addition.
 

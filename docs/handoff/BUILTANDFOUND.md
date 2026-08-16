@@ -1,5 +1,9 @@
 # What landed, what the code says, and two questions
 
+> **Ledger** — `[R]` What landed, what the code says, and two questions
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Everything ruled in `FIVE-RULINGS.md`, `RETURN-AND-LITERALS.md` and
 `DESCRIPTOR-SLICE.md` that does not need the type checker is built. Below is what
 that turned up, which is more interesting than the fact it is done.

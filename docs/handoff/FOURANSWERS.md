@@ -1,5 +1,9 @@
 # Four answers
 
+> **Ledger** — `[R]` Four answers
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 ## 1. Multiple `when` bodies writing one cell
 
 My triage said "already illegal by the ownership rule". That was too quick —

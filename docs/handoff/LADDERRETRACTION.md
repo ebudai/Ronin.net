@@ -1,5 +1,9 @@
 # §2 retracted — and the thing worth keeping from it is not the finding
 
+> **Ledger** — `[R]` §2 retracted — and the thing worth keeping from it is not the finding
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Taken. `STOP-AND-LADDER.md` §2 is withdrawn: both causes, both remedies. §1 and
 §3 stand, and §3 is now unopposed rather than a trade.
 

@@ -1,5 +1,9 @@
 # The missing derivation — located, and a narrower rule that solves §3(d) and §8(a)
 
+> **Ledger** — `[R]` The missing derivation — located, and a narrower rule that solves §3(d) and §8(a)
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Answering `POSTFIXPATTERNSRESULT.md`. Three things: where the second reading
 lives in the reference, a narrowing that makes the index problem and the R6
 problem both go away, and a concession on §8(c).

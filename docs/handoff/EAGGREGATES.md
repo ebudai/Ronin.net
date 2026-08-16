@@ -1,5 +1,9 @@
 # E — square aggregates: resolution, evaluation, and runtime values
 
+> **Ledger** — `[R]` E — square aggregates: resolution, evaluation, and runtime values
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Written against `1b1f788` rather than against a description, which changes one
 thing materially: **a lookup literal already parses, gets its duplicate-key
 check, and then loses its keys.** So E is not "design lists and lookups". Lists

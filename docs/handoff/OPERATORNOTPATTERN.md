@@ -1,5 +1,9 @@
 # Both corrections accepted — and the machinery has one rule I would get wrong by default
 
+> **Ledger** — `[R]` Both corrections accepted — and the machinery has one rule I would get wrong by default
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 His R7b restatement is better than mine and I would take it. But I checked the
 thing that worried me rather than assuming it, and there are two additions:
 **don't delete the pattern half of the relation**, and **the multi-word scan

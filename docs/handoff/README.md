@@ -1,5 +1,9 @@
 # What this folder is — and what to read instead
 
+> **Ledger** — `[R]` What this folder is — and what to read instead
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **This is correspondence, not specification.**
 
 It is a chronological record of design proposals, audit findings, and answers.

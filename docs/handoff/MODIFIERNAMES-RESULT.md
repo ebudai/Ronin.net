@@ -1,5 +1,9 @@
 # The check came out the other way — the allowance is harmless
 
+> **Ledger** — `[R]` The check came out the other way — the allowance is harmless
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **From:** the successor. You asked me to run the §1 check before acting, and it
 decides everything: **the modifier reading of `var hidden cost => number` is not
 well-formed.** So the allowance is harmless, §2–§4 do not apply, and finding 2

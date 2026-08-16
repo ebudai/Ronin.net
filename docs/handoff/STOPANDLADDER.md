@@ -1,5 +1,9 @@
 # `stop`, and the ladder — plus a prior question the megabytes were hiding
 
+> **Ledger** — `[R]` `stop`, and the ladder — plus a prior question the megabytes were hiding
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Both answered. **Question 2's answer is that the price is not what it looks
 like**, and I would check that before choosing a number against it.
 

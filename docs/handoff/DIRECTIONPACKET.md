@@ -1,5 +1,9 @@
 # Direction packet — writers, and the counterexample hunt I asked for
 
+> **Ledger** — `[R]` Direction packet — writers, and the counterexample hunt I asked for
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Two items he flagged. The first I agree with and can sharpen. The second was
 assigned to nobody, so I did it.
 

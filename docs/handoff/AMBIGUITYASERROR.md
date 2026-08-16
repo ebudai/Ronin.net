@@ -1,5 +1,9 @@
 # Ambiguity as an error — direction, with a per-rule ledger
 
+> **Ledger** — `[R]` Ambiguity as an error — direction, with a per-rule ledger
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **Supersedes the version sent earlier today.** That one had a terse verdict
 table and no reasoning per rule, which is what Budai asked about — and writing
 the reasoning out turned up a **third** error, which changes the scope again and

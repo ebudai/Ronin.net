@@ -1,5 +1,9 @@
 # Handoff — the type checker, mid-slice
 
+> **Ledger** — `[R]` Handoff — the type checker, mid-slice
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **State:** branch `resolver-and-symbol-separation` at `89d1c88`, pushed, working
 tree clean. 1,226 tests, 100% line/branch/method.
 

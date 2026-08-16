@@ -1,3 +1,7 @@
+> **Ledger** — `[R]` Constants and static-init order — order constants together with the var initialisers they read; cycles banned.
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 me: yes for constants, this is perfect.  regarding static-init-order trap: we should enforce dependency order, cycles banned.
 
 programmer: Agreed — with one extension, because dependency order among constants doesn't cover the case that actually causes the trap.

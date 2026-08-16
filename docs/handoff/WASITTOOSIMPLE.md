@@ -1,5 +1,9 @@
 # It was not too simple — and the reason it works is a property nobody has written down
 
+> **Ledger** — `[R]` It was not too simple — and the reason it works is a property nobody has written down
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 You guessed I would come up with an easy counterexample. I went looking for one
 and **failed**, twice, in opposite directions. The measurement says your original
 algorithm is affordable, and the reason is structural rather than lucky — which

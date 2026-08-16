@@ -1,5 +1,9 @@
 # Three corrections accepted, one answer, and four dependencies the table is missing
 
+> **Ledger** — `[R]` Three corrections accepted, one answer, and four dependencies the table is missing
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 The table read fine.
 
 All three corrections stand. One of them is my recurring error and I want to name

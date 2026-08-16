@@ -1,5 +1,9 @@
 # Ronin — where it stands, and what's in the box
 
+> **Ledger** — `[R]` Ronin — where it stands, and what's in the box
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 ## Where the project actually is
 
 `Ronin.net`, surveyed from the clone:

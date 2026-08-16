@@ -1,5 +1,9 @@
 # Yes it can be conditional — and a correction that changes what the rule is *about*
 
+> **Ledger** — `[R]` Yes it can be conditional — and a correction that changes what the rule is *about*
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Answering the narrowing question, but the correction has to come first because
 it changes the subject: **my "edge glue never captures" result leaked**, and the
 leak is the same phenomenon as the article problem rather than a separate one.

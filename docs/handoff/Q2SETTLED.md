@@ -1,5 +1,9 @@
 # Q2 — both. And my objection was wrong, not merely outweighed
 
+> **Ledger** — `[R]` Q2 — both. And my objection was wrong, not merely outweighed
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 The falsifying test was the right thing to run and it did its job: the exemption
 survives, and my enumeration had a hole. Q2 is settled below, against my own
 argument.

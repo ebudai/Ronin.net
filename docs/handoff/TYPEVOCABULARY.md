@@ -1,5 +1,9 @@
 # The type vocabulary — four answers, and one correction before you build
 
+> **Ledger** — `[R]` The type vocabulary — four answers, and one correction before you build
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **Lowercase, case-sensitive. Yes to type patterns.** But §2 contains a phrase
 that would build the wrong thing, and it is the most important line here:
 **one table, not two.**

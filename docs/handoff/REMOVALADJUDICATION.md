@@ -1,5 +1,9 @@
 # Finding 3 — upheld, with the recommendation amended and a second bug attached
 
+> **Ledger** — `[R]` Finding 3 — upheld, with the recommendation amended and a second bug attached
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **Verdict: the finding is correct and the severity is right.** "Confidently wrong
 forever" is the accurate description and it is the worst failure class this
 language admits.

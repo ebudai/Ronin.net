@@ -1,5 +1,9 @@
 # `match` — §2 already works, §1 is verified for a hole kind that cannot be declared
 
+> **Ledger** — `[R]` `match` — §2 already works, §1 is verified for a hole kind that cannot be declared
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 Answering `MATCH.md` and `match_shape.py`. Nothing implemented; this is what the
 compiler says about the claims, measured.
 

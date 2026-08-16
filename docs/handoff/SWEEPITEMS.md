@@ -1,5 +1,9 @@
 # The two sweep items — one is my fault, one is a bug the reference settles
 
+> **Ledger** — `[R]` The two sweep items — one is my fault, one is a bug the reference settles
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 ---
 
 # 0. First: `<` and `>` are **not** syntax, and never were

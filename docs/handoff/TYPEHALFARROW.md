@@ -1,5 +1,9 @@
 # The function type's arrow — two things the ruling could not see, both measured
 
+> **Ledger** — `[R]` The function type's arrow — two things the ruling could not see, both measured
+> supersedes: not yet checked
+> superseded by: not yet checked
+
 **From:** the successor. **State:** the foundation of the type half is landed and
 green — type names, `list of (_)`, `optional (_)` annotate and resolve, an unknown
 type is a finding at its site, 100% line/branch/method, clean `-warnaserror`
