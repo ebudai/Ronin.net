@@ -85,12 +85,17 @@ public class Sorts
         Assert.NotEqual<Sort>(new Sort.Named([], "a"), new Sort.Named([], "b"));
 
         // The two no annotation spells: the action type is one of its kind, an
-        // inference variable is one by identity.
+        // inference variable is one only when it is the same variable — minted from a
+        // supply, never constructed, so no two share an identity.
         Assert.Equal<Sort>(new Sort.Action(), new Sort.Action());
         Assert.NotEqual<Sort>(new Sort.Action(), new Sort.Error());
-        Assert.Equal<Sort>(new Sort.Variable(1), new Sort.Variable(1));
-        Assert.NotEqual<Sort>(new Sort.Variable(1), new Sort.Variable(2));
-        Assert.NotEqual<Sort>(new Sort.Variable(1), number);
+
+        var variables = new Sort.Variable.Supply();
+        Sort inference = variables.Fresh();
+
+        Assert.Equal<Sort>(inference, inference);
+        Assert.NotEqual<Sort>(inference, variables.Fresh());
+        Assert.NotEqual<Sort>(inference, number);
 
         // Cross-kind and non-sort are never equal — a name shared across kinds too.
         Assert.NotEqual<Sort>(new Sort.Scalar("number"), new Sort.Named([], "number"));
@@ -129,7 +134,8 @@ public class Sorts
         Assert.Equal(new Sort.Lookup(text, number).GetHashCode(), new Sort.Lookup(text, number).GetHashCode());
         Assert.Equal(new Sort.Function([text], number).GetHashCode(), new Sort.Function([text], number).GetHashCode());
         Assert.Equal(new Sort.Action().GetHashCode(), new Sort.Action().GetHashCode());
-        Assert.Equal(new Sort.Variable(1).GetHashCode(), new Sort.Variable(1).GetHashCode());
+        var inference = new Sort.Variable.Supply().Fresh();
+        Assert.Equal(inference.GetHashCode(), inference.GetHashCode());
     }
 
     [Fact(DisplayName = "the compilation keeps each resolved annotation's sort, and no arity-wrong one")]
@@ -397,19 +403,41 @@ public class Sorts
     }
 
     [Fact(DisplayName = "an inference variable owns a requirement slot the constraint pass will fill")]
-    public void AnInferenceVariableOwnsARequirementSlot()
+    public void AnInferenceVariableIsMintedUniqueAndOwnsTheRequirementsItAccrues()
     {
-        // Q1 / REAUDIT55 finding 4: «Variable» has a place for the inferred
-        // requirement set now — owned on the variable, empty until the constraint
-        // pass records into it. Filling it does not change which variable it is,
-        // because identity, not the requirements, is the whole of equality.
-        var variable = new Sort.Variable(1);
+        // VARIABLE-AND-MODULE Q4 / GENERICS-II §5: variables are minted from a supply,
+        // so no two are one by construction — the invalid state, equal values owning
+        // independent requirement sets, cannot be built. Each owns the requirement
+        // RECORDS it accrues: a pattern over a tuple of type terms with the site that
+        // induced it, deduped whole.
+        var variables = new Sort.Variable.Supply();
+        var variable = variables.Fresh();
 
+        // Distinct mints are distinct; a variable is equal only to itself.
+        Assert.NotEqual<Sort>(variable, variables.Fresh());
+        Assert.Equal<Sort>(variable, variable);
         Assert.Empty(variable.Requirements);
 
-        variable.Requirements.Add(Pattern.Parse("print _"));
+        var site = new SourceText("print x", "p.ron").Span(0, 5);
+        var print = new Requirement(Pattern.Parse("print _"), [new Sort.Scalar("number")], site);
 
-        Assert.Single(variable.Requirements);
-        Assert.Equal<Sort>(new Sort.Variable(1), variable);
+        // The record carries the whole shape the constraint pass reads: the pattern,
+        // the tuple of type terms it resolves for, and the site that induced it.
+        Assert.Equal(Pattern.Parse("print _"), print.Pattern);
+        Assert.Equal([new Sort.Scalar("number")], print.Operands);
+        Assert.Equal(site, print.Provenance);
+
+        variable.Requirements.Add(print);
+        variable.Requirements.Add(print);   // the same record, deduped whole
+
+        Assert.Equal(print, Assert.Single(variable.Requirements));
+
+        // Two requirements sharing a pattern over different operands are two, not one.
+        variable.Requirements.Add(new Requirement(Pattern.Parse("print _"), [new Sort.Scalar("text")], site));
+
+        Assert.Equal(2, variable.Requirements.Count);
+
+        // Filling it does not change which variable it is.
+        Assert.Equal<Sort>(variable, variable);
     }
 }

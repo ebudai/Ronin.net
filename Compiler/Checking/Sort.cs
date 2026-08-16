@@ -246,26 +246,56 @@ internal abstract class Sort
     /// </summary>
     ///
     /// <remarks>
-    ///     Two are the same variable by IDENTITY, and identity is the whole of its
-    ///     equality — the requirements below are the solver's working state, not part
-    ///     of what makes two variables one. <see cref="Requirements"/> is the slot
-    ///     the inferred requirement set fills: the operations a body applies to the
-    ///     parameter (GENERICS-II §5), the interface checked at the call boundary.
-    ///     Owned and empty until the constraint pass records into it — a slot on the
-    ///     variable, not an external map keyed by it (CHECKER-SCOPING-RULINGS Q1,
-    ///     REAUDIT55 finding 4), so that pass fills it without a new construction
-    ///     site. The element type «Pattern» is the reading of "what the body
-    ///     requires" and stands to be confirmed with the constraint pass; the
-    ///     machinery it will drive is deferred, and this is the room for it.
+    ///     Minted from a <see cref="Supply"/> and never constructed directly, so no
+    ///     two are one: an inference variable's identity is the engine's to MINT,
+    ///     freshness the whole of the property, and equality is REFERENCE. The invalid
+    ///     state a public constructor allowed — two «Variable(7)» equal yet owning
+    ///     independent requirement sets — cannot be built, because the state is
+    ///     unconstructible, not merely detectable (CONTAINER-IDENTITY-RULING, VARIABLE-
+    ///     AND-MODULE Q4a; REAUDIT56 finding 4). Two are the same variable only when
+    ///     they are the same variable.
+    ///     <para>
+    ///     <see cref="Requirements"/> is the set the constraint pass records into: the
+    ///     operations a body applies to the parameter (GENERICS-II §5), the interface
+    ///     checked at the call boundary. Each is a whole <see cref="Requirement"/>
+    ///     record deduped whole, not a bare pattern (VARIABLE-AND-MODULE Q4b). Owned
+    ///     and empty until that pass fills it — the shape it will fill, without a new
+    ///     construction site; the machinery it drives is deferred.
+    ///     </para>
     /// </remarks>
-    internal sealed class Variable(int identity) : Sort
+    internal sealed class Variable : Sort
     {
-        public int Identity { get; } = identity;
+        private Variable(int identity) => Identity = identity;
 
-        public ISet<Pattern> Requirements { get; } = new HashSet<Pattern>();
+        public int Identity { get; }
 
-        protected override bool Same(Sort other) => ((Variable)other).Identity == Identity;
+        public ISet<Requirement> Requirements { get; } = new HashSet<Requirement>();
+
+        protected override bool Same(Sort other) => ReferenceEquals(this, other);
 
         public override int GetHashCode() => HashCode.Combine('v', Identity);
+
+        /// <summary>The supply an inference run mints its variables from — a fresh one each call, no two one.</summary>
+        internal sealed class Supply
+        {
+            private int minted;
+
+            public Variable Fresh() => new(minted++);
+        }
     }
 }
+
+/// <summary>
+///     One requirement on an inference variable: a pattern that must resolve for a
+///     tuple of type terms, and the site that induced it (GENERICS-II §5).
+/// </summary>
+///
+/// <remarks>
+///     A WHOLE record, deduped whole — two requirements sharing a pattern over
+///     different operands, or induced at different sites, are two requirements and
+///     not one, which a set of bare patterns could not tell apart. The operands are
+///     the tuple the pattern resolves for; the provenance is the site the call-
+///     boundary diagnostic names. Three fields and no solver behind them: the shape
+///     the constraint pass fills, not the machinery (REAUDIT56 finding 4, GENERICS-II §5).
+/// </remarks>
+internal readonly record struct Requirement(Pattern Pattern, IReadOnlyList<Sort> Operands, Span Provenance);

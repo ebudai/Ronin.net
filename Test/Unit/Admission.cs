@@ -604,9 +604,14 @@ public class Admission
         // and the walk cannot reach either to check — but the code they cannot
         // escape is the code that would misuse them. «Fillings.Tuples» IS reached
         // — an empty one is left in the memo — so it is opened, not excluded.
+        //
+        // «Requirement.Operands» is room, not a live promise yet: a requirement rides
+        // on an inference variable, and no compilation produces a variable until the
+        // checker lands, so the walk rooted at a compilation cannot reach one. It is
+        // opened here the day a body's inferred type carries a variable that carries it.
         Assert.Equal(discovered.Distinct().Order(),
                      opened.Concat(["Body.Ancillary", "Body.Parameters", "Body.Statements", "Filling.Arguments",
-                                    "Search.Selecting"]).Order());
+                                    "Requirement.Operands", "Search.Selecting"]).Order());
     }
 
     [Theory(DisplayName = "and what a type keeps is what it made, because nothing else can be trusted")]
