@@ -1,6 +1,7 @@
 # Left-associative words — §1 verified on the port, and the divergence is now pinned down
 
 > **Ledger** — `[R]` Left-associative words — §1 verified on the port, and the divergence is now pinned down
+> answers: LEFTASSOCIATIVEWORDS
 > supersedes: not yet checked
 > superseded by: not yet checked
 

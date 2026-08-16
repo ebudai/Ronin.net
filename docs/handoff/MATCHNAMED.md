@@ -1,8 +1,9 @@
 # Named lookups — decided: `match` is for inline arms, `@` for named tables
 
 > **Ledger** — `[R]` Named lookups — decided: `match` is for inline arms, `@` for named tables
-> supersedes: not yet checked
-> superseded by: not yet checked
+> answered by: MATCHNAMED-RESULT
+> supersedes: none
+> superseded by: none
 
 Budai's call, and it is the right one for a better reason than "it avoids a
 reserved word". The division lines up exactly with where the compiler can check

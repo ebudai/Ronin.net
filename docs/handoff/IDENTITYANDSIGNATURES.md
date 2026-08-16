@@ -5,8 +5,8 @@
 > declaration identity and the overload ledger, so I want the design settled before
 > the plumbing.
 > answered by: NAMEDIDENTITY
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **From:** the successor, at `53a3825`.
 

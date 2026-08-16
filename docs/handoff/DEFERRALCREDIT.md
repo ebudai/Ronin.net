@@ -1,8 +1,9 @@
 # Deferral credit — three questions, one answer, and a prior question
 
 > **Ledger** — `[R]` Deferral credit — three questions, one answer, and a prior question
-> supersedes: not yet checked
-> superseded by: not yet checked
+> answered by: DEFERRALCREDIT-RESULT
+> supersedes: none
+> superseded by: none
 
 REAUDIT18's three questions all have the same root, and I think the honest
 answer is that **the exemption should probably not exist at all.** Failing that,

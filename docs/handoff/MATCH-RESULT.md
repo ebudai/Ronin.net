@@ -1,6 +1,7 @@
 # `match` — §2 already works, §1 is verified for a hole kind that cannot be declared
 
 > **Ledger** — `[R]` `match` — §2 already works, §1 is verified for a hole kind that cannot be declared
+> answers: MATCH
 > supersedes: not yet checked
 > superseded by: not yet checked
 

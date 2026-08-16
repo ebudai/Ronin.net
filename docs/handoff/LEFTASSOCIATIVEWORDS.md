@@ -1,8 +1,9 @@
 # Left-to-right works — and `WHYSYMBOLINFIX.md` was running on a bug of mine
 
 > **Ledger** — `[R]` Left-to-right works — and `WHYSYMBOLINFIX.md` was running on a bug of mine
-> supersedes: not yet checked
-> superseded by: not yet checked
+> answered by: LEFTASSOCIATIVEWORDS-RESULT
+> supersedes: none
+> superseded by: none
 
 **Withdraw `WHYSYMBOLINFIX.md`.** Its demonstration was a defect in
 `dp_resolver.py`, not a property of the language, and the conclusion drawn from

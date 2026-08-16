@@ -28,16 +28,16 @@ hand — run `python3 ledger.py` to regenerate.
 - **ARTICLECONDITIONAL** — Yes it can be conditional — and a correction that changes what the rule is *about*
 - **AUDITTRIAGE** — Audit triage
 - **BASERESOLUTION** — Probes a premise in `Test/Expiry.cs` and `CHECKERSCOPINGRULINGS` §6 step 1 that the tree contrad…  _(answered by BASERESOLUTIONRULING)_
-- **BRACEDECISION-RESULT** — The brace decision — the exponential is real, and `if` did not cause it
-- **BRACEDECISION** — The brace decision — and I caused it
+- **BRACEDECISION-RESULT** — The brace decision — the exponential is real, and `if` did not cause it  _(answers BRACEDECISION)_
+- **BRACEDECISION** — The brace decision — and I caused it  _(answered by BRACEDECISION-RESULT)_
 - **BRACENEST-MEASURED** — The brace-nest exponential — it moved to `[`, and one-parse-one-decision is not built
 - **BUILTANDFOUND** — What landed, what the code says, and two questions
 - **CHAINACTIVATIONS** — Chains have duration. `when`s don't. That's the whole confusion.
 - **CONTAINERIDENTITY** — `REAUDIT55` finding 1 (high). The container path that gives a named type its identity collapses …  _(answered by CONTAINERIDENTITYRULING)_
 - **DATELITERALS** — Date literals — keep the four-digit minimum, remove the four-digit maximum
-- **DEFERRALCREDIT-RESULT** — Deferral credit — the falsifying test was run
+- **DEFERRALCREDIT-RESULT** — Deferral credit — the falsifying test was run  _(answers DEFERRALCREDIT)_
 - **DEFERRALCREDIT-UNOBSERVABLE** — Corrected: the displacement cap IS observable
-- **DEFERRALCREDIT** — Deferral credit — three questions, one answer, and a prior question
+- **DEFERRALCREDIT** — Deferral credit — three questions, one answer, and a prior question  _(answered by DEFERRALCREDIT-RESULT)_
 - **DELEGATES** — `() => …` — the narrowing is right, and it opens the question underneath
 - **DELTA** — Delta against `reactive_events.py` as shipped
 - **DESCRIPTORSLICE** — The descriptor slice — three answers, and one of them corrects the ruling
@@ -73,24 +73,24 @@ hand — run `python3 ledger.py` to regenerate.
 - **LEADINGHOLES** — Leading holes — settled, and the rule wants narrowing in exactly one place
 - **LEDGERBACKFILL** — Asks the designer to ratify the `[V]`/`[R]` backfill that `CHECKERSCOPINGRULINGS` §8 instructed:…  _(answered by LEDGERRULING)_
 - **LEDGERSCHEMA** — Fixes the field names and legal values `LEDGERRULING` §7 requires before Pass 1, and the parse c…
-- **LEFTASSOCIATIVEWORDS-RESULT** — Left-associative words — §1 verified on the port, and the divergence is now pinned down
-- **LEFTASSOCIATIVEWORDS** — Left-to-right works — and `WHYSYMBOLINFIX.md` was running on a bug of mine
+- **LEFTASSOCIATIVEWORDS-RESULT** — Left-associative words — §1 verified on the port, and the divergence is now pinned down  _(answers LEFTASSOCIATIVEWORDS)_
+- **LEFTASSOCIATIVEWORDS** — Left-to-right works — and `WHYSYMBOLINFIX.md` was running on a bug of mine  _(answered by LEFTASSOCIATIVEWORDS-RESULT)_
 - **LISTEQUALITY** — Finding 6 — raise it. The missing function is not a cutoff, it is `is`
 - **LISTREPRESENTATION** — Finding 3 — the invariant is mine, and the `ImmutableArray` question is a language question
 - **LOOKUPARROWRULED** — `lookup text => number` — taken, and four things it needs
 - **LOOKUPEQUALITY** — Lookup equality — no, I raised it and did not specify it. Here it is
 - **LOOPINDEXANDGLUE** — The two open items — decided, with a tool for the second
 - **LOOPSYNTAX** — Loop syntax — resolved
-- **MATCH-RESULT** — `match` — §2 already works, §1 is verified for a hole kind that cannot be declared
-- **MATCH** — `match` as a prefixed lookup — the reuse is the good part, and one gap
-- **MATCHNAMED-RESULT** — Named lookups — §2 is the reason; §1's measurement says the opposite of §1
-- **MATCHNAMED** — Named lookups — decided: `match` is for inline arms, `@` for named tables
+- **MATCH-RESULT** — `match` — §2 already works, §1 is verified for a hole kind that cannot be declared  _(answers MATCH)_
+- **MATCH** — `match` as a prefixed lookup — the reuse is the good part, and one gap  _(answered by MATCH-RESULT)_
+- **MATCHNAMED-RESULT** — Named lookups — §2 is the reason; §1's measurement says the opposite of §1  _(answers MATCHNAMED)_
+- **MATCHNAMED** — Named lookups — decided: `match` is for inline arms, `@` for named tables  _(answered by MATCHNAMED-RESULT)_
 - **MODIFIERNAMES-RESULT** — The check came out the other way — the allowance is harmless
 - **MODIFIERNAMES** — `fast`, and the thing underneath finding 2
 - **MODULEMERGE** — §1 — the hole is real, the fix is right, and the confinement claim is not
 - **MONOMORPHANDRETURN** — Monomorphisation closes the residue — and one correction that is live right now
-- **NAMEVSANCHOR-RESULT** — Anchor capture — verified on the compiler, and it is one law in two costumes
-- **NAMEVSANCHOR** — The withdrawal is right, the narrowing is right, and it is not the whole law
+- **NAMEVSANCHOR-RESULT** — Anchor capture — verified on the compiler, and it is one law in two costumes  _(answers NAMEVSANCHOR)_
+- **NAMEVSANCHOR** — The withdrawal is right, the narrowing is right, and it is not the whole law  _(answered by NAMEVSANCHOR-RESULT)_
 - **NEEDFROMDESIGN** — What I need to build the next slices
 - **NOTHING-ANALYSIS** — An analysis of `nothing` that predates several rulings it raises; the stale sections (§C, §D) ar…
 - **NUMERICANDWRITERS** — Two answers: write sets, and the numeric tower
@@ -99,9 +99,9 @@ hand — run `python3 ledger.py` to regenerate.
 - **OPENDECISIONS** — Four answers, one correction to how I pictured R7b, and a name for what Budai spotted
 - **OPERATORNOTPATTERN** — Both corrections accepted — and the machinery has one rule I would get wrong by default
 - **OVERLOADS** — Overloads are alternatives, not a second pass, and mostly not needed for the library. §4's open …
-- **POSTFIXDIAGNOSIS** — The missing derivation — located, and a narrower rule that solves §3(d) and §8(a)
-- **POSTFIXPATTERNS-RESULT** — Postfix patterns — measured against `Resolver.cs`, and §8 is missing two items
-- **POSTFIXPATTERNS** — Postfix word patterns — admit them. This reverses `WHYNOPOSTFIX.md`
+- **POSTFIXDIAGNOSIS** — The missing derivation — located, and a narrower rule that solves §3(d) and §8(a)  _(answers POSTFIXPATTERNS-RESULT)_
+- **POSTFIXPATTERNS-RESULT** — Postfix patterns — measured against `Resolver.cs`, and §8 is missing two items  _(answered by POSTFIXDIAGNOSIS)_
+- **POSTFIXPATTERNS** — Postfix word patterns — admit them. This reverses `WHYNOPOSTFIX.md`  _(answered by POSTFIXPATTERNS-RESULT)_
 - **Q2SETTLED** — Q2 — both. And my objection was wrong, not merely outweighed
 - **QUEUEDEPTH** — The detector is in. §1's premise is not — a deep queue cannot drain
 - **R6ANDINFIX** — `otherwise` needs no special case — and R6 has a hole
@@ -144,7 +144,7 @@ hand — run `python3 ledger.py` to regenerate.
 - **ZEROGLUE** — Zero glue words is achievable — your instinct was right
 - **constants** — Constants and static-init order — order constants together with the var initialisers they read; …
 
-## Pass 2 worklist — supersession not yet checked (127)
+## Pass 2 worklist — supersession not yet checked (113)
 
 - **ACCUMULATIONBOUND**
 - **AGGREGATEPARSE**
@@ -153,20 +153,16 @@ hand — run `python3 ledger.py` to regenerate.
 - **ARROWSEGMENT**
 - **ARTICLECONDITIONAL**
 - **AUDITTRIAGE**
-- **BASERESOLUTION**
 - **BASERESOLUTIONRULING**
 - **BRACEDECISION-RESULT**
-- **BRACEDECISION**
 - **BRACENEST-MEASURED**
 - **BUILTANDFOUND**
 - **CHAINACTIVATIONS**
 - **CHECKERSCOPINGRULINGS**
-- **CONTAINERIDENTITY**
 - **CONTAINERIDENTITYRULING**
 - **DATELITERALS**
 - **DEFERRALCREDIT-RESULT**
 - **DEFERRALCREDIT-UNOBSERVABLE**
-- **DEFERRALCREDIT**
 - **DELEGATES**
 - **DELTA**
 - **DESCRIPTORSLICE**
@@ -189,7 +185,6 @@ hand — run `python3 ledger.py` to regenerate.
 - **GLUEASWHOLENAMES**
 - **GLUERULESPLIT**
 - **HANDOFF**
-- **IDENTITYANDSIGNATURES**
 - **IFASEXPRESSION**
 - **INJECTEDDEDUP**
 - **INSTANCEBINDING**
@@ -199,10 +194,8 @@ hand — run `python3 ledger.py` to regenerate.
 - **LADDERRETRACTION**
 - **LEADINGFREEHOLES**
 - **LEADINGHOLES**
-- **LEDGERBACKFILL**
 - **LEDGERSCHEMA**
 - **LEFTASSOCIATIVEWORDS-RESULT**
-- **LEFTASSOCIATIVEWORDS**
 - **LISTEQUALITY**
 - **LISTREPRESENTATION**
 - **LOOKUPARROWRULED**
@@ -210,16 +203,13 @@ hand — run `python3 ledger.py` to regenerate.
 - **LOOPINDEXANDGLUE**
 - **LOOPSYNTAX**
 - **MATCH-RESULT**
-- **MATCH**
 - **MATCHNAMED-RESULT**
-- **MATCHNAMED**
 - **MODIFIERNAMES-RESULT**
 - **MODIFIERNAMES**
 - **MODULEMERGE**
 - **MONOMORPHANDRETURN**
 - **NAMEDIDENTITY**
 - **NAMEVSANCHOR-RESULT**
-- **NAMEVSANCHOR**
 - **NEEDFROMDESIGN**
 - **NOTHING-ANALYSIS**
 - **NUMERICANDWRITERS**
@@ -229,8 +219,6 @@ hand — run `python3 ledger.py` to regenerate.
 - **OPERATORNOTPATTERN**
 - **OVERLOADS**
 - **POSTFIXDIAGNOSIS**
-- **POSTFIXPATTERNS-RESULT**
-- **POSTFIXPATTERNS**
 - **Q2SETTLED**
 - **QUEUEDEPTH**
 - **R6ANDINFIX**
@@ -246,11 +234,9 @@ hand — run `python3 ledger.py` to regenerate.
 - **REMOVALADJUDICATION**
 - **RETURNANDLITERALS**
 - **ROUNDLIMIT**
-- **SCOPEIDENTITY**
 - **SCOPEIDENTITYRULING**
 - **SCOPING**
 - **SCOPING_updated**
-- **SEMANTICCHECKERSCOPING**
 - **SHRINKTAGGING**
 - **SIMPLERRULES**
 - **SLICINGRESPONSE**

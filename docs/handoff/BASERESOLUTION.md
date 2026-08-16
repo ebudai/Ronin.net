@@ -3,8 +3,8 @@
 > **Ledger** — `[R]` Probes a premise in `Test/Expiry.cs` and `CHECKERSCOPINGRULINGS`
 > §6 step 1 that the tree contradicts: how much algebra the base-resolution pass needs.
 > answered by: BASERESOLUTIONRULING
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **From:** the successor, at `57f36e3`, starting step 1.
 

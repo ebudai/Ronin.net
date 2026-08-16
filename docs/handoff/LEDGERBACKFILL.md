@@ -6,7 +6,7 @@
 > *superseded*. Doubles as a backgrounder for the owner.
 > answered by: LEDGERRULING
 > supersedes: none
-> superseded by: not yet checked
+> superseded by: none
 
 ## §0 — the ask, in one paragraph
 

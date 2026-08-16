@@ -6,8 +6,8 @@
 > fix; the overload half is a semantics question that shapes the whole
 > representation, so it is yours.
 > answered by: CONTAINERIDENTITYRULING
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **From:** the successor, at `3849c5d`.
 

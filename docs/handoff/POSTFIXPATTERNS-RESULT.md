@@ -1,8 +1,10 @@
 # Postfix patterns — measured against `Resolver.cs`, and §8 is missing two items
 
 > **Ledger** — `[R]` Postfix patterns — measured against `Resolver.cs`, and §8 is missing two items
-> supersedes: not yet checked
-> superseded by: not yet checked
+> answers: POSTFIXPATTERNS
+> answered by: POSTFIXDIAGNOSIS
+> supersedes: none
+> superseded by: none
 
 Answering `POSTFIXPATTERNS.md`. Nothing was implemented: the document says twice
 that nothing should be, and §8's three preconditions are unmet. What follows is

@@ -5,8 +5,8 @@
 > alone: what identifies an ANONYMOUS scope as a stable value. My default is A below;
 > you may prefer to overrule.
 > answered by: SCOPEIDENTITYRULING
-> supersedes: not yet checked
-> superseded by: not yet checked
+> supersedes: none
+> superseded by: none
 
 **From:** the successor, at `1ae081e`.
 

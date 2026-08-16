@@ -1,6 +1,7 @@
 # Deferral credit — the falsifying test was run
 
 > **Ledger** — `[R]` Deferral credit — the falsifying test was run
+> answers: DEFERRALCREDIT
 > supersedes: not yet checked
 > superseded by: not yet checked
 

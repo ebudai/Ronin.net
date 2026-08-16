@@ -1,6 +1,7 @@
 # Anchor capture — verified on the compiler, and it is one law in two costumes
 
 > **Ledger** — `[R]` Anchor capture — verified on the compiler, and it is one law in two costumes
+> answers: NAMEVSANCHOR
 > supersedes: not yet checked
 > superseded by: not yet checked
 
