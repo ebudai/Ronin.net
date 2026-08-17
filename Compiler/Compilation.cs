@@ -537,19 +537,26 @@ internal sealed class Compilation
                     yield return new TypeMismatch(where, actual.Name, words.Render());
                 }
 
-                // A list literal, element by element, against the element type. An
-                // aggregate against a scalar, a lookup, and a reference answer are each
-                // a later slice, so a non-list annotation or a keyed element is left.
-                else if (datum.Initializer is Grammar.Collection collection
-                         && expected is Sort.List { Element: Sort.Scalar element })
+                // A non-empty list literal — «[1, "text"]», its elements unkeyed. A list
+                // is «list of» something and nothing else, so a list where a scalar or a
+                // named type is declared is a whole-value mismatch at the declaration,
+                // and a list where a list is declared is checked element by element
+                // against the element type. A keyed element is a lookup, and «list of» a
+                // non-scalar is nested — each carries its own check in a later slice.
+                else if (datum.Initializer is Grammar.Collection { Count: > 0 } collection
+                         && collection.All(entry => entry.Origin is null))
                 {
-                    foreach (var entry in collection)
+                    if (expected is Sort.List { Element: Sort.Scalar element })
                     {
-                        if (entry.Origin is null && Sorted(entry.Destination) is (Sort.Scalar item, var at)
-                            && element.Equals(item) is false)
+                        foreach (var entry in collection)
                         {
-                            yield return new TypeMismatch(at, item.Name, element.Name);
+                            if (Sorted(entry.Destination) is (Sort.Scalar item, var at) && element.Equals(item) is false)
+                                yield return new TypeMismatch(at, item.Name, element.Name);
                         }
+                    }
+                    else if (expected is not Sort.List)
+                    {
+                        yield return new TypeMismatch(datum.Identifier.Span(Source), "list", words.Render());
                     }
                 }
             }

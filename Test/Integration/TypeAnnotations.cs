@@ -140,11 +140,18 @@ public class TypeAnnotations
         Assert.Empty(Of("var ys => list of number = [1, 2, 3];\n"));
         Assert.Empty(Of("var zs => list of number = [];\n"));
 
-        // Deferred, each its own slice: an aggregate against a scalar, a lookup literal
-        // against a list (its keyed elements skipped), and a non-literal element.
-        Assert.Empty(Of("var q => number = [1];\n"));
+        // A list where a scalar is declared is a whole-value mismatch, at the
+        // declaration: a list is «list of» something and never a «number».
+        var whole = Assert.IsType<TypeMismatch>(Assert.Single(Of("var scalar => number = [1];\n")));
+        Assert.Equal("list", whole.Value);
+        Assert.Equal("number", whole.Declared);
+        Assert.StartsWith("Player.ron:1:5:", Diagnostics.Report(whole));   // at «scalar»
+
+        // Deferred, each its own slice: a lookup literal against a list (its keyed
+        // elements skipped), a non-literal element, and «list of» a non-scalar (nested).
         Assert.Empty(Of("var ks => list of number = [\"k\" = 1];\n"));
         Assert.Empty(Of("var ds => list of number = [1984-05-04];\n"));
+        Assert.Empty(Of("var ns => list of list of number = [[1]];\n"));
     }
 
     [Fact(DisplayName = "a bare type constructor is not a type")]
