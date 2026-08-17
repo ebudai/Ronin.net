@@ -164,9 +164,12 @@ internal sealed class Compilation
             }
         }
 
+        List<Reading> read = [];
+
         foreach (var reading in Read(statements, declared))
         {
             readings.Add(reading);
+            read.Add(reading);
 
             if (reading.Resolution.Kind is ResolutionKind.Ambiguous)
             {
@@ -181,6 +184,9 @@ internal sealed class Compilation
         foreach (var finding in Annotations(statements, declared, function)) Add(finding);
 
         foreach (var finding in Initializers(statements, declared)) Add(finding);
+
+        if (function is not null)
+            foreach (var finding in Returns(function, declared, read)) Add(finding);
 
         // The signature's SORTS resolved against this function's own table as well, and
         // stored back on its declaration — which sees the whole container, not the null
@@ -544,6 +550,37 @@ internal sealed class Compilation
     }
 
     /// <summary>
+    ///     Where a «return (_)» carries a value that is not the function's declared
+    ///     return type — «function f => number { return "text"; }».
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The return-site half of step 2, reading the same «return (_)» calls
+    ///     <see cref="Exits"/> finds for its exit-flavour check — the answer each carries,
+    ///     inferred and compared by equality against the declared return, resolved against
+    ///     this body's table as the signature's own sorts are. Only a literal answer this
+    ///     slice, whose sort <see cref="Sort.Infer"/> reads: a valueless exit carries no
+    ///     answer and is skipped, a return with no written type is inference and later, and
+    ///     one whose type is unknown is its own annotation finding rather than this.
+    /// </remarks>
+    private IEnumerable<Finding> Returns(Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body)
+    {
+        if (function.Returns is not Grammar.Type.Unresolved annotation) yield break;
+
+        Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
+
+        var words = annotation.Reference.ToLexemes();
+        resolver.Resolve(words).TryTree(out var tree);
+        if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) yield break;
+
+        foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
+        {
+            if (Sort.Infer(exit.Answer) is Sort.Scalar actual && expected.Equals(actual) is false)
+                yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), actual.Name, words.Render());
+        }
+    }
+
+    /// <summary>
     ///     How this body leaves itself, and whether it agrees with itself.
     /// </summary>
     ///
@@ -618,7 +655,7 @@ internal sealed class Compilation
     ///     separate edit.
     ///     </para>
     /// </remarks>
-    private IEnumerable<(Span Span, bool Answers, bool Halts)> Called(Reading reading)
+    private IEnumerable<(Span Span, bool Answers, bool Halts, Node Answer)> Called(Reading reading)
     {
         reading.Resolution.TryTree(out var tree);
 
@@ -628,9 +665,11 @@ internal sealed class Compilation
 
             var at = Source.Span(call.Offset, call.Length);
 
-            if (call.Pattern.Equals(SymbolTable.Answer)) yield return (at, true, false);
-            if (call.Pattern.Equals(SymbolTable.Exit)) yield return (at, false, false);
-            if (call.Pattern.Equals(SymbolTable.Halt)) yield return (at, false, true);
+            // «return (_)» carries its answer for the return-type check; the valueless
+            // exits carry none, so a caller inferring the answer's sort skips them.
+            if (call.Pattern.Equals(SymbolTable.Answer)) yield return (at, true, false, call.Arguments[0]);
+            if (call.Pattern.Equals(SymbolTable.Exit)) yield return (at, false, false, null);
+            if (call.Pattern.Equals(SymbolTable.Halt)) yield return (at, false, true, null);
         }
     }
 

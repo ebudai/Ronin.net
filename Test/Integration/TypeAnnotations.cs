@@ -94,6 +94,33 @@ public class TypeAnnotations
         Assert.Empty(Of("var loose = 5;\n"));
     }
 
+    [Fact(DisplayName = "a return whose value is not the declared return type is a finding at the value")]
+    public void AReturnWhoseValueIsNotTheDeclaredReturnTypeIsAFindingAtTheValue()
+    {
+        var finding = Assert.IsType<TypeMismatch>(Assert.Single(Of("function m => number { return \"text\"; }\n")));
+
+        Assert.Equal("text", finding.Value);
+        Assert.Equal("number", finding.Declared);
+
+        // At the returned value — «"text"» at column 31 — not at «return» or the type.
+        Assert.StartsWith("Player.ron:1:31:", Diagnostics.Report(finding));
+
+        // A matching return is clean, whichever scalar.
+        Assert.Empty(Of("function s => text { return \"text\"; }\n"));
+        Assert.Empty(Of("function n => number { return 5; }\n"));
+
+        // A function with no written return type infers it later — nothing to compare.
+        Assert.Empty(Of("function g { return 5; }\n"));
+
+        // An unknown return type leaves only its own annotation finding, no mismatch on top.
+        Assert.Equal("money", Assert.IsType<UnknownType>(Assert.Single(Of("function h => money { return 5; }\n"))).Name);
+
+        // A value whose sort is not inferred yet — a name — is not compared; and a
+        // return that did not resolve is left to its own walk.
+        Assert.Empty(Of("function p (x => number) => number { return x; }\n"));
+        Assert.Empty(Of("function f => number { return nope; }\n"));
+    }
+
     [Fact(DisplayName = "a bare type constructor is not a type")]
     public void ABareTypeConstructorIsNotAType()
     {
