@@ -531,37 +531,54 @@ internal sealed class Compilation
                 resolver.Resolve(words).TryTree(out var tree);
                 if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) continue;
 
-                // A lone literal, whose sort its own token carries.
-                if (Sorted(datum.Initializer) is (Sort.Scalar actual, var where) && expected.Equals(actual) is false)
+                // A collection is a list or a lookup, its kind decided from every element
+                // (a mixed one is a parse error already, and falls through here). A list
+                // is «list of _» and a lookup «lookup _ => _», each and nothing else — so a
+                // collection where the wrong kind is declared is a whole-value mismatch at
+                // the declaration, and a matching one is checked element by element: a list
+                // element against the element type, a lookup entry's key and value against
+                // theirs. A non-scalar element or a reference value is a later slice, left.
+                if (datum.Initializer is Grammar.Collection { Count: > 0 } collection)
                 {
-                    yield return new TypeMismatch(where, actual.Name, words.Render());
+                    if (collection.All(entry => entry.Origin is null))
+                    {
+                        if (expected is Sort.List { Element: Sort.Scalar element })
+                            foreach (var entry in collection)
+                            {
+                                if (Disagreement(entry.Destination, element, element.Name) is { } bad) yield return bad;
+                            }
+                        else if (expected is not Sort.List)
+                            yield return new TypeMismatch(datum.Identifier.Span(Source), "list", words.Render());
+                    }
+                    else if (collection.All(entry => entry.Origin is not null))
+                    {
+                        if (expected is Sort.Lookup { Key: Sort.Scalar keys, Value: Sort.Scalar values })
+                            foreach (var entry in collection)
+                            {
+                                if (Disagreement(entry.Destination, keys, keys.Name) is { } key) yield return key;
+                                if (Disagreement(entry.Origin, values, values.Name) is { } value) yield return value;
+                            }
+                        else if (expected is not Sort.Lookup)
+                            yield return new TypeMismatch(datum.Identifier.Span(Source), "lookup", words.Render());
+                    }
                 }
-
-                // A non-empty list literal — «[1, "text"]», its elements unkeyed. A list
-                // is «list of» something and nothing else, so a list where a scalar or a
-                // named type is declared is a whole-value mismatch at the declaration,
-                // and a list where a list is declared is checked element by element
-                // against the element type. A keyed element is a lookup, and «list of» a
-                // non-scalar is nested — each carries its own check in a later slice.
-                else if (datum.Initializer is Grammar.Collection { Count: > 0 } collection
-                         && collection.All(entry => entry.Origin is null))
+                else if (Disagreement(datum.Initializer, expected, words.Render()) is { } finding)
                 {
-                    if (expected is Sort.List { Element: Sort.Scalar element })
-                    {
-                        foreach (var entry in collection)
-                        {
-                            if (Sorted(entry.Destination) is (Sort.Scalar item, var at) && element.Equals(item) is false)
-                                yield return new TypeMismatch(at, item.Name, element.Name);
-                        }
-                    }
-                    else if (expected is not Sort.List)
-                    {
-                        yield return new TypeMismatch(datum.Identifier.Span(Source), "list", words.Render());
-                    }
+                    yield return finding;
                 }
             }
         }
     }
+
+    /// <summary>
+    ///     A value whose literal sort is not the one expected — the check a datum
+    ///     initializer, a list element, and a lookup entry's key and value all share.
+    ///     Null where the value is not a literal, or is one whose sort agrees.
+    /// </summary>
+    private Finding Disagreement(Grammar.Value value, Sort expected, string declared)
+        => Sorted(value) is (Sort.Scalar actual, var at) && expected.Equals(actual) is false
+            ? new TypeMismatch(at, actual.Name, declared)
+            : null;
 
     /// <summary>
     ///     The sort a value carries when it is a literal, read off its own token, with

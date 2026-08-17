@@ -147,11 +147,42 @@ public class TypeAnnotations
         Assert.Equal("number", whole.Declared);
         Assert.StartsWith("Player.ron:1:5:", Diagnostics.Report(whole));   // at «scalar»
 
-        // Deferred, each its own slice: a lookup literal against a list (its keyed
-        // elements skipped), a non-literal element, and «list of» a non-scalar (nested).
-        Assert.Empty(Of("var ks => list of number = [\"k\" = 1];\n"));
+        // A lookup where a list is declared is a whole-value mismatch — a lookup is not
+        // a list, whatever its entries.
+        var kind = Assert.IsType<TypeMismatch>(Assert.Single(Of("var ks => list of number = [\"k\" = 1];\n")));
+        Assert.Equal("lookup", kind.Value);
+        Assert.Equal("list of number", kind.Declared);
+
+        // Deferred, each its own slice: a non-literal element, and «list of» a non-scalar (nested).
         Assert.Empty(Of("var ds => list of number = [1984-05-04];\n"));
         Assert.Empty(Of("var ns => list of list of number = [[1]];\n"));
+    }
+
+    [Fact(DisplayName = "a lookup entry's key or value that is not the declared one is a finding at that entry")]
+    public void ALookupEntrysKeyOrValueThatIsNotTheDeclaredOneIsAFindingAtThatEntry()
+    {
+        // Key «text», value «number» — a clean match.
+        Assert.Empty(Of("var m => lookup text => number = [\"k\" = 1];\n"));
+
+        // A value of the wrong type is a finding, its declared type the value type.
+        var value = Assert.IsType<TypeMismatch>(Assert.Single(Of("var m => lookup text => number = [\"k\" = \"x\"];\n")));
+        Assert.Equal("text", value.Value);
+        Assert.Equal("number", value.Declared);
+
+        // A key of the wrong type is a finding, its declared type the key type.
+        var key = Assert.IsType<TypeMismatch>(Assert.Single(Of("var m => lookup text => number = [1 = 2];\n")));
+        Assert.Equal("number", key.Value);
+        Assert.Equal("text", key.Declared);
+
+        // A lookup where a scalar is declared is a whole-value mismatch at the declaration.
+        var whole = Assert.IsType<TypeMismatch>(Assert.Single(Of("var s => number = [\"k\" = 1];\n")));
+        Assert.Equal("lookup", whole.Value);
+        Assert.Equal("number", whole.Declared);
+
+        // Deferred: a lookup whose value type is not scalar (nested), and a mixed
+        // collection, which is a parse error rather than a type one.
+        Assert.Empty(Of("var nested => lookup text => list of number = [\"k\" = [1]];\n"));
+        Assert.DoesNotContain(Of("var mixed => lookup text => number = [1, \"a\" = 2];\n"), f => f is TypeMismatch);
     }
 
     [Fact(DisplayName = "a bare type constructor is not a type")]
