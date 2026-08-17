@@ -47,6 +47,20 @@ public class Sorts
         Assert.Equal(new Sort.Optional(new Sort.List(new Sort.Scalar("number"))), Of("optional list of number"));
     }
 
+    [Fact(DisplayName = "a literal value infers its own scalar; a date and a non-literal do not, yet")]
+    public void ALiteralValueInfersItsOwnScalarADateAndANonLiteralDoNotYet()
+    {
+        // The other half of «Of»: a value's sort, read bottom-up. A literal denotes
+        // itself, its kind recovered by re-lexing its own text.
+        Assert.Equal(new Sort.Scalar("number"), Sort.Infer(new Node.Literal("5")));
+        Assert.Equal(new Sort.Scalar("text"), Sort.Infer(new Node.Literal("\"text\"")));
+
+        // A date lexes but «date» is no prelude type this pass, and a name is a later
+        // slice — both left null, so a caller unifies only what it can name.
+        Assert.Null(Sort.Infer(new Node.Literal("1984-05-04")));
+        Assert.Null(Sort.Infer(new Node.Name("elsewhere")));
+    }
+
     [Fact(DisplayName = "a function type carries its parameters, of any number including none")]
     public void AFunctionTypeCarriesItsParametersOfAnyNumberIncludingNone()
     {

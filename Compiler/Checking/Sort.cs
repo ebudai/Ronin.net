@@ -105,6 +105,38 @@ internal abstract class Sort
         return Of(arrow.Right, container) is Sort result ? new Function(parameters, result) : null;
     }
 
+    /// <summary>
+    ///     The sort a VALUE has, inferred bottom-up — the other half of <see cref="Of"/>,
+    ///     which reads a type from an annotation. Null where a node's case is not inferred
+    ///     yet, so a caller unifies only what it can name and leaves the rest.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     A literal is the base case, and it denotes itself: «5» is a «number» and a text
+    ///     literal a «text». The kind the resolver folded into one «denotes-itself» lexeme
+    ///     is recovered by re-lexing the literal's own text — the lexicon already classifies
+    ///     it, so this reads its answer rather than second-guessing it. A date literal lexes
+    ///     but «date» is no prelude type this pass, so it is left null with the rest.
+    /// </remarks>
+    public static Sort Infer(Node node) => node switch
+    {
+        Node.Literal literal => Denoted(literal),
+        _ => null,
+    };
+
+    /// <summary>The scalar a literal denotes, re-read from its own text; null for a date.</summary>
+    private static Sort Denoted(Node.Literal literal)
+    {
+        Lexer lexer = new(literal.Text);
+
+        return Ronin.Lexicon.Literal.Lex(ref lexer) switch
+        {
+            Ronin.Lexicon.Numeric => new Scalar("number"),
+            Ronin.Lexicon.Text => new Scalar("text"),
+            _ => null,
+        };
+    }
+
     /// <summary>A ground scalar — «number», «text», or «truth». One number, always.</summary>
     internal sealed class Scalar(string name) : Sort
     {
