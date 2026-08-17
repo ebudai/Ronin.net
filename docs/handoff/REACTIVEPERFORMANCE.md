@@ -1,8 +1,7 @@
 # Reactive performance: granularity and fusion
 
 > **Ledger** — `[R]` Reactive performance: granularity and fusion
-> supersedes: none
-> superseded by: none
+> measured at: dcb5c80
 
 **The worry:** a user writes a simulation the easy way, finds it slow, rewrites
 it as one big imperative function, and concludes reactivity is a toy.

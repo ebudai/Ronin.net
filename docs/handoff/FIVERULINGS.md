@@ -147,7 +147,8 @@ collisions.
 
 ## 3. Expression-level type ascription — `(x => text)`
 
-**Ruling: yes, and it is not a new construct.** `=>` already attaches a type to a
+**Ruling: yes, and it is not a new construct.** This is the open question
+`OVERLOADS.md` §4 raised. `=>` already attaches a type to a
 name in two places — `var n => number`, and `function max of (a) (b => type of
 a)`. Ascription is the **same production admitted in one more position**.
 

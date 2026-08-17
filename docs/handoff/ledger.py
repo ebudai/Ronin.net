@@ -155,6 +155,11 @@ def superseded_fully(value):
     return value not in LEGAL_ABSENT and "(§" not in (value or "")
 
 
+def stem(name):
+    """A document's identity with version/variant suffixes removed, for collision detection."""
+    return re.sub(r"(_updated|_new|_old|\(\d+\))$", "", name, flags=re.I).lower()
+
+
 def bullet(doc, tail=""):
     summary = (doc.summary[:96] + "…") if len(doc.summary) > 97 else doc.summary
     edge = ""
@@ -179,6 +184,11 @@ def render(docs):
     worklist2 = [d for d in clean if d.unwalked]
     worklist1 = [d for d in design if "no ledger header" in d.defects]
     defective = [d for d in design if d.defects and "no ledger header" not in d.defects]
+
+    collisions = {}
+    for d in docs:
+        collisions.setdefault(stem(d.name), []).append(d.name)
+    collisions = {k: sorted(v) for k, v in collisions.items() if len(v) > 1}
 
     out = []
     out.append("# Ledger — what currently binds")
@@ -227,6 +237,12 @@ def render(docs):
     out.append(f"## Pass 1 worklist — design documents with no ledger header ({len(worklist1)})")
     out.append("")
     out += [f"- {d.name}" for d in worklist1] or ["_none_"]
+
+    if collisions:
+        out.append("")
+        out.append(f"## Name collisions — shared stem, a reference may not tell them apart ({len(collisions)})")
+        out.append("")
+        out += [f"- {', '.join(group)}" for _, group in sorted(collisions.items())]
 
     if defective:
         out.append("")
