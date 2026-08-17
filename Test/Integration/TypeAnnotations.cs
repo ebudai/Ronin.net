@@ -69,6 +69,31 @@ public class TypeAnnotations
         Assert.StartsWith("Player.ron:1:21:", Diagnostics.Report(finding));
     }
 
+    [Fact(DisplayName = "an initializer whose type is not the declared one is a finding at the value")]
+    public void AnInitializerWhoseTypeIsNotTheDeclaredOneIsAFindingAtTheValue()
+    {
+        var finding = Assert.IsType<TypeMismatch>(Assert.Single(Of("var x => number = \"text\";\n")));
+
+        Assert.Equal("text", finding.Value);
+        Assert.Equal("number", finding.Declared);
+
+        // At the value — «"text"» at column 19 — the half a reader changes more often.
+        Assert.StartsWith("Player.ron:1:19:", Diagnostics.Report(finding));
+
+        // A matching initializer is clean, whichever scalar.
+        Assert.Empty(Of("var y => text = \"hello\";\n"));
+        Assert.Empty(Of("var n => number = 5;\n"));
+
+        // An unknown declared type leaves nothing to compare: its own finding stands
+        // and no mismatch is stacked on top.
+        Assert.Equal("money", Assert.IsType<UnknownType>(Assert.Single(Of("var cash => money = 5;\n"))).Name);
+
+        // A value whose sort is not inferred yet — a date, no prelude type this pass —
+        // is not compared; nor is an untyped datum, which has nothing to compare against.
+        Assert.Empty(Of("var day => number = 1984-05-04;\n"));
+        Assert.Empty(Of("var loose = 5;\n"));
+    }
+
     [Fact(DisplayName = "a bare type constructor is not a type")]
     public void ABareTypeConstructorIsNotAType()
     {

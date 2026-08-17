@@ -99,6 +99,9 @@ internal enum FindingKind
     /// <summary>A datum or datatype named by a pattern, which only a function may be.</summary>
     Parameterized,
 
+    /// <summary>A value whose sort is not the type its declaration names.</summary>
+    TypeMismatch,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -831,6 +834,25 @@ internal sealed class UnknownType(Span primary, string name)
     public override string Message
         => $"«{Name}» is not a type. Nothing declares it and the language supplies no such type. " +
            $"Declare it with «type {Name};», or name a type that exists.";
+}
+
+/// <summary>
+///     A value whose inferred sort is not the type its declaration names — «var x =>
+///     number = "text"». Reported at the value, since that is the half a reader
+///     changes more often than the type.
+/// </summary>
+internal sealed class TypeMismatch(Span primary, string value, string declared)
+    : Finding(FindingKind.TypeMismatch, primary)
+{
+    /// <summary>The value's inferred sort, spelled.</summary>
+    public string Value { get; } = value;
+
+    /// <summary>The declared type, as its words were written.</summary>
+    public string Declared { get; } = declared;
+
+    public override string Message
+        => $"This value is a «{Value}», and «{Declared}» is declared. A value must have the type " +
+           "its declaration names — change the value, or the type.";
 }
 
 /// <summary>

@@ -124,18 +124,26 @@ internal abstract class Sort
         _ => null,
     };
 
-    /// <summary>The scalar a literal denotes, re-read from its own text; null for a date.</summary>
+    /// <summary>The scalar a resolved literal node denotes, its kind re-read from its own text.</summary>
     private static Sort Denoted(Node.Literal literal)
     {
         Lexer lexer = new(literal.Text);
 
-        return Ronin.Lexicon.Literal.Lex(ref lexer) switch
-        {
-            Ronin.Lexicon.Numeric => new Scalar("number"),
-            Ronin.Lexicon.Text => new Scalar("text"),
-            _ => null,
-        };
+        return Denoted(Ronin.Lexicon.Literal.Lex(ref lexer));
     }
+
+    /// <summary>
+    ///     The scalar a lexical literal denotes — a «number» or a «text» — or null for a
+    ///     date, which lexes but is no prelude type this pass, and for a run that lexed to
+    ///     none. Shared by <see cref="Infer"/>, which re-lexes a resolved node, and the
+    ///     initializer check, which reads the token a lone literal still carries.
+    /// </summary>
+    internal static Sort Denoted(Ronin.Lexicon.Literal token) => token switch
+    {
+        Ronin.Lexicon.Numeric => new Scalar("number"),
+        Ronin.Lexicon.Text => new Scalar("text"),
+        _ => null,
+    };
 
     /// <summary>A ground scalar — «number», «text», or «truth». One number, always.</summary>
     internal sealed class Scalar(string name) : Sort

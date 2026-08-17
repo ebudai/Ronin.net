@@ -50,6 +50,7 @@ public class Findings
                      "var x => = 1;\n",
                      "var provide (x => number) => number;\n",
                      "var cash on hand => money;\n",
+                     "var x => number = \"text\";\n",
                      "var z => " + string.Concat(Enumerable.Repeat("optional ", Resolver.MaxLexemes + 1)) + "number;\n",
                      "function " + string.Concat(Enumerable.Repeat("word ", 128)) + "(x => number) {}\n",
                      "function (x => number) rounded { return x; }\n",
@@ -226,6 +227,8 @@ public class Findings
             Player.ron:1:5: «provide (_)» has a parameter list, and only a function may take one. A «var», «let», or «type» is named by words alone — name it without the bracket, or declare it as a function.
 
             Player.ron:1:21: «money» is not a type. Nothing declares it and the language supplies no such type. Declare it with «type money;», or name a type that exists.
+
+            Player.ron:1:19: This value is a «text», and «number» is declared. A value must have the type its declaration names — change the value, or the type.
 
             Player.ron:1:10: This type annotation is more than 256 words and symbols, which is past what is read at once. No type is written this large; name one that exists.
 

@@ -180,6 +180,8 @@ internal sealed class Compilation
 
         foreach (var finding in Annotations(statements, declared, function)) Add(finding);
 
+        foreach (var finding in Initializers(statements, declared)) Add(finding);
+
         // The signature's SORTS resolved against this function's own table as well, and
         // stored back on its declaration — which sees the whole container, not the null
         // a body-local type left before this table existed (REAUDIT56 finding 2).
@@ -486,6 +488,56 @@ internal sealed class Compilation
                     // rather than dropped: silence here reads to a later pass as an
                     // omitted annotation, not an over-limit one.
                     yield return new OversizeType(where);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Where a datum's initializer disagrees with its declared type — «var x =>
+    ///     number = "text"».
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The join step 2 makes, and the other side of <see cref="Annotations"/>: the
+    ///     annotation names a type and the initializer has a value, each resolved
+    ///     against the same table the type walk and the value walk already use — the
+    ///     type kind for the one, the value kind for the other — and compared by
+    ///     EQUALITY, there being no subtyping. Only what both sides can name is checked:
+    ///     a literal initializer, whose sort <see cref="Sort.Infer"/> reads, against a
+    ///     resolved annotation. A value whose sort is not inferred yet, or an annotation
+    ///     that names no type, leaves nothing to compare and is left to its own walk's
+    ///     finding rather than reported twice.
+    /// </remarks>
+    private IEnumerable<Finding> Initializers(IReadOnlyList<Statement> statements, Declarations declared)
+    {
+        Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
+
+        foreach (var statement in statements)
+        {
+            foreach (var datum in Walk<Grammar.Datum>(statement,
+                         into: node => node is not Grammar.Scope && node is not Grammar.Function
+                                    && node is not Grammar.Type.Definition))
+            {
+                // Only a lone LITERAL this slice, whose sort its own token carries — a
+                // reference initializer resolves to a tree «Sort.Infer» reads, and an
+                // aggregate its elements do, each in its own increment.
+                if (datum.Type is not Grammar.Type.Unresolved annotation
+                    || datum.Initializer is not Grammar.Literal literal)
+                {
+                    continue;
+                }
+
+                var words = annotation.Reference.ToLexemes();
+                resolver.Resolve(words).TryTree(out var tree);
+                if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) continue;
+
+                var token = literal.Tokens.Span[0];
+                if (Sort.Denoted(token as Lexicon.Literal) is Sort.Scalar actual && expected.Equals(actual) is false)
+                {
+                    var last = literal.Tokens.Span[^1];
+                    yield return new TypeMismatch(Source.Span(token.Offset, last.Offset + last.Memory.Length - token.Offset),
+                                                  actual.Name, words.Render());
                 }
             }
         }
