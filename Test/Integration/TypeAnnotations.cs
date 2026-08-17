@@ -121,6 +121,32 @@ public class TypeAnnotations
         Assert.Empty(Of("function f => number { return nope; }\n"));
     }
 
+    [Fact(DisplayName = "a list element whose type is not the declared element type is a finding at the element")]
+    public void AListElementWhoseTypeIsNotTheDeclaredElementTypeIsAFindingAtTheElement()
+    {
+        var finding = Assert.IsType<TypeMismatch>(Assert.Single(Of("var xs => list of number = [\"text\"];\n")));
+
+        Assert.Equal("text", finding.Value);
+        Assert.Equal("number", finding.Declared);
+
+        // At the element — «"text"» at column 29 — the value declared «number».
+        Assert.StartsWith("Player.ron:1:29:", Diagnostics.Report(finding));
+
+        // One bad element among good ones is one finding, at that element.
+        var mixed = Assert.IsType<TypeMismatch>(Assert.Single(Of("var ws => list of number = [1, \"text\", 3];\n")));
+        Assert.Equal("text", mixed.Value);
+
+        // A matching list and an empty one are clean.
+        Assert.Empty(Of("var ys => list of number = [1, 2, 3];\n"));
+        Assert.Empty(Of("var zs => list of number = [];\n"));
+
+        // Deferred, each its own slice: an aggregate against a scalar, a lookup literal
+        // against a list (its keyed elements skipped), and a non-literal element.
+        Assert.Empty(Of("var q => number = [1];\n"));
+        Assert.Empty(Of("var ks => list of number = [\"k\" = 1];\n"));
+        Assert.Empty(Of("var ds => list of number = [1984-05-04];\n"));
+    }
+
     [Fact(DisplayName = "a bare type constructor is not a type")]
     public void ABareTypeConstructorIsNotAType()
     {

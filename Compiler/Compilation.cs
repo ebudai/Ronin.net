@@ -525,28 +525,49 @@ internal sealed class Compilation
                          into: node => node is not Grammar.Scope && node is not Grammar.Function
                                     && node is not Grammar.Type.Definition))
             {
-                // Only a lone LITERAL this slice, whose sort its own token carries — a
-                // reference initializer resolves to a tree «Sort.Infer» reads, and an
-                // aggregate its elements do, each in its own increment.
-                if (datum.Type is not Grammar.Type.Unresolved annotation
-                    || datum.Initializer is not Grammar.Literal literal)
-                {
-                    continue;
-                }
+                if (datum.Type is not Grammar.Type.Unresolved annotation) continue;
 
                 var words = annotation.Reference.ToLexemes();
                 resolver.Resolve(words).TryTree(out var tree);
                 if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) continue;
 
-                var token = literal.Tokens.Span[0];
-                if (Sort.Denoted(token as Lexicon.Literal) is Sort.Scalar actual && expected.Equals(actual) is false)
+                // A lone literal, whose sort its own token carries.
+                if (Sorted(datum.Initializer) is (Sort.Scalar actual, var where) && expected.Equals(actual) is false)
                 {
-                    var last = literal.Tokens.Span[^1];
-                    yield return new TypeMismatch(Source.Span(token.Offset, last.Offset + last.Memory.Length - token.Offset),
-                                                  actual.Name, words.Render());
+                    yield return new TypeMismatch(where, actual.Name, words.Render());
+                }
+
+                // A list literal, element by element, against the element type. An
+                // aggregate against a scalar, a lookup, and a reference answer are each
+                // a later slice, so a non-list annotation or a keyed element is left.
+                else if (datum.Initializer is Grammar.Collection collection
+                         && expected is Sort.List { Element: Sort.Scalar element })
+                {
+                    foreach (var entry in collection)
+                    {
+                        if (entry.Origin is null && Sorted(entry.Destination) is (Sort.Scalar item, var at)
+                            && element.Equals(item) is false)
+                        {
+                            yield return new TypeMismatch(at, item.Name, element.Name);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    /// <summary>
+    ///     The sort a value carries when it is a literal, read off its own token, with
+    ///     the span to point at; null when the value is not a literal this pass reads.
+    /// </summary>
+    private (Sort Sort, Span Span)? Sorted(Grammar.Value value)
+    {
+        if (value is not Grammar.Literal { Tokens: var tokens }) return null;
+
+        var first = tokens.Span[0];
+        var last = tokens.Span[^1];
+
+        return (Sort.Denoted(first as Lexicon.Literal), Source.Span(first.Offset, last.Offset + last.Memory.Length - first.Offset));
     }
 
     /// <summary>
