@@ -558,6 +558,19 @@ internal sealed class Compilation
     private IEnumerable<Finding> Disagreements(Grammar.Value value, Sort expected, string declared, Span? at,
                                                IReadOnlyDictionary<string, Sort> sorts, Resolver resolver)
     {
+        // An empty collection takes its kind from the type expected of it, outward-in: a
+        // list or a lookup where one is declared, agreeing with either and read no
+        // further, there being no entry to read. Where neither is declared it is the
+        // empty list it defaults to, and a list is not that other type (the expected-type
+        // empty lookup is a later slice, so «lookup _ => _ = []» is left alone, not flagged).
+        if (value is Grammar.Collection { Count: 0 })
+        {
+            if (expected is not (Sort.List or Sort.Lookup) && at is { } span)
+                yield return new TypeMismatch(span, "list", declared);
+
+            yield break;
+        }
+
         if (value is Grammar.Collection { Count: > 0 } collection)
         {
             if (collection.All(entry => entry.Origin is null))

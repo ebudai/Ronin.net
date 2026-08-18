@@ -283,6 +283,31 @@ public class TypeAnnotations
         Assert.Empty(Of("var le => list of error = [5];\n"));
     }
 
+    [Fact(DisplayName = "an empty collection takes its kind from what is expected of it")]
+    public void AnEmptyCollectionTakesItsKindFromWhatIsExpectedOfIt()
+    {
+        // Where a list or a lookup is declared, «[]» agrees — an empty one of that kind.
+        Assert.Empty(Of("var xs => list of number = [];\n"));
+        Assert.Empty(Of("var m => lookup text => number = [];\n"));
+
+        // Where neither is, «[]» is the empty list it defaults to, and that is a mismatch
+        // at the declaration.
+        var scalar = Assert.IsType<TypeMismatch>(Assert.Single(Of("var y => number = [];\n")));
+        Assert.Equal("list", scalar.Value);
+        Assert.Equal("number", scalar.Declared);
+        Assert.StartsWith("Player.ron:1:5:", Diagnostics.Report(scalar));   // at «y»
+
+        var optional = Assert.IsType<TypeMismatch>(Assert.Single(Of("var o => optional text = [];\n")));
+        Assert.Equal("list", optional.Value);
+        Assert.Equal("optional text", optional.Declared);
+
+        // Nested, «[]» is read the same way: an empty inner list is clean where a list is
+        // the element or entry type, and deferred where a scalar is — nothing to point at.
+        Assert.Empty(Of("var ns => list of list of number = [[]];\n"));
+        Assert.Empty(Of("var mm => lookup text => list of number = [\"k\" = []];\n"));
+        Assert.Empty(Of("var xs => list of number = [[]];\n"));
+    }
+
     [Fact(DisplayName = "a name from an enclosing scope is read against the sort declared there")]
     public void ANameFromAnEnclosingScopeIsReadAgainstTheSortDeclaredThere()
     {
