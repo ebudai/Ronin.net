@@ -246,13 +246,34 @@ public class TypeAnnotations
         // A matching non-scalar reference is clean — no spelling needed.
         Assert.Empty(Of("var xs => list of number;\nvar ys => list of number = xs;\n"));
 
-        // A sort this pass does not spell — a function, and any aggregate carrying one or
-        // the bottom «error» — is left uncompared rather than half-spelled.
-        Assert.Empty(Of("var fn => text => number;\nvar y => number = fn;\n"));
+        // A sort this pass does not spell — the bottom «error», and any aggregate
+        // carrying one — is left uncompared rather than half-spelled.
         Assert.Empty(Of("var le => list of error;\nvar y => number = le;\n"));
         Assert.Empty(Of("var oe => optional error;\nvar y => number = oe;\n"));
         Assert.Empty(Of("var mk => lookup error => number;\nvar y => number = mk;\n"));
         Assert.Empty(Of("var mv => lookup text => error;\nvar y => number = mv;\n"));
+    }
+
+    [Fact(DisplayName = "a function-typed or named value's sort is spelled too")]
+    public void AFunctionTypedOrNamedValuesSortIsSpelledToo()
+    {
+        // A function type, its parameters however many, its result recursed into.
+        Assert.Equal("text => number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var fn => text => number;\nvar y => number = fn;\n"))).Value);
+        Assert.Equal("() => number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var fn => () => number;\nvar y => number = fn;\n"))).Value);
+        Assert.Equal("(text, number) => truth", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var fn => (text, number) => truth;\nvar y => number = fn;\n"))).Value);
+
+        // A named type, by its name; a match is clean.
+        Assert.Equal("currency", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("type currency;\nvar held => currency;\nvar y => number = held;\n"))).Value);
+        Assert.Empty(Of("type currency;\nvar held => currency;\nvar y => currency = held;\n"));
+
+        // A function whose parameter or result has no spelling is left uncompared,
+        // not half-named.
+        Assert.Empty(Of("var fn => error => number;\nvar y => number = fn;\n"));
+        Assert.Empty(Of("var fn => text => error;\nvar y => number = fn;\n"));
     }
 
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
