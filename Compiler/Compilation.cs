@@ -118,7 +118,8 @@ internal sealed class Compilation
                                Identifier variable = null, IReadOnlyList<Identifier> parameters = null,
                                string inside = null, bool reacting = false, Container container = null,
                                bool named = true, IReadOnlyList<Body> ancillary = null,
-                               Grammar.Function function = null)
+                               Grammar.Function function = null,
+                               IReadOnlyDictionary<string, Sort> enclosingSorts = null)
     {
         // The container of a type is a STRUCTURE — the module it is in, then a segment
         // per enclosing named scope — compared as one rather than a joined string a
@@ -183,7 +184,7 @@ internal sealed class Compilation
 
         foreach (var finding in Annotations(statements, declared, function)) Add(finding);
 
-        var sorts = ValueSorts(statements, declared, function);
+        var sorts = ValueSorts(statements, declared, function, enclosingSorts);
 
         foreach (var finding in Initializers(statements, declared, sorts)) Add(finding);
 
@@ -229,7 +230,7 @@ internal sealed class Compilation
             if (body.Container is null)
             {
                 Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts,
-                      container, named: false, ancillary: body.Ancillary, function: body.Function);
+                      container, named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts);
 
                 continue;
             }
@@ -253,7 +254,8 @@ internal sealed class Compilation
 
         foreach (var body in independent)
             Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts,
-                  container.Within(body.Container), named: true, ancillary: body.Ancillary, function: body.Function);
+                  container.Within(body.Container), named: true, ancillary: body.Ancillary, function: body.Function,
+                  enclosingSorts: sorts);
 
         foreach (var (pattern, bodies) in sets)
         {
@@ -270,7 +272,7 @@ internal sealed class Compilation
                 var body = bodies[0];
 
                 Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
-                      named: true, ancillary: body.Ancillary, function: body.Function);
+                      named: true, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts);
             }
             else
             {
@@ -306,7 +308,7 @@ internal sealed class Compilation
 
                 foreach (var body in bodies)
                     Scope(body.Statements, shared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
-                          named: false, ancillary: body.Ancillary, function: body.Function);
+                          named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts);
             }
 
             // Classify the VISIBLE candidate set — this scope's registered declarations
@@ -326,7 +328,7 @@ internal sealed class Compilation
         if (ancillary is not null)
             foreach (var scope in ancillary)
                 Scope(scope.Statements, declared, scope.Variable, scope.Parameters, scope.Inside, scope.Reacts,
-                      container, named: false);
+                      container, named: false, enclosingSorts: sorts);
 
         return declared;
     }
@@ -624,10 +626,14 @@ internal sealed class Compilation
     ///     is absent and reads back as no sort, which this pass leaves uncompared.
     /// </summary>
     private Dictionary<string, Sort> ValueSorts(IReadOnlyList<Statement> statements, Declarations declared,
-                                                Grammar.Function function)
+                                                Grammar.Function function, IReadOnlyDictionary<string, Sort> enclosing)
     {
         Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
-        Dictionary<string, Sort> sorts = new();
+
+        // Seeded with the names the enclosing scopes hold sorts for, already resolved,
+        // so a reference reaching outward reads against them; this scope's own names are
+        // added on top, and — there being no shadowing — never collide with them.
+        Dictionary<string, Sort> sorts = enclosing is null ? new() : new(enclosing);
 
         // The datums typed directly at this level, and — in a function body — its own
         // parameters, which are datums too: each is a name this scope holds a sort for,

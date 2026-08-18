@@ -229,6 +229,35 @@ public class TypeAnnotations
         Assert.Empty(Of("var xs => list of number;\nvar y => number = xs;\n"));
     }
 
+    [Fact(DisplayName = "a name from an enclosing scope is read against the sort declared there")]
+    public void ANameFromAnEnclosingScopeIsReadAgainstTheSortDeclaredThere()
+    {
+        // A return that names a module-level datum reaches outward to it.
+        var datum = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var outer => text;\nfunction f => number { return outer; }\n")));
+        Assert.Equal("text", datum.Value);
+        Assert.Equal("number", datum.Declared);
+
+        // A match is clean.
+        Assert.Empty(Of("var outer => number;\nfunction f => number { return outer; }\n"));
+
+        // An initializer reaching an enclosing name reads against it too.
+        var initializer = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var outer => text;\nfunction f => number { var y => number = outer; return 5; }\n")));
+        Assert.Equal("text", initializer.Value);
+        Assert.Equal("number", initializer.Declared);
+
+        // An enclosing scope's parameter reaches an inner body,
+        var enclosingParameter = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function g (p => text) => number { function h => number { return p; } return 5; }\n")));
+        Assert.Equal("text", enclosingParameter.Value);
+
+        // and the reach crosses more than one scope.
+        var twoDeep = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var top => text;\nfunction a => number { function b => number { return top; } return 5; }\n")));
+        Assert.Equal("text", twoDeep.Value);
+    }
+
     [Fact(DisplayName = "a bare type constructor is not a type")]
     public void ABareTypeConstructorIsNotAType()
     {
