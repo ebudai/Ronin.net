@@ -115,7 +115,14 @@ public class TypeAnnotations
         // An unknown return type leaves only its own annotation finding, no mismatch on top.
         Assert.Equal("money", Assert.IsType<UnknownType>(Assert.Single(Of("function h => money { return 5; }\n"))).Name);
 
-        // A value whose sort is not inferred yet — a name — is not compared; and a
+        // A return that names a local datum is read against the return type — the
+        // mismatch found at the name, «s» at column 46.
+        var named = Assert.IsType<TypeMismatch>(Assert.Single(Of("function f => number { var s => text; return s; }\n")));
+        Assert.Equal("text", named.Value);
+        Assert.Equal("number", named.Declared);
+        Assert.StartsWith("Player.ron:1:46:", Diagnostics.Report(named));
+
+        // A name the scope holds no sort for — a parameter — is not compared; and a
         // return that did not resolve is left to its own walk.
         Assert.Empty(Of("function p (x => number) => number { return x; }\n"));
         Assert.Empty(Of("function f => number { return nope; }\n"));
@@ -183,6 +190,29 @@ public class TypeAnnotations
         // collection, which is a parse error rather than a type one.
         Assert.Empty(Of("var nested => lookup text => list of number = [\"k\" = [1]];\n"));
         Assert.DoesNotContain(Of("var mixed => lookup text => number = [1, \"a\" = 2];\n"), f => f is TypeMismatch);
+    }
+
+    [Fact(DisplayName = "an initializer that names a value of another type is a finding at the name")]
+    public void AnInitializerThatNamesAValueOfAnotherTypeIsAFindingAtTheName()
+    {
+        var finding = Assert.IsType<TypeMismatch>(Assert.Single(Of("var name => text;\nvar age => number = name;\n")));
+
+        Assert.Equal("text", finding.Value);
+        Assert.Equal("number", finding.Declared);
+
+        // At the reference «name» on line 2, column 21 — not at «age» or the type.
+        Assert.StartsWith("Player.ron:2:21:", Diagnostics.Report(finding));
+
+        // A reference whose type agrees is clean.
+        Assert.Empty(Of("var greeting => text;\nvar message => text = greeting;\n"));
+
+        // A name the scope holds no sort for — a parameter — is not compared, though it
+        // resolves; a name that does not resolve at all is left to its own walk.
+        Assert.Empty(Of("function f (x => text) => number { var y => number = x; return 5; }\n"));
+        Assert.Empty(Of("var y => number = nope;\n"));
+
+        // Deferred: a reference to a non-scalar value.
+        Assert.Empty(Of("var xs => list of number;\nvar y => number = xs;\n"));
     }
 
     [Fact(DisplayName = "a bare type constructor is not a type")]

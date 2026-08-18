@@ -183,10 +183,12 @@ internal sealed class Compilation
 
         foreach (var finding in Annotations(statements, declared, function)) Add(finding);
 
-        foreach (var finding in Initializers(statements, declared)) Add(finding);
+        var sorts = ValueSorts(statements, declared);
+
+        foreach (var finding in Initializers(statements, declared, sorts)) Add(finding);
 
         if (function is not null)
-            foreach (var finding in Returns(function, declared, read)) Add(finding);
+            foreach (var finding in Returns(function, declared, read, sorts)) Add(finding);
 
         // The signature's SORTS resolved against this function's own table as well, and
         // stored back on its declaration — which sees the whole container, not the null
@@ -515,21 +517,19 @@ internal sealed class Compilation
     ///     that names no type, leaves nothing to compare and is left to its own walk's
     ///     finding rather than reported twice.
     /// </remarks>
-    private IEnumerable<Finding> Initializers(IReadOnlyList<Statement> statements, Declarations declared)
+    private IEnumerable<Finding> Initializers(IReadOnlyList<Statement> statements, Declarations declared,
+                                              IReadOnlyDictionary<string, Sort> sorts)
     {
-        Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
+        Resolver resolver = new(declared.Symbols);
 
         foreach (var statement in statements)
         {
-            foreach (var datum in Walk<Grammar.Datum>(statement,
-                         into: node => node is not Grammar.Scope && node is not Grammar.Function
-                                    && node is not Grammar.Type.Definition))
+            foreach (var datum in Walk<Grammar.Datum>(statement, into: local))
             {
                 if (datum.Type is not Grammar.Type.Unresolved annotation) continue;
+                if (sorts.TryGetValue(datum.Identifier.Words, out var expected) is false) continue;
 
                 var words = annotation.Reference.ToLexemes();
-                resolver.Resolve(words).TryTree(out var tree);
-                if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) continue;
 
                 // A collection is a list or a lookup, its kind decided from every element
                 // (a mixed one is a parse error already, and falls through here). A list
@@ -537,7 +537,7 @@ internal sealed class Compilation
                 // collection where the wrong kind is declared is a whole-value mismatch at
                 // the declaration, and a matching one is checked element by element: a list
                 // element against the element type, a lookup entry's key and value against
-                // theirs. A non-scalar element or a reference value is a later slice, left.
+                // theirs. A non-scalar element, or a nested collection, is a later slice, left.
                 if (datum.Initializer is Grammar.Collection { Count: > 0 } collection)
                 {
                     if (collection.All(entry => entry.Origin is null))
@@ -545,7 +545,7 @@ internal sealed class Compilation
                         if (expected is Sort.List { Element: Sort.Scalar element })
                             foreach (var entry in collection)
                             {
-                                if (Disagreement(entry.Destination, element, element.Name) is { } bad) yield return bad;
+                                if (Disagreement(entry.Destination, element, element.Name, sorts, resolver) is { } bad) yield return bad;
                             }
                         else if (expected is not Sort.List)
                             yield return new TypeMismatch(datum.Identifier.Span(Source), "list", words.Render());
@@ -555,14 +555,14 @@ internal sealed class Compilation
                         if (expected is Sort.Lookup { Key: Sort.Scalar keys, Value: Sort.Scalar values })
                             foreach (var entry in collection)
                             {
-                                if (Disagreement(entry.Destination, keys, keys.Name) is { } key) yield return key;
-                                if (Disagreement(entry.Origin, values, values.Name) is { } value) yield return value;
+                                if (Disagreement(entry.Destination, keys, keys.Name, sorts, resolver) is { } key) yield return key;
+                                if (Disagreement(entry.Origin, values, values.Name, sorts, resolver) is { } value) yield return value;
                             }
                         else if (expected is not Sort.Lookup)
                             yield return new TypeMismatch(datum.Identifier.Span(Source), "lookup", words.Render());
                     }
                 }
-                else if (Disagreement(datum.Initializer, expected, words.Render()) is { } finding)
+                else if (Disagreement(datum.Initializer, expected, words.Render(), sorts, resolver) is { } finding)
                 {
                     yield return finding;
                 }
@@ -571,28 +571,82 @@ internal sealed class Compilation
     }
 
     /// <summary>
-    ///     A value whose literal sort is not the one expected — the check a datum
-    ///     initializer, a list element, and a lookup entry's key and value all share.
-    ///     Null where the value is not a literal, or is one whose sort agrees.
+    ///     A value whose sort is not the one expected — the check a datum initializer, a
+    ///     list element, and a lookup entry's key and value all share. A literal's sort
+    ///     is read off its own token; a reference's from the <paramref name="sorts"/> in
+    ///     scope, at the name it resolves to. Null where the value agrees, or is one this
+    ///     pass does not yet read — a name it holds no sort for, a non-scalar, a nested
+    ///     collection.
     /// </summary>
-    private Finding Disagreement(Grammar.Value value, Sort expected, string declared)
-        => Sorted(value) is (Sort.Scalar actual, var at) && expected.Equals(actual) is false
-            ? new TypeMismatch(at, actual.Name, declared)
+    private Finding Disagreement(Grammar.Value value, Sort expected, string declared,
+                                IReadOnlyDictionary<string, Sort> sorts, Resolver resolver)
+    {
+        Sort actual;
+        Span at;
+
+        if (value is Grammar.Literal { Tokens: var tokens })
+        {
+            var first = tokens.Span[0];
+            var last = tokens.Span[^1];
+            actual = Sort.Denoted(first as Lexicon.Literal);
+            at = Source.Span(first.Offset, last.Offset + last.Memory.Length - first.Offset);
+        }
+        else if (value is Grammar.Member.Unresolved reference)
+        {
+            resolver.Resolve(reference.Reference.ToLexemes()).TryTree(out var tree);
+            actual = Inferred(tree, sorts);
+            at = tree is null ? default : Source.Span(tree.Offset, tree.Length);
+        }
+        else
+        {
+            return null;
+        }
+
+        return actual is Sort.Scalar scalar && expected.Equals(scalar) is false
+            ? new TypeMismatch(at, scalar.Name, declared)
             : null;
+    }
 
     /// <summary>
-    ///     The sort a value carries when it is a literal, read off its own token, with
-    ///     the span to point at; null when the value is not a literal this pass reads.
+    ///     The sort a resolved value node carries: a name's from the <paramref name="sorts"/>
+    ///     in scope, a literal's from its own text. Null for a name they hold no sort for,
+    ///     or a shape this pass does not yet read — a call, an operation, an unresolved
+    ///     value that came back as no tree at all.
     /// </summary>
-    private (Sort Sort, Span Span)? Sorted(Grammar.Value value)
+    private static Sort Inferred(Node node, IReadOnlyDictionary<string, Sort> sorts)
+        => node is Node.Name name ? sorts.GetValueOrDefault(name.Words) : Sort.Infer(node);
+
+    /// <summary>
+    ///     The sort each named value declared directly in these statements holds, keyed by
+    ///     the name it is declared under — so a value that names another reads against what
+    ///     that other was declared to hold. Only the datums typed at this level: a
+    ///     parameter, a name from an enclosing scope, a datum whose type does not resolve,
+    ///     is absent and reads back as no sort, which this pass leaves uncompared.
+    /// </summary>
+    private Dictionary<string, Sort> ValueSorts(IReadOnlyList<Statement> statements, Declarations declared)
     {
-        if (value is not Grammar.Literal { Tokens: var tokens }) return null;
+        Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
+        Dictionary<string, Sort> sorts = new();
 
-        var first = tokens.Span[0];
-        var last = tokens.Span[^1];
+        foreach (var statement in statements)
+            foreach (var datum in Walk<Grammar.Datum>(statement, into: local))
+            {
+                if (datum.Type is not Grammar.Type.Unresolved annotation) continue;
 
-        return (Sort.Denoted(first as Lexicon.Literal), Source.Span(first.Offset, last.Offset + last.Memory.Length - first.Offset));
+                resolver.Resolve(annotation.Reference.ToLexemes()).TryTree(out var tree);
+                if (Sort.Of(tree, declared.ContainerOf) is Sort sort) sorts[datum.Identifier.Words] = sort;
+            }
+
+        return sorts;
     }
+
+    /// <summary>
+    ///     Whether to descend into a node when gathering what a scope declares directly:
+    ///     into anything but a node that opens a scope of its own — a nested scope, a
+    ///     function body, a type definition — whose declarations are that scope's, not this.
+    /// </summary>
+    private static readonly Func<object, bool> local =
+        node => node is not Grammar.Scope && node is not Grammar.Function && node is not Grammar.Type.Definition;
 
     /// <summary>
     ///     Where a «return (_)» carries a value that is not the function's declared
@@ -608,7 +662,8 @@ internal sealed class Compilation
     ///     answer and is skipped, a return with no written type is inference and later, and
     ///     one whose type is unknown is its own annotation finding rather than this.
     /// </remarks>
-    private IEnumerable<Finding> Returns(Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body)
+    private IEnumerable<Finding> Returns(Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body,
+                                         IReadOnlyDictionary<string, Sort> sorts)
     {
         if (function.Returns is not Grammar.Type.Unresolved annotation) yield break;
 
@@ -620,7 +675,7 @@ internal sealed class Compilation
 
         foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
         {
-            if (Sort.Infer(exit.Answer) is Sort.Scalar actual && expected.Equals(actual) is false)
+            if (Inferred(exit.Answer, sorts) is Sort.Scalar actual && expected.Equals(actual) is false)
                 yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), actual.Name, words.Render());
         }
     }
