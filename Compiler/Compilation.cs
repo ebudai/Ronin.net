@@ -183,7 +183,7 @@ internal sealed class Compilation
 
         foreach (var finding in Annotations(statements, declared, function)) Add(finding);
 
-        var sorts = ValueSorts(statements, declared);
+        var sorts = ValueSorts(statements, declared, function);
 
         foreach (var finding in Initializers(statements, declared, sorts)) Add(finding);
 
@@ -623,19 +623,29 @@ internal sealed class Compilation
     ///     parameter, a name from an enclosing scope, a datum whose type does not resolve,
     ///     is absent and reads back as no sort, which this pass leaves uncompared.
     /// </summary>
-    private Dictionary<string, Sort> ValueSorts(IReadOnlyList<Statement> statements, Declarations declared)
+    private Dictionary<string, Sort> ValueSorts(IReadOnlyList<Statement> statements, Declarations declared,
+                                                Grammar.Function function)
     {
         Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
         Dictionary<string, Sort> sorts = new();
 
-        foreach (var statement in statements)
-            foreach (var datum in Walk<Grammar.Datum>(statement, into: local))
-            {
-                if (datum.Type is not Grammar.Type.Unresolved annotation) continue;
+        // The datums typed directly at this level, and — in a function body — its own
+        // parameters, which are datums too: each is a name this scope holds a sort for,
+        // so a value or a return that names one reads against what it was declared to hold.
+        IEnumerable<Grammar.Datum> data = statements.SelectMany(statement => Walk<Grammar.Datum>(statement, into: local));
 
-                resolver.Resolve(annotation.Reference.ToLexemes()).TryTree(out var tree);
-                if (Sort.Of(tree, declared.ContainerOf) is Sort sort) sorts[datum.Identifier.Words] = sort;
-            }
+        if (function is not null)
+            data = data.Concat(function.Identifier.Where(component => component.AsParameters is not null)
+                                       .SelectMany(component => component.AsParameters)
+                                       .Select(parameter => parameter.AsDatum));
+
+        foreach (var datum in data)
+        {
+            if (datum.Type is not Grammar.Type.Unresolved annotation) continue;
+
+            resolver.Resolve(annotation.Reference.ToLexemes()).TryTree(out var tree);
+            if (Sort.Of(tree, declared.ContainerOf) is Sort sort) sorts[datum.Identifier.Words] = sort;
+        }
 
         return sorts;
     }

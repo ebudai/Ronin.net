@@ -122,9 +122,16 @@ public class TypeAnnotations
         Assert.Equal("number", named.Declared);
         Assert.StartsWith("Player.ron:1:46:", Diagnostics.Report(named));
 
-        // A name the scope holds no sort for — a parameter — is not compared; and a
-        // return that did not resolve is left to its own walk.
+        // A return that names a typed parameter reads against it too — a match is clean,
+        // a mismatch a finding at the name.
         Assert.Empty(Of("function p (x => number) => number { return x; }\n"));
+        var parameter = Assert.IsType<TypeMismatch>(Assert.Single(Of("function q (x => text) => number { return x; }\n")));
+        Assert.Equal("text", parameter.Value);
+        Assert.Equal("number", parameter.Declared);
+
+        // An untyped parameter is generic — nothing to compare; and a return that did
+        // not resolve is left to its own walk.
+        Assert.Empty(Of("function p (x) => number { return x; }\n"));
         Assert.Empty(Of("function f => number { return nope; }\n"));
     }
 
@@ -206,9 +213,16 @@ public class TypeAnnotations
         // A reference whose type agrees is clean.
         Assert.Empty(Of("var greeting => text;\nvar message => text = greeting;\n"));
 
-        // A name the scope holds no sort for — a parameter — is not compared, though it
-        // resolves; a name that does not resolve at all is left to its own walk.
-        Assert.Empty(Of("function f (x => text) => number { var y => number = x; return 5; }\n"));
+        // A parameter is a name this scope holds a sort for too, so a value that names
+        // one of the wrong type is a finding as much as a datum reference is.
+        var parameter = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (x => text) => number { var y => number = x; return 5; }\n")));
+        Assert.Equal("text", parameter.Value);
+        Assert.Equal("number", parameter.Declared);
+
+        // An untyped parameter is generic — no sort to read — and a name that does not
+        // resolve at all is left to its own walk; neither is compared.
+        Assert.Empty(Of("function f (x) => number { var y => number = x; return 5; }\n"));
         Assert.Empty(Of("var y => number = nope;\n"));
 
         // Deferred: a reference to a non-scalar value.
