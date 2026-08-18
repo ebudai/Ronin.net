@@ -191,6 +191,8 @@ internal sealed class Compilation
         if (function is not null)
             foreach (var finding in Returns(function, declared, read, sorts)) Add(finding);
 
+        foreach (var finding in Arguments(read, declared, sorts)) Add(finding);
+
         // The signature's SORTS resolved against this function's own table as well, and
         // stored back on its declaration — which sees the whole container, not the null
         // a body-local type left before this table existed (REAUDIT56 finding 2).
@@ -740,6 +742,42 @@ internal sealed class Compilation
             if (Inferred(exit.Answer, sorts, declared) is { } actual && expected.Equals(actual) is false
                 && Sort.Render(actual) is { } rendered)
                 yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, words.Render());
+        }
+    }
+
+    /// <summary>
+    ///     Every finding a call passes an argument that is not the sort its parameter is
+    ///     declared to take. Each resolved call in these readings is read argument by
+    ///     argument against its callee's resolved parameter sorts, flattened to the order
+    ///     the arguments fill. Left uncompared, the same as everywhere: an overloaded
+    ///     callee, which this walk does not narrow; a generic parameter, which is no one
+    ///     sort to compare; and an argument or a parameter sort with no spelling to name.
+    /// </summary>
+    private IEnumerable<Finding> Arguments(IReadOnlyList<Reading> body, Declarations declared,
+                                           IReadOnlyDictionary<string, Sort> sorts)
+    {
+        foreach (var reading in body)
+        {
+            if (reading.Resolution.TryTree(out var tree) is false) continue;
+
+            foreach (var node in tree.Whole)
+            {
+                if (node is not Node.Call call) continue;
+                if (declared.Overloads.GetValueOrDefault(call.Pattern) is not [{ ParameterSorts: { } blocks }]) continue;
+
+                var parameters = blocks.SelectMany(block => block).ToList();
+
+                for (var slot = 0; slot < call.Arguments.Count && slot < parameters.Count; slot++)
+                {
+                    if (parameters[slot] is { } parameter
+                        && Inferred(call.Arguments[slot], sorts, declared) is { } actual
+                        && parameter.Equals(actual) is false
+                        && Sort.Render(actual) is { } rendered
+                        && Sort.Render(parameter) is { } expected)
+                        yield return new TypeMismatch(Source.Span(call.Arguments[slot].Offset, call.Arguments[slot].Length),
+                                                      rendered, expected);
+                }
+            }
         }
     }
 

@@ -313,6 +313,37 @@ public class TypeAnnotations
         Assert.Empty(Of("function id (x => number) { return x; }\nvar y => text = id 5;\n"));
     }
 
+    [Fact(DisplayName = "a call's argument is read against the type its parameter takes")]
+    public void ACallsArgumentIsReadAgainstTheTypeItsParameterTakes()
+    {
+        // An argument of the wrong type is a finding, at the argument.
+        var arg = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function double (x => number) => number { return x; }\nvar y => number = double \"text\";\n")));
+        Assert.Equal("text", arg.Value);
+        Assert.Equal("number", arg.Declared);
+
+        // A match is clean.
+        Assert.Empty(Of("function double (x => number) => number { return x; }\nvar y => number = double 5;\n"));
+
+        // A parameter across blocks lines up with the argument that fills it — «to»'s
+        // argument against «to»'s parameter — and a non-scalar parameter is spelled whole.
+        Assert.Equal("text", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function add (x => number) to (y => number) => number { return x; }\nvar z => number = add 1 to \"text\";\n"))).Value);
+        Assert.Equal("list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function head (xs => list of number) => number { return 0; }\nvar z => number = head 5;\n"))).Declared);
+
+        // An argument to a call in any position is read — a return here.
+        Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function double (x => number) => number { return x; }\nfunction m => number { return double \"text\"; }\n")));
+
+        // Left uncompared: a generic parameter (no type), an argument whose sort is not
+        // inferred (a date), and an argument or a parameter with no spelling (the bottom «error»).
+        Assert.Empty(Of("function id (x) => number { return 0; }\nvar z => number = id \"text\";\n"));
+        Assert.Empty(Of("function double (x => number) => number { return x; }\nvar z => number = double 1984-05-04;\n"));
+        Assert.Empty(Of("function double (x => number) => number { return x; }\nvar e => error;\nvar z => number = double e;\n"));
+        Assert.Empty(Of("function f (x => error) => number { return 0; }\nvar z => number = f 5;\n"));
+    }
+
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
     public void ANestedAggregateLiteralIsCheckedToItsLeaves()
     {
