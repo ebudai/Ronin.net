@@ -1,6 +1,7 @@
 # Mid-session monomorphisation — the instantiation the cache assumes but no document designs
 
 > **Ledger** — `[R]` Flags mid-session monomorphisation as undesigned, per `CHECKERSCOPINGRULINGS` §9, and asks for its design before the `(function, instantiation)` cache of `SEMANTICCHECKERSCOPING` step 4 hardens.
+> answered by: MIDSESSIONDESIGN
 > supersedes: none
 > superseded by: none
 
