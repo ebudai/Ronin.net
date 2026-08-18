@@ -145,6 +145,25 @@ internal abstract class Sort
         _ => null,
     };
 
+    /// <summary>
+    ///     A sort spelled as its annotation would be written — «number», «list of number»,
+    ///     «lookup text =&gt; number» — for a diagnostic to name the type a value has. NULL
+    ///     where this pass does not spell the sort: a shape with no written form at all —
+    ///     the action and inference-variable sorts — and, for now, a function, a named
+    ///     type, or the bottom «error», each its own later slice; an aggregate carrying one
+    ///     is null with it rather than half-spelled.
+    /// </summary>
+    internal static string Render(Sort sort) => sort switch
+    {
+        Scalar scalar => scalar.Name,
+        List list => Render(list.Element) is { } element ? $"list of {element}" : null,
+        Optional optional => Render(optional.Inner) is { } inner ? $"optional {inner}" : null,
+        Lookup lookup => Render(lookup.Key) is { } key && Render(lookup.Value) is { } value
+            ? $"lookup {key} => {value}"
+            : null,
+        _ => null,
+    };
+
     /// <summary>A ground scalar — «number», «text», or «truth». One number, always.</summary>
     internal sealed class Scalar(string name) : Sort
     {

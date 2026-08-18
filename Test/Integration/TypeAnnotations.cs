@@ -225,8 +225,37 @@ public class TypeAnnotations
         Assert.Empty(Of("function f (x) => number { var y => number = x; return 5; }\n"));
         Assert.Empty(Of("var y => number = nope;\n"));
 
-        // Deferred: a reference to a non-scalar value.
-        Assert.Empty(Of("var xs => list of number;\nvar y => number = xs;\n"));
+        // A reference to a non-scalar value renders its sort in the finding.
+        var list = Assert.IsType<TypeMismatch>(Assert.Single(Of("var xs => list of number;\nvar y => number = xs;\n")));
+        Assert.Equal("list of number", list.Value);
+        Assert.Equal("number", list.Declared);
+    }
+
+    [Fact(DisplayName = "a non-scalar value's sort is spelled out in the finding")]
+    public void ANonScalarValuesSortIsSpelledOutInTheFinding()
+    {
+        // A list, an optional, a lookup — each spelled as its annotation would be.
+        Assert.Equal("list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var xs => list of number;\nvar y => number = xs;\n"))).Value);
+        Assert.Equal("optional text", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var o => optional text;\nvar y => number = o;\n"))).Value);
+        Assert.Equal("lookup text => number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var m => lookup text => number;\nvar y => number = m;\n"))).Value);
+
+        // Nested, spelled by recursion.
+        Assert.Equal("list of list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var xss => list of list of number;\nvar y => number = xss;\n"))).Value);
+
+        // A matching non-scalar reference is clean — no spelling needed.
+        Assert.Empty(Of("var xs => list of number;\nvar ys => list of number = xs;\n"));
+
+        // A sort this pass does not spell — a function, and any aggregate carrying one or
+        // the bottom «error» — is left uncompared rather than half-spelled.
+        Assert.Empty(Of("var fn => text => number;\nvar y => number = fn;\n"));
+        Assert.Empty(Of("var le => list of error;\nvar y => number = le;\n"));
+        Assert.Empty(Of("var oe => optional error;\nvar y => number = oe;\n"));
+        Assert.Empty(Of("var mk => lookup error => number;\nvar y => number = mk;\n"));
+        Assert.Empty(Of("var mv => lookup text => error;\nvar y => number = mv;\n"));
     }
 
     [Fact(DisplayName = "a name from an enclosing scope is read against the sort declared there")]

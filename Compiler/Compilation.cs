@@ -577,8 +577,8 @@ internal sealed class Compilation
     ///     list element, and a lookup entry's key and value all share. A literal's sort
     ///     is read off its own token; a reference's from the <paramref name="sorts"/> in
     ///     scope, at the name it resolves to. Null where the value agrees, or is one this
-    ///     pass does not yet read — a name it holds no sort for, a non-scalar, a nested
-    ///     collection.
+    ///     pass does not yet read — a name it holds no sort for, or a sort with no spelling
+    ///     to name it by (<see cref="Sort.Render"/>).
     /// </summary>
     private Finding Disagreement(Grammar.Value value, Sort expected, string declared,
                                 IReadOnlyDictionary<string, Sort> sorts, Resolver resolver)
@@ -604,8 +604,8 @@ internal sealed class Compilation
             return null;
         }
 
-        return actual is Sort.Scalar scalar && expected.Equals(scalar) is false
-            ? new TypeMismatch(at, scalar.Name, declared)
+        return actual is not null && expected.Equals(actual) is false && Sort.Render(actual) is { } rendered
+            ? new TypeMismatch(at, rendered, declared)
             : null;
     }
 
