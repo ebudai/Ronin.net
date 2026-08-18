@@ -133,6 +133,16 @@ public class TypeAnnotations
         // not resolve is left to its own walk.
         Assert.Empty(Of("function p (x) => number { return x; }\n"));
         Assert.Empty(Of("function f => number { return nope; }\n"));
+
+        // A return reads a non-scalar answer the same way an initializer does — its sort
+        // spelled whole, a match clean.
+        var whole = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function m => number { var xs => list of number; return xs; }\n")));
+        Assert.Equal("list of number", whole.Value);
+        Assert.Empty(Of("function m => list of number { var xs => list of number; return xs; }\n"));
+
+        // An answer whose sort has no spelling — the bottom «error» — is left uncompared.
+        Assert.Empty(Of("function m => number { var e => error; return e; }\n"));
     }
 
     [Fact(DisplayName = "a list element whose type is not the declared element type is a finding at the element")]

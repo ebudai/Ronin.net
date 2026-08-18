@@ -737,8 +737,9 @@ internal sealed class Compilation
 
         foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
         {
-            if (Inferred(exit.Answer, sorts, declared) is Sort.Scalar actual && expected.Equals(actual) is false)
-                yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), actual.Name, words.Render());
+            if (Inferred(exit.Answer, sorts, declared) is { } actual && expected.Equals(actual) is false
+                && Sort.Render(actual) is { } rendered)
+                yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, words.Render());
         }
     }
 
