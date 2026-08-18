@@ -537,7 +537,7 @@ internal sealed class Compilation
                 // by its own sort, a collection structurally, entry by entry all the way
                 // down. The datum's own declaration is where a whole-kind mismatch points.
                 foreach (var finding in Disagreements(datum.Initializer, expected, words.Render(),
-                                                      datum.Identifier.Span(Source), sorts, resolver))
+                                                      datum.Identifier.Span(Source), sorts, resolver, declared))
                 {
                     yield return finding;
                 }
@@ -555,8 +555,9 @@ internal sealed class Compilation
     ///     declaration to point at, so that case is left for its own slice. An entry type
     ///     with no spelling is left too, rather than compared against half a name.
     /// </summary>
-    private IEnumerable<Finding> Disagreements(Grammar.Value value, Sort expected, string declared, Span? at,
-                                               IReadOnlyDictionary<string, Sort> sorts, Resolver resolver)
+    private IEnumerable<Finding> Disagreements(Grammar.Value value, Sort expected, string spelling, Span? at,
+                                               IReadOnlyDictionary<string, Sort> sorts, Resolver resolver,
+                                               Declarations declared)
     {
         // An empty collection takes its kind from the type expected of it, outward-in: a
         // list or a lookup where one is declared, agreeing with either and read no
@@ -566,7 +567,7 @@ internal sealed class Compilation
         if (value is Grammar.Collection { Count: 0 })
         {
             if (expected is not (Sort.List or Sort.Lookup) && at is { } span)
-                yield return new TypeMismatch(span, "list", declared);
+                yield return new TypeMismatch(span, "list", spelling);
 
             yield break;
         }
@@ -577,10 +578,10 @@ internal sealed class Compilation
             {
                 if (expected is Sort.List { Element: var element } && Sort.Render(element) is { } spelled)
                     foreach (var entry in collection)
-                        foreach (var finding in Disagreements(entry.Destination, element, spelled, null, sorts, resolver))
+                        foreach (var finding in Disagreements(entry.Destination, element, spelled, null, sorts, resolver, declared))
                             yield return finding;
                 else if (expected is not Sort.List && at is { } span)
-                    yield return new TypeMismatch(span, "list", declared);
+                    yield return new TypeMismatch(span, "list", spelling);
             }
             else if (collection.All(entry => entry.Origin is not null))
             {
@@ -588,19 +589,19 @@ internal sealed class Compilation
                     && Sort.Render(keys) is { } keyed && Sort.Render(values) is { } valued)
                     foreach (var entry in collection)
                     {
-                        foreach (var finding in Disagreements(entry.Destination, keys, keyed, null, sorts, resolver))
+                        foreach (var finding in Disagreements(entry.Destination, keys, keyed, null, sorts, resolver, declared))
                             yield return finding;
-                        foreach (var finding in Disagreements(entry.Origin, values, valued, null, sorts, resolver))
+                        foreach (var finding in Disagreements(entry.Origin, values, valued, null, sorts, resolver, declared))
                             yield return finding;
                     }
                 else if (expected is not Sort.Lookup && at is { } span)
-                    yield return new TypeMismatch(span, "lookup", declared);
+                    yield return new TypeMismatch(span, "lookup", spelling);
             }
 
             yield break;
         }
 
-        if (Disagreement(value, expected, declared, sorts, resolver) is { } single) yield return single;
+        if (Disagreement(value, expected, spelling, sorts, resolver, declared) is { } single) yield return single;
     }
 
     /// <summary>
@@ -611,8 +612,8 @@ internal sealed class Compilation
     ///     pass does not yet read — a name it holds no sort for, or a sort with no spelling
     ///     to name it by (<see cref="Sort.Render"/>).
     /// </summary>
-    private Finding Disagreement(Grammar.Value value, Sort expected, string declared,
-                                IReadOnlyDictionary<string, Sort> sorts, Resolver resolver)
+    private Finding Disagreement(Grammar.Value value, Sort expected, string spelling,
+                                IReadOnlyDictionary<string, Sort> sorts, Resolver resolver, Declarations declared)
     {
         Sort actual;
         Span at;
@@ -627,7 +628,7 @@ internal sealed class Compilation
         else if (value is Grammar.Member.Unresolved reference)
         {
             resolver.Resolve(reference.Reference.ToLexemes()).TryTree(out var tree);
-            actual = Inferred(tree, sorts);
+            actual = Inferred(tree, sorts, declared);
             at = tree is null ? default : Source.Span(tree.Offset, tree.Length);
         }
         else
@@ -636,18 +637,32 @@ internal sealed class Compilation
         }
 
         return actual is not null && expected.Equals(actual) is false && Sort.Render(actual) is { } rendered
-            ? new TypeMismatch(at, rendered, declared)
+            ? new TypeMismatch(at, rendered, spelling)
             : null;
     }
 
     /// <summary>
     ///     The sort a resolved value node carries: a name's from the <paramref name="sorts"/>
-    ///     in scope, a literal's from its own text. Null for a name they hold no sort for,
-    ///     or a shape this pass does not yet read — a call, an operation, an unresolved
-    ///     value that came back as no tree at all.
+    ///     in scope, a call's from its callee's resolved return sort, a literal's from its
+    ///     own text. Null for a shape this pass does not yet read — an operation, a call
+    ///     that is overloaded or whose return is inferred, an unresolved value that came
+    ///     back as no tree at all.
     /// </summary>
-    private static Sort Inferred(Node node, IReadOnlyDictionary<string, Sort> sorts)
-        => node is Node.Name name ? sorts.GetValueOrDefault(name.Words) : Sort.Infer(node);
+    private static Sort Inferred(Node node, IReadOnlyDictionary<string, Sort> sorts, Declarations declared) => node switch
+    {
+        Node.Name name => sorts.GetValueOrDefault(name.Words),
+        Node.Call call => Returned(call, declared),
+        _ => Sort.Infer(node),
+    };
+
+    /// <summary>
+    ///     The sort a call answers with — its callee's resolved return sort — when the
+    ///     pattern resolves to a single signature that has one. Null for an overloaded
+    ///     pattern, which this walk does not narrow, and for a callee whose return type is
+    ///     inferred rather than written, which a later slice supplies.
+    /// </summary>
+    private static Sort Returned(Node.Call call, Declarations declared)
+        => declared.Overloads.GetValueOrDefault(call.Pattern) is [{ ReturnSort: { } sort }] ? sort : null;
 
     /// <summary>
     ///     The sort each named value declared directly in these statements holds, keyed by
@@ -722,7 +737,7 @@ internal sealed class Compilation
 
         foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
         {
-            if (Inferred(exit.Answer, sorts) is Sort.Scalar actual && expected.Equals(actual) is false)
+            if (Inferred(exit.Answer, sorts, declared) is Sort.Scalar actual && expected.Equals(actual) is false)
                 yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), actual.Name, words.Render());
         }
     }

@@ -276,6 +276,33 @@ public class TypeAnnotations
         Assert.Empty(Of("var fn => text => error;\nvar y => number = fn;\n"));
     }
 
+    [Fact(DisplayName = "a call is read against the declaration through its callee's return type")]
+    public void ACallIsReadAgainstTheDeclarationThroughItsCalleesReturnType()
+    {
+        // A call whose return type is not the declared one is a finding, at the call.
+        var call = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function double (x => number) => number { return x; }\nvar y => text = double 5;\n")));
+        Assert.Equal("number", call.Value);
+        Assert.Equal("text", call.Declared);
+
+        // A match is clean.
+        Assert.Empty(Of("function double (x => number) => number { return x; }\nvar y => number = double 5;\n"));
+
+        // The return sort is spelled whole, non-scalar and all.
+        Assert.Equal("list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function pair (x => number) => list of number { return [x]; }\nvar y => number = pair 5;\n"))).Value);
+
+        // A call reads the same way in return position and as a collection element.
+        Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function double (x => number) => number { return x; }\nfunction m => text { return double 5; }\n")));
+        Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function double (x => number) => number { return x; }\nvar xs => list of text = [double 5];\n")));
+
+        // A callee whose return type is inferred rather than written is deferred, its
+        // return sort not yet known — a later slice.
+        Assert.Empty(Of("function id (x => number) { return x; }\nvar y => text = id 5;\n"));
+    }
+
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
     public void ANestedAggregateLiteralIsCheckedToItsLeaves()
     {
