@@ -167,9 +167,8 @@ public class TypeAnnotations
         Assert.Equal("lookup", kind.Value);
         Assert.Equal("list of number", kind.Declared);
 
-        // Deferred, each its own slice: a non-literal element, and «list of» a non-scalar (nested).
+        // Deferred: a non-literal element — a date — read as no scalar this pass.
         Assert.Empty(Of("var ds => list of number = [1984-05-04];\n"));
-        Assert.Empty(Of("var ns => list of list of number = [[1]];\n"));
     }
 
     [Fact(DisplayName = "a lookup entry's key or value that is not the declared one is a finding at that entry")]
@@ -193,9 +192,7 @@ public class TypeAnnotations
         Assert.Equal("lookup", whole.Value);
         Assert.Equal("number", whole.Declared);
 
-        // Deferred: a lookup whose value type is not scalar (nested), and a mixed
-        // collection, which is a parse error rather than a type one.
-        Assert.Empty(Of("var nested => lookup text => list of number = [\"k\" = [1]];\n"));
+        // A mixed collection is a parse error, not a type one.
         Assert.DoesNotContain(Of("var mixed => lookup text => number = [1, \"a\" = 2];\n"), f => f is TypeMismatch);
     }
 
@@ -256,6 +253,34 @@ public class TypeAnnotations
         Assert.Empty(Of("var oe => optional error;\nvar y => number = oe;\n"));
         Assert.Empty(Of("var mk => lookup error => number;\nvar y => number = mk;\n"));
         Assert.Empty(Of("var mv => lookup text => error;\nvar y => number = mv;\n"));
+    }
+
+    [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
+    public void ANestedAggregateLiteralIsCheckedToItsLeaves()
+    {
+        // A list of lists matches all the way down.
+        Assert.Empty(Of("var ns => list of list of number = [[1], [2, 3]];\n"));
+
+        // A wrong leaf, however deep, is a finding at the leaf.
+        var deep = Assert.IsType<TypeMismatch>(Assert.Single(Of("var ns => list of list of number = [[\"text\"]];\n")));
+        Assert.Equal("text", deep.Value);
+        Assert.Equal("number", deep.Declared);
+
+        // A lookup whose value is itself an aggregate is checked into it — a match clean,
+        // a wrong leaf a finding.
+        Assert.Empty(Of("var m => lookup text => list of number = [\"k\" = [1]];\n"));
+        var value = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var m => lookup text => list of number = [\"k\" = [\"x\"]];\n")));
+        Assert.Equal("text", value.Value);
+        Assert.Equal("number", value.Declared);
+
+        // A collection nested where a scalar element or entry is expected is deferred:
+        // within a nesting there is no declaration to point the whole-kind mismatch at.
+        Assert.Empty(Of("var xs => list of number = [[1]];\n"));
+        Assert.Empty(Of("var mm => lookup text => number = [\"k\" = [\"j\" = 1]];\n"));
+
+        // An entry type this pass does not spell is left uncompared, not half-named.
+        Assert.Empty(Of("var le => list of error = [5];\n"));
     }
 
     [Fact(DisplayName = "a name from an enclosing scope is read against the sort declared there")]

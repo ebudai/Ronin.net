@@ -533,38 +533,11 @@ internal sealed class Compilation
 
                 var words = annotation.Reference.ToLexemes();
 
-                // A collection is a list or a lookup, its kind decided from every element
-                // (a mixed one is a parse error already, and falls through here). A list
-                // is «list of _» and a lookup «lookup _ => _», each and nothing else — so a
-                // collection where the wrong kind is declared is a whole-value mismatch at
-                // the declaration, and a matching one is checked element by element: a list
-                // element against the element type, a lookup entry's key and value against
-                // theirs. A non-scalar element, or a nested collection, is a later slice, left.
-                if (datum.Initializer is Grammar.Collection { Count: > 0 } collection)
-                {
-                    if (collection.All(entry => entry.Origin is null))
-                    {
-                        if (expected is Sort.List { Element: Sort.Scalar element })
-                            foreach (var entry in collection)
-                            {
-                                if (Disagreement(entry.Destination, element, element.Name, sorts, resolver) is { } bad) yield return bad;
-                            }
-                        else if (expected is not Sort.List)
-                            yield return new TypeMismatch(datum.Identifier.Span(Source), "list", words.Render());
-                    }
-                    else if (collection.All(entry => entry.Origin is not null))
-                    {
-                        if (expected is Sort.Lookup { Key: Sort.Scalar keys, Value: Sort.Scalar values })
-                            foreach (var entry in collection)
-                            {
-                                if (Disagreement(entry.Destination, keys, keys.Name, sorts, resolver) is { } key) yield return key;
-                                if (Disagreement(entry.Origin, values, values.Name, sorts, resolver) is { } value) yield return value;
-                            }
-                        else if (expected is not Sort.Lookup)
-                            yield return new TypeMismatch(datum.Identifier.Span(Source), "lookup", words.Render());
-                    }
-                }
-                else if (Disagreement(datum.Initializer, expected, words.Render(), sorts, resolver) is { } finding)
+                // A value read against the sort declared for it — a literal or a reference
+                // by its own sort, a collection structurally, entry by entry all the way
+                // down. The datum's own declaration is where a whole-kind mismatch points.
+                foreach (var finding in Disagreements(datum.Initializer, expected, words.Render(),
+                                                      datum.Identifier.Span(Source), sorts, resolver))
                 {
                     yield return finding;
                 }
@@ -573,8 +546,53 @@ internal sealed class Compilation
     }
 
     /// <summary>
-    ///     A value whose sort is not the one expected — the check a datum initializer, a
-    ///     list element, and a lookup entry's key and value all share. A literal's sort
+    ///     Every finding a value disagrees with the sort expected of it. A literal or a
+    ///     reference is one <see cref="Disagreement"/> or none, read by its own sort; a
+    ///     collection is checked structurally — a list against «list of _», a lookup
+    ///     against «lookup _ =&gt; _» — and every entry recursively, so a list of lists is
+    ///     read to the leaves. <paramref name="at"/> is where a whole-value kind mismatch
+    ///     points: the declaration, at the top; null within a nesting, where there is no
+    ///     declaration to point at, so that case is left for its own slice. An entry type
+    ///     with no spelling is left too, rather than compared against half a name.
+    /// </summary>
+    private IEnumerable<Finding> Disagreements(Grammar.Value value, Sort expected, string declared, Span? at,
+                                               IReadOnlyDictionary<string, Sort> sorts, Resolver resolver)
+    {
+        if (value is Grammar.Collection { Count: > 0 } collection)
+        {
+            if (collection.All(entry => entry.Origin is null))
+            {
+                if (expected is Sort.List { Element: var element } && Sort.Render(element) is { } spelled)
+                    foreach (var entry in collection)
+                        foreach (var finding in Disagreements(entry.Destination, element, spelled, null, sorts, resolver))
+                            yield return finding;
+                else if (expected is not Sort.List && at is { } span)
+                    yield return new TypeMismatch(span, "list", declared);
+            }
+            else if (collection.All(entry => entry.Origin is not null))
+            {
+                if (expected is Sort.Lookup { Key: var keys, Value: var values }
+                    && Sort.Render(keys) is { } keyed && Sort.Render(values) is { } valued)
+                    foreach (var entry in collection)
+                    {
+                        foreach (var finding in Disagreements(entry.Destination, keys, keyed, null, sorts, resolver))
+                            yield return finding;
+                        foreach (var finding in Disagreements(entry.Origin, values, valued, null, sorts, resolver))
+                            yield return finding;
+                    }
+                else if (expected is not Sort.Lookup && at is { } span)
+                    yield return new TypeMismatch(span, "lookup", declared);
+            }
+
+            yield break;
+        }
+
+        if (Disagreement(value, expected, declared, sorts, resolver) is { } single) yield return single;
+    }
+
+    /// <summary>
+    ///     A value whose sort is not the one expected — the leaf of <see cref="Disagreements"/>,
+    ///     where a value is a literal or a reference and not a collection. A literal's sort
     ///     is read off its own token; a reference's from the <paramref name="sorts"/> in
     ///     scope, at the name it resolves to. Null where the value agrees, or is one this
     ///     pass does not yet read — a name it holds no sort for, or a sort with no spelling
