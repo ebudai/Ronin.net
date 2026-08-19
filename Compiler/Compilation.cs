@@ -120,7 +120,7 @@ internal sealed class Compilation
         foreach (var check in checks)
             if (check.Function is not null)
             {
-                var (sort, own, findings) = Infer(check.Function, check.Declared, check.Read, check.Sorts);
+                var (sort, own, findings) = Infer(check.Function, check.Declared, Sites(check.Function));
 
                 foreach (var finding in findings) Add(finding);
 
@@ -136,7 +136,7 @@ internal sealed class Compilation
             foreach (var finding in Annotations(check.Statements, check.Declared, check.Function)) Add(finding);
             foreach (var finding in Initializers(check.Statements, check.Declared, check.Sorts)) Add(finding);
             if (check.Function is not null)
-                foreach (var finding in Returns(check.Function, check.Declared, check.Read, check.Sorts)) Add(finding);
+                foreach (var finding in Returns(check.Function, check.Declared, Sites(check.Function))) Add(finding);
             foreach (var finding in Arguments(check.Read, check.Declared, check.Sorts)) Add(finding);
         }
     }
@@ -151,7 +151,8 @@ internal sealed class Compilation
                                string inside = null, bool reacting = false, Container container = null,
                                bool named = true, IReadOnlyList<Body> ancillary = null,
                                Grammar.Function function = null,
-                               IReadOnlyDictionary<string, Sort> enclosingSorts = null)
+                               IReadOnlyDictionary<string, Sort> enclosingSorts = null,
+                               Grammar.Function within = null)
     {
         // The container of a type is a STRUCTURE — the module it is in, then a segment
         // per enclosing named scope — compared as one rather than a joined string a
@@ -216,13 +217,19 @@ internal sealed class Compilation
 
         var sorts = ValueSorts(statements, declared, function, enclosingSorts);
 
+        // The function whose return sites this scope contributes to: its own, if it is a
+        // function body, else the one it is nested transparently inside. A «return» in an
+        // «if» or a loop returns from the function around it, so its sort belongs to that
+        // function's inference, not to the block it is written in, which owns none.
+        var home = function ?? within;
+
         // The checks are recorded here, not run: a scope gathers its declarations,
         // readings, and sorts, and the checks over them run in one later phase, once every
         // scope's declarations stand — so an inferred return sort a call reads can be in
         // place before the call is read. Order does not follow the passes any more:
         // findings are sorted by source position, so recording here and checking there
         // read the same.
-        checks.Add(new Checking(statements, declared, read, sorts, function));
+        checks.Add(new Checking(statements, declared, read, sorts, function, home));
 
         // The signature's SORTS resolved against this function's own table as well, and
         // stored back on its declaration — which sees the whole container, not the null
@@ -263,7 +270,7 @@ internal sealed class Compilation
             if (body.Container is null)
             {
                 Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts,
-                      container, named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts);
+                      container, named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts, within: home);
 
                 continue;
             }
@@ -288,7 +295,7 @@ internal sealed class Compilation
         foreach (var body in independent)
             Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts,
                   container.Within(body.Container), named: true, ancillary: body.Ancillary, function: body.Function,
-                  enclosingSorts: sorts);
+                  enclosingSorts: sorts, within: home);
 
         foreach (var (pattern, bodies) in sets)
         {
@@ -305,7 +312,7 @@ internal sealed class Compilation
                 var body = bodies[0];
 
                 Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
-                      named: true, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts);
+                      named: true, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts, within: home);
             }
             else
             {
@@ -341,7 +348,7 @@ internal sealed class Compilation
 
                 foreach (var body in bodies)
                     Scope(body.Statements, shared, body.Variable, body.Parameters, body.Inside, body.Reacts, nested,
-                          named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts);
+                          named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts, within: home);
             }
 
             // Classify the VISIBLE candidate set — this scope's registered declarations
@@ -361,7 +368,7 @@ internal sealed class Compilation
         if (ancillary is not null)
             foreach (var scope in ancillary)
                 Scope(scope.Statements, declared, scope.Variable, scope.Parameters, scope.Inside, scope.Reacts,
-                      container, named: false, enclosingSorts: sorts);
+                      container, named: false, enclosingSorts: sorts, within: home);
 
         return declared;
     }
@@ -759,8 +766,7 @@ internal sealed class Compilation
     ///     answer and is skipped, a return with no written type is inference and later, and
     ///     one whose type is unknown is its own annotation finding rather than this.
     /// </remarks>
-    private IEnumerable<Finding> Returns(Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body,
-                                         IReadOnlyDictionary<string, Sort> sorts)
+    private IEnumerable<Finding> Returns(Grammar.Function function, Declarations declared, IReadOnlyList<Site> sites)
     {
         if (function.Returns is not Grammar.Type.Unresolved annotation) yield break;
 
@@ -770,11 +776,11 @@ internal sealed class Compilation
         resolver.Resolve(words).TryTree(out var tree);
         if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) yield break;
 
-        foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
+        foreach (var site in sites)
         {
-            if (Inferred(exit.Answer, sorts, declared) is { } actual && expected.Equals(actual) is false
+            if (Inferred(site.Answer, site.Sorts, site.Declared) is { } actual && expected.Equals(actual) is false
                 && Sort.Render(actual) is { } rendered)
-                yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, words.Render());
+                yield return new TypeMismatch(Source.Span(site.Answer.Offset, site.Answer.Length), rendered, words.Render());
         }
     }
 
@@ -788,8 +794,7 @@ internal sealed class Compilation
     ///     it infers, so a call to the function is checked against it, is the next.
     /// </summary>
     private (Sort Inferred, Pattern Own, IReadOnlyList<Finding> Findings) Infer(
-        Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body,
-        IReadOnlyDictionary<string, Sort> sorts)
+        Grammar.Function function, Declarations declared, IReadOnlyList<Site> sites)
     {
         List<Finding> findings = [];
 
@@ -799,20 +804,18 @@ internal sealed class Compilation
         // whole of the check. A site whose sort is not inferred yet, or has no spelling, is
         // left out of the agreement rather than allowed to break it — and a divergence
         // leaves no one sort to store, so none is.
-        var exits = body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called).ToArray();
-
         Sort inferred = null;
         string first = null;
         var divergent = false;
 
-        foreach (var exit in exits)
+        foreach (var site in sites)
         {
-            if (Inferred(exit.Answer, sorts, declared) is not { } actual || Sort.Render(actual) is not { } rendered) continue;
+            if (Inferred(site.Answer, site.Sorts, site.Declared) is not { } actual || Sort.Render(actual) is not { } rendered) continue;
 
             if (inferred is null) (inferred, first) = (actual, rendered);
             else if (inferred.Equals(actual) is false)
             {
-                findings.Add(new DivergentReturns(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, first));
+                findings.Add(new DivergentReturns(Source.Span(site.Answer.Offset, site.Answer.Length), rendered, first));
                 divergent = true;
             }
         }
@@ -821,7 +824,7 @@ internal sealed class Compilation
         // its identifier, because reading a refused one back constructs and throws.
         Pattern own = null;
 
-        if (exits.Length > 0)
+        if (sites.Count > 0)
         {
             var here = function.Identifier.Span(Source);
 
@@ -834,10 +837,10 @@ internal sealed class Compilation
             // directly. Only when EVERY return is such a call: one that might yet ground it
             // — a value, a call elsewhere, an operation — is left to a later slice, not
             // refused. An unground function settles on no sort, so none is stored.
-            if (exits.All(exit => exit.Answer is Node.Call call && call.Pattern.Equals(own)))
+            if (sites.All(site => site.Answer is Node.Call call && call.Pattern.Equals(own)))
             {
-                foreach (var exit in exits)
-                    findings.Add(new NeverAnswers(Source.Span(exit.Answer.Offset, exit.Answer.Length)));
+                foreach (var site in sites)
+                    findings.Add(new NeverAnswers(Source.Span(site.Answer.Offset, site.Answer.Length)));
 
                 return (null, own, findings);
             }
@@ -845,6 +848,18 @@ internal sealed class Compilation
 
         return (divergent ? null : inferred, own, findings);
     }
+
+    /// <summary>
+    ///     Every return site of a function, gathered from its own body and from the
+    ///     transparent blocks — «if»s, loops — nested inside it, since a «return» there
+    ///     returns from the function around it. Each answer is paired with the scope it
+    ///     sits in, so its sort is read with the names that scope makes visible.
+    /// </summary>
+    private IReadOnlyList<Site> Sites(Grammar.Function function)
+        => [.. checks.Where(check => ReferenceEquals(check.Owner, function))
+                     .SelectMany(check => check.Read.Where(reading => reading.Resolution.TryTree(out _))
+                                                    .SelectMany(Called)
+                                                    .Select(exit => new Site(exit.Answer, check.Declared, check.Sorts)))];
 
     /// <summary>
     ///     Every finding a call passes an argument that is not the sort its parameter is
@@ -1612,13 +1627,27 @@ internal sealed class Compilation
     /// </summary>
     private sealed class Checking(IReadOnlyList<Statement> statements, Declarations declared,
                                   IReadOnlyList<Reading> read, IReadOnlyDictionary<string, Sort> sorts,
-                                  Grammar.Function function)
+                                  Grammar.Function function, Grammar.Function owner)
     {
         internal IReadOnlyList<Statement> Statements { get; } = statements;
         internal Declarations Declared { get; } = declared;
         internal IReadOnlyList<Reading> Read { get; } = read;
         internal IReadOnlyDictionary<string, Sort> Sorts { get; } = sorts;
         internal Grammar.Function Function { get; } = function;
+
+        /// <summary>The function this scope's returns belong to — its own, or the one it is nested inside.</summary>
+        internal Grammar.Function Owner { get; } = owner;
+    }
+
+    /// <summary>
+    ///     One return site: the value it answers with — null for a valueless exit — and the
+    ///     scope it sits in, whose declarations and value sorts read that value.
+    /// </summary>
+    private sealed class Site(Node answer, Declarations declared, IReadOnlyDictionary<string, Sort> sorts)
+    {
+        internal Node Answer { get; } = answer;
+        internal Declarations Declared { get; } = declared;
+        internal IReadOnlyDictionary<string, Sort> Sorts { get; } = sorts;
     }
 
     private readonly List<Checking> checks = [];

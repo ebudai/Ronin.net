@@ -414,6 +414,28 @@ public class TypeAnnotations
             Of("function d (x => number) { return 1; return \"text\"; }\nvar y => text = d 5;\n")));
     }
 
+    [Fact(DisplayName = "a return in a nested block belongs to the enclosing function")]
+    public void AReturnInANestedBlockBelongsToTheEnclosingFunction()
+    {
+        // A recursion whose base case is inside an «if» infers from it now: «fac» settles
+        // «number» from «return 1» in the block, the recursive self-call contributing none,
+        // so «fac 5» is read.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function fac (n => number) { if n <= 0 { return 1; } return fac (n); }\nvar y => text = fac 5;\n"))).Value);
+        Assert.Empty(Of("function fac (n => number) { if n <= 0 { return 1; } return fac (n); }\nvar y => number = fac 5;\n"));
+
+        // A written return type is checked against a return in a nested block too, not only
+        // at the top level.
+        Assert.Equal("text", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function m => number { if c { return \"text\"; } return 5; }\n"))).Value);
+
+        // Returns across a block and the body must agree; and every one being a self-call,
+        // across both, is still unground.
+        Assert.IsType<DivergentReturns>(Assert.Single(Of("function e { if c { return \"text\"; } return 5; }\n")));
+        Assert.All(Of("function loop (x) { if c { return loop (x); } return loop (x); }\n"),
+                   finding => Assert.IsType<NeverAnswers>(finding));
+    }
+
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
     public void ANestedAggregateLiteralIsCheckedToItsLeaves()
     {
