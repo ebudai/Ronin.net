@@ -108,6 +108,18 @@ internal sealed class Compilation
         }
 
         Declarations = Scope(statements, enclosing: null);
+
+        // The Check phase. Every scope has gathered by now, so the checks read a complete
+        // picture — the seam the inference phase will slot into, between this and the
+        // gather above.
+        foreach (var check in checks)
+        {
+            foreach (var finding in Annotations(check.Statements, check.Declared, check.Function)) Add(finding);
+            foreach (var finding in Initializers(check.Statements, check.Declared, check.Sorts)) Add(finding);
+            if (check.Function is not null)
+                foreach (var finding in Returns(check.Function, check.Declared, check.Read, check.Sorts)) Add(finding);
+            foreach (var finding in Arguments(check.Read, check.Declared, check.Sorts)) Add(finding);
+        }
     }
 
     /// <summary>
@@ -183,16 +195,15 @@ internal sealed class Compilation
             }
         }
 
-        foreach (var finding in Annotations(statements, declared, function)) Add(finding);
-
         var sorts = ValueSorts(statements, declared, function, enclosingSorts);
 
-        foreach (var finding in Initializers(statements, declared, sorts)) Add(finding);
-
-        if (function is not null)
-            foreach (var finding in Returns(function, declared, read, sorts)) Add(finding);
-
-        foreach (var finding in Arguments(read, declared, sorts)) Add(finding);
+        // The checks are recorded here, not run: a scope gathers its declarations,
+        // readings, and sorts, and the checks over them run in one later phase, once every
+        // scope's declarations stand — so an inferred return sort a call reads can be in
+        // place before the call is read. Order does not follow the passes any more:
+        // findings are sorted by source position, so recording here and checking there
+        // read the same.
+        checks.Add(new Checking(statements, declared, read, sorts, function));
 
         // The signature's SORTS resolved against this function's own table as well, and
         // stored back on its declaration — which sees the whole container, not the null
@@ -1545,4 +1556,22 @@ internal sealed class Compilation
     }
 
     private readonly List<Finding> findings = [];
+
+    /// <summary>
+    ///     One scope gathered and awaiting its checks: its statements, its declarations,
+    ///     and the readings and value sorts computed for it. Recorded in the gather phase
+    ///     and read in the check phase, which are one traversal apart.
+    /// </summary>
+    private sealed class Checking(IReadOnlyList<Statement> statements, Declarations declared,
+                                  IReadOnlyList<Reading> read, IReadOnlyDictionary<string, Sort> sorts,
+                                  Grammar.Function function)
+    {
+        internal IReadOnlyList<Statement> Statements { get; } = statements;
+        internal Declarations Declared { get; } = declared;
+        internal IReadOnlyList<Reading> Read { get; } = read;
+        internal IReadOnlyDictionary<string, Sort> Sorts { get; } = sorts;
+        internal Grammar.Function Function { get; } = function;
+    }
+
+    private readonly List<Checking> checks = [];
 }
