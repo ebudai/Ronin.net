@@ -111,11 +111,23 @@ internal sealed class Compilation
 
         // The Infer phase. Every function with no written return type infers it from its
         // body, between gather and check, so an inferred sort is settled before the Check
-        // phase reads a call to it. (This slice reports the findings inference is; storing
-        // the sort it infers is the next.)
+        // phase reads a call to it. Inference runs against the WRITTEN return sorts only —
+        // «answers» is filled after the loop, not during — so what each function infers does
+        // not depend on the order they are visited in; a function whose answer is a call to
+        // another inferred one reads no sort for it and is left for the ordering slice.
+        List<(Pattern Own, Sort Sort)> settled = [];
+
         foreach (var check in checks)
             if (check.Function is not null)
-                foreach (var finding in Infer(check.Function, check.Declared, check.Read, check.Sorts)) Add(finding);
+            {
+                var (sort, own, findings) = Infer(check.Function, check.Declared, check.Read, check.Sorts);
+
+                foreach (var finding in findings) Add(finding);
+
+                if (sort is not null && own is not null) settled.Add((own, sort));
+            }
+
+        foreach (var (own, sort) in settled) answers[own] = sort;
 
         // The Check phase. Every scope has gathered by now, so the checks read a complete
         // picture — with the Infer phase's results in place above.
@@ -664,12 +676,12 @@ internal sealed class Compilation
 
     /// <summary>
     ///     The sort a resolved value node carries: a name's from the <paramref name="sorts"/>
-    ///     in scope, a call's from its callee's resolved return sort, a literal's from its
-    ///     own text. Null for a shape this pass does not yet read — an operation, a call
-    ///     that is overloaded or whose return is inferred, an unresolved value that came
-    ///     back as no tree at all.
+    ///     in scope, a call's from its callee's return sort, a literal's from its own text.
+    ///     Null for a shape this pass does not yet read — an operation, an overloaded call,
+    ///     a call to a function whose return is not inferred yet, an unresolved value that
+    ///     came back as no tree at all.
     /// </summary>
-    private static Sort Inferred(Node node, IReadOnlyDictionary<string, Sort> sorts, Declarations declared) => node switch
+    private Sort Inferred(Node node, IReadOnlyDictionary<string, Sort> sorts, Declarations declared) => node switch
     {
         Node.Name name => sorts.GetValueOrDefault(name.Words),
         Node.Call call => Returned(call, declared),
@@ -677,13 +689,15 @@ internal sealed class Compilation
     };
 
     /// <summary>
-    ///     The sort a call answers with — its callee's resolved return sort — when the
-    ///     pattern resolves to a single signature that has one. Null for an overloaded
-    ///     pattern, which this walk does not narrow, and for a callee whose return type is
-    ///     inferred rather than written, which a later slice supplies.
+    ///     The sort a call answers with, when its pattern resolves to a single signature:
+    ///     the return sort written on it, or — for a callee whose return type was omitted —
+    ///     the one the Infer phase settled and stored in <see cref="answers"/>. Null for an
+    ///     overloaded pattern, which this walk does not narrow, and for an omitted return
+    ///     the Infer phase could not settle (a chain, a recursion, an under-determined site).
     /// </summary>
-    private static Sort Returned(Node.Call call, Declarations declared)
-        => declared.Overloads.GetValueOrDefault(call.Pattern) is [{ ReturnSort: { } sort }] ? sort : null;
+    private Sort Returned(Node.Call call, Declarations declared)
+        => declared.Overloads.GetValueOrDefault(call.Pattern) is [{ ReturnSort: { } sort }] ? sort
+         : answers.GetValueOrDefault(call.Pattern);
 
     /// <summary>
     ///     The sort each named value declared directly in these statements holds, keyed by
@@ -773,18 +787,23 @@ internal sealed class Compilation
     ///     Infer phase, before a call reads the sort. This slice reports; storing the sort
     ///     it infers, so a call to the function is checked against it, is the next.
     /// </summary>
-    private IEnumerable<Finding> Infer(Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body,
-                                      IReadOnlyDictionary<string, Sort> sorts)
+    private (Sort Inferred, Pattern Own, IReadOnlyList<Finding> Findings) Infer(
+        Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body,
+        IReadOnlyDictionary<string, Sort> sorts)
     {
-        if (function.Returns is Grammar.Type.Unresolved) yield break;
+        List<Finding> findings = [];
+
+        if (function.Returns is Grammar.Type.Unresolved) return (null, null, findings);
 
         // The answer is what the returns agree on, and finding that they do not is the
         // whole of the check. A site whose sort is not inferred yet, or has no spelling, is
-        // left out of the agreement rather than allowed to break it.
+        // left out of the agreement rather than allowed to break it — and a divergence
+        // leaves no one sort to store, so none is.
         var exits = body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called).ToArray();
 
         Sort inferred = null;
         string first = null;
+        var divergent = false;
 
         foreach (var exit in exits)
         {
@@ -792,28 +811,39 @@ internal sealed class Compilation
 
             if (inferred is null) (inferred, first) = (actual, rendered);
             else if (inferred.Equals(actual) is false)
-                yield return new DivergentReturns(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, first);
+            {
+                findings.Add(new DivergentReturns(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, first));
+                divergent = true;
+            }
         }
 
-        // Unground: every return is a call back to this function, so its answer is never a
-        // value — only another call, a recursion with no base case that answers directly.
-        // Only when EVERY return is such a call: one that might yet ground it — a value, a
-        // call elsewhere, an operation — is left to a later slice rather than refused here.
-        // The function's own pattern is found by the span it registered under, not read
-        // off its identifier, because reading a refused one back constructs and throws.
+        // The function's own pattern, found by the span it registered under, not read off
+        // its identifier, because reading a refused one back constructs and throws.
+        Pattern own = null;
+
         if (exits.Length > 0)
         {
-            Pattern own = null;
             var here = function.Identifier.Span(Source);
 
             foreach (var (pattern, signatures) in declared.Overloads)
                 foreach (var signature in signatures)
                     if (signature.Span == here) own = pattern;
 
+            // Unground: every return is a call back to this function, so its answer is never
+            // a value — only another call, a recursion with no base case that answers
+            // directly. Only when EVERY return is such a call: one that might yet ground it
+            // — a value, a call elsewhere, an operation — is left to a later slice, not
+            // refused. An unground function settles on no sort, so none is stored.
             if (exits.All(exit => exit.Answer is Node.Call call && call.Pattern.Equals(own)))
+            {
                 foreach (var exit in exits)
-                    yield return new NeverAnswers(Source.Span(exit.Answer.Offset, exit.Answer.Length));
+                    findings.Add(new NeverAnswers(Source.Span(exit.Answer.Offset, exit.Answer.Length)));
+
+                return (null, own, findings);
+            }
         }
+
+        return (divergent ? null : inferred, own, findings);
     }
 
     /// <summary>
@@ -1592,4 +1622,26 @@ internal sealed class Compilation
     }
 
     private readonly List<Checking> checks = [];
+
+    /// <summary>
+    ///     The return sort the Infer phase settled for each omitted-return function, by the
+    ///     pattern a call to it resolves through, so <see cref="Returned"/> reads it beside
+    ///     a written one.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     APPROXIMATION (validated in <c>INFERENCEPASSVALIDATION</c> §1). The design ruled
+    ///     the inferred sort onto the SIGNATURE, a field beside the written return sort,
+    ///     because it dies with the declaration tree when the tree is rebuilt whole — so it
+    ///     is gone on an edit, not stale, and <c>MIDSESSIONDESIGN</c> §3's «one invalidation
+    ///     design» (which governs values that SURVIVE an edit — the «(function, instantiation)»
+    ///     cache) does not apply. This holds it in one map on the compilation instead: the
+    ///     same lifetime — it dies with the compilation, which is rebuilt whole — but read
+    ///     by every scope's calls uniformly, where a signature field is copied per scope
+    ///     (<c>Declarations.Of</c> merges by value) and would need publishing to every copy,
+    ///     the way the written-sort resolution already does. TRIGGER to revisit: the first
+    ///     incremental rebuild of the declaration tree — at which point neither store
+    ///     survives untouched and the choice is made with the graph, not against a copy.
+    /// </remarks>
+    private readonly Dictionary<Pattern, Sort> answers = [];
 }

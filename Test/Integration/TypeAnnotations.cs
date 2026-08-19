@@ -308,9 +308,10 @@ public class TypeAnnotations
         Assert.IsType<TypeMismatch>(Assert.Single(
             Of("function double (x => number) => number { return x; }\nvar xs => list of text = [double 5];\n")));
 
-        // A callee whose return type is inferred rather than written is deferred, its
-        // return sort not yet known — a later slice.
-        Assert.Empty(Of("function id (x => number) { return x; }\nvar y => text = id 5;\n"));
+        // A callee whose return type is inferred rather than written is read too now, its
+        // sort settled by the Infer phase before this call is checked (see the inference
+        // tests); an overloaded callee, which this walk does not narrow, is still deferred.
+        Assert.IsType<TypeMismatch>(Assert.Single(Of("function id (x => number) { return x; }\nvar y => text = id 5;\n")));
     }
 
     [Fact(DisplayName = "a call's argument is read against the type its parameter takes")]
@@ -384,6 +385,33 @@ public class TypeAnnotations
 
         // A function with no return has no answer to be unground.
         Assert.Empty(Of("function f { var x => number = 5; }\n"));
+    }
+
+    [Fact(DisplayName = "an inferred return sort is stored, so a call to the function is checked")]
+    public void AnInferredReturnSortIsStoredSoACallToTheFunctionIsChecked()
+    {
+        // «id» writes no return type; its return infers «number» from «return x», is
+        // stored, and a call to it read against a declaration of another type is a finding.
+        var call = Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function id (x => number) { return x; }\nvar y => text = id 5;\n")));
+        Assert.Equal("number", call.Value);
+        Assert.Equal("text", call.Declared);
+
+        // A match is clean.
+        Assert.Empty(Of("function id (x => number) { return x; }\nvar y => number = id 5;\n"));
+
+        // Two agreeing returns settle one sort, stored the same way.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function m (a => number) { return a; return a; }\nvar y => text = m 5;\n"))).Value);
+
+        // A function whose only answer is a call to another inferred one is a chain — left
+        // for the ordering slice, so its own call reads no sort yet.
+        Assert.Empty(Of("function g (x => number) { return x; }\nfunction f (z => number) { return g z; }\nvar y => text = f 5;\n"));
+
+        // A divergent function settles on no sort, so its call reads none — only the
+        // divergence is a finding.
+        Assert.IsType<DivergentReturns>(Assert.Single(
+            Of("function d (x => number) { return 1; return \"text\"; }\nvar y => text = d 5;\n")));
     }
 
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
