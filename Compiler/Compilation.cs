@@ -62,6 +62,7 @@ internal sealed class Compilation
         };
 
         compilation.Declare();
+        compilation.Order();
 
         return compilation;
     }
@@ -1498,6 +1499,19 @@ internal sealed class Compilation
             return;
 
         findings.Add(finding);
+    }
+
+    /// <summary>
+    ///     Findings put into source order, not the order the passes produced them — so a
+    ///     reader reads them down the file, and no reordering of the passes can move the
+    ///     output. Stable, so two at one position keep the order they were found in.
+    /// </summary>
+    private void Order()
+    {
+        var ordered = findings.OrderBy(finding => finding.Primary.Offset).ToArray();
+
+        findings.Clear();
+        findings.AddRange(ordered);
     }
 
     /// <summary>The source spans a finding is about: the one it points at, and every site alongside it.</summary>

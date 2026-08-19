@@ -359,10 +359,11 @@ public class NameShadowing
         var source = "var p => number;\nvar q => number;\nvar banks => number;\n"
                    + "for each (p is q) in banks { return index of p is q; }\n";
 
-        // The third is the use site, which now reads two ways for the same
-        // reason the second refuses the declaration — «return index of p is q»
-        // is the counter or a return of the call, and both are real.
-        Assert.Equal([FindingKind.InfixInName, FindingKind.NameShadowsPattern, FindingKind.Ambiguous],
+        // The three, in source order: the shadowed counter up in its declaration, the
+        // «p is q» binding that infixes a name, then the use site — «return index of p is
+        // q» reads two ways for the same reason the binding refuses, the counter or a
+        // return of the call, and both are real.
+        Assert.Equal([FindingKind.NameShadowsPattern, FindingKind.InfixInName, FindingKind.Ambiguous],
                      All(Counter + source).Select(each => each.Kind).Distinct());
 
         // The evidence that they are, rather than the assertion that they are:
