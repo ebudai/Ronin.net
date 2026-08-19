@@ -751,16 +751,38 @@ internal sealed class Compilation
         // that they do not is the whole of the check — the inference and its legality are
         // one walk. A site whose sort is not inferred yet, or has no spelling, is left out
         // of the agreement rather than allowed to break it.
+        var exits = body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called).ToArray();
+
         Sort inferred = null;
         string first = null;
 
-        foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
+        foreach (var exit in exits)
         {
             if (Inferred(exit.Answer, sorts, declared) is not { } actual || Sort.Render(actual) is not { } rendered) continue;
 
             if (inferred is null) (inferred, first) = (actual, rendered);
             else if (inferred.Equals(actual) is false)
                 yield return new DivergentReturns(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, first);
+        }
+
+        // Unground: every return is a call back to this function, so its answer is never a
+        // value — only another call, a recursion with no base case that answers directly.
+        // Only when EVERY return is such a call: one that might yet ground it — a value, a
+        // call elsewhere, an operation — is left to a later slice rather than refused here.
+        // The function's own pattern is found by the span it registered under, not read
+        // off its identifier, because reading a refused one back constructs and throws.
+        if (exits.Length > 0)
+        {
+            Pattern own = null;
+            var here = function.Identifier.Span(Source);
+
+            foreach (var (pattern, signatures) in declared.Overloads)
+                foreach (var signature in signatures)
+                    if (signature.Span == here) own = pattern;
+
+            if (exits.All(exit => exit.Answer is Node.Call call && call.Pattern.Equals(own)))
+                foreach (var exit in exits)
+                    yield return new NeverAnswers(Source.Span(exit.Answer.Offset, exit.Answer.Length));
         }
     }
 

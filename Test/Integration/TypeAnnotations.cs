@@ -367,6 +367,25 @@ public class TypeAnnotations
         Assert.Empty(Of("function m { var e => error; return e; }\n"));
     }
 
+    [Fact(DisplayName = "a function whose every return calls itself never answers")]
+    public void AFunctionWhoseEveryReturnCallsItselfNeverAnswers()
+    {
+        // The whole answer is a call back to the function — it never settles on a value.
+        var finding = Assert.IsType<NeverAnswers>(Assert.Single(Of("function loop (x) { return loop (x); }\n")));
+        Assert.StartsWith("Player.ron:1:28:", Diagnostics.Report(finding));   // at «loop (x)»
+
+        // A base case that answers directly grounds it — the recursive return is not the
+        // only kind, so the function is not refused.
+        Assert.Empty(Of("function count (n) { return 1; return count (n); }\n"));
+
+        // A self-call nested inside a call to another function might yet ground the
+        // answer — deferred, not refused.
+        Assert.Empty(Of("function double (x => number) => number { return x; }\nfunction loop (x) { return double (loop (x)); }\n"));
+
+        // A function with no return has no answer to be unground.
+        Assert.Empty(Of("function f { var x => number = 5; }\n"));
+    }
+
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
     public void ANestedAggregateLiteralIsCheckedToItsLeaves()
     {

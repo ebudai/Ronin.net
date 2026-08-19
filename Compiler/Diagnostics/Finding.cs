@@ -105,6 +105,9 @@ internal enum FindingKind
     /// <summary>Two of a function's returns give different types, with no written return type to choose between them.</summary>
     DivergentReturns,
 
+    /// <summary>A function whose every return is a call to itself, so its answer never settles on a value.</summary>
+    NeverAnswers,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -874,6 +877,18 @@ internal sealed class DivergentReturns(Span primary, string value, string establ
     public override string Message
         => $"This return is a «{Value}», and an earlier return is a «{Established}». A function with no written " +
            "return type takes it from its returns, so they must agree — make them one type, or write it.";
+}
+
+/// <summary>
+///     A function whose every return is a call to itself: its answer depends only on that
+///     call, never settling on a value, so no return type could be taken from it.
+/// </summary>
+internal sealed class NeverAnswers(Span primary)
+    : Finding(FindingKind.NeverAnswers, primary)
+{
+    public override string Message
+        => "Every one of this function's returns is a call to the function itself, so its answer is never a " +
+           "value — only another call. A recursion needs a return that answers without calling back.";
 }
 
 /// <summary>
