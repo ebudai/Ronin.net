@@ -109,9 +109,16 @@ internal sealed class Compilation
 
         Declarations = Scope(statements, enclosing: null);
 
+        // The Infer phase. Every function with no written return type infers it from its
+        // body, between gather and check, so an inferred sort is settled before the Check
+        // phase reads a call to it. (This slice reports the findings inference is; storing
+        // the sort it infers is the next.)
+        foreach (var check in checks)
+            if (check.Function is not null)
+                foreach (var finding in Infer(check.Function, check.Declared, check.Read, check.Sorts)) Add(finding);
+
         // The Check phase. Every scope has gathered by now, so the checks read a complete
-        // picture — the seam the inference phase will slot into, between this and the
-        // gather above.
+        // picture — with the Infer phase's results in place above.
         foreach (var check in checks)
         {
             foreach (var finding in Annotations(check.Statements, check.Declared, check.Function)) Add(finding);
@@ -741,28 +748,39 @@ internal sealed class Compilation
     private IEnumerable<Finding> Returns(Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body,
                                          IReadOnlyDictionary<string, Sort> sorts)
     {
-        if (function.Returns is Grammar.Type.Unresolved annotation)
+        if (function.Returns is not Grammar.Type.Unresolved annotation) yield break;
+
+        Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
+
+        var words = annotation.Reference.ToLexemes();
+        resolver.Resolve(words).TryTree(out var tree);
+        if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) yield break;
+
+        foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
         {
-            Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
-
-            var words = annotation.Reference.ToLexemes();
-            resolver.Resolve(words).TryTree(out var tree);
-            if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) yield break;
-
-            foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
-            {
-                if (Inferred(exit.Answer, sorts, declared) is { } actual && expected.Equals(actual) is false
-                    && Sort.Render(actual) is { } rendered)
-                    yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, words.Render());
-            }
-
-            yield break;
+            if (Inferred(exit.Answer, sorts, declared) is { } actual && expected.Equals(actual) is false
+                && Sort.Render(actual) is { } rendered)
+                yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, words.Render());
         }
+    }
 
-        // No written return type: the answer is what the returns agree on, and finding
-        // that they do not is the whole of the check — the inference and its legality are
-        // one walk. A site whose sort is not inferred yet, or has no spelling, is left out
-        // of the agreement rather than allowed to break it.
+    /// <summary>
+    ///     What a function with no written return type infers from its return sites, which
+    ///     is the same walk as the findings that inference is: the sites must agree
+    ///     (<see cref="DivergentReturns"/> where they do not), and at least one must ground
+    ///     the answer in a value rather than a call back to the function
+    ///     (<see cref="NeverAnswers"/> where every return is such a call). Runs in the
+    ///     Infer phase, before a call reads the sort. This slice reports; storing the sort
+    ///     it infers, so a call to the function is checked against it, is the next.
+    /// </summary>
+    private IEnumerable<Finding> Infer(Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body,
+                                      IReadOnlyDictionary<string, Sort> sorts)
+    {
+        if (function.Returns is Grammar.Type.Unresolved) yield break;
+
+        // The answer is what the returns agree on, and finding that they do not is the
+        // whole of the check. A site whose sort is not inferred yet, or has no spelling, is
+        // left out of the agreement rather than allowed to break it.
         var exits = body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called).ToArray();
 
         Sort inferred = null;
