@@ -1,6 +1,7 @@
 # The return-inference pass — how inference precedes checking, for validation
 
 > **Ledger** — `[R]` A plan for the step-4 inference pass: the three-phase gather/infer/check shape that lets an omitted return sort be inferred before a call to it is checked, and the two design-adjacent hinges it leans on. Asks the designer to validate faithfulness to `MIDSESSIONDESIGN` and the recursion rulings.
+> answered by: INFERENCEPASSVALIDATION
 > supersedes: none
 > superseded by: none
 
