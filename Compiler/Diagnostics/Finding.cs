@@ -102,6 +102,9 @@ internal enum FindingKind
     /// <summary>A value whose sort is not the type its declaration names.</summary>
     TypeMismatch,
 
+    /// <summary>Two of a function's returns give different types, with no written return type to choose between them.</summary>
+    DivergentReturns,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -853,6 +856,24 @@ internal sealed class TypeMismatch(Span primary, string value, string declared)
     public override string Message
         => $"This value is a «{Value}», and «{Declared}» is declared. A value must have the type " +
            "its declaration names — change the value, or the type.";
+}
+
+/// <summary>
+///     Two of a function's returns give different types, and no return type is written to
+///     settle which the function hands back.
+/// </summary>
+internal sealed class DivergentReturns(Span primary, string value, string established)
+    : Finding(FindingKind.DivergentReturns, primary)
+{
+    /// <summary>This return's inferred sort, spelled.</summary>
+    public string Value { get; } = value;
+
+    /// <summary>The sort an earlier return already fixed, spelled.</summary>
+    public string Established { get; } = established;
+
+    public override string Message
+        => $"This return is a «{Value}», and an earlier return is a «{Established}». A function with no written " +
+           "return type takes it from its returns, so they must agree — make them one type, or write it.";
 }
 
 /// <summary>

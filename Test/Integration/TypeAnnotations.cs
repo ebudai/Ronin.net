@@ -344,6 +344,29 @@ public class TypeAnnotations
         Assert.Empty(Of("function f (x => error) => number { return 0; }\nvar z => number = f 5;\n"));
     }
 
+    [Fact(DisplayName = "returns that disagree, with no return type written, are a finding")]
+    public void ReturnsThatDisagreeWithNoReturnTypeWrittenAreAFinding()
+    {
+        // Two returns of different types and nothing written to choose — a finding at the
+        // later one, naming both.
+        var finding = Assert.IsType<DivergentReturns>(Assert.Single(Of("function g { return 5; return \"text\"; }\n")));
+        Assert.Equal("text", finding.Value);
+        Assert.Equal("number", finding.Established);
+        Assert.StartsWith("Player.ron:1:31:", Diagnostics.Report(finding));
+
+        // Returns that agree are clean, scalar or not.
+        Assert.Empty(Of("function g { return 5; return 6; }\n"));
+        Assert.Empty(Of("function g { var xs => list of number; return xs; return xs; }\n"));
+
+        // A written return type is checked against, not inferred from — its returns read
+        // against it, and never against each other.
+        Assert.Empty(Of("function g => number { return 5; return 6; }\n"));
+
+        // A return whose sort has no spelling — the bottom «error» — is left out of the
+        // agreement rather than breaking it.
+        Assert.Empty(Of("function m { var e => error; return e; }\n"));
+    }
+
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
     public void ANestedAggregateLiteralIsCheckedToItsLeaves()
     {

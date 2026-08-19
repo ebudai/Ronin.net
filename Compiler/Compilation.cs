@@ -729,19 +729,38 @@ internal sealed class Compilation
     private IEnumerable<Finding> Returns(Grammar.Function function, Declarations declared, IReadOnlyList<Reading> body,
                                          IReadOnlyDictionary<string, Sort> sorts)
     {
-        if (function.Returns is not Grammar.Type.Unresolved annotation) yield break;
+        if (function.Returns is Grammar.Type.Unresolved annotation)
+        {
+            Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
 
-        Resolver resolver = new(declared.Symbols, kind: SymbolKind.Type);
+            var words = annotation.Reference.ToLexemes();
+            resolver.Resolve(words).TryTree(out var tree);
+            if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) yield break;
 
-        var words = annotation.Reference.ToLexemes();
-        resolver.Resolve(words).TryTree(out var tree);
-        if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) yield break;
+            foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
+            {
+                if (Inferred(exit.Answer, sorts, declared) is { } actual && expected.Equals(actual) is false
+                    && Sort.Render(actual) is { } rendered)
+                    yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, words.Render());
+            }
+
+            yield break;
+        }
+
+        // No written return type: the answer is what the returns agree on, and finding
+        // that they do not is the whole of the check — the inference and its legality are
+        // one walk. A site whose sort is not inferred yet, or has no spelling, is left out
+        // of the agreement rather than allowed to break it.
+        Sort inferred = null;
+        string first = null;
 
         foreach (var exit in body.Where(reading => reading.Resolution.TryTree(out _)).SelectMany(Called))
         {
-            if (Inferred(exit.Answer, sorts, declared) is { } actual && expected.Equals(actual) is false
-                && Sort.Render(actual) is { } rendered)
-                yield return new TypeMismatch(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, words.Render());
+            if (Inferred(exit.Answer, sorts, declared) is not { } actual || Sort.Render(actual) is not { } rendered) continue;
+
+            if (inferred is null) (inferred, first) = (actual, rendered);
+            else if (inferred.Equals(actual) is false)
+                yield return new DivergentReturns(Source.Span(exit.Answer.Offset, exit.Answer.Length), rendered, first);
         }
     }
 

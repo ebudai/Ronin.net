@@ -76,6 +76,7 @@ public class Findings
                      var result = send a to b;
 
                      """,
+                     "function g { return 5; return \"text\"; }\n",
                  })
         {
             // Through the whole pipeline rather than one phase of it, so an
@@ -259,6 +260,8 @@ public class Findings
                 send «a» to «b»
 
             Bracket the one you meant.
+
+            Player.ron:1:31: This return is a «text», and an earlier return is a «number». A function with no written return type takes it from its returns, so they must agree — make them one type, or write it.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring
