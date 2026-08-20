@@ -66,6 +66,19 @@ internal sealed record Descriptor
     public Pattern Shape { get; }
 
     /// <summary>
+    ///     The type a nullary value literal has, where it has one — «truth» for «true» and
+    ///     «false». Null for a pattern, a type, and a value word that is not a typed literal.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     What tells a truth literal from any other nullary value. «Which are the truths» is
+    ///     derived from THIS, not from «has no shape» — a proxy every nullary value satisfies,
+    ///     so a second one that has no shape would silently join the truths. The property, not
+    ///     the stand-in.
+    /// </remarks>
+    public string Denotes { get; init; }
+
+    /// <summary>
     ///     Whether this supplies a value or a type.
     /// </summary>
     ///

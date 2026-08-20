@@ -1726,7 +1726,7 @@ internal sealed class SymbolTable
     ///     to it.
     /// </remarks>
     public IEnumerable<string> Known
-        => Names.Where(entry => entry.Value is SymbolKind.Value).Select(entry => entry.Key).Concat(Truths);
+        => Names.Where(entry => entry.Value is SymbolKind.Value).Select(entry => entry.Key).Concat(SuppliedValues);
 
     /// <summary>
     ///     Every type a reference in an annotation may resolve to.
@@ -1974,8 +1974,8 @@ internal sealed class SymbolTable
                       + "parameter, which is why this and «list of (_)» are spelled differently.",
             },
 
-        Descriptor.Spelled("Truth.", "true") with { SeeAlso = ["false"] },
-        Descriptor.Spelled("Untruth.", "false") with { SeeAlso = ["true"] },
+        Descriptor.Spelled("Truth.", "true") with { SeeAlso = ["false"], Denotes = "truth" },
+        Descriptor.Spelled("Untruth.", "false") with { SeeAlso = ["true"], Denotes = "truth" },
 
         Descriptor.Spelled("The type of numbers.", "number") with { Kind = SymbolKind.Type },
         Descriptor.Spelled("The type of text.", "text") with { Kind = SymbolKind.Type },
@@ -2025,8 +2025,30 @@ internal sealed class SymbolTable
     ///     «truth» whose literals were deferred would be a type nothing could
     ///     test.
     ///     </para>
+    ///     <para>
+    ///     Derived from what the entry <see cref="Descriptor.Denotes"/> — its type —
+    ///     not from «has no shape», which every nullary value shares: «nothing» is a
+    ///     shapeless value too, and deriving from the shape would silently make it a
+    ///     truth. The property, not the proxy for it.
+    ///     </para>
     /// </remarks>
     public static IReadOnlyList<string> Truths { get; }
+        = [.. Supplies.Where(supplied => supplied.Denotes is "truth")
+                      .Select(supplied => supplied.Name)
+                      .Order(System.StringComparer.Ordinal)];
+
+    /// <summary>
+    ///     The value spellings the language supplies whole — the nullary value literals every
+    ///     scope names without declaring. «true» and «false» today; «nothing» joins them.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     The value-kind counterpart of <see cref="SuppliedTypes"/>, and what
+    ///     <see cref="Known"/> concatenates — NOT <see cref="Truths"/>, which is the narrower
+    ///     «literals of «truth»». Every supplied nullary value belongs here; only the ones
+    ///     that denote «truth» belong there.
+    /// </remarks>
+    public static IReadOnlyList<string> SuppliedValues { get; }
         = [.. Supplies.Where(supplied => supplied.Shape is null && supplied.Kind is SymbolKind.Value)
                       .Select(supplied => supplied.Name)
                       .Order(System.StringComparer.Ordinal)];

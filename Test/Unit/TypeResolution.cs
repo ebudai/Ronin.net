@@ -43,6 +43,18 @@ public class TypeResolution
         Assert.Equal(ResolutionKind.NoParse, AsType(symbols, "false"));
     }
 
+    [Fact(DisplayName = "the truths are the values that denote «truth», a separate list from the supplied values")]
+    public void TheTruthsAreTheValuesThatDenoteTruthASeparateListFromTheSuppliedValues()
+    {
+        // «true» and «false» are the truths — the nullary value literals that denote «truth» —
+        // and today they are also the whole of the supplied values. The two are SEPARATE
+        // derivations, one by what the entry denotes and one by kind, so a third nullary value
+        // («nothing») will join the values without becoming a truth. Deriving the truths from
+        // «has no shape» — which every nullary value shares — would silently make it one.
+        Assert.Equal(["false", "true"], SymbolTable.Truths.Order());
+        Assert.Equal(["false", "true"], SymbolTable.SuppliedValues.Order());
+    }
+
     [Fact(DisplayName = "the supplied type constructors resolve, and their bare anchors do not")]
     public void TheSuppliedTypeConstructorsResolveAndTheirBareAnchorsDoNot()
     {
