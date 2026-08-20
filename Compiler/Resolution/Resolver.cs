@@ -1838,6 +1838,14 @@ internal sealed class SymbolTable
     internal static Pattern Answer { get; } = new(["return", null]);
 
     /// <summary>
+    ///     The spelling of the absent-value literal, «nothing» — defined once and used both
+    ///     to supply the word and to recognise it when a value inference sorts it as an
+    ///     «optional» of an unknown inner type. The spelling lives here, not copied into the
+    ///     checker, so it cannot drift from what the language supplies.
+    /// </summary>
+    internal static string Absent { get; } = "nothing";
+
+    /// <summary>
     ///     «optional (_)» — a type constructor, and no longer a modifier keyword.
     /// </summary>
     ///
@@ -1976,6 +1984,7 @@ internal sealed class SymbolTable
 
         Descriptor.Spelled("Truth.", "true") with { SeeAlso = ["false"], Denotes = "truth" },
         Descriptor.Spelled("Untruth.", "false") with { SeeAlso = ["true"], Denotes = "truth" },
+        Descriptor.Spelled("The absent value.", Absent) with { SeeAlso = ["optional (_)"], Denotes = "optional" },
 
         Descriptor.Spelled("The type of numbers.", "number") with { Kind = SymbolKind.Type },
         Descriptor.Spelled("The type of text.", "text") with { Kind = SymbolKind.Type },

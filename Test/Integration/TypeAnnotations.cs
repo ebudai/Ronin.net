@@ -519,6 +519,49 @@ public class TypeAnnotations
         Assert.Empty(Of("function f (n => number) { return [[]]; }\nvar y => text = f 7;\n"));
     }
 
+    [Fact(DisplayName = "«nothing» is an optional the type expected of it pins")]
+    public void NothingIsAnOptionalTheTypeExpectedOfItPins()
+    {
+        // «nothing» is the empty optional at an unknown inner type; the annotation pins it,
+        // so it checks against any «optional» — number, text — read outward-in, the same
+        // mechanism as «[]» on «list». This is the case the sort ruling names step 2 needs.
+        Assert.Empty(Of("var x => optional number = nothing;\n"));
+        Assert.Empty(Of("var x => optional text = nothing;\n"));
+
+        // Through a call: a «nothing» argument pins against an «optional» parameter, so the
+        // one finding is «f nothing» read against «text», not a rejected argument.
+        Assert.Equal("optional number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (o => optional number) { return o; }\nvar y => text = f nothing;\n"))).Value);
+
+        // A top-level empty list pins against a list parameter too — the gap the wide
+        // checking change closed — so «f []» is one finding against «text», not two.
+        Assert.Equal("list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (xs => list of number) { return xs; }\nvar y => text = f [];\n"))).Value);
+
+        // The reservation costs one spelling: «nothing found» is still an ordinary user name,
+        // by the same argument that keeps «true positive» legal beside «true».
+        Assert.Empty(Of("var nothing found => number;\nvar y => number = nothing found;\n"));
+    }
+
+    [Fact(DisplayName = "an unpinned «nothing» or «[]» is not-ground, reported and not silent")]
+    public void AnUnpinnedNothingOrEmptyListIsNotGroundReportedAndNotSilent()
+    {
+        // «nothing» that no «optional» pins — a «number» is not one — is not-ground: its
+        // inner type is undetermined and nothing here says it. Unnameable, so it is the
+        // NotGround finding rather than the silence an unrenderable mismatch used to be.
+        Assert.IsType<NotGround>(Assert.Single(Of("var x => number = nothing;\n")));
+
+        // A top-level «[]» handed to a non-list parameter is the same: no list pins its
+        // element. The one policy for both empties, per «the answer must be ground».
+        Assert.IsType<NotGround>(Assert.Single(
+            Of("function f (n => number) { return n; }\nvar y => number = f [];\n")));
+
+        // Pinned, they are not-ground no longer: the annotation names the inner type, so the
+        // value grounds and the check passes.
+        Assert.Empty(Of("var x => optional number = nothing;\n"));
+        Assert.Empty(Of("var xs => list of number = [];\n"));
+    }
+
     [Fact(DisplayName = "an empty-list element is pinned by a determined sibling")]
     public void AnEmptyListElementIsPinnedByADeterminedSibling()
     {

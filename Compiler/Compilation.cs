@@ -747,10 +747,23 @@ internal sealed class Compilation
             return null;
         }
 
-        return actual is not null && Sort.Unify(expected, actual) is false && Sort.Render(actual) is { } rendered
-            ? new TypeMismatch(at, rendered, spelling)
-            : null;
+        return actual is null ? null : Disagreeing(at, expected, actual, spelling);
     }
+
+    /// <summary>
+    ///     The finding a value of sort <paramref name="actual"/> disagrees with the sort
+    ///     <paramref name="expected"/> of it, or none where they unify. A determined actual
+    ///     that does not is a <see cref="TypeMismatch"/> naming both. An actual unification
+    ///     leaves NOT GROUND — «nothing» that no «optional» pinned, «[]» that no «list» did —
+    ///     has no spelling to name, so it is the <see cref="NotGround"/> finding rather than
+    ///     the silence an unnameable mismatch used to be. A ground actual with no spelling is
+    ///     still left, its one-directional slice its own.
+    /// </summary>
+    private Finding Disagreeing(Span at, Sort expected, Sort actual, string spelling)
+        => Sort.Unify(expected, actual) ? null
+         : Sort.Render(actual) is { } rendered && spelling is not null ? new TypeMismatch(at, rendered, spelling)
+         : Sort.Ground(actual) is null ? new NotGround(at)
+         : null;
 
     /// <summary>
     ///     The sort a resolved value node carries: a name's from the <paramref name="sorts"/>
@@ -761,19 +774,22 @@ internal sealed class Compilation
     /// </summary>
     private Sort Inferred(Node node, IReadOnlyDictionary<string, Sort> sorts, Declarations declared) => node switch
     {
+        Node.Name name when name.Words == SymbolTable.Absent => new Sort.Optional(variables.Fresh()),
         Node.Name name => sorts.GetValueOrDefault(name.Words),
         Node.Call call => Returned(call, declared),
         Node.Group { Kind: Node.Grouping.List, Parts.Count: > 0 } list => Listed(list, sorts, declared),
+        Node.Group { Kind: Node.Grouping.List, Parts.Count: 0 } => new Sort.List(variables.Fresh()),
         _ => Sort.Infer(node),
     };
 
     /// <summary>
     ///     The sort a non-empty list literal has — «list of T» where its elements UNIFY to
     ///     one «T», read with the names the scope makes visible. An empty-list element is a
-    ///     fresh inference variable, so a determined sibling pins it: «[[], [5]]» is a «list
-    ///     of list of number», the element that pins it possibly not the first. Null where an
-    ///     element has no sort yet, where the elements disagree, or where the answer is not
-    ///     ground — every element an empty list leaves the type undetermined, a later slice.
+    ///     fresh inference variable (the value inference mints it), so a determined sibling
+    ///     pins it: «[[], [5]]» is a «list of list of number», the element that pins it
+    ///     possibly not the first. Null where an element has no sort yet, where the elements
+    ///     disagree, or where the answer is not ground — every element an empty list leaves
+    ///     the type undetermined, a later slice.
     /// </summary>
     private Sort Listed(Node.Group list, IReadOnlyDictionary<string, Sort> sorts, Declarations declared)
     {
@@ -781,23 +797,13 @@ internal sealed class Compilation
 
         foreach (var part in list.Parts)
         {
-            if (Element(part.Value, sorts, declared) is not { } sort) return null;
+            if (Inferred(part.Value, sorts, declared) is not { } sort) return null;
             if (element is null) { element = sort; continue; }
             if (Sort.Unify(element, sort) is false) return null;
         }
 
         return Sort.Ground(new Sort.List(element));
     }
-
-    /// <summary>
-    ///     A list element's sort, minting a fresh inference variable for an empty-list
-    ///     element so a determined sibling can pin it — every other element is the value
-    ///     inference reads bottom-up.
-    /// </summary>
-    private Sort Element(Node value, IReadOnlyDictionary<string, Sort> sorts, Declarations declared)
-        => value is Node.Group { Kind: Node.Grouping.List, Parts.Count: 0 }
-            ? new Sort.List(variables.Fresh())
-            : Inferred(value, sorts, declared);
 
     /// <summary>
     ///     The sort a call answers with, when its pattern resolves to a single signature:
@@ -885,9 +891,9 @@ internal sealed class Compilation
 
         foreach (var site in sites)
         {
-            if (Inferred(site.Answer, site.Sorts, site.Declared) is { } actual && Sort.Unify(expected, actual) is false
-                && Sort.Render(actual) is { } rendered)
-                yield return new TypeMismatch(Source.Span(site.Answer.Offset, site.Answer.Length), rendered, words.Render());
+            if (Inferred(site.Answer, site.Sorts, site.Declared) is { } actual
+                && Disagreeing(Source.Span(site.Answer.Offset, site.Answer.Length), expected, actual, words.Render()) is { } finding)
+                yield return finding;
         }
     }
 
@@ -982,11 +988,9 @@ internal sealed class Compilation
                 {
                     if (parameters[slot] is { } parameter
                         && Inferred(call.Arguments[slot], sorts, declared) is { } actual
-                        && Sort.Unify(parameter, actual) is false
-                        && Sort.Render(actual) is { } rendered
-                        && Sort.Render(parameter) is { } expected)
-                        yield return new TypeMismatch(Source.Span(call.Arguments[slot].Offset, call.Arguments[slot].Length),
-                                                      rendered, expected);
+                        && Disagreeing(Source.Span(call.Arguments[slot].Offset, call.Arguments[slot].Length),
+                                       parameter, actual, Sort.Render(parameter)) is { } finding)
+                        yield return finding;
                 }
             }
         }

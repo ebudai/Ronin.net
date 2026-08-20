@@ -37,6 +37,12 @@ A type whose values map keys of one type to values of another.
 
 The arrow reads correctly for a mapping where «of» reads correctly for one parameter, which is why this and «list of (_)» are spelled differently.
 
+## nothing
+
+The absent value.
+
+See also: «optional (_)».
+
 ## number
 
 The type of numbers.

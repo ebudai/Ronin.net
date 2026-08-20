@@ -108,6 +108,9 @@ internal enum FindingKind
     /// <summary>A recursion whose every return is a call within it — itself, or a group calling only each other — so none settles on a value.</summary>
     NeverAnswers,
 
+    /// <summary>A value an inference variable leaves under-determined — «nothing», «[]» — where nothing pins its type.</summary>
+    NotGround,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -890,6 +893,19 @@ internal sealed class NeverAnswers(Span primary)
     public override string Message
         => "This return is a call that leads only back into a cycle of returns, never to a value. A recursion, " +
            "or a group of functions calling only each other, needs a base case that returns a value directly.";
+}
+
+/// <summary>
+///     A value whose type an inference variable leaves under-determined — «nothing», an
+///     «optional» of no stated inner type, or «[]», a list of none — where nothing pins it.
+/// </summary>
+internal sealed class NotGround(Span primary)
+    : Finding(FindingKind.NotGround, primary)
+{
+    public override string Message
+        => "This value's type is not determined here: «nothing» is an «optional», and «[]» a list, of a type nothing " +
+           "in this position pins. Check it against one that names the inner type — «optional number», «list of " +
+           "number» — or place it beside a value that fixes it.";
 }
 
 /// <summary>

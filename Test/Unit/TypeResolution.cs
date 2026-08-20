@@ -46,13 +46,13 @@ public class TypeResolution
     [Fact(DisplayName = "the truths are the values that denote «truth», a separate list from the supplied values")]
     public void TheTruthsAreTheValuesThatDenoteTruthASeparateListFromTheSuppliedValues()
     {
-        // «true» and «false» are the truths — the nullary value literals that denote «truth» —
-        // and today they are also the whole of the supplied values. The two are SEPARATE
-        // derivations, one by what the entry denotes and one by kind, so a third nullary value
-        // («nothing») will join the values without becoming a truth. Deriving the truths from
-        // «has no shape» — which every nullary value shares — would silently make it one.
+        // «nothing» is the third nullary value literal, and it is exactly the case the split
+        // was for: it is a supplied value — «Known» to every scope — but it is NOT a truth.
+        // The truths derive from what the entry denotes, so «nothing» stays out of them;
+        // deriving from «has no shape», which it shares with «true» and «false», would have
+        // silently made it a truth.
         Assert.Equal(["false", "true"], SymbolTable.Truths.Order());
-        Assert.Equal(["false", "true"], SymbolTable.SuppliedValues.Order());
+        Assert.Equal(["false", "nothing", "true"], SymbolTable.SuppliedValues.Order());
     }
 
     [Fact(DisplayName = "the supplied type constructors resolve, and their bare anchors do not")]
