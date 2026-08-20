@@ -133,14 +133,55 @@ internal sealed class Compilation
 
         foreach (var component in Tarjan.Components(edges, omitted.Keys))
         {
-            foreach (var key in component)
+            // A lone function infers in one pass: its own calls read no sort mid-inference,
+            // so only a base grounds it — exactly what the single pass sees, and its findings
+            // with it.
+            if (component.Count is 1)
             {
-                var check = omitted[key];
+                var check = omitted[component[0]];
                 var (sort, own, findings) = Infer(check.Function, check.Declared, Sites(check.Function));
 
                 foreach (var finding in findings) Add(finding);
 
                 if (sort is not null && own is not null) answers[own] = sort;
+            }
+
+            // Mutual recursion has no order that grounds every member in one pass — «a»'s
+            // sort waits on «b»'s and «b»'s on «a»'s — so it grounds to a fixed point. Each
+            // round infers every member against the sorts settled the round BEFORE, never
+            // one another's from the same round, so which member comes first cannot decide
+            // the outcome; a member that grounds freezes. Monotone, so it ends, and every
+            // member a base reaches through the calls grounds, whichever member holds it.
+            else
+            {
+                bool progress;
+
+                do
+                {
+                    progress = false;
+                    List<(Pattern Own, Sort Sort)> grounded = [];
+
+                    foreach (var key in component)
+                    {
+                        var check = omitted[key];
+                        var (sort, own, _) = Infer(check.Function, check.Declared, Sites(check.Function));
+
+                        if (sort is not null && answers.ContainsKey(own!) is false) grounded.Add((own!, sort));
+                    }
+
+                    foreach (var (own, sort) in grounded) { answers[own] = sort; progress = true; }
+                }
+                while (progress);
+
+                // The findings once the sorts have settled, so a disagreement a call reveals
+                // is not missed for having inferred the member before the callee it calls.
+                foreach (var key in component)
+                {
+                    var check = omitted[key];
+                    var (_, _, findings) = Infer(check.Function, check.Declared, Sites(check.Function));
+
+                    foreach (var finding in findings) Add(finding);
+                }
             }
 
             // A recursive component whose every return is a call within it — a function

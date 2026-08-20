@@ -470,6 +470,36 @@ public class TypeAnnotations
              + "function c (z => number) => number { return z; }\nvar w => text = b 5;\n"))).Value);
     }
 
+    [Fact(DisplayName = "mutual recursion infers to a fixed point, whichever member holds the base")]
+    public void MutualRecursionInfersToAFixedPointWhicheverMemberHoldsTheBase()
+    {
+        // «b» has no base of its own; it takes «number» from «a», and does so whether «a»
+        // is declared before it or after. One pass would ground «b» only when «a» is
+        // visited first; the fixpoint grounds through the base wherever it sits, not
+        // through the order the members happen to fall in.
+        foreach (var source in new[]
+        {
+            "function a (x => number) { if x <= 0 { return 1; } return b x; }\nfunction b (y => number) { return a y; }\nvar z => text = b 5;\n",
+            "function b (y => number) { return a y; }\nfunction a (x => number) { if x <= 0 { return 1; } return b x; }\nvar z => text = b 5;\n",
+        })
+            Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(Of(source))).Value);
+
+        // A base two calls away still reaches: «c» returns «a», «b» returns «c», «a» holds
+        // the base — all three infer «number», the base declared last of the three.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function c (p => number) { return a p; }\nfunction b (q => number) { return c q; }\n"
+             + "function a (x => number) { if x <= 0 { return 1; } return b x; }\nvar z => text = c 5;\n"))).Value);
+
+        // Contradictory mutual recursion — «even» grounds a number, «odd» a text, each also
+        // returning the other — terminates all the same, the fixpoint being monotone, and
+        // reports that each member's returns disagree rather than looping to find out.
+        var divergent = Of("function even (n => number) { if n <= 0 { return 5; } return odd n; }\n"
+                         + "function odd (m => number) { if m <= 0 { return \"hi\"; } return even m; }\n");
+
+        Assert.Equal(2, divergent.Count);
+        Assert.All(divergent, finding => Assert.IsType<DivergentReturns>(finding));
+    }
+
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
     public void ANestedAggregateLiteralIsCheckedToItsLeaves()
     {
