@@ -109,25 +109,38 @@ internal sealed class Compilation
 
         Declarations = Scope(statements, enclosing: null);
 
-        // The Infer phase. Every function with no written return type infers it from its
-        // body, between gather and check, so an inferred sort is settled before the Check
-        // phase reads a call to it. Inference runs against the WRITTEN return sorts only —
-        // «answers» is filled after the loop, not during — so what each function infers does
-        // not depend on the order they are visited in; a function whose answer is a call to
-        // another inferred one reads no sort for it and is left for the ordering slice.
-        List<(Pattern Own, Sort Sort)> settled = [];
+        // The Infer phase, in dependency order. Every function with no written return type
+        // infers it from its body, between gather and check, so an inferred sort is settled
+        // before the Check phase reads a call to it — and before a function that CALLS it
+        // infers its own. The order is Tarjan's condensation of the call graph: a function
+        // is inferred after the ones its returns call, so a chain drains, and a recursive
+        // group is one component (its within-group calls left, base-case-first, to the
+        // ones that ground independently).
+        var omitted = new Dictionary<string, Checking>();
 
         foreach (var check in checks)
-            if (check.Function is not null)
+            if (check.Function is { Returns: not Grammar.Type.Unresolved })
+                omitted[Key(check.Function.Identifier.Span(Source))] = check;
+
+        var edges = omitted.Keys.ToDictionary(key => key, _ => new HashSet<string>());
+
+        foreach (var (key, check) in omitted)
+            foreach (var site in Sites(check.Function))
+                if (site.Answer is Node.Call call
+                    && site.Declared.Overloads.GetValueOrDefault(call.Pattern) is [{ Span: var span }]
+                    && omitted.ContainsKey(Key(span)))
+                    edges[key].Add(Key(span));
+
+        foreach (var component in Tarjan.Components(edges, omitted.Keys))
+            foreach (var key in component)
             {
+                var check = omitted[key];
                 var (sort, own, findings) = Infer(check.Function, check.Declared, Sites(check.Function));
 
                 foreach (var finding in findings) Add(finding);
 
-                if (sort is not null && own is not null) settled.Add((own, sort));
+                if (sort is not null && own is not null) answers[own] = sort;
             }
-
-        foreach (var (own, sort) in settled) answers[own] = sort;
 
         // The Check phase. Every scope has gathered by now, so the checks read a complete
         // picture — with the Infer phase's results in place above.
@@ -706,6 +719,9 @@ internal sealed class Compilation
         => declared.Overloads.GetValueOrDefault(call.Pattern) is [{ ReturnSort: { } sort }] ? sort
          : answers.GetValueOrDefault(call.Pattern);
 
+    /// <summary>A function's node identity in the inference call graph — the offset it is declared at, which is unique.</summary>
+    private static string Key(Span span) => span.Offset.ToString();
+
     /// <summary>
     ///     The sort each named value declared directly in these statements holds, keyed by
     ///     the name it is declared under — so a value that names another reads against what
@@ -798,12 +814,11 @@ internal sealed class Compilation
     {
         List<Finding> findings = [];
 
-        if (function.Returns is Grammar.Type.Unresolved) return (null, null, findings);
-
         // The answer is what the returns agree on, and finding that they do not is the
         // whole of the check. A site whose sort is not inferred yet, or has no spelling, is
         // left out of the agreement rather than allowed to break it — and a divergence
-        // leaves no one sort to store, so none is.
+        // leaves no one sort to store, so none is. Only omitted-return functions reach here;
+        // the Infer phase gathers exactly those.
         Sort inferred = null;
         string first = null;
         var divergent = false;

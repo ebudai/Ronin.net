@@ -404,9 +404,11 @@ public class TypeAnnotations
         Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
             Of("function m (a => number) { return a; return a; }\nvar y => text = m 5;\n"))).Value);
 
-        // A function whose only answer is a call to another inferred one is a chain — left
-        // for the ordering slice, so its own call reads no sort yet.
-        Assert.Empty(Of("function g (x => number) { return x; }\nfunction f (z => number) { return g z; }\nvar y => text = f 5;\n"));
+        // A function whose only answer is a call to another inferred one is a chain,
+        // drained in dependency order — «g» inferred, then «f» reads it, though «f» is
+        // declared first (see the ordering test).
+        Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (z => number) { return g z; }\nfunction g (x => number) { return x; }\nvar y => text = f 5;\n")));
 
         // A divergent function settles on no sort, so its call reads none — only the
         // divergence is a finding.
@@ -434,6 +436,26 @@ public class TypeAnnotations
         Assert.IsType<DivergentReturns>(Assert.Single(Of("function e { if c { return \"text\"; } return 5; }\n")));
         Assert.All(Of("function loop (x) { if c { return loop (x); } return loop (x); }\n"),
                    finding => Assert.IsType<NeverAnswers>(finding));
+    }
+
+    [Fact(DisplayName = "the inference order drains chains and groups recursion")]
+    public void TheInferenceOrderDrainsChainsAndGroupsRecursion()
+    {
+        // A chain of inferred functions drains in dependency order — «h» inferred before
+        // «g» before «f» — even though they are DECLARED «f», «g», «h», the reverse. So
+        // «f» settles «number» and «f 5» is checked, which plain declaration order could
+        // not do.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (w => number) { return g w; }\nfunction g (z => number) { return h z; }\n"
+             + "function h (x => number) { return x; }\nvar y => text = f 5;\n"))).Value);
+
+        // A chain onto a written-return function drains too.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function w (x => number) => number { return x; }\nfunction f (z => number) { return w z; }\nvar y => text = f 5;\n"))).Value);
+
+        // Mutual recursion with no base — «a» and «b» call only each other — is one
+        // component that grounds nowhere, so neither is inferred; a call to it reads no sort.
+        Assert.Empty(Of("function a (x => number) { return b x; }\nfunction b (y => number) { return a y; }\nvar z => text = a 5;\n"));
     }
 
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]

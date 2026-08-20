@@ -106,7 +106,7 @@ internal static class Cascades
 
         List<IReadOnlyList<string>> rings = [];
 
-        foreach (var component in Components(edges, whens.Keys))
+        foreach (var component in Tarjan.Components(edges, whens.Keys))
         {
             // One member is a component whether or not it is in a ring, so the
             // self-edge is what separates «writes what it reads» from «writes
@@ -172,88 +172,6 @@ internal static class Cascades
         // the mutable list built here — a published result is published all the
         // way down.
         return ring.AsReadOnly();
-    }
-
-    /// <summary>
-    ///     The strongly connected components, by Tarjan, deterministically
-    ///     ordered.
-    /// </summary>
-    /// <remarks>
-    ///     Iterative, because the depth here is the program's rather than this
-    ///     algorithm's: a chain of a thousand whens each writing what the next
-    ///     reads is a thousand stack frames, and a long enough one ends the
-    ///     process with a StackOverflowException — which cannot be caught, so it
-    ///     is the one failure a diagnostic pass cannot report.
-    ///
-    ///     The frame carries the neighbours already walked, which is what
-    ///     recursion was keeping in the loop variable, and each node is visited
-    ///     twice: once to descend, once to fold the child's low link back.
-    /// </remarks>
-    private static List<List<string>> Components(Dictionary<string, HashSet<string>> edges,
-                                                 IEnumerable<string> nodes)
-    {
-        Dictionary<string, int> index = [];
-        Dictionary<string, int> low = [];
-        HashSet<string> stacked = [];
-        Stack<string> component = new();
-        Stack<(string Node, IEnumerator<string> Neighbours)> walking = new();
-        List<List<string>> components = [];
-        var counter = 0;
-
-        foreach (var start in nodes.Order(StringComparer.Ordinal))
-        {
-            if (index.ContainsKey(start)) continue;
-
-            Open(start);
-
-            while (walking.Count is not 0)
-            {
-                var (node, neighbours) = walking.Peek();
-
-                if (neighbours.MoveNext())
-                {
-                    var next = neighbours.Current;
-
-                    // an edge into a component already closed says nothing about
-                    // this one, which is the case a back-edge walk conflates
-                    if (index.ContainsKey(next) is false) Open(next);
-                    else if (stacked.Contains(next)) low[node] = Math.Min(low[node], index[next]);
-
-                    continue;
-                }
-
-                walking.Pop();
-
-                // fold this node's low link into its parent's, which is what the
-                // return from the recursive call used to do
-                if (walking.Count is not 0) low[walking.Peek().Node] = Math.Min(low[walking.Peek().Node], low[node]);
-
-                if (low[node] != index[node]) continue;
-
-                List<string> closed = [];
-                string member;
-
-                do
-                {
-                    member = component.Pop();
-                    stacked.Remove(member);
-                    closed.Add(member);
-                }
-                while (member != node);
-
-                components.Add(closed);
-            }
-        }
-
-        return components;
-
-        void Open(string node)
-        {
-            index[node] = low[node] = counter++;
-            component.Push(node);
-            stacked.Add(node);
-            walking.Push((node, edges[node].Order(StringComparer.Ordinal).GetEnumerator()));
-        }
     }
 
     /// <summary>
