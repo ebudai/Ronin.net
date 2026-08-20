@@ -747,7 +747,7 @@ internal sealed class Compilation
             return null;
         }
 
-        return actual is not null && expected.Equals(actual) is false && Sort.Render(actual) is { } rendered
+        return actual is not null && Sort.Unify(expected, actual) is false && Sort.Render(actual) is { } rendered
             ? new TypeMismatch(at, rendered, spelling)
             : null;
     }
@@ -885,7 +885,7 @@ internal sealed class Compilation
 
         foreach (var site in sites)
         {
-            if (Inferred(site.Answer, site.Sorts, site.Declared) is { } actual && expected.Equals(actual) is false
+            if (Inferred(site.Answer, site.Sorts, site.Declared) is { } actual && Sort.Unify(expected, actual) is false
                 && Sort.Render(actual) is { } rendered)
                 yield return new TypeMismatch(Source.Span(site.Answer.Offset, site.Answer.Length), rendered, words.Render());
         }
@@ -982,7 +982,7 @@ internal sealed class Compilation
                 {
                     if (parameters[slot] is { } parameter
                         && Inferred(call.Arguments[slot], sorts, declared) is { } actual
-                        && parameter.Equals(actual) is false
+                        && Sort.Unify(parameter, actual) is false
                         && Sort.Render(actual) is { } rendered
                         && Sort.Render(parameter) is { } expected)
                         yield return new TypeMismatch(Source.Span(call.Arguments[slot].Offset, call.Arguments[slot].Length),
