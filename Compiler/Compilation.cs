@@ -114,8 +114,8 @@ internal sealed class Compilation
         // before the Check phase reads a call to it — and before a function that CALLS it
         // infers its own. The order is Tarjan's condensation of the call graph: a function
         // is inferred after the ones its returns call, so a chain drains, and a recursive
-        // group is one component (its within-group calls left, base-case-first, to the
-        // ones that ground independently).
+        // group is one component — grounding through whichever member has a base, or, every
+        // return a call within the group, answering nowhere.
         var omitted = new Dictionary<string, Checking>();
 
         foreach (var check in checks)
@@ -132,6 +132,7 @@ internal sealed class Compilation
                     edges[key].Add(Key(span));
 
         foreach (var component in Tarjan.Components(edges, omitted.Keys))
+        {
             foreach (var key in component)
             {
                 var check = omitted[key];
@@ -141,6 +142,22 @@ internal sealed class Compilation
 
                 if (sort is not null && own is not null) answers[own] = sort;
             }
+
+            // A recursive component whose every return is a call within it — a function
+            // calling only itself, a set calling only each other — reaches no value, so none
+            // of its members ever answers. A recursion is a component that is cyclic: more
+            // than one member, or one with an edge to itself. Only when EVERY return is a
+            // within-group call, though: a return that might yet ground the group — a value,
+            // a call out of it, an operation — leaves it for a later slice, not refused.
+            if ((component.Count > 1 || edges[component[0]].Contains(component[0]))
+                && component.All(member => Sites(omitted[member].Function).All(site =>
+                       site.Answer is Node.Call call
+                       && site.Declared.Overloads.GetValueOrDefault(call.Pattern) is [{ Span: var span }]
+                       && component.Contains(Key(span)))))
+                foreach (var key in component)
+                    foreach (var site in Sites(omitted[key].Function))
+                        Add(new NeverAnswers(Source.Span(site.Answer.Offset, site.Answer.Length)));
+        }
 
         // The Check phase. Every scope has gathered by now, so the checks read a complete
         // picture — with the Infer phase's results in place above.
@@ -802,12 +819,14 @@ internal sealed class Compilation
 
     /// <summary>
     ///     What a function with no written return type infers from its return sites, which
-    ///     is the same walk as the findings that inference is: the sites must agree
-    ///     (<see cref="DivergentReturns"/> where they do not), and at least one must ground
-    ///     the answer in a value rather than a call back to the function
-    ///     (<see cref="NeverAnswers"/> where every return is such a call). Runs in the
-    ///     Infer phase, before a call reads the sort. This slice reports; storing the sort
-    ///     it infers, so a call to the function is checked against it, is the next.
+    ///     is the same walk as the finding that inference is: the sites must agree
+    ///     (<see cref="DivergentReturns"/> where they do not). A site with no sort yet, or
+    ///     none that renders, is left out rather than allowed to break the agreement — so a
+    ///     function whose returns are all calls back into its own recursive group infers
+    ///     nothing here, and the caller, which alone can see the whole group, is where a
+    ///     group that grounds nowhere becomes a <see cref="NeverAnswers"/>. Runs in the Infer
+    ///     phase, before a call reads the sort; the sort it grounds is stored so calls to
+    ///     the function check against it.
     /// </summary>
     private (Sort Inferred, Pattern Own, IReadOnlyList<Finding> Findings) Infer(
         Grammar.Function function, Declarations declared, IReadOnlyList<Site> sites)
@@ -846,19 +865,6 @@ internal sealed class Compilation
             foreach (var (pattern, signatures) in declared.Overloads)
                 foreach (var signature in signatures)
                     if (signature.Span == here) own = pattern;
-
-            // Unground: every return is a call back to this function, so its answer is never
-            // a value — only another call, a recursion with no base case that answers
-            // directly. Only when EVERY return is such a call: one that might yet ground it
-            // — a value, a call elsewhere, an operation — is left to a later slice, not
-            // refused. An unground function settles on no sort, so none is stored.
-            if (sites.All(site => site.Answer is Node.Call call && call.Pattern.Equals(own)))
-            {
-                foreach (var site in sites)
-                    findings.Add(new NeverAnswers(Source.Span(site.Answer.Offset, site.Answer.Length)));
-
-                return (null, own, findings);
-            }
         }
 
         return (divergent ? null : inferred, own, findings);

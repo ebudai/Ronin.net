@@ -105,7 +105,7 @@ internal enum FindingKind
     /// <summary>Two of a function's returns give different types, with no written return type to choose between them.</summary>
     DivergentReturns,
 
-    /// <summary>A function whose every return is a call to itself, so its answer never settles on a value.</summary>
+    /// <summary>A recursion whose every return is a call within it — itself, or a group calling only each other — so none settles on a value.</summary>
     NeverAnswers,
 
 }
@@ -880,15 +880,16 @@ internal sealed class DivergentReturns(Span primary, string value, string establ
 }
 
 /// <summary>
-///     A function whose every return is a call to itself: its answer depends only on that
-///     call, never settling on a value, so no return type could be taken from it.
+///     A recursion whose every return is a call within it — a function calling only itself,
+///     or a set calling only each other — so its answer depends only on those calls, never
+///     settling on a value, and no return type could be taken from it.
 /// </summary>
 internal sealed class NeverAnswers(Span primary)
     : Finding(FindingKind.NeverAnswers, primary)
 {
     public override string Message
-        => "Every one of this function's returns is a call to the function itself, so its answer is never a " +
-           "value — only another call. A recursion needs a return that answers without calling back.";
+        => "This return is a call that leads only back into a cycle of returns, never to a value. A recursion, " +
+           "or a group of functions calling only each other, needs a base case that returns a value directly.";
 }
 
 /// <summary>

@@ -264,7 +264,7 @@ public class Findings
 
             Player.ron:1:31: This return is a «text», and an earlier return is a «number». A function with no written return type takes it from its returns, so they must agree — make them one type, or write it.
 
-            Player.ron:1:28: Every one of this function's returns is a call to the function itself, so its answer is never a value — only another call. A recursion needs a return that answers without calling back.
+            Player.ron:1:28: This return is a call that leads only back into a cycle of returns, never to a value. A recursion, or a group of functions calling only each other, needs a base case that returns a value directly.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

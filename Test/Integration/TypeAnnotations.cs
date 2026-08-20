@@ -454,8 +454,20 @@ public class TypeAnnotations
             Of("function w (x => number) => number { return x; }\nfunction f (z => number) { return w z; }\nvar y => text = f 5;\n"))).Value);
 
         // Mutual recursion with no base — «a» and «b» call only each other — is one
-        // component that grounds nowhere, so neither is inferred; a call to it reads no sort.
-        Assert.Empty(Of("function a (x => number) { return b x; }\nfunction b (y => number) { return a y; }\nvar z => text = a 5;\n"));
+        // component that grounds nowhere, so every return in it never answers, one finding
+        // each. That «a» calls «b» and «b» calls «a», neither itself, is why the group and
+        // not the single function is the unit: the per-function check would see no self-call.
+        var group = Of("function a (x => number) { return b x; }\nfunction b (y => number) { return a y; }\n");
+
+        Assert.Equal(2, group.Count);
+        Assert.All(group, finding => Assert.IsType<NeverAnswers>(finding));
+
+        // A member returning out of the group is the group's base: «a» also returns «c»'s
+        // call, «c» outside the cycle, so the group is NOT refused — «a» grounds through
+        // «c», «b» through «a», and «b 5» against «text» is the one finding left.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function a (x => number) { return c x; return b x; }\nfunction b (y => number) { return a y; }\n"
+             + "function c (z => number) => number { return z; }\nvar w => text = b 5;\n"))).Value);
     }
 
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
