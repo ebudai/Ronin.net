@@ -500,6 +500,25 @@ public class TypeAnnotations
         Assert.All(divergent, finding => Assert.IsType<DivergentReturns>(finding));
     }
 
+    [Fact(DisplayName = "a list literal infers its element type, or none where the elements disagree")]
+    public void AListLiteralInfersItsElementTypeOrNoneWhereTheElementsDisagree()
+    {
+        // A homogeneous list literal infers «list of T», the element read from the values —
+        // so a function returning one infers «list of number», and «f 7» read against «text»
+        // is the finding that shows it.
+        Assert.Equal("list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (n => number) { return [5, 6]; }\nvar y => text = f 7;\n"))).Value);
+
+        // Mixed element types have no one element sort, so the list has none and the
+        // function stays uninferred — naming both positions is a later slice — and a call to
+        // it is left unchecked.
+        Assert.Empty(Of("function f (n => number) { return [5, \"text\"]; }\nvar y => text = f 7;\n"));
+
+        // An element with no sort yet — here a nested empty list, whose element is the later
+        // slice's fresh variable — leaves the list around it unsorted too.
+        Assert.Empty(Of("function f (n => number) { return [[]]; }\nvar y => text = f 7;\n"));
+    }
+
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
     public void ANestedAggregateLiteralIsCheckedToItsLeaves()
     {

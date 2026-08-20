@@ -219,10 +219,13 @@ public class Editing
         // actions with distinct edits, each applying to a clean file — where
         // bracketing every subtree, and grouping a list's element the comparison
         // then left bare, offered none.
-        const string Text = "function send (x => number) { return x; }\n"
-                          + "function send (x => number) to (y => number) { return x; }\n"
-                          + "function print (x => number) { return x; }\n"
-                          + "function print (x => number) to (y => number) { return x; }\n"
+        // «list of number» parameters, so «[a]» is the type its parameter wants: this is
+        // the list-through-the-editor case, and a list passed to a «number» parameter is now
+        // the argument mismatch it should be — orthogonal to the grouping being repaired.
+        const string Text = "function send (x => list of number) { return x; }\n"
+                          + "function send (x => list of number) to (y => number) { return x; }\n"
+                          + "function print (x => list of number) { return x; }\n"
+                          + "function print (x => list of number) to (y => number) { return x; }\n"
                           + "var a => number;\nvar b => number;\nvar result = print send [a] to b;\n";
 
         var actions = Language.Actions(Source(Text), new Extent(new Place(6, 13), new Place(6, 30)));

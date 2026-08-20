@@ -507,10 +507,13 @@ public class Ambiguities
         // reading containing a list got no repair at all. The walk obeys the same
         // contract as the strip now: a collection is opaque, repaired around and
         // never inside.
-        const string Source = "function send (x => number) { return x; }\n"
-                            + "function send (x => number) to (y => number) { return x; }\n"
-                            + "function print (x => number) { return x; }\n"
-                            + "function print (x => number) to (y => number) { return x; }\n"
+        // The functions take «list of number» so «[a]» is the type its parameter wants:
+        // this test is about repairing AROUND the list, and a list passed to a «number»
+        // parameter is now the argument mismatch it should be — orthogonal to the grouping.
+        const string Source = "function send (x => list of number) { return x; }\n"
+                            + "function send (x => list of number) to (y => number) { return x; }\n"
+                            + "function print (x => list of number) { return x; }\n"
+                            + "function print (x => list of number) to (y => number) { return x; }\n"
                             + "var a => number;\nvar b => number;\nvar result = print send [a] to b;\n";
 
         var finding = Assert.IsType<Ambiguous>(Assert.Single(All(Source)));

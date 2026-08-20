@@ -763,8 +763,31 @@ internal sealed class Compilation
     {
         Node.Name name => sorts.GetValueOrDefault(name.Words),
         Node.Call call => Returned(call, declared),
+        Node.Group { Kind: Node.Grouping.List, Parts.Count: > 0 } list => Listed(list, sorts, declared),
         _ => Sort.Infer(node),
     };
+
+    /// <summary>
+    ///     The sort a non-empty list literal has — «list of T» where its elements all infer
+    ///     to one «T», read with the names the scope makes visible. Null where an element
+    ///     has no sort yet, or where the elements disagree: a list of mixed types has no one
+    ///     element sort, and naming both positions there is a later slice — as is the empty
+    ///     list, whose element is a fresh inference variable.
+    /// </summary>
+    private Sort Listed(Node.Group list, IReadOnlyDictionary<string, Sort> sorts, Declarations declared)
+    {
+        Sort element = null;
+
+        foreach (var part in list.Parts)
+        {
+            if (Inferred(part.Value, sorts, declared) is not { } sort) return null;
+            if (element is not null && element.Equals(sort) is false) return null;
+
+            element = sort;
+        }
+
+        return new Sort.List(element);
+    }
 
     /// <summary>
     ///     The sort a call answers with, when its pattern resolves to a single signature:
