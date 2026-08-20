@@ -768,11 +768,12 @@ internal sealed class Compilation
     };
 
     /// <summary>
-    ///     The sort a non-empty list literal has — «list of T» where its elements all infer
-    ///     to one «T», read with the names the scope makes visible. Null where an element
-    ///     has no sort yet, or where the elements disagree: a list of mixed types has no one
-    ///     element sort, and naming both positions there is a later slice — as is the empty
-    ///     list, whose element is a fresh inference variable.
+    ///     The sort a non-empty list literal has — «list of T» where its elements UNIFY to
+    ///     one «T», read with the names the scope makes visible. An empty-list element is a
+    ///     fresh inference variable, so a determined sibling pins it: «[[], [5]]» is a «list
+    ///     of list of number», the element that pins it possibly not the first. Null where an
+    ///     element has no sort yet, where the elements disagree, or where the answer is not
+    ///     ground — every element an empty list leaves the type undetermined, a later slice.
     /// </summary>
     private Sort Listed(Node.Group list, IReadOnlyDictionary<string, Sort> sorts, Declarations declared)
     {
@@ -780,14 +781,23 @@ internal sealed class Compilation
 
         foreach (var part in list.Parts)
         {
-            if (Inferred(part.Value, sorts, declared) is not { } sort) return null;
-            if (element is not null && element.Equals(sort) is false) return null;
-
-            element = sort;
+            if (Element(part.Value, sorts, declared) is not { } sort) return null;
+            if (element is null) { element = sort; continue; }
+            if (Sort.Unify(element, sort) is false) return null;
         }
 
-        return new Sort.List(element);
+        return Sort.Ground(new Sort.List(element));
     }
+
+    /// <summary>
+    ///     A list element's sort, minting a fresh inference variable for an empty-list
+    ///     element so a determined sibling can pin it — every other element is the value
+    ///     inference reads bottom-up.
+    /// </summary>
+    private Sort Element(Node value, IReadOnlyDictionary<string, Sort> sorts, Declarations declared)
+        => value is Node.Group { Kind: Node.Grouping.List, Parts.Count: 0 }
+            ? new Sort.List(variables.Fresh())
+            : Inferred(value, sorts, declared);
 
     /// <summary>
     ///     The sort a call answers with, when its pattern resolves to a single signature:
@@ -1758,4 +1768,11 @@ internal sealed class Compilation
     ///     survives untouched and the choice is made with the graph, not against a copy.
     /// </remarks>
     private readonly Dictionary<Pattern, Sort> answers = [];
+
+    /// <summary>
+    ///     The inference variables this compilation mints — one supply, so no two are the
+    ///     same. Empty-list elements draw from it to be pinned by a sibling; the variable
+    ///     never leaves the sort it is read out of (<see cref="Sort.Ground"/>).
+    /// </summary>
+    private readonly Sort.Variable.Supply variables = new();
 }

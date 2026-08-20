@@ -514,9 +514,29 @@ public class TypeAnnotations
         // it is left unchecked.
         Assert.Empty(Of("function f (n => number) { return [5, \"text\"]; }\nvar y => text = f 7;\n"));
 
-        // An element with no sort yet — here a nested empty list, whose element is the later
-        // slice's fresh variable — leaves the list around it unsorted too.
+        // An element with no sort yet — here a nested empty list, unpinned and so no ground
+        // sort — leaves the list around it unsorted too.
         Assert.Empty(Of("function f (n => number) { return [[]]; }\nvar y => text = f 7;\n"));
+    }
+
+    [Fact(DisplayName = "an empty-list element is pinned by a determined sibling")]
+    public void AnEmptyListElementIsPinnedByADeterminedSibling()
+    {
+        // «[[], [n]]» has an empty list and a «list of number» for its two elements. The
+        // empty one is a fresh inference variable the sibling pins, so the whole is a «list
+        // of list of number» — and the same whichever element the pinning one is.
+        Assert.Equal("list of list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (n => number) { return [[], [n]]; }\nvar y => text = f 7;\n"))).Value);
+        Assert.Equal("list of list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (n => number) { return [[n], []]; }\nvar y => text = f 7;\n"))).Value);
+
+        // Every element an empty list leaves the element type unpinned — no ground answer —
+        // so the function stays uninferred, its variable read out to nothing.
+        Assert.Empty(Of("function f (n => number) { return [[], []]; }\nvar y => text = f 7;\n"));
+
+        // An element with no sort at all — here an operation — leaves the list unsorted, the
+        // empty-list pinning notwithstanding.
+        Assert.Empty(Of("function f (a => number, b => number) { return [a + b]; }\nvar y => text = f 1 2;\n"));
     }
 
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]
