@@ -167,6 +167,60 @@ internal abstract class Sort
     };
 
     /// <summary>
+    ///     Unifies two sorts, binding an inference variable to whatever it meets. Unification
+    ///     IS equality — there being no subtyping — with the one addition that an unbound
+    ///     <see cref="Variable"/> unifies with anything by binding to it, which is how «[]»
+    ///     and «nothing» take an element type from the sites that pin them. Structural where
+    ///     both are the same shape, so «list of (var)» unifies with «list of number» by
+    ///     binding the variable inside. False where two determined sorts are not the same
+    ///     type — the whole of the disagreement.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Binds by MUTATION — a variable owns its binding as it owns its requirements — and
+    ///     follows the bindings already made before matching, so a variable pinned to
+    ///     «number» then met with «text» resolves to «number» and the two disagree. No occurs
+    ///     check: the variables this pass mints are fresh leaves inside «[]»/«nothing», never
+    ///     a shape holding themselves, so the recursion cannot close on one (MONOMORPHANDRETURN
+    ///     §2). <see cref="Ground"/> reads the binding out into a variable-free sort before it
+    ///     is stored, so neither the binding nor the variable outlives the run.
+    /// </remarks>
+    internal static bool Unify(Sort left, Sort right)
+    {
+        left = Resolve(left);
+        right = Resolve(right);
+
+        if (ReferenceEquals(left, right)) return true;
+        if (left is Variable bound) { bound.Bound = right; return true; }
+        if (right is Variable other) { other.Bound = left; return true; }
+
+        return (left, right) switch
+        {
+            (List a, List b) => Unify(a.Element, b.Element),
+            (Optional a, Optional b) => Unify(a.Inner, b.Inner),
+            _ => left.Equals(right),
+        };
+    }
+
+    /// <summary>An inference variable followed to its binding, however many deep; any other sort is itself.</summary>
+    private static Sort Resolve(Sort sort) => sort is Variable { Bound: { } bound } ? Resolve(bound) : sort;
+
+    /// <summary>
+    ///     A sort with every bound inference variable read out into the type it was pinned
+    ///     to, or null where one is still unbound — an answer no site determined, which is no
+    ///     answer (MIDSESSIONDESIGN §6). The inference stores this ground result, never the
+    ///     variable-bearing shape, so a variable never outlives its run.
+    /// </summary>
+    internal static Sort Ground(Sort sort) => sort switch
+    {
+        Variable { Bound: { } bound } => Ground(bound),
+        Variable => null,
+        List list => Ground(list.Element) is { } element ? new List(element) : null,
+        Optional optional => Ground(optional.Inner) is { } inner ? new Optional(inner) : null,
+        _ => sort,
+    };
+
+    /// <summary>
     ///     The written form of a function type — «() =&gt; R», «P =&gt; R», «(P, Q) =&gt; R» —
     ///     or null where a parameter or the result has no spelling of its own.
     /// </summary>
@@ -339,6 +393,14 @@ internal abstract class Sort
         private Variable(int identity) => Identity = identity;
 
         public int Identity { get; }
+
+        /// <summary>
+        ///     The sort this variable was pinned to, null until <see cref="Sort.Unify"/> binds
+        ///     it. Owned and mutated per run, as <see cref="Requirements"/> is — and read back
+        ///     out by <see cref="Sort.Ground"/> before the run's answer is stored, so the
+        ///     binding, and the variable, never outlive the run (MIDSESSIONDESIGN §6).
+        /// </summary>
+        public Sort Bound { get; set; }
 
         public ISet<Requirement> Requirements { get; } = new HashSet<Requirement>();
 

@@ -156,6 +156,80 @@ public class Sorts
         Assert.Equal(inference.GetHashCode(), inference.GetHashCode());
     }
 
+    [Fact(DisplayName = "unification binds a variable to whatever it meets, structurally")]
+    public void UnificationBindsAVariableToWhateverItMeetsStructurally()
+    {
+        Sort number = new Sort.Scalar("number");
+        Sort text = new Sort.Scalar("text");
+
+        var supply = new Sort.Variable.Supply();
+
+        // A bare variable binds to a concrete sort, from either side, and grounds to it.
+        var left = supply.Fresh();
+        Assert.True(Sort.Unify(left, number));
+        Assert.Equal(number, Sort.Ground(left));
+
+        var right = supply.Fresh();
+        Assert.True(Sort.Unify(number, right));
+        Assert.Equal(number, Sort.Ground(right));
+
+        // A variable unifies with itself without binding to itself — no infinite follow.
+        var self = supply.Fresh();
+        Assert.True(Sort.Unify(self, self));
+        Assert.Null(Sort.Ground(self));
+
+        // Two variables unify by binding one to the other.
+        Assert.True(Sort.Unify(supply.Fresh(), supply.Fresh()));
+
+        // Structural: the variable inside «list of (var)», then «optional (var)», binds.
+        var element = supply.Fresh();
+        Assert.True(Sort.Unify(new Sort.List(element), new Sort.List(number)));
+        Assert.Equal(new Sort.List(number), Sort.Ground(new Sort.List(element)));
+
+        var inner = supply.Fresh();
+        Assert.True(Sort.Unify(new Sort.Optional(inner), new Sort.Optional(number)));
+        Assert.Equal(new Sort.Optional(number), Sort.Ground(new Sort.Optional(inner)));
+
+        // Two determined sorts unify only when equal — a kind mismatch is no unification.
+        Assert.True(Sort.Unify(number, number));
+        Assert.False(Sort.Unify(number, text));
+        Assert.False(Sort.Unify(new Sort.List(number), number));
+
+        // A variable already pinned resolves first, so pinning it to a second type disagrees.
+        var pinned = supply.Fresh();
+        Assert.True(Sort.Unify(pinned, number));
+        Assert.False(Sort.Unify(pinned, text));
+    }
+
+    [Fact(DisplayName = "grounding reads a variable out, or is null while one is unbound")]
+    public void GroundingReadsAVariableOutOrIsNullWhileOneIsUnbound()
+    {
+        Sort number = new Sort.Scalar("number");
+
+        var supply = new Sort.Variable.Supply();
+
+        // A determined sort is itself.
+        Assert.Equal(number, Sort.Ground(number));
+
+        // An unbound variable, and any shape still holding one, is no ground sort.
+        Assert.Null(Sort.Ground(supply.Fresh()));
+        Assert.Null(Sort.Ground(new Sort.List(supply.Fresh())));
+        Assert.Null(Sort.Ground(new Sort.Optional(supply.Fresh())));
+
+        // A bound one reads out, at the leaf and nested inside a list and an optional.
+        var leaf = supply.Fresh();
+        Sort.Unify(leaf, number);
+        Assert.Equal(number, Sort.Ground(leaf));
+
+        var listed = supply.Fresh();
+        Sort.Unify(listed, number);
+        Assert.Equal(new Sort.List(number), Sort.Ground(new Sort.List(listed)));
+
+        var optioned = supply.Fresh();
+        Sort.Unify(optioned, number);
+        Assert.Equal(new Sort.Optional(number), Sort.Ground(new Sort.Optional(optioned)));
+    }
+
     [Fact(DisplayName = "the compilation keeps each resolved annotation's sort, and no arity-wrong one")]
     public void TheCompilationKeepsEachResolvedAnnotationsSort()
     {
