@@ -1,6 +1,7 @@
 # The `nothing` spelling — the case its sort ruling assumes, and the grammar never cut
 
 > **Ledger** — `[R]` The inference-variable slice reached `nothing`, and it has no source spelling: `Optional(Variable)` has nothing to attach to. The sort is ruled (`CHECKERSCOPINGRULINGS` Addition 1) and the case `var x => optional number = nothing` is written as spellable, but the spelling was raised in `NOTHING-ANALYSIS` §A and never cut. Asks whether to cut it, how, and whether the checking path should unify.
+> answered by: NOTHINGSPELLINGRULING
 > supersedes: none
 > superseded by: none
 
