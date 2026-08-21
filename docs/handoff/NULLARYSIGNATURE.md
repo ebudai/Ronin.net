@@ -1,6 +1,7 @@
 # A nullary `function f` carries no signature — where should it, and is a bare `f` a call?
 
 > **Ledger** — `[R]` A no-argument function registers as a bare value NAME, with no signature: its return type — written or inferred — is stored nowhere and read nowhere, so `REAUDIT63` finding 4's action witness, and value no-arg functions generally, cannot be checked. Asks whether a bare nullary reference is a call or the function value, and where a nullary function's signature should live.
+> answered by: NULLARYRULING
 > supersedes: none
 > superseded by: none
 
