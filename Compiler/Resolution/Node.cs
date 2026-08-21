@@ -387,11 +387,18 @@ internal abstract class Node
 
         private IReadOnlyList<Node> Flattened()
         {
+            // Whether a part is keyed is the KIND's to say, not the key field's shape — the
+            // same read «Hash», «Alike», and the constructor make. This was the one consumer
+            // re-deriving it from «part.Key is not null», exact only while the constructor
+            // forces the two to agree, and drifting the moment a keyed kind or a relaxed
+            // convention parts them. Read the declared fact.
+            var keyed = Kind is Grouping.Lookup or Grouping.Keyed;
+
             List<Node> parts = [];
 
             foreach (var part in Parts)
             {
-                if (part.Key is not null) parts.Add(part.Key);
+                if (keyed) parts.Add(part.Key);
 
                 parts.Add(part.Value);
             }
