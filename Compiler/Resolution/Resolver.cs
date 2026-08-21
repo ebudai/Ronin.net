@@ -221,7 +221,7 @@ internal sealed class Resolver
         // and nowhere else: «var x => 3» is already refused at the parser as a
         // lone anonymous value, but «list of 3» reaches here, and offering the
         // literal would make it a type nothing checks. The kind is what says so.
-        if (kind is SymbolKind.Value && j - i is 1 && lexemes[i].Kind is LexemeKind.Number)
+        if (kind is SymbolKind.Value && j - i is 1 && lexemes[i].Kind is LexemeKind.Literal)
             cell.Offer(0, new Node.Literal(lexemes[i].Text).At(Offset(lexemes, i), Length(lexemes, i, j)));
 
         if (CanName(lexemes, i, j))
@@ -1191,7 +1191,7 @@ internal sealed class Resolver
 /// </remarks>
 internal readonly record struct Best(int Cost, Node Node);
 
-internal enum LexemeKind { Word, Number, Symbol, Open, Close, Separator, Associates }
+internal enum LexemeKind { Word, Literal, Symbol, Open, Close, Separator, Associates }
 
 /// <param name="Announces">
 ///     Whether this word is a keyword that introduces a production, which is the

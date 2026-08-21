@@ -39,10 +39,10 @@ public class Adaptations : ParsingTests
     public void EveryLiteralIsAFreeAtom()
     {
         // Date and Text cost no lookup for the same reason Numeric does not, so
-        // they carry the same kind despite that kind being spelled Number.
+        // all three carry the one LexemeKind.Literal.
         var lexemes = Lexemes.Lex("42 2023-11-16 \"text\"");
 
-        Assert.Equal(new[] { LexemeKind.Number, LexemeKind.Number, LexemeKind.Number },
+        Assert.Equal(new[] { LexemeKind.Literal, LexemeKind.Literal, LexemeKind.Literal },
                      lexemes.Select(lexeme => lexeme.Kind));
         Assert.Equal(new[] { "42", "2023-11-16", "\"text\"" },
                      lexemes.Select(lexeme => lexeme.Text));

@@ -153,9 +153,11 @@ internal static class Lexemes
         Assign => LexemeKind.Associates,
 
         // Date and Text are free atoms for exactly the reason Numeric is: a literal
-        // denotes itself, so it costs no symbol table lookup. LexemeKind.Number is
-        // named for the only literal the standalone splitter can produce.
-        Literal => LexemeKind.Number,
+        // denotes itself, so it costs no symbol table lookup. The collapse to one
+        // kind is deliberate — the resolver treats every literal alike — and the
+        // kind is named for what it means, so no consumer is tempted to recover a
+        // distinction the resolver threw away on purpose.
+        Literal => LexemeKind.Literal,
 
         // Keyword derives from Word. A keyword should never reach the resolver —
         // it is what the parser used to find the statement boundary in the first
