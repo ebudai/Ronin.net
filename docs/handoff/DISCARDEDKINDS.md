@@ -1,6 +1,7 @@
 # A discarded literal kind and a duplicated scalar list — the sweep's other two, design-adjacent
 
 > **Ledger** — `[R]` The `NULLARYRULING` §4 sweep found the fourth structural proxy (fixed) and two more instances of the same RULE — every consumer reads the declared fact — by a different mechanism: a literal's lexical kind is computed then discarded, so two consumers recover it independently (one safely, one by a drift-prone hand-roll); and the scalar type names are a hardcoded list duplicating the registry. Asks where a literal's kind should live, and how the registry should mark a scalar from the bottom.
+> answered by: DISCARDEDKINDSRULING
 > supersedes: none
 > superseded by: none
 
