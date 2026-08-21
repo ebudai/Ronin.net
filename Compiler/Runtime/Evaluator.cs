@@ -204,14 +204,22 @@ internal sealed class Evaluator(Scope scope)
     {
         var text = literal.Text;
 
-        if (text[0] is '"') return Unescaped(text[1..^1]);
+        // The lexicon classified this literal at parse time; re-lex through it rather than
+        // hand-roll a second classifier — «text[0] is '"'», «double.TryParse» — that could
+        // read a thousands-grouped or date-shaped run differently than the lexer did.
+        // «Sort.Denoted» reads the same authority. The VALUE is still computed here, per
+        // evaluation, which is the deeper defect: a constant re-valued every tick, and a
+        // «double» about to be the wrong «number» under the exact-rational tower, that the
+        // numeric work carries — a literal will carry its value (DISCARDEDKINDSRULING §2).
+        Ronin.Compiler.Lexer lexer = new(text);
 
-        return double.TryParse(text,
-                               NumberStyles.Float | NumberStyles.AllowThousands,
-                               CultureInfo.InvariantCulture,
-                               out var number)
-             ? number
-             : new Error($"«{text}» is a literal the interpreter does not read yet");
+        return Ronin.Lexicon.Literal.Lex(ref lexer) switch
+        {
+            Ronin.Lexicon.Text => Unescaped(text[1..^1]),
+            Ronin.Lexicon.Numeric => double.Parse(text, NumberStyles.Float | NumberStyles.AllowThousands,
+                                                  CultureInfo.InvariantCulture),
+            _ => new Error($"«{text}» is a literal the interpreter does not read yet"),
+        };
     }
 
     /// <summary>
