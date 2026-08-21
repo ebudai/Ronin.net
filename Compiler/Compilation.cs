@@ -954,13 +954,17 @@ internal sealed class Compilation
     ///     Every return site of a function, gathered from its own body and from the
     ///     transparent blocks — «if»s, loops — nested inside it, since a «return» there
     ///     returns from the function around it. Each answer is paired with the scope it
-    ///     sits in, so its sort is read with the names that scope makes visible.
+    ///     sits in, so its sort is read with the names that scope makes visible, and the
+    ///     whole is in SOURCE ORDER — the nested-block contexts come after the body's in the
+    ///     gather, so without this a return inside an «if» reads as later than a body return
+    ///     before it, and the divergence names the wrong one the earlier.
     /// </summary>
     private IReadOnlyList<Site> Sites(Grammar.Function function)
         => [.. checks.Where(check => ReferenceEquals(check.Owner, function))
                      .SelectMany(check => check.Read.Where(reading => reading.Resolution.TryTree(out _))
                                                     .SelectMany(Called)
-                                                    .Select(exit => new Site(exit.Answer, check.Declared, check.Sorts)))];
+                                                    .Select(exit => new Site(exit.Span, exit.Answer, check.Declared, check.Sorts)))
+                     .OrderBy(site => site.At.Offset)];
 
     /// <summary>
     ///     Every finding a call passes an argument that is not the sort its parameter is
@@ -1742,8 +1746,9 @@ internal sealed class Compilation
     ///     One return site: the value it answers with — null for a valueless exit — and the
     ///     scope it sits in, whose declarations and value sorts read that value.
     /// </summary>
-    private sealed class Site(Node answer, Declarations declared, IReadOnlyDictionary<string, Sort> sorts)
+    private sealed class Site(Span at, Node answer, Declarations declared, IReadOnlyDictionary<string, Sort> sorts)
     {
+        internal Span At { get; } = at;
         internal Node Answer { get; } = answer;
         internal Declarations Declared { get; } = declared;
         internal IReadOnlyDictionary<string, Sort> Sorts { get; } = sorts;

@@ -438,6 +438,29 @@ public class TypeAnnotations
                    finding => Assert.IsType<NeverAnswers>(finding));
     }
 
+    [Fact(DisplayName = "return sites diverge in source order, so the earlier one is the established type")]
+    public void ReturnSitesDivergeInSourceOrderSoTheEarlierOneIsTheEstablishedType()
+    {
+        // A return inside an «if» is EARLIER in source than a direct return after it, though
+        // the nested block's context is gathered later. Ordering the sites by source position
+        // makes the divergence establish the earlier «text» and blame the later «number», and
+        // point at that later return — one character, the «5» — not the earlier one.
+        var later = Assert.IsType<DivergentReturns>(Assert.Single(
+            Of("function f {\n    if c { return \"text\"; }\n    return 5;\n}\n")));
+        Assert.Equal("number", later.Value);
+        Assert.Equal("text", later.Established);
+        Assert.Equal(1, later.Primary.Length);
+
+        // The inverse — a direct return first, a nested one after — establishes the direct
+        // «number» and blames the later «text», the roles following the source, not the
+        // gather. The finding points at the «text» return, six characters.
+        var inverse = Assert.IsType<DivergentReturns>(Assert.Single(
+            Of("function f {\n    return 5;\n    if c { return \"text\"; }\n}\n")));
+        Assert.Equal("text", inverse.Value);
+        Assert.Equal("number", inverse.Established);
+        Assert.Equal(6, inverse.Primary.Length);
+    }
+
     [Fact(DisplayName = "the inference order drains chains and groups recursion")]
     public void TheInferenceOrderDrainsChainsAndGroupsRecursion()
     {
