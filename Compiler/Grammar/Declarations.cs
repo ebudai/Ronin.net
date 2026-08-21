@@ -416,7 +416,14 @@ internal sealed class Declarations
             // pattern may have at most 128, which is true and not about them.
             // Infix. Checked before width, because a leading hole is what it IS
             // and the width is incidental.
-            Cell(member);
+            //
+            // A REFUSED declaration files nothing further. «Cell» reserves the name or refuses
+            // it — a supplied word like «true», an already-declared one — and a refused member
+            // has no cell to carry a signature or a nullary call for. Installing one anyway let
+            // invalid source rewrite the meaning of the very reference that caused the refusal:
+            // «function true» turned «true» from the supplied literal into its call (REAUDIT65
+            // finding 3). So the nullary signature below is filed only when the reservation took.
+            if (Cell(member) is false) return;
 
             // A nullary function is name-shaped, so it is reserved as a value name above —
             // but it is a callable, and a callable files a signature. Routing on whether the
@@ -488,10 +495,13 @@ internal sealed class Declarations
     }
 
     /// <summary>
-    ///     A value-holding declaration. Lets and explicitly reactive data are
-    ///     recorded as the references the built-in «old (_)» may accept.
+    ///     Reserves a name-shaped member's spelling, or refuses it. A value-holding
+    ///     declaration, with lets and explicitly reactive data recorded as the references the
+    ///     built-in «old (_)» may accept. Returns whether it installed: FALSE when the name is
+    ///     refused — supplied, or already declared — so a caller files nothing else against a
+    ///     member that has no cell to carry it.
     /// </summary>
-    private void Cell(Member member)
+    private bool Cell(Member member)
     {
         // Not checked again here. Every route to this passes the identifier
         // through the refusal first, and a second guard that cannot fire is a
@@ -501,7 +511,7 @@ internal sealed class Declarations
 
         var span = member.Identifier.Span(source);
 
-        if (Refused(name, span)) return;
+        if (Refused(name, span)) return false;
 
         written[name] = span;
 
@@ -532,6 +542,8 @@ internal sealed class Declarations
             Symbols.WithNames(member is Grammar.Type ? SymbolKind.Type : SymbolKind.Value, name);
             symbols.Add(new Declared(name, span, Container: container) { Words = words });
         }
+
+        return true;
     }
 
     /// <summary>What a declaration is allowed to be, where it is written.</summary>

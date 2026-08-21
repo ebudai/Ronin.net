@@ -513,6 +513,39 @@ public class TypeAnnotations
         Assert.IsType<Shadowed>(Assert.Single(Of("function f { return 5; }\nfunction f { return 6; }\n")));
     }
 
+    [Fact(DisplayName = "a refused nullary declaration installs no call and does not rewrite the name it collided with")]
+    public void ARefusedNullaryDeclarationInstallsNoCall()
+    {
+        // A refused declaration files no signature and no nullary call, so it cannot turn the
+        // reference that caused the refusal into its own call (REAUDIT65 finding 3).
+
+        // A supplied literal keeps its meaning: «true» stays the truth literal, so «var x =>
+        // truth = true» matches — only the declaration's «Supplied» finding, no mismatch.
+        Assert.IsType<Supplied>(Assert.Single(Of("function true { return 5; }\nvar x => truth = true;\n")));
+
+        // «nothing» likewise stays the supplied optional, not a number-returning call — so its
+        // own «NotGround» in a «number» position survives, present precisely because it was NOT
+        // replaced by a number call, beside the declaration's «Supplied».
+        var absent = Of("function nothing { return 5; }\nvar x => number = nothing;\n");
+        Assert.Contains(absent, finding => finding is Supplied);
+        Assert.Contains(absent, finding => finding is NotGround);
+
+        // An existing datum keeps its type: with «var f => text» first, the refused «function f»
+        // does not hide the «text»-versus-«number» mismatch at the use site.
+        var datum = Of("var f => text;\nfunction f { return 5; }\nvar x => number = f;\n");
+        Assert.Contains(datum, finding => finding is Shadowed);
+        Assert.Contains(datum, finding => finding is TypeMismatch { Value: "text", Declared: "number" });
+
+        // The other order: the function is declared first and valid, so it owns «f»; the datum
+        // is the one shadowed, «f» is a «number», and «x => number = f» is a clean match — only
+        // «Shadowed».
+        Assert.IsType<Shadowed>(Assert.Single(Of("function f { return 5; }\nvar f => text;\nvar x => number = f;\n")));
+
+        // A valid nullary is unaffected — it still installs its call and reads as a «number».
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function g { return 5; }\nvar x => text = g;\n"))).Value);
+    }
+
     [Fact(DisplayName = "a nullary reference is a call to every consumer — dependency order and recursion")]
     public void ANullaryReferenceIsACallToEveryConsumer()
     {
