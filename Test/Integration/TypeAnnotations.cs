@@ -390,6 +390,18 @@ public class TypeAnnotations
         // this finding — whether it exits bare or falls through.
         Assert.Empty(Of("function f { return; }\n"));
         Assert.Empty(Of("function f { }\n"));
+
+        // The suppression is for an unresolved VALUE-RETURN only. An unrelated unknown statement
+        // cannot carry a value out of the body, so it does not hide the missing answer — the
+        // finding still fires with a «nope;» before or after the bare return, and in a nested
+        // block (REAUDIT65 finding 2).
+        Assert.IsType<Unanswered>(Assert.Single(Of("function f => number { nope; return; }\n")));
+        Assert.IsType<Unanswered>(Assert.Single(Of("function f => number { return; nope; }\n")));
+        Assert.IsType<Unanswered>(Assert.Single(
+            Of("function f (c => truth) => number { if c { nope; return; } }\n")));
+
+        // Only the value-return whose value did not resolve stays its own walk, still clean.
+        Assert.Empty(Of("function f => number { return nope; }\n"));
     }
 
     [Fact(DisplayName = "a function whose every return calls itself never answers")]

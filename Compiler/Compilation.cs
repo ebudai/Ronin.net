@@ -516,11 +516,15 @@ internal sealed class Compilation
                 // Searched only where there is something to repair. The search
                 // resolves a candidate per subspan, which is affordable on an
                 // error path and would not be on every statement in a file.
+                // «return (_)» — the answer anchor «return» with a value after it — is what an
+                // unanswered-body check must tell from unrelated text, even unresolved: «return»
+                // is reserved, so a reference leading with it and carrying more is a value return.
                 yield return new Reading(reference.Where(Source),
                                          resolution,
                                          resolution.Kind is ResolutionKind.Ambiguous
                                        ? Repairs.For(resolver, lexemes, resolution)
-                                       : []);
+                                       : [],
+                                         answering: lexemes.Count > 1 && lexemes[0].Text is "return");
             }
         }
     }
@@ -906,14 +910,16 @@ internal sealed class Compilation
         // promise, whether or not every path reaches one — that is flow analysis, a later slice.
         if (sites.Any(site => site.Answer is not null) is false)
         {
-            // Only when the body RESOLVES. A «return nope» is a value-return attempt whose value
-            // did not resolve, so it contributes no site and reads like a fall-through — but the
-            // unresolved name is its own finding, and this is left to that walk, not answered on
-            // top of it. A body with any unresolved reading is not yet known to leave without a
-            // value; a fully resolved one that carries none genuinely never answers.
+            // Suppressed only by an unresolved VALUE-RETURN. A «return nope» is a value-return
+            // attempt whose value did not resolve, so it contributes no site and reads like a
+            // fall-through — but the unresolved name is its own walk, not answered on top of it.
+            // Unrelated unresolved text — a lone «nope;» — cannot carry a value out of the body,
+            // so it does NOT suppress: the body still leaves without a value, and this is exactly
+            // the finding. The «Answering» flag is the syntactic «return (_)», which a site cannot
+            // report because the unresolved value left no site.
             if (checks.Where(check => ReferenceEquals(check.Owner, function))
                       .SelectMany(check => check.Read)
-                      .Any(reading => reading.Resolution.TryTree(out _) is false))
+                      .Any(reading => reading.Answering && reading.Resolution.TryTree(out _) is false))
                 yield break;
 
             yield return new Unanswered(function.Identifier.Span(Source), words.Render());
@@ -1158,11 +1164,12 @@ internal sealed class Compilation
     /// </remarks>
     internal readonly record struct Reading
     {
-        public Reading(Span span, Resolution resolution, IReadOnlyList<Repair> repairs)
+        public Reading(Span span, Resolution resolution, IReadOnlyList<Repair> repairs, bool answering)
         {
             Span = span;
             Resolution = resolution;
             Repairs = Owned.Copy(repairs);
+            Answering = answering;
         }
 
         public Span Span { get; }
@@ -1171,6 +1178,15 @@ internal sealed class Compilation
 
         /// <summary>The bracketings, owned where the reading is recorded.</summary>
         public IReadOnlyList<Repair> Repairs { get; }
+
+        /// <summary>
+        ///     Whether the reference is syntactically a value-carrying return — a «return»
+        ///     anchor with a value after it — whether or not that value resolved. What tells an
+        ///     unresolved «return nope» (a value-return attempt, left to the unresolved name's
+        ///     own walk) from unrelated unresolved body text, so the «Unanswered» check
+        ///     suppresses on the one and not the other.
+        /// </summary>
+        public bool Answering { get; }
     }
 
     /// <summary>Every statement's reading, in the scope that owns it.</summary>
