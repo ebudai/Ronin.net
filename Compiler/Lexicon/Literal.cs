@@ -89,16 +89,16 @@ internal class Numeric : Literal
 
     public static new Numeric Lex(ref Lexer lexer)
     {
-        if (lexer.IsEmpty || char.IsDigit(lexer[0]) is false) return null;
+        if (lexer.IsEmpty || Digit(lexer[0]) is false) return null;
 
         var length = Digits(lexer, 0);
         var isdecimal = false;
 
         // a fractional part takes no separators: «1,234.567890» is one group
-        if (length + 1 < lexer.Length && lexer[length] is '.' && char.IsDigit(lexer[length + 1]))
+        if (length + 1 < lexer.Length && lexer[length] is '.' && Digit(lexer[length + 1]))
         {
             var fraction = 1;
-            while (length + fraction < lexer.Length && char.IsDigit(lexer[length + fraction])) ++fraction;
+            while (length + fraction < lexer.Length && Digit(lexer[length + fraction])) ++fraction;
 
             length += fraction;
             isdecimal = true;
@@ -106,6 +106,15 @@ internal class Numeric : Literal
 
         return new Numeric { IsDecimal = isdecimal, Memory = lexer.AdvanceBy(length) };
     }
+
+    /// <summary>
+    ///     An ASCII decimal digit. The source alphabet is «0-9» and nothing wider
+    ///     (NUMERALALPHABET): «char.IsDigit» admits every Unicode decimal digit — «١» among
+    ///     hundreds — which mix across scripts and hide lookalikes, so a numeral could read as
+    ///     one value and be another, the opposite of what this language trades for. The lexer is
+    ///     the authority for the alphabet; a run outside «0-9» is simply not a number here.
+    /// </summary>
+    private static bool Digit(char c) => c is >= '0' and <= '9';
 
     /// <summary>
     ///     The length of the longest well-formed digit run at
@@ -120,7 +129,7 @@ internal class Numeric : Literal
     private static int Digits(in Lexer lexer, int from)
     {
         var run = from;
-        while (run < lexer.Length && (char.IsDigit(lexer[run]) || lexer[run] is ',')) ++run;
+        while (run < lexer.Length && (Digit(lexer[run]) || lexer[run] is ',')) ++run;
 
         // a trailing comma is never part of a number
         while (lexer[run - 1] is ',') --run;

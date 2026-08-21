@@ -217,16 +217,13 @@ internal sealed class Evaluator(Scope scope)
         {
             Ronin.Lexicon.Text => Unescaped(text[1..^1]),
 
-            // «TryParse», not «Parse»: the lexer admits every «char.IsDigit», Unicode decimal
-            // digits included — «١» is a Numeric — but invariant «double» reads only «0-9», so
-            // a throwing parse escapes as an exception on a run the lexer called a number. A
-            // number the invariant reader cannot take is an Error, not a crash; which digit
-            // alphabet the language actually has is the numeric tower's to settle, and the
-            // value is deferred to it regardless (DISCARDEDKINDSRULING §2).
-            Ronin.Lexicon.Numeric => double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands,
-                                                     CultureInfo.InvariantCulture, out var number)
-                ? number
-                : new Error($"«{text}» is a number the interpreter cannot read yet"),
+            // The lexer's alphabet is ASCII «0-9» (NUMERALALPHABET), so a «Numeric» token is a
+            // well-formed invariant numeral «double.Parse» cannot fail on: the Unicode
+            // «char.IsDigit» run that once escaped here as an exception no longer lexes as a
+            // number at all. The value is still a «double» — the wrong «number» the exact-rational
+            // tower replaces (DISCARDEDKINDSRULING §2); the alphabet is settled, the value is not.
+            Ronin.Lexicon.Numeric => double.Parse(text, NumberStyles.Float | NumberStyles.AllowThousands,
+                                                  CultureInfo.InvariantCulture),
 
             _ => new Error($"«{text}» is a literal the interpreter does not read yet"),
         };

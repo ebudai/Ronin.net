@@ -356,13 +356,6 @@ public class Evaluations
         // a date lexes and resolves but has no runtime value yet
         var unread = Assert.IsType<Error>(evaluator.Evaluate(graph, Resolve(symbols, "print 2023-11-16"), insideLet: false));
         Assert.Contains("does not read yet", unread.Message);
-
-        // «١» (U+0661) is a char.IsDigit, so the lexer calls it a Numeric — but invariant
-        // «double» reads only «0-9», so evaluating it is a number this interpreter cannot take
-        // yet, an Error, rather than the exception a throwing parse would escape as (REAUDIT64
-        // finding 4).
-        var unreadable = Assert.IsType<Error>(evaluator.Evaluate(graph, Resolve(symbols, "print ١"), insideLet: false));
-        Assert.Contains("cannot read yet", unreadable.Message);
     }
 
     [Fact(DisplayName = "a bare nullary reference invokes the declaration, not a graph read")]

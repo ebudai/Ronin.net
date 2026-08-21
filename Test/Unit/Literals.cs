@@ -98,4 +98,20 @@ public class Literals
 
         Assert.Equal(literal, text?.Memory.ToString());
     }
+
+    [Fact(DisplayName = "the digit alphabet is ASCII 0-9")]
+    public void TheDigitAlphabetIsAscii()
+    {
+        // «12,345,678.99987» — grouped by threes, one decimal point — is the source numeral form
+        // (NUMERALALPHABET), and it lexes as one number.
+        const string number = "12,345,678.99987";
+        Lexer ascii = new(number);
+        Assert.Equal(number, (Literal.Lex(ref ascii) as Numeric)?.Memory.ToString());
+
+        // «١» is «١», a Unicode decimal digit «char.IsDigit» would admit and the lexer does
+        // not: the source alphabet is «0-9», so a run outside it is not a number at all — no
+        // mixing of scripts, no lookalike that reads as a value it is not.
+        Lexer unicode = new("١");
+        Assert.Null(Literal.Lex(ref unicode));
+    }
 }

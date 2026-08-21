@@ -37,21 +37,22 @@ authority.
   locale; it has nothing to do with whether source literals accept `١`. Every serious
   language keeps source digits ASCII and pushes culture into a locale-keyed library.
 
-## Implementation — for the numeric tower
+## Implementation
 
-The value work must touch `Evaluator.Value` regardless (DISCARDEDKINDSRULING §2), and
-this rides with it:
+The alphabet half is **done** — the lexer is now the authority. The value half rides with
+the numeric tower, which must touch `Evaluator.Value` regardless (DISCARDEDKINDSRULING §2).
 
-- **The lexer becomes the authority.** `Lexicon.Numeric` lexes `0-9` (+ `,` grouping,
-  `.` decimal), not `char.IsDigit`. After that, a `Numeric` token is always a well-formed
-  ASCII numeral.
-- **REAUDIT64 finding 4's guard is transitional.** `Evaluator.Value`'s
-  `double.TryParse(...) ? number : Error` gives a Numeric the invariant reader cannot take
-  a runtime Error rather than a throw — needed only while the lexer still admits Unicode
-  digits. Once the lexer is ASCII-authoritative, no `Numeric` fails the parse, so that
-  Error branch is dead and goes; the arm reads the value directly (as an exact rational,
-  per the tower).
-- **`date` is unaffected** — its own literal syntax, its own value work.
+- **The lexer is the authority — done.** `Lexicon.Numeric` lexes `0-9` (+ `,` grouping,
+  `.` decimal) through an ASCII `Digit` helper, not `char.IsDigit`, so a `Numeric` token is
+  always a well-formed ASCII numeral and a Unicode-digit run is not a number at all.
+- **REAUDIT64 finding 4's guard is removed — done.** With the lexer ASCII-authoritative no
+  `Numeric` fails the parse, so the transitional `double.TryParse(...) ? number : Error` is
+  gone; `Evaluator.Value` reads the number directly with `double.Parse`.
+- **The value is still a `double` — for the tower.** The exact-rational representation
+  (`0.1` = ¹⁄₁₀, not the float) is the numeric tower's, which replaces the `double.Parse`
+  read. The alphabet is settled; the value is not.
+- **`date` is unaffected** — it still admits Unicode digits (its own `char.IsDigit` is
+  untouched), its own literal syntax and value work, a separate slice.
 
 The runtime culture-aware parse (`number of (text) in (locale)`) is a later slice, named
 here so the alphabet decision and the parse feature are not confused for one another.
