@@ -907,6 +907,29 @@ internal sealed class Compilation
         resolver.Resolve(words).TryTree(out var tree);
         if (Sort.Of(tree, declared.ContainerOf) is not Sort expected) yield break;
 
+        // A written return type is a promise a caller reads from the signature — «number», never
+        // the unspellable action, so the function ANSWERS. A body that carries no value out — only
+        // bare «return»s, or a fall-through with no site at all — does not keep that promise, and a
+        // call checks against a value the body never returns, so the contradiction surfaces nowhere
+        // else (RETURNANDLITERALS §1b). Only an OMITTED return makes a valueless body a legal
+        // action; a written one is refused here. A single «return (_)» at any depth keeps the
+        // promise, whether or not every path reaches one — that is flow analysis, a later slice.
+        if (sites.Any(site => site.Answer is not null) is false)
+        {
+            // Only when the body RESOLVES. A «return nope» is a value-return attempt whose value
+            // did not resolve, so it contributes no site and reads like a fall-through — but the
+            // unresolved name is its own finding, and this is left to that walk, not answered on
+            // top of it. A body with any unresolved reading is not yet known to leave without a
+            // value; a fully resolved one that carries none genuinely never answers.
+            if (checks.Where(check => ReferenceEquals(check.Owner, function))
+                      .SelectMany(check => check.Read)
+                      .Any(reading => reading.Resolution.TryTree(out _) is false))
+                yield break;
+
+            yield return new Unanswered(function.Identifier.Span(Source), words.Render());
+            yield break;
+        }
+
         foreach (var site in sites)
         {
             if (Inferred(site.Answer, site.Sorts, site.Declared) is { } actual

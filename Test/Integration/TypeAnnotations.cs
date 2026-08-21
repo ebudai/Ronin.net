@@ -368,6 +368,30 @@ public class TypeAnnotations
         Assert.Empty(Of("function m { var e => error; return e; }\n"));
     }
 
+    [Fact(DisplayName = "a function that declares a value answer must produce one")]
+    public void AFunctionThatDeclaresAValueAnswerMustProduceOne()
+    {
+        // A written «=> number» promises a value a caller reads from the signature, so a body
+        // that carries none out — only a bare «return», or a fall-through — never answers it
+        // (RETURNANDLITERALS §1b). Reported once, at the function that made the promise.
+        var bare = Assert.IsType<Unanswered>(Assert.Single(Of("function f => number { return; }\n")));
+        Assert.Equal("number", bare.Declared);
+        Assert.Contains("needs a «return (_)»", bare.Message);
+        Assert.StartsWith("Player.ron:1:10:", Diagnostics.Report(bare));   // at «f»
+
+        var fell = Assert.IsType<Unanswered>(Assert.Single(Of("function f => number { }\n")));
+        Assert.Equal("number", fell.Declared);
+
+        // A value return, at any depth, keeps the promise — whether or not every path reaches it.
+        Assert.Empty(Of("function f => number { return 5; }\n"));
+        Assert.Empty(Of("function f (c => truth) => number { if c { return 5; } }\n"));
+
+        // An OMITTED return makes a valueless body a legal action — the other side of §1b, not
+        // this finding — whether it exits bare or falls through.
+        Assert.Empty(Of("function f { return; }\n"));
+        Assert.Empty(Of("function f { }\n"));
+    }
+
     [Fact(DisplayName = "a function whose every return calls itself never answers")]
     public void AFunctionWhoseEveryReturnCallsItselfNeverAnswers()
     {

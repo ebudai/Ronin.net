@@ -114,6 +114,9 @@ internal enum FindingKind
     /// <summary>An action — the answer of a function that ends without a value — standing where a value is wanted.</summary>
     ActionInValue,
 
+    /// <summary>A function with a written value return whose body never carries a value out — only bare «return»s, or a fall-through.</summary>
+    Unanswered,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -922,6 +925,24 @@ internal sealed class ActionInValue(Span primary)
         => "This value is an «action»: a function that ends without answering with a value — a bare «return», or a " +
            "body that falls through. No value type admits an action, so it cannot stand where a value is wanted. " +
            "Return a value from it, or do not use its result.";
+}
+
+/// <summary>
+///     A function with a written value return type whose body never produces one — every exit
+///     is a bare «return», or it falls through. The written type is a promise a caller reads
+///     from the signature; a body that keeps no «return (_)» does not answer it (RETURNANDLITERALS
+///     §1b). The action side — an OMITTED return with a valueless body — is the legal action, not
+///     this: this is the written value answer a body contradicts.
+/// </summary>
+internal sealed class Unanswered(Span primary, string declared)
+    : Finding(FindingKind.Unanswered, primary)
+{
+    public string Declared { get; } = declared;
+
+    public override string Message
+        => $"This function declares it answers with «{Declared}», but no «return» in its body carries a value — " +
+           "every path leaves with a bare «return», or falls through. A function that answers needs a «return (_)»; " +
+           $"drop the «=> {Declared}» to make it an action instead.";
 }
 
 /// <summary>

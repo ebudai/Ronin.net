@@ -40,9 +40,9 @@ public class ScopeHeadings
     }
 
     [Theory(DisplayName = "a declaration's heading ends there too")]
-    [InlineData("function f => number { 1 }\n")]
-    [InlineData("function f => number {}\n")]
-    [InlineData("function f => number { 1; }\n")]
+    [InlineData("function f => number { return 1 }\n")]
+    [InlineData("function f => number { return 2; }\n")]
+    [InlineData("function f => number { 1; return 3; }\n")]
     [InlineData("function f => number { return 1; }\n")]
     [InlineData("type T = Base {}\n")]
     [InlineData("type T = Base { var a => number; }\n")]
@@ -52,6 +52,13 @@ public class ScopeHeadings
         // applied to a hand-maintained set of scope classes, and these two are
         // the same join with a different base class. A function's return type
         // and a type's algebra are both a reference that a definition follows.
+        //
+        // The function bodies answer, because a written «=> number» requires a
+        // value return and a body that gives none is «Unanswered»
+        // (RETURNANDLITERALS §1b) — this is about the heading, not the exit, so
+        // the bodies are kept clean of that separate finding. The empty and
+        // bare-expression forms live where an empty definition is legal: the
+        // «type T = Base {}» case below, and the derived-type body test.
         //
         // «type T = Base {}» is the one that says nothing. A type may legally
         // have no members, so the algebra took the brace and there was no
