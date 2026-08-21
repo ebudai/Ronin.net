@@ -438,6 +438,45 @@ public class TypeAnnotations
                    finding => Assert.IsType<NeverAnswers>(finding));
     }
 
+    [Fact(DisplayName = "a no-argument function reference reads its return sort, as a call")]
+    public void ANoArgumentFunctionReferenceReadsItsReturnSortAsACall()
+    {
+        // «f», a nullary function, reads as a CALL to it — its answer, not the function value
+        // (NULLARYRULING §1). Its signature is filed under «[f]» and read like any call's, so
+        // a bare reference checks where a value is wanted: an inferred return...
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f { return 5; }\nvar x => text = f;\n"))).Value);
+
+        // ...a written one...
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f => number { return 5; }\nvar x => text = f;\n"))).Value);
+
+        // ...and a multi-word name.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function foo bar { return 5; }\nvar x => text = foo bar;\n"))).Value);
+
+        // The right sort passes clean.
+        Assert.Empty(Of("function f { return 5; }\nvar x => number = f;\n"));
+
+        // And the auditor's own no-arg witness fires now: a no-value nullary function is an
+        // action, inadmissible where a value is wanted — the half of REAUDIT63 finding 4 that
+        // needed a nullary function to HAVE a sort to read.
+        Assert.IsType<ActionInValue>(Assert.Single(Of("function f { return; }\nvar x => number = f;\n")));
+    }
+
+    [Fact(DisplayName = "a nullary function reserves its name, and a second is refused as a set with no cue")]
+    public void ANullaryFunctionReservesItsNameAndASecondIsRefusedAsASetWithNoCue()
+    {
+        // A nullary function is name-shaped, so it reserves its spelling — a competing «var f»
+        // is refused, the two readings the reservation exists to remove.
+        Assert.IsType<Shadowed>(Assert.Single(Of("function f { return 5; }\nvar f => number;\n")));
+
+        // And a SECOND no-argument «f» is a nullary overload set with no cue at the use site,
+        // a bare «f» carrying no argument to tell them apart; the same reservation refuses it,
+        // one being the whole of the set — rather than crashing on an overload no call reads.
+        Assert.IsType<Shadowed>(Assert.Single(Of("function f { return 5; }\nfunction f { return 6; }\n")));
+    }
+
     [Fact(DisplayName = "a function that answers with no value is an action, inadmissible where a value is wanted")]
     public void AFunctionThatAnswersWithNoValueIsAnActionInadmissibleWhereAValueIsWanted()
     {

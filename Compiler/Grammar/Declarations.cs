@@ -417,6 +417,31 @@ internal sealed class Declarations
             // Infix. Checked before width, because a leading hole is what it IS
             // and the width is incidental.
             Cell(member);
+
+            // A nullary function is name-shaped, so it is reserved as a value name above —
+            // but it is a callable, and a callable files a signature. Routing on whether the
+            // name has HOLES — «TryPattern» — is a proxy for «is a function», exact only while
+            // every function had a parameter, and «function f ()» being ill-formed guaranteed
+            // some would not (NULLARYRULING §2). Route on what the member IS: a
+            // «Grammar.Function» files its signature under its zero-hole pattern «[f]», whatever
+            // its arity, so a bare «f» reference reads its answer. NOT added to the resolver's
+            // patterns — a nullary name in both the name table and the pattern table reads two
+            // ways, the very thing the reservation removes — so «f» stays a name and the
+            // checker reads «[f]» from the overloads.
+            if (member is Grammar.Function nullary && member.Identifier.IsPattern is false)
+            {
+                var shape = new Compiler.Pattern(member.Identifier.Shaped);
+
+                // Only the FIRST no-argument «f» files a signature. A second is a nullary
+                // overload set with no cue at the use site — a bare «f» carries no argument,
+                // and the return type is not one — and the name reservation already refuses
+                // it: «Cell» shadowed it above, the same family as two same-named types
+                // (NULLARYRULING §2). So it is not filed, and one is the whole of the set.
+                if (Overloads.ContainsKey(shape) is false)
+                    Overloads[shape] = [new Signature(blocks, member.Identifier.Annotations, Returned(nullary),
+                                                      Span: member.Identifier.Span(source))];
+            }
+
             return;
         }
 
