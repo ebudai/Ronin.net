@@ -111,6 +111,9 @@ internal enum FindingKind
     /// <summary>A value an inference variable leaves under-determined — «nothing», «[]» — where nothing pins its type.</summary>
     NotGround,
 
+    /// <summary>An action — the answer of a function that ends without a value — standing where a value is wanted.</summary>
+    ActionInValue,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -906,6 +909,19 @@ internal sealed class NotGround(Span primary)
         => "This value's type is not determined here: «nothing» is an «optional», and «[]» a list, of a type nothing " +
            "in this position pins. Check it against one that names the inner type — «optional number», «list of " +
            "number» — or place it beside a value that fixes it.";
+}
+
+/// <summary>
+///     A value that is an action — the answer of a function that ends without a value —
+///     standing where a value is wanted, which no value type admits (FIVE-RULINGS §2b).
+/// </summary>
+internal sealed class ActionInValue(Span primary)
+    : Finding(FindingKind.ActionInValue, primary)
+{
+    public override string Message
+        => "This value is an «action»: a function that ends without answering with a value — a bare «return», or a " +
+           "body that falls through. No value type admits an action, so it cannot stand where a value is wanted. " +
+           "Return a value from it, or do not use its result.";
 }
 
 /// <summary>

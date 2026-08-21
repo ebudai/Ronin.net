@@ -766,7 +766,8 @@ internal sealed class Compilation
     ///     still left, its one-directional slice its own.
     /// </summary>
     private Finding Disagreeing(Span at, Sort expected, Sort actual, string spelling)
-        => Sort.Unify(expected, actual) ? null
+        => actual is Sort.Action ? new ActionInValue(at)
+         : Sort.Unify(expected, actual) ? null
          : Sort.Render(actual) is { } rendered && spelling is not null ? new TypeMismatch(at, rendered, spelling)
          : Sort.Ground(actual) is null ? new NotGround(at)
          : null;
@@ -943,18 +944,23 @@ internal sealed class Compilation
             divergent = true;
         }
 
+        // A callable with no value-carrying return — a bare «return», or none at all —
+        // answers with no value: its sort is the action type, inadmissible where a value is
+        // wanted (FIVE-RULINGS §2b). A site whose value is not inferred yet is value-carrying
+        // still, so a function waiting on a deferred call is under-determined, not an action.
+        if (sites.All(site => site.Answer is null)) inferred = new Sort.Action();
+
         // The function's own pattern, found by the span it registered under, not read off
-        // its identifier, because reading a refused one back constructs and throws.
+        // its identifier, because reading a refused one back constructs and throws. Found
+        // whether or not it has sites: a fall-through action has none, and still owns a
+        // signature to store its sort against.
         Pattern own = null;
 
-        if (sites.Count > 0)
-        {
-            var here = function.Identifier.Span(Source);
+        var here = function.Identifier.Span(Source);
 
-            foreach (var (pattern, signatures) in declared.Overloads)
-                foreach (var signature in signatures)
-                    if (signature.Span == here) own = pattern;
-        }
+        foreach (var (pattern, signatures) in declared.Overloads)
+            foreach (var signature in signatures)
+                if (signature.Span == here) own = pattern;
 
         return (divergent || inferred is null ? null : Sort.Ground(inferred), own, findings);
     }

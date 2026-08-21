@@ -438,6 +438,26 @@ public class TypeAnnotations
                    finding => Assert.IsType<NeverAnswers>(finding));
     }
 
+    [Fact(DisplayName = "a function that answers with no value is an action, inadmissible where a value is wanted")]
+    public void AFunctionThatAnswersWithNoValueIsAnActionInadmissibleWhereAValueIsWanted()
+    {
+        // A bare «return», or a body that falls through, answers with no value: its sort is
+        // the action type, and using its result where a value is wanted is a finding.
+        Assert.IsType<ActionInValue>(Assert.Single(Of("function f (n => number) { return; }\nvar x => number = f 5;\n")));
+        Assert.IsType<ActionInValue>(Assert.Single(Of("function f (n => number) { }\nvar x => number = f 5;\n")));
+
+        // A body with any «return (value)» is answering, so a bare «return» in it is a mixed
+        // exit, not evidence the whole body is an action — «f» infers «number», and «f 5»
+        // read against «text» is a type finding, not an action one.
+        var mixed = Of("function f (n => number) { return n; return; }\nvar y => text = f 5;\n");
+        Assert.Contains(mixed, finding => finding is TypeMismatch { Value: "number" });
+        Assert.DoesNotContain(mixed, finding => finding is ActionInValue);
+
+        // A delegate that is an action does not make its enclosing function one: «f» returns
+        // «5», so «f 5» against «number» is clean, the delegate's valuelessness its own.
+        Assert.Empty(Of("function f (n => number) {\n    var a = () => { return; };\n    return 5;\n}\nvar y => number = f 5;\n"));
+    }
+
     [Fact(DisplayName = "an under-determined return unifies with the others, or diverges by its outer kind")]
     public void AnUnderDeterminedReturnUnifiesWithTheOthersOrDivergesByItsOuterKind()
     {
