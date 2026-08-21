@@ -906,39 +906,41 @@ internal sealed class Compilation
 
     /// <summary>
     ///     What a function with no written return type infers from its return sites, which
-    ///     is the same walk as the finding that inference is: the sites must agree
-    ///     (<see cref="DivergentReturns"/> where they do not). A site with no sort yet, or
-    ///     none that renders, is left out rather than allowed to break the agreement — so a
-    ///     function whose returns are all calls back into its own recursive group infers
-    ///     nothing here, and the caller, which alone can see the whole group, is where a
-    ///     group that grounds nowhere becomes a <see cref="NeverAnswers"/>. Runs in the Infer
-    ///     phase, before a call reads the sort; the sort it grounds is stored so calls to
-    ///     the function check against it.
+    ///     is the same walk as the finding that inference is: the sites must UNIFY
+    ///     (<see cref="DivergentReturns"/> where they do not), so «[]» and «nothing» are
+    ///     pinned by a determined sibling return rather than dropped. A site with no sort yet
+    ///     is left out rather than allowed to break the agreement — so a function whose
+    ///     returns are all calls back into its own recursive group infers nothing here, and
+    ///     the caller, which alone can see the whole group, is where a group that grounds
+    ///     nowhere becomes a <see cref="NeverAnswers"/>. The answer is GROUND or it is not
+    ///     stored. Runs in the Infer phase, before a call reads the sort; the sort it grounds
+    ///     is stored so calls to the function check against it.
     /// </summary>
     private (Sort Inferred, Pattern Own, IReadOnlyList<Finding> Findings) Infer(
         Grammar.Function function, Declarations declared, IReadOnlyList<Site> sites)
     {
         List<Finding> findings = [];
 
-        // The answer is what the returns agree on, and finding that they do not is the
-        // whole of the check. A site whose sort is not inferred yet, or has no spelling, is
-        // left out of the agreement rather than allowed to break it — and a divergence
-        // leaves no one sort to store, so none is. Only omitted-return functions reach here;
-        // the Infer phase gathers exactly those.
+        // The answer is what the returns UNIFY to, and finding that they do not is the whole
+        // of the check. A site with no sort yet — a call whose callee is not inferred, an
+        // operation — is left out rather than allowed to break the agreement, and so is an
+        // «error», the bottom, compatible with anything (its assignability its own slice).
+        // Every other sort unifies in, so «[]» and «nothing» are pinned by a determined
+        // sibling return rather than dropped before the agreement is tested. Only omitted-
+        // return functions reach here; the Infer phase gathers exactly those.
         Sort inferred = null;
-        string first = null;
         var divergent = false;
 
         foreach (var site in sites)
         {
-            if (Inferred(site.Answer, site.Sorts, site.Declared) is not { } actual || Sort.Render(actual) is not { } rendered) continue;
+            if (Inferred(site.Answer, site.Sorts, site.Declared) is not { } actual || actual is Sort.Error) continue;
 
-            if (inferred is null) (inferred, first) = (actual, rendered);
-            else if (inferred.Equals(actual) is false)
-            {
-                findings.Add(new DivergentReturns(Source.Span(site.Answer.Offset, site.Answer.Length), rendered, first));
-                divergent = true;
-            }
+            if (inferred is null) { inferred = actual; continue; }
+            if (Sort.Unify(inferred, actual)) continue;
+
+            findings.Add(new DivergentReturns(Source.Span(site.Answer.Offset, site.Answer.Length),
+                                              Named(actual), Named(inferred)));
+            divergent = true;
         }
 
         // The function's own pattern, found by the span it registered under, not read off
@@ -954,8 +956,21 @@ internal sealed class Compilation
                     if (signature.Span == here) own = pattern;
         }
 
-        return (divergent ? null : inferred, own, findings);
+        return (divergent || inferred is null ? null : Sort.Ground(inferred), own, findings);
     }
+
+    /// <summary>
+    ///     A return sort as a divergence names it — its written spelling where it has one,
+    ///     else the outer kind of an under-determined shape, «list» for «[]» and «optional»
+    ///     for «nothing», so the disagreement names it without pretending its inner type was
+    ///     determined. Every other sort reaching a divergence is ground, so it renders.
+    /// </summary>
+    private static string Named(Sort sort) => sort switch
+    {
+        Sort.List list => Sort.Render(list) ?? "list",
+        Sort.Optional optional => Sort.Render(optional) ?? "optional",
+        _ => Sort.Render(sort)!,
+    };
 
     /// <summary>
     ///     Every return site of a function, gathered from its own body and from the

@@ -438,6 +438,43 @@ public class TypeAnnotations
                    finding => Assert.IsType<NeverAnswers>(finding));
     }
 
+    [Fact(DisplayName = "an under-determined return unifies with the others, or diverges by its outer kind")]
+    public void AnUnderDeterminedReturnUnifiesWithTheOthersOrDivergesByItsOuterKind()
+    {
+        // «[]» and «nothing» carry a variable, so they were dropped before the returns were
+        // compared: «return []; return 5» inferred «number» as if the «[]» were not there.
+        // Now they unify in — a list and a number cannot, so it is a divergence, named by the
+        // outer kind, «list», without pretending the element type was determined.
+        Assert.Equal("list", Assert.IsType<DivergentReturns>(Assert.Single(
+            Of("function f { return []; return 5; }\n"))).Established);
+        Assert.Equal("optional", Assert.IsType<DivergentReturns>(Assert.Single(
+            Of("function f { return nothing; return 5; }\n"))).Established);
+
+        // A determined shape still renders in full, its inner type named.
+        Assert.Equal("list of number", Assert.IsType<DivergentReturns>(Assert.Single(
+            Of("function f { return [5]; return \"text\"; }\n"))).Established);
+        Assert.Equal("optional number", Assert.IsType<DivergentReturns>(Assert.Single(
+            Of("function f (o => optional number) { return o; return 5; }\n"))).Established);
+
+        // Pinned by a determined sibling return they DO unify — «[]» to «list of number»,
+        // «nothing» to «optional number» — so «f» infers it and the call read against «text»
+        // is the finding.
+        Assert.Equal("list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (xs => list of number) { return []; return xs; }\nvar y => text = f [1];\n"))).Value);
+        Assert.Equal("optional number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function g (o => optional number) { return nothing; return o; }\nvar y => text = g nothing;\n"))).Value);
+
+        // A recursive group with an empty base pinned by another return infers the ground
+        // list — the case the recursion ruling was written to preserve.
+        Assert.Equal("list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (n => number) { if n <= 0 { return []; } if n <= 1 { return [n]; } return f (n); }\nvar y => text = f 7;\n"))).Value);
+
+        // An «error» return is the bottom, compatible with anything, so it is left out and
+        // «f» infers «number» from the other return — not a divergence.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("var e => error;\nfunction f (n => number) { return e; return n; }\nvar y => text = f 5;\n"))).Value);
+    }
+
     [Fact(DisplayName = "a delegate's returns are its own, not the enclosing function's")]
     public void ADelegatesReturnsAreItsOwnNotTheEnclosingFunctions()
     {
