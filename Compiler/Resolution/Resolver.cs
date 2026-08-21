@@ -1991,7 +1991,7 @@ internal sealed class SymbolTable
         Descriptor.Spelled("The type of «true» and «false».", "truth")
             with { Kind = SymbolKind.Type, SeeAlso = ["true", "false"] },
         Descriptor.Spelled("The type of a failure, which every type admits and which admits nothing.", "error")
-            with { Kind = SymbolKind.Type },
+            with { Kind = SymbolKind.Type, Bottom = true },
     ];
 
     /// <summary>
@@ -2089,6 +2089,19 @@ internal sealed class SymbolTable
         = [.. Supplies.Where(supplied => supplied.Shape is null && supplied.Kind is SymbolKind.Type)
                       .Select(supplied => supplied.Name)
                       .Order(System.StringComparer.Ordinal)];
+
+    /// <summary>
+    ///     The bottom type's spelling — «error». The one <see cref="SuppliedTypes"/>
+    ///     entry that is not a scalar: assignable to every type and admitting nothing.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Marked on the entry (<see cref="Descriptor.Bottom"/>) and read here, so a
+    ///     consumer asking «is this supplied type the bottom» reads the registry rather
+    ///     than knowing the word «error». «Single» because the language has exactly one
+    ///     bottom — a second, or none, is a startup crash rather than a silent miscount.
+    /// </remarks>
+    public static string Bottom { get; } = Supplies.Single(supplied => supplied.Bottom).Name;
 
     /// <summary>The supplied patterns, for the rules that ask what words are taken.</summary>
     public static IReadOnlyList<Pattern> Builtins { get; }

@@ -91,6 +91,24 @@ internal sealed record Descriptor
     /// </remarks>
     public SymbolKind Kind { get; init; } = SymbolKind.Value;
 
+    /// <summary>
+    ///     Whether this supplied type is the bottom — «error», assignable to every
+    ///     type and admitting nothing. The one supplied type that is not a scalar.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Stated here, on the type it is true of, rather than as an exception in the
+    ///     checker. «Sort.Of» made a «Scalar» of every supplied type but «error», and
+    ///     it knew which to except by keeping its own copy of the scalar names — a
+    ///     second source of truth that a fourth supplied scalar would silently break.
+    ///     Bottom-ness is a ruled language property — assignable to everything,
+    ///     nothing assignable to it — so it belongs in what the language says it
+    ///     supplies. Every other supplied type is a scalar by DEFAULT, which is the
+    ///     correct default: «date», «fast number» and «fast text» are ruled and
+    ///     coming, and each is a scalar with no annotation at all.
+    /// </remarks>
+    public bool Bottom { get; init; }
+
     /// <summary>The spellings, one per arity, where more than one reads differently.</summary>
     ///
     /// <remarks>

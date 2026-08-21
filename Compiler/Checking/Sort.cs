@@ -47,9 +47,6 @@ internal abstract class Sort
 
     public abstract override int GetHashCode();
 
-    /// <summary>The three ground scalars. «error» is apart because it is the bottom, not a scalar.</summary>
-    private static readonly HashSet<string> scalars = ["number", "text", "truth"];
-
     /// <summary>
     ///     The sort a resolved annotation names, or NULL where the words resolve but
     ///     are not one well-formed type: a multi-part group «(a, b)» or a keyed one
@@ -66,8 +63,13 @@ internal abstract class Sort
     /// </remarks>
     public static Sort Of(Node node, Func<string, Container> container) => node switch
     {
-        Node.Name { Words: "error" } => new Error(),
-        Node.Name name when scalars.Contains(name.Words) => new Scalar(name.Words),
+        // A supplied ground type is a scalar, save the one the registry marks the
+        // bottom — «error», which is its own Sort. Which types the language supplies,
+        // and which is the bottom, are the registry's to state; reading them here is
+        // what keeps a fourth supplied scalar (date, fast number, fast text) from
+        // arriving as a user «Named» type in silence.
+        Node.Name name when SymbolTable.SuppliedTypes.Contains(name.Words)
+            => name.Words == SymbolTable.Bottom ? new Error() : new Scalar(name.Words),
         Node.Name name => new Named(container(name.Words), name.Words),
 
         Node.Call call when call.Pattern.Equals(SymbolTable.Listing)
