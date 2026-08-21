@@ -438,6 +438,29 @@ public class TypeAnnotations
                    finding => Assert.IsType<NeverAnswers>(finding));
     }
 
+    [Fact(DisplayName = "a delegate's returns are its own, not the enclosing function's")]
+    public void ADelegatesReturnsAreItsOwnNotTheEnclosingFunctions()
+    {
+        // A delegate is a callable, not a transparent block: «() => { return "text"; }»
+        // returns «text» from the delegate, so «f» — which returns «5» — is not divergent.
+        Assert.Empty(Of("function f {\n    var callback = () => { return \"text\"; };\n    return 5;\n}\n"));
+
+        // The same for a delegate in a parameter default, an ancillary scope on the same
+        // ownership path...
+        Assert.Empty(Of("function g (h => number = () => { return \"text\"; }) => number { return 5; }\n"));
+
+        // ...and a delegate nested in another delegate.
+        Assert.Empty(Of("function f {\n    var a = () => { var b = () => { return \"text\"; }; return 5; };\n    return 1;\n}\n"));
+
+        // A return in an «if» inside a delegate belongs to the delegate, so it does not reach
+        // «f», whose «5» stays the only return «f» owns.
+        Assert.Empty(Of("function f {\n    var a = () => { if c { return \"text\"; } return \"more\"; };\n    return 5;\n}\n"));
+
+        // But an ordinary «if» directly in a function still belongs to the function: this «f»
+        // returns both «text» and «number», which IS divergent.
+        Assert.IsType<DivergentReturns>(Assert.Single(Of("function f {\n    if c { return \"text\"; }\n    return 5;\n}\n")));
+    }
+
     [Fact(DisplayName = "return sites diverge in source order, so the earlier one is the established type")]
     public void ReturnSitesDivergeInSourceOrderSoTheEarlierOneIsTheEstablishedType()
     {

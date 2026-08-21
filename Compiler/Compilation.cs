@@ -223,7 +223,7 @@ internal sealed class Compilation
                                bool named = true, IReadOnlyList<Body> ancillary = null,
                                Grammar.Function function = null,
                                IReadOnlyDictionary<string, Sort> enclosingSorts = null,
-                               Grammar.Function within = null)
+                               object within = null)
     {
         // The container of a type is a STRUCTURE — the module it is in, then a segment
         // per enclosing named scope — compared as one rather than a joined string a
@@ -288,11 +288,14 @@ internal sealed class Compilation
 
         var sorts = ValueSorts(statements, declared, function, enclosingSorts);
 
-        // The function whose return sites this scope contributes to: its own, if it is a
+        // The CALLABLE whose return sites this scope contributes to: its own, if it is a
         // function body, else the one it is nested transparently inside. A «return» in an
-        // «if» or a loop returns from the function around it, so its sort belongs to that
-        // function's inference, not to the block it is written in, which owns none.
-        var home = function ?? within;
+        // «if» or a loop returns from the callable around it, so its sort belongs to that
+        // callable's inference, not to the block it is written in, which owns none. A
+        // delegate is NOT such a block — it is a callable, so entering one sets «within» to
+        // the delegate and this reads it as the owner, keeping its returns out of the
+        // enclosing function's.
+        object home = function ?? within;
 
         // The checks are recorded here, not run: a scope gathers its declarations,
         // readings, and sorts, and the checks over them run in one later phase, once every
@@ -341,7 +344,8 @@ internal sealed class Compilation
             if (body.Container is null)
             {
                 Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts,
-                      container, named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts, within: home);
+                      container, named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts,
+                      within: (object)body.Delegate ?? home);
 
                 continue;
             }
@@ -436,10 +440,12 @@ internal sealed class Compilation
         // with its declarations enclosing them and its container as their own, their
         // types already lifted into it, so a delegate in a parameter default sees the
         // container's types and a use of its name outside the container does not.
+        // Every ancillary scope is a parameter-default delegate — a default with no delegate
+        // body is a value, not a scope — so each is its own callable owner, not «home».
         if (ancillary is not null)
             foreach (var scope in ancillary)
                 Scope(scope.Statements, declared, scope.Variable, scope.Parameters, scope.Inside, scope.Reacts,
-                      container, named: false, enclosingSorts: sorts, within: home);
+                      container, named: false, enclosingSorts: sorts, within: scope.Delegate);
 
         return declared;
     }
@@ -1201,7 +1207,7 @@ internal sealed class Compilation
 
                 case Grammar.Delegate { Definition: { } body } lambda:
                     seen.Add(body);
-                    yield return new Body(body.Statements, null, Bound(lambda.Data), "a delegate");
+                    yield return new Body(body.Statements, null, Bound(lambda.Data), "a delegate", Delegate: lambda);
                     break;
 
                 // A type's members are where a «when» belongs, along with the
@@ -1339,7 +1345,8 @@ internal sealed class Compilation
     private readonly record struct Body(IReadOnlyList<Statement> Statements, Identifier Variable,
                                         IReadOnlyList<Identifier> Parameters, string Inside,
                                         bool Reacts = false, string Container = null,
-                                        IReadOnlyList<Body> Ancillary = null, Grammar.Function Function = null);
+                                        IReadOnlyList<Body> Ancillary = null, Grammar.Function Function = null,
+                                        Grammar.Delegate Delegate = null);
 
     /// <summary>A declaration as a message would quote it.</summary>
     private static string Named(Identifier identifier) => $"«{identifier.Words}»";
@@ -1731,7 +1738,7 @@ internal sealed class Compilation
     /// </summary>
     private sealed class Checking(IReadOnlyList<Statement> statements, Declarations declared,
                                   IReadOnlyList<Reading> read, IReadOnlyDictionary<string, Sort> sorts,
-                                  Grammar.Function function, Grammar.Function owner)
+                                  Grammar.Function function, object owner)
     {
         internal IReadOnlyList<Statement> Statements { get; } = statements;
         internal Declarations Declared { get; } = declared;
@@ -1739,8 +1746,13 @@ internal sealed class Compilation
         internal IReadOnlyDictionary<string, Sort> Sorts { get; } = sorts;
         internal Grammar.Function Function { get; } = function;
 
-        /// <summary>The function this scope's returns belong to — its own, or the one it is nested inside.</summary>
-        internal Grammar.Function Owner { get; } = owner;
+        /// <summary>
+        ///     The CALLABLE this scope's returns belong to — a function or a delegate, its own
+        ///     or the one it is nested transparently inside. A delegate is a callable, not a
+        ///     transparent block, so its returns are its own and not the enclosing function's;
+        ///     an object rather than a <c>Grammar.Function</c> so a delegate can be one.
+        /// </summary>
+        internal object Owner { get; } = owner;
     }
 
     /// <summary>
