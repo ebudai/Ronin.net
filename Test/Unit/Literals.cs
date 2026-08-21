@@ -114,4 +114,30 @@ public class Literals
         Lexer unicode = new("١");
         Assert.Null(Literal.Lex(ref unicode));
     }
+
+    [Fact(DisplayName = "the full lexer consumes a Unicode digit as a word and terminates")]
+    public void TheFullLexerConsumesAUnicodeDigit()
+    {
+        // «١» is no numeral, but SOME token must take every character or «Lexer.Lex» spins at a
+        // cursor that never advances. «Word» now admits it — a word may not START where a
+        // NUMBER does, ASCII «0-9», and «١» is not a number — so a lone one is a name, the loop
+        // terminates, and rejected-as-numeric does not mean rejected-by-every-token (REAUDIT65
+        // finding 1). «Literal.Lex» alone never exercised this fallback.
+        Assert.IsType<Word>(new Lexer("١").Lex());
+
+        // an ASCII numeral is still a number; the Unicode digit after it is the next token, so a
+        // number followed by one does not hang either.
+        var after = new Lexer("5١").Lex();
+        Assert.IsType<Numeric>(after);
+        Assert.IsType<Word>(after.Next);
+
+        // a Unicode digit inside a word is part of it, as it always was — only the LEADING
+        // position was ever the numeral boundary.
+        Assert.Equal("a١b", new Lexer("a١b").Lex().Memory.ToString());
+
+        // and the whole pipeline terminates on one — «١» reads as an undeclared name, which is
+        // left to its own walk, so the compilation completes with none; reaching here at all is
+        // the termination the finding is about.
+        Assert.Empty(Compilation.Of(new SourceText("var x => number = ١;\n", "digit.ron")).Findings);
+    }
 }

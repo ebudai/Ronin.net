@@ -12,7 +12,11 @@ internal class Word : Token
     {
         if (lexer.IsEmpty) return null;
 
-        if (char.IsDigit(lexer[0])) return null;
+        // A word may not START where a number does — but "where a number starts" is the ASCII
+        // «0-9» the numeral alphabet rules (NUMERALALPHABET), not «char.IsDigit». A Unicode
+        // decimal digit «Numeric» now refuses is NOT a number, so it may begin a name here
+        // rather than being a run no token consumes — which would spin «Lexer.Lex» forever.
+        if (Numeric.Digit(lexer[0])) return null;
 
         var length = 0;
         while (length < lexer.Length

@@ -113,8 +113,14 @@ internal class Numeric : Literal
     ///     hundreds — which mix across scripts and hide lookalikes, so a numeral could read as
     ///     one value and be another, the opposite of what this language trades for. The lexer is
     ///     the authority for the alphabet; a run outside «0-9» is simply not a number here.
+    ///     <para>
+    ///     «internal» because «Word» reads it too: a word may not START where a number does,
+    ///     and "where a number starts" is exactly this — so a Unicode digit «char.IsDigit» would
+    ///     have taken is not a number AND may begin a name, rather than being a run no token
+    ///     consumes, which hangs the lexer loop.
+    ///     </para>
     /// </summary>
-    private static bool Digit(char c) => c is >= '0' and <= '9';
+    internal static bool Digit(char c) => c is >= '0' and <= '9';
 
     /// <summary>
     ///     The length of the longest well-formed digit run at
