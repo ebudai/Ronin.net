@@ -501,6 +501,53 @@ public class TypeAnnotations
         Assert.IsType<Shadowed>(Assert.Single(Of("function f { return 5; }\nfunction f { return 6; }\n")));
     }
 
+    [Fact(DisplayName = "a nullary reference is a call to every consumer — dependency order and recursion")]
+    public void ANullaryReferenceIsACallToEveryConsumer()
+    {
+        // A bare nullary reference resolves to a CALL, not a name, so the inference call graph
+        // sees the «first → second» edge and settles «second» first whatever the source offsets
+        // — «first» answers «second»'s «number», caught against «text» regardless of the
+        // unrelated «padding» that shifts every declaration's offset (REAUDIT64 finding 1). The
+        // edge is what makes it dependency order rather than the offset-string order a layout
+        // happened to pass under. Both declaration orders.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(Of(
+            "var padding => number;\nfunction first { return second; }\nfunction second { return 5; }\nvar x => text = first;\n"))).Value);
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(Of(
+            "var padding => number;\nfunction second { return 5; }\nfunction first { return second; }\nvar x => text = first;\n"))).Value);
+
+        // Nullary self- and mutual recursion answer nowhere — a NeverAnswers at each return, as
+        // for a shaped function, now that the recursive edge is a call the cycle check can see.
+        Assert.IsType<NeverAnswers>(Assert.Single(Of("function loop { return loop; }\n")));
+        var mutual = Of("function left { return right; }\nfunction right { return left; }\n");
+        Assert.Equal(2, mutual.Count);
+        Assert.All(mutual, finding => Assert.IsType<NeverAnswers>(finding));
+
+        // A grounding base settles the group — «b» answers a value, so the chain «a → b» grounds
+        // and neither is refused.
+        Assert.Empty(Of("function a { return b; }\nfunction b { return 5; }\n"));
+
+        // An ordinary value name still reads as a value, not a call: only the nullary set turns a
+        // name into a call.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(Of(
+            "var v => number;\nvar x => text = v;\n"))).Value);
+    }
+
+    [Fact(DisplayName = "a nullary reference is a call at every name shape, composite keywords included")]
+    public void ANullaryReferenceIsACallAtEveryNameShape()
+    {
+        // The «[f]» is built from the canonical lexemes, so a composite keyword — «part of», one
+        // lexeme whose text carries a space — is one pattern segment, not two. «ready part of
+        // world» answering «number» is caught against «text», where splitting the rendered name
+        // on its spaces threw «part» «of» past the lexer's own reading and crashed «Pattern»
+        // construction (REAUDIT64 finding 2).
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(Of(
+            "function ready part of world { return 5; }\nvar x => text = ready part of world;\n"))).Value);
+
+        // An ordinary multi-word name, and whitespace between the words normalised at the use.
+        Assert.Equal("number", Assert.IsType<TypeMismatch>(Assert.Single(Of(
+            "function foo bar { return 5; }\nvar x => text = foo   bar;\n"))).Value);
+    }
+
     [Fact(DisplayName = "a function that answers with no value is an action, inadmissible where a value is wanted")]
     public void AFunctionThatAnswersWithNoValueIsAnActionInadmissibleWhereAValueIsWanted()
     {

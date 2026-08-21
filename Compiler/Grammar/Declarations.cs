@@ -438,8 +438,16 @@ internal sealed class Declarations
                 // it: «Cell» shadowed it above, the same family as two same-named types
                 // (NULLARYRULING §2). So it is not filed, and one is the whole of the set.
                 if (Overloads.ContainsKey(shape) is false)
+                {
                     Overloads[shape] = [new Signature(blocks, member.Identifier.Annotations, Returned(nullary),
                                                       Span: member.Identifier.Span(source))];
+
+                    // The callable half: the resolver offers «[f]» in place of the reserved name,
+                    // so a bare «f» resolves to a Call every consumer reads as one (NULLARYRULING
+                    // §1). Keyed by the name «Cell» reserved and the very «shape» filed above, so
+                    // the Call's pattern is the overload key and its answer is read straight back.
+                    Symbols.WithNullary(member.Identifier.Words, shape);
+                }
             }
 
             return;

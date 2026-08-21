@@ -783,7 +783,7 @@ internal sealed class Compilation
     {
         Node.Name name when name.Words == SymbolTable.Absent => new Sort.Optional(variables.Fresh()),
         Node.Name name when SymbolTable.Denoted(name.Words) is { } denotes => new Sort.Scalar(denotes),
-        Node.Name name => sorts.GetValueOrDefault(name.Words) ?? Nullary(name, declared),
+        Node.Name name => sorts.GetValueOrDefault(name.Words),
         Node.Call call => Returned(call, declared),
         Node.Group { Kind: Node.Grouping.List, Parts.Count: > 0 } list => Listed(list, sorts, declared),
         Node.Group { Kind: Node.Grouping.List, Parts.Count: 0 } => new Sort.List(variables.Fresh()),
@@ -823,16 +823,6 @@ internal sealed class Compilation
     private Sort Returned(Node.Call call, Declarations declared)
         => declared.Overloads.GetValueOrDefault(call.Pattern) is [{ ReturnSort: { } sort }] ? sort
          : answers.GetValueOrDefault(call.Pattern);
-
-    /// <summary>
-    ///     The sort a bare name answers with when it is a no-argument function rather than a
-    ///     value in scope — a nullary pattern reserves its spelling, so «f» reads as a name,
-    ///     not the <see cref="Node.Call"/> «f 5» reads as. Its return sort is read the same
-    ///     way a call's is, from the signature the declaration files under «[f]»; null for a
-    ///     name that is no such function.
-    /// </summary>
-    private Sort Nullary(Node.Name name, Declarations declared)
-        => Returned(new Node.Call(new Pattern(name.Words.Split(' ')), []), declared);
 
     /// <summary>A function's node identity in the inference call graph — the offset it is declared at, which is unique.</summary>
     private static string Key(Span span) => span.Offset.ToString();

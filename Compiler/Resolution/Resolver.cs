@@ -227,7 +227,18 @@ internal sealed class Resolver
         if (CanName(lexemes, i, j))
         {
             var name = string.Join(' ', Enumerable.Range(i, j - i).Select(k => lexemes[k].Text));
-            if (symbols.Mentionable(kind).Contains(name)) cell.Offer(1, new Node.Name(name).At(Offset(lexemes, i), Length(lexemes, i, j)));
+
+            // A no-argument function reads as a CALL to its «[f]» pattern, not a value read
+            // (NULLARYRULING §1: «var now = current time» is call-it). Offered IN PLACE of the
+            // name and never beside it, so the cell keeps one reading and stays unambiguous —
+            // which is why the pattern is kept out of the pattern table. One resolved Call is
+            // then what the inference edges, «NeverAnswers», and the evaluator's invoke all
+            // read, rather than each re-deriving a call from a name. The «[f]» is built from the
+            // canonical lexemes here, so a composite keyword «part of» is one segment, not two.
+            if (kind is SymbolKind.Value && symbols.Nullary(name) is { } shape)
+                cell.Offer(1, new Node.Call(shape, []).At(Offset(lexemes, i), Length(lexemes, i, j)));
+            else if (symbols.Mentionable(kind).Contains(name))
+                cell.Offer(1, new Node.Name(name).At(Offset(lexemes, i), Length(lexemes, i, j)));
         }
 
         // a bracketed substatement is one lookup however large it is, and it is
@@ -2163,6 +2174,7 @@ internal sealed class SymbolTable
         foreach (var (name, kind) in enclosing.Names) Names[name] = kind;
         foreach (var name in enclosing.constants) constants.Add(name);
         foreach (var name in enclosing.reactives) reactives.Add(name);
+        foreach (var (name, shape) in enclosing.nullaries) nullaries[name] = shape;
 
         Patterns.AddRange(enclosing.Patterns);
 
@@ -2191,6 +2203,19 @@ internal sealed class SymbolTable
             reactives.Add(name);
         }
 
+        return this;
+    }
+
+    /// <summary>
+    ///     Records a no-argument function: its bare name reads as a CALL to its zero-hole
+    ///     pattern, not a value read (NULLARYRULING §1). The name is reserved separately, as a
+    ///     value; this is the callable half — what lets «Atoms» offer «[f]» where it would
+    ///     otherwise offer the name. The pattern is deliberately NOT in <see cref="Patterns"/>:
+    ///     a nullary name in both tables reads two ways, the ambiguity the reservation removes.
+    /// </summary>
+    public SymbolTable WithNullary(string name, Pattern shape)
+    {
+        nullaries[name] = shape;
         return this;
     }
 
@@ -2236,9 +2261,18 @@ internal sealed class SymbolTable
 
     private readonly HashSet<string> constants = [];
     private readonly HashSet<string> reactives = [];
+    private readonly Dictionary<string, Pattern> nullaries = [];
 
     /// <summary>Whether a resolved name may fill the hole of «old (_)».</summary>
     internal bool IsReactive(string name) => reactives.Contains(name);
+
+    /// <summary>
+    ///     The zero-hole pattern a bare name is a CALL to, where it names a no-argument
+    ///     function; null otherwise. «current time» reads as call-it (NULLARYRULING §1), so
+    ///     the resolver offers «[current time]» here rather than the name, and every consumer
+    ///     reads one Call.
+    /// </summary>
+    internal Pattern Nullary(string name) => nullaries.GetValueOrDefault(name);
 
     /// <summary>
     ///     The built-in pattern's word and the runtime shadow prefix, both read

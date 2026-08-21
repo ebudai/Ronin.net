@@ -365,6 +365,23 @@ public class Evaluations
         Assert.Contains("cannot read yet", unreadable.Message);
     }
 
+    [Fact(DisplayName = "a bare nullary reference invokes the declaration, not a graph read")]
+    public void ABareNullaryReferenceInvokesTheDeclaration()
+    {
+        // «f» is a no-argument function, so it resolves to a CALL to «[f]» (NULLARYRULING §1) —
+        // evaluating it INVOKES the nullary declaration rather than reading a graph cell no name
+        // wrote. Before, «f» stayed a name and «graph.Read» answered «f is not declared»
+        // (REAUDIT64 finding 1, the runtime half).
+        SymbolTable symbols = new();
+        symbols.WithNames("f");
+        symbols.WithNullary("f", new Pattern(["f"]));
+
+        Scope scope = new();
+        scope.Declare(new Declaration(new Pattern(["f"]), [], (_, _) => 5d));
+
+        Assert.Equal(5d, new Evaluator(scope).Evaluate(new Graph(), Resolve(symbols, "f"), insideLet: false));
+    }
+
     [Fact(DisplayName = "an undeclared name is an error value")]
     public void AnUndeclaredNameIsAnErrorValue()
     {
