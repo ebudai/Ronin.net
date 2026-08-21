@@ -2063,6 +2063,17 @@ internal sealed class SymbolTable
                       .Order(System.StringComparer.Ordinal)];
 
     /// <summary>
+    ///     The type a supplied value literal denotes — «truth» for «true» and «false», the
+    ///     type the checker gives that literal — or null for a word the language does not
+    ///     supply as a value. The registry is the authority; the checker reads it rather than
+    ///     keeping its own copy of which literal is which type.
+    /// </summary>
+    public static string Denoted(string word)
+        => Supplies.FirstOrDefault(supplied => supplied.Shape is null
+                                            && supplied.Kind is SymbolKind.Value
+                                            && supplied.Name == word)?.Denotes;
+
+    /// <summary>
     ///     The type spellings the language supplies whole, which every scope names
     ///     without declaring — «number», «text», «truth», «error».
     /// </summary>

@@ -542,6 +542,23 @@ public class TypeAnnotations
         Assert.Empty(Of("function f (n => number) { return [[]]; }\nvar y => text = f 7;\n"));
     }
 
+    [Fact(DisplayName = "a truth literal has the sort «truth», checked in every position")]
+    public void ATruthLiteralHasTheSortTruthCheckedInEveryPosition()
+    {
+        // «true» and «false» denote «truth» in the registry, and the checker reads that sort
+        // from the registry rather than keeping its own list — so the literal is a «truth» in
+        // an initializer, a return, and an argument, and a «number» is not it.
+        Assert.Equal("truth", Assert.IsType<TypeMismatch>(Assert.Single(Of("var x => number = true;\n"))).Value);
+        Assert.Equal("truth", Assert.IsType<TypeMismatch>(Assert.Single(Of("function f => number { return false; }\n"))).Value);
+        Assert.Equal("truth", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (x => number) => number { return x; }\nvar y => number = f true;\n"))).Value);
+
+        // The controls: against «truth», «true» and «false» check clean, so the initializer,
+        // return, and argument paths cannot drift apart.
+        Assert.Empty(Of("var x => truth = true;\n"));
+        Assert.Empty(Of("var x => truth = false;\n"));
+    }
+
     [Fact(DisplayName = "«nothing» is an optional the type expected of it pins")]
     public void NothingIsAnOptionalTheTypeExpectedOfItPins()
     {

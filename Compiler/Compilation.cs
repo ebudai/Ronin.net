@@ -775,6 +775,7 @@ internal sealed class Compilation
     private Sort Inferred(Node node, IReadOnlyDictionary<string, Sort> sorts, Declarations declared) => node switch
     {
         Node.Name name when name.Words == SymbolTable.Absent => new Sort.Optional(variables.Fresh()),
+        Node.Name name when SymbolTable.Denoted(name.Words) is { } denotes => new Sort.Scalar(denotes),
         Node.Name name => sorts.GetValueOrDefault(name.Words),
         Node.Call call => Returned(call, declared),
         Node.Group { Kind: Node.Grouping.List, Parts.Count: > 0 } list => Listed(list, sorts, declared),
