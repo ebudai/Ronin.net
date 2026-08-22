@@ -481,6 +481,27 @@ public class TypeAnnotations
         Assert.Contains(separator, spanned);
     }
 
+    [Theory(DisplayName = "an unresolved diagnostic distinguishes a carried break from literal backslash text")]
+    [InlineData("\n", "\\n")]           // actual LF vs the two characters backslash-n
+    [InlineData("\r", "\\r")]           // actual CR vs backslash-r
+    [InlineData("\u0085", "\\u0085")]   // actual NEL vs backslash-u-0085
+    [InlineData("\u2028", "\\u2028")]   // actual LS
+    [InlineData("\u2029", "\\u2029")]   // actual PS
+    public void AnUnresolvedDiagnosticDistinguishesACarriedBreakFromLiteralBackslash(string carried, string spelled)
+    {
+        // The visible encoding doubles its own backslash introducer, so a control/separator a
+        // token CARRIES and source text that merely SPELLS the escape are not quoted the same — the
+        // encoding is injective, not lossy (REAUDIT72). Both remain one physical line.
+        var actual = Assert.IsType<Unresolved>(Assert.Single(
+            Of($"var y => number = send \"hello{carried}world\" nope;\n")));
+        var literal = Assert.IsType<Unresolved>(Assert.Single(
+            Of($"var y => number = send \"hello{spelled}world\" nope;\n")));
+
+        Assert.NotEqual(actual.Words, literal.Words);                 // distinct quoted references
+        Assert.DoesNotContain("\n", Diagnostics.Report(actual));      // still one physical line, both
+        Assert.DoesNotContain("\n", Diagnostics.Report(literal));
+    }
+
     [Fact(DisplayName = "a function whose every return calls itself never answers")]
     public void AFunctionWhoseEveryReturnCallsItselfNeverAnswers()
     {

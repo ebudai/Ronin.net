@@ -241,10 +241,13 @@ internal sealed class Compilation
     ///     and paragraph separators, so NEL, LS, and PS are covered as CR and LF are, not just the
     ///     two common encodings (REAUDIT70, REAUDIT71). «Lexemes.Render» is left semantic for its
     ///     other consumers; only what a finding quotes is escaped, and the content stays legible —
-    ///     «\n» and «\r» read plainly, the rest as «\uXXXX».
+    ///     «\n» and «\r» read plainly, the rest as «\uXXXX». The backslash introducer is itself
+    ///     doubled, so the encoding is INJECTIVE: a carried break and source that merely spells its
+    ///     escape — an actual LF versus the two characters «\n» — do not quote the same (REAUDIT72).
     /// </summary>
     private static string Visible(string words) => string.Concat(words.Select(c => c switch
     {
+        '\\' => "\\\\",
         '\n' => "\\n",
         '\r' => "\\r",
         _ when char.IsControl(c) || c is '\u2028' or '\u2029' => $"\\u{(int)c:x4}",
