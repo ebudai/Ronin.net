@@ -513,18 +513,23 @@ internal sealed class Compilation
                 var lexemes = reference.ToLexemes();
                 var resolution = resolver.Resolve(lexemes);
 
-                // «return (_)» — the answer anchor with a value after it — is what an
-                // unanswered-body check must tell from unrelated text, even unresolved. At ANY
-                // depth: «return» is a call and may sit inside another, «send (return nope)», so
-                // the resolved walk «Called» finds it at every depth and this must match. The
-                // lexemes are the whole flattened reference, so a nested return is among them; the
-                // anchor is the registered «return» of «SymbolTable.Answer», not a copied word.
-                // «return» is reserved, so every occurrence is a return, and a value follows it
-                // unless a close, a separator, or «=» does — a bare «return» being no value return.
+                // «return (_)» — the answer anchor STARTING a value — is what an unanswered-body
+                // check must tell from unrelated text, even unresolved, and at ANY depth: «return»
+                // is a call and may sit inside another, «send (return nope)», so the resolved walk
+                // «Called» finds it at every depth and this must match. «return» is NOT reserved
+                // whole: it anchors a pattern, so no NAME may BEGIN with it, but a name may CONTAIN
+                // it — «customer return policy» is legal, the way «true positive» is beside «true».
+                // A NAME is a maximal run of word lexemes, so a «return» is the anchor exactly when
+                // it STARTS a word-run — at the front, or after a non-word — and is followed by a
+                // value, anything but a close, a separator, or «=». A «return» after a word is
+                // interior to a name and no return at all; this is the same boundary the «ReadsAs»
+                // refusal turns on. The anchor is «SymbolTable.Answer»'s registered word, not a
+                // copied one, and the lexemes are the whole flattened reference, nested returns in.
                 var anchor = SymbolTable.Answer.Segments[0];
-                var answering = lexemes.Zip(lexemes.Skip(1)).Any(pair =>
-                    pair.First.Text == anchor
-                    && pair.Second.Kind is not (LexemeKind.Close or LexemeKind.Separator or LexemeKind.Associates));
+                var answering = lexemes.Count > 1 && Enumerable.Range(0, lexemes.Count - 1).Any(k =>
+                    lexemes[k].Text == anchor
+                    && (k is 0 || lexemes[k - 1].Kind is not LexemeKind.Word)
+                    && lexemes[k + 1].Kind is not (LexemeKind.Close or LexemeKind.Separator or LexemeKind.Associates));
 
                 // Searched only where there is something to repair. The search
                 // resolves a candidate per subspan, which is affordable on an

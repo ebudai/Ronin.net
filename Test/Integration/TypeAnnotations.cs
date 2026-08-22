@@ -426,6 +426,28 @@ public class TypeAnnotations
         // answers, unlike «send (return nope)» above.
         Assert.IsType<Unanswered>(Assert.Single(
             Of(send + "function f => number { send (return); }\n")));
+
+        // «return» is not reserved whole — it anchors a pattern, so no NAME may BEGIN with it, but
+        // a name may CONTAIN it: «customer return policy» is legal, as «true positive» is beside
+        // «true». Such a name is no return, so it does not suppress even when the outer call is
+        // unresolved — the anchor is a «return» only where it STARTS a word-run (REAUDIT67).
+        const string policy = "var customer return policy => number;\n";
+        Assert.IsType<Unanswered>(Assert.Single(
+            Of(policy + send + "function f => number { send (customer return policy) nope; return; }\n")));
+
+        // The same name RESOLVED — no trailing «nope» — is a «Name» in the tree, never an answer
+        // call, so it is accepted and still answers nothing.
+        Assert.IsType<Unanswered>(Assert.Single(
+            Of(policy + send + "function f => number { send (customer return policy); return; }\n")));
+
+        // Another accepted shape with «return» medial follows the same word-run boundary, not the
+        // token position; the control without «return» in the name behaves identically.
+        Assert.IsType<Unanswered>(Assert.Single(
+            Of("var annual return summary => number;\n" + send
+               + "function f => number { send (annual return summary) nope; return; }\n")));
+        Assert.IsType<Unanswered>(Assert.Single(
+            Of("var customer policy => number;\n" + send
+               + "function f => number { send (customer policy) nope; return; }\n")));
     }
 
     [Fact(DisplayName = "a function whose every return calls itself never answers")]
