@@ -439,6 +439,20 @@ public class TypeAnnotations
         }
     }
 
+    [Fact(DisplayName = "an unresolved reference renders canonically, never quoting source whitespace")]
+    public void AnUnresolvedReferenceRendersCanonically()
+    {
+        // A reference may cross a line — whitespace is trivia — so the finding quotes the words
+        // rendered from its lexemes, not the raw source slice, keeping the diagnostic one physical
+        // line (REAUDIT69). The primary span still covers the whole original reference, both lines.
+        var finding = Assert.IsType<Unresolved>(Assert.Single(Of("var y => number = nope\n    more;\n")));
+
+        Assert.Equal("nope more", finding.Words);                            // canonical, no trivia or break
+        Assert.DoesNotContain("\n", Diagnostics.Report(finding));            // still one physical line
+        Assert.StartsWith("Player.ron:1:19:", Diagnostics.Report(finding));  // at «nope»
+        Assert.Equal(13, finding.Primary.Length);                            // «nope\n    more», the whole reference
+    }
+
     [Fact(DisplayName = "a function whose every return calls itself never answers")]
     public void AFunctionWhoseEveryReturnCallsItselfNeverAnswers()
     {

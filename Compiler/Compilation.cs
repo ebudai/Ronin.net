@@ -230,8 +230,7 @@ internal sealed class Compilation
     {
         foreach (var reading in readings)
             if (reading.Resolution.Kind is ResolutionKind.NoParse)
-                yield return new Unresolved(reading.Span,
-                                            reading.Span.Source.Text.Substring(reading.Span.Offset, reading.Span.Length));
+                yield return new Unresolved(reading.Span, reading.Words);
     }
 
     /// <summary>
@@ -542,7 +541,8 @@ internal sealed class Compilation
                                          resolution,
                                          resolution.Kind is ResolutionKind.Ambiguous
                                        ? Repairs.For(resolver, lexemes, resolution)
-                                       : []);
+                                       : [],
+                                         lexemes.Render());
             }
         }
     }
@@ -1183,11 +1183,12 @@ internal sealed class Compilation
     /// </remarks>
     internal readonly record struct Reading
     {
-        public Reading(Span span, Resolution resolution, IReadOnlyList<Repair> repairs)
+        public Reading(Span span, Resolution resolution, IReadOnlyList<Repair> repairs, string words)
         {
             Span = span;
             Resolution = resolution;
             Repairs = Owned.Copy(repairs);
+            Words = words;
         }
 
         public Span Span { get; }
@@ -1196,6 +1197,14 @@ internal sealed class Compilation
 
         /// <summary>The bracketings, owned where the reading is recorded.</summary>
         public IReadOnlyList<Repair> Repairs { get; }
+
+        /// <summary>
+        ///     The reference's words, rendered from its lexemes — trivia and line breaks gone.
+        ///     A reference may legally cross a line (whitespace is trivia), so the raw source
+        ///     slice would carry a newline into a one-line diagnostic; this is what an
+        ///     «Unresolved» finding quotes instead (REAUDIT69).
+        /// </summary>
+        public string Words { get; }
     }
 
     /// <summary>Every statement's reading, in the scope that owns it.</summary>
