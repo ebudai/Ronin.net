@@ -1,7 +1,7 @@
 # Classifying an unresolved value-return — three heuristics deep, and the authority gives nothing
 
 > **Ledger** — `[R]` The `Unanswered` check must suppress on a body whose value-return did not resolve, and fire otherwise. Detecting an unresolved value-return means telling a `return (_)` anchor from the word «return» in a name — which only the resolver knows, but it yields no structure on failure. Three token heuristics have each failed a new case (REAUDIT65→66→67→68). Asks the designer to choose the direction: give unresolved references their own finding (and suppress broadly), a resolver structural-match query, or accept the token limitation.
-> answered by: none
+> answered by: UNRESOLVEDRETURNRULING
 > supersedes: none
 > superseded by: none
 
