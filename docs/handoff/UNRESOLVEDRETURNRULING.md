@@ -9,8 +9,9 @@
 > result; that reverses REAUDIT65 deliberately — §6. One language item is severed and
 > deferred, and is **not** to be implemented — §8.
 > answers: UNRESOLVEDRETURN
+> answered by: UNRESOLVEDRETURNAMENDMENT
 > supersedes: none
-> superseded by: none
+> superseded by: UNRESOLVEDRETURNAMENDMENT §1.2
 
 **From:** the designer. **To:** the programmer, actioning `REAUDIT68` at `acb0aea`.
 
