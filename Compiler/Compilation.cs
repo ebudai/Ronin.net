@@ -209,7 +209,29 @@ internal sealed class Compilation
             if (check.Function is not null)
                 foreach (var finding in Returns(check.Function, check.Declared, Sites(check.Function))) Add(finding);
             foreach (var finding in Arguments(check.Read, check.Declared, check.Sorts)) Add(finding);
+            foreach (var finding in Unresolveds(check.Read)) Add(finding);
         }
+    }
+
+    /// <summary>
+    ///     Every unresolved value reference in this scope: a reading whose words name nothing —
+    ///     no value, call, or pattern in scope reads them (UNRESOLVEDRETURNRULING §4). Silence
+    ///     here was a defect of its own, and the one the unanswered-body check needed to step
+    ///     aside for: a body that fails to resolve reports THIS, not a contradiction on top of it.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     One finding per reference, not per word. «send customer return policy nope» emits one:
+    ///     the reader needs to know the statement did not resolve, and naming each word that
+    ///     failed to bind is noise on a language of multi-word names. «NoParse» only — an
+    ///     ambiguous reading is its own finding, and a resolved one is no fault.
+    /// </remarks>
+    private IEnumerable<Finding> Unresolveds(IReadOnlyList<Reading> readings)
+    {
+        foreach (var reading in readings)
+            if (reading.Resolution.Kind is ResolutionKind.NoParse)
+                yield return new Unresolved(reading.Span,
+                                            reading.Span.Source.Text.Substring(reading.Span.Offset, reading.Span.Length));
     }
 
     /// <summary>
@@ -513,24 +535,6 @@ internal sealed class Compilation
                 var lexemes = reference.ToLexemes();
                 var resolution = resolver.Resolve(lexemes);
 
-                // «return (_)» — the answer anchor STARTING a value — is what an unanswered-body
-                // check must tell from unrelated text, even unresolved, and at ANY depth: «return»
-                // is a call and may sit inside another, «send (return nope)», so the resolved walk
-                // «Called» finds it at every depth and this must match. «return» is NOT reserved
-                // whole: it anchors a pattern, so no NAME may BEGIN with it, but a name may CONTAIN
-                // it — «customer return policy» is legal, the way «true positive» is beside «true».
-                // A NAME is a maximal run of word lexemes, so a «return» is the anchor exactly when
-                // it STARTS a word-run — at the front, or after a non-word — and is followed by a
-                // value, anything but a close, a separator, or «=». A «return» after a word is
-                // interior to a name and no return at all; this is the same boundary the «ReadsAs»
-                // refusal turns on. The anchor is «SymbolTable.Answer»'s registered word, not a
-                // copied one, and the lexemes are the whole flattened reference, nested returns in.
-                var anchor = SymbolTable.Answer.Segments[0];
-                var answering = lexemes.Count > 1 && Enumerable.Range(0, lexemes.Count - 1).Any(k =>
-                    lexemes[k].Text == anchor
-                    && (k is 0 || lexemes[k - 1].Kind is not LexemeKind.Word)
-                    && lexemes[k + 1].Kind is not (LexemeKind.Close or LexemeKind.Separator or LexemeKind.Associates));
-
                 // Searched only where there is something to repair. The search
                 // resolves a candidate per subspan, which is affordable on an
                 // error path and would not be on every statement in a file.
@@ -538,8 +542,7 @@ internal sealed class Compilation
                                          resolution,
                                          resolution.Kind is ResolutionKind.Ambiguous
                                        ? Repairs.For(resolver, lexemes, resolution)
-                                       : [],
-                                         answering);
+                                       : []);
             }
         }
     }
@@ -925,16 +928,17 @@ internal sealed class Compilation
         // promise, whether or not every path reaches one — that is flow analysis, a later slice.
         if (sites.Any(site => site.Answer is not null) is false)
         {
-            // Suppressed only by an unresolved VALUE-RETURN. A «return nope» is a value-return
-            // attempt whose value did not resolve, so it contributes no site and reads like a
-            // fall-through — but the unresolved name is its own walk, not answered on top of it.
-            // Unrelated unresolved text — a lone «nope;» — cannot carry a value out of the body,
-            // so it does NOT suppress: the body still leaves without a value, and this is exactly
-            // the finding. The «Answering» flag is the syntactic «return (_)», which a site cannot
-            // report because the unresolved value left no site.
+            // Suppressed by ANY unresolved reading in the body. An unresolved reference is now its
+            // own finding (see «Unresolveds»), so a body that fails to resolve reports THAT — the
+            // basic fault — not a contradictory «no return carries a value» stacked on top of it.
+            // Whether the unresolved words were a value-return attempt no longer matters, which is
+            // what closes the token route no scan could read: «return nope», «send return nope»,
+            // and a bare «nope» are one thing here, an unresolved reading (UNRESOLVEDRETURNRULING).
+            // A body emits the unresolved finding OR «Unanswered», never both — the same «NoParse»
+            // decides which.
             if (checks.Where(check => ReferenceEquals(check.Owner, function))
                       .SelectMany(check => check.Read)
-                      .Any(reading => reading.Answering && reading.Resolution.TryTree(out _) is false))
+                      .Any(reading => reading.Resolution.Kind is ResolutionKind.NoParse))
                 yield break;
 
             yield return new Unanswered(function.Identifier.Span(Source), words.Render());
@@ -1179,12 +1183,11 @@ internal sealed class Compilation
     /// </remarks>
     internal readonly record struct Reading
     {
-        public Reading(Span span, Resolution resolution, IReadOnlyList<Repair> repairs, bool answering)
+        public Reading(Span span, Resolution resolution, IReadOnlyList<Repair> repairs)
         {
             Span = span;
             Resolution = resolution;
             Repairs = Owned.Copy(repairs);
-            Answering = answering;
         }
 
         public Span Span { get; }
@@ -1193,15 +1196,6 @@ internal sealed class Compilation
 
         /// <summary>The bracketings, owned where the reading is recorded.</summary>
         public IReadOnlyList<Repair> Repairs { get; }
-
-        /// <summary>
-        ///     Whether the reference is syntactically a value-carrying return — a «return»
-        ///     anchor with a value after it — whether or not that value resolved. What tells an
-        ///     unresolved «return nope» (a value-return attempt, left to the unresolved name's
-        ///     own walk) from unrelated unresolved body text, so the «Unanswered» check
-        ///     suppresses on the one and not the other.
-        /// </summary>
-        public bool Answering { get; }
     }
 
     /// <summary>Every statement's reading, in the scope that owns it.</summary>

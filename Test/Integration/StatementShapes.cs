@@ -531,7 +531,12 @@ public class StatementShapes
         Parser parser = new(lexer.Lex());
 
         Assert.Single(parser.Parse().Scopes[0].Statements);
-        Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+
+        // The delegate rows lead with an undeclared reference and now report an
+        // «Unresolved» finding (UNRESOLVEDRETURNRULING); the list, lookup and input
+        // rows still resolve and report nothing. Either way, nothing else fires.
+        Assert.All(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings,
+                   finding => Assert.IsType<Unresolved>(finding));
     }
 
     [Fact(DisplayName = "one parse and one decision, which the spec says and this is why")]
@@ -727,7 +732,11 @@ public class StatementShapes
         if (one)
         {
             Assert.IsType<Datum>(Assert.Single(statements));
-            Assert.Empty(findings);
+
+            // «3..test» and the bare-delegate chain lead with an undeclared reference,
+            // which now reports an «Unresolved» finding (UNRESOLVEDRETURNRULING); the
+            // indexed-list rows still report nothing. No other finding is admitted.
+            Assert.All(findings, finding => Assert.IsType<Unresolved>(finding));
             return;
         }
 
@@ -754,7 +763,12 @@ public class StatementShapes
         Parser parser = new(lexer.Lex());
 
         Assert.Single(parser.Parse().Scopes[0].Statements);
-        Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+
+        // Every row leads with an undeclared name, so the one reference each parses
+        // to now reports an «Unresolved» finding (UNRESOLVEDRETURNRULING) — this
+        // theory is about the parse, and the single reference is what it asserts.
+        Assert.IsType<Unresolved>(
+            Assert.Single(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings));
     }
 
     [Theory(DisplayName = "a delegate is a name or a bracketed signature, and owns the arrow")]
@@ -883,5 +897,10 @@ public class StatementShapes
         // same sequence of tokens, and an encoding that forgets where one token
         // ended cannot say that. No separator fixes it either: whatever
         // character is chosen can occur inside a token.
-        => Assert.Empty(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings);
+        //
+        // The keys here are undeclared references, so each now reports an
+        // «Unresolved» finding (UNRESOLVEDRETURNRULING) — but no key-collision
+        // «Malformed» does, which is the whole point being kept.
+        => Assert.All(Compilation.Of(new SourceText(source + "\n", "P.ron")).Findings,
+                      finding => Assert.IsType<Unresolved>(finding));
 }

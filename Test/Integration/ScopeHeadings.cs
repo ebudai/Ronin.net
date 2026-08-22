@@ -122,7 +122,15 @@ public class ScopeHeadings
         // The rule is the heading's and reaches no further. A nested «if» has a
         // heading of its own that ends at its own brace, and a list is a list
         // wherever it appears.
-        Assert.NotNull(Only(source));
+        //
+        // Inlined rather than routed through «Only», because «if c { a = [ 1 ]; }»
+        // assigns to the undeclared «a», which now reports an «Unresolved» finding
+        // (UNRESOLVEDRETURNRULING) where the other rows report nothing. Either way
+        // it is one statement, and nothing but an unresolved reference is admitted.
+        var compilation = Of(source);
+
+        Assert.All(compilation.Findings, finding => Assert.IsType<Unresolved>(finding));
+        Assert.NotNull(Assert.Single(compilation.Module.Scopes[0].Statements));
     }
 
     [Fact(DisplayName = "and a brace in a heading can only be the body now")]

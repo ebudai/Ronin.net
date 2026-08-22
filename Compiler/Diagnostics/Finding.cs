@@ -117,6 +117,9 @@ internal enum FindingKind
     /// <summary>A function with a written value return whose body never carries a value out — only bare «return»s, or a fall-through.</summary>
     Unanswered,
 
+    /// <summary>A reference that resolves to nothing — no value, call, or pattern in scope reads its words.</summary>
+    Unresolved,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -943,6 +946,27 @@ internal sealed class Unanswered(Span primary, string declared)
         => $"This function declares it answers with «{Declared}», but no «return» in its body carries a value — " +
            "every path leaves with a bare «return», or falls through. A function that answers needs a «return (_)»; " +
            $"drop the «=> {Declared}» to make it an action instead.";
+}
+
+/// <summary>
+///     A reference that resolves to nothing — its words name no value, call, or pattern in
+///     scope, so the statement has no reading (UNRESOLVEDRETURNRULING §4).
+/// </summary>
+///
+/// <remarks>
+///     States only that the reference did not resolve. It does NOT single out a word or suggest
+///     a spelling: under fewest-lookups disambiguation the intended reading is genuinely unknown
+///     at this point, so naming a culprit would guess (the «AMBIGUITYASERROR» tone). This is the
+///     finding that lets a body's other checks — «Unanswered» above all — step aside for it
+///     rather than pile a second, misleading message on already-unresolved source.
+/// </remarks>
+internal sealed class Unresolved(Span primary, string words)
+    : Finding(FindingKind.Unresolved, primary)
+{
+    public string Words { get; } = words;
+
+    public override string Message
+        => $"«{Words}» does not resolve: nothing in scope reads these words as a value or a call.";
 }
 
 /// <summary>

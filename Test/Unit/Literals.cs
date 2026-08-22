@@ -135,9 +135,10 @@ public class Literals
         // position was ever the numeral boundary.
         Assert.Equal("a١b", new Lexer("a١b").Lex().Memory.ToString());
 
-        // and the whole pipeline terminates on one — «١» reads as an undeclared name, which is
-        // left to its own walk, so the compilation completes with none; reaching here at all is
-        // the termination the finding is about.
-        Assert.Empty(Compilation.Of(new SourceText("var x => number = ١;\n", "digit.ron")).Findings);
+        // and the whole pipeline terminates on one — «١» reads as an undeclared name, now its own
+        // «Unresolved» finding (UNRESOLVEDRETURNRULING); reaching here at all, rather than hanging,
+        // is the termination this test is about.
+        Assert.IsType<Unresolved>(Assert.Single(
+            Compilation.Of(new SourceText("var x => number = ١;\n", "digit.ron")).Findings));
     }
 }

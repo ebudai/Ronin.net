@@ -129,10 +129,12 @@ public class TypeAnnotations
         Assert.Equal("text", parameter.Value);
         Assert.Equal("number", parameter.Declared);
 
-        // An untyped parameter is generic — nothing to compare; and a return that did
-        // not resolve is left to its own walk.
+        // An untyped parameter is generic — nothing to compare.
         Assert.Empty(Of("function p (x) => number { return x; }\n"));
-        Assert.Empty(Of("function f => number { return nope; }\n"));
+
+        // A return whose value does not resolve is not compared here, but «nope» is no longer
+        // silent: an unresolved reference is its own «Unresolved» finding (UNRESOLVEDRETURNRULING).
+        Assert.IsType<Unresolved>(Assert.Single(Of("function f => number { return nope; }\n")));
 
         // A return reads a non-scalar answer the same way an initializer does — its sort
         // spelled whole, a match clean.
@@ -227,10 +229,12 @@ public class TypeAnnotations
         Assert.Equal("text", parameter.Value);
         Assert.Equal("number", parameter.Declared);
 
-        // An untyped parameter is generic — no sort to read — and a name that does not
-        // resolve at all is left to its own walk; neither is compared.
+        // An untyped parameter is generic — no sort to read — so it is not compared.
         Assert.Empty(Of("function f (x) => number { var y => number = x; return 5; }\n"));
-        Assert.Empty(Of("var y => number = nope;\n"));
+
+        // A name that does not resolve is not compared either, but it is no longer silent: an
+        // unresolved reference is its own «Unresolved» finding now (UNRESOLVEDRETURNRULING).
+        Assert.IsType<Unresolved>(Assert.Single(Of("var y => number = nope;\n")));
 
         // A reference to a non-scalar value renders its sort in the finding.
         var list = Assert.IsType<TypeMismatch>(Assert.Single(Of("var xs => list of number;\nvar y => number = xs;\n")));
@@ -382,72 +386,57 @@ public class TypeAnnotations
         var fell = Assert.IsType<Unanswered>(Assert.Single(Of("function f => number { }\n")));
         Assert.Equal("number", fell.Declared);
 
-        // A value return, at any depth, keeps the promise — whether or not every path reaches it.
+        // A value return, at any depth, keeps the promise — whether or not every path reaches it —
+        // and a nested one carried through a call resolves and is read by the site walk, whether
+        // parenthesized or not.
+        const string send = "function send (x) { return x; }\n";
         Assert.Empty(Of("function f => number { return 5; }\n"));
         Assert.Empty(Of("function f (c => truth) => number { if c { return 5; } }\n"));
+        Assert.Empty(Of(send + "function f => number { send (return 5); }\n"));
+        Assert.Empty(Of(send + "function f => number { send return 5; }\n"));
+        Assert.Empty(Of(send + "function f => number { send send return 5; }\n"));
 
         // An OMITTED return makes a valueless body a legal action — the other side of §1b, not
         // this finding — whether it exits bare or falls through.
         Assert.Empty(Of("function f { return; }\n"));
         Assert.Empty(Of("function f { }\n"));
 
-        // The suppression is for an unresolved VALUE-RETURN only. An unrelated unknown statement
-        // cannot carry a value out of the body, so it does not hide the missing answer — the
-        // finding still fires with a «nope;» before or after the bare return, and in a nested
-        // block (REAUDIT65 finding 2).
-        Assert.IsType<Unanswered>(Assert.Single(Of("function f => number { nope; return; }\n")));
-        Assert.IsType<Unanswered>(Assert.Single(Of("function f => number { return; nope; }\n")));
+        // A declared multi-word name RESOLVES to a «Name», never an answer call, so a body that
+        // uses one and otherwise only bare-returns answers nothing and fully resolves — so
+        // «Unanswered» fires (the resolved side of REAUDIT67, confirming the site walk still sees
+        // a name as a name).
         Assert.IsType<Unanswered>(Assert.Single(
-            Of("function f (c => truth) => number { if c { nope; return; } }\n")));
+            Of("var customer return policy => number;\n" + send
+               + "function f => number { send (customer return policy); return; }\n")));
+    }
 
-        // Only the value-return whose value did not resolve stays its own walk, still clean.
-        Assert.Empty(Of("function f => number { return nope; }\n"));
+    [Fact(DisplayName = "an unresolved reference is its own finding, and suppresses Unanswered")]
+    public void AnUnresolvedReferenceIsItsOwnFinding()
+    {
+        // UNRESOLVEDRETURNRULING (A): an unresolved reference reports «Unresolved», and a body
+        // containing any unresolved reading suppresses «Unanswered» — the basic fault is reported,
+        // not a contradiction stacked on top of it. Whether the unresolved words attempted a
+        // value-return no longer matters, which is what closes the token route no scan could read:
+        // a return, a nested return parenthesized or not, a name that merely contains «return»,
+        // and a bare undeclared name are ONE thing here — an unresolved reading. Each is exactly
+        // one «Unresolved» and NOT «Unanswered»; the two findings are mutually exclusive.
+        const string prelude = "var customer return policy => number;\nfunction send (x) { return x; }\n";
 
-        // A «return (_)» is a call and may sit inside another, at any depth — the unresolved
-        // classifier reads the whole flattened reference, not just its leading word, so a nested
-        // «send (return nope)» is a value-return attempt like the direct one, left to its own
-        // walk rather than reported as no-answer (REAUDIT66). Grouped, and nested more than one
-        // call deep, too.
-        const string send = "function send (x) { return x; }\n";
-        Assert.Empty(Of("function f => number { (return nope); }\n"));
-        Assert.Empty(Of(send + "function f => number { send (return nope); }\n"));
-        Assert.Empty(Of(send + "function f => number { send (send (return nope)); }\n"));
-
-        // The resolved nested return is clean by the ordinary site path — its value carries.
-        Assert.Empty(Of(send + "function f => number { send (return 5); }\n"));
-
-        // And an unrelated unresolved CALL — «send (nope)», no «return» in it — does not suppress:
-        // the bare return beside it still leaves the body without a value.
-        Assert.IsType<Unanswered>(Assert.Single(
-            Of(send + "function f => number { send (nope); return; }\n")));
-
-        // A bare «return» nested in a call carries no value either — the anchor is followed by a
-        // close, not a value — so «send (return)» does not suppress, and the body still never
-        // answers, unlike «send (return nope)» above.
-        Assert.IsType<Unanswered>(Assert.Single(
-            Of(send + "function f => number { send (return); }\n")));
-
-        // «return» is not reserved whole — it anchors a pattern, so no NAME may BEGIN with it, but
-        // a name may CONTAIN it: «customer return policy» is legal, as «true positive» is beside
-        // «true». Such a name is no return, so it does not suppress even when the outer call is
-        // unresolved — the anchor is a «return» only where it STARTS a word-run (REAUDIT67).
-        const string policy = "var customer return policy => number;\n";
-        Assert.IsType<Unanswered>(Assert.Single(
-            Of(policy + send + "function f => number { send (customer return policy) nope; return; }\n")));
-
-        // The same name RESOLVED — no trailing «nope» — is a «Name» in the tree, never an answer
-        // call, so it is accepted and still answers nothing.
-        Assert.IsType<Unanswered>(Assert.Single(
-            Of(policy + send + "function f => number { send (customer return policy); return; }\n")));
-
-        // Another accepted shape with «return» medial follows the same word-run boundary, not the
-        // token position; the control without «return» in the name behaves identically.
-        Assert.IsType<Unanswered>(Assert.Single(
-            Of("var annual return summary => number;\n" + send
-               + "function f => number { send (annual return summary) nope; return; }\n")));
-        Assert.IsType<Unanswered>(Assert.Single(
-            Of("var customer policy => number;\n" + send
-               + "function f => number { send (customer policy) nope; return; }\n")));
+        foreach (var body in new[]
+        {
+            "return nope;",                                 // direct
+            "send (return nope);",                          // parenthesized nested (REAUDIT66)
+            "send return nope;",                            // unparenthesized nested (REAUDIT68)
+            "send send return nope;",                       // two levels, unparenthesized
+            "send (customer return policy) nope; return;",  // name containing «return», parenthesized (REAUDIT67)
+            "send customer return policy nope;",            // the same name, unparenthesized
+            "nope; return;",                                // unrelated unresolved beside a bare return (REAUDIT65, changed §6)
+            "nope",                                         // tail position, undeclared — VER-1 is pre-sugar
+        })
+        {
+            var finding = Assert.Single(Of(prelude + $"function f => number {{ {body} }}\n"));
+            Assert.IsType<Unresolved>(finding);   // exactly one, and never «Unanswered» beside it
+        }
     }
 
     [Fact(DisplayName = "a function whose every return calls itself never answers")]
@@ -899,8 +888,9 @@ public class TypeAnnotations
         Assert.Empty(Of("function f (n => number) { return [[], []]; }\nvar y => text = f 7;\n"));
 
         // An element with no sort at all — here an operation — leaves the list unsorted, the
-        // empty-list pinning notwithstanding.
-        Assert.Empty(Of("function f (a => number, b => number) { return [a + b]; }\nvar y => text = f 1 2;\n"));
+        // empty-list pinning notwithstanding. (Called «f (1, 2)», the two-argument form; «f 1 2»
+        // does not resolve to this «f (_, _)» and would be its own Unresolved finding.)
+        Assert.Empty(Of("function f (a => number, b => number) { return [a + b]; }\nvar y => text = f (1, 2);\n"));
     }
 
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]

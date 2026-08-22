@@ -81,6 +81,7 @@ public class Findings
                      "var x => number = nothing;\n",
                      "function f (n => number) { return; }\nvar x => number = f 5;\n",
                      "function f => number { return; }\n",
+                     "var y => number = nope;\n",
                  })
         {
             // Through the whole pipeline rather than one phase of it, so an
@@ -274,6 +275,8 @@ public class Findings
             Player.ron:2:19: This value is an «action»: a function that ends without answering with a value — a bare «return», or a body that falls through. No value type admits an action, so it cannot stand where a value is wanted. Return a value from it, or do not use its result.
 
             Player.ron:1:10: This function declares it answers with «number», but no «return» in its body carries a value — every path leaves with a bare «return», or falls through. A function that answers needs a «return (_)»; drop the «=> number» to make it an action instead.
+
+            Player.ron:1:19: «nope» does not resolve: nothing in scope reads these words as a value or a call.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring
