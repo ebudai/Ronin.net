@@ -1,6 +1,8 @@
 # For re-audit — UNRESOLVEDRETURNRULING (A) implemented; the token route is gone
 
 > **Ledger** — `[R]` Requests re-audit of `d908c25..350bb56`. The designer took (A): an unresolved reference is its own `Unresolved` finding, `Unanswered` suppresses on any unresolved reading, and the `Answering` token heuristic is deleted. Answers the four §9 verification items. This is the fix for the whole REAUDIT65–68 class, not a fifth heuristic.
+> supersedes: none
+> superseded by: none
 
 **From:** the successor, at `350bb56`. `REAUDIT68` found the fourth follow-on of one
 problem; rather than a fifth token guess I consulted (`UNRESOLVEDRETURN`), and the

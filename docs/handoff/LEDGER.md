@@ -125,6 +125,7 @@ hand — run `python3 ledger.py` to regenerate.
 - **FORAUDIT66** — Requests re-audit of `740cb18..76d5dea`. REAUDIT65's three findings — the ASCII-lexer non-progre…
 - **FORAUDIT67** — Requests re-audit of `76d5dea..d908c25`. REAUDIT66's one adjacent finding — the unresolved value…
 - **FORAUDIT68** — Requests re-audit of `d908c25..acb0aea`. REAUDIT67's one adjacent finding — the depth-aware `Ans…
+- **FORAUDIT69** — Requests re-audit of `d908c25..350bb56`. The designer took (A): an unresolved reference is its o…
 - **FUZZBRACKETS(1)** — The probe extension, run — and the two questions answered
 - **FUZZBRACKETS_new** — The probe extension, run — and the two questions answered
 - **FUZZBRACKETS_old** — The probe extension, run — and the two questions answered
@@ -181,8 +182,3 @@ _none_
 
 - FUZZBRACKETS(1), FUZZBRACKETS_new, FUZZBRACKETS_old
 - SCOPING, SCOPING_updated
-
-## Defects
-
-- **FORAUDIT69** — missing `supersedes` field
-- **FORAUDIT69** — missing `superseded by` field
