@@ -234,12 +234,22 @@ internal sealed class Compilation
     }
 
     /// <summary>
-    ///     A reference's words made diagnostic-safe: a line break a token CARRIES — a multiline
-    ///     text literal — rendered visibly, so a one-line finding stays one line (REAUDIT70).
-    ///     «Lexemes.Render» is left semantic for its other consumers; only what a finding quotes
-    ///     is escaped, and only the breaks — the literal's quotes and content stay recognizable.
+    ///     A reference's words made diagnostic-safe: any character a token CARRIES that could
+    ///     break or corrupt a one-line message — a text literal admits every character up to its
+    ///     closing quote — rendered visibly, so a one-line finding stays one line. Defined by
+    ///     character SEMANTICS, not a chosen pair: every control character and the Unicode line
+    ///     and paragraph separators, so NEL, LS, and PS are covered as CR and LF are, not just the
+    ///     two common encodings (REAUDIT70, REAUDIT71). «Lexemes.Render» is left semantic for its
+    ///     other consumers; only what a finding quotes is escaped, and the content stays legible —
+    ///     «\n» and «\r» read plainly, the rest as «\uXXXX».
     /// </summary>
-    private static string Visible(string words) => words.Replace("\r", "\\r").Replace("\n", "\\n");
+    private static string Visible(string words) => string.Concat(words.Select(c => c switch
+    {
+        '\n' => "\\n",
+        '\r' => "\\r",
+        _ when char.IsControl(c) || c is '\u2028' or '\u2029' => $"\\u{(int)c:x4}",
+        _ => c.ToString(),
+    }));
 
     /// <summary>
     ///     One scope's declarations, and then every scope it contains — each of

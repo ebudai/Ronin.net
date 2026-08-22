@@ -453,22 +453,32 @@ public class TypeAnnotations
         Assert.Equal(13, finding.Primary.Length);                            // «nope\n    more», the whole reference
     }
 
-    [Fact(DisplayName = "an unresolved reference with a multiline literal stays one diagnostic line")]
-    public void AnUnresolvedReferenceWithAMultilineLiteralStaysOneLine()
+    [Theory(DisplayName = "an unresolved diagnostic renders every line-boundary character visibly")]
+    [InlineData("\n", "\\n")]           // LF
+    [InlineData("\r", "\\r")]           // CR
+    [InlineData("\r\n", "\\r\\n")]      // CRLF
+    [InlineData("\u0085", "\\u0085")]   // NEL
+    [InlineData("\u2028", "\\u2028")]   // LINE SEPARATOR
+    [InlineData("\u2029", "\\u2029")]   // PARAGRAPH SEPARATOR
+    public void AnUnresolvedDiagnosticRendersEveryLineBoundaryVisibly(string separator, string shown)
     {
-        // A newline INSIDE a text literal is the token's content, not trivia, so «Render» keeps it
-        // — rightly. The finding still renders one physical line: a carried line break is shown
-        // visibly, not left to split the message (REAUDIT70).
+        // A text literal admits every character up to its closing quote, so a line break it carries
+        // may be CR, LF, or the Unicode NEL / line / paragraph separators. Each is the token's own
+        // content, kept by «Render», and each is rendered visibly so the one-line finding stays one
+        // physical line — the invariant is by character semantics, not a chosen pair (REAUDIT70,
+        // REAUDIT71).
         var finding = Assert.IsType<Unresolved>(Assert.Single(
-            Of("var y => number = send \"hello\nworld\" nope;\n")));
+            Of($"var y => number = send \"hello{separator}world\" nope;\n")));
 
-        Assert.DoesNotContain("\n", Diagnostics.Report(finding));   // one physical line
-        Assert.DoesNotContain("\r", Diagnostics.Report(finding));
-        Assert.Contains("hello\\nworld", finding.Words);            // the literal's break, shown visibly, content intact
+        // recognizable, the break shown visibly; and no raw boundary character survives the report.
+        Assert.Contains($"hello{shown}world", finding.Words);
+        var report = Diagnostics.Report(finding);
+        foreach (var boundary in new[] { "\n", "\r", "\u0085", "\u2028", "\u2029" })
+            Assert.DoesNotContain(boundary, report);
 
-        // the primary span still covers the whole original reference — both lines of it.
+        // the primary span still covers the whole original reference, break included.
         var spanned = finding.Primary.Source.Text.Substring(finding.Primary.Offset, finding.Primary.Length);
-        Assert.Contains("\n", spanned);
+        Assert.Contains(separator, spanned);
     }
 
     [Fact(DisplayName = "a function whose every return calls itself never answers")]
