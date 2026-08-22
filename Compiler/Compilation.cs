@@ -210,6 +210,7 @@ internal sealed class Compilation
                 foreach (var finding in Returns(check.Function, check.Declared, Sites(check.Function))) Add(finding);
             foreach (var finding in Arguments(check.Read, check.Declared, check.Sorts)) Add(finding);
             foreach (var finding in Unresolveds(check.Read)) Add(finding);
+            foreach (var finding in Unreachables(check.Read)) Add(finding);
         }
     }
 
@@ -231,6 +232,63 @@ internal sealed class Compilation
         foreach (var reading in readings)
             if (reading.Resolution.Kind is ResolutionKind.NoParse)
                 yield return new Unresolved(reading.Span, Visible(reading.Words));
+    }
+
+    /// <summary>
+    ///     Every «return (_)» a call would evaluate to build one of its arguments
+    ///     (UNRESOLVEDRETURNAMENDMENT §3). Under strict evaluation that return exits
+    ///     the body before the call is made, so the call is unreachable — «send return 5»
+    ///     never calls «send». One finding per such return.
+    /// </summary>
+    private IEnumerable<Finding> Unreachables(IReadOnlyList<Reading> readings)
+    {
+        foreach (var reading in readings)
+            if (reading.Resolution.TryTree(out var tree))
+                foreach (var finding in Reach(tree, strict: false))
+                    yield return finding;
+    }
+
+    /// <summary>
+    ///     Walks a resolved reference for a «return (_)» in a strictly-evaluated argument
+    ///     position. «strict» is "would be evaluated to produce an argument to an enclosing
+    ///     call": false at the root, set entering a call's arguments, and inherited through
+    ///     the parts of a group standing as one (a list argument).
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     An OPERATION is never itself an argument — «send (a otherwise b)» does not parse —
+    ///     so its operands are only ever reached OUT of a strict position, and a «return»
+    ///     standing directly in one is not in argument position. That is what keeps the guard
+    ///     idiom «total otherwise return 0» from reading as dead code (UNRESOLVEDRETURNAMENDMENT
+    ///     §4): «otherwise»'s right side is not evaluated to build a call's argument here, so no
+    ///     scoping on «Catches» is needed — the operands simply are not strict. The walk still
+    ///     descends them, because a dead CALL can sit inside one — «(send return 5) is x» — and
+    ///     a call resets «strict» for its own arguments regardless.
+    /// </remarks>
+    private IEnumerable<Finding> Reach(Node node, bool strict)
+    {
+        if (strict && node is Node.Call answer && answer.Pattern.Equals(SymbolTable.Answer))
+            yield return new Unreachable(Source.Span(node.Offset, node.Length));
+
+        switch (node)
+        {
+            case Node.Call call:
+                foreach (var argument in call.Arguments)
+                    foreach (var finding in Reach(argument, strict: true))
+                        yield return finding;
+                break;
+            case Node.Operation operation:
+                foreach (var finding in Reach(operation.Left, strict: false))
+                    yield return finding;
+                foreach (var finding in Reach(operation.Right, strict: false))
+                    yield return finding;
+                break;
+            case Node.Group group:
+                foreach (var part in group.Parts)
+                    foreach (var finding in Reach(part.Value, strict))
+                        yield return finding;
+                break;
+        }
     }
 
     /// <summary>

@@ -255,8 +255,12 @@ public class Ambiguities
         // edits arriving as one message, and the assertion agreed with it.
         var nested = All("var ready => number;\nwhen ready { return (return 1); }\n");
 
-        Assert.Equal(2, nested.Count);
-        Assert.All(nested, finding => Assert.Equal(FindingKind.AnsweringReaction, finding.Kind));
+        // TWO «AnsweringReaction», one per «return» — see above. The inner «return» is
+        // additionally «Unreachable»: it is the outer «return»'s argument, so it exits before
+        // that call can run (UNRESOLVEDRETURNAMENDMENT §3, checked in «TypeAnnotations»). Two
+        // findings on one site of different kinds, so the exit sites are counted by kind.
+        Assert.Equal(2, nested.Count(finding => finding.Kind is FindingKind.AnsweringReaction));
+        Assert.Single(nested, finding => finding.Kind is FindingKind.Unreachable);
     }
 
     [Fact(DisplayName = "and two exits in one statement are two edits at two places")]
@@ -270,8 +274,15 @@ public class Ambiguities
                          + "var ready => number;\n"
                          + "when ready { send (return 1) to (return 2); }\n");
 
+        // Each «return» is also «Unreachable» at the same span — dead as «send»'s argument
+        // (UNRESOLVEDRETURNAMENDMENT §3) — so the exit sites are selected by kind here, and the
+        // dead-call finding lands on the very same two places.
         Assert.Equal(["Player.ron:3:20:", "Player.ron:3:34:"],
-                     findings.Select(finding => Diagnostics.Report(finding)[..16]).Order());
+                     findings.Where(finding => finding.Kind is FindingKind.AnsweringReaction)
+                             .Select(finding => Diagnostics.Report(finding)[..16]).Order());
+        Assert.Equal(["Player.ron:3:20:", "Player.ron:3:34:"],
+                     findings.Where(finding => finding.Kind is FindingKind.Unreachable)
+                             .Select(finding => Diagnostics.Report(finding)[..16]).Order());
     }
 
     [Fact(DisplayName = "the two truths are supplied, not declared")]

@@ -21,6 +21,60 @@ public class TypeAnnotations
     private static IReadOnlyList<Finding> Of(string source)
         => Compilation.Of(new SourceText(source, "Player.ron")).Findings;
 
+    // A «return» that answers the body belongs in a statement of its own. Written as the
+    // argument to another call, it is evaluated first and exits — so that call is never made
+    // and is dead code, silent until now (UNRESOLVEDRETURNAMENDMENT §3). «send» is a real,
+    // resolvable call throughout; against an undeclared name the reference is «Unresolved»,
+    // a different finding, and never reaches this walk.
+    private const string Send = "function send (x => number) => number { return x; }\n";
+
+    [Fact(DisplayName = "a «return» evaluated as an argument makes the enclosing call unreachable")]
+    public void AReturnEvaluatedAsAnArgumentMakesTheEnclosingCallUnreachable()
+    {
+        var finding = Assert.IsType<Unreachable>(Assert.Single(
+            Of(Send + "function f => number { send return 5; }\n")));
+
+        Assert.StartsWith("Player.ron:2:29:", Diagnostics.Report(finding));
+        Assert.Contains("never reached", finding.Message);
+    }
+
+    [Fact(DisplayName = "a «return» in a statement of its own answers the body and is not dead")]
+    public void AReturnInAStatementOfItsOwnAnswersTheBodyAndIsNotDead()
+        => Assert.Empty(Of("function f => number { return 5; }\n").OfType<Unreachable>());
+
+    [Fact(DisplayName = "«otherwise return» is a live guard, not an unreachable call")]
+    public void OtherwiseReturnIsALiveGuardNotAnUnreachableCall()
+        // «otherwise» evaluates its right only when the left is caught, so the «return» is
+        // reachable, not dead (UNRESOLVEDRETURNAMENDMENT §4). The finding must not fire here.
+        => Assert.Empty(Of(Send + "function f => number { var total = 5; " +
+                              "var r = total otherwise return 0; return r; }\n").OfType<Unreachable>());
+
+    [Fact(DisplayName = "a return nested through calls is one finding, not one per call")]
+    public void AReturnNestedThroughCallsIsOneFinding()
+    {
+        var finding = Assert.IsType<Unreachable>(Assert.Single(
+            Of(Send + "function f => number { send send return 5; }\n")));
+
+        Assert.StartsWith("Player.ron:2:34:", Diagnostics.Report(finding));
+    }
+
+    [Fact(DisplayName = "the return is reached through a list argument and through both operands")]
+    public void TheReturnIsReachedThroughAListArgumentAndThroughBothOperands()
+    {
+        // through a list literal standing as the argument
+        Assert.StartsWith("Player.ron:2:30:", Diagnostics.Report(Assert.Single(
+            Of(Send + "function f => number { send [return 5]; }\n"))));
+
+        // «send return 5 is send return 5» reads as «(send return 5) is (send return 5)» — the
+        // walk descends BOTH operands of the operation, and each dead call is its own finding.
+        var operands = Of(Send + "function f => number { send return 5 is send return 5; }\n");
+        Assert.Equal(2, operands.Count);
+        Assert.All(operands, finding => Assert.IsType<Unreachable>(finding));
+
+        // an operation that carries no return is not a dead call.
+        Assert.Empty(Of(Send + "function f => number { var r = 5 is 5; return r; }\n").OfType<Unreachable>());
+    }
+
     [Fact(DisplayName = "the supplied types annotate cleanly")]
     public void TheSuppliedTypesAnnotateCleanly()
     {
@@ -387,14 +441,16 @@ public class TypeAnnotations
         Assert.Equal("number", fell.Declared);
 
         // A value return, at any depth, keeps the promise — whether or not every path reaches it —
-        // and a nested one carried through a call resolves and is read by the site walk, whether
-        // parenthesized or not.
+        // so «Unanswered» does not fire. A return carried as a call's argument still resolves and is
+        // read by the site walk, parenthesized or not; the call it feeds is now separately flagged
+        // «Unreachable» — the amendment's dead-code finding — which is why these controls check only
+        // that no «Unanswered» is raised, not that the body is clean (UNRESOLVEDRETURNAMENDMENT §3).
         const string send = "function send (x) { return x; }\n";
         Assert.Empty(Of("function f => number { return 5; }\n"));
         Assert.Empty(Of("function f (c => truth) => number { if c { return 5; } }\n"));
-        Assert.Empty(Of(send + "function f => number { send (return 5); }\n"));
-        Assert.Empty(Of(send + "function f => number { send return 5; }\n"));
-        Assert.Empty(Of(send + "function f => number { send send return 5; }\n"));
+        Assert.Empty(Of(send + "function f => number { send (return 5); }\n").OfType<Unanswered>());
+        Assert.Empty(Of(send + "function f => number { send return 5; }\n").OfType<Unanswered>());
+        Assert.Empty(Of(send + "function f => number { send send return 5; }\n").OfType<Unanswered>());
 
         // An OMITTED return makes a valueless body a legal action — the other side of §1b, not
         // this finding — whether it exits bare or falls through.

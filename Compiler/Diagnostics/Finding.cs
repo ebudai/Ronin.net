@@ -120,6 +120,9 @@ internal enum FindingKind
     /// <summary>A reference that resolves to nothing — no value, call, or pattern in scope reads its words.</summary>
     Unresolved,
 
+    /// <summary>A «return (_)» computed as a strict argument, so it exits before the enclosing call is ever made — the call is unreachable.</summary>
+    Unreachable,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -967,6 +970,22 @@ internal sealed class Unresolved(Span primary, string words)
 
     public override string Message
         => $"«{Words}» does not resolve: nothing in scope reads these words as a value or a call.";
+}
+
+/// <summary>
+///     A «return (_)» in a strictly-evaluated argument position: evaluating it to produce the
+///     argument exits the function first, so the call it is passed to is never made
+///     (UNRESOLVEDRETURNAMENDMENT §3). Under strict evaluation this is unconditional, so the
+///     enclosing call is dead code, not a rare path — unlike a «return» on the right of a
+///     short-circuiting «otherwise», which runs only when the left is caught.
+/// </summary>
+internal sealed class Unreachable(Span primary)
+    : Finding(FindingKind.Unreachable, primary)
+{
+    public override string Message
+        => "This «return» is evaluated to produce an argument, so it exits the function before the " +
+           "call it is passed to can run — that call is never reached. A «return» that answers the " +
+           "function belongs in a statement of its own, not inside another call.";
 }
 
 /// <summary>
