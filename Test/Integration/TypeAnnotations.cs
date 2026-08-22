@@ -439,6 +439,24 @@ public class TypeAnnotations
         }
     }
 
+    [Fact(DisplayName = "a nested delegate's unresolved reading does not suppress the function's Unanswered")]
+    public void ANestedDelegatesUnresolvedReadingDoesNotSuppressTheFunctionsUnanswered()
+    {
+        // Suppression is per callable (UNRESOLVEDRETURNAMENDMENT §1): a delegate owns its readings
+        // as it owns its returns (REAUDIT63 finding 2), so an unresolved «nope» INSIDE the delegate
+        // is the delegate's own «Unresolved» and does NOT swallow the enclosing function's true
+        // «Unanswered» — «f» bare-returns and genuinely answers nothing. Two findings, one per
+        // callable, and never both on one body.
+        var findings = Of("function f => number { var callback = () => { nope }; return; }\n");
+        Assert.Equal(2, findings.Count);
+        Assert.Contains(findings, finding => finding is Unanswered);    // f's, not lost to the delegate
+        Assert.Contains(findings, finding => finding is Unresolved);    // the delegate's «nope»
+
+        // With «f» answering, only the delegate's «Unresolved» remains — no «Unanswered» on «f».
+        Assert.IsType<Unresolved>(Assert.Single(
+            Of("function f => number { var callback = () => { nope }; return 5; }\n")));
+    }
+
     [Fact(DisplayName = "an unresolved reference renders canonically, never quoting source whitespace")]
     public void AnUnresolvedReferenceRendersCanonically()
     {

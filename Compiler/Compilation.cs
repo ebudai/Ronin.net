@@ -949,14 +949,19 @@ internal sealed class Compilation
         // promise, whether or not every path reaches one — that is flow analysis, a later slice.
         if (sites.Any(site => site.Answer is not null) is false)
         {
-            // Suppressed by ANY unresolved reading in the body. An unresolved reference is now its
-            // own finding (see «Unresolveds»), so a body that fails to resolve reports THAT — the
-            // basic fault — not a contradictory «no return carries a value» stacked on top of it.
-            // Whether the unresolved words were a value-return attempt no longer matters, which is
-            // what closes the token route no scan could read: «return nope», «send return nope»,
-            // and a bare «nope» are one thing here, an unresolved reading (UNRESOLVEDRETURNRULING).
-            // A body emits the unresolved finding OR «Unanswered», never both — the same «NoParse»
-            // decides which.
+            // Suppressed by an unresolved reading in THIS callable's OWN body — «Owner == function»,
+            // so a nested DELEGATE's unresolved reading is the delegate's, not this function's, and
+            // does not swallow this function's true «Unanswered» (return ownership was separated for
+            // the same reason, REAUDIT63 finding 2; UNRESOLVEDRETURNAMENDMENT §1). An «if» or loop
+            // body is transparent and its readings are the enclosing callable's.
+            //
+            // Why suppress, and why never BOTH findings on one body: «Unanswered» is a claim about
+            // the WHOLE body — no value leaves it anywhere — and a body with an unresolved reading
+            // has not been fully read, so no claim about its totality is available to make
+            // (UNRESOLVEDRETURNAMENDMENT §2). The unresolved reference is its own finding instead —
+            // whether the words were a value-return attempt no longer matters, which is what closes
+            // the token route no scan could read: «return nope», «send return nope», and a bare
+            // «nope» are one thing here. The same «NoParse» decides which of the two a body gets.
             if (checks.Where(check => ReferenceEquals(check.Owner, function))
                       .SelectMany(check => check.Read)
                       .Any(reading => reading.Resolution.Kind is ResolutionKind.NoParse))
