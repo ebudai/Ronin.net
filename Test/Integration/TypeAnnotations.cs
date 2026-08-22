@@ -453,6 +453,24 @@ public class TypeAnnotations
         Assert.Equal(13, finding.Primary.Length);                            // «nope\n    more», the whole reference
     }
 
+    [Fact(DisplayName = "an unresolved reference with a multiline literal stays one diagnostic line")]
+    public void AnUnresolvedReferenceWithAMultilineLiteralStaysOneLine()
+    {
+        // A newline INSIDE a text literal is the token's content, not trivia, so «Render» keeps it
+        // — rightly. The finding still renders one physical line: a carried line break is shown
+        // visibly, not left to split the message (REAUDIT70).
+        var finding = Assert.IsType<Unresolved>(Assert.Single(
+            Of("var y => number = send \"hello\nworld\" nope;\n")));
+
+        Assert.DoesNotContain("\n", Diagnostics.Report(finding));   // one physical line
+        Assert.DoesNotContain("\r", Diagnostics.Report(finding));
+        Assert.Contains("hello\\nworld", finding.Words);            // the literal's break, shown visibly, content intact
+
+        // the primary span still covers the whole original reference — both lines of it.
+        var spanned = finding.Primary.Source.Text.Substring(finding.Primary.Offset, finding.Primary.Length);
+        Assert.Contains("\n", spanned);
+    }
+
     [Fact(DisplayName = "a function whose every return calls itself never answers")]
     public void AFunctionWhoseEveryReturnCallsItselfNeverAnswers()
     {

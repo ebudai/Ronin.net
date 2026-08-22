@@ -230,8 +230,16 @@ internal sealed class Compilation
     {
         foreach (var reading in readings)
             if (reading.Resolution.Kind is ResolutionKind.NoParse)
-                yield return new Unresolved(reading.Span, reading.Words);
+                yield return new Unresolved(reading.Span, Visible(reading.Words));
     }
+
+    /// <summary>
+    ///     A reference's words made diagnostic-safe: a line break a token CARRIES — a multiline
+    ///     text literal — rendered visibly, so a one-line finding stays one line (REAUDIT70).
+    ///     «Lexemes.Render» is left semantic for its other consumers; only what a finding quotes
+    ///     is escaped, and only the breaks — the literal's quotes and content stay recognizable.
+    /// </summary>
+    private static string Visible(string words) => words.Replace("\r", "\\r").Replace("\n", "\\n");
 
     /// <summary>
     ///     One scope's declarations, and then every scope it contains — each of
@@ -1199,10 +1207,11 @@ internal sealed class Compilation
         public IReadOnlyList<Repair> Repairs { get; }
 
         /// <summary>
-        ///     The reference's words, rendered from its lexemes — trivia and line breaks gone.
-        ///     A reference may legally cross a line (whitespace is trivia), so the raw source
-        ///     slice would carry a newline into a one-line diagnostic; this is what an
-        ///     «Unresolved» finding quotes instead (REAUDIT69).
+        ///     The reference's words, rendered from its lexemes — TRIVIA gone: the whitespace and
+        ///     line breaks BETWEEN tokens, which the raw source slice would carry into a one-line
+        ///     diagnostic (REAUDIT69). A line break carried BY a token — a multiline text literal —
+        ///     is that token's content and survives, so this is the semantic form; a finding
+        ///     quoting it renders diagnostic-safe on top (REAUDIT70).
         /// </summary>
         public string Words { get; }
     }
