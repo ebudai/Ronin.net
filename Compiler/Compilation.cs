@@ -513,18 +513,28 @@ internal sealed class Compilation
                 var lexemes = reference.ToLexemes();
                 var resolution = resolver.Resolve(lexemes);
 
+                // «return (_)» — the answer anchor with a value after it — is what an
+                // unanswered-body check must tell from unrelated text, even unresolved. At ANY
+                // depth: «return» is a call and may sit inside another, «send (return nope)», so
+                // the resolved walk «Called» finds it at every depth and this must match. The
+                // lexemes are the whole flattened reference, so a nested return is among them; the
+                // anchor is the registered «return» of «SymbolTable.Answer», not a copied word.
+                // «return» is reserved, so every occurrence is a return, and a value follows it
+                // unless a close, a separator, or «=» does — a bare «return» being no value return.
+                var anchor = SymbolTable.Answer.Segments[0];
+                var answering = lexemes.Zip(lexemes.Skip(1)).Any(pair =>
+                    pair.First.Text == anchor
+                    && pair.Second.Kind is not (LexemeKind.Close or LexemeKind.Separator or LexemeKind.Associates));
+
                 // Searched only where there is something to repair. The search
                 // resolves a candidate per subspan, which is affordable on an
                 // error path and would not be on every statement in a file.
-                // «return (_)» — the answer anchor «return» with a value after it — is what an
-                // unanswered-body check must tell from unrelated text, even unresolved: «return»
-                // is reserved, so a reference leading with it and carrying more is a value return.
                 yield return new Reading(reference.Where(Source),
                                          resolution,
                                          resolution.Kind is ResolutionKind.Ambiguous
                                        ? Repairs.For(resolver, lexemes, resolution)
                                        : [],
-                                         answering: lexemes.Count > 1 && lexemes[0].Text is "return");
+                                         answering);
             }
         }
     }

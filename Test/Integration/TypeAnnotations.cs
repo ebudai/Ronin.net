@@ -402,6 +402,30 @@ public class TypeAnnotations
 
         // Only the value-return whose value did not resolve stays its own walk, still clean.
         Assert.Empty(Of("function f => number { return nope; }\n"));
+
+        // A «return (_)» is a call and may sit inside another, at any depth — the unresolved
+        // classifier reads the whole flattened reference, not just its leading word, so a nested
+        // «send (return nope)» is a value-return attempt like the direct one, left to its own
+        // walk rather than reported as no-answer (REAUDIT66). Grouped, and nested more than one
+        // call deep, too.
+        const string send = "function send (x) { return x; }\n";
+        Assert.Empty(Of("function f => number { (return nope); }\n"));
+        Assert.Empty(Of(send + "function f => number { send (return nope); }\n"));
+        Assert.Empty(Of(send + "function f => number { send (send (return nope)); }\n"));
+
+        // The resolved nested return is clean by the ordinary site path — its value carries.
+        Assert.Empty(Of(send + "function f => number { send (return 5); }\n"));
+
+        // And an unrelated unresolved CALL — «send (nope)», no «return» in it — does not suppress:
+        // the bare return beside it still leaves the body without a value.
+        Assert.IsType<Unanswered>(Assert.Single(
+            Of(send + "function f => number { send (nope); return; }\n")));
+
+        // A bare «return» nested in a call carries no value either — the anchor is followed by a
+        // close, not a value — so «send (return)» does not suppress, and the body still never
+        // answers, unlike «send (return nope)» above.
+        Assert.IsType<Unanswered>(Assert.Single(
+            Of(send + "function f => number { send (return); }\n")));
     }
 
     [Fact(DisplayName = "a function whose every return calls itself never answers")]
