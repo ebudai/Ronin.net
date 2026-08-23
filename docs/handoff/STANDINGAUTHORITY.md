@@ -53,7 +53,11 @@ Things that need a ruling:
 - promoting a document to `[V]`;
 - a change to what the language *means* — where valid source becomes invalid, or
   an answer changes;
-- refusing a capability, as opposed to refusing a spelling.
+- refusing a capability, as opposed to refusing a spelling;
+- a decision that **sets a precedent** — where the answer is a rule others will
+  cite, even when the instance itself is reversible. The instance is small; the
+  rule it establishes is not, and a rule established silently is one nobody can
+  cite (`FINDINGCOMPOSITION` §5).
 
 That list is short on purpose. If a decision is not on it, it is yours.
 
