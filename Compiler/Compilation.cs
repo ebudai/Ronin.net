@@ -210,7 +210,8 @@ internal sealed class Compilation
                 foreach (var finding in Returns(check.Function, check.Declared, Sites(check.Function))) Add(finding);
             foreach (var finding in Arguments(check.Read, check.Declared, check.Sorts)) Add(finding);
             foreach (var finding in Unresolveds(check.Read)) Add(finding);
-            foreach (var finding in Unreachables(check.Read)) Add(finding);
+            if (check.Reacting is false)
+                foreach (var finding in Unreachables(check.Read)) Add(finding);
         }
     }
 
@@ -235,57 +236,66 @@ internal sealed class Compilation
     }
 
     /// <summary>
-    ///     Every «return (_)» a call would evaluate to build one of its arguments
-    ///     (UNRESOLVEDRETURNAMENDMENT §3). Under strict evaluation that return exits
-    ///     the body before the call is made, so the call is unreachable — «send return 5»
-    ///     never calls «send». One finding per such return.
+    ///     Every call an argument's «return (_)» makes unreachable (UNRESOLVEDRETURNAMENDMENT §3).
+    ///     Under strict evaluation that return exits the body before the call is made, so the
+    ///     call never runs — «send return 5» never calls «send». Reported on the call, once each:
+    ///     two dead-return arguments to one call are one dead call, folded by «Add».
     /// </summary>
+    ///
+    /// <remarks>
+    ///     Not called for a reacting scope. In a «when» a value-return is inadmissible
+    ///     («AnsweringReaction»), and every repair of that removes the return and its
+    ///     unreachability with it — so the dead-call finding is strictly derivative and steps
+    ///     aside. Admissibility precedes behaviour (FINDINGCOMPOSITION §2–§3); where the return
+    ///     is legal, as in a function body, nothing suppresses and the call is reported.
+    /// </remarks>
     private IEnumerable<Finding> Unreachables(IReadOnlyList<Reading> readings)
     {
         foreach (var reading in readings)
             if (reading.Resolution.TryTree(out var tree))
-                foreach (var finding in Reach(tree, strict: false))
+                foreach (var finding in Reach(tree, enclosing: null))
                     yield return finding;
     }
 
     /// <summary>
-    ///     Walks a resolved reference for a «return (_)» in a strictly-evaluated argument
-    ///     position. «strict» is "would be evaluated to produce an argument to an enclosing
-    ///     call": false at the root, set entering a call's arguments, and inherited through
-    ///     the parts of a group standing as one (a list argument).
+    ///     Walks a resolved reference and reports the CALL that a «return (_)» in one of its
+    ///     arguments makes unreachable. «enclosing» is the call whose argument is being
+    ///     evaluated — null at the root, set to a call for its arguments, and carried through
+    ///     the parts of a group standing as one (a list argument). The finding is raised on
+    ///     «enclosing», not on the return: its subject is the call that never runs, not the
+    ///     exit that prevents it (FINDINGCOMPOSITION §4).
     /// </summary>
     ///
     /// <remarks>
     ///     An OPERATION is never itself an argument — «send (a otherwise b)» does not parse —
-    ///     so its operands are only ever reached OUT of a strict position, and a «return»
-    ///     standing directly in one is not in argument position. That is what keeps the guard
-    ///     idiom «total otherwise return 0» from reading as dead code (UNRESOLVEDRETURNAMENDMENT
-    ///     §4): «otherwise»'s right side is not evaluated to build a call's argument here, so no
-    ///     scoping on «Catches» is needed — the operands simply are not strict. The walk still
-    ///     descends them, because a dead CALL can sit inside one — «(send return 5) is x» — and
-    ///     a call resets «strict» for its own arguments regardless.
+    ///     so its operands are never reached with an «enclosing» call, and a «return» standing
+    ///     directly in one is not in argument position. That is what keeps the guard idiom
+    ///     «total otherwise return 0» from reading as dead code (UNRESOLVEDRETURNAMENDMENT §4):
+    ///     «otherwise»'s right side is not an argument here, so no scoping on «Catches» is
+    ///     needed. The walk still descends the operands, because a dead CALL can sit inside one
+    ///     — «(send return 5) is x» — and a call becomes the «enclosing» of its own arguments.
     /// </remarks>
-    private IEnumerable<Finding> Reach(Node node, bool strict)
+    private IEnumerable<Finding> Reach(Node node, Node.Call enclosing)
     {
-        if (strict && node is Node.Call answer && answer.Pattern.Equals(SymbolTable.Answer))
-            yield return new Unreachable(Source.Span(node.Offset, node.Length));
+        if (enclosing is not null && node is Node.Call answer && answer.Pattern.Equals(SymbolTable.Answer))
+            yield return new Unreachable(Source.Span(enclosing.Offset, enclosing.Length));
 
         switch (node)
         {
             case Node.Call call:
                 foreach (var argument in call.Arguments)
-                    foreach (var finding in Reach(argument, strict: true))
+                    foreach (var finding in Reach(argument, enclosing: call))
                         yield return finding;
                 break;
             case Node.Operation operation:
-                foreach (var finding in Reach(operation.Left, strict: false))
+                foreach (var finding in Reach(operation.Left, enclosing: null))
                     yield return finding;
-                foreach (var finding in Reach(operation.Right, strict: false))
+                foreach (var finding in Reach(operation.Right, enclosing: null))
                     yield return finding;
                 break;
             case Node.Group group:
                 foreach (var part in group.Parts)
-                    foreach (var finding in Reach(part.Value, strict))
+                    foreach (var finding in Reach(part.Value, enclosing))
                         yield return finding;
                 break;
         }
@@ -403,7 +413,7 @@ internal sealed class Compilation
         // place before the call is read. Order does not follow the passes any more:
         // findings are sorted by source position, so recording here and checking there
         // read the same.
-        checks.Add(new Checking(statements, declared, read, sorts, function, home));
+        checks.Add(new Checking(statements, declared, read, sorts, function, home, reacting));
 
         // The signature's SORTS resolved against this function's own table as well, and
         // stored back on its declaration — which sees the whole container, not the null
@@ -1901,7 +1911,7 @@ internal sealed class Compilation
     /// </summary>
     private sealed class Checking(IReadOnlyList<Statement> statements, Declarations declared,
                                   IReadOnlyList<Reading> read, IReadOnlyDictionary<string, Sort> sorts,
-                                  Grammar.Function function, object owner)
+                                  Grammar.Function function, object owner, bool reacting)
     {
         internal IReadOnlyList<Statement> Statements { get; } = statements;
         internal Declarations Declared { get; } = declared;
@@ -1916,6 +1926,13 @@ internal sealed class Compilation
         ///     an object rather than a <c>Grammar.Function</c> so a delegate can be one.
         /// </summary>
         internal object Owner { get; } = owner;
+
+        /// <summary>
+        ///     Whether this scope is a «when» reaction. A reaction admits no value-return, so the
+        ///     dead-call check steps aside for it: the inadmissibility is already reported and
+        ///     subsumes the unreachability (FINDINGCOMPOSITION §2–§3).
+        /// </summary>
+        internal bool Reacting { get; } = reacting;
     }
 
     /// <summary>

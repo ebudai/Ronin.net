@@ -34,13 +34,29 @@ public class TypeAnnotations
         var finding = Assert.IsType<Unreachable>(Assert.Single(
             Of(Send + "function f => number { send return 5; }\n")));
 
-        Assert.StartsWith("Player.ron:2:29:", Diagnostics.Report(finding));
+        // At «send» (column 24), the call that never runs — NOT the «return» (column 29) that
+        // prevents it. The finding's subject is the dead call (FINDINGCOMPOSITION §4).
+        Assert.StartsWith("Player.ron:2:24:", Diagnostics.Report(finding));
         Assert.Contains("never reached", finding.Message);
     }
 
     [Fact(DisplayName = "a «return» in a statement of its own answers the body and is not dead")]
     public void AReturnInAStatementOfItsOwnAnswersTheBodyAndIsNotDead()
         => Assert.Empty(Of("function f => number { return 5; }\n").OfType<Unreachable>());
+
+    [Fact(DisplayName = "in a «when» the dead-call finding steps aside for the inadmissible return")]
+    public void InAWhenTheDeadCallFindingStepsAsideForTheInadmissibleReturn()
+    {
+        // A value-return is inadmissible in a reaction («AnsweringReaction»), and every repair of
+        // that removes the return and its unreachability with it — so the dead-call finding is
+        // strictly derivative and is suppressed (FINDINGCOMPOSITION §2–§3). The function-body case
+        // above still fires, because there the return is legal and the unreachability is the whole
+        // finding: admissibility precedes behaviour. The «when» is the carve-out, not the rule.
+        var reaction = Of(Send + "var ready => number;\nwhen ready { send return 1; }\n");
+
+        Assert.Empty(reaction.OfType<Unreachable>());
+        Assert.Contains(reaction, finding => finding.Kind is FindingKind.AnsweringReaction);
+    }
 
     [Fact(DisplayName = "«otherwise return» is a live guard, not an unreachable call")]
     public void OtherwiseReturnIsALiveGuardNotAnUnreachableCall()
@@ -55,14 +71,15 @@ public class TypeAnnotations
         var finding = Assert.IsType<Unreachable>(Assert.Single(
             Of(Send + "function f => number { send send return 5; }\n")));
 
-        Assert.StartsWith("Player.ron:2:34:", Diagnostics.Report(finding));
+        // At the INNER «send» (column 29) — the call the «return» is the direct argument to.
+        Assert.StartsWith("Player.ron:2:29:", Diagnostics.Report(finding));
     }
 
     [Fact(DisplayName = "the return is reached through a list argument and through both operands")]
     public void TheReturnIsReachedThroughAListArgumentAndThroughBothOperands()
     {
-        // through a list literal standing as the argument
-        Assert.StartsWith("Player.ron:2:30:", Diagnostics.Report(Assert.Single(
+        // through a list literal standing as the argument — reported on «send» (column 24)
+        Assert.StartsWith("Player.ron:2:24:", Diagnostics.Report(Assert.Single(
             Of(Send + "function f => number { send [return 5]; }\n"))));
 
         // «send return 5 is send return 5» reads as «(send return 5) is (send return 5)» — the

@@ -279,7 +279,7 @@ public class Findings
 
             Player.ron:1:19: «nope» does not resolve: nothing in scope reads these words as a value or a call.
 
-            Player.ron:2:29: This «return» is evaluated to produce an argument, so it exits the function before the call it is passed to can run — that call is never reached. A «return» that answers the function belongs in a statement of its own, not inside another call.
+            Player.ron:2:24: This call is never reached: one of its arguments is a «return», which exits the function before the call can run. A «return» that answers the function belongs in a statement of its own, not inside another call.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

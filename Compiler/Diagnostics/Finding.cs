@@ -973,19 +973,20 @@ internal sealed class Unresolved(Span primary, string words)
 }
 
 /// <summary>
-///     A «return (_)» in a strictly-evaluated argument position: evaluating it to produce the
-///     argument exits the function first, so the call it is passed to is never made
-///     (UNRESOLVEDRETURNAMENDMENT §3). Under strict evaluation this is unconditional, so the
-///     enclosing call is dead code, not a rare path — unlike a «return» on the right of a
-///     short-circuiting «otherwise», which runs only when the left is caught.
+///     A call one of whose arguments is a «return (_)»: evaluating that argument exits the
+///     function first, so the call is never made (UNRESOLVEDRETURNAMENDMENT §3). Under strict
+///     evaluation this is unconditional, so the call is dead code, not a rare path — unlike a
+///     «return» on the right of a short-circuiting «otherwise», which runs only when the left is
+///     caught. Raised on the CALL that never runs, not on the return that prevents it — the
+///     finding's subject is the dead call (FINDINGCOMPOSITION §4).
 /// </summary>
 internal sealed class Unreachable(Span primary)
     : Finding(FindingKind.Unreachable, primary)
 {
     public override string Message
-        => "This «return» is evaluated to produce an argument, so it exits the function before the " +
-           "call it is passed to can run — that call is never reached. A «return» that answers the " +
-           "function belongs in a statement of its own, not inside another call.";
+        => "This call is never reached: one of its arguments is a «return», which exits the " +
+           "function before the call can run. A «return» that answers the function belongs in a " +
+           "statement of its own, not inside another call.";
 }
 
 /// <summary>
