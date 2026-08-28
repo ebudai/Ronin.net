@@ -123,6 +123,9 @@ internal enum FindingKind
     /// <summary>A «return (_)» computed as a strict argument, so it exits before the enclosing call is ever made — the call is unreachable.</summary>
     Unreachable,
 
+    /// <summary>An operation applied to operands its operator does not take — «1 + "text"», «1 is "text"».</summary>
+    OperandType,
+
 }
 
 /// <summary>A span with a word about why it is being pointed at.</summary>
@@ -987,6 +990,26 @@ internal sealed class Unreachable(Span primary)
         => "This call is never reached: one of its arguments is a «return», which exits the " +
            "function before the call can run. A «return» that answers the function belongs in a " +
            "statement of its own, not inside another call.";
+}
+
+/// <summary>
+///     An operation applied to operands its operator does not take — «1 + "text"»,
+///     «1 is "text"» (SLICE-ONE-TYPINGS §1–§2). The span is the whole operation; the
+///     operator's own words say what it takes, so the operand types need not be spelled
+///     — several have none to spell, and the highlighted span shows which operands.
+/// </summary>
+internal sealed class OperandType(Span primary, string symbol)
+    : Finding(FindingKind.OperandType, primary)
+{
+    /// <summary>The operator's spelling — «+», «is» — which decides the message.</summary>
+    public string Symbol { get; } = symbol;
+
+    public override string Message => Symbol switch
+    {
+        "is" => "«is» compares two values of the same type, and these are two different types. " +
+                "«is» is value equality; to test whether a value is OF a type, use «is a».",
+        _ => $"«{Symbol}» takes two numbers.",
+    };
 }
 
 /// <summary>

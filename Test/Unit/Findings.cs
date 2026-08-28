@@ -83,6 +83,7 @@ public class Findings
                      "function f => number { return; }\n",
                      "var y => number = nope;\n",
                      "function send (x => number) => number { return x; }\nfunction f => number { send return 5; }\n",
+                     "var n => number;\nvar t => text;\nvar x = n + t;\n",
                  })
         {
             // Through the whole pipeline rather than one phase of it, so an
@@ -280,6 +281,8 @@ public class Findings
             Player.ron:1:19: «nope» does not resolve: nothing in scope reads these words as a value or a call.
 
             Player.ron:2:24: This call is never reached: one of its arguments is a «return», which exits the function before the call can run. A «return» that answers the function belongs in a statement of its own, not inside another call.
+
+            Player.ron:3:9: «+» takes two numbers.
 
             source:1:1: «when ping arrives» → «when pong arrives» → «when ping arrives» is a cycle: each writes something the next reads, so firing one schedules the next. Stop one of them writing what the ring reads, or declare feedback on every when in the ring.
                 source:1:1: also in the ring

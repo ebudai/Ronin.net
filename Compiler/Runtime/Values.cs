@@ -134,10 +134,10 @@ internal static class Builtin
     public static IReadOnlyDictionary<string, Operator> Operators { get; }
         = new Dictionary<string, Operator>
         {
-            ["+"] = new(10, Arithmetic("+", (left, right) => left + right)),
-            ["-"] = new(10, Arithmetic("-", (left, right) => left - right)),
-            ["*"] = new(20, Arithmetic("*", (left, right) => left * right)),
-            ["/"] = new(20, Divide()),
+            ["+"] = new(10, Arithmetic("+", (left, right) => left + right)) { Typer = Numeric },
+            ["-"] = new(10, Arithmetic("-", (left, right) => left - right)) { Typer = Numeric },
+            ["*"] = new(20, Arithmetic("*", (left, right) => left * right)) { Typer = Numeric },
+            ["/"] = new(20, Divide()) { Typer = Numeric },
 
             // The language's equality, and the same function cutoff, «changes»
             // and «old» already ask — one comparison rather than two that can
@@ -160,7 +160,7 @@ internal static class Builtin
             // Written down because nothing distinguishes 5 from 1 today — they
             // do not exist yet — and the next person to look would compact it
             // and take the room with it.
-            ["is"] = new(5, Lift((left, right) => Same(left, right))),
+            ["is"] = new(5, Lift((left, right) => Same(left, right))) { Typer = Equality },
 
             // The fallback level, and looser than everything it guards, so
             // «a + b otherwise 0» is the fallback of the
@@ -306,6 +306,31 @@ internal static class Builtin
         => Lift((left, right) => left is double first && right is double second
                                ? operation(first, second)
                                : new Error($"«{symbol}» needs two numbers"));
+
+    // The checker's half of the operators — the third seed beside meaning and precedence
+    // (SLICE-ONE-TYPINGS). Each gives an operation's result sort, or null where the
+    // operands are not ones the operator takes; «error», the bottom, unifies as either
+    // side, so a failure flowing into one is not itself a second finding.
+    private static readonly Sort number = new Sort.Scalar("number");
+    private static readonly Sort truth = new Sort.Scalar("truth");
+
+    /// <summary>«number × number → number», for every arithmetic operator.</summary>
+    private static Sort Numeric(Sort left, Sort right)
+        => Sort.Unify(left, number) && Sort.Unify(right, number) ? number : null;
+
+    /// <summary>
+    ///     «T × T → truth». The operands must unify — «is» is value equality and «is a» is
+    ///     the type test, so a cross-type «is» is a mistake, not a silent «false»
+    ///     (SLICE-ONE-TYPINGS §2). One «optional» layer is unwrapped on either side, so
+    ///     «optional T is T» answers (false when absent) with no ceremony — «m @ k is 5»
+    ///     types, which «@» being the producer of optionals makes arrive at once.
+    /// </summary>
+    private static Sort Equality(Sort left, Sort right)
+        => Sort.Unify(left, right)
+        || (left is Sort.Optional maybe && Sort.Unify(maybe.Inner, right))
+        || (right is Sort.Optional other && Sort.Unify(left, other.Inner))
+            ? truth
+            : null;
 
     /// <summary>
     ///     The language's equality: value equality, all the way down.

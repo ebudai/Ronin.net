@@ -121,6 +121,71 @@ public class TypeAnnotations
         Assert.Empty(Of(Send + "function f => number { var r = 5 is 5; return r; }\n").OfType<Unreachable>());
     }
 
+    // Expression/operation type-checking (SLICE-ONE-TYPINGS). Each operator carries a typer;
+    // an operation's result sort flows outward, and operands the operator does not take are a
+    // finding. Declared NAMES are the resolving form — «1 + 2» between bare literals is a
+    // separate parser matter, not this checker's.
+    private const string Nums = "var a => number;\nvar b => number;\nvar t => text;\n";
+
+    [Fact(DisplayName = "arithmetic takes two numbers, and its result is a number")]
+    public void ArithmeticTakesTwoNumbersAndItsResultIsANumber()
+    {
+        Assert.Empty(Of(Nums + "var r = a + b;\n"));                                             // number + number
+        Assert.Empty(Of(Nums + "var r => number = a * b;\n"));                                   // result flows as number
+        Assert.IsType<TypeMismatch>(Assert.Single(Of(Nums + "var r => truth = a - b;\n")));      // number, not truth
+
+        var wrong = Assert.IsType<OperandType>(Assert.Single(Of(Nums + "var r = a + t;\n")));
+        Assert.Equal("+", wrong.Symbol);
+        Assert.Contains("takes two numbers", wrong.Message);
+    }
+
+    [Fact(DisplayName = "«is» compares one type and answers a truth")]
+    public void IsComparesOneTypeAndAnswersATruth()
+    {
+        Assert.Empty(Of(Nums + "var r = a is b;\n"));                                            // same type
+        Assert.Empty(Of(Nums + "var r => truth = a is b;\n"));                                   // result flows as truth
+        Assert.IsType<TypeMismatch>(Assert.Single(Of(Nums + "var r => number = a is b;\n")));    // truth, not number
+
+        var wrong = Assert.IsType<OperandType>(Assert.Single(Of(Nums + "var r = a is t;\n")));
+        Assert.Equal("is", wrong.Symbol);
+        Assert.Contains("is a", wrong.Message);   // cross-type «is» is refused, and the message names «is a»
+    }
+
+    [Fact(DisplayName = "«is» admits «optional T is T», false when absent")]
+    public void IsAdmitsOptionalTIsTFalseWhenAbsent()
+    {
+        // SLICE-ONE-TYPINGS §2: «optional T is T» types, unwrapping one level, so «m @ k is 5»
+        // has no ceremony. «nothing» is «optional» of a fresh variable, so it compares to any value.
+        Assert.Empty(Of("var maybe => optional number;\nvar n => number;\nvar r = maybe is n;\n"));
+        Assert.Empty(Of("var n => number;\nvar r = nothing is n;\n"));      // optional on the left
+        Assert.Empty(Of("var n => number;\nvar r = n is nothing;\n"));      // optional on the right
+
+        // one level only, and the inner types must still agree — «optional number is text» does not.
+        Assert.IsType<OperandType>(Assert.Single(
+            Of("var maybe => optional number;\nvar t => text;\nvar r = maybe is t;\n")));
+    }
+
+    [Fact(DisplayName = "an operation is checked as a call argument, and brackets do not hide it")]
+    public void AnOperationIsCheckedAsACallArgumentAndBracketsDoNotHideIt()
+    {
+        // an operation standing as an argument is read against the parameter sort
+        Assert.IsType<OperandType>(Assert.Single(
+            Of(Nums + "function take (n => number) { return n; }\nvar r = take (a + t);\n")));
+
+        // brackets do not hide a type: a «=> truth» body returning «(a + b)» — a «number» —
+        // disagrees, the bracketed group unwrapped to the operation inside (locals, so «a»/«b»
+        // are in the body's own sorts).
+        Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f => truth { var a => number; var b => number; return (a + b); }\n")));
+    }
+
+    [Fact(DisplayName = "an operator with no typer leaves its operation unchecked")]
+    public void AnOperatorWithNoTyperLeavesItsOperationUnchecked()
+        // «otherwise» is a later slice and the type arrow never evaluates, so neither carries a
+        // typer; an operation with one infers no sort and raises no operand finding, as every
+        // operation did before this slice.
+        => Assert.Empty(Of(Nums + "var r = a otherwise b;\n").OfType<OperandType>());
+
     [Fact(DisplayName = "a lookup evaluates its key, so a return in one is a strict argument too")]
     public void ALookupEvaluatesItsKeySoAReturnInOneIsAStrictArgumentToo()
     {
@@ -1090,10 +1155,12 @@ public class TypeAnnotations
         // so the function stays uninferred, its variable read out to nothing.
         Assert.Empty(Of("function f (n => number) { return [[], []]; }\nvar y => text = f 7;\n"));
 
-        // An element with no sort at all — here an operation — leaves the list unsorted, the
-        // empty-list pinning notwithstanding. (Called «f (1, 2)», the two-argument form; «f 1 2»
-        // does not resolve to this «f (_, _)» and would be its own Unresolved finding.)
-        Assert.Empty(Of("function f (a => number, b => number) { return [a + b]; }\nvar y => text = f (1, 2);\n"));
+        // An operation now HAS a sort (SLICE-ONE-TYPINGS): «a + b» is a «number», so «[a + b]»
+        // pins the list to «list of number» — the element this case once had «no sort at all»
+        // for is one the operator typer now gives. (Called «f (1, 2)», the two-argument form;
+        // «f 1 2» does not resolve to this «f (_, _)» and would be its own Unresolved finding.)
+        Assert.Equal("list of number", Assert.IsType<TypeMismatch>(Assert.Single(
+            Of("function f (a => number, b => number) { return [a + b]; }\nvar y => text = f (1, 2);\n"))).Value);
     }
 
     [Fact(DisplayName = "a nested aggregate literal is checked to its leaves")]

@@ -209,6 +209,7 @@ internal sealed class Compilation
             if (check.Function is not null)
                 foreach (var finding in Returns(check.Function, check.Declared, Sites(check.Function))) Add(finding);
             foreach (var finding in Arguments(check.Read, check.Declared, check.Sorts)) Add(finding);
+            foreach (var finding in Operations(check.Read, check.Sorts, check.Declared)) Add(finding);
             foreach (var finding in Unresolveds(check.Read)) Add(finding);
             if (check.Reacting is false)
                 foreach (var finding in Unreachables(check.Read)) Add(finding);
@@ -920,8 +921,24 @@ internal sealed class Compilation
         Node.Call call => Returned(call, declared),
         Node.Group { Kind: Node.Grouping.List, Parts.Count: > 0 } list => Listed(list, sorts, declared),
         Node.Group { Kind: Node.Grouping.List, Parts.Count: 0 } => new Sort.List(variables.Fresh()),
+        Node.Group { Kind: Node.Grouping.Group, Parts: [{ Key: null } hole] } => Inferred(hole.Value, sorts, declared),
+        Node.Operation operation => Operated(operation, sorts, declared),
         _ => Sort.Infer(node),
     };
+
+    /// <summary>
+    ///     The sort an operation has — the result its operator's typer gives its operands'
+    ///     sorts. Null where the operator has no typer (the type arrow; «otherwise», a later
+    ///     slice), where an operand has no sort to give it, or where the operands are not
+    ///     ones the operator takes — the last of which the <see cref="Operations"/> pass
+    ///     reports, so here it is only a sort this pass leaves unnamed.
+    /// </summary>
+    private Sort Operated(Node.Operation operation, IReadOnlyDictionary<string, Sort> sorts, Declarations declared)
+        => operation.Operator.Typer is { } typer
+        && Inferred(operation.Left, sorts, declared) is { } left
+        && Inferred(operation.Right, sorts, declared) is { } right
+            ? typer(left, right)
+            : null;
 
     /// <summary>
     ///     The sort a non-empty list literal has — «list of T» where its elements UNIFY to
@@ -1157,6 +1174,35 @@ internal sealed class Compilation
                                                     .SelectMany(Called)
                                                     .Select(exit => new Site(exit.Span, exit.Answer, check.Declared, check.Sorts)))
                      .OrderBy(site => site.At.Offset)];
+
+    /// <summary>
+    ///     Every operation whose operands are not the sorts its operator takes — «1 + "x"»,
+    ///     «1 is "x"». Each resolved operation in these readings is read against its
+    ///     operator's typer, the same typer <see cref="Inferred"/> reads for an operation's
+    ///     result sort; a null result on two inferred operands is the disagreement. Left
+    ///     uncompared, as everywhere: an operator with no typer, and an operand with no sort
+    ///     yet — the operator's words carry the message, so an unspellable operand needs no
+    ///     naming.
+    /// </summary>
+    private IEnumerable<Finding> Operations(IReadOnlyList<Reading> body, IReadOnlyDictionary<string, Sort> sorts,
+                                            Declarations declared)
+    {
+        foreach (var reading in body)
+        {
+            if (reading.Resolution.TryTree(out var tree) is false) continue;
+
+            foreach (var node in tree.Whole)
+            {
+                if (node is not Node.Operation operation) continue;
+                if (operation.Operator.Typer is not { } typer) continue;
+                if (Inferred(operation.Left, sorts, declared) is not { } left) continue;
+                if (Inferred(operation.Right, sorts, declared) is not { } right) continue;
+
+                if (typer(left, right) is null)
+                    yield return new OperandType(Source.Span(operation.Offset, operation.Length), operation.Symbol);
+            }
+        }
+    }
 
     /// <summary>
     ///     Every finding a call passes an argument that is not the sort its parameter is

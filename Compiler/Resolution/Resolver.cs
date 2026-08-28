@@ -1624,6 +1624,22 @@ internal sealed class Operator
     /// </remarks>
     public Func<object, bool> Catches { get; init; }
 
+    /// <summary>
+    ///     The sort this operator's result has, given the sorts of its two operands — or
+    ///     null where those are not operands it takes. The checker's half of the operator,
+    ///     beside <see cref="Apply"/>'s runtime half and <see cref="BindingPower"/>'s
+    ///     resolution half, so the three seed from the one definition and none drifts from
+    ///     the others (SLICE-ONE-TYPINGS). Computed with <see cref="Sort.Unify"/>.
+    /// </summary>
+    ///
+    /// <remarks>
+    ///     Null where an operator has no value type: the type arrow, which resolves but
+    ///     never evaluates, and «otherwise», whose typing is a later slice. An operation
+    ///     whose operator has no typer infers no sort and is left unchecked — which every
+    ///     operation was, before this.
+    /// </remarks>
+    public Func<Sort, Sort, Sort> Typer { get; init; }
+
     public Operator(int bindingPower, Func<object, object, object> apply,
                     Associativity associativity = Associativity.Left)
     {
