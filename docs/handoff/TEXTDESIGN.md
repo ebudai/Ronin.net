@@ -1,11 +1,12 @@
 # Text — the unit of indexing decides everything, and StringZilla is the last question again
 
-> **Ledger** — `[R]` consultation. Recommends the `text` design: grapheme
-> indexing with `fast text` as the escape hatch, NFC on construction, invariant
-> case and collation by default, UTF-8 storage. Rules against StringZilla for now,
-> with the trigger named.
+> **Ledger** — `[V]` verdict (ratified: «yes to all of it. no stringzilla, utf-8,
+> update to dotnet 10»). The `text` design: grapheme indexing with `fast text` as
+> the escape hatch, NFC on construction, invariant case and collation by default,
+> UTF-8 storage. Rules against StringZilla for now, with the trigger named. Binding
+> for `text @ number → text` (`SLICEONETYPINGS` §3).
 > supersedes: none
-> superseded by: not yet checked
+> superseded by: none
 
 **Short answer on StringZilla: not now, and the reason is not performance.** It
 has **no C#/.NET binding** — v3 ships C, C++, Rust, Swift and Python — so adopting

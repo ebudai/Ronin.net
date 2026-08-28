@@ -1,5 +1,9 @@
 # You understood me correctly, and you are right — exactness belongs on the value, not the type
 
+> **Ledger** — `[V]` verdict. Exactness belongs on the value, not the type — a value tag, not a second type; `fast` is a representation choice, so the checker sees one `number`. Overturns `SCALARANDPROMOTION` §2's type-boundary proposal (a rule that roots return `fast number` throws away exactness that was sitting right there).
+> supersedes: SCALARANDPROMOTION §2
+> superseded by: none
+
 **§2 of the last document was wrong.** You have a better objection than the one
 you made, and it kills the proposal outright: **`square root of (4)` is exactly
 2.** A rule that says roots return `fast number` throws away exactness that was

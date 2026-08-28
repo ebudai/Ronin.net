@@ -1,5 +1,9 @@
 # Runaway exact values — extend `Draining`, arm it statically, and never repair at runtime
 
+> **Ledger** — `[V]` verdict. Three rulings: §2 extend `Graph.Draining`, not a second watchdog; §3 a static pass selects which cells it watches; §4 the repair is a proposed source edit, never a runtime mutation. **§6 (does the watchdog survive into a release build) is unanswered — it does not bind.**
+> supersedes: none
+> superseded by: none
+
 **Three rulings.** §2: do not build a second watchdog — `Graph.Draining` is
 already the right mechanism, and its growth predicate is better than the one I
 first proposed. §3: a static pass selects *which* cells it watches, which this

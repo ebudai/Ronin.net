@@ -1,5 +1,10 @@
 # Scalar, two rungs, silent promotion — accepted, with one measurement that changes the shape and one pushback
 
+> **Ledger** — `[V]` verdict. Scalar only, two rungs, silent promotion — accepted; every `±∞`/`NaN` path is an `Error`; the SoA correction (§5 — promotion evicts a value from SoA); a reactive cell's unbounded growth needs a watchdog, not a limit. **§7–§8 (the `fast number` denormal and the underflow sibling) are raised but were never ruled — they do not bind.** §2's exactness-as-type proposal is struck by `EXACTNESSISAVALUE`.
+> answers: NUMBERRUNTIME
+> supersedes: none
+> superseded by: EXACTNESSISAVALUE §2
+
 **Accepted:** scalar only, no complex, no exact irrationals, no `large number`,
 silent promotion, ellipsis for display, overflow in `fast number` is a runtime
 error.

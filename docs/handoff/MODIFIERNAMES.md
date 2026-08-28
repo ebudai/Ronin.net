@@ -1,7 +1,7 @@
 # `fast`, and the thing underneath finding 2
 
 > **Ledger** — `[V]` Refuse a modifier at a name head, for every modifier — the earlier allowance is retired.
-> supersedes: none
+> supersedes: FASTRESERVATION (finding 2)
 > superseded by: none
 
 **A and D are the same question**, and answering it answers B as a side effect.

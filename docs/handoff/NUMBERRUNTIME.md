@@ -1,5 +1,10 @@
 # The number ladder's runtime — the library is the last question, and it is nearly forced
 
+> **Ledger** — `[R]` recommendation. The numeric runtime is nearly forced by the ruled semantics: C# primitives with one hand-written kernel (GCD), no native dependency until a measurement demands one, and the hot path is integer, not floating point. §4's two open questions (behaviour at 64 bits; how an exact `1/3` prints) are answered in `SCALARANDPROMOTION`.
+> answered by: SCALARANDPROMOTION
+> supersedes: none
+> superseded by: none
+
 **Short version: C# primitives, with one hand-written kernel, and no native
 dependency until a measurement demands one.** But the reason is not a benchmark.
 It is that **you already ruled the semantics**, and the semantics you ruled make
