@@ -213,6 +213,13 @@ edge of a function, which is the trade Ronin exists to make. Nested `return` is
 additionally dead under strict evaluation — `send return 5` answers `f` and never calls
 `send` — so the expressiveness given up is arguably negative.
 
+**Against it — the strictness argument does NOT hold for `otherwise`** (`UNRESOLVEDRETURNAMENDMENT`
+§4; confirmed from the tree in `SLICEONETYPINGS` §4). `otherwise` is **non-strict**: its
+`Catches` runs the right operand only when the left is caught (`Compiler/Runtime/Values.cs:189`),
+so `sum otherwise return 0` is a **live** guard idiom — the fallback that exits — not dead code.
+A statement-initial `return` restriction would kill it. That is a real expressiveness cost the
+"arguably negative" line above did not account for, and it points the other way: leave §8 deferred.
+
 None of that is ruled here. It is recorded so the reasoning is not lost.
 
 ---

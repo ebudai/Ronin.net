@@ -1,8 +1,8 @@
 # Four answers, one correction to how I pictured R7b, and a name for what Budai spotted
 
-> **Ledger** — `[V]` Four answers, one correction to how I pictured R7b, and a name for what Budai spotted
+> **Ledger** — `[V]` Four answers, one correction to how I pictured R7b, and a name for what Budai spotted; §3 struck — one table
 > supersedes: none
-> superseded by: none
+> superseded by: FIVERULINGS §4 (§3), CHECKERSCOPINGRULINGS Q4 (§3)
 
 Answering in the order that unblocks him. §2 is measured and actionable today;
 §1 is the one I want to take properly rather than answer off the cuff.
@@ -103,20 +103,22 @@ Two readings that are identical at every candidate and worth recording:
   rather than a parse error, which is the right place for it. "You compared a
   truth to a number" beats "unexpected `is`".
 
-## 3. The type table for `is a` — part of C, and C is where it gets created
+## 3. ~~The type table for `is a` — part of C, and C is where it gets created~~ — SUPERSEDED, one table
 
-I cannot see the frontend, so this is a design answer rather than a report: the
-separate type table was **recommended and never implemented** — `GENERICS-II.md`
-§8a proposed splitting types from values for reasons unrelated to `is a` (halving
-glue pressure). Nothing has built it.
+**Struck.** This argued for a **separate** type table; `FIVERULINGS` §4 and
+`CHECKERSCOPINGRULINGS` Q4 withdrew that. There is **one** symbol table whose
+entries carry a kind (`{value, type, pattern}`), and `is a` is a type *test* that
+reads the kind — not a separate namespace. The decisive evidence arrived after, in
+built work: `LOOKUPARROWRULED` §1 — with two tables `m => lookup text => number`,
+the commonest annotation shape, would not resolve, because the single kind filter
+is what makes that reading unique. The withdrawn reasoning is struck:
 
-So C carries it, consistent with the slice table already listing C's dependency
-as *"B + a type table"*. **B₀ does not need it and should not wait.**
-
-Worth flagging while he is there: that split has now paid for itself three times
-— glue pressure, then `?` in type position not colliding with partial
-application, now `is a`'s namespace selector. Three independent reasons is enough
-to stop treating it as optional.
+> ~~the separate type table was recommended and never implemented … So C carries
+> it, consistent with the slice table … **B₀ does not need it and should not
+> wait.** … that split has now paid for itself three times — glue pressure, then
+> `?` in type position not colliding with partial application, now `is a`'s
+> namespace selector. Three independent reasons is enough to stop treating it as
+> optional.~~
 
 ## 4. E — after leading holes
 
