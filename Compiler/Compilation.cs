@@ -294,9 +294,21 @@ internal sealed class Compilation
                     yield return finding;
                 break;
             case Node.Group group:
+                // Key before value, in evaluation order, and only where the KIND has keys — a
+                // lookup «[k = v]» evaluates its key too, so a «return (_)» in one is as strict an
+                // argument as one in a value (REAUDIT74 finding 1). Read the declared kind, not
+                // «part.Key is null», the same fact «Flattened» reads.
+                var keyed = group.Kind is Node.Grouping.Lookup or Node.Grouping.Keyed;
+
                 foreach (var part in group.Parts)
+                {
+                    if (keyed)
+                        foreach (var finding in Reach(part.Key, enclosing))
+                            yield return finding;
+
                     foreach (var finding in Reach(part.Value, enclosing))
                         yield return finding;
+                }
                 break;
         }
     }
@@ -453,7 +465,17 @@ internal sealed class Compilation
         {
             if (body.Container is null)
             {
-                Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, body.Reacts,
+                // Reaction ownership is carried the same way return ownership is: a transparent
+                // block — «if», loop, plain block — is inside the reaction its «when» opened, so
+                // it inherits «reacting»; a delegate is its OWN callable and resets it, exactly as
+                // it resets «within» beside it (REAUDIT75 finding 1). Both the «AnsweringReaction»
+                // check and the «Unreachable» suppression read this one fact, so they cannot
+                // disagree: a value-return in a nested «if» is the reaction's, inadmissible, and
+                // its dead call steps aside; the same return in a nested delegate is the delegate's,
+                // legal, and its dead call is reported.
+                var reacts = body.Reacts || (body.Delegate is null && reacting);
+
+                Scope(body.Statements, declared, body.Variable, body.Parameters, body.Inside, reacts,
                       container, named: false, ancillary: body.Ancillary, function: body.Function, enclosingSorts: sorts,
                       within: (object)body.Delegate ?? home);
 

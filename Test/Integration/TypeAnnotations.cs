@@ -58,6 +58,35 @@ public class TypeAnnotations
         Assert.Contains(reaction, finding => finding.Kind is FindingKind.AnsweringReaction);
     }
 
+    [Fact(DisplayName = "the reaction carries through a transparent block, and a delegate resets it")]
+    public void TheReactionCarriesThroughATransparentBlockAndADelegateResetsIt()
+    {
+        // A transparent block — «if», loop, plain block — inside a «when» is still the reaction:
+        // the return belongs to the callable the reaction is, and a value-return there is
+        // inadmissible. So the suppression must follow the reaction through the block, not stop at
+        // the «when» body (REAUDIT75 finding 1). The pair is exact: «AnsweringReaction», no
+        // «Unreachable» — the inversion this once produced is gone.
+        void Reaction(string body)
+        {
+            var findings = Of(Send + "var ready => number;\nwhen ready { " + body + " }\n");
+
+            Assert.Contains(findings, finding => finding.Kind is FindingKind.AnsweringReaction);
+            Assert.Empty(findings.OfType<Unreachable>());
+        }
+
+        Reaction("if ready { send return 1; }");           // an «if»
+        Reaction("while ready { send return 1; }");         // a loop
+        Reaction("compiled { send return 1; }");            // a plain block
+
+        // A delegate is the opposite boundary: its own callable, so its return answers IT, which is
+        // legal — the reaction does not reach in. The dead call is reported, and no
+        // «AnsweringReaction» fires, exactly as the «within» partition already separates returns.
+        var delegated = Of(Send + "var ready => number;\nwhen ready { var c = () => { send return 1; }; }\n");
+
+        Assert.Single(delegated.OfType<Unreachable>());
+        Assert.DoesNotContain(delegated, finding => finding.Kind is FindingKind.AnsweringReaction);
+    }
+
     [Fact(DisplayName = "«otherwise return» is a live guard, not an unreachable call")]
     public void OtherwiseReturnIsALiveGuardNotAnUnreachableCall()
         // «otherwise» evaluates its right only when the left is caught, so the «return» is
@@ -90,6 +119,26 @@ public class TypeAnnotations
 
         // an operation that carries no return is not a dead call.
         Assert.Empty(Of(Send + "function f => number { var r = 5 is 5; return r; }\n").OfType<Unreachable>());
+    }
+
+    [Fact(DisplayName = "a lookup evaluates its key, so a return in one is a strict argument too")]
+    public void ALookupEvaluatesItsKeySoAReturnInOneIsAStrictArgumentToo()
+    {
+        // A lookup «[k = v]» evaluates its KEY as well as its value, so a «return (_)» in a key
+        // makes the enclosing call unreachable exactly as one in a value does — the arm the walk
+        // once visited only for values (REAUDIT74 finding 1). Both halves are reported on «send».
+        Assert.StartsWith("Player.ron:2:24:", Diagnostics.Report(Assert.Single(
+            Of(Send + "function f => number { send [return 5 = 1]; }\n"))));           // in the key
+        Assert.StartsWith("Player.ron:2:24:", Diagnostics.Report(Assert.Single(
+            Of(Send + "function f => number { send [1 = return 5]; }\n"))));           // in the value
+
+        // A nested call in the key pins that the key is TRAVERSED, not special-cased for a bare
+        // return: the dead call is the inner «send» (column 30), reached through the key.
+        Assert.StartsWith("Player.ron:2:30:", Diagnostics.Report(Assert.Single(
+            Of(Send + "function f => number { send [send return 5 = 1]; }\n"))));
+
+        // a lookup whose key and value both carry no return is not a dead call.
+        Assert.Empty(Of(Send + "function f => number { send [1 = 2]; }\n").OfType<Unreachable>());
     }
 
     [Fact(DisplayName = "the supplied types annotate cleanly")]
