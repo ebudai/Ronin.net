@@ -1,6 +1,7 @@
 # Consultation — before building (A): two premise corrections and the totality mechanism
 
 > **Ledger** — `[R]` Consultation — before building (A): grammar reality and the totality mechanism
+> answered by: `VALUEPOSITIONSBUILDRULING`
 > supersedes: none
 > superseded by: none
 

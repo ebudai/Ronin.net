@@ -7,7 +7,7 @@
 > trigger.
 > answers: `VALUEPOSITIONS`
 > supersedes: none
-> superseded by: none
+> superseded by: `VALUEPOSITIONSBUILDRULING`
 
 **Take (A).** But the reason (A) is right is not the reason you gave for it, and
 **neither (A) nor (B) stops the treadmill on its own.** §2 is the part that does.
