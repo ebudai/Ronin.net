@@ -209,7 +209,7 @@ internal sealed class Compilation
             if (check.Function is not null)
                 foreach (var finding in Returns(check.Function, check.Declared, Sites(check.Function))) Add(finding);
             foreach (var finding in Arguments(check.Read, check.Declared, check.Sorts)) Add(finding);
-            foreach (var finding in Inadmissible(check.Read, check.Sorts, check.Declared)) Add(finding);
+            foreach (var finding in Inadmissible(check.Statements, check.Sorts, check.Declared)) Add(finding);
             foreach (var finding in Operations(check.Read, check.Sorts, check.Declared)) Add(finding);
             foreach (var finding in Unresolveds(check.Read)) Add(finding);
             if (check.Reacting is false)
@@ -915,8 +915,7 @@ internal sealed class Compilation
     ///     still left, its one-directional slice its own.
     /// </summary>
     private Finding Disagreeing(Span at, Sort expected, Sort actual, string spelling)
-        => actual is Sort.Action ? new ActionInValue(at)
-         : Sort.Unify(expected, actual) ? null
+        => Sort.Unify(expected, actual) ? null
          : Sort.Render(actual) is { } rendered && spelling is not null ? new TypeMismatch(at, rendered, spelling)
          : Sort.Ground(actual) is null ? new NotGround(at)
          : null;
@@ -1201,32 +1200,185 @@ internal sealed class Compilation
     ///     cannot launder it past. The enclosing operation's own type relation is left to
     ///     <see cref="Operations"/>, which asks it only of admissible operands.
     /// </summary>
-    private IEnumerable<Finding> Inadmissible(IReadOnlyList<Reading> body, IReadOnlyDictionary<string, Sort> sorts,
+    private IEnumerable<Finding> Inadmissible(IReadOnlyList<Statement> statements, IReadOnlyDictionary<string, Sort> sorts,
                                               Declarations declared)
     {
-        foreach (var reading in body)
-        {
-            if (reading.Resolution.TryTree(out var tree) is false) continue;
+        Resolver resolver = new(declared.Symbols);
 
-            foreach (var node in tree.Whole)
-                foreach (var value in Positions(node))
-                    if (Inferred(value, sorts, declared) is Sort.Action)
-                        yield return new ActionInValue(Source.Span(value.Offset, value.Length));
-        }
+        foreach (var statement in statements)
+            foreach (var (value, consumed) in Positions.ValuesOf(statement))
+                foreach (var finding in Descend(value, consumed, resolver, sorts, declared))
+                    yield return finding;
     }
 
     /// <summary>
-    ///     The value positions of a node — the places a value stands, and an action may not.
-    ///     An operator's two operands; a list literal's elements; a lookup literal's keys AND
-    ///     values, both evaluated (the same laundering route as a list, keyed — REAUDIT78).
+    ///     An action reported wherever the grammar value <paramref name="value"/> reaches a value
+    ///     position. The value resolves to a resolved tree, and if this position CONSUMES it — a
+    ///     datum's initializer, a condition, a list entry, but not the root of a bare expression
+    ///     statement — its own sort is checked; then every value position INSIDE the tree (an
+    ///     operand, a call argument, a nested list or lookup entry, a round-group part) is checked
+    ///     through <see cref="Positions.Within"/>, whatever the operator or the expected type
+    ///     (VALUE-POSITIONS-RULING). A grammar collection or round group holds its parts as grammar
+    ///     values, and is descended structurally so a bare «[act 1]» is reached the same as a
+    ///     «send [act 1]» inside a reference.
     /// </summary>
-    private static IEnumerable<Node> Positions(Node node) => node switch
+    private IEnumerable<Finding> Descend(Grammar.Value value, bool consumed, Resolver resolver,
+                                         IReadOnlyDictionary<string, Sort> sorts, Declarations declared)
     {
-        Node.Operation operation => [operation.Left, operation.Right],
-        Node.Group { Kind: Node.Grouping.List } list => list.Parts.Select(part => part.Value),
-        Node.Group { Kind: Node.Grouping.Lookup } lookup => lookup.Parts.SelectMany(part => new[] { part.Key, part.Value }),
-        _ => [],
-    };
+        // A grammar value's structural parts — a collection's entries, a round group's members —
+        // are value positions descended in the grammar; a reference resolves to a tree descended
+        // in «Within». «Positions.PartsOf» classifies which, totally.
+        var (parts, reference) = Positions.PartsOf(value, consumed);
+
+        foreach (var (part, inside) in parts)
+            foreach (var finding in Descend(part, inside, resolver, sorts, declared))
+                yield return finding;
+
+        if (reference is null) yield break;
+
+        resolver.Resolve(reference.ToLexemes()).TryTree(out var tree);
+
+        if (tree is null) yield break;
+
+        // This position consumes the value, so the reference's OWN sort is checked; then every
+        // value position inside the tree — an operand, a call argument, a nested list or lookup
+        // entry, a round-group part — whatever the operator or the expected type.
+        if (consumed && Inferred(tree, sorts, declared) is Sort.Action)
+            yield return new ActionInValue(Source.Span(tree.Offset, tree.Length));
+
+        foreach (var node in Positions.Within(tree))
+            if (Inferred(node, sorts, declared) is Sort.Action)
+                yield return new ActionInValue(Source.Span(node.Offset, node.Length));
+    }
+
+    /// <summary>
+    ///     The value positions of the grammar and the resolved tree, TOTAL over their node kinds:
+    ///     a construct with no case throws rather than silently admitting an action
+    ///     (VALUE-POSITIONS-RULING §2). «No value positions» and «not yet considered» are
+    ///     different answers — a kind with none is an explicit arm, listed in the gate's roster,
+    ///     never a default (§4).
+    /// </summary>
+    internal static class Positions
+    {
+        /// <summary>
+        ///     A statement's value expressions, each paired with whether the position CONSUMES the
+        ///     value — a datum's initializer, a condition, an iterable, so the value's own action
+        ///     is a finding — or merely PERFORMS it — a bare expression statement, whose root is a
+        ///     standalone action run for effect and left legal, only its inner positions checked.
+        /// </summary>
+        public static IEnumerable<(Grammar.Value Value, bool Consumed)> ValuesOf(Statement statement) => statement switch
+        {
+            // No IError case: a module with any parse error is diagnosed and never checked (the
+            // findings-suppress-checking invariant, Declare), so a recovery node cannot reach here.
+
+            Grammar.Datum { Initializer: { } initializer } => [(initializer, true)],
+            Grammar.Datum => [],
+
+            // Origin only — «x = act 1» consumes «act 1»; a DESTINATION is a location written to,
+            // not a value read, and «act 1 = x» is a different fault (not-a-target), not this one.
+            Grammar.Association association => [(association.Origin, true)],
+
+            // A condition is consumed as a truth — «if act 1», «while act 1», «when act 1». The
+            // parser builds the generic «Conditional<T>» directly, one closed form per keyword,
+            // which a switch names one at a time.
+            Grammar.Scope.Conditional<Ronin.Lexicon.If> branch => [(branch.Condition, true)],
+            Grammar.Scope.Conditional<Ronin.Lexicon.While> loop => [(loop.Condition, true)],
+            Grammar.Scope.Conditional<Ronin.Lexicon.When> reaction => [(reaction.Condition, true)],
+            Grammar.Scope.Iterating iterating => [(iterating.Iterable, true)],
+            Grammar.Scope.Reactive changing => [(changing.Target, true)],
+
+            // A reference or a temporary standing as a whole statement is PERFORMED — its root is
+            // not consumed (a standalone action is the ordinary way to run one), its inner positions
+            // still checked.
+            Grammar.Member.Unresolved or Grammar.Temporary => [((Grammar.Value)statement, false)],
+
+            // No value positions: declarations name a thing, module edges move one, a plain block or
+            // definition scope is a body recursed on its own.
+            Grammar.Function or Grammar.Type or Grammar.Import or Grammar.Export or Grammar.Scope => [],
+
+            _ => throw Unclassified(statement),
+        };
+
+        /// <summary>
+        ///     A grammar value's structural parts — a collection's entries (each consumed), a round
+        ///     group's members (transparent, consuming as the group does) — and, if it is a
+        ///     reference, the <see cref="Grammar.Reference"/> to resolve. Total; a literal or a
+        ///     delegate has neither (a literal denotes itself, a delegate's body is a scope of its
+        ///     own), so a bare «[act 1]» is reached the same as a «send [act 1]» inside a reference.
+        /// </summary>
+        public static (IEnumerable<(Grammar.Value Value, bool Consumed)> Parts, Grammar.Reference Reference)
+            PartsOf(Grammar.Value value, bool consumed) => value switch
+            {
+                Grammar.Member.Unresolved { Reference: { } reference } => ([], reference),
+                Grammar.Datum.Unresolved { Reference: { } reference } => ([], reference),
+
+                Grammar.Collection collection
+                    => (collection.SelectMany(entry => Sides(entry).Select(side => (side, true))), null),
+                Grammar.Inputs inputs
+                    => (inputs.Select(input => (input.AsValue ?? input.AsAssociation.Origin, consumed)), null),
+
+                Grammar.Literal or Grammar.Delegate => ([], null),
+
+                _ => throw Unclassified(value),
+            };
+
+        /// <summary>The value sides of a collection entry — a lookup key and value, or a list element.</summary>
+        private static IEnumerable<Grammar.Value> Sides(Grammar.Collection.Element entry)
+        {
+            if (entry.Destination is { } key) yield return key;
+            if (entry.Origin is { } origin) yield return origin;
+        }
+
+        /// <summary>
+        ///     The value positions INSIDE a resolved node — its operands, its call arguments, its
+        ///     list elements, its lookup keys and values — and theirs in turn. Round grouping is
+        ///     TRANSPARENT: «(v)» stands where «v» does and is not itself a position, so an action in
+        ///     brackets is reported once, at the action. The node itself is never yielded.
+        /// </summary>
+        public static IEnumerable<Node> Within(Node node)
+        {
+            foreach (var child in Children(node))
+            {
+                if (child is Node.Group { Kind: Node.Grouping.Group })
+                {
+                    foreach (var inner in Within(child)) yield return inner;
+                }
+                else
+                {
+                    yield return child;
+
+                    foreach (var inner in Within(child)) yield return inner;
+                }
+            }
+        }
+
+        /// <summary>The direct value-position children of a resolved node — total over node kinds.</summary>
+        private static IEnumerable<Node> Children(Node node) => node switch
+        {
+            Node.Operation operation => [operation.Left, operation.Right],
+            Node.Call call => call.Arguments,
+            Node.Group { Kind: Node.Grouping.List or Node.Grouping.Group } group => group.Parts.Select(part => part.Value),
+            Node.Group { Kind: Node.Grouping.Lookup or Node.Grouping.Keyed } keyed
+                => keyed.Parts.SelectMany(part => new[] { part.Key, part.Value }),
+
+            // No value positions: a name and a literal are leaves; a binding names a slot; «old (_)»
+            // takes a bare reactive name, not a value that could be an action.
+            Node.Name or Node.Literal or Node.Binding or Node.Previous => [],
+
+            _ => throw Unclassified(node),
+        };
+
+        /// <summary>
+        ///     The failure a node with no value-position case raises — a grammar or resolved kind
+        ///     added without classifying it, which the enumerate-every-kind gate turns into a build
+        ///     failure before any source reaches this (VALUE-POSITIONS-RULING §2, §4).
+        /// </summary>
+        public static System.Exception Unclassified(object node)
+            => new System.InvalidOperationException(
+                $"«{node.GetType()}» has no value-position classification. A grammar or resolved node "
+              + "kind was added without deciding whether it is a value position; classify it "
+              + "(VALUE-POSITIONS-RULING §2).");
+    }
 
     /// <summary>
     ///     Every operation whose two operands are values its operator's type relation does not
