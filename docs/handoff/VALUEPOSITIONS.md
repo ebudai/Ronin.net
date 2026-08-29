@@ -1,6 +1,7 @@
 # Consultation — modelling value positions for action admissibility
 
 > **Ledger** — `[R]` Consultation — modelling value positions for action admissibility
+> answered by: VALUEPOSITIONSRULING
 > supersedes: none
 > superseded by: none
 
