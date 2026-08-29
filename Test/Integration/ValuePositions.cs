@@ -116,4 +116,60 @@ public class ValuePositions
         Assert.Throws<InvalidOperationException>(() => Compilation.Positions.PartsOf(new Ronin.Grammar.Value(), false));
         Assert.Throws<InvalidOperationException>(() => Compilation.Positions.Within(new Unclassifiable()).ToList());
     }
+
+    // A recovery node never reaches the walk — a module with any parse error is diagnosed and
+    // never checked (findings-suppress-checking, Declare) — so every IError kind is out of the
+    // statement classifier's domain. Beside them, three concrete grammar kinds the parser never
+    // hands the walk as a statement: the two abstract-in-practice bases «Member» and «Value», and
+    // a «Collection.Element», which is reached through its collection, not as a statement.
+    private static readonly Type[] OutsideTheStatementDomain =
+        [typeof(Ronin.Grammar.Member), typeof(Ronin.Grammar.Value), typeof(Ronin.Grammar.Collection.Element)];
+
+    [Fact(DisplayName = "every grammar statement kind reaches a classifier case — a new construct fails this")]
+    public void EveryGrammarStatementKindReachesAClassifierCase()
+    {
+        // The gate the ruling asks for (§2, §3): a construct added without a value-position case
+        // fails the BUILD, the moment it is added, not only when source reaches it. Every concrete
+        // grammar statement kind is enumerated and handed to the classifier on a field-less
+        // instance — which reads but never dereferences its fields. A recovery node never reaches
+        // the walk, so an IError kind is skipped, arm or none. Every other kind must reach a case
+        // (return) rather than the «_ => throw» — except the reviewed out-of-domain kinds, which
+        // must throw, so the exclusion cannot quietly hide a kind that was left unclassified.
+        var kinds = typeof(Compilation).Assembly.GetTypes()
+                        .Where(type => typeof(Ronin.Grammar.Statement).IsAssignableFrom(type)
+                                    && type is { IsAbstract: false, IsInterface: false, ContainsGenericParameters: false });
+
+        foreach (var kind in kinds)
+        {
+            if (typeof(IError).IsAssignableFrom(kind)) continue;
+
+            var instance = (Ronin.Grammar.Statement)RuntimeHelpers.GetUninitializedObject(kind);
+
+            var cased = true;
+            try { Compilation.Positions.ValuesOf(instance); }
+            catch (InvalidOperationException) { cased = false; }
+
+            if (OutsideTheStatementDomain.Contains(kind))
+                Assert.False(cased, $"{kind.FullName} is reviewed out-of-domain but reached a case");
+            else
+                Assert.True(cased, $"{kind.FullName} reached no classifier case — classify it (§2)");
+        }
+    }
+
+    [Fact(DisplayName = "every resolved node kind is a classifier case — a new node kind fails this")]
+    public void EveryResolvedNodeKindIsAClassifierCase()
+    {
+        // The resolved-node classifier's gate (§3), pinned by the type set rather than by a
+        // field-less instance — a resolved node dereferences its children, so an uninitialised one
+        // cannot be handed «Within». A node kind added to the tree changes this set and fails here
+        // until «Children» gains a case for it; «TheValuePositionClassifiersAreTotal» proves an
+        // unclassified kind throws, and the walk tests prove each case is read correctly.
+        var kinds = typeof(Compilation).Assembly.GetTypes()
+                        .Where(type => typeof(Node).IsAssignableFrom(type)
+                                    && type is { IsAbstract: false, IsInterface: false, ContainsGenericParameters: false })
+                        .Select(type => type.Name)
+                        .OrderBy(name => name);
+
+        Assert.Equal(["Binding", "Call", "Group", "Literal", "Name", "Operation", "Previous"], kinds);
+    }
 }
