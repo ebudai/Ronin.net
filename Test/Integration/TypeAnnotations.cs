@@ -225,6 +225,34 @@ public class TypeAnnotations
             Of(action + "var amount => number;\nvar r => truth = f 1 is amount;\n")));
     }
 
+    [Fact(DisplayName = "an action is inadmissible independent of the peer, the operator, and depth")]
+    public void AnActionIsInadmissibleIndependentOfThePeerTheOperatorAndDepth()
+    {
+        // Admissibility does not wait on the operator's type relation (REAUDIT78 finding 1): a
+        // known action is reported at its own position, so none of an untyped peer, an operator
+        // with no typer yet, or an inferred list container can launder it past.
+        const string act = "function act (x => number) { return; }\n";
+
+        // Route A — an UNTYPED peer «u» leaves the other operand unresolved, but «act 1» is a known
+        // action either way it is written.
+        Assert.IsType<ActionInValue>(Assert.Single(Of(act + "var u = 5;\nvar r = act 1 is u;\n")));
+        Assert.IsType<ActionInValue>(Assert.Single(Of(act + "var u = 5;\nvar r = u is act 1;\n")));
+
+        // Route B — «otherwise» has no typer until its later slice, but the standing rule that an
+        // action is no value is independent of it.
+        Assert.IsType<ActionInValue>(Assert.Single(
+            Of(act + "var n => number;\nvar r => number = act 1 otherwise n;\n")));
+        Assert.IsType<ActionInValue>(Assert.Single(
+            Of(act + "var n => number;\nvar r => number = n otherwise act 1;\n")));
+
+        // Route C — an action wrapped in a list is reported at the SOURCE element, not laundered
+        // into a «list of action» that a later «is» silently unifies. The finding stays at «act x»
+        // whether or not an inferred call later carries the list to an operator.
+        const string wrapped = act + "function actions (x => number) { return [act x]; }\n";
+        Assert.IsType<ActionInValue>(Assert.Single(Of(wrapped)));
+        Assert.IsType<ActionInValue>(Assert.Single(Of(wrapped + "var r => truth = actions 1 is actions 2;\n")));
+    }
+
     [Fact(DisplayName = "a bracketed value in a typed initializer is read through, not hidden")]
     public void ABracketedValueInATypedInitializerIsReadThroughNotHidden()
     {

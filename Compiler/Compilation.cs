@@ -209,6 +209,7 @@ internal sealed class Compilation
             if (check.Function is not null)
                 foreach (var finding in Returns(check.Function, check.Declared, Sites(check.Function))) Add(finding);
             foreach (var finding in Arguments(check.Read, check.Declared, check.Sorts)) Add(finding);
+            foreach (var finding in Inadmissible(check.Read, check.Sorts, check.Declared)) Add(finding);
             foreach (var finding in Operations(check.Read, check.Sorts, check.Declared)) Add(finding);
             foreach (var finding in Unresolveds(check.Read)) Add(finding);
             if (check.Reacting is false)
@@ -1191,16 +1192,45 @@ internal sealed class Compilation
                      .OrderBy(site => site.At.Offset)];
 
     /// <summary>
-    ///     Every operation whose operand is not one its operator can take. An ACTION operand
-    ///     is checked first — an action is no value, so it is inadmissible in any operator, and
-    ///     ADMISSIBILITY PRECEDES the operator's own type relation (REAUDIT77 finding 2,
-    ///     FIVE-RULINGS §2b): it is an <see cref="ActionInValue"/> at the operand, not an
-    ///     operand-type finding about the operation. Otherwise the operation is read against
-    ///     its operator's typer — the same typer <see cref="Inferred"/> reads for the result
-    ///     sort — and a null result on two admissible operands is an <see cref="OperandType"/>.
-    ///     Left uncompared, as everywhere: an operator with no typer, and an operand with no
-    ///     sort yet. The operator's words carry the message, so an unspellable operand needs no
-    ///     naming.
+    ///     Every action standing in a value position — an operator's operand, or an element of
+    ///     a list literal. An action is no value (FIVE-RULINGS §2b), so it is admitted in NONE,
+    ///     and admissibility is INDEPENDENT of the operator's type relation (REAUDIT78 finding
+    ///     1): it does not wait on the operator having a typer, on the peer operand's sort being
+    ///     known, or on the action being the operand's outermost sort. A known action is
+    ///     reported at its own position, so an untyped peer, «otherwise», or an inferred list
+    ///     cannot launder it past. The enclosing operation's own type relation is left to
+    ///     <see cref="Operations"/>, which asks it only of admissible operands.
+    /// </summary>
+    private IEnumerable<Finding> Inadmissible(IReadOnlyList<Reading> body, IReadOnlyDictionary<string, Sort> sorts,
+                                              Declarations declared)
+    {
+        foreach (var reading in body)
+        {
+            if (reading.Resolution.TryTree(out var tree) is false) continue;
+
+            foreach (var node in tree.Whole)
+                foreach (var value in Positions(node))
+                    if (Inferred(value, sorts, declared) is Sort.Action)
+                        yield return new ActionInValue(Source.Span(value.Offset, value.Length));
+        }
+    }
+
+    /// <summary>The value positions of a node — the places a value stands, and an action may not.</summary>
+    private static IEnumerable<Node> Positions(Node node) => node switch
+    {
+        Node.Operation operation => [operation.Left, operation.Right],
+        Node.Group { Kind: Node.Grouping.List } list => list.Parts.Select(part => part.Value),
+        _ => [],
+    };
+
+    /// <summary>
+    ///     Every operation whose two operands are values its operator's type relation does not
+    ///     accept — «1 + "x"», «1 is "x"». Asked ONLY of admissible operands: an operator with a
+    ///     typer, and both operands inferred to a non-action sort — an action is
+    ///     <see cref="Inadmissible"/>'s to report, and admissibility precedes this. A null
+    ///     result on two such operands is the disagreement, the same typer
+    ///     <see cref="Inferred"/> reads for the result sort; the operator's words carry the
+    ///     message, so an unspellable operand needs no naming.
     /// </summary>
     private IEnumerable<Finding> Operations(IReadOnlyList<Reading> body, IReadOnlyDictionary<string, Sort> sorts,
                                             Declarations declared)
@@ -1213,26 +1243,10 @@ internal sealed class Compilation
             {
                 if (node is not Node.Operation operation) continue;
                 if (operation.Operator.Typer is not { } typer) continue;
-                if (Inferred(operation.Left, sorts, declared) is not { } left) continue;
-                if (Inferred(operation.Right, sorts, declared) is not { } right) continue;
+                if (Inferred(operation.Left, sorts, declared) is not { } left || left is Sort.Action) continue;
+                if (Inferred(operation.Right, sorts, declared) is not { } right || right is Sort.Action) continue;
 
-                // An action is no value, so no operator takes it — reported at the operand, and
-                // the operator's type relation is not asked, because the operand is not one.
-                var inadmissible = false;
-
-                if (left is Sort.Action)
-                {
-                    yield return new ActionInValue(Source.Span(operation.Left.Offset, operation.Left.Length));
-                    inadmissible = true;
-                }
-
-                if (right is Sort.Action)
-                {
-                    yield return new ActionInValue(Source.Span(operation.Right.Offset, operation.Right.Length));
-                    inadmissible = true;
-                }
-
-                if (inadmissible is false && typer(left, right) is null)
+                if (typer(left, right) is null)
                     yield return new OperandType(Source.Span(operation.Offset, operation.Length), operation.Symbol);
             }
         }
