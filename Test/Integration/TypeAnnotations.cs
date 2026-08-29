@@ -186,6 +186,62 @@ public class TypeAnnotations
         // operation did before this slice.
         => Assert.Empty(Of(Nums + "var r = a otherwise b;\n").OfType<OperandType>());
 
+    [Fact(DisplayName = "the bottom «error» is accepted as an operand, but does not excuse the other")]
+    public void TheBottomErrorIsAcceptedAsAnOperandButDoesNotExcuseTheOther()
+    {
+        // «error» is the bottom, assignable to every type, so a top-level error operand satisfies
+        // any operator and is not diagnosed a second time (REAUDIT77 finding 1) — arithmetic keeps
+        // its «number» result, equality its «truth». The rule is directional (a value is not
+        // assignable to a declared «error»), so it is the operator's, not symmetric «Unify»'s.
+        const string ent = "var e => error;\nvar n => number;\nvar t => text;\n";
+        Assert.Empty(Of(ent + "var r = e + n;\n"));
+        Assert.Empty(Of(ent + "var r = n + e;\n"));                     // either side
+        Assert.Empty(Of(ent + "var r = e is n;\n"));
+        Assert.Empty(Of(ent + "var r = e is e;\n"));
+        Assert.Empty(Of(ent + "var r => number = e + n;\n"));          // result still «number»
+        Assert.Empty(Of(ent + "var r => truth = e is n;\n"));          // result still «truth»
+
+        // but a bottom on one side does not excuse an independently wrong operand on the other.
+        var wrong = Assert.IsType<OperandType>(Assert.Single(Of(ent + "var r = e + t;\n")));
+        Assert.Equal("+", wrong.Symbol);
+    }
+
+    [Fact(DisplayName = "an action operand is inadmissible, and admissibility precedes the operator")]
+    public void AnActionOperandIsInadmissibleAndAdmissibilityPrecedesTheOperator()
+    {
+        // An action is no value, so no operator takes it — an «ActionInValue» at the operand, not
+        // a relation about the operation (REAUDIT77 finding 2, FIVE-RULINGS §2b). «f 1» is an
+        // action call: «f» answers with no value.
+        const string action = "function f (x => number) { return; }\n";
+
+        // action on both sides: one «ActionInValue» per operand, and no false «truth» result.
+        var both = Of(action + "var r => truth = f 1 is f 2;\n");
+        Assert.Equal(2, both.Count);
+        Assert.All(both, finding => Assert.IsType<ActionInValue>(finding));
+
+        // action against a value: the action is the fault, «ActionInValue» — NOT «OperandType»
+        // about two disagreeing value types, because admissibility precedes the type relation.
+        Assert.IsType<ActionInValue>(Assert.Single(
+            Of(action + "var amount => number;\nvar r => truth = f 1 is amount;\n")));
+    }
+
+    [Fact(DisplayName = "a bracketed value in a typed initializer is read through, not hidden")]
+    public void ABracketedValueInATypedInitializerIsReadThroughNotHidden()
+    {
+        // Round brackets group; they do not change the value or its type. «(a + b)» is a «number»
+        // like «a + b», so a «=> truth» initializer disagrees either way (REAUDIT77 finding 3).
+        // The grammar-tree initializer path now unwraps the round singleton group, as «Inferred»
+        // does on the resolved-tree side, through however many levels.
+        const string ab = "var a => number;\nvar b => number;\n";
+        Assert.IsType<TypeMismatch>(Assert.Single(Of(ab + "var r => truth = (a + b);\n")));
+        Assert.IsType<TypeMismatch>(Assert.Single(Of(ab + "var r => truth = ((a + b));\n")));
+        Assert.Empty(Of(ab + "var r => number = (a + b);\n"));                            // a matching type is clean
+
+        // a SQUARE list literal is not a round group — it stays a list, checked structurally.
+        var list = Assert.IsType<TypeMismatch>(Assert.Single(Of(ab + "var r => number = [a];\n")));
+        Assert.Equal("list", list.Value);
+    }
+
     [Fact(DisplayName = "a lookup evaluates its key, so a return in one is a strict argument too")]
     public void ALookupEvaluatesItsKeySoAReturnInOneIsAStrictArgumentToo()
     {

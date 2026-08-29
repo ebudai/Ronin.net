@@ -314,19 +314,30 @@ internal static class Builtin
     private static readonly Sort number = new Sort.Scalar("number");
     private static readonly Sort truth = new Sort.Scalar("truth");
 
-    /// <summary>«number × number → number», for every arithmetic operator.</summary>
+    // «error», the bottom, is assignable to every type (ERROR-AS-VALUE §2), so a top-level error
+    // operand satisfies any operator and is not diagnosed a second time — a failure flowing into
+    // «+» or «is» is not itself a finding (REAUDIT77 finding 1). Directional, so it lives here and
+    // NOT in «Sort.Unify», which is symmetric equality: a value is not assignable to a declared
+    // «error», only the reverse, so making «Unify» treat «error» as «any» would be too much.
+    private static bool Bottom(Sort sort) => sort is Sort.Error;
+
+    /// <summary>«number × number → number» — each operand a number, or the bottom that stands for any.</summary>
     private static Sort Numeric(Sort left, Sort right)
-        => Sort.Unify(left, number) && Sort.Unify(right, number) ? number : null;
+        => (Bottom(left) || Sort.Unify(left, number))
+        && (Bottom(right) || Sort.Unify(right, number))
+            ? number
+            : null;
 
     /// <summary>
     ///     «T × T → truth». The operands must unify — «is» is value equality and «is a» is
     ///     the type test, so a cross-type «is» is a mistake, not a silent «false»
-    ///     (SLICE-ONE-TYPINGS §2). One «optional» layer is unwrapped on either side, so
-    ///     «optional T is T» answers (false when absent) with no ceremony — «m @ k is 5»
-    ///     types, which «@» being the producer of optionals makes arrive at once.
+    ///     (SLICE-ONE-TYPINGS §2). The bottom compares with anything; one «optional» layer is
+    ///     unwrapped on either side, so «optional T is T» answers (false when absent) with no
+    ///     ceremony — «m @ k is 5» types, which «@» being the producer of optionals makes arrive.
     /// </summary>
     private static Sort Equality(Sort left, Sort right)
-        => Sort.Unify(left, right)
+        => Bottom(left) || Bottom(right)
+        || Sort.Unify(left, right)
         || (left is Sort.Optional maybe && Sort.Unify(maybe.Inner, right))
         || (right is Sort.Optional other && Sort.Unify(left, other.Inner))
             ? truth

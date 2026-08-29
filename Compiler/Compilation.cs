@@ -810,6 +810,20 @@ internal sealed class Compilation
                                                IReadOnlyDictionary<string, Sort> sorts, Resolver resolver,
                                                Declarations declared)
     {
+        // A round singleton group «(v)» is its inner value — brackets group, they do not change
+        // the value or its type (REAUDIT77 finding 3). Unwrapped before the square-bracket
+        // collection path, so «(a + b)» in a typed initializer reaches the same inference a return
+        // or an argument does; the resolved-tree side already strips these in «Inferred», and this
+        // is the grammar-tree side agreeing. A multi-part or keyed round group is not one value
+        // and is left as it was, so the distinction from a «[…]» list or lookup is kept.
+        if (value is Grammar.Inputs { Count: 1 } group && group.Single().AsValue is { } inner)
+        {
+            foreach (var finding in Disagreements(inner, expected, spelling, at, sorts, resolver, declared))
+                yield return finding;
+
+            yield break;
+        }
+
         // An empty collection takes its kind from the type expected of it, outward-in: a
         // list or a lookup where one is declared, agreeing with either and read no
         // further, there being no entry to read. Where neither is declared it is the
@@ -929,14 +943,15 @@ internal sealed class Compilation
     /// <summary>
     ///     The sort an operation has — the result its operator's typer gives its operands'
     ///     sorts. Null where the operator has no typer (the type arrow; «otherwise», a later
-    ///     slice), where an operand has no sort to give it, or where the operands are not
-    ///     ones the operator takes — the last of which the <see cref="Operations"/> pass
-    ///     reports, so here it is only a sort this pass leaves unnamed.
+    ///     slice), where an operand has no sort to give it, where an operand is an ACTION —
+    ///     no value, so no operation over it has one (REAUDIT77 finding 2) — or where the
+    ///     operands are not ones the operator takes, the last of which the
+    ///     <see cref="Operations"/> pass reports, so here it is only a sort left unnamed.
     /// </summary>
     private Sort Operated(Node.Operation operation, IReadOnlyDictionary<string, Sort> sorts, Declarations declared)
         => operation.Operator.Typer is { } typer
-        && Inferred(operation.Left, sorts, declared) is { } left
-        && Inferred(operation.Right, sorts, declared) is { } right
+        && Inferred(operation.Left, sorts, declared) is { } left and not Sort.Action
+        && Inferred(operation.Right, sorts, declared) is { } right and not Sort.Action
             ? typer(left, right)
             : null;
 
@@ -1176,12 +1191,15 @@ internal sealed class Compilation
                      .OrderBy(site => site.At.Offset)];
 
     /// <summary>
-    ///     Every operation whose operands are not the sorts its operator takes — «1 + "x"»,
-    ///     «1 is "x"». Each resolved operation in these readings is read against its
-    ///     operator's typer, the same typer <see cref="Inferred"/> reads for an operation's
-    ///     result sort; a null result on two inferred operands is the disagreement. Left
-    ///     uncompared, as everywhere: an operator with no typer, and an operand with no sort
-    ///     yet — the operator's words carry the message, so an unspellable operand needs no
+    ///     Every operation whose operand is not one its operator can take. An ACTION operand
+    ///     is checked first — an action is no value, so it is inadmissible in any operator, and
+    ///     ADMISSIBILITY PRECEDES the operator's own type relation (REAUDIT77 finding 2,
+    ///     FIVE-RULINGS §2b): it is an <see cref="ActionInValue"/> at the operand, not an
+    ///     operand-type finding about the operation. Otherwise the operation is read against
+    ///     its operator's typer — the same typer <see cref="Inferred"/> reads for the result
+    ///     sort — and a null result on two admissible operands is an <see cref="OperandType"/>.
+    ///     Left uncompared, as everywhere: an operator with no typer, and an operand with no
+    ///     sort yet. The operator's words carry the message, so an unspellable operand needs no
     ///     naming.
     /// </summary>
     private IEnumerable<Finding> Operations(IReadOnlyList<Reading> body, IReadOnlyDictionary<string, Sort> sorts,
@@ -1198,7 +1216,23 @@ internal sealed class Compilation
                 if (Inferred(operation.Left, sorts, declared) is not { } left) continue;
                 if (Inferred(operation.Right, sorts, declared) is not { } right) continue;
 
-                if (typer(left, right) is null)
+                // An action is no value, so no operator takes it — reported at the operand, and
+                // the operator's type relation is not asked, because the operand is not one.
+                var inadmissible = false;
+
+                if (left is Sort.Action)
+                {
+                    yield return new ActionInValue(Source.Span(operation.Left.Offset, operation.Left.Length));
+                    inadmissible = true;
+                }
+
+                if (right is Sort.Action)
+                {
+                    yield return new ActionInValue(Source.Span(operation.Right.Offset, operation.Right.Length));
+                    inadmissible = true;
+                }
+
+                if (inadmissible is false && typer(left, right) is null)
                     yield return new OperandType(Source.Span(operation.Offset, operation.Length), operation.Symbol);
             }
         }
