@@ -1215,11 +1215,16 @@ internal sealed class Compilation
         }
     }
 
-    /// <summary>The value positions of a node — the places a value stands, and an action may not.</summary>
+    /// <summary>
+    ///     The value positions of a node — the places a value stands, and an action may not.
+    ///     An operator's two operands; a list literal's elements; a lookup literal's keys AND
+    ///     values, both evaluated (the same laundering route as a list, keyed — REAUDIT78).
+    /// </summary>
     private static IEnumerable<Node> Positions(Node node) => node switch
     {
         Node.Operation operation => [operation.Left, operation.Right],
         Node.Group { Kind: Node.Grouping.List } list => list.Parts.Select(part => part.Value),
+        Node.Group { Kind: Node.Grouping.Lookup } lookup => lookup.Parts.SelectMany(part => new[] { part.Key, part.Value }),
         _ => [],
     };
 

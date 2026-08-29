@@ -245,12 +245,18 @@ public class TypeAnnotations
         Assert.IsType<ActionInValue>(Assert.Single(
             Of(act + "var n => number;\nvar r => number = n otherwise act 1;\n")));
 
-        // Route C — an action wrapped in a list is reported at the SOURCE element, not laundered
-        // into a «list of action» that a later «is» silently unifies. The finding stays at «act x»
-        // whether or not an inferred call later carries the list to an operator.
-        const string wrapped = act + "function actions (x => number) { return [act x]; }\n";
-        Assert.IsType<ActionInValue>(Assert.Single(Of(wrapped)));
-        Assert.IsType<ActionInValue>(Assert.Single(Of(wrapped + "var r => truth = actions 1 is actions 2;\n")));
+        // Route C — an action wrapped in a value container is reported at the SOURCE element, not
+        // laundered into a ground «list of»/«lookup» sort that a later «is» silently unifies. The
+        // finding stays at «act x» whether or not an inferred call later carries it to an operator.
+        // A lookup keys AND values, both evaluated, so an action in either is caught.
+        const string list = act + "function actions (x => number) { return [act x]; }\n";
+        Assert.IsType<ActionInValue>(Assert.Single(Of(list)));
+        Assert.IsType<ActionInValue>(Assert.Single(Of(list + "var r => truth = actions 1 is actions 2;\n")));
+
+        Assert.IsType<ActionInValue>(Assert.Single(
+            Of(act + "function values (x => number) { return [1 = act x]; }\n")));      // in a lookup value
+        Assert.IsType<ActionInValue>(Assert.Single(
+            Of(act + "function keys (x => number) { return [act x = 1]; }\n")));        // in a lookup key
     }
 
     [Fact(DisplayName = "a bracketed value in a typed initializer is read through, not hidden")]
